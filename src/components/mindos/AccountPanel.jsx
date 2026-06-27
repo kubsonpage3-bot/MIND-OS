@@ -82,7 +82,7 @@ export default function AccountPanel() {
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground/70">
-              To change password or connected accounts, use the Base44 dashboard.
+              To change password or account details, use the profile settings.
             </p>
           </>
         ) : (

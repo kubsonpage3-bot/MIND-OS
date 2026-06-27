@@ -1,39 +1,27 @@
-**Welcome to your Base44 project** 
+# MIND OS
 
-**About**
+MIND OS is a gamified productivity OS with Idle-RPG mechanics built using React, Tailwind CSS, and Framer Motion for the frontend, and Django with SQLite for the backend. It can run as a web app or as a desktop application powered by Tauri.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Prerequisites
 
-This project contains everything you need to run your app locally.
+1. Clone the repository
+2. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up the Python virtual environment and backend dependencies in the `backend/` folder.
 
-**Edit the code in your local development environment**
+## Running the App
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
-
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+### Frontend
+To run the frontend in development mode:
+```bash
+npm run dev
 ```
 
-Run the app: `npm run dev`
-
-**Publish your changes**
-
-Open [Base44.com](http://Base44.com) and click on Publish.
-
-**Docs & Support**
-
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+### Backend
+To run the Django server, navigate to `backend/`, activate the virtual environment, and run:
+```bash
+python manage.py runserver
+```
+By default, the backend uses a local SQLite database (`db.sqlite3`).

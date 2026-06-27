@@ -23,7 +23,7 @@ export default function AboutPanel() {
         <div className="space-y-1 text-[10px] font-mono text-muted-foreground">
           <div>Version: <span className="text-foreground">{APP_VERSION}</span></div>
           <div>Build: <span className="text-foreground">{BUILD_DATE}</span></div>
-          <div>Platform: <span className="text-foreground">Base44</span></div>
+          <div>Platform: <span className="text-foreground">Tauri (Desktop)</span></div>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default function AboutPanel() {
       {/* Credits */}
       <div className="p-4 rounded-xl border border-border bg-card">
         <div className="text-[10px] font-mono text-muted-foreground/50 text-center">
-          Built with ❤️ using Base44
+          Built with ❤️ for MIND OS
         </div>
       </div>
     </div>

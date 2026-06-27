@@ -12,8 +12,8 @@ export default function OptimizedImage({
   const imageMeta = useMemo(() => {
     if (!src || typeof src !== "string") return null;
 
-    // Check if it is a Base44 CDN image URL
-    const match = src.match(/https:\/\/media\.base44\.com\/images\/public\/[a-f0-9]+\/([^?#]+)/);
+    // Check if it is a local original image URL
+    const match = src.match(/\/images\/original\/([^?#]+)/);
     if (!match) return null;
 
     const filename = match[1];

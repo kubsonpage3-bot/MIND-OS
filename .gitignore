@@ -3,3 +3,12 @@ __pycache__/
 .env
 
 node_modules
+.agents\rules
+.agents
+rules
+skills
+framer-motion-juice
+tailwind-v4-game-ui
+react-game-loop
+workflow-scaffold-game-ui
+AGENTS.md

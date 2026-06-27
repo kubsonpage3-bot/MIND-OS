@@ -15,7 +15,7 @@ const PRESETS = [
 const CHARACTERS = {
   work: {
     name: "BEATRIX",
-    image: "https://media.base44.com/images/public/69b9b825affa4271ca0d1fd9/5325ab6bf_pomodorp3.png",
+    image: "/images/original/5325ab6bf_pomodorp3.png",
     color: "#60a5fa",
     glow: "rgba(96,165,250,0.5)",
     accent: "#3b82f6",
@@ -24,7 +24,7 @@ const CHARACTERS = {
   },
   break: {
     name: "LIGHTNING",
-    image: "https://media.base44.com/images/public/69b9b825affa4271ca0d1fd9/fa6645d8f_pomodorp2.png",
+    image: "/images/original/fa6645d8f_pomodorp2.png",
     color: "#f472b6",
     glow: "rgba(244,114,182,0.5)",
     accent: "#ec4899",
@@ -33,7 +33,7 @@ const CHARACTERS = {
   },
   longBreak: {
     name: "SUMMONER",
-    image: "https://media.base44.com/images/public/69b9b825affa4271ca0d1fd9/cb162ffce_pomodorp1.png",
+    image: "/images/original/cb162ffce_pomodorp1.png",
     color: "#a78bfa",
     glow: "rgba(167,139,250,0.5)",
     accent: "#8b5cf6",

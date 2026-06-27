@@ -335,7 +335,7 @@ function GhostAvatar({ pulse = false, overtook, playerOvertook }) {
         />
       )}
       <OptimizedImage
-        src="https://media.base44.com/images/public/69b9b825affa4271ca0d1fd9/6aa09434f_grafik.png"
+        src="/images/original/6aa09434f_grafik.png"
         alt="JOHAN"
         style={{
           width: 72, height: 72, objectFit: "cover", borderRadius: "50%",

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Calendar, ExternalLink, Link2, CheckCircle, Copy, Info, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
 
 export default function CalendarConnectPanel() {
   const [copied, setCopied] = useState(false);
@@ -96,7 +95,7 @@ export default function CalendarConnectPanel() {
             Please log in to connect your Google Calendar.
           </p>
           <button
-            onClick={() => base44.auth.redirectToLogin(window.location.href)}
+            onClick={() => window.location.hash = '#/login'}
             className="w-full p-3 rounded-lg border border-destructive/40 bg-destructive/20 hover:bg-destructive/30 transition-colors text-xs font-mono text-destructive"
           >
             Go to Login
