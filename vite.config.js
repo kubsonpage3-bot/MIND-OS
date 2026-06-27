@@ -23,4 +23,12 @@ export default defineConfig({
       ignored: [/src-tauri[/\\]target/],
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        'battle-strip': path.resolve(__dirname, 'battle-strip.html'),
+      },
+    },
+  },
 });
