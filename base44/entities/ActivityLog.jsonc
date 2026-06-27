@@ -1,0 +1,67 @@
+{
+  "name": "ActivityLog",
+  "type": "object",
+  "properties": {
+    "activity": {
+      "type": "string",
+      "description": "Activity type"
+    },
+    "hours": {
+      "type": "number",
+      "description": "Hours spent"
+    },
+    "gf_gain": {
+      "type": "number",
+      "description": "Gf metric gain"
+    },
+    "gc_gain": {
+      "type": "number",
+      "description": "Gc metric gain"
+    },
+    "ps_gain": {
+      "type": "number",
+      "description": "Ps metric gain"
+    },
+    "vm_gain": {
+      "type": "number",
+      "description": "Vm metric gain"
+    },
+    "iq_before": {
+      "type": "number",
+      "description": "IQ before this session"
+    },
+    "iq_after": {
+      "type": "number",
+      "description": "IQ after this session"
+    },
+    "xp_earned": {
+      "type": "number",
+      "description": "XP earned in this session"
+    },
+    "log_date": {
+      "type": "string",
+      "description": "Date of the activity"
+    },
+    "focus_rating": {
+      "type": "number",
+      "description": "User focus rating 1-10"
+    },
+    "efficiency_total": {
+      "type": "number",
+      "description": "Total efficiency coefficient"
+    },
+    "efficiency_focus": {
+      "type": "number"
+    },
+    "efficiency_streak": {
+      "type": "number"
+    },
+    "efficiency_fatigue": {
+      "type": "number"
+    },
+    "efficiency_diminishing": {
+      "type": "number"
+    }
+  },
+  "required": []
+}

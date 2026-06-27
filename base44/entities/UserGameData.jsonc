@@ -1,0 +1,56 @@
+{
+  "name": "UserGameData",
+  "type": "object",
+  "properties": {
+    "game_state": {
+      "type": "object",
+      "description": "Game state (hp, gold, equipped, inventory, stats)"
+    },
+    "class_data": {
+      "type": "object",
+      "description": "Class data (chosen class, mana, skills)"
+    },
+    "rank_xp": {
+      "type": "object",
+      "description": "Rank XP data (rankXP, currentRank, rankHistory)"
+    },
+    "tasks": {
+      "type": "array",
+      "description": "Tasks array (habits, dailies, todos)"
+    },
+    "streak": {
+      "type": "object",
+      "description": "Streak data (streakCount, lastDate)"
+    },
+    "skill_tree": {
+      "type": "object",
+      "description": "Skill tree unlocks"
+    },
+    "allies_data": {
+      "type": "object",
+      "description": "Allies data"
+    },
+    "mutators": {
+      "type": "object",
+      "description": "Mutators data"
+    },
+    "prestige": {
+      "type": "object",
+      "description": "Prestige data"
+    },
+    "scrolls": {
+      "type": "object",
+      "description": "Scrolls data"
+    },
+    "settings": {
+      "type": "object",
+      "description": "User settings (theme, zoom, sound)"
+    },
+    "last_sync": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last sync timestamp"
+    }
+  },
+  "required": []
+}

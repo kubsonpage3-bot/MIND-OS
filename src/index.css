@@ -1,0 +1,724 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ─── Safe-area insets (notch / home bar / Dynamic Island) ─── */
+    --sat: env(safe-area-inset-top,    0px);
+    --sar: env(safe-area-inset-right,  0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left,   0px);
+
+    /* Habitica-style light theme */
+    --background: 240 20% 97%;
+    --foreground: 255 14% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 255 14% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 255 14% 18%;
+    --primary: 250 100% 68%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 250 60% 95%;
+    --secondary-foreground: 250 40% 40%;
+    --muted: 250 20% 96%;
+    --muted-foreground: 255 8% 53%;
+    --accent: 250 60% 94%;
+    --accent-foreground: 250 40% 40%;
+    --destructive: 358 92% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 255 14% 90%;
+    --input: 250 20% 96%;
+    --ring: 250 100% 68%;
+    --radius: 0.75rem;
+
+    /* Custom brand tokens */
+    --habit-purple: #7B61FF;
+    --habit-purple-light: #e8e4ff;
+    --habit-purple-light-hover: rgba(123, 97, 255, 0.18);
+    --habit-purple-glow: rgba(123, 97, 255, 0.35);
+    --habit-gold: #ffbe5d;
+    --habit-red: #f74e52;
+    --habit-blue: #50b5e9;
+    --habit-green: #1ca830;
+    --habit-orange: #ff8800;
+    --habit-sidebar: #2b2738;
+    --habit-text: #2b2738;
+    --habit-dim: #878190;
+    --habit-border: #e5e3eb;
+    --habit-bg: #f6f6f9;
+    --habit-panel: #ffffff;
+
+    /* Sidebar Variables */
+    --habit-sidebar-text: rgba(255, 255, 255, 0.6);
+    --habit-sidebar-active-text: #ffffff;
+    --habit-sidebar-dim: rgba(255, 255, 255, 0.3);
+    --habit-sidebar-border: rgba(255, 255, 255, 0.07);
+    --habit-sidebar-hover: rgba(255, 255, 255, 0.09);
+    --habit-sidebar-sub-bg: rgba(255, 255, 255, 0.04);
+    --habit-sidebar-sub-text: rgba(255, 255, 255, 0.55);
+
+    /* Bottom Nav Variables */
+    --habit-bottom-bg: rgba(29, 29, 33, 0.98);
+    --habit-bottom-border: rgba(255, 255, 255, 0.09);
+    --habit-bottom-sub-bg: rgba(29, 29, 33, 0.95);
+    --habit-bottom-item-bg: rgba(255, 255, 255, 0.05);
+    --habit-bottom-text: rgba(255, 255, 255, 0.55);
+    --habit-bottom-active-text: #ffffff;
+    --habit-bottom-inactive-text: rgba(148, 163, 184, 0.5);
+    --habit-bottom-inactive-text-dim: rgba(148, 163, 184, 0.45);
+
+    /* Metric colors */
+    --gf-color: 210 100% 60%;
+    --gc-color: 142 70% 50%;
+    --ps-color: 43 100% 58%;
+    --vm-color: 270 80% 65%;
+    --iq-color: 255 14% 18%;
+  }
+
+  .dark {
+    --habit-bg: #121215;
+    --habit-text: #f0f0f5;
+    --habit-dim: #8b8b99;
+    --habit-border: rgba(255, 255, 255, 0.1);
+    --habit-panel: #1a1a1f;
+    --habit-sidebar: #151518;
+    
+    --habit-purple: #9461f5;
+    --habit-purple-light: rgba(148, 97, 245, 0.15);
+    --habit-purple-light-hover: rgba(148, 97, 245, 0.25);
+    --habit-purple-glow: rgba(148, 97, 245, 0.35);
+    
+    --habit-sidebar-text: rgba(255, 255, 255, 0.6);
+    --habit-sidebar-active-text: #ffffff;
+    --habit-sidebar-dim: rgba(255, 255, 255, 0.3);
+    --habit-sidebar-border: rgba(255, 255, 255, 0.07);
+    --habit-sidebar-hover: rgba(255, 255, 255, 0.09);
+    --habit-sidebar-sub-bg: rgba(255, 255, 255, 0.04);
+    --habit-sidebar-sub-text: rgba(255, 255, 255, 0.55);
+    
+    --habit-bottom-bg: rgba(21, 21, 24, 0.98);
+    --habit-bottom-border: rgba(255, 255, 255, 0.08);
+    --habit-bottom-sub-bg: rgba(21, 21, 24, 0.95);
+    --habit-bottom-item-bg: rgba(255, 255, 255, 0.05);
+    --habit-bottom-text: rgba(255, 255, 255, 0.55);
+    --habit-bottom-active-text: #ffffff;
+    --habit-bottom-inactive-text: rgba(148, 163, 184, 0.5);
+    --habit-bottom-inactive-text-dim: rgba(148, 163, 184, 0.45);
+    
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 10%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 250 100% 75%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 240 5% 60%;
+    --accent: 250 100% 75%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 358 92% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 20%;
+    --input: 240 10% 15%;
+    --ring: 250 100% 75%;
+  }
+}
+
+/* ─── GLOBAL BODY ─── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    /* Respect the safe-area viewport meta tag */
+    padding-top: env(safe-area-inset-top,    0px);
+    padding-right: env(safe-area-inset-right,  0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left,   0px);
+  }
+
+  body {
+    background: var(--habit-bg) !important;
+    color: var(--habit-text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    overscroll-behavior: none;
+    /* Native-app feel: disable text selection globally */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Disable iOS long-press callout (magnifier / copy-paste menu) */
+    -webkit-touch-callout: none;
+  }
+
+  /* Re-enable selection for actual text content areas */
+  input, textarea, [contenteditable], .selectable {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  button,
+  [role="button"],
+  nav,
+  nav *,
+  .game-btn,
+  .pixel-btn {
+    user-select: none;
+    -webkit-user-select: none;
+    /* Remove 300ms tap delay on mobile — feels instantly responsive */
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  .font-game { font-family: 'Press Start 2P', monospace; }
+  .font-hud  { font-family: 'Press Start 2P', monospace; }
+  .font-mono { font-family: 'Press Start 2P', monospace; font-size: 0.7em; }
+  .font-inter { font-family: 'Nunito', sans-serif; }
+}
+
+/* ─── THEME DEFINITIONS AND OVERRIDES ─── */
+
+/* Solid Light */
+html[data-theme="solid_light"] {
+  --habit-bg: #f6f6f9;
+  --habit-panel: #ffffff;
+  --habit-sidebar: #ffffff;
+  --habit-text: #2b2738;
+  --habit-dim: #878190;
+  --habit-border: #e5e3eb;
+  --habit-purple: #7B61FF;
+  --habit-purple-light: rgba(123, 97, 255, 0.08);
+  --habit-purple-light-hover: rgba(123, 97, 255, 0.15);
+  --habit-purple-glow: rgba(123, 97, 255, 0.25);
+  
+  --habit-sidebar-text: #4a4a5a;
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: #878190;
+  --habit-sidebar-border: #f0eef8;
+  --habit-sidebar-hover: rgba(123, 97, 255, 0.06);
+  --habit-sidebar-sub-bg: #fcfbfe;
+  --habit-sidebar-sub-text: #5a5a6a;
+  
+  --habit-bottom-bg: rgba(255, 255, 255, 0.96);
+  --habit-bottom-border: #f0eef8;
+  --habit-bottom-sub-bg: rgba(255, 255, 255, 0.94);
+  --habit-bottom-item-bg: rgba(123, 97, 255, 0.05);
+  --habit-bottom-text: #5a5a6a;
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: #878190;
+  --habit-bottom-inactive-text-dim: #a09eb0;
+
+  --primary: 250 100% 68%;
+  --ring: 250 100% 68%;
+}
+html[data-theme="solid_light"] body {
+  background: var(--habit-bg) !important;
+}
+
+/* Solid Dark */
+html[data-theme="solid_dark"] {
+  --habit-bg: #121215;
+  --habit-text: #f0f0f5;
+  --habit-dim: #8b8b99;
+  --habit-border: rgba(255, 255, 255, 0.1);
+  --habit-panel: #1a1a1f;
+  --habit-sidebar: #151518;
+  
+  --habit-purple: #9461f5;
+  --habit-purple-light: rgba(148, 97, 245, 0.15);
+  --habit-purple-light-hover: rgba(148, 97, 245, 0.25);
+  --habit-purple-glow: rgba(148, 97, 245, 0.35);
+
+  --primary: 250 100% 75%;
+  --ring: 250 100% 75%;
+}
+html[data-theme="solid_dark"] body {
+  background: var(--habit-bg) !important;
+}
+
+/* Cosmos Dark — starry night sky */
+html[data-theme="dark"] {
+  --habit-bg: #0d0820;
+  --habit-text: #e0dcf5;
+  --habit-dim: #9b8bb5;
+  --habit-border: rgba(255, 255, 255, 0.12);
+  --habit-panel: rgba(20, 15, 35, 0.72);
+  --habit-sidebar: rgba(13, 8, 32, 0.85);
+  
+  --habit-purple: #9d7cff;
+  --habit-purple-light: rgba(157, 124, 255, 0.15);
+  --habit-purple-light-hover: rgba(157, 124, 255, 0.25);
+  --habit-purple-glow: rgba(157, 124, 255, 0.35);
+  
+  --habit-sidebar-text: rgba(224, 220, 245, 0.65);
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: rgba(224, 220, 245, 0.35);
+  --habit-sidebar-border: rgba(255, 255, 255, 0.08);
+  --habit-sidebar-hover: rgba(157, 124, 255, 0.12);
+  --habit-sidebar-sub-bg: rgba(13, 8, 32, 0.4);
+  --habit-sidebar-sub-text: rgba(224, 220, 245, 0.55);
+  
+  --habit-bottom-bg: rgba(13, 8, 32, 0.95);
+  --habit-bottom-border: rgba(255, 255, 255, 0.08);
+  --habit-bottom-sub-bg: rgba(13, 8, 32, 0.9);
+  --habit-bottom-item-bg: rgba(157, 124, 255, 0.1);
+  --habit-bottom-text: rgba(224, 220, 245, 0.65);
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: rgba(155, 139, 181, 0.6);
+  --habit-bottom-inactive-text-dim: rgba(155, 139, 181, 0.5);
+
+  --primary: 260 100% 75%;
+  --ring: 260 100% 75%;
+}
+html[data-theme="dark"] body {
+  background-image: url('/images/webp/theme_dark.webp') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-color: #0d0820 !important;
+}
+
+/* Anime — Re:Zero / fantasy field */
+html[data-theme="anime"] {
+  --habit-bg: #1a3020;
+  --habit-text: #f0fff0;
+  --habit-dim: #a8d8a8;
+  --habit-border: rgba(168, 216, 168, 0.2);
+  --habit-panel: rgba(32, 58, 42, 0.75);
+  --habit-sidebar: rgba(20, 38, 27, 0.85);
+  
+  --habit-purple: #ffb7b2;
+  --habit-purple-light: rgba(255, 183, 178, 0.18);
+  --habit-purple-light-hover: rgba(255, 183, 178, 0.28);
+  --habit-purple-glow: rgba(255, 183, 178, 0.4);
+  
+  --habit-sidebar-text: rgba(240, 255, 240, 0.65);
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: rgba(168, 216, 168, 0.4);
+  --habit-sidebar-border: rgba(168, 216, 168, 0.12);
+  --habit-sidebar-hover: rgba(255, 183, 178, 0.12);
+  --habit-sidebar-sub-bg: rgba(20, 38, 27, 0.4);
+  --habit-sidebar-sub-text: rgba(240, 255, 240, 0.55);
+  
+  --habit-bottom-bg: rgba(20, 38, 27, 0.95);
+  --habit-bottom-border: rgba(168, 216, 168, 0.15);
+  --habit-bottom-sub-bg: rgba(20, 38, 27, 0.9);
+  --habit-bottom-item-bg: rgba(255, 183, 178, 0.1);
+  --habit-bottom-text: rgba(240, 255, 240, 0.65);
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: rgba(168, 216, 168, 0.6);
+  --habit-bottom-inactive-text-dim: rgba(168, 216, 168, 0.5);
+
+  --primary: 343 100% 80%;
+  --ring: 343 100% 80%;
+}
+html[data-theme="anime"] body {
+  background-image: url('/images/webp/theme_anime.webp') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-color: #1a2d1a !important;
+}
+
+/* Steampunk — clockwork city */
+html[data-theme="steampunk"] {
+  --habit-bg: #1a0d0d;
+  --habit-text: #fff0d0;
+  --habit-dim: #b08c68;
+  --habit-border: rgba(212, 175, 55, 0.25);
+  --habit-panel: rgba(38, 26, 20, 0.78);
+  --habit-sidebar: rgba(26, 16, 12, 0.88);
+  
+  --habit-purple: #d4af37;
+  --habit-purple-light: rgba(212, 175, 55, 0.15);
+  --habit-purple-light-hover: rgba(212, 175, 55, 0.25);
+  --habit-purple-glow: rgba(212, 175, 55, 0.35);
+  
+  --habit-sidebar-text: rgba(255, 240, 208, 0.65);
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: rgba(212, 175, 55, 0.35);
+  --habit-sidebar-border: rgba(212, 175, 55, 0.15);
+  --habit-sidebar-hover: rgba(212, 175, 55, 0.12);
+  --habit-sidebar-sub-bg: rgba(26, 16, 12, 0.4);
+  --habit-sidebar-sub-text: rgba(255, 240, 208, 0.55);
+  
+  --habit-bottom-bg: rgba(26, 16, 12, 0.95);
+  --habit-bottom-border: rgba(212, 175, 55, 0.18);
+  --habit-bottom-sub-bg: rgba(26, 16, 12, 0.9);
+  --habit-bottom-item-bg: rgba(212, 175, 55, 0.1);
+  --habit-bottom-text: rgba(255, 240, 208, 0.65);
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: rgba(176, 140, 104, 0.6);
+  --habit-bottom-inactive-text-dim: rgba(176, 140, 104, 0.5);
+
+  --primary: 43 100% 50%;
+  --ring: 43 100% 50%;
+}
+html[data-theme="steampunk"] body {
+  background-image: url('/images/webp/theme_steampunk.webp') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-color: #1a0d0d !important;
+}
+
+/* Dark Fantasy — gothic castle, blood moon */
+html[data-theme="dark_fantasy"] {
+  --habit-bg: #120008;
+  --habit-text: #ff4060;
+  --habit-dim: #aa5060;
+  --habit-border: rgba(255, 64, 96, 0.25);
+  --habit-panel: rgba(22, 5, 12, 0.8);
+  --habit-sidebar: rgba(15, 2, 8, 0.9);
+  
+  --habit-purple: #cc1040;
+  --habit-purple-light: rgba(204, 16, 64, 0.15);
+  --habit-purple-light-hover: rgba(204, 16, 64, 0.25);
+  --habit-purple-glow: rgba(204, 16, 64, 0.35);
+  
+  --habit-sidebar-text: rgba(255, 64, 96, 0.65);
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: rgba(255, 64, 96, 0.35);
+  --habit-sidebar-border: rgba(204, 16, 64, 0.15);
+  --habit-sidebar-hover: rgba(204, 16, 64, 0.12);
+  --habit-sidebar-sub-bg: rgba(15, 2, 8, 0.4);
+  --habit-sidebar-sub-text: rgba(255, 64, 96, 0.55);
+  
+  --habit-bottom-bg: rgba(15, 2, 8, 0.95);
+  --habit-bottom-border: rgba(255, 64, 96, 0.2);
+  --habit-bottom-sub-bg: rgba(15, 2, 8, 0.9);
+  --habit-bottom-item-bg: rgba(204, 16, 64, 0.1);
+  --habit-bottom-text: rgba(255, 64, 96, 0.65);
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: rgba(170, 80, 96, 0.6);
+  --habit-bottom-inactive-text-dim: rgba(170, 80, 96, 0.5);
+
+  --primary: 348 85% 50%;
+  --ring: 348 85% 50%;
+}
+html[data-theme="dark_fantasy"] body {
+  background-image: url('/images/webp/theme_dark_fantasy.webp') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-color: #120008 !important;
+}
+
+/* Christian Orthodox — golden domes */
+html[data-theme="christian"] {
+  --habit-bg: #2d1a00;
+  --habit-text: #fff8e0;
+  --habit-dim: #c87820;
+  --habit-border: rgba(240, 192, 64, 0.25);
+  --habit-panel: rgba(45, 26, 0, 0.82);
+  --habit-sidebar: rgba(32, 18, 0, 0.9);
+  
+  --habit-purple: #f0c040;
+  --habit-purple-light: rgba(240, 192, 64, 0.15);
+  --habit-purple-light-hover: rgba(240, 192, 64, 0.25);
+  --habit-purple-glow: rgba(240, 192, 64, 0.35);
+  
+  --habit-sidebar-text: rgba(255, 248, 224, 0.65);
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: rgba(240, 192, 64, 0.35);
+  --habit-sidebar-border: rgba(240, 192, 64, 0.15);
+  --habit-sidebar-hover: rgba(240, 192, 64, 0.12);
+  --habit-sidebar-sub-bg: rgba(32, 18, 0, 0.4);
+  --habit-sidebar-sub-text: rgba(255, 248, 224, 0.55);
+  
+  --habit-bottom-bg: rgba(32, 18, 0, 0.95);
+  --habit-bottom-border: rgba(240, 192, 64, 0.2);
+  --habit-bottom-sub-bg: rgba(32, 18, 0, 0.9);
+  --habit-bottom-item-bg: rgba(240, 192, 64, 0.1);
+  --habit-bottom-text: rgba(255, 248, 224, 0.65);
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: rgba(200, 120, 32, 0.6);
+  --habit-bottom-inactive-text-dim: rgba(200, 120, 32, 0.5);
+
+  --primary: 43 80% 55%;
+  --ring: 43 80% 55%;
+}
+html[data-theme="christian"] body {
+  background-image: url('/images/webp/theme_christian.webp') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  background-color: #2d1a00 !important;
+}
+
+/* Cyberpunk — fallback gradient */
+html[data-theme="cyberpunk"] {
+  --habit-bg: #0d0d1a;
+  --habit-text: #00ffcc;
+  --habit-dim: #b500b5;
+  --habit-border: rgba(0, 255, 204, 0.25);
+  --habit-panel: rgba(13, 13, 26, 0.82);
+  --habit-sidebar: rgba(10, 5, 20, 0.9);
+  
+  --habit-purple: #ff00ff;
+  --habit-purple-light: rgba(255, 0, 255, 0.15);
+  --habit-purple-light-hover: rgba(255, 0, 255, 0.25);
+  --habit-purple-glow: rgba(255, 0, 255, 0.4);
+  
+  --habit-sidebar-text: rgba(0, 255, 204, 0.65);
+  --habit-sidebar-active-text: #ffffff;
+  --habit-sidebar-dim: rgba(0, 255, 204, 0.35);
+  --habit-sidebar-border: rgba(255, 0, 255, 0.15);
+  --habit-sidebar-hover: rgba(255, 0, 255, 0.12);
+  --habit-sidebar-sub-bg: rgba(10, 5, 20, 0.4);
+  --habit-sidebar-sub-text: rgba(0, 255, 204, 0.55);
+  
+  --habit-bottom-bg: rgba(10, 5, 20, 0.95);
+  --habit-bottom-border: rgba(0, 255, 204, 0.2);
+  --habit-bottom-sub-bg: rgba(10, 5, 20, 0.9);
+  --habit-bottom-item-bg: rgba(255, 0, 255, 0.1);
+  --habit-bottom-text: rgba(0, 255, 204, 0.65);
+  --habit-bottom-active-text: #ffffff;
+  --habit-bottom-inactive-text: rgba(0, 255, 204, 0.5);
+  --habit-bottom-inactive-text-dim: rgba(0, 255, 204, 0.4);
+
+  --primary: 300 100% 50%;
+  --ring: 300 100% 50%;
+}
+html[data-theme="cyberpunk"] body {
+  background: linear-gradient(135deg, #0d0d1a 0%, #1a0030 40%, #001a1a 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* ─── GLASSMORPHISM: cards/panels become translucent on wallpaper themes ─── */
+html[data-theme="dark"] .game-card,
+html[data-theme="dark"] .habit-card,
+html[data-theme="anime"] .game-card,
+html[data-theme="anime"] .habit-card,
+html[data-theme="purple"] .game-card,
+html[data-theme="purple"] .habit-card,
+html[data-theme="steampunk"] .game-card,
+html[data-theme="steampunk"] .habit-card,
+html[data-theme="dark_fantasy"] .game-card,
+html[data-theme="dark_fantasy"] .habit-card,
+html[data-theme="christian"] .game-card,
+html[data-theme="christian"] .habit-card,
+html[data-theme="cyberpunk"] .game-card,
+html[data-theme="cyberpunk"] .habit-card {
+  background: rgba(20, 15, 35, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* ─── THEME: make main content containers transparent to show wallpaper ─── */
+html[data-theme="dark"] .min-h-screen,
+html[data-theme="anime"] .min-h-screen,
+html[data-theme="purple"] .min-h-screen,
+html[data-theme="steampunk"] .min-h-screen,
+html[data-theme="dark_fantasy"] .min-h-screen,
+html[data-theme="christian"] .min-h-screen,
+html[data-theme="cyberpunk"] .min-h-screen {
+  background: transparent !important;
+}
+
+/* Task cards glass on wallpaper themes */
+html[data-theme="dark"] .task-card,
+html[data-theme="anime"] .task-card,
+html[data-theme="purple"] .task-card,
+html[data-theme="steampunk"] .task-card,
+html[data-theme="dark_fantasy"] .task-card,
+html[data-theme="christian"] .task-card,
+html[data-theme="cyberpunk"] .task-card {
+  background: rgba(20, 15, 35, 0.65) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* ─── ZOOM ─── */
+#root {
+  transform: scale(var(--zoom-scale, 1));
+  transform-origin: top left;
+  transition: transform 0.2s ease;
+  width: 100%;
+  background: transparent;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--habit-bg); }
+::-webkit-scrollbar-thumb { background: var(--habit-border); border-radius: 2px; }
+
+/* ─── PANEL / CARD ─── */
+.game-card,
+.habit-card {
+  background: var(--habit-panel);
+  border-radius: 12px;
+  border: 1px solid var(--habit-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 16px;
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+.game-card:hover,
+.habit-card:hover {
+  border-color: var(--habit-purple);
+  box-shadow: 0 4px 16px rgba(123,97,255,0.14);
+}
+
+/* ─── BUTTONS ─── */
+.game-btn {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.game-btn:hover  { transform: scale(1.02); }
+.game-btn:active { transform: scale(0.98); }
+
+.pixel-btn {
+  border-radius: 9999px;
+  border: 2px solid var(--habit-purple);
+  background: var(--habit-panel);
+  color: var(--habit-purple);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  padding: 8px 20px;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.pixel-btn:hover  { background: var(--habit-purple-light); transform: scale(1.02); }
+.pixel-btn:active { transform: scale(0.98); }
+
+/* ─── RESOURCE BARS ─── */
+.habit-bar-track {
+  height: 14px;
+  border-radius: 7px;
+  background: #f0eef8;
+  overflow: hidden;
+}
+.habit-bar-fill-hp {
+  background: var(--habit-red);
+  box-shadow: 0 0 8px rgba(247,78,82,0.4);
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.5s ease;
+}
+.habit-bar-fill-mp {
+  background: var(--habit-blue);
+  box-shadow: 0 0 8px rgba(80,181,233,0.4);
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.5s ease;
+}
+.habit-bar-fill-xp {
+  background: var(--habit-purple);
+  box-shadow: 0 0 8px rgba(123,97,255,0.4);
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.6s ease;
+}
+.habit-bar-fill-gold {
+  background: var(--habit-gold);
+  box-shadow: 0 0 8px rgba(255,190,93,0.4);
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.5s ease;
+}
+
+/* ─── TASK CARDS ─── */
+.task-card {
+  background: var(--habit-panel);
+  border-radius: 10px;
+  border: 1px solid var(--habit-border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 80ms ease, background-color 200ms ease;
+}
+.task-card:hover {
+  border-color: var(--habit-purple);
+  box-shadow: 0 3px 12px rgba(123,97,255,0.12);
+  transform: translateY(-1px);
+}
+.task-card:active { transform: translateY(1px); }
+
+/* ─── CATEGORY PILLS ─── */
+.category-pill {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ─── GLOW EFFECTS ─── */
+.glow-blue   { box-shadow: 0 0 12px hsla(210,100%,60%,0.25); }
+.glow-green  { box-shadow: 0 0 12px hsla(142,70%,50%,0.25); }
+.glow-yellow { box-shadow: 0 0 12px hsla(43,100%,58%,0.25); }
+.glow-purple { box-shadow: 0 0 12px hsla(250,100%,68%,0.25); }
+.glow-white  { box-shadow: 0 0 16px rgba(123,97,255,0.12); }
+
+/* ─── FANTASY / PIXEL ICON ─── */
+.fantasy-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fantasy-icon svg { stroke-width: 2.5; }
+.pixel-icon { image-rendering: pixelated; shape-rendering: crispEdges; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes tick-up {
+  0%   { transform: translateY(4px); opacity: 0; }
+  100% { transform: translateY(0);   opacity: 1; }
+}
+.tick-animate { animation: tick-up 0.3s ease-out forwards; }
+
+@keyframes toast-pop {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.9); }
+  60%  { transform: translateY(-4px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-pop { animation: toast-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+@keyframes rank-flash {
+  0%   { opacity: 0; transform: scale(0.7); }
+  40%  { opacity: 1; transform: scale(1.08); }
+  70%  { transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.rank-flash { animation: rank-flash 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+@keyframes crit-shake {
+  0%,100%             { transform: translateX(0) scale(1); }
+  10%,30%,50%,70%,90% { transform: translateX(-4px) scale(1.05); }
+  20%,40%,60%,80%     { transform: translateX(4px) scale(1.05); }
+}
+.crit-shake { animation: crit-shake 0.6s ease-in-out; }
+
+@keyframes number-pop {
+  0%   { transform: scale(0.5) translateY(10px); opacity: 0; }
+  50%  { transform: scale(1.2) translateY(-5px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.number-pop { animation: number-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+@keyframes char-blink {
+  0%,90%,100% { opacity: 0; }
+  93%,97%     { opacity: 1; background: rgba(0,0,0,0.85); border-radius: 2px; }
+}
+
+/* ─── BOSS ARENA (stays dark — intentional) ─── */
+.boss-arena {
+  background: linear-gradient(180deg, #1a1040 0%, #0d0820 100%);
+  border-radius: 16px;
+}
+
+/* ─── FANTASY BORDER ─── */
+.fantasy-border {
+  border: 2px solid rgba(123,97,255,0.3);
+  box-shadow: 0 0 12px rgba(123,97,255,0.1), inset 0 0 20px rgba(123,97,255,0.03);
+}

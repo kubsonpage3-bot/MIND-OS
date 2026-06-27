@@ -1,0 +1,30 @@
+# =============================================
+# MIND OS Backend — Python Dependencies
+# =============================================
+
+# Ядро Django
+Django==5.1.4
+
+# Django REST Framework — для построения API
+djangorestframework==3.15.2
+
+# JWT-аутентификация (токены доступа и обновления)
+djangorestframework-simplejwt==5.3.1
+
+# PostgreSQL адаптер для Python
+psycopg2-binary==2.9.10
+
+# CORS заголовки — разрешаем запросы от Tauri
+django-cors-headers==4.6.0
+
+# Загрузка переменных окружения из файла .env
+python-dotenv==1.0.1
+
+# Утилиты для работы с изображениями (аватары персонажа)
+Pillow==11.1.0
+
+# Фильтрация и поиск в API
+django-filter==24.3
+
+# Опционально: автодокументация API через drf-spectacular
+drf-spectacular==0.28.0

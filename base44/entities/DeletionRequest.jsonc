@@ -1,0 +1,32 @@
+{
+  "name": "DeletionRequest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user requesting deletion"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Base44 user ID"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the request"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processed",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "user_id",
+    "requested_at"
+  ]
+}
