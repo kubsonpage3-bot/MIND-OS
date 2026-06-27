@@ -29,14 +29,16 @@ import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
 import { getRankFromXP, calcSessionRankXP } from "@/lib/rankEngine";
 import { applySessionMutators, applyBossDamageModifiers, runDailyMutatorTick } from "@/lib/mutatorEngine";
-import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
+import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw, Sword } from "lucide-react";
 import { CLASSES } from "@/lib/rpgSystem";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
+import BattleArena from "@/components/mindos/BattleArena";
 
 const TABS = [
   { id: "train", label: "Train", icon: Activity },
   { id: "tasks", label: "Tasks", icon: Swords },
+  { id: "dungeon", label: "Dungeon", icon: Sword },
   { id: "rival", label: "Rival", icon: Users },
   { id: "stats", label: "Projections", icon: BarChart2 },
   { id: "history", label: "History", icon: History },
@@ -370,6 +372,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   const handleBossDamage = useCallback((amount, isCritical) => {
     setExternalDamage({ amount, isCritical, ts: Date.now() });
+    // Fire dungeon bonus damage event so BattleArena reacts too
+    window.dispatchEvent(new CustomEvent('mindos:dungeon-hit', { detail: { mult: isCritical ? 3 : 2.5 } }));
   }, []);
 
   const handleRewardFly = useCallback((reward) => {
@@ -665,6 +669,13 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 <TabPanel title="📅 CALENDAR">
                   <CalendarPanel />
                 </TabPanel>
+              )}
+
+              {/* Dungeon section */}
+              {activeSection === "dungeon" && (
+                <div className="py-2">
+                  <BattleArena />
+                </div>
               )}
 
               {/* Settings section with sub-tabs */}

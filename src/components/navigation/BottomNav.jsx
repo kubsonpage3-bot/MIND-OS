@@ -1,12 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Swords, User, BarChart2, Settings } from "lucide-react";
+import { LayoutDashboard, Swords, User, Sword, Settings } from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Home",      icon: LayoutDashboard },
-  { id: "tasks",     label: "Tasks",     icon: Swords },
-  { id: "character", label: "Hero",      icon: User },
-  { id: "stats",     label: "Stats",     icon: BarChart2 },
-  { id: "settings",  label: "Settings",  icon: Settings },
+  { id: "dashboard", label: "Home",    icon: LayoutDashboard },
+  { id: "tasks",     label: "Tasks",   icon: Swords },
+  { id: "character", label: "Hero",    icon: User },
+  { id: "dungeon",   label: "Dungeon", icon: Sword },
+  { id: "settings",  label: "Settings",icon: Settings },
 ];
 
 const CHARACTER_SUBITEMS = [
