@@ -130,7 +130,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   const currentRank = rankXPData.currentRank || "F";
 
   return (
-    <div className="relative flex flex-col md:flex-row h-screen overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300">
+    <div className="relative flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300" style={{ height: "100dvh" }}>
       {/* Black status bar safe-area spacer on mobile */}
       <div className="h-6 bg-black w-full md:hidden shrink-0" />
 
@@ -159,7 +159,7 @@ export default function AppShell({ defaultTab = "mind" }) {
       />
 
       {/* Main content area */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-20 md:pb-4 h-full overflow-y-auto flex-1`}>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-20 md:pb-4 flex-1 main-scroll-container`}>
         {activeApp === "mind" && (
           <>
             <div className="relative">

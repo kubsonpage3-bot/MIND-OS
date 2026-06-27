@@ -79,7 +79,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
         borderTop: "1px solid var(--habit-bottom-border)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        paddingBottom: "max(14px, env(safe-area-inset-bottom))",
+        paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
         paddingTop: "8px",
       }}
     >

@@ -103,6 +103,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "xp_progress_percent",      # вычисляемое поле
             "character_class",
             "avatar",
+            "gf", "gc", "ps", "vm",
+            "gf_ceiling", "gc_ceiling", "ps_ceiling", "vm_ceiling",
             "created_at",
             "updated_at",
         )

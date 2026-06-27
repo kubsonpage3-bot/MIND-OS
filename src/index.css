@@ -138,14 +138,12 @@
   }
 
   html,
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-    /* Respect the safe-area viewport meta tag */
-    padding-top: env(safe-area-inset-top,    0px);
-    padding-right: env(safe-area-inset-right,  0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-left: env(safe-area-inset-left,   0px);
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
   }
 
   body {
@@ -554,6 +552,27 @@ html[data-theme="cyberpunk"] .task-card {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--habit-bg); }
 ::-webkit-scrollbar-thumb { background: var(--habit-border); border-radius: 2px; }
+
+/* ─── NATIVE SMOOTH SCROLLING FOR MOBILE ─── */
+/* Touch momentum scroll for webkit-based mobile browsers on scrollable elements */
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto,
+[class*="overflow-y-"],
+[class*="overflow-x-"] {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Dedicated main scroll container with pull-to-refresh & browser viewport bounce block */
+.main-scroll-container {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}
+
 
 /* ─── PANEL / CARD ─── */
 .game-card,

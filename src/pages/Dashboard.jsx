@@ -131,6 +131,37 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
 
 
+  // Auto-initialize game state metrics if not initialized yet
+  useEffect(() => {
+    if (djangoProfile) {
+      try {
+        const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+        if (!gs.initialized) {
+          const updatedGs = {
+            ...gs,
+            initialized: true,
+            gf: gs.gf ?? djangoProfile.gf ?? 100.0,
+            gc: gs.gc ?? djangoProfile.gc ?? 100.0,
+            ps: gs.ps ?? djangoProfile.ps ?? 100.0,
+            vm: gs.vm ?? djangoProfile.vm ?? 100.0,
+            gf_ceiling: gs.gf_ceiling ?? djangoProfile.gf_ceiling ?? 120.0,
+            gc_ceiling: gs.gc_ceiling ?? djangoProfile.gc_ceiling ?? 135.0,
+            ps_ceiling: gs.ps_ceiling ?? djangoProfile.ps_ceiling ?? 112.0,
+            vm_ceiling: gs.vm_ceiling ?? djangoProfile.vm_ceiling ?? 138.0,
+            hp: gs.hp ?? djangoProfile.hp ?? 100,
+            maxHp: gs.maxHp ?? djangoProfile.hp_max ?? 100,
+            gold: gs.gold ?? djangoProfile.gold ?? 0,
+          };
+          localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+          setGameState(updatedGs);
+          window.dispatchEvent(new CustomEvent("mindos-state-change"));
+        }
+      } catch (e) {
+        console.warn("Failed to auto-initialize game state:", e);
+      }
+    }
+  }, [djangoProfile]);
+
   // Sync tasks from Django to LocalStorage on mount/load
   useEffect(() => {
     const syncTasksFromDjango = async () => {
@@ -233,7 +264,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   const profile = djangoProfile ? {
     ...djangoProfile,
-    initialized: gameState.initialized || false,
+    initialized: true,
     gf: gameState.gf ?? djangoProfile.gf ?? 100.0,
     gc: gameState.gc ?? djangoProfile.gc ?? 100.0,
     ps: gameState.ps ?? djangoProfile.ps ?? 100.0,
@@ -252,22 +283,21 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
      * @param {{ id: any, data: any }} variables
      */
     mutationFn: ({ data }) => {
-      const { gf, gc, ps, vm, gf_ceiling, gc_ceiling, ps_ceiling, vm_ceiling, ...djangoData } = data;
-      return djangoApi.profile.update(djangoData);
+      return djangoApi.profile.update(data);
     },
     onSuccess: (res, variables) => {
       try {
         const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
         const updatedGs = {
           ...currentGs,
-          gf: variables.data.gf ?? currentGs.gf,
-          gc: variables.data.gc ?? currentGs.gc,
-          ps: variables.data.ps ?? currentGs.ps,
-          vm: variables.data.vm ?? currentGs.vm,
-          gf_ceiling: variables.data.gf_ceiling ?? currentGs.gf_ceiling,
-          gc_ceiling: variables.data.gc_ceiling ?? currentGs.gc_ceiling,
-          ps_ceiling: variables.data.ps_ceiling ?? currentGs.ps_ceiling,
-          vm_ceiling: variables.data.vm_ceiling ?? currentGs.vm_ceiling,
+          gf: res.gf ?? variables.data.gf ?? currentGs.gf,
+          gc: res.gc ?? variables.data.gc ?? currentGs.gc,
+          ps: res.ps ?? variables.data.ps ?? currentGs.ps,
+          vm: res.vm ?? variables.data.vm ?? currentGs.vm,
+          gf_ceiling: res.gf_ceiling ?? variables.data.gf_ceiling ?? currentGs.gf_ceiling,
+          gc_ceiling: res.gc_ceiling ?? variables.data.gc_ceiling ?? currentGs.gc_ceiling,
+          ps_ceiling: res.ps_ceiling ?? variables.data.ps_ceiling ?? currentGs.ps_ceiling,
+          vm_ceiling: res.vm_ceiling ?? variables.data.vm_ceiling ?? currentGs.vm_ceiling,
         };
         localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
         setGameState(updatedGs);

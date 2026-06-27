@@ -70,6 +70,17 @@ class UserProfile(models.Model):
         verbose_name="Класс персонажа",
     )
 
+    # ── Когнитивные метрики (IQ) ──────────────────────────────────────────
+    gf = models.FloatField(default=100.0, verbose_name="Fluid Intelligence (Gf)")
+    gc = models.FloatField(default=100.0, verbose_name="Crystallized Intelligence (Gc)")
+    ps = models.FloatField(default=100.0, verbose_name="Processing Speed (Ps)")
+    vm = models.FloatField(default=100.0, verbose_name="Verbal Memory (Vm)")
+
+    gf_ceiling = models.FloatField(default=120.0, verbose_name="Gf Ceiling")
+    gc_ceiling = models.FloatField(default=135.0, verbose_name="Gc Ceiling")
+    ps_ceiling = models.FloatField(default=112.0, verbose_name="Ps Ceiling")
+    vm_ceiling = models.FloatField(default=138.0, verbose_name="Vm Ceiling")
+
     # Временны́е метки
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
