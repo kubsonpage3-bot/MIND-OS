@@ -571,6 +571,8 @@ html[data-theme="cyberpunk"] .task-card {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
 }
 
 

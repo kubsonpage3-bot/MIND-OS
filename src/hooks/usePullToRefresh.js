@@ -13,7 +13,8 @@ export default function usePullToRefresh(onRefresh) {
     // Only activate when scrolled to top of container and window
     const el = pullRef.current;
     if (!el) return;
-    const scrollTop = el.scrollTop || window.scrollY || document.documentElement.scrollTop || 0;
+    const scrollContainer = el.closest(".main-scroll-container") || el;
+    const scrollTop = scrollContainer.scrollTop || window.scrollY || document.documentElement.scrollTop || 0;
     if (scrollTop > 2) return;
     startY.current = e.touches[0].clientY;
     triggered.current = false;
