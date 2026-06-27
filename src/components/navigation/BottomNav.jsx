@@ -38,7 +38,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
             exit={{ opacity: 0, y: 10 }}
             className="md:hidden fixed left-0 right-0 z-40 flex overflow-x-auto items-center"
             style={{
-              bottom: "calc(60px + env(safe-area-inset-bottom))",
+              bottom: "calc(58px + env(safe-area-inset-bottom))",
               background: "var(--habit-bottom-sub-bg)",
               borderTop: "1px solid var(--habit-bottom-border)",
               backdropFilter: "blur(20px)",
@@ -73,7 +73,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
       </AnimatePresence>
 
       <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-end justify-around"
+      className="md:hidden shrink-0 w-full z-50 flex items-end justify-around"
       style={{
         background: "var(--habit-bottom-bg)",
         borderTop: "1px solid var(--habit-bottom-border)",

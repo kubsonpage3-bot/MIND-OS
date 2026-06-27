@@ -159,7 +159,7 @@ export default function AppShell({ defaultTab = "mind" }) {
       />
 
       {/* Main content area */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-20 md:pb-4 flex-1 main-scroll-container`}>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-4 md:pb-4 min-h-0 flex-1 main-scroll-container`}>
         {activeApp === "mind" && (
           <>
             <div className="relative">
