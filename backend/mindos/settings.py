@@ -147,6 +147,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://mind-os-d5sk.onrender.com",
 ]
 
+# CSRF Trusted Origins for Render & Cloudflare Pages
+CSRF_TRUSTED_ORIGINS = [
+    "https://mindos.pages.dev",
+    "https://mind-os-d5sk.onrender.com",
+]
+
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
