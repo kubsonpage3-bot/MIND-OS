@@ -20,10 +20,12 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-insecure-key-change-me")
 # Режим отладки: True только в разработке!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,api.mindosgrowth.org"
-).split(",")
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    'api.mindosgrowth.org', 
+    'mind-os-d5sk.onrender.com'  # <--- Добавили вот это!
+]
 
 # ── Приложения ────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -141,7 +143,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://api.mindosgrowth.org",
     "https://mindos.pages.dev",
     "http://localhost:5173",
-    "http://localhost:8000"
+    "http://localhost:8000",
+    "https://mind-os-d5sk.onrender.com",
 ]
 
 CORS_ALLOW_METHODS = [
