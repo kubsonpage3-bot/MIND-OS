@@ -1,7 +1,7 @@
 // Sound effects for MIND OS
 // Uses Web Audio API for synthesized sounds (no external files needed)
 
-const audioContext = typeof window !== 'undefined' ? new (window.AudioContext || window.webkitAudioContext)() : null;
+const audioContext = typeof window !== 'undefined' ? new (window.AudioContext || window['webkitAudioContext'])() : null;
 
 function playTone(frequency, duration, type = 'sine', volume = 0.1) {
   if (!audioContext) return;

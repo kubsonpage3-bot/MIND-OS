@@ -285,6 +285,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     mutationFn: ({ data }) => {
       return djangoApi.profile.update(data);
     },
+    /**
+     * @param {any} res
+     * @param {any} variables
+     */
     onSuccess: (res, variables) => {
       try {
         const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");

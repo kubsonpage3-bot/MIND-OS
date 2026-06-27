@@ -103,7 +103,7 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
                     <div className="shrink-0 w-9 h-9 rounded-lg border overflow-hidden"
                       style={{ imageRendering: "pixelated", background: "#050310", borderColor: active_ ? "#f0c04060" : "#1e1a38" }}>
                       <img src={mut.icon} alt={mut.name} className="w-full h-full object-contain"
-                        style={{ imageRendering: "pixelated", imageRendering: "crisp-edges" }} />
+                        style={{ imageRendering: "pixelated" }} />
                     </div>
 
                     <div className="flex-1 min-w-0">
