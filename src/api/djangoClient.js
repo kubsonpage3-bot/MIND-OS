@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.mindosgrowth.org/api';
+const BASE_URL = 'https://mind-os-d5sk.onrender.com/api';
 
 function apiUrl(endpoint) {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
