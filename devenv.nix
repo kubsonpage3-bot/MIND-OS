@@ -5,10 +5,27 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = [ pkgs.git pkgs.nodejs_24 pkgs.sqlite-interactive ];
 
   # https://devenv.sh/languages/
-  # languages.rust.enable = true;
+    languages = {
+    javascript = {
+      enable = true;
+      npm.enable = true;
+    };
+    python = {
+      enable = true;
+      venv = {
+        enable = true;
+        requirements = ''
+        requests
+        django
+        gunicorn
+        '';
+      };
+    };
+  };
+
 
   # https://devenv.sh/processes/
   # processes.dev.exec = "${lib.getExe pkgs.watchexec} -n -- ls -la";
