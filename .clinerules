@@ -1,0 +1,27 @@
+# Контекст Проекта: MIND OS — Growth RPG
+Игровое приложение для продуктивности в стиле Habitica. 
+
+## Стек технологий
+- React 18 + Vite
+- Tailwind CSS v4 (утилитарные классы, кастомные CSS-переменные в index.css)
+- Framer Motion (анимации, spring-физика)
+- React Router v6 (SPA навигация)
+- Django REST API (бэкенд)
+- TanStack React Query (серверное состояние)
+
+## Правила написания кода
+- Только функциональные компоненты React + хуки
+- Стилизация: Tailwind v4 + CSS custom properties из index.css (--habit-* переменные)
+- Иконки: lucide-react для общих, PixelIcon для пиксельных игровых
+- Импорты: alias @/ для src/ (настроен в vite.config)
+- Анимации: Framer Motion, только transform/opacity (без width/height/top/left)
+- Touch targets: минимум 40px на мобильных элементах
+- Haptic feedback: window.navigator.vibrate() на мобильных тапах
+- Тиры/ранги используют system tokens (getTierColor, RANK_COLORS)
+
+## Структура
+- src/components/mindos/ — основной геймплей
+- src/components/navigation/ — сайдбар, BottomNav
+- src/lib/ — игровая логика, движки, утилиты
+- src/pages/ — страницы верхнего уровня
+- src/store/ — глобальное состояние (в процессе миграции)

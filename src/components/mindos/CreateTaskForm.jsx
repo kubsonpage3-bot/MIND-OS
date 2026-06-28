@@ -111,10 +111,10 @@ export default function CreateTaskForm({ onCreated }) {
             <button key={t.id} onClick={() => set("type", t.id)}
               className="p-2.5 rounded-lg border text-center transition-all"
               style={{
-                borderColor: form.type === t.id ? "#3b82f6" : "#1e1a38",
-                background: form.type === t.id ? "#3b82f620" : "transparent",
+                borderColor: form.type === t.id ? "var(--habit-purple)" : "var(--habit-border)",
+                background: form.type === t.id ? "var(--habit-purple-light)" : "transparent",
               }}>
-              <div className="text-xs font-mono font-bold" style={{ color: form.type === t.id ? "#3b82f6" : "#94a3b8" }}>{t.label}</div>
+              <div className="text-xs font-mono font-bold" style={{ color: form.type === t.id ? "var(--habit-purple)" : "var(--habit-dim)" }}>{t.label}</div>
               <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5">{t.desc}</div>
             </button>
           ))}
@@ -129,9 +129,9 @@ export default function CreateTaskForm({ onCreated }) {
             <button key={c} onClick={() => set("category", c)}
               className="px-2.5 py-1 text-[10px] font-mono rounded-lg border transition-all"
               style={{
-                borderColor: form.category === c ? "#a855f7" : "#1e1a38",
-                color: form.category === c ? "#a855f7" : "#64748b",
-                background: form.category === c ? "#a855f720" : "transparent",
+                borderColor: form.category === c ? "var(--habit-purple)" : "var(--habit-border)",
+                color: form.category === c ? "var(--habit-purple)" : "var(--habit-dim)",
+                background: form.category === c ? "var(--habit-purple-light)" : "transparent",
               }}>
               {c}
             </button>
@@ -147,8 +147,8 @@ export default function CreateTaskForm({ onCreated }) {
             <button key={p.id} onClick={() => set("priority", p.id)}
               className="py-1.5 text-[10px] font-mono font-bold rounded-lg border transition-all"
               style={{
-                borderColor: form.priority === p.id ? p.color : "#1e1a38",
-                color: form.priority === p.id ? p.color : "#64748b",
+                borderColor: form.priority === p.id ? p.color : "var(--habit-border)",
+                color: form.priority === p.id ? p.color : "var(--habit-dim)",
                 background: form.priority === p.id ? `${p.color}20` : "transparent",
               }}>
               {p.label}
@@ -218,8 +218,8 @@ export default function CreateTaskForm({ onCreated }) {
         disabled={!form.name.trim()}
         className="w-full py-3 rounded-xl font-mono font-bold text-sm transition-all"
         style={{
-          background: form.name.trim() ? "linear-gradient(135deg, #3b82f6, #a855f7)" : "#1e1a38",
-          color: form.name.trim() ? "#fff" : "#4a4060",
+          background: form.name.trim() ? "var(--habit-purple)" : "var(--habit-bg)",
+          color: form.name.trim() ? "white" : "var(--habit-dim)",
           cursor: form.name.trim() ? "pointer" : "not-allowed",
         }}
       >

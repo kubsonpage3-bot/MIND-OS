@@ -192,3 +192,20 @@ class TaskCompleteSerializer(serializers.Serializer):
         default=True,
         help_text="Для привычек: True = выполнить позитивное действие, False = нарушение",
     )
+from .models import ActiveEffect, SkillCooldown
+
+
+class ActiveEffectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActiveEffect
+        fields = ["id", "effect_id", "skill_id", "data", "expires_at", "created_at"]
+
+
+class SkillCooldownSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SkillCooldown
+        fields = ["skill_id", "cooldown_until"]
+
+
+class SkillActivateSerializer(serializers.Serializer):
+    skill_id = serializers.CharField(max_length=50, required=True)

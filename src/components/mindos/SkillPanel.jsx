@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { CLASSES, saveRPGData } from "@/lib/rpgSystem";
+import { CLASSES, applySkillEffect } from "@/lib/rpgSystem";
+import { djangoApi } from "@/api/djangoClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 
@@ -40,30 +41,31 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
     return { onCooldown, remaining, hasMana, available: !onCooldown && hasMana };
   };
 
-  const activateSkill = (skill) => {
+  const activateSkill = async (skill) => {
     const state = getSkillState(skill);
     if (!state.available) return;
 
-    const newMana = (classData.mana || 0) - skill.mana;
-    const cdUntil = Date.now() + skill.cooldownH * 3600000;
-    const existingSkills = classData.skills || [];
-    const newSkills = existingSkills.filter(s => s.id !== skill.id).concat({ id: skill.id, cooldownUntil: cdUntil });
+    try {
+      const res = await djangoApi.skills.activate(skill.id);
+      
+      const newClassData = applySkillEffect(skill.id, classData);
+      onUseSkill(skill, newClassData);
 
-    const newClassData = { ...classData, mana: newMana, skills: newSkills };
-    saveRPGData("mindos_class", newClassData);
-    onUseSkill(skill, newClassData);
+      // Pixel art animations
+      setGlowing(skill.id);
+      setShaking(skill.id);
+      setFlashId(skill.id);
+      triggerBurst(cls.color, 10);
+      setTimeout(() => setGlowing(null), 1800);
+      setTimeout(() => setShaking(null), 500);
+      setTimeout(() => setFlashId(null), 400);
 
-    // Pixel art animations
-    setGlowing(skill.id);
-    setShaking(skill.id);
-    setFlashId(skill.id);
-    triggerBurst(cls.color, 10);
-    setTimeout(() => setGlowing(null), 1800);
-    setTimeout(() => setShaking(null), 500);
-    setTimeout(() => setFlashId(null), 400);
-
-    setToast(`${skill.name} activated!`);
-    setTimeout(() => setToast(null), 3000);
+      setToast(res.detail || `${skill.name} activated!`);
+      setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast(err.message || "Skill activation failed");
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
   return (
@@ -97,7 +99,7 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
           <motion.div
             className="h-full"
             animate={{ width: `${Math.min(100, ((classData.mana || 0) / (classData.maxMana || cls.maxMana)) * 100)}%` }}
-            transition={{ duration: 0.5, ease: "steps(10)" }}
+            transition={{ duration: 0.5, ease: "linear" }}
             style={{ background: cls.color, boxShadow: `0 0 8px ${cls.color}88` }}
           />
         </div>

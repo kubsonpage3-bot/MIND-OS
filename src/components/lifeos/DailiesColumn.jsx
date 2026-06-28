@@ -73,10 +73,10 @@ export default function DailiesColumn({ gs, update }) {
               onClick={() => complete(daily)}
               className={`p-3 rounded-lg border transition-all group cursor-pointer ${
                 done
-                  ? "border-green-700/40 bg-green-900/15"
+                  ? "border-green-700/40 bg-transparent"
                   : greyOut
-                  ? "border-purple-900/30 bg-purple-950/20 opacity-50"
-                  : "border-purple-700/40 bg-purple-900/20 hover:bg-purple-900/30"
+                  ? "border-purple-900/30 bg-black opacity-50"
+                  : "border-purple-700/40 bg-black hover:bg-black/80"
               }`}
             >
               <div className="flex items-center gap-2">

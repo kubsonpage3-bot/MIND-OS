@@ -78,8 +78,8 @@ export function calcReward(taskValue, difficulty, type, buffs) {
   const critChance = lck / 100;
   const critBonus = Math.random() < critChance ? 0.5 : 0;
   const xp   = Math.round(baseXP   * diffMult * valueMod * (1 + (buffs.xpBonus   || 0)) * (1 + critBonus) * 10) / 10;
-  const gold = Math.round(baseGold * diffMult * valueMod * (1 + (buffs.goldBonus || 0)) * (1 + critBonus) * 10) / 10;
-  return { xp, gold, critBonus };
+  const gold = Math.round(baseGold * diffMult * valueMod * (1 + (buffs.goldBonus || 0)) * (1 + critBonus));
+  return { xp: Math.round(xp), gold: Math.round(gold), critBonus };
 }
 
 export function previewHabitDamage(taskValue, difficulty, conStat) {
@@ -201,7 +201,7 @@ export function getLckStat() { const gs = loadGS(); return (gs.stats && gs.stats
 
 export function addGoldToGS(amount) {
   const gs = loadGS();
-  gs.gold = (gs.gold || 0) + amount;
+  gs.gold = Math.max(0, Math.round((gs.gold || 0) + amount));
   saveGS(gs);
 }
 
@@ -209,7 +209,7 @@ export function addManaToGS(amount) {
   try {
     const cls = JSON.parse(localStorage.getItem('mindos_class') || '{}');
     if (!cls.chosen) return;
-    cls.mana = Math.min(cls.maxMana || 100, (cls.mana || 0) + amount);
+    cls.mana = Math.max(0, Math.min(cls.maxMana || 100, (cls.mana || 0) + amount));
     localStorage.setItem('mindos_class', JSON.stringify(cls));
     queueAutoSync();
   } catch {}

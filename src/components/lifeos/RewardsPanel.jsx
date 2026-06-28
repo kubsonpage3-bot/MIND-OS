@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { normalizeGold } from "@/lib/utils";
 
 export default function RewardsPanel({ gs, update }) {
   const [adding, setAdding] = useState(false);
@@ -63,7 +64,7 @@ export default function RewardsPanel({ gs, update }) {
       <div className="flex items-center justify-between">
         <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">🎁 Rewards</h2>
         <div className="flex items-center gap-2">
-          <span className="text-yellow-400 text-sm font-bold">🪙 {gs.gold} gold</span>
+          <span className="text-yellow-400 text-sm font-bold">🪙 {normalizeGold(gs.gold)} gold</span>
           <button onClick={() => setAdding(v => !v)} className="text-purple-400 hover:text-purple-200">
             <Plus className="w-4 h-4" />
           </button>

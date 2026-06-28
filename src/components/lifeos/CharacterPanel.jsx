@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getXPPercent, getHPPercent, CLASSES, CLASS_ICONS, CLASS_BONUSES } from "@/lib/lifeOS";
+import { normalizeGold } from "@/lib/utils";
 import { Heart, Zap, ChevronDown, ChevronUp } from "lucide-react";
 
 const STAT_LABELS = { str: { label: "STR", desc: "+Gold drops", color: "text-red-400" },
@@ -61,7 +62,7 @@ export default function CharacterPanel({ gs, update }) {
           <div className="space-y-0.5">
             <div className="flex justify-between text-[10px] text-purple-500">
               <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-400" /> HP</span>
-              <span>{gs.hp}/{gs.maxHp}</span>
+              <span>{Math.round(gs.hp)}/{gs.maxHp}</span>
             </div>
             <div className="h-2 bg-purple-900/60 rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all duration-500" style={{ width: `${hpPct}%`, backgroundColor: hpColor }} />
@@ -84,7 +85,7 @@ export default function CharacterPanel({ gs, update }) {
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
             <span>🪙</span>
-            <span>{gs.gold}</span>
+            <span>{normalizeGold(gs.gold)}</span>
           </div>
           {gs.statPoints > 0 && (
             <div className="text-[10px] px-2 py-0.5 rounded bg-yellow-600/20 border border-yellow-500/40 text-yellow-400 animate-pulse">

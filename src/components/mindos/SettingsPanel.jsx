@@ -66,7 +66,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
                 fontWeight: isActive ? 800 : 600,
                 fontSize: 11,
                 background: isActive ? "var(--habit-purple)" : "transparent",
-                color: isActive ? "white" : "var(--habit-dim)",
+                color: isActive ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
                 boxShadow: isActive ? "0 2px 8px var(--habit-purple-glow)" : "none",
               }}
             >

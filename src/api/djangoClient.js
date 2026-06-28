@@ -209,4 +209,15 @@ export const djangoApi = {
         body: JSON.stringify({ is_positive: isPositive }),
       }),
   },
+
+  skills: {
+    activate: (skillId) =>
+      djangoFetch('/skills/activate/', {
+        method: 'POST',
+        body: JSON.stringify({ skill_id: skillId }),
+      }),
+
+    getActiveEffects: () =>
+      djangoFetch('/skills/active-effects/'),
+  },
 };

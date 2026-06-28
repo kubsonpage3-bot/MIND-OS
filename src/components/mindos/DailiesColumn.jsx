@@ -113,11 +113,11 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
   };
 
   const completeDaily = async (task) => {
-    if (task.completedToday) return;
-    playSound('task_complete');
+    const isCompleting = !task.completedToday;
+    playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
     try {
-      await djangoApi.tasks.complete(task.id, true);
+      await djangoApi.tasks.complete(task.id, isCompleting);
     } catch (e) {
       console.warn('Django daily complete failed:', e);
     }
@@ -134,19 +134,26 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
 
     const bossDmg = applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
 
-    onXpGain(Math.round(reward.xp));
-    onRankXP?.(Math.round(reward.xp));
-    onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-    addGoldToGS(reward.gold);
-    addManaToGS(5);
+    if (isCompleting) {
+      onXpGain(Math.round(reward.xp));
+      onRankXP?.(Math.round(reward.xp));
+      onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
+      addGoldToGS(reward.gold);
+      addManaToGS(5);
 
-    const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
-    playSound('gold_earned');
-    showRewardToast({ xp: Math.round(reward.xp), gold: reward.gold, boss: bossDmg, label: task.name + critLabel });
+      const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
+      playSound('gold_earned');
+      showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + critLabel });
+    } else {
+      onXpGain(-Math.round(reward.xp));
+      onRankXP?.(-Math.round(reward.xp));
+      onBossDamage(-bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
+      addGoldToGS(-reward.gold);
+      addManaToGS(-5);
+      showRewardToast({ label: `Reverted: ${task.name}` });
+    }
 
-    // Value и streak обновятся через cron при смене дня
-    // Здесь просто ставим completedToday = true
-    update(tasks.map(t => t.id === task.id ? { ...t, completedToday: true } : t));
+    update(tasks.map(t => t.id === task.id ? { ...t, completedToday: isCompleting } : t));
   };
 
   const deleteTask = async (id) => {
@@ -211,8 +218,11 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: task.completedToday ? 0.5 : 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
-                className="task-card flex items-center gap-2 rounded-xl p-2.5 cursor-pointer"
-                style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.completedToday ? '' : 'task-card'}`}
+                style={{
+                  background: task.completedToday ? 'transparent' : '#000',
+                  border: '1px solid var(--habit-border)'
+                }}
                 onClick={() => completeDaily(task)}
               >
                 {/* Task Value bar */}

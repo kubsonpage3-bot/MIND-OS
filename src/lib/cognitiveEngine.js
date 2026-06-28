@@ -7,7 +7,7 @@ export const ACTIVITIES = {
     description: "Deep work & problem solving",
     coefficients: { gf: 0.08, ps: 0.04, gc: 0.01, vm: 0 },
     flavorText: "Prefrontal cortex engaged — analytical networks firing",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   physics: {
     label: "Physics",
@@ -15,7 +15,7 @@ export const ACTIVITIES = {
     description: "Abstract problem solving",
     coefficients: { gf: 0.07, ps: 0.05, gc: 0.01, vm: 0 },
     flavorText: "Spatial reasoning circuits reinforced",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   history: {
     label: "History",
@@ -23,7 +23,7 @@ export const ACTIVITIES = {
     description: "Reading & analysis",
     coefficients: { gf: 0.01, ps: 0, gc: 0.09, vm: 0.02 },
     flavorText: "Semantic memory banks consolidated",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   english: {
     label: "English",
@@ -31,7 +31,7 @@ export const ACTIVITIES = {
     description: "Language practice",
     coefficients: { gf: 0, ps: 0.02, gc: 0.07, vm: 0.10 },
     flavorText: "Lexical network expanded — phonological loop activated",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   philosophy: {
     label: "Philosophy",
@@ -39,7 +39,7 @@ export const ACTIVITIES = {
     description: "Deep reading & theology",
     coefficients: { gf: 0.02, ps: 0, gc: 0.08, vm: 0.04 },
     flavorText: "Abstract conceptual frameworks restructured",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   vocabulary: {
     label: "Vocabulary",
@@ -47,7 +47,7 @@ export const ACTIVITIES = {
     description: "Drilling & memorization",
     coefficients: { gf: 0, ps: 0, gc: 0.05, vm: 0.12 },
     flavorText: "Vm +0.12 — Lexical network densified",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   chess: {
     label: "Chess / Logic",
@@ -55,7 +55,7 @@ export const ACTIVITIES = {
     description: "Chess & logic puzzles",
     coefficients: { gf: 0.09, ps: 0.06, gc: 0, vm: 0 },
     flavorText: "Working memory load maximized — Gf pathways strengthened",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   coding: {
     label: "Coding",
@@ -63,7 +63,7 @@ export const ACTIVITIES = {
     description: "Programming & algorithms",
     coefficients: { gf: 0.07, ps: 0.08, gc: 0.01, vm: 0 },
     flavorText: "Procedural reasoning circuits optimized",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   creative_answers: {
     label: "Creative Answers",
@@ -71,7 +71,7 @@ export const ACTIVITIES = {
     description: "Questions answered & explained",
     coefficients: { gf: 0.015, gc: 0.010, vm: 0.008, ps: 0.005 },
     flavorText: "Neural pathways activated — retrieval strengthens long-term encoding",
-    xpPerHour: 10,
+    xpPerHour: 25,
     inputType: "questions",
     questionsMax: 20,
   },
@@ -81,7 +81,7 @@ export const ACTIVITIES = {
     description: "Sport & physical training",
     coefficients: { gf: 0.02, ps: 0.05, gc: 0, vm: 0 },
     flavorText: "BDNF surge detected — neuroplasticity window open",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   prayer: {
     label: "Prayer / Meditation",
@@ -89,7 +89,7 @@ export const ACTIVITIES = {
     description: "Spiritual discipline & contemplation",
     coefficients: { gf: 0, ps: 0, gc: 0.06, vm: 0.06 },
     flavorText: "Default mode network calmed — semantic consolidation active",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   running: {
     label: "Running",
@@ -97,7 +97,7 @@ export const ACTIVITIES = {
     description: "Cardio & endurance training",
     coefficients: { gf: 0.04, ps: 0.05, gc: 0, vm: 0 },
     flavorText: "Cardiovascular efficiency up — prefrontal blood flow optimized",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   reading: {
     label: "Reading",
@@ -105,7 +105,7 @@ export const ACTIVITIES = {
     description: "Deep reading & comprehension",
     coefficients: { gf: 0.01, ps: 0, gc: 0.07, vm: 0.05 },
     flavorText: "Semantic networks reinforced — long-term potentiation engaged",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   german: {
     label: "German",
@@ -113,7 +113,7 @@ export const ACTIVITIES = {
     description: "German language practice",
     coefficients: { gf: 0, ps: 0.03, gc: 0.06, vm: 0.07 },
     flavorText: "Broca's area activated — phonological loop expanding",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
   languages: {
     label: "Other Languages",
@@ -121,7 +121,7 @@ export const ACTIVITIES = {
     description: "Foreign language learning",
     coefficients: { gf: 0, ps: 0.03, gc: 0.06, vm: 0.07 },
     flavorText: "Multilingual cortex reinforced — cross-language transfer active",
-    xpPerHour: 10,
+    xpPerHour: 25,
   },
 };
 

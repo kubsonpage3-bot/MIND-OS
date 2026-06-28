@@ -27,6 +27,7 @@ import CharacterHub from "@/components/mindos/CharacterHub";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 
 import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
+import { normalizeGold } from "@/lib/utils";
 import { getRankFromXP, calcSessionRankXP } from "@/lib/rankEngine";
 import { applySessionMutators, applyBossDamageModifiers, runDailyMutatorTick } from "@/lib/mutatorEngine";
 import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
@@ -225,7 +226,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     const refresh = () => {
       try {
         const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        setGoldDisplay(gs.gold || 0);
+        setGoldDisplay(normalizeGold(gs.gold || 0));
         const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
         const classInfo = cls.chosen ? CLASSES[cls.chosen] : null;
         const currentHp = gs.hp !== undefined ? gs.hp : (gs.maxHp || 100);
@@ -345,8 +346,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     updateProfile.mutate({
       id: profile.id,
       data: {
-        weekly_xp: (profile.weekly_xp || 0) + xp,
-        total_xp: (profile.total_xp || 0) + xp,
+        weekly_xp: Math.max(0, (profile.weekly_xp || 0) + xp),
+        total_xp: Math.max(0, (profile.total_xp || 0) + xp),
       }
     });
   }, [profile, updateProfile]);
@@ -359,10 +360,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       { id: "SS", min: 2500 }, { id: "SSS", min: 4000 },
     ];
     setRankXPData(prev => {
-      const newRankXP = (prev.rankXP || 0) + amount;
+      const newRankXP = Math.max(0, (prev.rankXP || 0) + amount);
       const newRank = [...RANK_THRESHOLDS].reverse().find(r => newRankXP >= r.min);
       const newRankId = newRank?.id || "F";
-      if (newRankId !== prev.currentRank) {
+      if (newRankId !== prev.currentRank && amount > 0) {
         setRankUpNotif(newRankId);
         playSound('rank_up');
       }

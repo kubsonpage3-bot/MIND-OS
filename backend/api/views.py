@@ -29,6 +29,9 @@ from .serializers import (
     TaskSerializer,
     TaskCompleteSerializer,
 )
+from .models import ActiveEffect, SkillCooldown
+from .serializers import ActiveEffectSerializer, SkillActivateSerializer
+from .skill_engine import activate_skill, apply_effects_on_task_complete
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -207,14 +210,70 @@ class TaskViewSet(viewsets.ModelViewSet):
         leveled_up = profile.gain_xp(rewards["xp"])
         profile.gold += rewards["gold"]
         profile.save()
+# ── Применяем эффекты скиллов ──────────────────────────────────────
+        skill_effects = apply_effects_on_task_complete(profile, task)
+        if skill_effects["xp_bonus"] > 0:
+            profile.gain_xp(skill_effects["xp_bonus"])
+            profile.save(update_fields=["xp", "xp_to_next_level", "level"])
 
         return Response(
             {
                 "detail":    "Задача выполнена!",
                 "leveled_up": leveled_up,
+\"skill_effects\": skill_effects[\"notes\"],
                 "rewards":   rewards,
                 "task":      TaskSerializer(task).data,
                 "profile":   UserProfileSerializer(profile).data,
             },
             status=status.HTTP_200_OK,
         )
+# ─────────────────────────────────────────────────────────────────────────────
+# Скиллы — активация и эффекты
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SkillActivateView(generics.GenericAPIView):
+    """
+    POST /api/skills/activate/
+    Активирует скилл: проверяет ману, ставит кулдаун, создаёт ActiveEffect.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = SkillActivateSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        skill_id = serializer.validated_data["skill_id"]
+
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        success, message, class_data, effects = activate_skill(profile, skill_id)
+
+        if not success:
+            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "detail": message,
+            "class_data": class_data,
+            "active_effects": effects,
+            "profile": UserProfileSerializer(profile).data,
+        })
+
+
+class ActiveEffectsView(generics.GenericAPIView):
+    """
+    GET /api/skills/active-effects/
+    Возвращает активные эффекты и кулдауны текущего пользователя.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        effects = ActiveEffect.objects.filter(user=request.user)
+        cooldowns = SkillCooldown.objects.filter(user=request.user)
+
+        # Чистим истекшие
+        from django.utils import timezone
+        ActiveEffect.objects.filter(user=request.user, expires_at__lt=timezone.now()).delete()
+
+        return Response({
+            "active_effects": ActiveEffectSerializer(effects, many=True).data,
+            "cooldowns": SkillCooldownSerializer(cooldowns, many=True).data,
+        })

@@ -10,7 +10,7 @@ import { applyBuffPipeline } from '@/lib/rpgEngine';
 import { getActiveBuffs } from '@/lib/gameState';
 import {
   getTaskValueColor, calcNewValue, calcDamage, calcReward, previewHabitDamage,
-  applyHpDamage, applyHpHeal, getHpState, getConStat, getLckStat,
+  applyHpDamage, getHpState, getConStat, getLckStat,
   addGoldToGS, addManaToGS,
 } from '@/lib/taskEngine';
 import { djangoApi } from '@/api/djangoClient';
@@ -118,11 +118,10 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
       onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
       addGoldToGS(reward.gold);
       addManaToGS(2);
-      applyHpHeal(task.difficulty === 'critical' ? 6 : task.difficulty === 'hard' ? 4 : task.difficulty === 'medium' ? 2 : 1);
 
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
-      showRewardToast({ xp: Math.round(reward.xp), gold: reward.gold, boss: bossDmg, label: task.name + critLabel });
+      showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + critLabel });
 
       // Value растёт (задача "синеет", будущая награда снижается)
       const newTv = calcNewValue(tv, 'complete', 'habit');
@@ -221,7 +220,7 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
                 key={task.id}
                 initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 30 }}
                 className="task-card flex items-center gap-2 rounded-xl p-2.5"
-                style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+                style={{ background: '#000', border: '1px solid var(--habit-border)' }}
               >
                 {/* Task Value color bar */}
                 <motion.div

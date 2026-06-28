@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { normalizeGold } from "@/lib/utils";
 import { ALLIES, saveRPGData } from "@/lib/rpgSystem";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
@@ -158,7 +159,7 @@ export default function AlliesPanel({ alliesData, onUpdate, gold, onSpendGold })
         <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
           Allies — {recruited.length}/{ALLIES.length} Recruited
         </div>
-        <div className="text-[10px] font-mono font-bold" style={{ color: "#f0c040" }}>🪙 {gold.toLocaleString()}G</div>
+        <div className="text-[10px] font-mono font-bold" style={{ color: "#f0c040" }}>🪙 {normalizeGold(gold).toLocaleString()}G</div>
       </div>
 
       <div className="grid grid-cols-1 gap-2">

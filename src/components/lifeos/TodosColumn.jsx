@@ -91,10 +91,10 @@ export default function TodosColumn({ gs, update }) {
           return (
             <div key={todo.id} className={`rounded-lg border transition-all group ${
               todo.done
-                ? "border-purple-900/30 bg-purple-950/20 opacity-60"
+                ? "border-purple-900/30 bg-transparent opacity-60"
                 : overdue
-                ? "border-red-700/50 bg-red-950/20"
-                : "border-purple-700/40 bg-purple-900/20"
+                ? "border-red-700/50 bg-black"
+                : "border-purple-700/40 bg-black"
             }`}>
               <div className="flex items-center gap-2 p-3 cursor-pointer" onClick={() => complete(todo)}>
                 <div className="shrink-0">

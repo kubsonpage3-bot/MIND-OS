@@ -9,6 +9,7 @@ import { getPwrBossDamageMultiplier, getDefDamageReduction, getLckGoldMultiplier
 import { motion } from "framer-motion";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { playSound } from "@/lib/soundEffects.js";
+import { normalizeGold } from "@/lib/utils";
 import ClassSelector from "./ClassSelector";
 import SkillPanel from "./SkillPanel";
 import SkillTreePanel from "./SkillTreePanel";
@@ -195,7 +196,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             </span>
           )}
         </div>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>🪙 {gold.toLocaleString()}G</span>
+        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>🪙 {normalizeGold(gold).toLocaleString()}G</span>
       </div>
 
       {/* Sub-tab navigation handled by sidebar */}
@@ -223,7 +224,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-                <span>HP</span><span style={{ color: hpColor }}>{charHp}/{charMaxHp}</span>
+                <span>HP</span><span style={{ color: hpColor }}>{Math.round(charHp)}/{charMaxHp}</span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${hpPct}%`, background: hpColor, boxShadow: `0 0 6px ${hpColor}66` }} />
@@ -232,7 +233,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
                 <span>MANA</span>
-                <span style={{ color: classColor }}>{classData.mana || 0}/{classData.maxMana || chosenClass.maxMana}</span>
+                <span style={{ color: classColor }}>{Math.round(classData.mana || 0)}/{classData.maxMana || chosenClass.maxMana}</span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500"
@@ -392,7 +393,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
               <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> SHOP
             </span>
-            <span className="font-mono text-xs font-bold" style={{ color: "#f0c040" }}>🪙 {gold.toLocaleString()}G</span>
+            <span className="font-mono text-xs font-bold" style={{ color: "#f0c040" }}>🪙 {normalizeGold(gold).toLocaleString()}G</span>
           </div>
 
           {/* ── Daily Featured Deal ── */}
@@ -473,9 +474,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 style={{
                   borderWidth: 1,
                   borderStyle: "solid",
-                  borderColor: shopTab === t ? "rgba(240,192,64,0.5)" : "rgba(240,192,64,0.1)",
-                  color: shopTab === t ? "#f0c040" : "#7a6040",
-                  background: shopTab === t ? "rgba(240,192,64,0.1)" : "transparent",
+                  borderColor: shopTab === t ? "var(--habit-purple)" : "var(--habit-border)",
+                  color: shopTab === t ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
+                  background: shopTab === t ? "var(--habit-purple-light)" : "transparent",
                 }}
               >{t}</button>
             ))}

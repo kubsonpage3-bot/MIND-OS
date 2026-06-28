@@ -84,13 +84,13 @@ export default function ActivityLogger({ onLog, profile, logs }) {
         gs.consumables.memory_patch = { active: false };
       }
 
-      // Gold reward: hours × 60 × xpMult
-      const goldEarned = Math.max(1, Math.round(logValue * 60 * xpMult));
+      // Gold reward: hours × 25 × xpMult
+      const goldEarned = Math.max(1, Math.round(logValue * 25 * xpMult));
       gs.gold = (gs.gold || 0) + goldEarned;
       localStorage.setItem("mindos_game_state", JSON.stringify(gs));
       setGoldFloat({ value: goldEarned, id: Date.now() });
     } catch {
-      const goldEarned = Math.max(1, Math.round(logValue * 60));
+      const goldEarned = Math.max(1, Math.round(logValue * 25));
       setGoldFloat({ value: goldEarned, id: Date.now() });
     }
     setTimeout(() => setGoldFloat(null), 1600);
@@ -133,7 +133,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
   return (
     <div className="space-y-4">
       {/* Sub-tabs */}
-      <div className="flex gap-1 p-1 rounded-2xl" style={{ background: "#f0eef8" }}>
+      <div className="flex gap-1 p-1 rounded-2xl" style={{ background: "var(--habit-bg)" }}>
         {[{ id: "log", label: "Log Session" }, { id: "create", label: "Create Task" }].map(t => (
           <button key={t.id} onClick={() => setTrainTab(t.id)}
             className="flex-1 py-2 rounded-xl transition-all"
@@ -141,9 +141,9 @@ export default function ActivityLogger({ onLog, profile, logs }) {
               fontFamily: "'Nunito'",
               fontWeight: trainTab === t.id ? 800 : 600,
               fontSize: 12,
-              background: trainTab === t.id ? "#7B61FF" : "transparent",
-              color: trainTab === t.id ? "white" : "#878190",
-              boxShadow: trainTab === t.id ? "0 2px 8px rgba(123,97,255,0.3)" : "none",
+              background: trainTab === t.id ? "var(--habit-purple)" : "transparent",
+              color: trainTab === t.id ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
+              boxShadow: trainTab === t.id ? "0 2px 8px var(--habit-purple-glow)" : "none",
               letterSpacing: "0.04em",
             }}>
             {t.label}
@@ -155,7 +155,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
 
       {trainTab === "log" && <>
       {/* Smart recommendation */}
-      <div className="flex items-start gap-2 p-3 rounded-xl" style={{ background: "#f0eef8", border: "1px solid #e5e3eb" }}>
+      <div className="flex items-start gap-2 p-3 rounded-xl" style={{ background: "var(--habit-bg)", border: "1px solid var(--habit-border)" }}>
         <span className="text-base shrink-0">{recommendation.icon}</span>
         <p className="text-xs text-muted-foreground/80 leading-relaxed">{recommendation.text}</p>
       </div>
@@ -168,7 +168,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="p-3 rounded-xl flex items-start gap-2"
-            style={{ background: "#ffffff", border: "1px solid #e5e3eb", fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}
+            style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)", fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)" }}
           >
             <Zap className="w-3 h-3 text-ps mt-0.5 shrink-0" />
             <span>{feedbackMsg}</span>
@@ -214,16 +214,17 @@ export default function ActivityLogger({ onLog, profile, logs }) {
               <div key={key} className="relative">
                 <button
                   onClick={() => !deleteMode && setSelectedActivity(isSelected ? null : key)}
-                  className="w-full group relative p-3 rounded-xl transition-all duration-200 text-left"
+                  className="w-full h-[110px] sm:h-[145px] flex flex-col group relative p-3 rounded-xl transition-all duration-200 text-left overflow-hidden"
                   style={{
-                    background: deleteMode ? "rgba(247,78,82,0.05)" : isSelected ? "#e8e4ff" : "#ffffff",
-                    border: deleteMode ? "1.5px solid rgba(247,78,82,0.3)" : isSelected ? "1.5px solid #7B61FF" : "1.5px solid #e5e3eb",
-                    boxShadow: isSelected ? "0 2px 12px rgba(123,97,255,0.15)" : "0 1px 4px rgba(0,0,0,0.05)",
+                    background: deleteMode ? "rgba(247,78,82,0.05)" : isSelected ? "var(--habit-purple-light)" : "var(--habit-panel)",
+                    border: deleteMode ? "1.5px solid rgba(247,78,82,0.3)" : isSelected ? "1.5px solid var(--habit-purple)" : "1.5px solid var(--habit-border)",
+                    boxShadow: isSelected ? "0 2px 12px var(--habit-purple-glow)" : "0 1px 4px rgba(0,0,0,0.05)",
                   }}
                 >
                   <div className="text-xl mb-1">{activity.icon}</div>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "#2b2738" }} className="leading-tight">{activity.label}</div>
-                  <div style={{ fontFamily: "'Nunito'", fontSize: 11, color: "#878190" }} className="mt-0.5 hidden sm:block">{activity.description}</div>
+                  <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "var(--habit-text)" }} className="leading-tight">{activity.label}</div>
+                  <div style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }} className="mt-0.5 hidden sm:block line-clamp-2">{activity.description}</div>
+                  <div className="flex-1" /> {/* Spacer to push metrics down if needed */}
                   <div className="flex gap-1 mt-2 flex-wrap">
                     {activeMetrics.map(([mk, mc]) => (
                       <span key={mk} className={`text-[9px] font-mono px-1 py-0.5 rounded bg-${mc.color}/10 text-${mc.color}`}>
@@ -231,7 +232,9 @@ export default function ActivityLogger({ onLog, profile, logs }) {
                       </span>
                     ))}
                   </div>
-                  <SubjectRankBadge hours={totalHours} />
+                  <div className="mt-auto pt-2">
+                    <SubjectRankBadge hours={totalHours} />
+                  </div>
                 </button>
 
                 {/* Delete button overlay */}
@@ -271,14 +274,14 @@ export default function ActivityLogger({ onLog, profile, logs }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             className="p-4 rounded-2xl space-y-4"
-            style={{ background: "#ffffff", border: "1.5px solid #7B61FF44", boxShadow: "0 4px 20px rgba(123,97,255,0.12)" }}
+            style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-purple-light)", boxShadow: "0 4px 20px var(--habit-purple-glow)" }}
           >
             <div className="flex items-center justify-between">
               <div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "#2b2738" }}>{ACTIVITIES[selectedActivity].label}</div>
-                <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>{ACTIVITIES[selectedActivity].description}</div>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-text)" }}>{ACTIVITIES[selectedActivity].label}</div>
+                <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)" }}>{ACTIVITIES[selectedActivity].description}</div>
               </div>
-              <button onClick={() => setSelectedActivity(null)} style={{ color: "#878190", fontSize: 16, fontWeight: 700 }}>✕</button>
+              <button onClick={() => setSelectedActivity(null)} style={{ color: "var(--habit-dim)", fontSize: 16, fontWeight: 700 }}>✕</button>
             </div>
 
             {isQuestionsMode ? (
@@ -372,10 +375,10 @@ export default function ActivityLogger({ onLog, profile, logs }) {
                 const cons = gs.consumables || {};
                 if (cons.xp_booster?.active && (!cons.xp_booster.expiresAt || Date.now() < cons.xp_booster.expiresAt)) mult = 1.5;
               } catch {}
-              const base = Math.max(1, Math.round(logValue * 60));
+              const base = Math.max(1, Math.round(logValue * 25));
               const total = Math.round(base * mult);
               return (
-                <div className="text-xs font-mono text-center" style={{ color: "#f0c040" }}>
+                <div className="text-xs font-mono text-center" style={{ color: "var(--habit-gold)" }}>
                   +{total}G on completion{mult > 1 && <span className="text-green-400 ml-1">(×{mult} booster!)</span>}
                 </div>
               );
@@ -392,7 +395,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 1.5 }}
                     className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono font-bold text-sm pointer-events-none"
-                    style={{ color: "#f0c040" }}
+                    style={{ color: "var(--habit-gold)" }}
                   >
                     +{goldFloat.value}G
                   </motion.div>
@@ -401,7 +404,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
               <button
                 onClick={confirmLog}
                 className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{ background: "#7B61FF", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, boxShadow: "0 4px 16px rgba(123,97,255,0.35)" }}
+                style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
                 Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} efficiency
               </button>

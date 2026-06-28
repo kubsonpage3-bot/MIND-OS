@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { normalizeGold } from "@/lib/utils";
 
 /**
  * FlyingReward - анимация "полета" XP/золота от задачи к статус-бару
@@ -46,7 +47,10 @@ export default function FlyingReward({ rewards }) {
           }}
         >
           {reward.isCrit && "🌟 "}
-          {reward.type === "xp" ? "⚡" : "🪙"} +{reward.amount}
+          {reward.type === "xp"
+            ? <>⚡ +{Math.round(reward.amount)}</>
+            : <>🪙 +{normalizeGold(reward.amount)}</>
+          }
         </motion.div>
       ))}
     </div>

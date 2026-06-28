@@ -123,11 +123,11 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
   };
 
   const completeTodo = async (task) => {
-    if (task.done) return;
-    playSound('task_complete');
+    const isCompleting = !task.done;
+    playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
     try {
-      await djangoApi.tasks.complete(task.id, true);
+      await djangoApi.tasks.complete(task.id, isCompleting);
     } catch (e) {
       console.warn('Django task complete failed:', e);
     }
@@ -145,18 +145,27 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
 
     const bossDmg = applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
 
-    onXpGain(Math.round(reward.xp));
-    onRankXP?.(Math.round(reward.xp));
-    onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-    addGoldToGS(reward.gold);
-    addManaToGS(3);
+    if (isCompleting) {
+      onXpGain(Math.round(reward.xp));
+      onRankXP?.(Math.round(reward.xp));
+      onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
+      addGoldToGS(reward.gold);
+      addManaToGS(3);
 
-    const overdueLabel = isOverdue(task) ? ' ⚠️ late' : '';
-    const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
-    playSound('gold_earned');
-    showRewardToast({ xp: Math.round(reward.xp), gold: reward.gold, boss: bossDmg, label: task.name + overdueLabel + critLabel });
+      const overdueLabel = isOverdue(task) ? ' ⚠️ late' : '';
+      const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
+      playSound('gold_earned');
+      showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + overdueLabel + critLabel });
+    } else {
+      onXpGain(-Math.round(reward.xp));
+      onRankXP?.(-Math.round(reward.xp));
+      onBossDamage(-bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
+      addGoldToGS(-reward.gold);
+      addManaToGS(-3);
+      showRewardToast({ label: `Reverted: ${task.name}` });
+    }
 
-    update(tasks.map(t => t.id === task.id ? { ...t, done: true } : t));
+    update(tasks.map(t => t.id === task.id ? { ...t, done: isCompleting } : t));
   };
 
   const deleteTask = async (id) => {
@@ -210,9 +219,9 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: task.done ? 0.45 : 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
-                className="flex items-center gap-2 rounded-xl p-2.5 cursor-pointer"
+                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.done ? '' : 'task-card'}`}
                 style={{
-                  background: 'var(--habit-panel)',
+                  background: task.done ? 'transparent' : '#000',
                   border: `1px solid ${overdue && !task.done ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
                 }}
                 onClick={() => completeTodo(task)}

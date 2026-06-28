@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getRankFromXP } from "@/lib/rankEngine";
 import OptimizedImage from "./OptimizedImage";
+import { normalizeGold } from "@/lib/utils";
 
 const RANK_ORDER = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
 
@@ -69,7 +70,7 @@ export function applyDamageToActiveScroll(amount, isCrit) {
   if (!activeScroll) return;
   const st = scrollState[activeScroll.id];
   const finalDmg = isCrit ? amount * 2 : amount;
-  const newHP = Math.max(0, (st.bossHP ?? activeScroll.bossHP) - finalDmg);
+  const newHP = Math.min(activeScroll.bossHP, Math.max(0, (st.bossHP ?? activeScroll.bossHP) - finalDmg));
   const defeated = newHP <= 0;
   const newState = { ...scrollState, [activeScroll.id]: { ...st, bossHP: newHP, defeated } };
   saveScrollState(newState);
@@ -145,7 +146,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
           <div className="font-mono text-sm font-bold text-foreground tracking-wide">Summoning Scrolls</div>
           <div className="font-mono text-xs text-muted-foreground/50 mt-0.5">Summon a boss · defeat within 14 days · claim unique loot</div>
         </div>
-        <div className="font-mono text-sm font-bold" style={{ color: "#f0c040" }}>🪙 {gold.toLocaleString()}G</div>
+        <div className="font-mono text-sm font-bold" style={{ color: "#f0c040" }}>🪙 {normalizeGold(gold).toLocaleString()}G</div>
       </div>
 
 
@@ -249,7 +250,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                         {/* Bottom row */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="text-[10px] font-mono text-muted-foreground/40">
-                            +{scroll.reward.gold.toLocaleString()}G · +{scroll.reward.sp}SP · +{scroll.reward.mp}MP
+                            +{normalizeGold(scroll.reward.gold).toLocaleString()}G · +{scroll.reward.sp}SP · +{scroll.reward.mp}MP
                           </div>
                           {isActive && (
                             <span className="text-[11px] font-mono text-red-400 font-bold shrink-0">● ACTIVE IN DASHBOARD</span>
@@ -338,7 +339,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
               <div className="rounded-xl border border-border bg-muted/20 p-3 text-left space-y-1.5">
                 <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {confirmScroll.uniqueItem.label}</div>
                 <div className="font-mono text-[11px] text-muted-foreground/60">{confirmScroll.uniqueItem.effect}</div>
-                <div className="font-mono text-[11px] text-yellow-400">+{confirmScroll.reward.gold.toLocaleString()}G · +{confirmScroll.reward.sp}SP · +{confirmScroll.reward.mp}MP</div>
+                <div className="font-mono text-[11px] text-yellow-400">+{normalizeGold(confirmScroll.reward.gold).toLocaleString()}G · +{confirmScroll.reward.sp}SP · +{confirmScroll.reward.mp}MP</div>
               </div>
               <div className="flex gap-3">
                 <button
@@ -380,7 +381,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
               <div className="font-mono text-xl font-black text-green-400 tracking-widest">BOSS DEFEATED</div>
               <div className="font-mono text-base font-bold" style={{ color: scroll.color }}>{scroll.boss}</div>
               <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-2 font-mono text-sm text-left">
-                <div className="text-yellow-400 font-bold">+{scroll.reward.gold.toLocaleString()} Gold</div>
+                <div className="text-yellow-400 font-bold">+{normalizeGold(scroll.reward.gold).toLocaleString()} Gold</div>
                 <div className="text-blue-400">+{scroll.reward.mp} MP</div>
                 <div className="text-green-400">+{scroll.reward.sp} SP</div>
                 <div style={{ color: scroll.color }}>✦ {scroll.uniqueItem.label} — added to inventory</div>

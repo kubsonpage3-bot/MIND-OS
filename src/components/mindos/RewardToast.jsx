@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { normalizeGold } from "@/lib/utils";
 
 let _showToast = null;
 
@@ -43,7 +44,7 @@ export default function RewardToast() {
               <span className="font-hud text-sm font-bold" style={{ color: "#a78bfa" }}>+{t.xp} XP</span>
             )}
             {t.gold > 0 && (
-              <span className="font-hud text-sm font-bold" style={{ color: "#f0c040" }}>+{t.gold} G</span>
+              <span className="font-hud text-sm font-bold" style={{ color: "#f0c040" }}>+{normalizeGold(t.gold)} G</span>
             )}
             {t.boss > 0 && (
               <span className="font-hud text-sm font-bold" style={{ color: "#ef4444" }}>⚔ {t.boss}</span>

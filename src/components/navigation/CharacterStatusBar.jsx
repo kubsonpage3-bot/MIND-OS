@@ -4,6 +4,7 @@ import { CLASSES } from "@/lib/rpgSystem";
 import { getRankFromXP, getNextRankFromXP } from "@/lib/rankEngine";
 import PixelCharacter from "../mindos/PixelCharacter";
 import { Menu } from "lucide-react";
+import { normalizeGold } from "@/lib/utils";
 
 function PixelBar({ pct, fillColor, glowColor, label, value }) {
   return (
@@ -100,7 +101,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
             }}>{rankId}</div>
             <div className="flex items-center gap-0.5">
               <span className="text-[10px]">🪙</span>
-              <span style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: "#ffbe5d" }}>{gameState.gold}</span>
+              <span style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: "#ffbe5d" }}>{normalizeGold(gameState.gold)}</span>
             </div>
             {streak > 0 && (
               <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: "#ff8800" }}>🔥{streak}</div>

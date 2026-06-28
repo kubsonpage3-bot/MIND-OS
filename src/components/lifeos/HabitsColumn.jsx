@@ -81,7 +81,7 @@ export default function HabitsColumn({ gs, update }) {
           const showPos = habit.type === "positive" || habit.type === "both";
           const showNeg = habit.type === "negative" || habit.type === "both";
           return (
-            <div key={habit.id} className="p-3 rounded-lg border bg-purple-900/20 hover:bg-purple-900/30 transition-all group"
+            <div key={habit.id} className="p-3 rounded-lg border bg-black hover:bg-black/80 transition-all group"
               style={{ borderColor: `${color}40` }}>
               <div className="flex items-center gap-2">
                 {showNeg && (

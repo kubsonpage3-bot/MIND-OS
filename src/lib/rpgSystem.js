@@ -415,6 +415,7 @@ export const MUTATORS = [
   { id: "miser", name: "MISER", icon: M_ICONS.lock, cost: 700, cat: "economy", toggle: true, durationDays: null, desc: "Cannot spend Gold on shop items. Each 24h without spending: +5 Rank XP.", synergy: null },
   { id: "tithe", name: "TITHE", icon: M_ICONS.shield_bolt, cost: 800, cat: "economy", toggle: false, durationDays: null, desc: "Each task: pay 3G or lose 5 HP. But +15% Rank XP from all tasks.", synergy: "compound" },
   // ── STREAK ──
+    
   { id: "ascetic_loop", name: "ASCETIC LOOP", icon: M_ICONS.loop, cost: 900, cat: "streak", toggle: false, durationDays: null, desc: "Streak gives Rank XP: streak×0.2 per day. Break streak: lose all bonus XP.", synergy: "monks_path" },
   { id: "double_nothing", name: "DOUBLE OR NOTHING", icon: M_ICONS.double, cost: 1200, cat: "streak", toggle: true, durationDays: null, desc: "Streak milestone rewards doubled. Miss 2 days in a row: streak resets to 0.", synergy: null },
   { id: "momentum", name: "MOMENTUM", icon: M_ICONS.momentum, cost: 800, cat: "streak", toggle: false, durationDays: null, desc: "Each day with 1h+ logged: +2% Rank XP, stacks to +20%. Miss: resets.", synergy: "phantom_load" },
@@ -444,6 +445,7 @@ export function loadRPGData() {
   const get = (key, def) => { try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; } };
   return {
     classData: get("mindos_class", { chosen: null, mana: 0, maxMana: 0, skills: [] }),
+    activeEffects: get("mindos_active_effects", []),
     skillTree: get("mindos_skillTree", { unlockedNodes: [], skillPoints: 0 }),
     alliesData: get("mindos_allies", { recruited: [], levels: {} }),
     achievements: get("mindos_achievements", { unlocked: [], progress: {} }),
@@ -455,4 +457,176 @@ export function loadRPGData() {
 
 export function saveRPGData(key, data) {
   localStorage.setItem(key, JSON.stringify(data));
+}
+
+// ─── HELPER FUNCTIONS FOR SKILL EFFECTS ───────────────────────────────────────
+
+function getMidnightTimestamp() {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  return midnight.getTime();
+}
+
+export function addActiveEffect(effect) {
+  let rpgData = loadRPGData();
+  let newEffects = [...rpgData.activeEffects.filter(e => e.id !== effect.id), effect];
+  rpgData.activeEffects = newEffects;
+  saveRPGData("mindos_active_effects", newEffects);
+  return rpgData;
+}
+
+export function removeExpiredEffects() {
+  let rpgData = loadRPGData();
+  const now = Date.now();
+  const filteredEffects = rpgData.activeEffects.filter(effect => !effect.expiresAt || effect.expiresAt > now);
+  if (filteredEffects.length !== rpgData.activeEffects.length) {
+    saveRPGData("mindos_active_effects", filteredEffects);
+    rpgData.activeEffects = filteredEffects;
+  }
+  return rpgData;
+}
+
+export function getActiveEffect(id) {
+  const rpgData = removeExpiredEffects(); // Clean up expired effects first
+  return rpgData.activeEffects.find(effect => effect.id === id);
+}
+
+// ─── SKILL EFFECT APPLICATION ─────────────────────────────────────────────────
+
+export function applySkillEffect(skillId, currentClassData) {
+  let rpgData = loadRPGData(); // Load all RPG data
+  let updatedClassData = { ...currentClassData };
+  let gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+
+  switch (skillId) {
+    // ARCHITECT SKILLS
+    case "blueprint":
+      rpgData = addActiveEffect({
+        id: "blueprint_effect",
+        skill: "blueprint",
+        tasksRemaining: 3,
+        xpBoost: 0.5, // +50%
+        expiresAt: getMidnightTimestamp(),
+      });
+      console.log("Skill BLUEPRINT activated: Next 3 tasks give +50% Rank XP.");
+      break;
+
+    case "system_overload":
+      rpgData = addActiveEffect({
+        id: "system_overload_effect",
+        skill: "system_overload",
+        damageMultiplier: 3,
+        active: true, // Will be consumed on next boss task completion
+        expiresAt: Date.now() + 24 * 3600000, // Expires in 24 hours if not used
+      });
+      console.log("Skill SYSTEM OVERLOAD activated: Next boss task deals 3x damage.");
+      break;
+
+    case "infinite_loop":
+      rpgData = addActiveEffect({
+        id: "infinite_loop_effect",
+        skill: "infinite_loop",
+        duration: 2 * 3600000, // 2 hours
+        cognitiveMetricsBoost: 2, // 2x
+        expiresAt: Date.now() + 2 * 3600000,
+      });
+      console.log("Skill INFINITE LOOP activated: Cognitive metrics doubled for 2 hours.");
+      break;
+
+    // ASCETIC SKILLS
+    case "iron_fast":
+      rpgData = addActiveEffect({
+        id: "iron_fast_effect",
+        skill: "iron_fast",
+        healingPerTask: 5,
+        noDailyPenalty: true,
+        expiresAt: Date.now() + 24 * 3600000, // For 24h
+      });
+      console.log("Skill IRON FAST activated: Tasks restore HP, no daily penalty for 24h.");
+      break;
+
+    case "contemplate":
+      if (gs.gf !== undefined) gs.gf += 3;
+      if (gs.gc !== undefined) gs.gc += 3;
+      if (gs.ps !== undefined) gs.ps += 3;
+      if (gs.vm !== undefined) gs.vm += 3;
+      localStorage.setItem("mindos_game_state", JSON.stringify(gs));
+      console.log("Skill CONTEMPLATE activated: Gained +3 Gf, Gc, Ps, Vm.");
+      break;
+
+    case "transcendence":
+      rpgData = addActiveEffect({
+        id: "transcendence_effect",
+        skill: "transcendence",
+        streakCannotBreak: true,
+        rivalXPFrozen: true,
+        expiresAt: Date.now() + 48 * 3600000, // For 48h
+      });
+      console.log("Skill TRANSCENDENCE activated: Streak cannot break, rival XP frozen for 48h.");
+      break;
+
+    // LINGUIST SKILLS
+    case "babel_mode":
+      rpgData = addActiveEffect({
+        id: "babel_mode_effect",
+        skill: "babel_mode",
+        tripleSubjectCount: true,
+        expiresAt: getMidnightTimestamp(), // Next session until midnight
+      });
+      console.log("Skill BABEL MODE activated: Next language session counts for all three subjects.");
+      break;
+
+    case "polyglot_surge":
+      console.log("Skill POLYGLOT SURGE activated: Pushed all language subject ranks forward by 2 virtual hours each.");
+      break;
+
+    case "memetic_transfer":
+      rpgData = addActiveEffect({
+        id: "memetic_transfer_effect",
+        skill: "memetic_transfer",
+        memoryTaskProgressBoost: 2, // 2x progress
+        mirrorGcVmToGf: true, // Gc and Vm gains also mirror as Gf gains at 50% rate.
+        expiresAt: Date.now() + 24 * 3600000, // For 24h
+      });
+      console.log("Skill MEMETIC TRANSFER activated: Memory tasks give 2x progress for 24h, Gc/Vm mirror to Gf.");
+      break;
+
+    // WARLORD SKILLS
+    case "battle_fury":
+      rpgData = addActiveEffect({
+        id: "battle_fury_effect",
+        skill: "battle_fury",
+        physicalDamageBoost: 0.5, // +50%
+        manaRegenPenalty: 0.2, // -20% (This requires a mana regen system)
+        expiresAt: Date.now() + 1 * 3600000, // For 1 hour
+      });
+      console.log("Skill BATTLE FURY activated: +50% physical damage, -20% mana regen for 1 hour.");
+      break;
+
+    case "war_cry":
+      rpgData = addActiveEffect({
+        id: "war_cry_effect",
+        skill: "war_cry",
+        bossHPPercentReduction: 0.10, // 10%
+        stunBossFor: 1 * 3600000, // Stun for 1 hour (no boss damage)
+        expiresAt: Date.now() + 1 * 3600000, // Effect lasts 1 hour
+      });
+      console.log("Skill WAR CRY activated: Reduced boss HP by 10% and stunned for 1 hour.");
+      break;
+
+    case "tactical_retreat":
+      updatedClassData.mana = Math.min(updatedClassData.maxMana, (updatedClassData.mana || 0) + (updatedClassData.maxMana * 0.25));
+      saveRPGData("mindos_class", updatedClassData); // Save mana change immediately
+      console.log("Skill TACTICAL RETREAT activated: Reset boss encounter, gained 25% mana back.");
+      break;
+
+    default:
+      console.warn(`Attempted to activate unknown skill: ${skillId}`);
+      break;
+  }
+
+  // Save updated class data if any direct modifications were made (e.g., Tactical Retreat)
+  saveRPGData("mindos_class", updatedClassData);
+
+  return updatedClassData;
 }

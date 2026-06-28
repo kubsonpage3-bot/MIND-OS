@@ -186,7 +186,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                         style={{ textShadow: "0 0 10px #00e5ff" }}
                       >⚡ CRITICAL ⚡</motion.div>
                     )}
-                    -{damageFloat.value}
+                    {damageFloat.value > 0 ? '-' : '+'}{Math.abs(damageFloat.value)}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -204,7 +204,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
               </div>
               <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeScroll.name}</div>
               <div className="text-[10px] font-mono text-yellow-400/70">
-                Reward: +{activeScroll.reward.gold.toLocaleString()}G · +{activeScroll.reward.sp}SP · {activeScroll.uniqueItem.label}
+                Reward: +{Math.round(activeScroll.reward.gold).toLocaleString()}G · +{activeScroll.reward.sp}SP · {activeScroll.uniqueItem.label}
               </div>
             </div>
           </div>

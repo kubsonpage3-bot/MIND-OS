@@ -255,3 +255,65 @@ class Task(models.Model):
             "xp":   int(base["xp"]   * self.value),
             "gold": int(base["gold"] * self.value),
         }
+# ─────────────────────────────────────────────────────────────────────────────
+# Эффекты скиллов (Active Effects)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ActiveEffect(models.Model):
+    """
+    Активный эффект скилла, применённый к пользователю.
+    Создаётся при активации скилла, удаляется при истечении или потреблении.
+    """
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name="active_effects",
+        verbose_name="Пользователь",
+    )
+    effect_id = models.CharField(
+        max_length=80, unique=True,
+        verbose_name="ID эффекта",
+        help_text="Уникальный идентификатор: blueprint_effect, iron_fast_effect...",
+    )
+    skill_id = models.CharField(
+        max_length=50,
+        verbose_name="ID скилла",
+        help_text="blueprint, system_overload, iron_fast...",
+    )
+    # JSON с данными эффекта: { tasksRemaining: 3, xpBoost: 0.5, ... }
+    data = models.JSONField(default=dict, verbose_name="Данные эффекта")
+    expires_at = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name="Истекает",
+        help_text="Когда эффект перестаёт действовать. null = пока не потреблён.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
+
+    class Meta:
+        verbose_name = "Активный эффект"
+        verbose_name_plural = "Активные эффекты"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.effect_id} → {self.user.username}"
+
+
+class SkillCooldown(models.Model):
+    """
+    Кулдаун скилла для пользователя.
+    Пока cooldown_until > now(), скилл нельзя использовать.
+    """
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name="skill_cooldowns",
+        verbose_name="Пользователь",
+    )
+    skill_id = models.CharField(max_length=50, verbose_name="ID скилла")
+    cooldown_until = models.DateTimeField(verbose_name="Кулдаун до")
+
+    class Meta:
+        verbose_name = "Кулдаун скилла"
+        verbose_name_plural = "Кулдауны скиллов"
+        unique_together = [["user", "skill_id"]]  # Один кулдаун на скилл на юзера
+
+    def __str__(self):
+        return f"{self.skill_id} CD → {self.user.username} (until {self.cooldown_until})"

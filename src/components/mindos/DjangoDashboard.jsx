@@ -201,7 +201,7 @@ export default function DjangoDashboard() {
               <span className="text-sm font-semibold tracking-wider text-rose-400 uppercase">Hit Points</span>
               <Heart className="h-5 w-5 text-rose-500 fill-rose-500" />
             </div>
-            <div className="text-2xl font-bold">{hpVal} / {hpMaxVal}</div>
+            <div className="text-2xl font-bold">{Math.round(hpVal)} / {hpMaxVal}</div>
             <div className="mt-3 h-2 w-full rounded-full bg-slate-800 overflow-hidden">
               <div 
                 className="h-full bg-rose-500 transition-all duration-300"

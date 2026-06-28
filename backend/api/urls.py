@@ -6,7 +6,7 @@ MIND OS API — маршруты приложения api/.
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import RegisterView, UserProfileView, TaskViewSet
+from .views import RegisterView, UserProfileView, TaskViewSet, SkillActivateView, ActiveEffectsView
 
 # ── DRF Router автоматически генерирует CRUD-маршруты ────────────────────────
 # TaskViewSet → /api/tasks/
@@ -29,3 +29,8 @@ urlpatterns = [
     # ── Задачи (CRUD + complete) ───────────────────────────────────────────
     path("", include(router.urls)),
 ]
+# ── Скиллы ────────────────────────────────────────────────────────────
+    # POST /api/skills/activate/
+    # GET  /api/skills/active-effects/
+    path("skills/activate/", SkillActivateView.as_view(), name="skill-activate"),
+    path("skills/active-effects/", ActiveEffectsView.as_view(), name="active-effects"),
