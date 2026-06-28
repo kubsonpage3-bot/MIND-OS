@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { SHOP_ITEMS, ITEM_ICON_MAP, getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
 import { loadRPGData, saveRPGData, CLASSES } from "@/lib/rpgSystem";
 import { djangoApi } from "@/api/djangoClient";
 import PixelCharacter from "./PixelCharacter";
@@ -58,6 +58,30 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
+
+  const { data: shopItems = [], isLoading: isShopLoading } = useQuery({
+    queryKey: ["shopItems"],
+    queryFn: async () => {
+      try {
+        const response = await djangoApi.shop.getItems();
+        return (response || []).map(item => ({
+          id: item.code,
+          label: item.name,
+          desc: item.description,
+          tier: item.tier,
+          cost: item.cost,
+          consumable: item.item_type === "consumable",
+          stats: item.stats,
+          slot: item.slot_type,
+          icon_url: item.icon_url,
+          healAmount: item.hp_boost
+        }));
+      } catch (err) {
+        console.error("Failed to load shop items", err);
+        return [];
+      }
+    }
+  });
 
   // Reload RPG data from storage on mount
   useEffect(() => { setRpg(loadRPGData()); }, []);
@@ -121,33 +145,30 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Map inventory and equipment from profile
   const rawInventory = profile?.inventory || [];
-  const inventory = rawInventory.map(ri => SHOP_ITEMS.find(i => i.id === ri.id) || ri);
+  const inventory = rawInventory.map(ri => shopItems.find(i => i.id === ri.id) || ri);
   
   const rawEquipped = profile?.equipped || {};
   const equipped = {};
   Object.keys(rawEquipped).forEach(slot => {
      const eqId = rawEquipped[slot]?.id || rawEquipped[slot];
-     equipped[slot] = SHOP_ITEMS.find(i => i.id === eqId) || rawEquipped[slot];
+     equipped[slot] = shopItems.find(i => i.id === eqId) || rawEquipped[slot];
   });
 
   // Equipped stats breakdown
-  const equipStats = { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
-  Object.values(equipped).forEach(item => {
-    if (item?.stats) Object.entries(item.stats).forEach(([k, v]) => { equipStats[k] = (equipStats[k] || 0) + v; });
-  });
+  const equipStats = profile?.equip_stats || { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
   
-  // Calculate final stats: Base (5) + Stat Points + Class Bonus + Equipment
-  const baseStat = 5;
+  // Use backend stats as SSOT
   const statBreakdown = {};
   Object.keys(STAT_CONFIG).forEach(key => {
-    const statPointsBonus = (gs.stats?.[key] || 0); // Points invested above base
-    const classBonus = chosenClass?.stats?.[key] || 0;
+    const backendBase = profile?.[`base_${key}`] || 5;
+    const total = profile?.total_stats?.[key] || backendBase;
     const equipBonus = equipStats[key] || 0;
-    const total = baseStat + statPointsBonus + classBonus + equipBonus;
+    
+    // We infer non-equip bonus (base + invested) from the backend base
     statBreakdown[key] = {
-      base: baseStat,
-      points: statPointsBonus,
-      class: classBonus,
+      base: backendBase,
+      points: 0, // Migrated to backend base
+      class: 0,  // Migrated to backend base
       equip: equipBonus,
       total: total,
     };
@@ -213,11 +234,13 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       const prevProfile = queryClient.getQueryData(["userprofile"]);
 
       if (prevProfile) {
-        const newHp = buyData.heal_amount 
-          ? Math.min(prevProfile.hp_max, prevProfile.hp + buyData.heal_amount)
+        const item = shopItems.find(i => i.id === buyData.item_id);
+        const healAmount = item && item.consumable ? (item.healAmount || 0) : 0;
+        const newHp = healAmount 
+          ? Math.min(prevProfile.hp_max, prevProfile.hp + healAmount)
           : prevProfile.hp;
         
-        const newInventory = buyData.heal_amount 
+        const newInventory = healAmount 
           ? prevProfile.inventory 
           : [...(prevProfile.inventory || []), { id: buyData.item_id }];
 
@@ -254,20 +277,30 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       item_id: item.id,
       cost: item.cost,
       heal_amount: item.healAmount || 0,
-      is_consumable: !!item.healAmount
+      is_consumable: !!item.consumable
     });
   };
 
   const equipItem = (item) => {
     playSound('success');
-    const ne = { ...rawEquipped, [item.slot]: item.id };
     
     // Optimistically update
     /** @type {any} */
     const prevProfile = queryClient.getQueryData(["userprofile"]);
-    if (prevProfile) queryClient.setQueryData(["userprofile"], { ...prevProfile, equipped: ne });
+    if (prevProfile) {
+      // Toggle logic for optimistic update
+      const newInventory = (prevProfile.inventory || []).map(i => {
+        if (i.id === item.id) return { ...i, is_equipped: !i.is_equipped };
+        if (i.slot === item.slot && !item.is_equipped) return { ...i, is_equipped: false };
+        return i;
+      });
+      queryClient.setQueryData(["userprofile"], { ...prevProfile, inventory: newInventory });
+    }
     
-    djangoApi.profile.update({ equipped: ne }).then(() => {
+    djangoApi.inventory.equip(item.id).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }).catch(err => {
+        console.error("Failed to equip item", err);
         queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     });
     setActiveSlot(null);
@@ -275,17 +308,13 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   const unequip = (slot) => {
     playSound('click');
-    const ne = { ...rawEquipped }; 
-    delete ne[slot];
-    
-    // Optimistically update
-    /** @type {any} */
-    const prevProfile = queryClient.getQueryData(["userprofile"]);
-    if (prevProfile) queryClient.setQueryData(["userprofile"], { ...prevProfile, equipped: ne });
-
-    djangoApi.profile.update({ equipped: ne }).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-    });
+    const eqId = rawEquipped[slot]?.id || rawEquipped[slot];
+    if (eqId) {
+      djangoApi.inventory.equip(eqId).then(() => {
+          queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      });
+    }
+    setActiveSlot(null);
   };
 
   const upgradeStat = (stat) => {
@@ -293,8 +322,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     save({ ...gs, statPoints: (gs.statPoints || 0) - 1, stats: { ...gs.stats, [stat]: ((gs.stats?.[stat] || 0) + 1) } });
   };
 
-  const gearItems = SHOP_ITEMS.filter(i => !i.consumable);
-  const consumables = SHOP_ITEMS.filter(i => i.consumable);
+  const gearItems = shopItems.filter(i => !i.consumable);
+  const consumables = shopItems.filter(i => i.consumable);
 
   // If no class chosen, show selector
   if (!classData.chosen) {
@@ -445,7 +474,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             
             {/* Formula explanation */}
             <div className="text-[8px] font-mono text-muted-foreground/40 pt-2 border-t border-border/40">
-              Total = Base ({baseStat}) + Class Bonus + Equipment + Stat Points
+              Total = Base (including points & class) + Equipment
             </div>
           </div>
 
@@ -526,17 +555,16 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           {(() => {
             const today = new Date().toDateString();
             const seed = today.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-            const allItems = [...SHOP_ITEMS];
+            const allItems = shopItems.length > 0 ? [...shopItems] : [{ id: "placeholder", label: "Loading...", cost: 100, tier: "Common", consumable: true }];
             const featuredItem = allItems[seed % allItems.length];
             const discountPct = 20 + (seed % 3) * 10; // 20%, 30%, or 40%
             const discountedCost = Math.max(1, Math.round(featuredItem.cost * (1 - discountPct / 100)));
             const canAfford = gold >= discountedCost;
             const tierColor = getTierColor(featuredItem.tier);
-            const isOwned = !featuredItem.consumable && (gs.inventory || []).some(i => i.id === featuredItem.id);
+            const isOwned = !featuredItem.consumable && (inventory || []).some(i => i.id === featuredItem.id);
             // Bonus unique items not in regular shop (only in featured slot)
             const bonusPool = [
-              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 0, consumable: true, effect: "+100% XP for 2h", slot: "consumable" },
-              { id: "daily_gold_rush", label: "Gold Rush Token", tier: "Rare", cost: 0, consumable: true, effect: "+200G instantly", slot: "consumable" },
+              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 0, consumable: true, effect: "+100% XP for 2h" },
             ];
             const bonusItem = bonusPool[seed % bonusPool.length];
             const isBonusDay = seed % 5 === 0; // every 5 days a unique bonus item appears
@@ -561,8 +589,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded border flex items-center justify-center shrink-0 overflow-hidden"
                     style={{ borderColor: `${dealTierColor}60`, background: "rgba(10,8,6,0.8)", imageRendering: "pixelated" }}>
-                    {ITEM_ICON_MAP[dealItem.id]
-                      ? <img src={ITEM_ICON_MAP[dealItem.id]} alt={dealItem.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                    {dealItem.icon_url
+                      ? <img src={dealItem.icon_url} alt={dealItem.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                       : <span className="text-lg">⭐</span>}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -611,7 +639,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <ScrollsPanel gold={gold} onSpendGold={spendGold} />
           )}
           {shopTab === "inventory" && (
-            <InventoryPanel gs={gs} onSave={save} />
+            <InventoryPanel gs={{...gs, inventory, equipped}} onSave={save} onToggleEquip={equipItem} />
           )}
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {(shopTab === "scrolls" || shopTab === "inventory") ? null : (shopTab === "gear" ? gearItems : consumables)
@@ -653,18 +681,19 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                     {isBought && <PixelBurstLayer bursts={bursts} />}
 
                     {/* Icon */}
-                    <div className="shrink-0 relative">
-                      {ITEM_ICON_MAP[item.id] ? (
+                    <div className="w-12 h-12 rounded border flex items-center justify-center shrink-0 overflow-hidden z-10 bg-gray-100 dark:bg-gray-800/50"
+                      style={{ borderColor: `${tierColor}50`, imageRendering: "pixelated" }}>
+                      {item.icon_url ? (
                         <motion.div
-                          animate={isBought ? { rotate: [0, -8, 8, -4, 0], scale: [1, 1.15, 1] } : {}}
-                          transition={{ duration: 0.4 }}
-                          className="w-9 h-9 rounded-none border overflow-hidden"
-                          style={{ imageRendering: "pixelated", background: "#0a0818", borderColor: `${tierColor}60`, boxShadow: `0 0 6px ${tierColor}30` }}
+                          whileHover={{ scale: 1.15, rotate: [-2, 2, -2, 0] }}
+                          transition={{ duration: 0.3 }}
+                          className="w-full h-full p-1"
+                          style={{ imageRendering: "pixelated" }}
                         >
-                          <img src={ITEM_ICON_MAP[item.id]} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                          <img src={item.icon_url} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                         </motion.div>
                       ) : (
-                        <div className="w-9 h-9 rounded-none border border-border/40 bg-muted/20 flex items-center justify-center font-mono text-xs" style={{ color: tierColor }}>
+                        <div className="w-9 h-9 rounded-none border border-border/40 bg-muted/20 flex items-center justify-center font-mono text-xs text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>
                           {item.label[0]}
                         </div>
                       )}
