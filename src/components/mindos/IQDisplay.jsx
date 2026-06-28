@@ -25,7 +25,8 @@ function OrbitParticle({ angle, radius, color, size, delay }) {
 function GlowRing({ progress, color, size, strokeWidth = 4 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const dash = progress * circumference;
+  const safeProgress = typeof progress === "number" && !isNaN(progress) ? progress : 0;
+  const dash = safeProgress * circumference;
 
   return (
     <svg width={size} height={size} className="absolute inset-0 -rotate-90" style={{ top: 0, left: 0 }}>
@@ -37,7 +38,7 @@ function GlowRing({ progress, color, size, strokeWidth = 4 }) {
         fill="none" stroke={color} strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={circumference}
-        animate={{ strokeDashoffset: circumference - dash }}
+        animate={{ strokeDashoffset: circumference - (isNaN(dash) ? 0 : dash) }}
         transition={{ duration: 1, ease: "easeOut" }}
         style={{ filter: `drop-shadow(0 0 6px ${color})` }}
       />
@@ -46,8 +47,18 @@ function GlowRing({ progress, color, size, strokeWidth = 4 }) {
 }
 
 export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeiling, vmCeiling }) {
-  const iq = calculateIQ(gf, gc, ps, vm);
-  const potentialIQ = calculateIQ(gfCeiling, gcCeiling, psCeiling, vmCeiling);
+  const safeGf = gf || 100.0;
+  const safeGc = gc || 100.0;
+  const safePs = ps || 100.0;
+  const safeVm = vm || 100.0;
+  
+  const safeGfCeiling = gfCeiling || 120.0;
+  const safeGcCeiling = gcCeiling || 135.0;
+  const safePsCeiling = psCeiling || 112.0;
+  const safeVmCeiling = vmCeiling || 138.0;
+
+  const iq = calculateIQ(safeGf, safeGc, safePs, safeVm);
+  const potentialIQ = calculateIQ(safeGfCeiling, safeGcCeiling, safePsCeiling, safeVmCeiling);
   const level = getLevelTitle(iq);
 
   const [displayIQ, setDisplayIQ] = useState(iq);

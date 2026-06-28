@@ -133,6 +133,7 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
     let goldEarned = 0;
 
     try {
+      console.log('Sending todo complete for ID:', task.id);
       const res = await djangoApi.tasks.complete(task.id, isCompleting);
       if (res && res.combat) {
         combatResult = res.combat;
@@ -143,7 +144,30 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
         queryClient.setQueryData(["userprofile"], res.profile);
       }
     } catch (e) {
-      console.warn('Django task complete failed:', e);
+      console.error('Django todo complete failed:', e);
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      try {
+        const djangoTasks = await djangoApi.tasks.list();
+        if (Array.isArray(djangoTasks)) {
+          const mappedTasks = djangoTasks.map(dt => ({
+            id: dt.id,
+            type: dt.task_type || 'todo',
+            name: dt.title || 'Task',
+            category: 'Coding',
+            difficulty: dt.difficulty || 'medium',
+            notes: dt.notes || '',
+            done: dt.is_completed || false,
+            completedToday: dt.is_completed || false,
+            rpgValue: dt.value || 0,
+            createdAt: dt.created_at || new Date().toISOString(),
+          }));
+          localStorage.setItem('mindos_tasks', JSON.stringify(mappedTasks));
+        }
+      } catch (err) {
+        console.warn('Failed to sync tasks on error:', err);
+      }
+      showRewardToast({ label: `Error: Task could not be updated on server` });
+      return;
     }
 
     const { combinedEffects } = applyBuffPipeline(getActiveBuffs());
