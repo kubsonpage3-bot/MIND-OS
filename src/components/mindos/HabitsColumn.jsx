@@ -65,7 +65,6 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
   const createTask = async () => {
     if (!form.name.trim()) return;
 
-    let djangoId = Date.now();
     try {
       const created = await djangoApi.tasks.create({
         title: form.name,
@@ -73,27 +72,37 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
         difficulty: form.difficulty,
         notes: form.notes || '',
       });
-      if (created?.id) djangoId = created.id;
-    } catch (e) {
-      console.warn('Django habit create failed:', e);
-    }
+      
+      if (!created || !created.id) throw new Error("No ID returned from server");
 
-    const task = {
-      id: djangoId, type: 'habit', name: form.name, category: form.category,
-      difficulty: form.difficulty, notes: form.notes, priority: form.priority,
-      posStreak: 0, negStreak: 0, weekCount: 0,
-      rpgValue: 0, // Task Value начинается с 0 (жёлтый)
-      createdAt: new Date().toISOString(),
-    };
-    update([...tasks, task]);
-    setShowForm(false);
-    setForm({ name: '', type: 'habit', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
+      const task = {
+        id: created.id, type: 'habit', name: form.name, category: form.category,
+        difficulty: form.difficulty, notes: form.notes, priority: form.priority,
+        posStreak: 0, negStreak: 0, weekCount: 0,
+        rpgValue: 0, // Task Value начинается с 0 (жёлтый)
+        createdAt: new Date().toISOString(),
+      };
+      update([...tasks, task]);
+      setShowForm(false);
+      setForm({ name: '', type: 'habit', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
+    } catch (e) {
+      console.error('Django habit create failed:', e);
+      showRewardToast({ label: `Error: Could not create habit on server` });
+    }
   };
 
   const habitClick = async (task, positive) => {
     let combatResult = null;
     let xpEarned = 0;
     let goldEarned = 0;
+
+    if (task.id > 1000000000 || typeof task.id === 'string') {
+      console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
+      showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
+      // Remove this invalid task locally
+      update(tasks.filter(t => t.id !== task.id));
+      return;
+    }
 
     try {
       console.log('Sending habit complete for ID:', task.id);

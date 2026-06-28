@@ -167,6 +167,10 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "rewards": result.get("rewards", {"xp": 0, "gold": 0}),
                     "task": TaskSerializer(result["task"]).data,
                     "profile": UserProfileSerializer(result["profile"]).data,
+                    "combat": result.get("combat"),
+                    "xp_earned": result.get("xp_earned", 0),
+                    "gold_earned": result.get("gold_earned", 0),
+                    "mana_gained": result.get("mana_gained", 0),
                 },
                 status=status.HTTP_200_OK,
             )
