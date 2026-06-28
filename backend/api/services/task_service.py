@@ -21,23 +21,35 @@ def complete_task(user, task_id, is_positive=True):
 
     # ── Логика по типу задачи ─────────────────────────────────────────
     if task.task_type == Task.TaskType.TODO:
-        if task.is_completed:
-            raise ValidationError("Task already completed.")
-        task.is_completed = True
-        task.last_completed_at = timezone.now()
-        task.completion_count += 1
+        if is_positive:
+            if task.is_completed:
+                raise ValidationError("Task already completed.")
+            task.is_completed = True
+            task.last_completed_at = timezone.now()
+            task.completion_count += 1
+        else:
+            if not task.is_completed:
+                raise ValidationError("Task is not completed.")
+            task.is_completed = False
+            task.last_completed_at = None
+            task.completion_count = max(0, task.completion_count - 1)
 
     elif task.task_type == Task.TaskType.DAILY:
-        today = timezone.now().date()
-        if task.last_completed_at and task.last_completed_at.date() == today:
-            raise ValidationError("Daily task already completed today.")
-        task.last_completed_at = timezone.now()
-        task.completion_count += 1
+        if is_positive:
+            today = timezone.now().date()
+            if task.last_completed_at and task.last_completed_at.date() == today:
+                raise ValidationError("Daily task already completed today.")
+            task.last_completed_at = timezone.now()
+            task.completion_count += 1
+        else:
+            task.last_completed_at = None
+            task.completion_count = max(0, task.completion_count - 1)
 
     elif task.task_type == Task.TaskType.HABIT:
         task.completion_count += 1
         if not is_positive:
             profile.hp = max(0, profile.hp - 5)
+            # Reverting mana or rewards for negative habit is not needed as it's a penalty
             profile.save()
             task.save()
             return {
@@ -53,8 +65,19 @@ def complete_task(user, task_id, is_positive=True):
     task.save()
 
     # ── Начисляем награды персонажу ───────────────────────────────────
-    leveled_up = profile.gain_xp(rewards["xp"])
-    profile.gold += rewards["gold"]
+    mana_gained = 2 if task.task_type == Task.TaskType.HABIT else (5 if task.task_type == Task.TaskType.DAILY else 3)
+    leveled_up = False
+    
+    if is_positive:
+        leveled_up = profile.gain_xp(rewards["xp"])
+        profile.gold += rewards["gold"]
+        profile.mana = min(profile.mana_max, profile.mana + mana_gained)
+    else:
+        # Reverting task rewards
+        profile.xp = max(0, profile.xp - rewards["xp"])
+        profile.gold = max(0, profile.gold - rewards["gold"])
+        profile.mana = max(0, profile.mana - mana_gained)
+        
     profile.save()
 
     # ── Применяем эффекты скиллов ──────────────────────────────────────

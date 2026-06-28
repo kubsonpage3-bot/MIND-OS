@@ -87,7 +87,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
 
   // 2. Получаем ранг пользователя из профиля (уже закэшированного)
   const { data: profile } = useQuery({
-    queryKey: ['profile'],
+    queryKey: ['userprofile'],
     queryFn: djangoApi.profile.get,
     staleTime: 5000,
   });
@@ -104,10 +104,10 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
     mutationFn: ({ bossId, cost }) => djangoApi.combat.summon(bossId, cost),
     onMutate: async ({ bossId, cost }) => {
       await queryClient.cancelQueries({ queryKey: ['combat_encounters'] });
-      await queryClient.cancelQueries({ queryKey: ['profile'] });
+      await queryClient.cancelQueries({ queryKey: ['userprofile'] });
 
       // Оптимистично списываем золото и добавляем фейковый энкаунтер
-      queryClient.setQueryData(['profile'], (/** @type {any} */ old) => old ? { ...old, gold: old.gold - cost } : old);
+      queryClient.setQueryData(['userprofile'], (/** @type {any} */ old) => old ? { ...old, gold: old.gold - cost } : old);
       
       const staticBoss = SCROLLS.find(s => s.id === bossId);
       queryClient.setQueryData(['combat_encounters'], (/** @type {any} */ old) => [
@@ -117,12 +117,12 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
     },
     onError: (err) => {
       console.error(err);
       queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
     }
   });
 

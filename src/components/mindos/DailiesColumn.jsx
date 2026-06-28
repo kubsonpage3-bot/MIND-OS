@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { queueAutoSync } from '@/lib/cloudSync';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
@@ -43,6 +44,7 @@ function getDayStartHour() {
 }
 
 export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
+  const queryClient = useQueryClient();
   const [tasks, setTasks] = useState(() => loadTasks().filter(t => t.type === 'daily'));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -127,6 +129,9 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
       }
       if (res && res.xp_earned) xpEarned = res.xp_earned;
       if (res && res.gold_earned) goldEarned = res.gold_earned;
+      if (res && res.profile) {
+        queryClient.setQueryData(["userprofile"], res.profile);
+      }
     } catch (e) {
       console.warn('Django daily complete failed:', e);
     }

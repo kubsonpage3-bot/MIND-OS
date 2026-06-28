@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckSquare, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { queueAutoSync } from '@/lib/cloudSync';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
@@ -63,6 +64,7 @@ function decayOverdueTodos(todos) {
 }
 
 export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
+  const queryClient = useQueryClient();
   const [tasks, setTasks] = useState(() => {
     const raw = loadTasks().filter(t => t.type === 'todo');
     return decayOverdueTodos(raw);
@@ -137,6 +139,9 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
       }
       if (res && res.xp_earned) xpEarned = res.xp_earned;
       if (res && res.gold_earned) goldEarned = res.gold_earned;
+      if (res && res.profile) {
+        queryClient.setQueryData(["userprofile"], res.profile);
+      }
     } catch (e) {
       console.warn('Django task complete failed:', e);
     }

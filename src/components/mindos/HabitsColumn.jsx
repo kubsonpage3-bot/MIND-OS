@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { queueAutoSync } from '@/lib/cloudSync';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
@@ -37,6 +38,7 @@ function loadTasks() {
 function saveTasks(tasks) { localStorage.setItem('mindos_tasks', JSON.stringify(tasks)); queueAutoSync(); }
 
 export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
+  const queryClient = useQueryClient();
   const [tasks, setTasks] = useState(() => loadTasks().filter(t => t.type === 'habit'));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -101,6 +103,9 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
       }
       if (res && res.xp_earned) xpEarned = res.xp_earned;
       if (res && res.gold_earned) goldEarned = res.gold_earned;
+      if (res && res.profile) {
+        queryClient.setQueryData(["userprofile"], res.profile);
+      }
     } catch (e) {
       console.warn('Django habit complete failed:', e);
     }
