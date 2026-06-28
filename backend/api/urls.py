@@ -28,9 +28,10 @@ urlpatterns = [
 
     # ── Задачи (CRUD + complete) ───────────────────────────────────────────
     path("", include(router.urls)),
-]
-# ── Скиллы ────────────────────────────────────────────────────────────
+
+    # ── Скиллы ────────────────────────────────────────────────────────────
     # POST /api/skills/activate/
     # GET  /api/skills/active-effects/
     path("skills/activate/", SkillActivateView.as_view(), name="skill-activate"),
     path("skills/active-effects/", ActiveEffectsView.as_view(), name="active-effects"),
+]

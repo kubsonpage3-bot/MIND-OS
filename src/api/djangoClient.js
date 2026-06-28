@@ -1,4 +1,7 @@
-const BASE_URL = 'https://mind-os-d5sk.onrender.com/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.DEV 
+    ? 'http://localhost:8000/api' 
+    : 'https://mind-os-d5sk.onrender.com/api');
 
 function apiUrl(endpoint) {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;

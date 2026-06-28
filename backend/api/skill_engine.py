@@ -40,6 +40,10 @@ CLASS_DEFS = {
             {"id": "battle_fury",      "name": "BATTLE FURY",      "mana": 45,  "cooldown_h": 24},
             {"id": "war_cry",          "name": "WAR CRY",          "mana": 75,  "cooldown_h": 24},
             {"id": "tactical_retreat", "name": "TACTICAL RETREAT", "mana": 80,  "cooldown_h": 24},
+        ],
+    },
+}
+
 def get_midnight():
     """Возвращает datetime следующей полуночи."""
     now = timezone.now()
@@ -117,6 +121,12 @@ def activate_skill(profile, skill_id):
         "skills": [
             {"id": c.skill_id, "cooldownUntil": int(c.cooldown_until.timestamp() * 1000)}
             for c in cooldowns_qs
+        ],
+    }
+
+    return True, f"{skill_def['name']} активирован!", class_data, list(effects_qs)
+
+
 def _create_effect(skill_id, profile):
     """Создаёт данные эффекта в зависимости от skill_id."""
     now = timezone.now()
@@ -216,10 +226,3 @@ def apply_effects_on_task_complete(profile, task):
     ).delete()
 
     return result
-        ],
-    }
-
-    return True, f"{skill_def['name']} активирован!", class_data, list(effects_qs)
-        ],
-    },
-}

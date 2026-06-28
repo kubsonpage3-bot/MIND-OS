@@ -30,7 +30,7 @@ from .serializers import (
     TaskCompleteSerializer,
 )
 from .models import ActiveEffect, SkillCooldown
-from .serializers import ActiveEffectSerializer, SkillActivateSerializer
+from .serializers import ActiveEffectSerializer, SkillActivateSerializer, SkillCooldownSerializer
 from .skill_engine import activate_skill, apply_effects_on_task_complete
 
 
@@ -210,7 +210,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         leveled_up = profile.gain_xp(rewards["xp"])
         profile.gold += rewards["gold"]
         profile.save()
-# ── Применяем эффекты скиллов ──────────────────────────────────────
+        # ── Применяем эффекты скиллов ──────────────────────────────────────
         skill_effects = apply_effects_on_task_complete(profile, task)
         if skill_effects["xp_bonus"] > 0:
             profile.gain_xp(skill_effects["xp_bonus"])
@@ -220,7 +220,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             {
                 "detail":    "Задача выполнена!",
                 "leveled_up": leveled_up,
-\"skill_effects\": skill_effects[\"notes\"],
+                "skill_effects": skill_effects["notes"],
                 "rewards":   rewards,
                 "task":      TaskSerializer(task).data,
                 "profile":   UserProfileSerializer(profile).data,
