@@ -36,15 +36,19 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
 
   // 2. Подписываемся на активные эффекты (для иконки баффа)
-  const { data: activeEffects = [] } = useQuery({
+  const { data: effectsData } = useQuery({
     queryKey: ['active_effects'],
     queryFn: djangoApi.skills.getActiveEffects,
     refetchInterval: 10000,
   });
 
+  const activeEffects = effectsData?.active_effects || [];
   const activeEncounter = encounters.find(e => !e.is_defeated);
   const activeBossTemplate = activeEncounter ? SCROLLS.find(s => s.id === activeEncounter.boss.id_name) : null;
-  const hasDamageBuff = activeEffects.some(e => e.effect_type === 'damage_multiplier' && e.is_active);
+  const hasDamageBuff = activeEffects.some(e => 
+    (e.skill_id === 'system_overload' && e.data?.active) || 
+    (e.skill_id === 'battle_fury')
+  );
 
   const dealDamage = useCallback((amount, critical = false, color = "#ff00ff") => {
     // Sound effects

@@ -65,10 +65,23 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const save = (newGs) => { setGs(newGs); saveGameState(newGs); };
 
   const gold = profile?.gold || 0;
-  const spendGold = (amount) => {
+  const spendGold = async (amount) => {
     // For legacy sub-panels that still rely on local gs
     const ng = { ...gs, gold: Math.max(0, (gs.gold || 0) - amount) };
     save(ng);
+
+    if (profile) {
+      const newGold = Math.max(0, (profile.gold || 0) - amount);
+      // Optimistic update
+      queryClient.setQueryData(["userprofile"], { ...profile, gold: newGold });
+      try {
+        await djangoApi.profile.update({ gold: newGold });
+      } catch (e) {
+        console.error("Failed to update gold on backend:", e);
+        // Rollback
+        queryClient.setQueryData(["userprofile"], profile);
+      }
+    }
   };
 
   // Use prop if provided (synced from Dashboard), fallback to localStorage

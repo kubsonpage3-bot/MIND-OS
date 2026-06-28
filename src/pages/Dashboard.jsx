@@ -343,15 +343,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   };
 
   const handleXpGain = useCallback((xp) => {
-    if (!profile) return;
-    updateProfile.mutate({
-      id: profile.id,
-      data: {
-        weekly_xp: Math.max(0, (profile.weekly_xp || 0) + xp),
-        total_xp: Math.max(0, (profile.total_xp || 0) + xp),
-      }
-    });
-  }, [profile, updateProfile]);
+    // Backend complete_task already handles XP gain and updates database.
+  }, []);
 
   // Called by TasksPanel when a task gives rank XP — syncs Dashboard state
   const handleTaskRankXP = useCallback((amount) => {
