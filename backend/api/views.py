@@ -22,18 +22,23 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import UserProfile, Task
+from .models import UserProfile, Task, Item, InventoryItem, Recipe
 from .serializers import (
     RegisterSerializer,
     UserProfileSerializer,
     TaskSerializer,
     TaskCompleteSerializer,
+    ItemSerializer,
+    CraftSerializer,
+    RecipeListSerializer,
 )
 from .models import ActiveEffect, SkillCooldown
 from .serializers import ActiveEffectSerializer, SkillActivateSerializer, SkillCooldownSerializer, ShopBuySerializer
 from api.services.task_service import complete_task
 from api.services.skill_service import activate_skill
 from api.services.shop_service import buy_item
+from api.services.crafting_service import craft_item
+from api.exceptions import GameLogicError
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -83,9 +88,10 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        """Возвращаем профиль текущего авторизованного пользователя."""
-        # get_or_create — страховка, если профиль не создался сигналом
-        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        """Возвращаем профиль текущего авторизованного пользователя с предзагрузкой инвентаря."""
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        if not created:
+            profile = UserProfile.objects.prefetch_related("inventory_items__item__effects").get(user=self.request.user)
         return profile
 
 
@@ -355,4 +361,152 @@ class BossSummonView(generics.GenericAPIView):
             "detail": f"Summoned {boss.name}!",
             "encounter": BossEncounterSerializer(encounter).data,
             "profile": UserProfileSerializer(profile).data
+        }, status=status.HTTP_201_CREATED)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Магазин — список предметов
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ShopItemListView(generics.ListAPIView):
+    """
+    GET /api/shop/items/
+    Returns all items available for purchase.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = ItemSerializer
+    queryset = Item.objects.prefetch_related("effects").all()
+    pagination_class = None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Инвентарь — надеть / снять предмет
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ToggleEquipView(generics.GenericAPIView):
+    """
+    POST /api/inventory/<item_code>/equip/
+    Toggles equipped state of an inventory item.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, item_code):
+        from django.db import transaction
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            try:
+                inv_item = InventoryItem.objects.select_related("item").get(
+                    user_profile=profile, item__code=item_code
+                )
+            except InventoryItem.DoesNotExist:
+                return Response({"detail": "Item not in inventory."}, status=status.HTTP_404_NOT_FOUND)
+
+            inv_item.is_equipped = not inv_item.is_equipped
+            inv_item.save(update_fields=["is_equipped"])
+
+        profile_fresh = UserProfile.objects.prefetch_related("inventory_items__item__effects").get(user=request.user)
+        return Response({
+            "detail": f"{'Equipped' if inv_item.is_equipped else 'Unequipped'} {inv_item.item.name}.",
+            "profile": UserProfileSerializer(profile_fresh).data,
+        }, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Престиж
+# ─────────────────────────────────────────────────────────────────────────────
+
+class PrestigeView(generics.GenericAPIView):
+    """
+    POST /api/profile/prestige/
+    Resets progress and grants permanent multiplier bonuses.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from django.db import transaction
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            if profile.level < 10:
+                return Response(
+                    {"detail": "You must reach level 10 to prestige."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            profile.prestige_count += 1
+            profile.damage_multiplier = round(profile.damage_multiplier + 0.1, 4)
+            profile.gold_multiplier = round(profile.gold_multiplier + 0.1, 4)
+            profile.xp_multiplier = round(profile.xp_multiplier + 0.05, 4)
+            profile.level = 1
+            profile.xp = 0
+            profile.xp_to_next_level = 100
+            profile.hp = profile.hp_max
+            profile.mana = profile.mana_max
+            profile.save()
+
+        return Response({
+            "detail": f"Prestige {profile.prestige_count} unlocked! Permanent bonuses applied.",
+            "profile": UserProfileSerializer(profile).data,
+        }, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Тренировочный лог (Training Log)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TrainingLogView(generics.GenericAPIView):
+    """
+    GET /api/training/log/
+    Returns last 20 completed tasks as a training log.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from .models import Task
+        recent = Task.objects.filter(
+            user=request.user,
+            is_completed=True
+        ).order_by("-updated_at")[:20]
+        return Response({
+            "log": TaskSerializer(recent, many=True).data
+        }, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Крафт
+# ─────────────────────────────────────────────────────────────────────────────
+
+class RecipeListView(generics.ListAPIView):
+    """
+    GET /api/crafting/recipes/
+    Returns all crafting recipes.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = RecipeListSerializer
+    queryset = Recipe.objects.prefetch_related("ingredients__item").select_related("result_item").all()
+    pagination_class = None
+
+
+class CraftItemView(generics.GenericAPIView):
+    """
+    POST /api/crafting/craft/
+    Crafts an item using ingredients and gold.
+    Payload: { "recipe_code": "some_recipe" }
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = CraftSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recipe_code = serializer.validated_data["recipe_code"]
+
+        try:
+            result_item = craft_item(request.user, recipe_code)
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile = UserProfile.objects.prefetch_related("inventory_items__item__effects").get(user=request.user)
+        return Response({
+            "detail": f"Crafted {result_item.name} successfully!",
+            "item": ItemSerializer(result_item).data,
+            "profile": UserProfileSerializer(profile).data,
         }, status=status.HTTP_201_CREATED)
