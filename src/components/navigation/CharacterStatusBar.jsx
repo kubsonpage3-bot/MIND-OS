@@ -5,6 +5,7 @@ import { getRankFromXP, getNextRankFromXP } from "@/lib/rankEngine";
 import PixelCharacter from "../mindos/PixelCharacter";
 import { Menu } from "lucide-react";
 import { normalizeGold } from "@/lib/utils";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 function PixelBar({ pct, fillColor, glowColor, label, value }) {
   return (
@@ -26,20 +27,11 @@ function PixelBar({ pct, fillColor, glowColor, label, value }) {
 }
 
 export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSidebar }) {
-  const [gameState, setGameState] = useState({ gold: 0, hp: 100, maxHp: 100 });
-  const [classData, setClassData] = useState({ chosen: null, mana: 0, maxMana: 100 });
+  const { profile } = useDjangoAuth();
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
     const refresh = () => {
-      try {
-        const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        setGameState({ gold: gs.gold || 0, hp: gs.hp ?? (gs.maxHp || 100), maxHp: gs.maxHp || 100 });
-      } catch {}
-      try {
-        const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
-        setClassData({ chosen: cls.chosen, mana: cls.mana || 0, maxMana: cls.maxMana || 100 });
-      } catch {}
       try {
         const st = JSON.parse(localStorage.getItem("mindos_streak") || "{}");
         setStreak(st.streakCount || 0);
@@ -49,6 +41,17 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
     const interval = setInterval(refresh, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const classData = {
+    chosen: profile?.character_class !== "Wanderer" ? profile?.character_class : null,
+    mana: profile?.mana || 0,
+    maxMana: profile?.mana_max || 100
+  };
+  const gameState = {
+    gold: profile?.gold || 0,
+    hp: profile?.hp !== undefined ? profile.hp : 100,
+    maxHp: profile?.hp_max || 100
+  };
 
   const classInfo = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = classInfo?.color || "#7B61FF";

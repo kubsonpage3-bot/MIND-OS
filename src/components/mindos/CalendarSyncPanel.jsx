@@ -93,7 +93,7 @@ export default function CalendarSyncPanel({ tasks }) {
           <span className="font-mono text-sm font-bold text-foreground">Google Calendar Sync</span>
         </div>
         <p className="text-xs text-muted-foreground mb-4">
-          Синхронизируйте задачи MIND OS с Google Calendar, чтобы не пропускать тренировки и занятия.
+          Sync your MIND OS tasks with Google Calendar to never miss your workouts and classes.
         </p>
         <Button
           onClick={handleConnect}

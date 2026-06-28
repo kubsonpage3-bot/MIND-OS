@@ -25,6 +25,7 @@ import SettingsPanel from "@/components/mindos/SettingsPanel";
 
 import CharacterHub from "@/components/mindos/CharacterHub";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
+import AchievementTracker from "@/components/mindos/AchievementTracker";
 
 import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
 import { normalizeGold } from "@/lib/utils";
@@ -373,8 +374,20 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     });
   }, []);
 
-  const handleBossDamage = useCallback((amount, isCritical) => {
+  const handleBossDamage = useCallback((amount, isCritical, isDefeated = false) => {
     setExternalDamage({ amount, isCritical, ts: Date.now() });
+
+    try {
+      const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+      gs.totalBossDamage = (gs.totalBossDamage || 0) + amount;
+      if (isCritical) {
+        gs.totalCrits = (gs.totalCrits || 0) + 1;
+      }
+      if (isDefeated) {
+        gs.bossIndex = (gs.bossIndex || 0) + 1;
+      }
+      localStorage.setItem("mindos_game_state", JSON.stringify(gs));
+    } catch {}
   }, []);
 
   const handleRewardFly = useCallback((reward) => {
@@ -521,6 +534,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </div>
       )}
       <main className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+        <AchievementTracker logs={logs} />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
         <AnimatePresence>

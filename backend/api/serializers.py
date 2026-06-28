@@ -36,7 +36,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(
         write_only=True,
         required=True,
-        label="Подтверждение пароля",
+        label="Password confirmation",
         style={"input_type": "password"},
     )
 
@@ -51,7 +51,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         """Проверяем, что оба пароля совпадают."""
         if attrs["password"] != attrs["password2"]:
             raise serializers.ValidationError(
-                {"password": "Пароли не совпадают."}
+                {"password": "Passwords do not match."}
             )
         return attrs
 
@@ -105,6 +105,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "avatar",
             "gf", "gc", "ps", "vm",
             "gf_ceiling", "gc_ceiling", "ps_ceiling", "vm_ceiling",
+            "boss_difficulty", "prestige_count",
+            "inventory", "equipped",
             "created_at",
             "updated_at",
         )
@@ -176,7 +178,7 @@ class TaskSerializer(serializers.ModelSerializer):
         """Значение сложности должно быть положительным числом."""
         if value <= 0:
             raise serializers.ValidationError(
-                "Значение сложности должно быть больше нуля."
+                "Difficulty value must be greater than zero."
             )
         return value
 
@@ -209,3 +211,32 @@ class SkillCooldownSerializer(serializers.ModelSerializer):
 
 class SkillActivateSerializer(serializers.Serializer):
     skill_id = serializers.CharField(max_length=50, required=True)
+
+
+class ShopBuySerializer(serializers.Serializer):
+    item_id = serializers.CharField(max_length=100, required=True)
+    cost = serializers.IntegerField(min_value=0, required=True)
+    heal_amount = serializers.IntegerField(min_value=0, required=False, default=0)
+    is_consumable = serializers.BooleanField(required=False, default=False)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Combat System
+# ─────────────────────────────────────────────────────────────────────────────
+
+from .models import Boss, BossEncounter
+
+class BossSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Boss
+        fields = "__all__"
+
+class BossEncounterSerializer(serializers.ModelSerializer):
+    boss = BossSerializer(read_only=True)
+    class Meta:
+        model = BossEncounter
+        fields = "__all__"
+
+class BossSummonSerializer(serializers.Serializer):
+    boss_id = serializers.CharField(max_length=50, required=True, help_text="boss id_name (e.g. misted_wanderer)")
+    cost = serializers.IntegerField(min_value=0, required=True, help_text="Gold cost to summon")

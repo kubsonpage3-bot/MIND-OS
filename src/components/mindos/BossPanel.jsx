@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SCROLLS, SCROLL_BOSS_IMAGES, applyDamageToActiveScroll } from "./ScrollsPanel";
+import { useQuery } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
+import { SCROLLS, SCROLL_BOSS_IMAGES } from "./ScrollsPanel";
 import { playSound } from "@/lib/soundEffects.js";
 import ParticleStrike from "./ParticleStrike";
-
-function loadScrollState() {
-  try { return JSON.parse(localStorage.getItem("mindos_scrolls") || "{}"); } catch { return {}; }
-}
+import OptimizedImage from "./OptimizedImage";
 
 function getPwrMultiplier() {
   try {
@@ -20,7 +19,6 @@ function getPwrMultiplier() {
 }
 
 export default function BossPanel({ externalDamage, currentScore, onBossDamage }) {
-  const [scrollState, setScrollState] = useState(loadScrollState);
   const [damageFloat, setDamageFloat] = useState(null);
   const [isCritical, setIsCritical] = useState(false);
   const [flash, setFlash] = useState(false);
@@ -28,19 +26,27 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   const [particleTrigger, setParticleTrigger] = useState(null); // { id, intensity, color }
   const [open, setOpen] = useState(true);
 
-  // Poll to sync with ScrollsPanel changes
-  useEffect(() => {
-    const interval = setInterval(() => setScrollState(loadScrollState()), 1500);
-    return () => clearInterval(interval);
-  }, []);
+  // 1. Подписываемся на энкаунтеры (для отображения активного босса)
+  const { data: encountersData = [] } = useQuery({
+    queryKey: ['combat_encounters'],
+    queryFn: djangoApi.combat.getEncounters,
+    refetchInterval: 5000, // Автоматическое обновление для синхронизации
+  });
 
-  const dealDamage = useCallback((amount, critical = false) => {
-    const activeScroll = SCROLLS.find(s => {
-      const st = loadScrollState();
-      return st[s.id]?.active && !st[s.id]?.defeated;
-    });
-    if (!activeScroll) return;
+  const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
 
+  // 2. Подписываемся на активные эффекты (для иконки баффа)
+  const { data: activeEffects = [] } = useQuery({
+    queryKey: ['active_effects'],
+    queryFn: djangoApi.skills.getActiveEffects,
+    refetchInterval: 10000,
+  });
+
+  const activeEncounter = encounters.find(e => !e.is_defeated);
+  const activeBossTemplate = activeEncounter ? SCROLLS.find(s => s.id === activeEncounter.boss.id_name) : null;
+  const hasDamageBuff = activeEffects.some(e => e.effect_type === 'damage_multiplier' && e.is_active);
+
+  const dealDamage = useCallback((amount, critical = false, color = "#ff00ff") => {
     // Sound effects
     if (critical) {
       playSound('boss_critical');
@@ -52,34 +58,43 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     setFlash(true);
     setAttackAnim(true);
     setParticleTrigger({ id: Date.now(), intensity: critical ? "critical" : "heavy", color });
+    
     setTimeout(() => setFlash(false), critical ? 600 : 300);
     setTimeout(() => setAttackAnim(false), 700);
     setTimeout(() => setParticleTrigger(null), 1000);
 
-    const pwrMult = getPwrMultiplier();
-    const finalDmg = Math.round(critical ? amount * 2 * pwrMult : amount * pwrMult);
-    setDamageFloat({ value: finalDmg, critical, id: Date.now() });
+    setDamageFloat({ value: amount, critical, id: Date.now() });
     setTimeout(() => setDamageFloat(null), critical ? 1800 : 1000);
-
-    applyDamageToActiveScroll(finalDmg, false);
-    setScrollState(loadScrollState());
   }, []);
 
   // Handle external damage from session log / tasks
   useEffect(() => {
-    if (!externalDamage) return;
-    dealDamage(externalDamage.amount, externalDamage.isCritical);
-  }, [externalDamage, dealDamage]);
+    if (!externalDamage || !activeBossTemplate) return;
+    dealDamage(externalDamage.amount, externalDamage.isCritical, activeBossTemplate.color);
+  }, [externalDamage, dealDamage, activeBossTemplate]);
 
-  const activeScroll = SCROLLS.find(s => scrollState[s.id]?.active && !scrollState[s.id]?.defeated);
+  // Если нет активного босса, показываем заглушку "Призвать"
+  if (!activeEncounter || !activeBossTemplate) {
+    return (
+      <div className="rounded-2xl border border-[var(--habit-border)] bg-[var(--habit-panel)] overflow-hidden">
+        <div className="p-5 flex flex-col items-center justify-center text-center space-y-3">
+          <div className="w-16 h-16 rounded-xl bg-muted/20 border border-border flex items-center justify-center text-2xl">
+            📜
+          </div>
+          <div>
+            <div className="font-mono text-sm font-black text-muted-foreground/70 tracking-wider">NO ACTIVE BOSS</div>
+            <div className="font-mono text-xs text-muted-foreground/40 mt-1">Visit Scrolls tab to summon</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  // No active scroll = no boss panel
-  if (!activeScroll) return null;
-
-  const color = activeScroll.color;
-  const bossHP = scrollState[activeScroll.id]?.bossHP ?? activeScroll.bossHP;
-  const hpPercent = Math.max(0, (bossHP / activeScroll.bossHP) * 100);
-  const imgUrl = SCROLL_BOSS_IMAGES[activeScroll.id] || SCROLL_BOSS_IMAGES.misted_wanderer;
+  const color = activeBossTemplate.color;
+  const bossHP = activeEncounter.hp_current;
+  const maxHP = activeEncounter.boss.hp_max;
+  const hpPercent = Math.max(0, (bossHP / maxHP) * 100);
+  const imgUrl = SCROLL_BOSS_IMAGES[activeEncounter.boss.id_name] || SCROLL_BOSS_IMAGES.misted_wanderer;
 
   return (
     <>
@@ -100,8 +115,15 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-3 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
       >
-        <span>{open ? "▾" : "▸"} SCROLL BOSS — <span className="text-red-400">ACTIVE</span></span>
-        <span style={{ color }}>{activeScroll.boss}</span>
+        <span className="flex items-center gap-2">
+          {open ? "▾" : "▸"} SCROLL BOSS — <span className="text-red-400">ACTIVE</span>
+          {hasDamageBuff && (
+            <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[9px] font-bold border border-cyan-500/50 flex items-center gap-1">
+              <span>⚡ BUFF ACTIVE</span>
+            </span>
+          )}
+        </span>
+        <span style={{ color }}>{activeBossTemplate.boss}</span>
       </button>
 
       {open && (
@@ -158,9 +180,9 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                   />
                 )}
               </AnimatePresence>
-              <img
+              <OptimizedImage
                 src={imgUrl}
-                alt={activeScroll.boss}
+                alt={activeBossTemplate.boss}
                 className="rounded-xl object-cover"
                 style={{ width: 180, height: 220, imageRendering: "pixelated", filter: `drop-shadow(0 0 16px ${color}80)` }}
               />
@@ -195,16 +217,16 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             {/* HP bar */}
             <div className="w-full space-y-1">
               <div className="flex justify-between text-xs font-mono">
-                <span style={{ color }}>{activeScroll.boss}</span>
-                <span className="text-muted-foreground">HP: {bossHP.toLocaleString()}/{activeScroll.bossHP.toLocaleString()}</span>
+                <span style={{ color }}>{activeBossTemplate.boss}</span>
+                <span className="text-muted-foreground">HP: {bossHP.toLocaleString()}/{maxHP.toLocaleString()}</span>
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${hpPercent}%`, background: `linear-gradient(90deg, #991b1b, ${color})` }} />
               </div>
-              <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeScroll.name}</div>
+              <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeBossTemplate.name}</div>
               <div className="text-[10px] font-mono text-yellow-400/70">
-                Reward: +{Math.round(activeScroll.reward.gold).toLocaleString()}G · +{activeScroll.reward.sp}SP · {activeScroll.uniqueItem.label}
+                Reward: +{Math.round(activeEncounter.boss.reward_gold).toLocaleString()}G · +{activeBossTemplate.reward.sp}SP · {activeBossTemplate.uniqueItem.label}
               </div>
             </div>
           </div>

@@ -202,6 +202,7 @@ export function getLckStat() { const gs = loadGS(); return (gs.stats && gs.stats
 export function addGoldToGS(amount) {
   const gs = loadGS();
   gs.gold = Math.max(0, Math.round((gs.gold || 0) + amount));
+  gs.totalGoldEarned = (gs.totalGoldEarned || 0) + amount;
   saveGS(gs);
 }
 

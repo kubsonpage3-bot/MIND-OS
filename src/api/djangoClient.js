@@ -223,4 +223,22 @@ export const djangoApi = {
     getActiveEffects: () =>
       djangoFetch('/skills/active-effects/'),
   },
+
+  shop: {
+    buy: (data) =>
+      djangoFetch('/shop/buy/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  },
+
+  combat: {
+    getBosses: () => djangoFetch('/combat/bosses/'),
+    getEncounters: () => djangoFetch('/combat/encounters/'),
+    summon: (bossId, cost) =>
+      djangoFetch('/combat/summon/', {
+        method: 'POST',
+        body: JSON.stringify({ boss_id: bossId, cost }),
+      }),
+  },
 };

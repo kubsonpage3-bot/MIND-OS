@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const PRESETS = [
-  { id: "classic", label: "Классический", work: 25, break: 5, longBreak: 15, cycles: 4 },
-  { id: "short", label: "Короткий", work: 15, break: 3, longBreak: 10, cycles: 4 },
-  { id: "deep", label: "Глубокий", work: 50, break: 10, longBreak: 30, cycles: 3 },
+  { id: "classic", label: "Classic", work: 25, break: 5, longBreak: 15, cycles: 4 },
+  { id: "short", label: "Short", work: 15, break: 3, longBreak: 10, cycles: 4 },
+  { id: "deep", label: "Deep", work: 50, break: 10, longBreak: 30, cycles: 3 },
 ];
 
 // Characters per mode with their image URLs
@@ -229,10 +229,10 @@ export default function PomodoroPanel() {
 
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Работа (мин)", key: "work" },
-                  { label: "Перерыв (мин)", key: "break" },
-                  { label: "Длинный перерыв", key: "longBreak" },
-                  { label: "Циклов", key: "cycles" },
+                  { label: "Work (min)", key: "work" },
+                  { label: "Break (min)", key: "break" },
+                  { label: "Long Break (min)", key: "longBreak" },
+                  { label: "Cycles", key: "cycles" },
                 ].map(({ label, key }) => (
                   <div key={key}>
                     <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">{label}</label>

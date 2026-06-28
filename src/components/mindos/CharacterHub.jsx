@@ -7,19 +7,11 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function CharacterHub({ rankXP, currentRankId, onBossDamage, externalDamage }) {
   const { profile } = useDjangoAuth();
-  const [classData, setClassData] = useState({ chosen: null, mana: 0, maxMana: 100 });
-
-  useEffect(() => {
-    const refresh = () => {
-      try {
-        const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
-        setClassData({ chosen: cls.chosen, mana: cls.mana || 0, maxMana: cls.maxMana || 100 });
-      } catch {}
-    };
-    refresh();
-    const interval = setInterval(refresh, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const classData = {
+    chosen: profile?.character_class !== "Wanderer" ? profile?.character_class : null,
+    mana: profile?.mana || 0,
+    maxMana: profile?.mana_max || 100
+  };
 
   const userName = profile?.username || "Hero";
   const charHp = profile?.hp ?? 100;
@@ -30,7 +22,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
   const classInfo = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = classInfo?.color || "#3b82f6";
   const rankInfo = getRankFromXP(rankXP || 0);
-  const rankId = profile?.level ?? currentRankId ?? rankInfo.id;
+  const rankId = currentRankId || rankInfo.id;
 
   const hpPct = Math.max(0, Math.min(100, charMaxHp > 0 ? (charHp / charMaxHp) * 100 : 0));
   const manaPct = Math.max(0, Math.min(100, charMaxMana > 0 ? (charMana / charMaxMana) * 100 : 0));
@@ -40,9 +32,9 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
     <div className="rounded-2xl overflow-hidden bg-[var(--habit-panel)] border border-[var(--habit-border)] shadow-sm">
       {/* Character portrait */}
       <div className="flex flex-col items-center py-6 px-4">
-        <div className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center mb-3"
+        <div className="w-28 h-28 rounded-2xl overflow-hidden flex items-center justify-center mb-3"
           style={{ background: `radial-gradient(circle at center, ${classColor}33 0%, transparent 70%)`, border: `2px solid ${classColor}44` }}>
-          <PixelCharacter rankId={rankId} rankColor={classColor} size={80} />
+          <PixelCharacter rankId={rankId} rankColor={classColor} size={100} />
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{userName || "Hero"}</div>
         <div style={{ fontFamily: "'Press Start 2P'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>

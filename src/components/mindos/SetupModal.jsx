@@ -40,7 +40,7 @@ export default function SetupModal({ onSave }) {
     try {
       // 1. Update Django profile statistics
       await djangoApi.profile.update({
-        character_class: "Путник",
+        character_class: "Wanderer",
         hp: 100,
         hp_max: 100,
         mana: 50,

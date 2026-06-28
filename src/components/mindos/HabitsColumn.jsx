@@ -90,8 +90,17 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
   };
 
   const habitClick = async (task, positive) => {
+    let combatResult = null;
+    let xpEarned = 0;
+    let goldEarned = 0;
+
     try {
-      await djangoApi.tasks.complete(task.id, positive);
+      const res = await djangoApi.tasks.complete(task.id, positive);
+      if (res && res.combat) {
+        combatResult = res.combat;
+      }
+      if (res && res.xp_earned) xpEarned = res.xp_earned;
+      if (res && res.gold_earned) goldEarned = res.gold_earned;
     } catch (e) {
       console.warn('Django habit complete failed:', e);
     }
@@ -104,24 +113,28 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
     if (positive) {
       playSound('habit_positive');
 
-      // Награда масштабируется с Task Value
+      // Локальный фолбек для наград
       const reward = calcReward(tv, task.difficulty || 'medium', 'habit', {
         xpBonus: combinedEffects.xpBonus || 0,
         goldBonus: combinedEffects.goldBonus || 0,
         lckStat: lck,
       });
 
-      const bossDmg = applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+      const finalXp = xpEarned > 0 ? xpEarned : Math.round(reward.xp);
+      const finalGold = goldEarned > 0 ? goldEarned : Math.round(reward.gold);
 
-      onXpGain(Math.round(reward.xp));
-      onRankXP?.(Math.round(reward.xp));
-      onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-      addGoldToGS(reward.gold);
+      const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+      const effectNotes = combatResult?.effect_notes || [];
+
+      onXpGain(finalXp);
+      onRankXP?.(finalXp);
+      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
+      addGoldToGS(finalGold);
       addManaToGS(2);
 
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
-      showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + critLabel });
+      showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + critLabel });
 
       // Value растёт (задача "синеет", будущая награда снижается)
       const newTv = calcNewValue(tv, 'complete', 'habit');
@@ -144,7 +157,7 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
       setHpState(getHpState());
 
       if (result.died) {
-        setDeathMsg(`💀 Вы погибли! -1 уровень. ${result.lostItem ? `Потеряно: ${result.lostItem}` : ''}`);
+        setDeathMsg(`💀 You died! -1 Level. ${result.lostItem ? `Lost item: ${result.lostItem}` : ''}`);
         setTimeout(() => setDeathMsg(null), 5000);
         playSound('death');
       }

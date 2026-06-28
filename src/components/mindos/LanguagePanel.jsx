@@ -6,7 +6,7 @@ import BottomSheet from "@/components/ui/BottomSheet";
 const LANGUAGES = [
   { id: "en", label: "English", flag: "🇬🇧" },
   { id: "de", label: "Deutsch", flag: "🇩🇪", disabled: true },
-  { id: "ru", label: "Русский", flag: "🇷🇺", disabled: true },
+  { id: "ru", label: "Russian", flag: "🇷🇺", disabled: true },
   { id: "fr", label: "Français", flag: "🇫🇷", disabled: true },
   { id: "es", label: "Español", flag: "🇪🇸", disabled: true },
   { id: "ja", label: "日本語", flag: "🇯🇵", disabled: true },

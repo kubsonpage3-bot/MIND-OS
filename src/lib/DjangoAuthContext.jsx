@@ -1,41 +1,42 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
+import { queryClientInstance } from '@/lib/query-client';
 
 const DjangoAuthContext = createContext(null);
 
 export const DjangoAuthProvider = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('access_token');
+  });
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // useQuery to manage user profile
+  const { 
+    data: profile, 
+    refetch: refreshProfile, 
+    isLoading: isProfileLoading,
+  } = useQuery({
+    queryKey: ['userprofile'],
+    queryFn: djangoApi.profile.get,
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  const isLoading = isAuthenticated && isProfileLoading;
+
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const accessToken = localStorage.getItem('access_token');
-        if (accessToken) {
-          await djangoApi.auth.verifyToken(accessToken);
-          const profileData = await djangoApi.profile.get();
-          setProfile(profileData);
-          setUser({ username: profileData.username || 'Hero' });
-          setIsAuthenticated(true);
-        }
-      } catch (err) {
-        console.warn('Initial session validation failed:', err);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (profile) {
+      setUser({ username: profile.username || 'Hero' });
+    }
+  }, [profile]);
 
-    initializeAuth();
-
+  useEffect(() => {
     const handleLogoutEvent = () => {
       setUser(null);
-      setProfile(null);
       setIsAuthenticated(false);
+      queryClientInstance.clear();
     };
 
     window.addEventListener('django-auth-logout', handleLogoutEvent);
@@ -48,11 +49,13 @@ export const DjangoAuthProvider = ({ children }) => {
       const tokenData = await djangoApi.auth.login(username, password);
       localStorage.setItem('access_token', tokenData.access);
       localStorage.setItem('refresh_token', tokenData.refresh);
-
-      const profileData = await djangoApi.profile.get();
-      setProfile(profileData);
-      setUser({ username });
       setIsAuthenticated(true);
+
+      const profileData = await queryClientInstance.fetchQuery({
+        queryKey: ['userprofile'],
+        queryFn: djangoApi.profile.get,
+      });
+      setUser({ username: profileData.username || 'Hero' });
       return profileData;
     } catch (err) {
       console.error('Login failed:', err);
@@ -77,24 +80,14 @@ export const DjangoAuthProvider = ({ children }) => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     setUser(null);
-    setProfile(null);
     setIsAuthenticated(false);
-  };
-
-  const refreshProfile = async () => {
-    try {
-      const profileData = await djangoApi.profile.get();
-      setProfile(profileData);
-      return profileData;
-    } catch (err) {
-      console.error('Failed to refresh profile:', err);
-    }
+    queryClientInstance.clear();
   };
 
   return (
     <DjangoAuthContext.Provider value={{
       user,
-      profile,
+      profile: profile || null,
       isAuthenticated,
       isLoading,
       error,

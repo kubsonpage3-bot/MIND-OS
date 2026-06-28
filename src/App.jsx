@@ -28,7 +28,7 @@ function useSystemTheme() {
 
 function ProtectedRoutes() {
   return (
-    <QueryClientProvider client={queryClientInstance}>
+    <>
       <Routes>
         <Route path="/" element={<AppShell />} />
         <Route path="/Dashboard" element={<AppShell defaultTab="mind" />} />
@@ -39,7 +39,7 @@ function ProtectedRoutes() {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Toaster />
-    </QueryClientProvider>
+    </>
   );
 }
 

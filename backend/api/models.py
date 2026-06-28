@@ -55,6 +55,10 @@ class UserProfile(models.Model):
         verbose_name="Опыт до следующего уровня",
     )
 
+    # Инвентарь и экипировка
+    inventory = models.JSONField(default=list, blank=True, verbose_name="Инвентарь")
+    equipped = models.JSONField(default=dict, blank=True, verbose_name="Экипировано")
+
     # Аватар персонажа (опционально)
     avatar = models.ImageField(
         upload_to="avatars/",
@@ -66,8 +70,25 @@ class UserProfile(models.Model):
     # Класс/раса персонажа (расширяется по мере развития игры)
     character_class = models.CharField(
         max_length=50,
-        default="Путник",
-        verbose_name="Класс персонажа",
+        default="Wanderer",
+        verbose_name="Character class",
+    )
+
+    # Уровень престижа
+    prestige_count = models.PositiveIntegerField(default=0, verbose_name="Престиж")
+
+    # Настройки сложности боссов
+    class BossDifficulty(models.TextChoices):
+        EASY = "EASY", "Easy"
+        NORMAL = "NORMAL", "Normal"
+        HARD = "HARD", "Hard"
+        EXTREME = "EXTREME", "Extreme"
+
+    boss_difficulty = models.CharField(
+        max_length=20,
+        choices=BossDifficulty.choices,
+        default=BossDifficulty.NORMAL,
+        verbose_name="Сложность боссов"
     )
 
     # ── Когнитивные метрики (IQ) ──────────────────────────────────────────
@@ -317,3 +338,57 @@ class SkillCooldown(models.Model):
 
     def __str__(self):
         return f"{self.skill_id} CD → {self.user.username} (until {self.cooldown_until})"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Combat System (Боевая система)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Boss(models.Model):
+    """
+    Статический шаблон босса (аналог Scroll).
+    """
+    id_name = models.CharField(max_length=50, unique=True, verbose_name="ID босса (напр. misted_wanderer)")
+    name = models.CharField(max_length=100, verbose_name="Имя")
+    hp_max = models.PositiveIntegerField(verbose_name="Макс. HP")
+    level = models.PositiveIntegerField(default=1, verbose_name="Уровень/Ранг")
+    reward_gold = models.PositiveIntegerField(verbose_name="Награда (Золото)")
+    reward_xp = models.PositiveIntegerField(verbose_name="Награда (XP)")
+    # Уникальный дроп (ID предмета)
+    drop_item_id = models.CharField(max_length=50, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Босс"
+        verbose_name_plural = "Боссы"
+        ordering = ["level", "hp_max"]
+
+    def __str__(self):
+        return f"{self.name} (Lvl {self.level} | {self.hp_max} HP)"
+
+
+class BossEncounter(models.Model):
+    """
+    Активная битва между пользователем и боссом.
+    """
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, 
+        related_name="boss_encounters",
+        verbose_name="Пользователь"
+    )
+    boss = models.ForeignKey(
+        Boss, on_delete=models.CASCADE,
+        verbose_name="Босс"
+    )
+    hp_current = models.PositiveIntegerField(verbose_name="Текущее HP")
+    reward_multiplier = models.FloatField(default=1.0, verbose_name="Множитель наград")
+    is_defeated = models.BooleanField(default=False, verbose_name="Повержен")
+    started_at = models.DateTimeField(auto_now_add=True, verbose_name="Начало боя")
+    expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Время истечения")
+
+    class Meta:
+        verbose_name = "Битва с боссом"
+        verbose_name_plural = "Битвы с боссами"
+        ordering = ["-started_at"]
+
+    def __str__(self):
+        return f"{self.user.username} vs {self.boss.name} (HP: {self.hp_current}/{self.boss.hp_max})"

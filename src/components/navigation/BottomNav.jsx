@@ -2,24 +2,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Swords, User, BarChart2, Settings } from "lucide-react";
 import PixelIcon from "./PixelIcon";
 
-function haptic(p = 8) { try { window.navigator?.vibrate?.(p); } catch {} }
+function haptic(p = 8) { try { window.navigator?.vibrate?.(p); } catch { } }
 
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Home",      icon: LayoutDashboard },
-  { id: "tasks",     label: "Tasks",     icon: Swords },
-  { id: "character", label: "Hero",      icon: User },
-  { id: "stats",     label: "Stats",     icon: BarChart2 },
-  { id: "settings",  label: "Settings",  icon: Settings },
+  { id: "dashboard", label: "Home", icon: LayoutDashboard },
+  { id: "tasks", label: "Tasks", icon: Swords },
+  { id: "character", label: "Hero", icon: User },
+  { id: "stats", label: "Stats", icon: BarChart2 },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 const CHARACTER_SUBITEMS = [
-  { id: "overview",     label: "Overview",      icon: "overview",     color: "#3b82f6" },
-  { id: "skills",       label: "Skills",        icon: "skills",       color: "#ef4444" },
-  { id: "skill_tree",   label: "Skill Tree",    icon: "skill_tree",   color: "#a855f7" },
-  { id: "allies",       label: "Allies",        icon: "allies",       color: "#00cc88" },
-  { id: "achievements", label: "Achievements",  icon: "achievements", color: "#f0c040" },
-  { id: "mutators",     label: "Mutators",      icon: "mutators",     color: "#f97316" },
-  { id: "shop",         label: "Shop",          icon: "shop",         color: "#f59e0b" },
+  { id: "overview", label: "Overview", icon: "overview", color: "#3b82f6" },
+  { id: "skills", label: "Skills", icon: "skills", color: "#ef4444" },
+  { id: "skill_tree", label: "Skill Tree", icon: "skill_tree", color: "#a855f7" },
+  { id: "allies", label: "Allies", icon: "allies", color: "#00cc88" },
+  { id: "achievements", label: "Achievements", icon: "achievements", color: "#f0c040" },
+  { id: "mutators", label: "Mutators", icon: "mutators", color: "#f97316" },
+  { id: "shop", label: "Shop", icon: "shop", color: "#f59e0b" },
 ];
 export default function BottomNav({ activeSection, activeSubItem, onNavigate }) {
   const handleTap = (item) => {
@@ -62,37 +62,50 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
             <div className="absolute right-0 top-0 bottom-0 z-10 pointer-events-none"
               style={{ width: 20, background: "linear-gradient(to left, var(--habit-bottom-sub-bg), transparent)" }}
             />
-            {/* Scrollable chips */}
-            <div className="flex overflow-x-auto items-center px-3"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none", gap: 8, WebkitOverflowScrolling: "touch" }}
-            >
-              {CHARACTER_SUBITEMS.map((sub) => {
-                const active = isSubActive(sub);
-                return (
-                  <motion.button
-                    key={sub.id}
-                    onClick={() => handleSubTap(sub.id)}
-                    className="shrink-0 flex items-center gap-1.5 rounded-xl border transition-colors"
-                    style={{
-                      height: 36,
-                      padding: "0 12px",
-                      fontFamily: "'Nunito', sans-serif",
-                      fontSize: 11,
-                      fontWeight: active ? 800 : 600,
-                      color: active ? "#ffffff" : "var(--habit-bottom-text)",
-                      background: active ? sub.color : "var(--habit-bottom-item-bg)",
-                      borderColor: active ? sub.color : "transparent",
-                      boxShadow: active ? `0 0 10px ${sub.color}55` : "none",
-                      letterSpacing: "0.01em",
-                    }}
-                    whileTap={{ scale: 0.92 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                  >
-                    <PixelIcon name={sub.icon} size={14} />
-                    {sub.label}
-                  </motion.button>
-                );
-              })}
+            {/* Segmented Control Track */}
+            <div className="overflow-x-auto px-3 py-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}>
+              <div className="flex items-center rounded-2xl relative overflow-hidden"
+                style={{
+                  background: "var(--habit-panel)",
+                  border: "1px solid var(--habit-border)",
+                  minWidth: "max-content",
+                  height: 36
+                }}
+              >
+                {CHARACTER_SUBITEMS.map((sub, idx) => {
+                  const active = isSubActive(sub);
+                  const isLast = idx === CHARACTER_SUBITEMS.length - 1;
+                  return (
+                    <button
+                      key={sub.id}
+                      onClick={() => handleSubTap(sub.id)}
+                      className="relative shrink-0 flex items-center justify-center gap-1.5 transition-colors z-10 h-full"
+                      style={{
+                        padding: "0 14px",
+                        fontFamily: "'Nunito', sans-serif",
+                        fontSize: 11,
+                        fontWeight: active ? 800 : 600,
+                        color: active ? sub.color : "var(--habit-dim)",
+                        letterSpacing: "0.01em",
+                        borderRight: !isLast ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      }}
+                    >
+                      {active && (
+                        <motion.div
+                          layoutId="subnav-pill"
+                          className="absolute inset-0 -z-10"
+                          style={{
+                            background: `${sub.color}25`,
+                          }}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        />
+                      )}
+                      <PixelIcon name={sub.icon} size={14} />
+                      {sub.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </motion.div>
         )}

@@ -75,11 +75,11 @@ export const CLASSES = {
     color: "#ff3355",
     lore: "The body is the weapon. Discipline is the ammunition.",
     stats: { pwr: 14, def: 10, foc: 5, mem: 4, spd: 10, lck: 7 },
-    maxMana: 80,
+    maxMana: 110,
     skills: [
-      { id: "war_cry", name: "WAR CRY", mana: 30, cooldownH: 24, desc: "For 24h: every task deals +50% boss damage and crits always trigger." },
-      { id: "berserker", name: "BERSERKER", mana: 55, cooldownH: 24, desc: "Deal massive boss damage equal to (level × 20) instantly." },
-      { id: "undying", name: "UNDYING", mana: 75, cooldownH: 24, desc: "If HP would reach 0 in 24h: restore to 30 HP instead + 200 bonus boss damage." },
+      { id: "battle_fury", name: "BATTLE FURY", mana: 45, cooldownH: 24, desc: "For 1h: +50% physical damage, -20% mana regen." },
+      { id: "war_cry", name: "WAR CRY", mana: 75, cooldownH: 24, desc: "Reduce boss HP by 10% and stun boss for 1h." },
+      { id: "tactical_retreat", name: "TACTICAL RETREAT", mana: 80, cooldownH: 24, desc: "Reset boss encounter, gain 25% max mana back." },
     ],
   },
 };
@@ -497,6 +497,15 @@ export function applySkillEffect(skillId, currentClassData) {
   let rpgData = loadRPGData(); // Load all RPG data
   let updatedClassData = { ...currentClassData };
   let gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+
+  // Deduct mana (except for tactical_retreat which handles its own mana)
+  const cls = CLASSES[currentClassData.chosen];
+  if (cls) {
+    const skill = cls.skills.find(s => s.id === skillId);
+    if (skill && skillId !== "tactical_retreat") {
+      updatedClassData.mana = Math.max(0, (updatedClassData.mana || 0) - skill.mana);
+    }
+  }
 
   switch (skillId) {
     // ARCHITECT SKILLS

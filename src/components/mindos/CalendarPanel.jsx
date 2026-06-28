@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CalendarSyncPanel from "@/components/mindos/CalendarSyncPanel";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const DAYS_RU = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOUR_PX = 64; // px per hour
 const MIN_EVENT_MINS = 15;
 
@@ -345,15 +345,15 @@ export default function CalendarPanel() {
           </button>
           <span className="font-mono text-sm font-bold min-w-[160px] text-center">
             {view === "day"
-              ? currentDate.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
-              : `${weekDays[0].getDate()} – ${weekDays[6].getDate()} ${currentDate.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}`
+              ? currentDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })
+              : `${weekDays[0].getDate()} – ${weekDays[6].getDate()} ${currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`
             }
           </span>
           <button onClick={goToNext} className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors">
             <ChevronRight className="w-4 h-4" />
           </button>
           <button onClick={() => setCurrentDate(new Date())} className="px-2 py-1 text-[10px] font-mono border border-border rounded hover:bg-accent transition-colors text-muted-foreground">
-            СЕГОДНЯ
+            TODAY
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -370,14 +370,14 @@ export default function CalendarPanel() {
             {["day", "week"].map(v => (
               <button key={v} onClick={() => setView(v)}
                 className={`px-3 py-1 text-xs font-mono rounded transition-colors ${view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
-              >{v === "day" ? "ДЕНЬ" : "НЕДЕЛЯ"}</button>
+              >{v === "day" ? "DAY" : "WEEK"}</button>
             ))}
           </div>
           <button
             onClick={() => { setEditingEvent(null); setNewEvent({ title: "", description: "", date: currentDateStr, startTime: "09:00", endTime: "10:00", color: "#3b82f6" }); setShowForm(true); }}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
           >
-            <Plus className="w-3.5 h-3.5" /> Событие
+            <Plus className="w-3.5 h-3.5" /> Event
           </button>
         </div>
       </div>
@@ -393,7 +393,7 @@ export default function CalendarPanel() {
         </motion.div>
       )}
 
-      <p className="text-[10px] font-mono text-muted-foreground/40 text-center">Перетаскивайте события · двойной клик — редактировать · тяните за нижний край — изменить длину</p>
+      <p className="text-[10px] font-mono text-muted-foreground/40 text-center">Drag events · Double-click to edit · Drag bottom edge to resize</p>
 
       {/* Grid */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -424,7 +424,7 @@ export default function CalendarPanel() {
                   const isToday = ds === todayStr;
                   return (
                     <div key={i} className="text-center py-2 border-l border-border/30">
-                      <div className="text-[10px] font-mono text-muted-foreground">{DAYS_RU[i]}</div>
+                      <div className="text-[10px] font-mono text-muted-foreground">{DAYS_EN[i]}</div>
                       <div className={`text-sm font-bold mx-auto w-7 h-7 flex items-center justify-center rounded-full ${isToday ? "bg-primary text-primary-foreground" : "text-foreground"}`}>
                         {day.getDate()}
                       </div>
@@ -470,22 +470,22 @@ export default function CalendarPanel() {
               className="bg-card border border-border rounded-2xl p-6 max-w-md w-full space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-mono font-bold text-sm">{editingEvent ? "РЕДАКТИРОВАТЬ" : "НОВОЕ СОБЫТИЕ"}</h3>
+                <h3 className="font-mono font-bold text-sm">{editingEvent ? "EDIT EVENT" : "NEW EVENT"}</h3>
                 <button onClick={() => { setShowForm(false); setEditingEvent(null); }}><X className="w-4 h-4 text-muted-foreground" /></button>
               </div>
 
-              <Input placeholder="Название" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} className="font-mono" autoFocus />
-              <Textarea placeholder="Описание (опционально)" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="h-16 text-xs font-mono" />
+              <Input placeholder="Title" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} className="font-mono" autoFocus />
+              <Textarea placeholder="Description (optional)" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="h-16 text-xs font-mono" />
 
               <Input type="date" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">НАЧАЛО</label>
+                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">START</label>
                   <Input type="time" value={newEvent.startTime} onChange={e => setNewEvent({ ...newEvent, startTime: e.target.value })} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">КОНЕЦ</label>
+                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">END</label>
                   <Input type="time" value={newEvent.endTime} onChange={e => setNewEvent({ ...newEvent, endTime: e.target.value })} />
                 </div>
               </div>
@@ -501,11 +501,11 @@ export default function CalendarPanel() {
 
               <div className="flex gap-2">
                 <Button onClick={addOrUpdateEvent} className="flex-1 font-mono" disabled={!newEvent.title}>
-                  {editingEvent ? "СОХРАНИТЬ" : "СОЗДАТЬ"}
+                  {editingEvent ? "SAVE" : "CREATE"}
                 </Button>
                 {editingEvent && (
                   <Button variant="destructive" onClick={() => { deleteEvent(editingEvent); setShowForm(false); setEditingEvent(null); }} className="font-mono">
-                    УДАЛИТЬ
+                    DELETE
                   </Button>
                 )}
               </div>

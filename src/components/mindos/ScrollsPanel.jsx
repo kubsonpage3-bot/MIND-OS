@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
 import { getRankFromXP } from "@/lib/rankEngine";
 import OptimizedImage from "./OptimizedImage";
 import { normalizeGold } from "@/lib/utils";
@@ -59,33 +61,7 @@ export const SCROLLS = [
   { id: "final_dusk", rank: "SSS", name: "Final Dusk", scrollName: "Scroll of the Final Dusk", quote: "\"This is not the end of the world. It is the end of yours.\"", price: 4200, boss: "The Final Dusk", bossHP: 700000, color: "#ff00ff", daysLimit: 14, reward: { gold: 60000, xp: 50000, mp: 200, sp: 60 }, uniqueItem: { id: "blade_final_dusk", label: "Blade of the Final Dusk", slot: "arms", effect: "doubles damage against all bosses", tier: "Unique" } },
 ];
 
-function loadScrollState() {
-  try { return JSON.parse(localStorage.getItem("mindos_scrolls") || "{}"); } catch { return {}; }
-}
-function saveScrollState(data) { localStorage.setItem("mindos_scrolls", JSON.stringify(data)); }
-
-export function applyDamageToActiveScroll(amount, isCrit) {
-  const scrollState = loadScrollState();
-  const activeScroll = SCROLLS.find(s => scrollState[s.id]?.active && !scrollState[s.id]?.defeated);
-  if (!activeScroll) return;
-  const st = scrollState[activeScroll.id];
-  const finalDmg = isCrit ? amount * 2 : amount;
-  const newHP = Math.min(activeScroll.bossHP, Math.max(0, (st.bossHP ?? activeScroll.bossHP) - finalDmg));
-  const defeated = newHP <= 0;
-  const newState = { ...scrollState, [activeScroll.id]: { ...st, bossHP: newHP, defeated } };
-  saveScrollState(newState);
-  if (defeated) {
-    const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-    gs.gold = (gs.gold || 0) + activeScroll.reward.gold;
-    gs.inventory = [...(gs.inventory || []), { ...activeScroll.uniqueItem, consumable: false, stats: {} }];
-    localStorage.setItem("mindos_game_state", JSON.stringify(gs));
-    const skillTree = JSON.parse(localStorage.getItem("mindos_skillTree") || "{}");
-    skillTree.skillPoints = (skillTree.skillPoints || 0) + activeScroll.reward.sp;
-    localStorage.setItem("mindos_skillTree", JSON.stringify(skillTree));
-    const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
-    if (cls.chosen) { cls.mana = Math.min(cls.maxMana || 100, (cls.mana || 0) + activeScroll.reward.mp); localStorage.setItem("mindos_class", JSON.stringify(cls)); }
-  }
-}
+// Removed localStorage functions
 
 function getTimeLeft(activatedAt, daysLimit) {
   if (!activatedAt) return null;
@@ -97,39 +73,74 @@ function getTimeLeft(activatedAt, daysLimit) {
 }
 
 export default function ScrollsPanel({ gold, onSpendGold }) {
-  const [scrollState, setScrollState] = useState(loadScrollState);
+  const queryClient = useQueryClient();
   const [confirmScroll, setConfirmScroll] = useState(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => setScrollState(loadScrollState()), 2000);
-    return () => clearInterval(interval);
-  }, []);
+  // 1. Загружаем активные энкаунтеры с сервера
+  const { data: encountersData = [] } = useQuery({
+    queryKey: ['combat_encounters'],
+    queryFn: djangoApi.combat.getEncounters,
+    refetchInterval: 10000,
+  });
 
-  const rankXP = (() => { try { return JSON.parse(localStorage.getItem("mindos_rank_xp") || "{}").rankXP || 0; } catch { return 0; } })();
+  const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
+
+  // 2. Получаем ранг пользователя из профиля (уже закэшированного)
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: djangoApi.profile.get,
+    staleTime: 5000,
+  });
+
+  const rankXP = profile?.xp || 0;
   const { id: currentRankId } = getRankFromXP(rankXP);
-  const currentActive = SCROLLS.find(s => scrollState[s.id]?.active && !scrollState[s.id]?.defeated);
+
+  // Находим активного босса
+  const activeEncounter = encounters.find(e => !e.is_defeated);
+  
+  // Мутация призыва босса
+  /** @type {import('@tanstack/react-query').UseMutationResult<any, any, { bossId: string, cost: number }>} */
+  const summonMutation = useMutation({
+    mutationFn: ({ bossId, cost }) => djangoApi.combat.summon(bossId, cost),
+    onMutate: async ({ bossId, cost }) => {
+      await queryClient.cancelQueries({ queryKey: ['combat_encounters'] });
+      await queryClient.cancelQueries({ queryKey: ['profile'] });
+
+      // Оптимистично списываем золото и добавляем фейковый энкаунтер
+      queryClient.setQueryData(['profile'], (/** @type {any} */ old) => old ? { ...old, gold: old.gold - cost } : old);
+      
+      const staticBoss = SCROLLS.find(s => s.id === bossId);
+      queryClient.setQueryData(['combat_encounters'], (/** @type {any} */ old) => [
+        { id: 'temp', boss: { id_name: bossId, hp_max: staticBoss.bossHP }, hp_current: staticBoss.bossHP, is_defeated: false, started_at: new Date().toISOString() },
+        ...(old || [])
+      ]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+    onError: (err) => {
+      console.error(err);
+      queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    }
+  });
 
   const handleBuy = (scroll) => {
-    if (currentActive) return;
+    if (activeEncounter) return;
     setConfirmScroll(scroll);
   };
 
   const confirmBuy = () => {
     if (!confirmScroll) return;
-    onSpendGold(confirmScroll.price);
-    const newState = {
-      ...scrollState,
-      [confirmScroll.id]: { active: true, bossHP: confirmScroll.bossHP, activatedAt: Date.now(), defeated: false }
-    };
-    setScrollState(newState);
-    saveScrollState(newState);
+    summonMutation.mutate({ bossId: confirmScroll.id, cost: confirmScroll.price });
     setConfirmScroll(null);
   };
 
   const claimReward = (scroll) => {
-    const newState = { ...scrollState, [scroll.id]: { ...scrollState[scroll.id], rewardClaimed: true } };
-    setScrollState(newState);
-    saveScrollState(newState);
+    // В новой системе награда начисляется автоматически при убийстве
+    // Нам больше не нужно это модальное окно, но можно оставить для визуального эффекта
+    // Если нужно, удалим позже
   };
 
   const groupedByRank = RANK_ORDER.reduce((acc, rank) => {
@@ -170,12 +181,15 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
 
             <div className="grid grid-cols-1 gap-3">
               {scrolls.map(scroll => {
-                const st = scrollState[scroll.id];
-                const isActive = st?.active && !st?.defeated;
-                const isDefeated = st?.defeated;
+                // Ищем этого босса в истории энкаунтеров пользователя
+                const encounter = encounters.find(e => e.boss?.id_name === scroll.id && !e.is_defeated);
+                const wasDefeated = encounters.some(e => e.boss?.id_name === scroll.id && e.is_defeated);
+                
+                const isActive = !!encounter;
+                const isDefeated = wasDefeated && !isActive; // Если когда-то был побежден и сейчас не активен
                 const canAfford = gold >= scroll.price;
-                const timeLeft = isActive ? getTimeLeft(st.activatedAt, scroll.daysLimit) : null;
-                const bossHP = isActive ? (st.bossHP ?? scroll.bossHP) : scroll.bossHP;
+                const timeLeft = isActive ? getTimeLeft(new Date(encounter.started_at).getTime(), scroll.daysLimit) : null;
+                const bossHP = isActive ? encounter.hp_current : scroll.bossHP;
                 const hpPct = Math.max(0, (bossHP / scroll.bossHP) * 100);
 
                 return (
@@ -258,32 +272,24 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                           {!isActive && !isDefeated && rankUnlocked && (
                             <button
                               onClick={() => handleBuy(scroll)}
-                              disabled={!canAfford || !!currentActive}
+                              disabled={!canAfford || !!activeEncounter || summonMutation.isPending}
                               className="shrink-0 px-3 py-1.5 text-[11px] font-mono font-black rounded-lg transition-all"
                               style={{
-                                background: canAfford && !currentActive ? color : "transparent",
-                                color: canAfford && !currentActive ? "#000" : "#4a4060",
-                                border: `1.5px solid ${canAfford && !currentActive ? color : "#2a2040"}`,
-                                boxShadow: canAfford && !currentActive ? `0 0 10px ${color}50` : "none",
-                                opacity: currentActive ? 0.4 : 1,
+                                background: canAfford && !activeEncounter ? color : "transparent",
+                                color: canAfford && !activeEncounter ? "#000" : "#4a4060",
+                                border: `1.5px solid ${canAfford && !activeEncounter ? color : "#2a2040"}`,
+                                boxShadow: canAfford && !activeEncounter ? `0 0 10px ${color}50` : "none",
+                                opacity: activeEncounter ? 0.4 : 1,
                               }}
                             >
-                              {currentActive ? "BOSS ACTIVE" : `${scroll.price}G — SUMMON`}
+                              {activeEncounter ? "BOSS ACTIVE" : summonMutation.isPending && confirmScroll?.id === scroll.id ? "SUMMONING..." : `${scroll.price}G — SUMMON`}
                             </button>
                           )}
                           {!rankUnlocked && !isActive && !isDefeated && (
                             <span className="text-[10px] font-mono text-muted-foreground/30 shrink-0">Need Rank {rank}</span>
                           )}
-                          {isDefeated && st?.rewardClaimed && (
+                          {isDefeated && (
                             <span className="text-[11px] font-mono text-green-400 font-bold shrink-0">DEFEATED ✓</span>
-                          )}
-                          {isDefeated && !st?.rewardClaimed && (
-                            <button
-                              onClick={() => claimReward(scroll)}
-                              className="shrink-0 px-3 py-1.5 text-[11px] font-mono font-black rounded-lg bg-green-500 text-black"
-                            >
-                              CLAIM →
-                            </button>
                           )}
                         </div>
                       </div>
@@ -361,43 +367,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
         )}
       </AnimatePresence>
 
-      {/* Reward claim modals */}
-      <AnimatePresence>
-        {SCROLLS.filter(s => scrollState[s.id]?.defeated && !scrollState[s.id]?.rewardClaimed).slice(0, 1).map(scroll => (
-          <motion.div
-            key={scroll.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-card rounded-2xl p-8 max-w-sm w-full text-center space-y-5"
-              style={{ border: `2px solid ${scroll.color}`, boxShadow: `0 0 40px ${scroll.color}40` }}
-            >
-              <div className="text-4xl">🏆</div>
-              <div className="font-mono text-xl font-black text-green-400 tracking-widest">BOSS DEFEATED</div>
-              <div className="font-mono text-base font-bold" style={{ color: scroll.color }}>{scroll.boss}</div>
-              <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-2 font-mono text-sm text-left">
-                <div className="text-yellow-400 font-bold">+{normalizeGold(scroll.reward.gold).toLocaleString()} Gold</div>
-                <div className="text-blue-400">+{scroll.reward.mp} MP</div>
-                <div className="text-green-400">+{scroll.reward.sp} SP</div>
-                <div style={{ color: scroll.color }}>✦ {scroll.uniqueItem.label} — added to inventory</div>
-                <div className="text-xs text-muted-foreground/50">{scroll.uniqueItem.effect}</div>
-              </div>
-              <button
-                onClick={() => claimReward(scroll)}
-                className="w-full py-3 rounded-xl font-mono font-black text-sm transition-all"
-                style={{ background: scroll.color, color: "#000", boxShadow: `0 0 20px ${scroll.color}60` }}
-              >
-                CLAIM REWARD →
-              </button>
-            </motion.div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
+      {/* Reward claim modals removed as backend handles it */}
     </div>
   );
 }

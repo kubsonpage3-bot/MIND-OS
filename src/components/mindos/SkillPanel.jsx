@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { CLASSES, applySkillEffect } from "@/lib/rpgSystem";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CLASSES } from "@/lib/rpgSystem";
 import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 
@@ -21,51 +23,121 @@ function formatCountdown(ms) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-export default function SkillPanel({ classId, classData, onUseSkill }) {
+export default function SkillPanel({ classId }) {
   const now = useNow();
+  const queryClient = useQueryClient();
+  const { profile } = useDjangoAuth();
   const cls = CLASSES[classId];
+
   const [glowing, setGlowing] = useState(null);
   const [shaking, setShaking] = useState(null);
   const [flashId, setFlashId] = useState(null);
   const [toast, setToast] = useState(null);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
 
+  // Fetch active effects and cooldowns
+  const { data: effectsData } = useQuery({
+    queryKey: ["active_effects"],
+    queryFn: djangoApi.skills.getActiveEffects,
+    enabled: !!profile,
+  });
+
+  const activeEffects = effectsData?.active_effects || [];
+  const cooldowns = effectsData?.cooldowns || [];
+
   if (!cls) return null;
 
   const getSkillState = (sk) => {
-    const stored = (classData.skills || []).find(s => s.id === sk.id);
-    const cdUntil = stored?.cooldownUntil || 0;
+    const storedCd = cooldowns.find(c => c.skill_id === sk.id);
+    const cdUntil = storedCd ? new Date(storedCd.cooldown_until).getTime() : 0;
     const remaining = cdUntil - now;
     const onCooldown = remaining > 0;
-    const hasMana = (classData.mana || 0) >= sk.mana;
+    const hasMana = (profile?.mana || 0) >= sk.mana;
     return { onCooldown, remaining, hasMana, available: !onCooldown && hasMana };
   };
 
-  const activateSkill = async (skill) => {
-    const state = getSkillState(skill);
-    if (!state.available) return;
+  const mutation = useMutation({
+    mutationFn: djangoApi.skills.activate,
+    onMutate: async (skillId) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: ["userprofile"] });
+      await queryClient.cancelQueries({ queryKey: ["active_effects"] });
 
-    try {
-      const res = await djangoApi.skills.activate(skill.id);
-      
-      const newClassData = applySkillEffect(skill.id, classData);
-      onUseSkill(skill, newClassData);
+      /** @type {any} */
+      const prevProfile = queryClient.getQueryData(["userprofile"]);
+      /** @type {any} */
+      const prevEffects = queryClient.getQueryData(["active_effects"]);
 
-      // Pixel art animations
-      setGlowing(skill.id);
-      setShaking(skill.id);
-      setFlashId(skill.id);
+      // Optimistic profile update (subtract mana)
+      if (prevProfile) {
+        const skill = cls.skills.find(s => s.id === skillId);
+        const manaCost = skill ? skill.mana : 0;
+        queryClient.setQueryData(["userprofile"], {
+          ...prevProfile,
+          mana: Math.max(0, prevProfile.mana - manaCost),
+        });
+      }
+
+      // Optimistic active effects and cooldowns update
+      if (prevEffects) {
+        const skill = cls.skills.find(s => s.id === skillId);
+        const cdHours = skill ? 24 : 0;
+        const fakeCdUntil = new Date(Date.now() + cdHours * 3600000).toISOString();
+        
+        queryClient.setQueryData(["active_effects"], {
+          active_effects: [
+            ...(prevEffects.active_effects || []),
+            { effect_id: `${skillId}_effect`, skill_id: skillId, data: {}, expires_at: new Date(Date.now() + cdHours * 3600000).toISOString() }
+          ],
+          cooldowns: [
+            ...(prevEffects.cooldowns || []).filter(c => c.skill_id !== skillId),
+            { skill_id: skillId, cooldown_until: fakeCdUntil }
+          ]
+        });
+      }
+
+      // Trigger visual animations immediately
       triggerBurst(cls.color, 10);
+      setGlowing(skillId);
+      setShaking(skillId);
+      setFlashId(skillId);
       setTimeout(() => setGlowing(null), 1800);
       setTimeout(() => setShaking(null), 500);
       setTimeout(() => setFlashId(null), 400);
 
-      setToast(res.detail || `${skill.name} activated!`);
+      return { prevProfile, prevEffects };
+    },
+    onError: (err, skillId, context) => {
+      // Rollback to snapshots
+      if (context?.prevProfile) {
+        queryClient.setQueryData(["userprofile"], context.prevProfile);
+      }
+      if (context?.prevEffects) {
+        queryClient.setQueryData(["active_effects"], context.prevEffects);
+      }
+
+      // Show toast error (handles 429 throttling and other issues)
+      const errorObj = /** @type {any} */ (err);
+      const errorMsg = errorObj?.message || "Skill activation failed";
+      setToast(errorObj?.status === 429 ? "⚡ TOO FAST! WAIT COOLDOWN" : `⚡ ${errorMsg}`);
       setTimeout(() => setToast(null), 3000);
-    } catch (err) {
-      setToast(err.message || "Skill activation failed");
+    },
+    onSuccess: (data) => {
+      const dataObj = /** @type {any} */ (data);
+      setToast(dataObj?.detail || `${cls.skills.find(s => s.id === glowing)?.name} activated!`);
       setTimeout(() => setToast(null), 3000);
+    },
+    onSettled: () => {
+      // Invalidate queries to sync with backend
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
     }
+  });
+
+  const activateSkill = (skill) => {
+    const state = getSkillState(skill);
+    if (!state.available) return;
+    mutation.mutate(skill.id);
   };
 
   return (
@@ -81,10 +153,9 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
             className="px-3 py-2 rounded-lg text-xs font-mono font-bold text-center relative overflow-hidden"
             style={{ background: `${cls.color}20`, color: cls.color, border: `1px solid ${cls.color}60` }}
           >
-            {/* Pixel scanlines on toast */}
             <div className="absolute inset-0 pointer-events-none opacity-20"
               style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff08 2px, #ffffff08 4px)" }} />
-            ⚡ {toast}
+            {toast}
           </motion.div>
         )}
       </AnimatePresence>
@@ -93,12 +164,12 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
       <div className="space-y-1">
         <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
           <span>MANA</span>
-          <span style={{ color: cls.color }}>{classData.mana || 0}/{classData.maxMana || cls.maxMana}</span>
+          <span style={{ color: cls.color }}>{profile?.mana || 0}/{profile?.mana_max || cls.maxMana}</span>
         </div>
         <div className="h-2 rounded-none bg-muted overflow-hidden" style={{ imageRendering: "pixelated" }}>
           <motion.div
             className="h-full"
-            animate={{ width: `${Math.min(100, ((classData.mana || 0) / (classData.maxMana || cls.maxMana)) * 100)}%` }}
+            animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || cls.maxMana)) * 100)}%` }}
             transition={{ duration: 0.5, ease: "linear" }}
             style={{ background: cls.color, boxShadow: `0 0 8px ${cls.color}88` }}
           />
@@ -134,14 +205,11 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
               imageRendering: "pixelated",
             }}
           >
-            {/* Pixel scanlines background */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
               style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 3px, #ffffff 3px, #ffffff 4px)" }} />
 
-            {/* Flash overlay */}
             <PixelFlash active={isFlashing} color={cls.color} />
 
-            {/* Burst particles relative to this card */}
             {isGlowing && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 <PixelBurstLayer bursts={bursts} />
@@ -151,7 +219,6 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
             <div className="flex items-start justify-between gap-2 relative">
               <div className="min-w-0">
                 <div className="font-mono text-xs font-bold flex items-center gap-1.5" style={{ color: state.available ? cls.color : "#4a4060" }}>
-                  {/* Pixel "ready" indicator */}
                   {state.available && (
                     <motion.span
                       animate={{ opacity: [1, 0.3, 1] }}
@@ -186,7 +253,6 @@ export default function SkillPanel({ classId, classData, onUseSkill }) {
                 imageRendering: "pixelated",
               }}
             >
-              {/* Pixel shimmer on available */}
               {state.available && (
                 <motion.div
                   className="absolute inset-0 pointer-events-none"

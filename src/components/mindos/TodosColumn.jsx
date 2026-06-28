@@ -126,8 +126,17 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
     const isCompleting = !task.done;
     playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
+    let combatResult = null;
+    let xpEarned = 0;
+    let goldEarned = 0;
+
     try {
-      await djangoApi.tasks.complete(task.id, isCompleting);
+      const res = await djangoApi.tasks.complete(task.id, isCompleting);
+      if (res && res.combat) {
+        combatResult = res.combat;
+      }
+      if (res && res.xp_earned) xpEarned = res.xp_earned;
+      if (res && res.gold_earned) goldEarned = res.gold_earned;
     } catch (e) {
       console.warn('Django task complete failed:', e);
     }
@@ -136,31 +145,36 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
     const tv = task.rpgValue ?? 0;
     const lck = getLckStat();
 
-    // Награда зависит от текущего value:
+    // Локальный фолбек для наград (чтобы UI обновлялся сразу, если бэкенд не вернул xp/gold)
     const reward = calcReward(tv, task.difficulty || 'medium', 'todo', {
       xpBonus: combinedEffects.xpBonus || 0,
       goldBonus: combinedEffects.goldBonus || 0,
       lckStat: lck,
     });
 
-    const bossDmg = applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+    const finalXp = xpEarned > 0 ? xpEarned : Math.round(reward.xp);
+    const finalGold = goldEarned > 0 ? goldEarned : Math.round(reward.gold);
+    
+    // Используем данные с сервера, если есть
+    const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+    const effectNotes = combatResult?.effect_notes || [];
 
     if (isCompleting) {
-      onXpGain(Math.round(reward.xp));
-      onRankXP?.(Math.round(reward.xp));
-      onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-      addGoldToGS(reward.gold);
+      onXpGain(finalXp);
+      onRankXP?.(finalXp);
+      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
+      addGoldToGS(finalGold);
       addManaToGS(3);
 
       const overdueLabel = isOverdue(task) ? ' ⚠️ late' : '';
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
-      showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + overdueLabel + critLabel });
+      showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + overdueLabel + critLabel });
     } else {
-      onXpGain(-Math.round(reward.xp));
-      onRankXP?.(-Math.round(reward.xp));
-      onBossDamage(-bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-      addGoldToGS(-reward.gold);
+      onXpGain(-finalXp);
+      onRankXP?.(-finalXp);
+      // При откате задачи урон боссу не откатывается на сервере
+      addGoldToGS(-finalGold);
       addManaToGS(-3);
       showRewardToast({ label: `Reverted: ${task.name}` });
     }

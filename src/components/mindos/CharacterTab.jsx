@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { SHOP_ITEMS, ITEM_ICON_MAP, getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
 import { loadRPGData, saveRPGData, CLASSES } from "@/lib/rpgSystem";
+import { djangoApi } from "@/api/djangoClient";
 import PixelCharacter from "./PixelCharacter";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { ShoppingCart, X, Hexagon, ChevronLeft } from "lucide-react";
@@ -48,6 +50,7 @@ const SUB_TABS = [
 ];
 
 export default function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
+  const queryClient = useQueryClient();
   const [gs, setGs] = useState(() => loadGameState());
   const [rpg, setRpg] = useState(() => loadRPGData());
   const subTab = externalSubTab || "overview";
@@ -61,22 +64,60 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   const save = (newGs) => { setGs(newGs); saveGameState(newGs); };
 
-  const gold = gs.gold || 0;
+  const gold = profile?.gold || 0;
   const spendGold = (amount) => {
-    const ng = { ...gs, gold: Math.max(0, gold - amount) };
+    // For legacy sub-panels that still rely on local gs
+    const ng = { ...gs, gold: Math.max(0, (gs.gold || 0) - amount) };
     save(ng);
   };
 
   // Use prop if provided (synced from Dashboard), fallback to localStorage
   const rankXP = rankXPProp !== undefined ? rankXPProp : (() => { try { return JSON.parse(localStorage.getItem("mindos_rank_xp") || "{}").rankXP || 0; } catch { return 0; } })();
 
+  // Auto-sync legacy localStorage class to backend
+  useEffect(() => {
+    const syncLocalClass = async () => {
+      const localRpg = loadRPGData();
+      if (profile && profile.character_class === "Wanderer" && localRpg?.classData?.chosen) {
+        const cls = CLASSES[localRpg.classData.chosen];
+        if (cls) {
+          try {
+            await djangoApi.profile.update({
+              character_class: localRpg.classData.chosen,
+              mana: localRpg.classData.mana || cls.maxMana,
+              mana_max: cls.maxMana
+            });
+            queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+          } catch (e) {
+            console.error("Auto-sync class failed:", e);
+          }
+        }
+      }
+    };
+    syncLocalClass();
+  }, [profile?.character_class]);
+
   // Class data
-  const classData = rpg.classData || { chosen: null, mana: 0 };
+  const classData = { 
+    chosen: profile?.character_class !== "Wanderer" ? profile?.character_class : null,
+    mana: profile?.mana || 0,
+    maxMana: profile?.mana_max || 100
+  };
   const chosenClass = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = chosenClass?.color || "#3b82f6";
 
+  // Map inventory and equipment from profile
+  const rawInventory = profile?.inventory || [];
+  const inventory = rawInventory.map(ri => SHOP_ITEMS.find(i => i.id === ri.id) || ri);
+  
+  const rawEquipped = profile?.equipped || {};
+  const equipped = {};
+  Object.keys(rawEquipped).forEach(slot => {
+     const eqId = rawEquipped[slot]?.id || rawEquipped[slot];
+     equipped[slot] = SHOP_ITEMS.find(i => i.id === eqId) || rawEquipped[slot];
+  });
+
   // Equipped stats breakdown
-  const equipped = gs.equipped || {};
   const equipStats = { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
   Object.values(equipped).forEach(item => {
     if (item?.stats) Object.entries(item.stats).forEach(([k, v]) => { equipStats[k] = (equipStats[k] || 0) + v; });
@@ -101,14 +142,26 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Use currentRankId prop if provided for sync with header character icon
   const currentRank = currentRankId ? { ...getRankFromXP(rankXP), id: currentRankId } : getRankFromXP(rankXP);
-  const charHp = gs.hp !== undefined ? gs.hp : (gs.maxHp || 100);
-  const charMaxHp = gs.maxHp || 100;
+  const charHp = profile?.hp !== undefined ? profile.hp : 100;
+  const charMaxHp = profile?.hp_max || 100;
   const hpPct = Math.max(0, (charHp / charMaxHp) * 100);
   const hpColor = hpPct > 50 ? "#ef4444" : hpPct > 25 ? "#f59e0b" : "#ff0000";
 
-  const handleChooseClass = (classId) => {
+  const handleChooseClass = async (classId) => {
     const cls = CLASSES[classId];
     const newClassData = { chosen: classId, mana: cls.maxMana, maxMana: cls.maxMana, skills: [] };
+    
+    try {
+      await djangoApi.profile.update({
+        character_class: classId,
+        mana: cls.maxMana,
+        mana_max: cls.maxMana
+      });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    } catch (e) {
+      console.error("Failed to sync class with backend:", e);
+    }
+
     saveRPGData("mindos_class", newClassData);
     setRpg(prev => ({ ...prev, classData: newClassData }));
   };
@@ -129,36 +182,97 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     setRpg(prev => ({ ...prev, mutators: newMut }));
   };
 
-  const handlePrestige = (newPrestige) => {
+  const handlePrestige = async (newPrestige) => {
     setRpg(prev => ({ ...prev, prestige: newPrestige }));
+    try {
+      await djangoApi.profile.update({ prestige_count: newPrestige.count });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    } catch (e) {
+      console.error("Failed to sync prestige with backend:", e);
+    }
   };
+
+  const mutation = useMutation({
+    mutationFn: djangoApi.shop.buy,
+    onMutate: async (buyData) => {
+      await queryClient.cancelQueries({ queryKey: ["userprofile"] });
+      /** @type {any} */
+      const prevProfile = queryClient.getQueryData(["userprofile"]);
+
+      if (prevProfile) {
+        const newHp = buyData.heal_amount 
+          ? Math.min(prevProfile.hp_max, prevProfile.hp + buyData.heal_amount)
+          : prevProfile.hp;
+        
+        const newInventory = buyData.heal_amount 
+          ? prevProfile.inventory 
+          : [...(prevProfile.inventory || []), { id: buyData.item_id }];
+
+        queryClient.setQueryData(["userprofile"], {
+          ...prevProfile,
+          gold: Math.max(0, prevProfile.gold - buyData.cost),
+          hp: newHp,
+          inventory: newInventory
+        });
+      }
+
+      setBoughtItem(buyData.item_id);
+      triggerBurst(buyData.heal_amount ? "#ef4444" : "#f0c040", 10);
+      setTimeout(() => setBoughtItem(null), 800);
+
+      return { prevProfile };
+    },
+    onError: (err, buyData, context) => {
+      if (context?.prevProfile) {
+        queryClient.setQueryData(["userprofile"], context.prevProfile);
+      }
+      console.error("Shop purchase failed:", err);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }
+  });
 
   const buyItem = (item) => {
     if (gold < item.cost) return;
     playSound('purchase');
-    // Heal potions apply instantly — don't go to inventory
-    if (item.healAmount) {
-      const maxHp = gs.maxHp || 100;
-      const newHp = Math.min(maxHp, (gs.hp !== undefined ? gs.hp : maxHp) + item.healAmount);
-      save({ ...gs, gold: gold - item.cost, hp: newHp });
-    } else {
-      save({ ...gs, gold: gold - item.cost, inventory: [...(gs.inventory || []), item] });
-    }
-    setBoughtItem(item.id);
-    triggerBurst(item.healAmount ? "#ef4444" : "#f0c040", 10);
-    setTimeout(() => setBoughtItem(null), 800);
+    
+    mutation.mutate({
+      item_id: item.id,
+      cost: item.cost,
+      heal_amount: item.healAmount || 0,
+      is_consumable: !!item.healAmount
+    });
   };
 
   const equipItem = (item) => {
     playSound('success');
-    save({ ...gs, equipped: { ...equipped, [item.slot]: item } });
+    const ne = { ...rawEquipped, [item.slot]: item.id };
+    
+    // Optimistically update
+    /** @type {any} */
+    const prevProfile = queryClient.getQueryData(["userprofile"]);
+    if (prevProfile) queryClient.setQueryData(["userprofile"], { ...prevProfile, equipped: ne });
+    
+    djangoApi.profile.update({ equipped: ne }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    });
     setActiveSlot(null);
   };
 
   const unequip = (slot) => {
     playSound('click');
-    const ne = { ...equipped }; delete ne[slot];
-    save({ ...gs, equipped: ne });
+    const ne = { ...rawEquipped }; 
+    delete ne[slot];
+    
+    // Optimistically update
+    /** @type {any} */
+    const prevProfile = queryClient.getQueryData(["userprofile"]);
+    if (prevProfile) queryClient.setQueryData(["userprofile"], { ...prevProfile, equipped: ne });
+
+    djangoApi.profile.update({ equipped: ne }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    });
   };
 
   const upgradeStat = (stat) => {
@@ -166,7 +280,6 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     save({ ...gs, statPoints: (gs.statPoints || 0) - 1, stats: { ...gs.stats, [stat]: ((gs.stats?.[stat] || 0) + 1) } });
   };
 
-  const inventory = gs.inventory || [];
   const gearItems = SHOP_ITEMS.filter(i => !i.consumable);
   const consumables = SHOP_ITEMS.filter(i => i.consumable);
 
@@ -233,11 +346,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
                 <span>MANA</span>
-                <span style={{ color: classColor }}>{Math.round(classData.mana || 0)}/{classData.maxMana || chosenClass.maxMana}</span>
+                <span style={{ color: classColor }}>{Math.round(profile?.mana || 0)}/{profile?.mana_max || chosenClass.maxMana}</span>
               </div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, ((classData.mana || 0) / (classData.maxMana || chosenClass.maxMana)) * 100)}%`, background: classColor, boxShadow: `0 0 6px ${classColor}66` }} />
+              <div className="h-2 rounded-none bg-muted overflow-hidden mt-1" style={{ imageRendering: "pixelated" }}>
+                <div className="h-full"
+                  style={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass.maxMana)) * 100)}%`, background: classColor, boxShadow: `0 0 6px ${classColor}66` }} />
               </div>
             </div>
           </div>
@@ -353,7 +466,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* SKILLS */}
       {subTab === "skills" && (
-        <SkillPanel classId={classData.chosen} classData={classData} onUseSkill={handleSkillUsed} />
+        <SkillPanel classId={classData.chosen} />
       )}
 
       {/* SKILL TREE */}

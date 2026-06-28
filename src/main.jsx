@@ -4,11 +4,15 @@ import App from '@/App.jsx'
 import '@/index.css'
 import { DjangoAuthProvider } from '@/lib/DjangoAuthContext'
 import { HashRouter } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClientInstance } from '@/lib/query-client'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <HashRouter>
-    <DjangoAuthProvider>
-      <App />
-    </DjangoAuthProvider>
-  </HashRouter>
+  <QueryClientProvider client={queryClientInstance}>
+    <HashRouter>
+      <DjangoAuthProvider>
+        <App />
+      </DjangoAuthProvider>
+    </HashRouter>
+  </QueryClientProvider>
 )

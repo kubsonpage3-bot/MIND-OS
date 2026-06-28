@@ -59,10 +59,10 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
     const result = checkAndRunDailyCron(dayStartHour);
     if (result.fired && result.totalDmg > 0) {
       const missed = result.log.filter(l => l.type === 'daily_missed');
-      setCronMsg(`🌙 Новый день: -${Math.round(result.totalDmg * 10) / 10} HP за ${missed.length} пропущ. дейлик(ов)`);
+      setCronMsg(`🌙 New day: -${Math.round(result.totalDmg * 10) / 10} HP for ${missed.length} missed daily task(s)`);
       setTimeout(() => setCronMsg(null), 6000);
       if (result.died) {
-        setDeathMsg('💀 Вы погибли от накопленного урона! -1 уровень.');
+        setDeathMsg('💀 You died from accumulated damage! -1 Level.');
         setTimeout(() => setDeathMsg(null), 8000);
       }
       // Перезагружаем задачи после крона
@@ -116,8 +116,17 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
     const isCompleting = !task.completedToday;
     playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
+    let combatResult = null;
+    let xpEarned = 0;
+    let goldEarned = 0;
+
     try {
-      await djangoApi.tasks.complete(task.id, isCompleting);
+      const res = await djangoApi.tasks.complete(task.id, isCompleting);
+      if (res && res.combat) {
+        combatResult = res.combat;
+      }
+      if (res && res.xp_earned) xpEarned = res.xp_earned;
+      if (res && res.gold_earned) goldEarned = res.gold_earned;
     } catch (e) {
       console.warn('Django daily complete failed:', e);
     }
@@ -126,29 +135,33 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
     const tv = task.rpgValue ?? 0;
     const lck = getLckStat();
 
+    // Локальный фолбек для наград
     const reward = calcReward(tv, task.difficulty || 'medium', 'daily', {
       xpBonus: combinedEffects.xpBonus || 0,
       goldBonus: combinedEffects.goldBonus || 0,
       lckStat: lck,
     });
 
-    const bossDmg = applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+    const finalXp = xpEarned > 0 ? xpEarned : Math.round(reward.xp);
+    const finalGold = goldEarned > 0 ? goldEarned : Math.round(reward.gold);
+
+    const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+    const effectNotes = combatResult?.effect_notes || [];
 
     if (isCompleting) {
-      onXpGain(Math.round(reward.xp));
-      onRankXP?.(Math.round(reward.xp));
-      onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-      addGoldToGS(reward.gold);
+      onXpGain(finalXp);
+      onRankXP?.(finalXp);
+      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
+      addGoldToGS(finalGold);
       addManaToGS(5);
 
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
-      showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + critLabel });
+      showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + critLabel });
     } else {
-      onXpGain(-Math.round(reward.xp));
-      onRankXP?.(-Math.round(reward.xp));
-      onBossDamage(-bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
-      addGoldToGS(-reward.gold);
+      onXpGain(-finalXp);
+      onRankXP?.(-finalXp);
+      addGoldToGS(-finalGold);
       addManaToGS(-5);
       showRewardToast({ label: `Reverted: ${task.name}` });
     }

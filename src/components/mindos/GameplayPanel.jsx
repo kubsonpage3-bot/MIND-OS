@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { queueAutoSync } from "@/lib/cloudSync";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
 
 const WEEK_START_OPTIONS = [
   { id: "monday", label: "Monday" },
@@ -44,6 +46,19 @@ const TIME_OPTIONS = [
 ];
 
 export default function GameplayPanel() {
+  const queryClient = useQueryClient();
+  const { data: profile } = useQuery({ queryKey: ["userprofile"], queryFn: djangoApi.profile.get });
+  
+  const difficultyMutation = useMutation({
+    /**
+     * @param {string} diffId
+     */
+    mutationFn: (diffId) => djangoApi.profile.update({ boss_difficulty: diffId.toUpperCase() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }
+  });
+
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [gameplay, setGameplay] = useState(() => {
     try {
@@ -156,27 +171,36 @@ export default function GameplayPanel() {
       </div>
 
       {/* Boss Difficulty */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-border bg-card space-y-3 relative overflow-hidden" style={{ borderColor: "rgba(240,192,64,0.3)", background: "linear-gradient(to bottom, rgba(15,10,20,0.5), rgba(10,5,15,0.8))" }}>
         <div className="flex items-center gap-2">
-          <Swords className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Boss Difficulty</span>
+          <Swords className="w-4 h-4" style={{ color: "#f0c040" }} />
+          <span className="font-mono text-sm font-bold tracking-widest text-white shadow-sm">BOSS DIFFICULTY</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Affects boss HP and reward multipliers</p>
-        <div className="grid grid-cols-2 gap-2">
-          {BOSS_DIFFICULTIES.map(diff => (
-            <button
-              key={diff.id}
-              onClick={() => updateSetting("bossDifficulty", diff.id)}
-              className={`py-2 text-xs font-mono rounded border transition-all ${
-                gameplay.bossDifficulty === diff.id
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
-              }`}
-            >
-              <div className="font-bold">{diff.label}</div>
-              <div className="text-[9px] opacity-70">{diff.hp} HP · ×{diff.reward}</div>
-            </button>
-          ))}
+        <p className="text-[10px] text-muted-foreground/70 font-mono italic">Affects boss HP and reward multipliers</p>
+        <div className="grid grid-cols-2 gap-3">
+          {BOSS_DIFFICULTIES.map(diff => {
+            const backendDiff = profile?.boss_difficulty || "NORMAL";
+            const isActive = backendDiff === diff.id.toUpperCase();
+            return (
+              <button
+                key={diff.id}
+                onClick={() => difficultyMutation.mutate(diff.id)}
+                className="py-3 px-2 text-xs font-mono rounded-lg border transition-all relative"
+                style={{
+                  borderColor: isActive ? "#dc2626" : "rgba(255,255,255,0.1)",
+                  background: isActive ? "rgba(220,38,38,0.1)" : "rgba(0,0,0,0.4)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.5)",
+                  boxShadow: isActive ? "0 0 12px rgba(220,38,38,0.2)" : "none",
+                }}
+              >
+                <div className="font-bold tracking-wider mb-1" style={{ color: isActive ? "#f87171" : "inherit" }}>{diff.label.toUpperCase()}</div>
+                <div className="flex flex-col gap-0.5 text-[9px] opacity-80">
+                  <span>{diff.hp} HP</span>
+                  <span style={{ color: isActive ? "#fcd34d" : "inherit" }}>×{diff.reward.toFixed(1)} REWARDS</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

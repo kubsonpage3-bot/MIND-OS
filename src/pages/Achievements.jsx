@@ -107,7 +107,13 @@ export default function Achievements() {
   const { achievements, alliesData, prestige } = loadRPGData();
   const unlocked = achievements.unlocked || [];
   const bossIndex = (() => { try { return JSON.parse(localStorage.getItem("mindos_game_state") || "{}").bossIndex || 0; } catch { return 0; } })();
-  const logs = [];
+  const logs = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("mindos_activity_logs") || "[]");
+    } catch {
+      return [];
+    }
+  }, []);
 
   const stats = useMemo(() => {
     const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
@@ -115,10 +121,10 @@ export default function Achievements() {
     const recruited = alliesData?.recruited || [];
     const allyLevels = alliesData?.levels || {};
     return {
-      totalSessions: 0,
+      totalSessions: logs.length,
       maxStreak: streak,
-      uniqueSubjects: 0,
-      prayerSessions: 0,
+      uniqueSubjects: new Set(logs.map(l => l.activity)).size,
+      prayerSessions: logs.filter(l => l.activity === "prayer_meditation" || l.activity === "prayer").length,
       totalCrits: gs.totalCrits || 0,
       totalBossDamage: gs.totalBossDamage || 0,
       bossesDefeated: bossIndex,
@@ -129,7 +135,7 @@ export default function Achievements() {
       prayerRank: 0,
       prestigeCount: prestige?.count || 0,
     };
-  }, [alliesData, prestige, bossIndex]);
+  }, [alliesData, prestige, bossIndex, logs]);
 
   const byCategory = {};
   ACHIEVEMENTS.forEach(ach => {
@@ -137,7 +143,24 @@ export default function Achievements() {
     byCategory[ach.cat].push(ach);
   });
 
-  const totalUnlocked = ACHIEVEMENTS.filter(a => unlocked.includes(a.id) || a.check(stats)).length;
+  const unlockedList = useMemo(() => {
+    const ids = [...unlocked];
+    let changed = false;
+    ACHIEVEMENTS.forEach(ach => {
+      if (!ids.includes(ach.id) && ach.check(stats)) {
+        ids.push(ach.id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      const rpgData = loadRPGData();
+      rpgData.achievements.unlocked = ids;
+      localStorage.setItem("mindos_achievements", JSON.stringify(rpgData.achievements));
+    }
+    return ids;
+  }, [unlocked, stats]);
+
+  const totalUnlocked = unlockedList.length;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
@@ -185,7 +208,7 @@ export default function Achievements() {
         {/* Achievement categories */}
         {Object.entries(byCategory).map(([cat, achs]) => {
           const cfg = CAT_LABELS[cat] || { label: cat, icon: "🏆", color: "#888" };
-          const catUnlocked = achs.filter(a => unlocked.includes(a.id) || a.check(stats)).length;
+          const catUnlocked = achs.filter(a => unlockedList.includes(a.id)).length;
           return (
             <div key={cat} className="space-y-3">
               <div className="flex items-center gap-2">
@@ -197,7 +220,7 @@ export default function Achievements() {
               </div>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                 {achs.map(ach => {
-                  const isUnlocked = unlocked.includes(ach.id) || ach.check(stats);
+                  const isUnlocked = unlockedList.includes(ach.id);
                   return <AchievementCard key={ach.id} ach={ach} isUnlocked={isUnlocked} />;
                 })}
               </div>

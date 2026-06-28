@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ACHIEVEMENTS, loadRPGData } from "@/lib/rpgSystem";
+import { showRewardToast } from "@/components/mindos/RewardToast";
+import { playSound } from "@/lib/soundEffects";
 
 const CAT_LABELS = {
   consistency: "Consistency",
@@ -50,10 +52,21 @@ export default function AchievementsPanel({ logs, alliesData, prestigeData }) {
     byCategory[ach.cat].push(ach);
   });
 
+  const [unlockedList, setUnlockedList] = useState(unlocked);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const rpg = loadRPGData();
+      setUnlockedList(rpg.achievements.unlocked || []);
+    };
+    window.addEventListener("mindos-achievements-updated", handleUpdate);
+    return () => window.removeEventListener("mindos-achievements-updated", handleUpdate);
+  }, []);
+
   return (
     <div className="space-y-4">
       <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
-        Achievements — {unlocked.length}/{ACHIEVEMENTS.length} unlocked
+        Achievements — {unlockedList.length}/{ACHIEVEMENTS.length} unlocked
       </div>
 
       {Object.entries(byCategory).map(([cat, achs]) => (
@@ -63,15 +76,15 @@ export default function AchievementsPanel({ logs, alliesData, prestigeData }) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             {achs.map(ach => {
-              const isUnlocked = unlocked.includes(ach.id) || ach.check(stats);
+              const isUnlocked = unlockedList.includes(ach.id);
               return (
                 <div key={ach.id} className="p-2 rounded-xl border text-center transition-all"
-                  style={{
-                    borderColor: isUnlocked ? `${ach.color}60` : "#1e1a38",
-                    background: isUnlocked ? `${ach.color}0d` : "#0a0818",
-                    boxShadow: isUnlocked ? `0 0 6px ${ach.color}30` : "none",
-                    filter: isUnlocked ? "none" : "grayscale(1) opacity(0.4)",
-                  }}>
+                   style={{
+                     borderColor: isUnlocked ? `${ach.color}60` : "#1e1a38",
+                     background: isUnlocked ? `${ach.color}0d` : "#0a0818",
+                     boxShadow: isUnlocked ? `0 0 6px ${ach.color}30` : "none",
+                     filter: isUnlocked ? "none" : "grayscale(1) opacity(0.4)",
+                   }}>
                   <div className="text-lg">{isUnlocked ? ach.icon : "🔒"}</div>
                   <div className="text-[9px] font-mono font-bold mt-1" style={{ color: isUnlocked ? ach.color : "#4a4060" }}>
                     {isUnlocked ? ach.name : "???"}

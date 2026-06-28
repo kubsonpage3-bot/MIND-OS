@@ -1,11 +1,12 @@
 """
-MIND OS — Skill Engine.
+MIND OS — Skill Service.
 Вся логика активации и применения скиллов на стороне сервера.
 """
 import math
 from datetime import timedelta
 from django.utils import timezone
-from .models import UserProfile, ActiveEffect, SkillCooldown
+from django.db import transaction
+from api.models import UserProfile, ActiveEffect, SkillCooldown
 
 # ─── Определения классов и скиллов (зеркало rpgSystem.js) ─────────────────
 
@@ -60,29 +61,33 @@ def _fmt_td(td):
 
 # ─── Активация скилла ────────────────────────────────────────────────────
 
-def activate_skill(profile, skill_id):
+@transaction.atomic
+def activate_skill(user, skill_id):
     """
-    Активирует скилл для пользователя.
+    Активирует скилл для пользователя с использованием транзакции.
     Возвращает (success, message, class_data, effects).
     """
+    # Блокируем профиль для защиты от гонки (race conditions)
+    profile, _ = UserProfile.objects.select_for_update().get_or_create(user=user)
+    
     char_class = profile.character_class
     class_def = CLASS_DEFS.get(char_class)
     if not class_def:
-        return False, f"Неизвестный класс: {char_class}", None, None
+        return False, f"Unknown class: {char_class}", None, None
 
     skill_def = next((s for s in class_def["skills"] if s["id"] == skill_id), None)
     if not skill_def:
-        return False, f"Скилл {skill_id} не принадлежит классу {char_class}", None, None
+        return False, f"Skill {skill_id} does not belong to class {char_class}", None, None
 
     # Проверка маны
     if profile.mana < skill_def["mana"]:
-        return False, f"Недостаточно маны: нужно {skill_def['mana']}, есть {profile.mana}", None, None
+        return False, f"Not enough mana: requires {skill_def['mana']}, available {profile.mana}", None, None
 
     # Проверка кулдауна
     cd = SkillCooldown.objects.filter(user=profile.user, skill_id=skill_id).first()
     if cd and cd.cooldown_until > timezone.now():
         remaining = cd.cooldown_until - timezone.now()
-        return False, f"Кулдаун: осталось {_fmt_td(remaining)}", None, None
+        return False, f"Cooldown: {_fmt_td(remaining)} remaining", None, None
 
     # Списываем ману
     profile.mana -= skill_def["mana"]
@@ -99,12 +104,14 @@ def activate_skill(profile, skill_id):
     effect_data = _create_effect(skill_id, profile)
 
     if effect_data:
-        ActiveEffect.objects.create(
+        ActiveEffect.objects.update_or_create(
             user=profile.user,
             effect_id=effect_data["effect_id"],
-            skill_id=skill_id,
-            data=effect_data["data"],
-            expires_at=effect_data["expires_at"],
+            defaults={
+                "skill_id": skill_id,
+                "data": effect_data["data"],
+                "expires_at": effect_data["expires_at"],
+            }
         )
 
     # Собираем ответ
@@ -124,7 +131,7 @@ def activate_skill(profile, skill_id):
         ],
     }
 
-    return True, f"{skill_def['name']} активирован!", class_data, list(effects_qs)
+    return True, f"{skill_def['name']} activated!", class_data, list(effects_qs)
 
 
 def _create_effect(skill_id, profile):
@@ -177,14 +184,13 @@ def apply_effects_on_task_complete(profile, task):
     Вызывается ПОСЛЕ начисления базовых наград.
     Возвращает { xp_bonus, hp_heal, effect_ids_consumed, notes }.
     """
+    # Сначала удаляем протухшие
+    ActiveEffect.objects.filter(user=profile.user, expires_at__lt=timezone.now()).delete()
+    
     effects = ActiveEffect.objects.filter(user=profile.user)
     result = {"xp_bonus": 0, "hp_heal": 0, "effect_ids_consumed": [], "notes": []}
 
     for effect in effects:
-        if effect.expires_at and effect.expires_at < timezone.now():
-            effect.delete()
-            continue
-
         # BLUEPRINT: +50% XP за следующие 3 задачи
         if effect.skill_id == "blueprint" and effect.data.get("tasksRemaining", 0) > 0:
             bonus = math.floor(task.get_rewards()["xp"] * effect.data["xpBoost"])

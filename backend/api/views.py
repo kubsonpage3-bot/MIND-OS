@@ -30,8 +30,10 @@ from .serializers import (
     TaskCompleteSerializer,
 )
 from .models import ActiveEffect, SkillCooldown
-from .serializers import ActiveEffectSerializer, SkillActivateSerializer, SkillCooldownSerializer
-from .skill_engine import activate_skill, apply_effects_on_task_complete
+from .serializers import ActiveEffectSerializer, SkillActivateSerializer, SkillCooldownSerializer, ShopBuySerializer
+from api.services.task_service import complete_task
+from api.services.skill_service import activate_skill
+from api.services.shop_service import buy_item
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -53,7 +55,7 @@ class RegisterView(generics.CreateAPIView):
 
         return Response(
             {
-                "detail": "Аккаунт успешно создан. Теперь войдите через /api/auth/token/",
+                "detail": "Account successfully created. Please log in via /api/auth/token/",
                 "user": {
                     "id":       user.id,
                     "username": user.username,
@@ -148,85 +150,31 @@ class TaskViewSet(viewsets.ModelViewSet):
         """
         POST /api/tasks/{id}/complete/
         Отмечает задачу как выполненную и начисляет XP + Gold персонажу.
-
-        Логика по типам:
-          - TODO:   is_completed = True (однократно)
-          - DAILY:  last_completed_at = now() (сбрасывается каждый день)
-          - HABIT:  completion_count++ (бесконечно)
+        Использует Service Layer.
         """
-        task = self.get_object()    # get_object уже проверяет принадлежность user'у
-
-        # Валидируем входные данные (только is_positive для привычек)
+        # Валидируем входные данные
         serializer = TaskCompleteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        is_positive = serializer.validated_data.get("is_positive", True)
 
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
-        rewards = task.get_rewards()
-
-        # ── Логика по типу задачи ─────────────────────────────────────────
-
-        if task.task_type == Task.TaskType.TODO:
-            # Туду нельзя выполнить дважды
-            if task.is_completed:
-                return Response(
-                    {"detail": "Задача уже выполнена."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            task.is_completed = True
-            task.last_completed_at = timezone.now()
-            task.completion_count += 1
-
-        elif task.task_type == Task.TaskType.DAILY:
-            # Проверяем, не выполнялся ли дейлик уже сегодня
-            today = timezone.now().date()
-            if task.last_completed_at and task.last_completed_at.date() == today:
-                return Response(
-                    {"detail": "Дейлик уже выполнен сегодня."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            task.last_completed_at = timezone.now()
-            task.completion_count += 1
-
-        elif task.task_type == Task.TaskType.HABIT:
-            # Привычки не имеют статуса "выполнено" — просто считаем
-            task.completion_count += 1
-            # Если привычка отрицательная — снимаем HP вместо начисления наград
-            if not serializer.validated_data.get("is_positive", True):
-                profile.hp = max(0, profile.hp - 5)    # Штраф: -5 HP
-                profile.save()
-                task.save()
-                return Response(
-                    {
-                        "detail": "Отмечено нарушение привычки.",
-                        "penalty": {"hp": -5},
-                        "profile": UserProfileSerializer(profile).data,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-
-        task.save()
-
-        # ── Начисляем награды персонажу ───────────────────────────────────
-        leveled_up = profile.gain_xp(rewards["xp"])
-        profile.gold += rewards["gold"]
-        profile.save()
-        # ── Применяем эффекты скиллов ──────────────────────────────────────
-        skill_effects = apply_effects_on_task_complete(profile, task)
-        if skill_effects["xp_bonus"] > 0:
-            profile.gain_xp(skill_effects["xp_bonus"])
-            profile.save(update_fields=["xp", "xp_to_next_level", "level"])
-
-        return Response(
-            {
-                "detail":    "Задача выполнена!",
-                "leveled_up": leveled_up,
-                "skill_effects": skill_effects["notes"],
-                "rewards":   rewards,
-                "task":      TaskSerializer(task).data,
-                "profile":   UserProfileSerializer(profile).data,
-            },
-            status=status.HTTP_200_OK,
-        )
+        try:
+            result = complete_task(request.user, pk, is_positive)
+            return Response(
+                {
+                    "detail": result.get("detail", "Task completed!"),
+                    "leveled_up": result.get("leveled_up", False),
+                    "skill_effects": result.get("skill_effects", []),
+                    "rewards": result.get("rewards", {"xp": 0, "gold": 0}),
+                    "task": TaskSerializer(result["task"]).data,
+                    "profile": UserProfileSerializer(result["profile"]).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": str(e.detail[0] if hasattr(e, 'detail') else e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 # ─────────────────────────────────────────────────────────────────────────────
 # Скиллы — активация и эффекты
 # ─────────────────────────────────────────────────────────────────────────────
@@ -244,11 +192,12 @@ class SkillActivateView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         skill_id = serializer.validated_data["skill_id"]
 
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
-        success, message, class_data, effects = activate_skill(profile, skill_id)
+        success, message, class_data, effects = activate_skill(request.user, skill_id)
 
         if not success:
             return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+        
+        profile = UserProfile.objects.get(user=request.user)
 
         return Response({
             "detail": message,
@@ -266,14 +215,140 @@ class ActiveEffectsView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from django.utils import timezone
+        # Чистим истекшие
+        ActiveEffect.objects.filter(user=request.user, expires_at__lt=timezone.now()).delete()
+        SkillCooldown.objects.filter(user=request.user, cooldown_until__lt=timezone.now()).delete()
+
         effects = ActiveEffect.objects.filter(user=request.user)
         cooldowns = SkillCooldown.objects.filter(user=request.user)
-
-        # Чистим истекшие
-        from django.utils import timezone
-        ActiveEffect.objects.filter(user=request.user, expires_at__lt=timezone.now()).delete()
 
         return Response({
             "active_effects": ActiveEffectSerializer(effects, many=True).data,
             "cooldowns": SkillCooldownSerializer(cooldowns, many=True).data,
         })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Магазин (Shop)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ShopBuyView(generics.GenericAPIView):
+    """
+    POST /api/shop/buy/
+    Списывает золото и применяет эффект от купленного предмета.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = ShopBuySerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        item_id = serializer.validated_data["item_id"]
+        cost = serializer.validated_data["cost"]
+        heal_amount = serializer.validated_data.get("heal_amount", 0)
+        is_consumable = serializer.validated_data.get("is_consumable", False)
+
+        success, message, profile = buy_item(
+            request.user, item_id, cost, heal_amount, is_consumable
+        )
+
+        if not success:
+            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+
+        from .serializers import UserProfileSerializer
+        return Response({
+            "detail": message,
+            "profile": UserProfileSerializer(profile).data,
+        }, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Combat System
+# ─────────────────────────────────────────────────────────────────────────────
+from .models import Boss, BossEncounter
+from .serializers import BossSerializer, BossEncounterSerializer, BossSummonSerializer
+
+class BossListView(generics.ListAPIView):
+    """
+    GET /api/combat/bosses/
+    Returns list of all available bosses (scroll templates).
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = BossSerializer
+    queryset = Boss.objects.all()
+    pagination_class = None
+
+
+class BossEncounterView(generics.ListAPIView):
+    """
+    GET /api/combat/encounters/
+    Returns the user's active/completed boss encounters.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = BossEncounterSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return BossEncounter.objects.filter(user=self.request.user)
+
+
+class BossSummonView(generics.GenericAPIView):
+    """
+    POST /api/combat/summon/
+    Spends gold to summon a boss, creating an active encounter.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = BossSummonSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        boss_id = serializer.validated_data["boss_id"]
+        cost = serializer.validated_data["cost"]
+
+        from django.db import transaction
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            
+            if profile.gold < cost:
+                return Response({"detail": "Not enough gold."}, status=status.HTTP_400_BAD_REQUEST)
+                
+            # Check for active encounters
+            active_encounter = BossEncounter.objects.filter(user=request.user, is_defeated=False).first()
+            if active_encounter:
+                return Response({"detail": f"You already have an active boss: {active_encounter.boss.name}"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            try:
+                boss = Boss.objects.get(id_name=boss_id)
+            except Boss.DoesNotExist:
+                return Response({"detail": "Boss template not found."}, status=status.HTTP_404_NOT_FOUND)
+                
+            profile.gold -= cost
+            profile.save()
+            
+            # Apply difficulty multipliers
+            difficulty = profile.boss_difficulty
+            multipliers = {
+                "EASY": {"hp": 0.5, "reward": 0.8},
+                "NORMAL": {"hp": 1.0, "reward": 1.0},
+                "HARD": {"hp": 2.0, "reward": 1.5},
+                "EXTREME": {"hp": 5.0, "reward": 2.5}
+            }
+            mult = multipliers.get(difficulty, multipliers["NORMAL"])
+            
+            # Create encounter
+            encounter = BossEncounter.objects.create(
+                user=request.user,
+                boss=boss,
+                hp_current=int(boss.hp_max * mult["hp"]),
+                reward_multiplier=mult["reward"]
+            )
+            
+        return Response({
+            "detail": f"Summoned {boss.name}!",
+            "encounter": BossEncounterSerializer(encounter).data,
+            "profile": UserProfileSerializer(profile).data
+        }, status=status.HTTP_201_CREATED)

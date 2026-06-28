@@ -71,7 +71,7 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Mutators</div>
         <div className="text-[10px] font-mono font-bold" style={{ color: active.length >= MAX_ACTIVE ? "#ef4444" : "#00cc88" }}>
-          {active.length}/{MAX_ACTIVE} активно
+          {active.length}/{MAX_ACTIVE} active
         </div>
       </div>
 
@@ -115,7 +115,7 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
                         {active_ && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded"
                           style={{ background: "#f0c04025", color: "#f0c040", border: "1px solid #f0c04040" }}>ACTIVE</span>}
                         {purchased_ && !active_ && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded"
-                          style={{ background: "#00aa8815", color: "#00aa88", border: "1px solid #00aa8840" }}>КУПЛЕНО</span>}
+                          style={{ background: "#00aa8815", color: "#00aa88", border: "1px solid #00aa8840" }}>BOUGHT</span>}
                         {mut.toggle && <span className="text-[8px] font-mono text-muted-foreground/40">[toggle]</span>}
                         {mut.durationDays && <span className="text-[8px] font-mono text-muted-foreground/40">{mut.durationDays}d</span>}
                       </div>
@@ -125,7 +125,7 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
                       {mut.synergy && (
                         <div className="mt-1 text-[8px] font-mono italic"
                           style={{ color: synActive ? "#f0c040" : "#4a4060" }}>
-                          {synActive ? `⚡ Синергия: ${MUTATORS.find(m => m.id === mut.synergy)?.name} — АКТИВНА ✦` : `Синергия: ${MUTATORS.find(m => m.id === mut.synergy)?.name}`}
+                          {synActive ? `⚡ Synergy: ${MUTATORS.find(m => m.id === mut.synergy)?.name} — ACTIVE ✦` : `Synergy: ${MUTATORS.find(m => m.id === mut.synergy)?.name}`}
                         </div>
                       )}
                     </div>
@@ -157,12 +157,12 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
             <div className="text-2xl">💀</div>
             <div className="font-mono font-black text-red-400 tracking-widest">IRONMAN MODE</div>
             <div className="text-xs font-mono text-muted-foreground/70 leading-relaxed">
-              Если HP достигнет 0 — prestige будет активирован принудительно. Это <span className="text-red-400">нельзя отменить</span>.
-              В обмен: все Rank XP +15% навсегда.
+              If HP reaches 0 — prestige will be forcefully activated. This <span className="text-red-400">cannot be undone</span>.
+              In exchange: all Rank XP +15% permanently.
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmIronman(false)} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">ОТМЕНА</button>
-              <button onClick={confirmIronmanActivate} className="flex-1 py-2 text-xs font-mono rounded-lg bg-red-600 text-white font-bold">ПОДТВЕРДИТЬ — 3000G</button>
+              <button onClick={() => setConfirmIronman(false)} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">CANCEL</button>
+              <button onClick={confirmIronmanActivate} className="flex-1 py-2 text-xs font-mono rounded-lg bg-red-600 text-white font-bold">CONFIRM — 3000G</button>
             </div>
           </div>
         </div>

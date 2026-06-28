@@ -8,7 +8,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const [animating, setAnimating] = useState(false);
 
   const count = prestige?.count || 0;
-  const canPrestige = rankXP >= 50000; // SSS threshold placeholder
+  const canPrestige = rankXP >= 9400; // SSS threshold placeholder
 
   const confirm = () => {
     if (input !== "REBIRTH") return;
@@ -73,9 +73,9 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
 
         {!canPrestige ? (
           <div className="text-[10px] font-mono text-muted-foreground/40 leading-relaxed">
-            Reach SSS Rank to unlock Prestige. Current: {rankXP.toFixed(0)} / 50000 XP
+            Reach SSS Rank to unlock Prestige. Current: {rankXP.toFixed(0)} / 9400 XP
             <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / 50000) * 100)}%`, background: "#f0c040" }} />
+              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / 9400) * 100)}%`, background: "#f0c040" }} />
             </div>
           </div>
         ) : (
