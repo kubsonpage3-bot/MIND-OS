@@ -531,6 +531,12 @@ class Item(models.Model):
     )
     icon_url = models.CharField(max_length=255, blank=True, verbose_name="URL иконки (WEBP)")
     cost = models.PositiveIntegerField(default=0, verbose_name="Стоимость")
+    slot_type = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="Слот экипировки (напр. headware, ring1)",
+    )
 
     damage_boost = models.FloatField(default=0.0, verbose_name="Множитель урона (+%)")
     gold_boost = models.FloatField(default=0.0, verbose_name="Множитель золота (+%)")
