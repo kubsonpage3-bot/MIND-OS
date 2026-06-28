@@ -6,7 +6,7 @@ import pluginUnusedImports from "eslint-plugin-unused-imports";
 
 export default [
   {
-    ignores: ["backend/**/*", "node_modules/**/*", "dist/**/*", "src-tauri/**/*"]
+    ignores: ["backend/**/*", "node_modules/**/*", "dist/**/*", "src-tauri/**/*", ".venv/**/*", "venv/**/*"]
   },
   {
     files: [

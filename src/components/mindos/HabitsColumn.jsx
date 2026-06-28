@@ -1,17 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
-import { queueAutoSync } from '@/lib/cloudSync';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
-import CreateTaskModal from '@/components/mindos/CreateTaskModal';
-import { applyBuffPipeline } from '@/lib/rpgEngine';
-import { getActiveBuffs } from '@/lib/gameState';
 import {
-  getTaskValueColor, calcNewValue, calcDamage, calcReward, previewHabitDamage,
-  applyHpDamage, getHpState, getConStat, getLckStat,
+  getTaskValueColor, previewHabitDamage, getConStat,
 } from '@/lib/taskEngine';
 import { djangoApi } from '@/api/djangoClient';
 
@@ -31,193 +26,92 @@ const CATEGORY_COLORS = {
 
 const TASK_BOSS_DAMAGE = { easy: 25, medium: 50, hard: 75, critical: 100 };
 
-function loadTasks() {
-  try { return JSON.parse(localStorage.getItem('mindos_tasks') || '[]'); } catch { return []; }
-}
-function saveTasks(tasks) { localStorage.setItem('mindos_tasks', JSON.stringify(tasks)); queueAutoSync(); }
 
-export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
+export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
-  const [tasks, setTasks] = useState(() => loadTasks().filter(t => t.type === 'habit'));
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    name: '', type: 'habit', category: 'Math', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
-  });
-  const [formType, setFormType] = useState('habit');
-  const [hpState, setHpState] = useState(() => getHpState());
+  const tasks = habits;
   const [deathMsg, setDeathMsg] = useState(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTasks(loadTasks().filter(t => t.type === 'habit'));
-      setHpState(getHpState());
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: profile } = useQuery({ queryKey: ["userprofile"], queryFn: djangoApi.profile.get });
+  const hp = profile?.hp ?? 100;
+  const maxHp = profile?.hp_max ?? 100;
 
-  const update = (habits) => {
-    const all = loadTasks();
-    saveTasks([...all.filter(t => t.type !== 'habit'), ...habits]);
-    setTasks(habits);
-  };
+  const completeMutation = useMutation({
+    mutationFn: (/** @type {any} */ { task, positive }) => djangoApi.tasks.complete(task.id, positive),
+    onSuccess: (/** @type {any} */ res, /** @type {any} */ { task, positive }) => {
+      console.log("--> RAW BACKEND RESPONSE:", res);
+      console.log("--> PENALTY VALUE:", res?.penalty?.hp);
 
-  const createTask = async () => {
-    if (!form.name.trim()) return;
+      if (res?.profile) {
+        queryClient.setQueryData(["userprofile"], res.profile);
+      }
 
-    try {
-      const created = await djangoApi.tasks.create({
-        title: form.name,
-        task_type: 'habit',
-        difficulty: form.difficulty,
-        notes: form.notes || '',
-      });
-      
-      if (!created || !created.id) throw new Error("No ID returned from server");
+      if (positive) {
+        playSound('habit_positive');
 
-      const task = {
-        id: created.id, type: 'habit', name: form.name, category: form.category,
-        difficulty: form.difficulty, notes: form.notes, priority: form.priority,
-        posStreak: 0, negStreak: 0, weekCount: 0,
-        rpgValue: 0, // Task Value начинается с 0 (жёлтый)
-        createdAt: new Date().toISOString(),
-      };
-      update([...tasks, task]);
-      setShowForm(false);
-      setForm({ name: '', type: 'habit', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
-    } catch (e) {
-      console.error('Django habit create failed:', e);
-      showRewardToast({ label: `Error: Could not create habit on server` });
+        const xpEarned = res?.xp_earned > 0 ? res.xp_earned : 0;
+        const goldEarned = res?.gold_earned > 0 ? res.gold_earned : 0;
+        const combatResult = res?.combat;
+        const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+        const effectNotes = combatResult?.effect_notes || [];
+        const isCrit = res?.gamification_result?.is_crit || false;
+        const itemDropped = res?.gamification_result?.item_dropped || null;
+
+        onRankXP?.(xpEarned);
+        if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
+
+        playSound('gold_earned');
+        showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name, isCrit, itemDropped });
+      } else {
+        playSound('habit_negative');
+
+        let dmg = 0;
+        // Check !== undefined to correctly parse exactly 0 if backend sent it, otherwise use actual damage
+        if (res?.penalty?.hp !== undefined) {
+          dmg = Math.round(Math.abs(res.penalty.hp));
+        }
+
+        // Check if died on server
+        if (res?.died) {
+          setDeathMsg(`💀 You died! HP restored to max. Stay strong.`);
+          setTimeout(() => setDeathMsg(null), 5000);
+          playSound('death');
+        }
+
+        showRewardToast({ label: `${task.name}: -${dmg} HP` });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    },
+    onError: (error) => {
+      console.error('Django habit complete failed:', error);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      const errorMsg = error.data?.detail || error.message || "Task could not be updated on server";
+      showRewardToast({ label: `Error: ${errorMsg}` });
     }
-  };
+  });
 
-  const habitClick = async (task, positive) => {
-    let combatResult = null;
-    let xpEarned = 0;
-    let goldEarned = 0;
-
+  const habitClick = (task, positive) => {
     if (task.id > 1000000000 || typeof task.id === 'string') {
       console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
       showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
       // Remove this invalid task locally
-      update(tasks.filter(t => t.id !== task.id));
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       return;
     }
 
-    try {
-      console.log('Sending habit complete for ID:', task.id);
-      const res = await djangoApi.tasks.complete(task.id, positive);
-      if (res && res.combat) {
-        combatResult = res.combat;
-      }
-      if (res && res.xp_earned) xpEarned = res.xp_earned;
-      if (res && res.gold_earned) goldEarned = res.gold_earned;
-      if (res && res.profile) {
-        queryClient.setQueryData(["userprofile"], res.profile);
-      }
-    } catch (e) {
-      console.error('Django habit complete failed:', e);
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-      try {
-        const djangoTasks = await djangoApi.tasks.list();
-        if (Array.isArray(djangoTasks)) {
-          const mappedTasks = djangoTasks.map(dt => ({
-            id: dt.id,
-            type: dt.task_type || 'todo',
-            name: dt.title || 'Task',
-            category: 'Coding',
-            difficulty: dt.difficulty || 'medium',
-            notes: dt.notes || '',
-            done: dt.is_completed || false,
-            completedToday: dt.is_completed || false,
-            rpgValue: dt.value || 0,
-            createdAt: dt.created_at || new Date().toISOString(),
-          }));
-          localStorage.setItem('mindos_tasks', JSON.stringify(mappedTasks));
-        }
-      } catch (err) {
-        console.warn('Failed to sync tasks on error:', err);
-      }
-      showRewardToast({ label: `Error: Task could not be updated on server` });
-      return;
-    }
-
-    const { combinedEffects } = applyBuffPipeline(getActiveBuffs());
-    const tv = task.rpgValue ?? 0;
-    const con = getConStat();
-    const lck = getLckStat();
-
-    if (positive) {
-      playSound('habit_positive');
-
-      // Локальный фолбек для наград
-      const reward = calcReward(tv, task.difficulty || 'medium', 'habit', {
-        xpBonus: combinedEffects.xpBonus || 0,
-        goldBonus: combinedEffects.goldBonus || 0,
-        lckStat: lck,
-      });
-
-      const finalXp = xpEarned > 0 ? xpEarned : Math.round(reward.xp);
-      const finalGold = goldEarned > 0 ? goldEarned : Math.round(reward.gold);
-
-      const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
-      const effectNotes = combatResult?.effect_notes || [];
-
-      onRankXP?.(finalXp);
-      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
-
-      const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
-      playSound('gold_earned');
-      showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + critLabel });
-
-      // Value растёт (задача "синеет", будущая награда снижается)
-      const newTv = calcNewValue(tv, 'complete', 'habit');
-      update(tasks.map(t => t.id === task.id ? {
-        ...t,
-        rpgValue: newTv,
-        posStreak: (t.posStreak || 0) + 1,
-        negStreak: Math.max(0, (t.negStreak || 0) - 1),
-        weekCount: (t.weekCount || 0) + 1,
-      } : t));
-
-    } else {
-      playSound('habit_negative');
-
-      // Урон зависит от текущего value ПОСЛЕ провала (прогрессия урона)
-      const newTv = calcNewValue(tv, 'fail', 'habit');
-      const dmg = combinedEffects.noFailDmg ? 0 : calcDamage(newTv, task.difficulty || 'medium', con);
-
-      const result = applyHpDamage(dmg);
-      setHpState(getHpState());
-
-      if (result.died) {
-        setDeathMsg(`💀 You died! -1 Level. ${result.lostItem ? `Lost item: ${result.lostItem}` : ''}`);
-        setTimeout(() => setDeathMsg(null), 5000);
-        playSound('death');
-      }
-
-      showRewardToast({ label: `${task.name}: -${Math.round(dmg * 10) / 10} HP` });
-
-      // Value падает (задача "краснеет", следующий "-" будет бить сильнее)
-      const newTvFail = calcNewValue(tv, 'fail', 'habit');
-      update(tasks.map(t => t.id === task.id ? {
-        ...t,
-        rpgValue: newTvFail,
-        negStreak: (t.negStreak || 0) + 1,
-        posStreak: Math.max(0, (t.posStreak || 0) - 1),
-      } : t));
-    }
-
-    setHpState(getHpState());
+    console.log('Sending habit complete for ID:', task.id);
+    completeMutation.mutate({ task, positive });
   };
 
   const deleteTask = async (id) => {
     try {
       await djangoApi.tasks.delete(id);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
       console.warn('Django habit delete failed:', e);
     }
-    update(tasks.filter(t => t.id !== id));
   };
 
   return (
@@ -225,7 +119,7 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-red, #f74e52)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>HABITS</span>
-        <button onClick={() => setShowForm(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+        <button onClick={onAddClick} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
           <Plus size={16} className="text-white" strokeWidth={3} />
         </button>
       </div>
@@ -259,15 +153,15 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
             const tvColor = getTaskValueColor(tv);
             const con = getConStat();
             const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);
-            const hpPct = Math.max(0, Math.min(100, (hpState.hp / hpState.maxHp) * 100));
+            const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
             const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
 
             return (
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 30 }}
-                className="task-card flex items-center gap-2 rounded-xl p-2.5"
-                style={{ background: '#000', border: '1px solid var(--habit-border)' }}
+                className="task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900"
+                style={{ border: '1px solid var(--habit-border)' }}
               >
                 {/* Task Value color bar */}
                 <motion.div
@@ -295,8 +189,10 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="truncate" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14, color: 'var(--habit-text)' }}>
-                    {task.name}
+                  <div className="truncate flex items-center gap-1.5 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14 }}>
+                    <span>{task.name}</span>
+                    {task.posStreak >= 5 && <span className="text-xs" title={`Hot streak: ${task.posStreak}!`}>🔥</span>}
+                    {task.negStreak >= 5 && <span className="text-xs" title={`Neg streak: ${task.negStreak}!`}>💀</span>}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{task.category}</span>
@@ -317,7 +213,7 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
                       />
                     </div>
                     <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
-                      {Math.round(hpState.hp)}/{hpState.maxHp}
+                      {Math.round(hp)}/{maxHp}
                     </span>
                   </div>
 
@@ -347,8 +243,6 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
         </AnimatePresence>
       </div>
 
-      <CreateTaskModal isOpen={showForm} onClose={() => setShowForm(false)}
-        formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
     </div>
   );
 }

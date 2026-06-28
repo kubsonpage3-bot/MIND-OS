@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ITEM_ICON_MAP, getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
+import { getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { Package, Zap } from "lucide-react";
 
@@ -63,30 +63,19 @@ export function consumeEffect(id) {
   } catch {}
 }
 
-export default function InventoryPanel({ gs, onSave }) {
+export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [tab, setTab] = useState("gear");
   const [toast, setToast] = useState(null);
   const [usedId, setUsedId] = useState(null);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
 
   const inventory = gs.inventory || [];
-  const equipped = gs.equipped || {};
   const consumables_active = gs.consumables || {};
 
   const gearOwned = inventory.filter(i => !i.consumable);
   const consumablesOwned = inventory.filter(i => i.consumable);
 
-  const equipItem = (item) => {
-    const newEquipped = { ...equipped, [item.slot]: item };
-    onSave({ ...gs, equipped: newEquipped });
-    showToast(`${item.label} equipped!`, getTierColor(item.tier));
-  };
-
-  const unequipSlot = (slot) => {
-    const ne = { ...equipped };
-    delete ne[slot];
-    onSave({ ...gs, equipped: ne });
-  };
+  const isEquipped = (item) => item.is_equipped;
 
   const applyConsumable = (item) => {
     const effect = CONSUMABLE_EFFECTS[item.id];
@@ -123,8 +112,6 @@ export default function InventoryPanel({ gs, onSave }) {
     setToast({ msg, color });
     setTimeout(() => setToast(null), 3500);
   };
-
-  const isEquipped = (item) => equipped[item.slot]?.id === item.id;
 
   return (
     <div className="space-y-3">
@@ -198,25 +185,25 @@ export default function InventoryPanel({ gs, onSave }) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.04 }}
-                className="flex items-center gap-3 p-3 rounded-xl border relative overflow-hidden"
-                style={{ borderColor: equipped_now ? `${tierColor}80` : `${tierColor}25`, background: equipped_now ? `${tierColor}0c` : "#0a0818" }}
+                className={`flex items-center gap-3 p-3 rounded-xl border relative overflow-hidden bg-white dark:bg-gray-900 transition-all ${equipped_now ? "ring-2 ring-yellow-500" : ""}`}
+                style={{ borderColor: equipped_now ? `${tierColor}80` : `${tierColor}25`, background: equipped_now ? `${tierColor}0c` : undefined }}
               >
                 {/* Scanlines */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
                   style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff 2px, #ffffff 3px)" }} />
 
                 {/* Icon */}
-                <div className="shrink-0 w-10 h-10 rounded-none border overflow-hidden"
-                  style={{ imageRendering: "pixelated", background: "#0a0818", borderColor: `${tierColor}60` }}>
-                  {ITEM_ICON_MAP[item.id]
-                    ? <img src={ITEM_ICON_MAP[item.id]} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
-                    : <div className="w-full h-full flex items-center justify-center font-mono text-xs" style={{ color: tierColor }}>{item.label[0]}</div>
+                <div className="shrink-0 w-10 h-10 rounded-none border overflow-hidden bg-gray-100 dark:bg-gray-800/50"
+                  style={{ imageRendering: "pixelated", borderColor: `${tierColor}60` }}>
+                  {item.icon_url
+                    ? <img src={item.icon_url} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                    : <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>{item.label[0]}</div>
                   }
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold" style={{ color: tierColor }}>{item.label}</span>
+                    <span className="font-mono text-xs font-bold text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>{item.label}</span>
                     {equipped_now && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: `${tierColor}30`, color: tierColor }}>EQUIPPED</span>}
                   </div>
                   <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5">
@@ -227,12 +214,12 @@ export default function InventoryPanel({ gs, onSave }) {
 
                 <div className="flex flex-col gap-1 shrink-0">
                   {!equipped_now ? (
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => equipItem(item)}
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
                       className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all"
                       style={{ borderColor: `${tierColor}60`, color: tierColor, background: `${tierColor}15` }}
                     >EQUIP</motion.button>
                   ) : (
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => unequipSlot(item.slot)}
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
                       className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all"
                       style={{ borderColor: "#ef444460", color: "#ef4444", background: "#ef444415" }}
                     >UNEQUIP</motion.button>

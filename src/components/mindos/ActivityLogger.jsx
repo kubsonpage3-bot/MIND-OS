@@ -61,10 +61,8 @@ export default function ActivityLogger({ onLog, profile, logs }) {
   const confirmLog = () => {
     if (!selectedActivity) return;
 
-    // Check active consumables
+    // Check active consumables (Keep local mutator visual logic for now, but remove gold writes)
     let effectiveFocus = focusRating;
-    let xpMult = 1;
-    let gcBonus = 0;
     try {
       const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
       const cons = gs.consumables || {};
@@ -73,36 +71,10 @@ export default function ActivityLogger({ onLog, profile, logs }) {
       if (cons.focus_stim?.active) {
         effectiveFocus = Math.min(10, effectiveFocus * 1.3);
         gs.consumables.focus_stim = { active: false };
+        localStorage.setItem("mindos_game_state", JSON.stringify(gs));
       }
-      // XP Booster: +50% XP/Gold for 24h
-      if (cons.xp_booster?.active && (!cons.xp_booster.expiresAt || Date.now() < cons.xp_booster.expiresAt)) {
-        xpMult = 1.5;
-      }
-      // Memory Patch: +0.2 Gc pending
-      if (cons.memory_patch?.gc_gain) {
-        gcBonus = cons.memory_patch.gc_gain;
-        gs.consumables.memory_patch = { active: false };
-      }
-
-      // Gold reward: hours × 25 × xpMult
-      const goldEarned = Math.max(1, Math.round(logValue * 25 * xpMult));
-      gs.gold = (gs.gold || 0) + goldEarned;
-      localStorage.setItem("mindos_game_state", JSON.stringify(gs));
-      setGoldFloat({ value: goldEarned, id: Date.now() });
-    } catch {
-      const goldEarned = Math.max(1, Math.round(logValue * 25));
-      setGoldFloat({ value: goldEarned, id: Date.now() });
-    }
-    setTimeout(() => setGoldFloat(null), 1600);
-
-    // Apply gc bonus from memory patch via a small hack on profile
-    if (gcBonus > 0) {
-      try {
-        // Will be picked up by the next profile refresh; we pass it via a special flag
-        const pending = JSON.parse(localStorage.getItem("mindos_pending_gains") || "{}");
-        pending.gc = (pending.gc || 0) + gcBonus;
-        localStorage.setItem("mindos_pending_gains", JSON.stringify(pending));
-      } catch {}
+    } catch (e) {
+      console.error(e);
     }
 
     onLog(selectedActivity, logValue, effectiveFocus, efficiency, (msg) => {

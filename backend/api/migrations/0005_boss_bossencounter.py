@@ -8,44 +8,102 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0004_userprofile_equipped_userprofile_inventory_and_more'),
+        ("api", "0004_userprofile_equipped_userprofile_inventory_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Boss',
+            name="Boss",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('id_name', models.CharField(max_length=50, unique=True, verbose_name='ID босса (напр. misted_wanderer)')),
-                ('name', models.CharField(max_length=100, verbose_name='Имя')),
-                ('hp_max', models.PositiveIntegerField(verbose_name='Макс. HP')),
-                ('level', models.PositiveIntegerField(default=1, verbose_name='Уровень/Ранг')),
-                ('reward_gold', models.PositiveIntegerField(verbose_name='Награда (Золото)')),
-                ('reward_xp', models.PositiveIntegerField(verbose_name='Награда (XP)')),
-                ('drop_item_id', models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "id_name",
+                    models.CharField(
+                        max_length=50,
+                        unique=True,
+                        verbose_name="ID босса (напр. misted_wanderer)",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, verbose_name="Имя")),
+                ("hp_max", models.PositiveIntegerField(verbose_name="Макс. HP")),
+                (
+                    "level",
+                    models.PositiveIntegerField(default=1, verbose_name="Уровень/Ранг"),
+                ),
+                (
+                    "reward_gold",
+                    models.PositiveIntegerField(verbose_name="Награда (Золото)"),
+                ),
+                ("reward_xp", models.PositiveIntegerField(verbose_name="Награда (XP)")),
+                (
+                    "drop_item_id",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
             ],
             options={
-                'verbose_name': 'Босс',
-                'verbose_name_plural': 'Боссы',
-                'ordering': ['level', 'hp_max'],
+                "verbose_name": "Босс",
+                "verbose_name_plural": "Боссы",
+                "ordering": ["level", "hp_max"],
             },
         ),
         migrations.CreateModel(
-            name='BossEncounter',
+            name="BossEncounter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('hp_current', models.PositiveIntegerField(verbose_name='Текущее HP')),
-                ('is_defeated', models.BooleanField(default=False, verbose_name='Повержен')),
-                ('started_at', models.DateTimeField(auto_now_add=True, verbose_name='Начало боя')),
-                ('expires_at', models.DateTimeField(blank=True, null=True, verbose_name='Время истечения')),
-                ('boss', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.boss', verbose_name='Босс')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='boss_encounters', to=settings.AUTH_USER_MODEL, verbose_name='Пользователь')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("hp_current", models.PositiveIntegerField(verbose_name="Текущее HP")),
+                (
+                    "is_defeated",
+                    models.BooleanField(default=False, verbose_name="Повержен"),
+                ),
+                (
+                    "started_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Начало боя"),
+                ),
+                (
+                    "expires_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Время истечения"
+                    ),
+                ),
+                (
+                    "boss",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="api.boss",
+                        verbose_name="Босс",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="boss_encounters",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Пользователь",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Битва с боссом',
-                'verbose_name_plural': 'Битвы с боссами',
-                'ordering': ['-started_at'],
+                "verbose_name": "Битва с боссом",
+                "verbose_name_plural": "Битвы с боссами",
+                "ordering": ["-started_at"],
             },
         ),
     ]

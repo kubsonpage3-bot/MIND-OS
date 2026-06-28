@@ -1,0 +1,11 @@
+[tool.black]
+line-length = 88
+
+[tool.flake8]
+max-line-length = 88
+exclude = ".git,__pycache__,migrations,venv"
+
+[tool.mypy]
+python_version = "3.10"
+check_untyped_defs = true
+ignore_missing_imports = true

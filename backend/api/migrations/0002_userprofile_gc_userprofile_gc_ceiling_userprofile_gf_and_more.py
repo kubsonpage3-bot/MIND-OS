@@ -6,48 +6,54 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0001_initial'),
+        ("api", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='gc',
-            field=models.FloatField(default=100.0, verbose_name='Crystallized Intelligence (Gc)'),
+            model_name="userprofile",
+            name="gc",
+            field=models.FloatField(
+                default=100.0, verbose_name="Crystallized Intelligence (Gc)"
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='gc_ceiling',
-            field=models.FloatField(default=135.0, verbose_name='Gc Ceiling'),
+            model_name="userprofile",
+            name="gc_ceiling",
+            field=models.FloatField(default=135.0, verbose_name="Gc Ceiling"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='gf',
-            field=models.FloatField(default=100.0, verbose_name='Fluid Intelligence (Gf)'),
+            model_name="userprofile",
+            name="gf",
+            field=models.FloatField(
+                default=100.0, verbose_name="Fluid Intelligence (Gf)"
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='gf_ceiling',
-            field=models.FloatField(default=120.0, verbose_name='Gf Ceiling'),
+            model_name="userprofile",
+            name="gf_ceiling",
+            field=models.FloatField(default=120.0, verbose_name="Gf Ceiling"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='ps',
-            field=models.FloatField(default=100.0, verbose_name='Processing Speed (Ps)'),
+            model_name="userprofile",
+            name="ps",
+            field=models.FloatField(
+                default=100.0, verbose_name="Processing Speed (Ps)"
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='ps_ceiling',
-            field=models.FloatField(default=112.0, verbose_name='Ps Ceiling'),
+            model_name="userprofile",
+            name="ps_ceiling",
+            field=models.FloatField(default=112.0, verbose_name="Ps Ceiling"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='vm',
-            field=models.FloatField(default=100.0, verbose_name='Verbal Memory (Vm)'),
+            model_name="userprofile",
+            name="vm",
+            field=models.FloatField(default=100.0, verbose_name="Verbal Memory (Vm)"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='vm_ceiling',
-            field=models.FloatField(default=138.0, verbose_name='Vm Ceiling'),
+            model_name="userprofile",
+            name="vm_ceiling",
+            field=models.FloatField(default=138.0, verbose_name="Vm Ceiling"),
         ),
     ]

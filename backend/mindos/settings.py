@@ -21,37 +21,34 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-insecure-key-change-me")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    'localhost', 
-    '127.0.0.1', 
-    'api.mindosgrowth.org', 
-    'mind-os-d5sk.onrender.com'  # <--- Добавили вот это!
+    "localhost",
+    "127.0.0.1",
+    "api.mindosgrowth.org",
+    "mind-os-d5sk.onrender.com",  # <--- Добавили вот это!
 ]
 
 # ── Приложения ────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
-    'corsheaders',
-    'rest_framework',
+    "corsheaders",
+    "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # --- Сторонние пакеты ---               # Django REST Framework
-    "rest_framework_simplejwt",         # JWT-аутентификация                      # CORS для Tauri
-    "django_filters",                   # Фильтрация списков в API
-    "drf_spectacular",                  # Автодокументация OpenAPI
-
+    "rest_framework_simplejwt",  # JWT-аутентификация                      # CORS для Tauri
+    "django_filters",  # Фильтрация списков в API
+    "drf_spectacular",  # Автодокументация OpenAPI
     # --- Наши приложения ---
-    "api",                              # Основное API-приложение
+    "api",  # Основное API-приложение
 ]
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     # CorsMiddleware ДОЛЖЕН стоять первым, до CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
-
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -95,17 +92,19 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME":     os.environ.get("DB_NAME",     "mindos_db"),
-            "USER":     os.environ.get("DB_USER",     "mindos_user"),
+            "NAME": os.environ.get("DB_NAME", "mindos_db"),
+            "USER": os.environ.get("DB_USER", "mindos_user"),
             "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-            "HOST":     os.environ.get("DB_HOST",     "localhost"),
-            "PORT":     os.environ.get("DB_PORT",     "5432"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
         }
     }
 
 # ── Валидация паролей ─────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -131,6 +130,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 #   - tauri://localhost          (macOS/Linux)
 #   - http://tauri.localhost     (Windows)
 #   - http://localhost:1420      (Vite dev-сервер при разработке)
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
     "tauri://localhost",
     "https://tauri.localhost",
@@ -139,20 +140,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:1420",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    # Cloudflare Tunnel — production backend
     "https://api.mindosgrowth.org",
     "https://mindos.pages.dev",
-    "http://localhost:5173",
-    "http://localhost:8000",
     "https://mind-os-d5sk.onrender.com",
 ]
 
 # CSRF Trusted Origins for Render & Cloudflare Pages
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "https://mindos.pages.dev",
     "https://mind-os-d5sk.onrender.com",
 ]
 
+# На время разработки, чтобы исключить блокировки CSRF
+CSRF_COOKIE_HTTPONLY = False
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -183,9 +185,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     # Пагинация списков
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
@@ -198,21 +198,21 @@ REST_FRAMEWORK = {
     # Схема для drf-spectacular
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     # ── Throttling — защита от спама/DDoS ────────────────────────────────────
-    # Лимит: 100 запросов в минуту для анонимных (по IP) и авторизованных юзеров
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/min",
-        "user": "100/min",
-    },
+    # Лимит комментируем для локальной разработки во избежание 429
+    # "DEFAULT_THROTTLE_CLASSES": [
+    #     "rest_framework.throttling.AnonRateThrottle",
+    #     "rest_framework.throttling.UserRateThrottle",
+    # ],
+    # "DEFAULT_THROTTLE_RATES": {
+    #     "anon": "100/min",
+    #     "user": "100/min",
+    # },
 }
 
 # ── JWT-настройки (djangorestframework-simplejwt) ─────────────────────────────
 SIMPLE_JWT = {
     # Время жизни access-токена — 60 минут
-    "ACCESS_TOKEN_LIFETIME":  timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     # Время жизни refresh-токена — 7 дней
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     # Генерировать новый refresh при обновлении
@@ -238,41 +238,44 @@ SPECTACULAR_SETTINGS = {
 
 # ── Логирование (Observability) ──────────────────────────────────────────────
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'debug.log',
-            'formatter': 'verbose',
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': True,
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
         },
-        'api': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
+        "file": {
+            "level": "WARNING",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "debug.log",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": True,
+        },
+        "api": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
         },
     },
 }
+
+STATICFILES_DIRS = [BASE_DIR / 'static']
+

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 
 import IQDisplay from "@/components/mindos/IQDisplay";
@@ -28,7 +28,7 @@ import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 
 import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
-import { getRankFromXP, calcSessionRankXP } from "@/lib/rankEngine";
+import { getRankFromXP } from "@/lib/rankEngine";
 import { applySessionMutators, applyBossDamageModifiers, runDailyMutatorTick } from "@/lib/mutatorEngine";
 import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
 import { playSound } from "@/lib/soundEffects.js";
@@ -109,6 +109,32 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const queryClient = useQueryClient();
   const [synced, setSynced] = useState(false);
 
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: async () => {
+      const djangoTasks = await djangoApi.tasks.list();
+      const tasksArray = Array.isArray(djangoTasks) ? djangoTasks : (djangoTasks?.results || []);
+      const mapped = tasksArray.map(dt => ({
+        id: dt.id,
+        type: dt.task_type || 'todo',
+        name: dt.title || 'Task',
+        category: 'Coding',
+        difficulty: dt.difficulty || 'medium',
+        notes: dt.notes || '',
+        done: dt.is_completed || false,
+        completedToday: dt.is_completed || false,
+        rpgValue: dt.value || 0,
+        streak: dt.streak || 0,
+        posStreak: dt.pos_streak || 0,
+        negStreak: dt.neg_streak || 0,
+        createdAt: dt.created_at || new Date().toISOString(),
+      }));
+      localStorage.setItem('mindos_tasks', JSON.stringify(mapped));
+      return mapped;
+    },
+    enabled: !!djangoProfile
+  });
+
   const { pullRef, pulling, progress } = usePullToRefresh(() => {
     queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     queryClient.invalidateQueries({ queryKey: ["activitylogs"] });
@@ -162,35 +188,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   // Sync tasks from Django to LocalStorage on mount/load
   useEffect(() => {
-    const syncTasksFromDjango = async () => {
-      try {
-        const djangoTasks = await djangoApi.tasks.list();
-        if (Array.isArray(djangoTasks)) {
-          const mappedTasks = djangoTasks.map(dt => ({
-            id: dt.id,
-            type: dt.task_type || 'todo',
-            name: dt.title || 'Task',
-            category: 'Coding',
-            difficulty: dt.difficulty || 'medium',
-            notes: dt.notes || '',
-            done: dt.is_completed || false,
-            completedToday: dt.is_completed || false,
-            rpgValue: dt.value || 0,
-            createdAt: dt.created_at || new Date().toISOString(),
-          }));
-          
-          const current = localStorage.getItem('mindos_tasks');
-          if (current !== JSON.stringify(mappedTasks)) {
-            localStorage.setItem('mindos_tasks', JSON.stringify(mappedTasks));
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to sync tasks from Django on load:', e);
-      }
-    };
-
     if (djangoProfile) {
-      syncTasksFromDjango();
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     }
   }, [djangoProfile]);
 
@@ -218,19 +217,31 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   }, []);
 
-  // Detect rank demotion when HP reaches 0 (from profile cache)
+  // Sync rankXPData with backend rank_xp and detect rank demotion
   useEffect(() => {
-    if (!djangoProfile) return;
-    const currentHp = djangoProfile.hp ?? 100;
-    if (prevHpRef.current !== null && prevHpRef.current > 0 && currentHp === 0) {
-      const rankData = loadRankXP();
-      playSound('error');
-      setRankDemoteNotif(rankData.currentRank || "F");
-      setRankXPData({ ...rankData });
-      setTimeout(() => setRankDemoteNotif(null), 5000);
-    }
-    prevHpRef.current = currentHp;
-  }, [djangoProfile?.hp]);
+    if (!djangoProfile || djangoProfile.rank_xp === undefined) return;
+    setRankXPData(prev => {
+      const prevRank = getRankFromXP(prev.rankXP || 0);
+      const newRank = getRankFromXP(djangoProfile.rank_xp);
+      const RANK_ORDER = ["F", "D", "C", "B", "A", "S", "SS", "SSS"];
+      const prevIdx = RANK_ORDER.indexOf(prevRank.id);
+      const newIdx = RANK_ORDER.indexOf(newRank.id);
+
+      if (newIdx < prevIdx && prev.rankXP > 0) {
+        playSound('error');
+        setRankDemoteNotif(newRank.id);
+        setTimeout(() => setRankDemoteNotif(null), 5000);
+      }
+
+      const updated = {
+        rankXP: djangoProfile.rank_xp,
+        currentRank: newRank.id,
+        rankHistory: prev.rankHistory || []
+      };
+      saveRankXP(updated);
+      return updated;
+    });
+  }, [djangoProfile?.rank_xp]);
 
 
   const [logs, setLogs] = useState(() => {
@@ -241,17 +252,18 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   });
 
-  const profile = djangoProfile ? {
-    ...djangoProfile,
+  const dp = /** @type {any} */ (djangoProfile);
+  const profile = dp ? {
+    ...dp,
     initialized: true,
-    gf: gameState.gf ?? djangoProfile.gf ?? 100.0,
-    gc: gameState.gc ?? djangoProfile.gc ?? 100.0,
-    ps: gameState.ps ?? djangoProfile.ps ?? 100.0,
-    vm: gameState.vm ?? djangoProfile.vm ?? 100.0,
-    gf_ceiling: gameState.gf_ceiling ?? djangoProfile.gf_ceiling ?? 120.0,
-    gc_ceiling: gameState.gc_ceiling ?? djangoProfile.gc_ceiling ?? 135.0,
-    ps_ceiling: gameState.ps_ceiling ?? djangoProfile.ps_ceiling ?? 112.0,
-    vm_ceiling: gameState.vm_ceiling ?? djangoProfile.vm_ceiling ?? 138.0,
+    gf: gameState.gf ?? dp.gf ?? 100.0,
+    gc: gameState.gc ?? dp.gc ?? 100.0,
+    ps: gameState.ps ?? dp.ps ?? 100.0,
+    vm: gameState.vm ?? dp.vm ?? 100.0,
+    gf_ceiling: gameState.gf_ceiling ?? dp.gf_ceiling ?? 120.0,
+    gc_ceiling: gameState.gc_ceiling ?? dp.gc_ceiling ?? 135.0,
+    ps_ceiling: gameState.ps_ceiling ?? dp.ps_ceiling ?? 112.0,
+    vm_ceiling: gameState.vm_ceiling ?? dp.vm_ceiling ?? 138.0,
   } : null;
 
   const profileLoading = djangoProfileLoading || !profile;
@@ -292,6 +304,50 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     },
   });
 
+  const logTraining = useMutation({
+    mutationFn: (data) => djangoApi.training.log(data),
+    /**
+     * @param {any} res
+     * @param {any} variables
+     */
+    onSuccess: (res, variables) => {
+      if (res.profile) {
+        queryClient.setQueryData(["userprofile"], res.profile);
+      }
+      try {
+        const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+        const updatedGs = {
+          ...currentGs,
+          gf: res.profile?.gf ?? variables.gf ?? currentGs.gf,
+          gc: res.profile?.gc ?? variables.gc ?? currentGs.gc,
+          ps: res.profile?.ps ?? variables.ps ?? currentGs.ps,
+          vm: res.profile?.vm ?? variables.vm ?? currentGs.vm,
+          gf_ceiling: res.profile?.gf_ceiling ?? currentGs.gf_ceiling,
+          gc_ceiling: res.profile?.gc_ceiling ?? currentGs.gc_ceiling,
+          ps_ceiling: res.profile?.ps_ceiling ?? currentGs.ps_ceiling,
+          vm_ceiling: res.profile?.vm_ceiling ?? currentGs.vm_ceiling,
+        };
+        localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+        setGameState(updatedGs);
+      } catch (e) {
+        console.error("Failed to update game state in localStorage:", e);
+      }
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      refreshProfile();
+      
+      const oldRank = getRankFromXP(djangoProfile?.rank_xp || 0);
+      const newRank = getRankFromXP(res.profile?.rank_xp || 0);
+      if (newRank.id !== oldRank.id && (res.profile?.rank_xp || 0) > (djangoProfile?.rank_xp || 0)) {
+        setRankUpNotif(newRank.id);
+        playSound('rank_up');
+      }
+    },
+    onError: (err) => {
+      console.error("Training logging failed:", err);
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }
+  });
+
   const createLog = useMutation({
     /**
      * @param {any} data
@@ -325,23 +381,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   // Called by TasksPanel when a task gives rank XP — syncs Dashboard state
   const handleTaskRankXP = useCallback((amount) => {
-    const RANK_THRESHOLDS = [
-      { id: "F", min: 0 }, { id: "D", min: 50 }, { id: "C", min: 150 },
-      { id: "B", min: 400 }, { id: "A", min: 800 }, { id: "S", min: 1500 },
-      { id: "SS", min: 2500 }, { id: "SSS", min: 4000 },
-    ];
-    setRankXPData(prev => {
-      const newRankXP = Math.max(0, (prev.rankXP || 0) + amount);
-      const newRank = [...RANK_THRESHOLDS].reverse().find(r => newRankXP >= r.min);
-      const newRankId = newRank?.id || "F";
-      if (newRankId !== prev.currentRank && amount > 0) {
-        setRankUpNotif(newRankId);
-        playSound('rank_up');
-      }
-      const updated = { ...prev, rankXP: newRankXP, currentRank: newRankId };
-      saveRankXP(updated);
-      return updated;
-    });
+    // No-op because task completion on backend already returns the updated rank_xp in the profile response.
   }, []);
 
   const handleBossDamage = useCallback((amount, isCritical, isDefeated = false) => {
@@ -390,8 +430,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     // Rank XP (XP-based, hours × focus_rating) — apply mutator multipliers
     const mutatorResult = applySessionMutators(activityKey, hours, logs);
-    const baseSessionRankXP = calcSessionRankXP(hours, focusRating);
-    const sessionRankXP = Math.round(baseSessionRankXP * mutatorResult.rankXPMultiplier + (mutatorResult.cursedClockFlatXP || 0));
 
     // Gc bonus from lexicon mutator
     if (mutatorResult.gcBonus > 0) {
@@ -399,22 +437,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       pending.gc = (pending.gc || 0) + mutatorResult.gcBonus;
       localStorage.setItem("mindos_pending_gains", JSON.stringify(pending));
     }
-
-    const prevRankXPData = loadRankXP();
-    const newTotalRankXP = (prevRankXPData.rankXP || 0) + sessionRankXP;
-    const prevRank = getRankFromXP(prevRankXPData.rankXP || 0);
-    const newRank = getRankFromXP(newTotalRankXP);
-
-    const today = new Date().toISOString().split("T")[0];
-    const newRankHistory = prevRankXPData.rankHistory || [];
-    if (newRank.id !== prevRank.id) {
-      newRankHistory.push({ rank: newRank.id, achievedAt: today });
-      setRankUpNotif(newRank.id);
-    }
-
-    const updatedRankXPData = { rankXP: newTotalRankXP, currentRank: newRank.id, rankHistory: newRankHistory };
-    saveRankXP(updatedRankXPData);
-    setRankXPData(updatedRankXPData);
 
     // Sound effects
     playSound('task_complete');
@@ -426,15 +448,21 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     const isCrit = focusRating >= 10;
     handleBossDamage(bossDmg, isCrit);
 
-    updateProfile.mutate({
-      id: profile.id,
-      data: {
-        gf: newProfile.gf,
-        gc: newProfile.gc,
-        ps: newProfile.ps,
-        vm: newProfile.vm,
-        weekly_xp: (profile.weekly_xp || 0) + xpEarned,
-        total_xp: (profile.total_xp || 0) + xpEarned,
+    logTraining.mutate({
+      gf: newProfile.gf,
+      gc: newProfile.gc,
+      ps: newProfile.ps,
+      vm: newProfile.vm,
+      hours: hours,
+      focus_rating: focusRating,
+      mutator_multiplier: mutatorResult.rankXPMultiplier,
+      flat_xp_bonus: mutatorResult.cursedClockFlatXP || 0
+    }, {
+      onSuccess: (res) => {
+        onFeedback(feedbackText, res.gold_earned);
+      },
+      onError: () => {
+        onFeedback("Failed to log training.");
       }
     });
 
@@ -474,8 +502,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       efficiency_diminishing: efficiency?.diminishing,
     });
 
-    onFeedback(feedbackText);
-  }, [profile, updateProfile, createLog, handleBossDamage]);
+    // onFeedback is now called in the onSuccess handler of logTraining
+  }, [profile, logTraining, createLog, handleBossDamage, logs]);
 
   if (profileLoading) {
     return (
@@ -614,7 +642,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Tasks section with sub-tabs */}
               {activeSection === "tasks" && (
                 <TabPanel title="⚔️ TASKS">
-                  <TasksPanel onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} />
+                  <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} />
                 </TabPanel>
               )}
 

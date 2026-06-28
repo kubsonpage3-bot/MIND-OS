@@ -145,13 +145,18 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Map inventory and equipment from profile
   const rawInventory = profile?.inventory || [];
-  const inventory = rawInventory.map(ri => shopItems.find(i => i.id === ri.id) || ri);
+  const inventory = rawInventory.map(ri => {
+    const found = shopItems.find(i => i.id === ri.id);
+    return found ? { ...found, ...ri } : ri;
+  });
   
-  const rawEquipped = profile?.equipped || {};
+  const rawEquipped = profile?.equipped || [];
   const equipped = {};
-  Object.keys(rawEquipped).forEach(slot => {
-     const eqId = rawEquipped[slot]?.id || rawEquipped[slot];
-     equipped[slot] = shopItems.find(i => i.id === eqId) || rawEquipped[slot];
+  rawEquipped.forEach(eq => {
+    const found = shopItems.find(i => i.id === eq.code);
+    if (found && found.slot) {
+      equipped[found.slot] = found;
+    }
   });
 
   // Equipped stats breakdown

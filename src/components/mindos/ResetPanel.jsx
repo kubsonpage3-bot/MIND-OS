@@ -42,7 +42,8 @@ export default function ResetPanel() {
     setResetting(true);
     try {
       localStorage.removeItem("mindos_tasks");
-      const userTasks = await djangoApi.tasks.list();
+      const userTasksData = await djangoApi.tasks.list();
+      const userTasks = Array.isArray(userTasksData) ? userTasksData : (userTasksData?.results || []);
       await Promise.all(userTasks.map(t => djangoApi.tasks.delete(t.id)));
       alert("Tasks cleared.");
       window.location.reload();
@@ -133,7 +134,8 @@ export default function ResetPanel() {
         if (key.startsWith("mindos_")) localStorage.removeItem(key);
       });
       // Delete tasks from Django
-      const userTasks = await djangoApi.tasks.list();
+      const userTasksData = await djangoApi.tasks.list();
+      const userTasks = Array.isArray(userTasksData) ? userTasksData : (userTasksData?.results || []);
       await Promise.all(userTasks.map(t => djangoApi.tasks.delete(t.id)));
       // Reset profile
       await djangoApi.profile.update({

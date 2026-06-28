@@ -374,7 +374,8 @@ export default function PomodoroPanel() {
                   strokeWidth="6"
                   fill="none"
                   strokeDasharray={circumference}
-                  strokeDashoffset={circumference * (1 - progress)}
+                  initial={{ strokeDashoffset: circumference }}
+                  strokeDashoffset={circumference * (1 - (isNaN(progress) ? 0 : Math.min(1, Math.max(0, progress))))}
                   strokeLinecap="round"
                   style={{ filter: `drop-shadow(0 0 6px ${char.color})` }}
                   transition={{ duration: 0.5 }}

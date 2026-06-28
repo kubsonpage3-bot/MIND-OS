@@ -38,6 +38,7 @@ function GlowRing({ progress, color, size, strokeWidth = 4 }) {
         fill="none" stroke={color} strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={circumference}
+        initial={{ strokeDashoffset: circumference }}
         animate={{ strokeDashoffset: circumference - (isNaN(dash) ? 0 : dash) }}
         transition={{ duration: 1, ease: "easeOut" }}
         style={{ filter: `drop-shadow(0 0 6px ${color})` }}

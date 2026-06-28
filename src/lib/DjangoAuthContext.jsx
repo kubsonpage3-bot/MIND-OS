@@ -3,6 +3,20 @@ import { useQuery } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import { queryClientInstance } from '@/lib/query-client';
 
+/**
+ * @typedef {Object} DjangoAuthContextValue
+ * @property {any} user
+ * @property {any} profile
+ * @property {boolean} isAuthenticated
+ * @property {boolean} isLoading
+ * @property {any} error
+ * @property {Function} login
+ * @property {Function} register
+ * @property {Function} logout
+ * @property {Function} refreshProfile
+ */
+
+/** @type {React.Context<DjangoAuthContextValue | null>} */
 const DjangoAuthContext = createContext(null);
 
 export const DjangoAuthProvider = ({ children }) => {
@@ -101,6 +115,9 @@ export const DjangoAuthProvider = ({ children }) => {
   );
 };
 
+/**
+ * @returns {DjangoAuthContextValue}
+ */
 export const useDjangoAuth = () => {
   const context = useContext(DjangoAuthContext);
   if (!context) {

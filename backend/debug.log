@@ -188,3 +188,733 @@ WARNING 2026-06-28 12:48:59,526 log 19104 23580 Bad Request: /api/tasks/17824736
 WARNING 2026-06-28 12:48:59,526 basehttp 19104 23580 "POST /api/tasks/1782473684804/complete/ HTTP/1.1" 400 28
 WARNING 2026-06-28 12:49:08,209 log 19104 23936 Bad Request: /api/tasks/6/complete/
 WARNING 2026-06-28 12:49:08,210 basehttp 19104 23936 "POST /api/tasks/6/complete/ HTTP/1.1" 400 28
+WARNING 2026-06-28 12:53:40,509 log 22860 16120 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 12:53:40,511 basehttp 22860 16120 "POST /api/tasks/5/complete/ HTTP/1.1" 400 28
+WARNING 2026-06-28 13:36:06,817 log 8736 5020 Unauthorized: /api/profile/
+WARNING 2026-06-28 13:36:06,818 log 8736 5020 "GET /api/profile/ HTTP/1.1" 401 5206
+WARNING 2026-06-28 13:36:07,364 log 8736 22624 Not Found: /favicon.ico
+WARNING 2026-06-28 13:36:07,365 log 8736 22624 "GET /favicon.ico HTTP/1.1" 404 3602
+WARNING 2026-06-28 13:36:27,506 log 8736 10064 Unauthorized: /api/profile/
+WARNING 2026-06-28 13:36:27,506 log 8736 10064 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-28 13:43:02,310 log 22052 19540 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:43:02,311 log 22052 19540 "POST /api/tasks/5/complete/ HTTP/1.1" 400 63
+ERROR 2026-06-28 13:43:02,614 log 22052 19540 Internal Server Error: /api/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: api_userprofile.last_daily_cron_at
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 88, in get_object
+    profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 987, in get_or_create
+    return self.get(**kwargs), False
+           ~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 635, in get
+    num = len(clone)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 372, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 2000, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 95, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1624, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: api_userprofile.last_daily_cron_at
+ERROR 2026-06-28 13:43:02,624 log 22052 19540 "GET /api/profile/ HTTP/1.1" 500 198743
+WARNING 2026-06-28 13:43:03,599 log 22052 19540 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:43:03,599 log 22052 19540 "POST /api/tasks/5/complete/ HTTP/1.1" 400 63
+ERROR 2026-06-28 13:43:03,683 log 22052 25544 Internal Server Error: /api/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: api_userprofile.last_daily_cron_at
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 88, in get_object
+    profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 987, in get_or_create
+    return self.get(**kwargs), False
+           ~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 635, in get
+    num = len(clone)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 372, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 2000, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\query.py", line 95, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1624, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 359, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: api_userprofile.last_daily_cron_at
+ERROR 2026-06-28 13:43:03,688 log 22052 25544 "GET /api/profile/ HTTP/1.1" 500 198743
+WARNING 2026-06-28 13:44:37,199 log 20280 19552 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:44:37,201 log 20280 19552 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 13:47:00,060 log 20280 14368 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:47:00,061 log 20280 14368 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 13:53:24,961 log 3068 17780 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:53:24,962 log 3068 17780 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 13:53:28,350 log 3068 17780 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:53:28,351 log 3068 17780 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 13:53:28,884 log 3068 17780 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:53:28,885 log 3068 17780 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 13:53:30,048 log 3068 17780 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:53:30,048 log 3068 17780 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 13:53:30,657 log 3068 17780 Bad Request: /api/tasks/5/complete/
+WARNING 2026-06-28 13:53:30,658 log 3068 17780 "POST /api/tasks/5/complete/ HTTP/1.1" 400 40
+WARNING 2026-06-28 14:14:42,179 log 6060 20432 Unauthorized: /api/profile/
+WARNING 2026-06-28 14:14:42,180 log 6060 20432 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-28 14:43:26,589 log 6060 22208 Unauthorized: /api/combat/encounters/
+WARNING 2026-06-28 14:43:26,590 log 6060 18648 Unauthorized: /api/skills/active-effects/
+WARNING 2026-06-28 14:43:26,591 log 6060 22208 "GET /api/combat/encounters/ HTTP/1.1" 401 226
+WARNING 2026-06-28 14:43:26,592 log 6060 18648 "GET /api/skills/active-effects/ HTTP/1.1" 401 226
+WARNING 2026-06-28 16:15:01,053 log 21368 22204 Unauthorized: /api/skills/active-effects/
+WARNING 2026-06-28 16:15:01,054 basehttp 21368 22204 "GET /api/skills/active-effects/ HTTP/1.1" 401 275
+WARNING 2026-06-28 16:40:02,828 log 25588 26868 Unauthorized: /api/profile/
+WARNING 2026-06-28 16:40:02,830 basehttp 25588 26868 "GET /api/profile/ HTTP/1.1" 401 275
+WARNING 2026-06-28 16:43:56,415 basehttp 25588 16500 "GET /static/items/carbon_vest.webp HTTP/1.1" 404 1880
+WARNING 2026-06-28 16:43:56,497 log 25588 15124 Not Found: /favicon.ico
+WARNING 2026-06-28 16:43:56,498 basehttp 25588 15124 "GET /favicon.ico HTTP/1.1" 404 3602
+ERROR 2026-06-28 16:44:25,726 log 25588 26388 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 430, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 16:44:25,744 basehttp 25588 26388 "POST /api/shop/buy/ HTTP/1.1" 500 100166
+WARNING 2026-06-28 16:44:44,956 log 25588 8984 Unauthorized: /api/profile/
+WARNING 2026-06-28 16:44:44,957 basehttp 25588 8984 "GET /api/profile/ HTTP/1.1" 401 9978
+WARNING 2026-06-28 16:45:06,717 log 25588 20628 Unauthorized: /api/shop/items/
+WARNING 2026-06-28 16:45:06,718 basehttp 25588 20628 "GET /api/shop/items/ HTTP/1.1" 401 9993
+WARNING 2026-06-28 16:45:59,120 log 25588 26388 Unauthorized: /api/auth/token/
+WARNING 2026-06-28 16:45:59,121 basehttp 25588 26388 "POST /api/auth/token/ HTTP/1.1" 401 116
+ERROR 2026-06-28 16:49:05,259 log 25588 26384 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 430, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 16:49:05,264 basehttp 25588 26384 "POST /api/shop/buy/ HTTP/1.1" 500 100163
+WARNING 2026-06-28 16:50:29,343 basehttp 25588 3008 "GET /static/items/carbon_vest.webp HTTP/1.1" 404 1880
+WARNING 2026-06-28 16:50:29,344 basehttp 25588 25960 "GET /static/items/data_ring.webp HTTP/1.1" 404 1874
+WARNING 2026-06-28 16:50:29,738 basehttp 25588 3056 "GET /static/items/mobility_frame.webp HTTP/1.1" 404 1889
+WARNING 2026-06-28 16:50:29,738 basehttp 25588 22556 "GET /static/items/neural_cap.webp HTTP/1.1" 404 1877
+ERROR 2026-06-28 16:50:51,718 log 25588 26892 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 430, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 16:50:51,722 basehttp 25588 26892 "POST /api/shop/buy/ HTTP/1.1" 500 100163
+ERROR 2026-06-28 16:50:53,558 log 25588 26384 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 430, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 16:50:53,564 basehttp 25588 26384 "POST /api/shop/buy/ HTTP/1.1" 500 100163
+ERROR 2026-06-28 16:51:55,575 log 27192 26644 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 434, in post
+    success, message, profile = buy_item(
+                                ^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+TypeError: buy_item() takes from 2 to 4 positional arguments but 5 were given
+ERROR 2026-06-28 16:51:55,582 basehttp 27192 26644 "POST /api/shop/buy/ HTTP/1.1" 500 107717
+ERROR 2026-06-28 16:51:57,601 log 27192 23156 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 434, in post
+    success, message, profile = buy_item(
+                                ^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+TypeError: buy_item() takes from 2 to 4 positional arguments but 5 were given
+ERROR 2026-06-28 16:51:57,609 basehttp 27192 23156 "POST /api/shop/buy/ HTTP/1.1" 500 107717
+ERROR 2026-06-28 16:52:30,355 log 27192 23156 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 434, in post
+    success, message, profile = buy_item(
+                                ^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+TypeError: buy_item() takes from 2 to 4 positional arguments but 5 were given
+ERROR 2026-06-28 16:52:30,358 basehttp 27192 23156 "POST /api/shop/buy/ HTTP/1.1" 500 107717
+ERROR 2026-06-28 16:52:32,743 log 27192 26644 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 434, in post
+    success, message, profile = buy_item(
+                                ^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+TypeError: buy_item() takes from 2 to 4 positional arguments but 5 were given
+ERROR 2026-06-28 16:52:32,750 basehttp 27192 26644 "POST /api/shop/buy/ HTTP/1.1" 500 107717
+WARNING 2026-06-28 17:52:37,971 log 2576 26068 Unauthorized: /api/profile/
+WARNING 2026-06-28 17:52:37,972 log 2576 26068 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-28 17:52:52,735 log 2576 14356 "GET /static/items/carbon_vest.webp HTTP/1.1" 404 1880
+WARNING 2026-06-28 17:52:52,736 log 2576 19412 "GET /static/items/mobility_frame.webp HTTP/1.1" 404 1889
+WARNING 2026-06-28 17:52:52,736 log 2576 23368 "GET /static/items/neural_cap.webp HTTP/1.1" 404 1877
+WARNING 2026-06-28 17:52:52,736 log 2576 22888 "GET /static/items/data_ring.webp HTTP/1.1" 404 1874
+WARNING 2026-06-28 17:57:44,183 log 15852 7336 "GET /static/items/sync_visor.webp HTTP/1.1" 404 1990
+WARNING 2026-06-28 17:57:44,186 log 15852 16552 "GET /static/items/basic_cortex.webp HTTP/1.1" 404 1996
+WARNING 2026-06-28 17:57:44,186 log 15852 4212 "GET /static/items/transcendence_helm.webp HTTP/1.1" 404 2014
+WARNING 2026-06-28 17:57:44,187 log 15852 25036 "GET /static/items/cognitive_crown.webp HTTP/1.1" 404 2005
+WARNING 2026-06-28 17:57:44,188 log 15852 23724 "GET /static/items/quantum_sync.webp HTTP/1.1" 404 1996
+WARNING 2026-06-28 17:57:44,195 log 15852 19388 "GET /static/items/dual_channel.webp HTTP/1.1" 404 1996
+WARNING 2026-06-28 17:57:44,212 log 15852 11944 "GET /static/items/void_bridge.webp HTTP/1.1" 404 1993
+WARNING 2026-06-28 17:57:44,212 log 15852 4400 "GET /static/items/reactive_shell.webp HTTP/1.1" 404 2002
+WARNING 2026-06-28 17:57:44,223 log 15852 16088 "GET /static/items/resonance_core.webp HTTP/1.1" 404 2002
+WARNING 2026-06-28 17:57:44,233 log 15852 14744 "GET /static/items/singularity_engine.webp HTTP/1.1" 404 2014
+WARNING 2026-06-28 17:57:44,241 log 15852 3364 "GET /static/items/training_implants.webp HTTP/1.1" 404 2011
+WARNING 2026-06-28 17:57:44,247 log 15852 2656 "GET /static/items/force_amplifiers.webp HTTP/1.1" 404 2008
+WARNING 2026-06-28 17:57:44,254 log 15852 13016 "GET /static/items/synaptic_boosters.webp HTTP/1.1" 404 2011
+WARNING 2026-06-28 17:57:44,257 log 15852 16480 "GET /static/items/overdrive_chassis.webp HTTP/1.1" 404 2011
+WARNING 2026-06-28 17:57:44,263 log 15852 10948 "GET /static/items/phase_legs.webp HTTP/1.1" 404 1990
+WARNING 2026-06-28 17:57:44,274 log 15852 9680 "GET /static/items/data_ring_1.webp HTTP/1.1" 404 1993
+WARNING 2026-06-28 17:57:44,279 log 15852 25176 "GET /static/items/echo_ring.webp HTTP/1.1" 404 1987
+WARNING 2026-06-28 17:57:44,280 log 15852 21604 "GET /static/items/null_ring.webp HTTP/1.1" 404 1987
+WARNING 2026-06-28 18:51:05,049 log 11796 18852 Not Found: /api/auth/profile/
+WARNING 2026-06-28 18:51:05,050 log 11796 18852 "GET /api/auth/profile/ HTTP/1.1" 404 11011
+WARNING 2026-06-28 18:53:03,584 log 11796 18584 Unauthorized: /api/training/log/
+WARNING 2026-06-28 18:53:03,585 log 11796 18584 "POST /api/training/log/ HTTP/1.1" 401 226
+WARNING 2026-06-28 18:53:16,415 log 11796 18584 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:53:16,416 log 11796 18584 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:53:19,129 log 11796 18584 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:53:19,130 log 11796 18584 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:53:24,395 log 11796 18584 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:53:24,396 log 11796 18584 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:53:25,607 log 11796 18584 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:53:25,607 log 11796 18584 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:53:39,532 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:53:39,533 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:15,912 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:15,913 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:16,744 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:16,745 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:23,160 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:23,161 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:23,847 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:23,848 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:24,376 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:24,376 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:40,559 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:40,559 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 18:56:41,808 log 11796 25708 Bad Request: /api/tasks/2/complete/
+WARNING 2026-06-28 18:56:41,808 log 11796 25708 "POST /api/tasks/2/complete/ HTTP/1.1" 400 48
+WARNING 2026-06-28 19:55:15,096 log 8876 25104 Unauthorized: /api/shop/items/
+WARNING 2026-06-28 19:55:15,097 log 8876 25104 "GET /api/shop/items/ HTTP/1.1" 401 226
+WARNING 2026-06-28 19:56:17,621 log 8876 25104 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 19:56:17,622 log 8876 25104 "POST /api/tasks/20/complete/ HTTP/1.1" 400 142
+WARNING 2026-06-28 19:57:37,159 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:57:37,160 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,221 log 23464 8516 Too Many Requests: /api/tasks/20/complete/
+WARNING 2026-06-28 19:57:37,222 log 23464 8516 "POST /api/tasks/20/complete/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,240 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:57:37,241 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,385 log 23464 8516 Too Many Requests: /api/tasks/20/complete/
+WARNING 2026-06-28 19:57:37,385 log 23464 8516 "POST /api/tasks/20/complete/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,400 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:57:37,401 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,564 log 23464 8516 Too Many Requests: /api/tasks/20/complete/
+WARNING 2026-06-28 19:57:37,565 log 23464 8516 "POST /api/tasks/20/complete/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,584 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:57:37,585 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,895 log 23464 8516 Too Many Requests: /api/tasks/20/complete/
+WARNING 2026-06-28 19:57:37,896 log 23464 8516 "POST /api/tasks/20/complete/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:37,922 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:57:37,924 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:57:38,945 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:57:38,946 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:58:01,918 log 23464 8516 Too Many Requests: /api/tasks/18/complete/
+WARNING 2026-06-28 19:58:01,919 log 23464 8516 "POST /api/tasks/18/complete/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:58:02,031 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:58:02,032 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:58:02,646 log 23464 8516 Too Many Requests: /api/tasks/18/complete/
+WARNING 2026-06-28 19:58:02,647 log 23464 8516 "POST /api/tasks/18/complete/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:58:02,727 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:58:02,728 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+WARNING 2026-06-28 19:58:03,770 log 23464 8516 Too Many Requests: /api/tasks/
+WARNING 2026-06-28 19:58:03,771 log 23464 8516 "GET /api/tasks/ HTTP/1.1" 429 96
+ERROR 2026-06-28 20:27:22,710 log 26176 26980 Internal Server Error: /api/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\mixins.py", line 56, in retrieve
+    return Response(serializer.data)
+                    ^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\serializers.py", line 585, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\serializers.py", line 552, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\fields.py", line 1929, in to_representation
+    return method(value)
+  File "C:\coder\mind-os-growth\backend\api\serializers\profile.py", line 82, in get_equipped
+    if inv.is_equipped and inv.item.slot_type:
+                           ^^^^^^^^^^^^^^^^^^
+AttributeError: 'Item' object has no attribute 'slot_type'
+ERROR 2026-06-28 20:27:22,717 log 26176 26980 "GET /api/profile/ HTTP/1.1" 500 153156
+WARNING 2026-06-28 20:28:24,741 log 15856 14064 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 20:28:24,741 log 15856 14064 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+ERROR 2026-06-28 20:29:19,574 log 15856 14064 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 259, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 20:29:19,587 log 15856 14064 "POST /api/shop/buy/ HTTP/1.1" 500 100723
+ERROR 2026-06-28 20:29:22,167 log 15856 14064 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 259, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 20:29:22,169 log 15856 14064 "POST /api/shop/buy/ HTTP/1.1" 500 100723
+ERROR 2026-06-28 20:29:24,165 log 15856 14064 Internal Server Error: /api/shop/buy/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 259, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 20:29:24,168 log 15856 14064 "POST /api/shop/buy/ HTTP/1.1" 500 100723
+ERROR 2026-06-28 20:29:31,053 log 15856 14064 Internal Server Error: /api/combat/summon/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 320, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 20:29:31,061 log 15856 14064 "POST /api/combat/summon/ HTTP/1.1" 500 100856
+ERROR 2026-06-28 20:29:33,011 log 15856 14064 Internal Server Error: /api/combat/summon/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 320, in post
+    cost = serializer.validated_data["cost"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'cost'
+ERROR 2026-06-28 20:29:33,017 log 15856 14064 "POST /api/combat/summon/ HTTP/1.1" 500 100856
+WARNING 2026-06-28 20:36:21,656 log 19248 15468 Bad Request: /api/shop/buy/
+WARNING 2026-06-28 20:36:21,657 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
+WARNING 2026-06-28 20:36:22,608 log 19248 15468 Bad Request: /api/shop/buy/
+WARNING 2026-06-28 20:36:22,609 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
+WARNING 2026-06-28 20:36:23,235 log 19248 15468 Bad Request: /api/shop/buy/
+WARNING 2026-06-28 20:36:23,236 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
+WARNING 2026-06-28 20:36:44,606 log 19248 15468 Bad Request: /api/shop/buy/
+WARNING 2026-06-28 20:36:44,607 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
+WARNING 2026-06-28 20:37:23,816 log 19248 15468 Bad Request: /api/shop/buy/
+WARNING 2026-06-28 20:37:23,817 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
+WARNING 2026-06-28 20:38:00,038 log 19248 15468 Bad Request: /api/shop/buy/
+WARNING 2026-06-28 20:38:00,039 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67

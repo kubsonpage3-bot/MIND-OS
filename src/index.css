@@ -743,3 +743,9 @@ html[data-theme="cyberpunk"] .task-card {
   border: 2px solid rgba(123,97,255,0.3);
   box-shadow: 0 0 12px rgba(123,97,255,0.1), inset 0 0 20px rgba(123,97,255,0.03);
 }
+
+/* ─── PIXEL ART ─── */
+.pixel-art {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

@@ -1,7 +1,9 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 
+﻿export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || 
   (import.meta.env.DEV 
-    ? 'http://localhost:8000/api' 
-    : 'https://mind-os-d5sk.onrender.com/api');
+    ? 'http://localhost:8000' 
+    : 'https://mind-os-d5sk.onrender.com');
+
+const BASE_URL = import.meta.env.VITE_API_URL || `${API_ORIGIN}/api`;
 
 function apiUrl(endpoint) {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
@@ -42,6 +44,8 @@ export async function djangoFetch(endpoint, options = {}) {
     ...options,
     headers,
   };
+
+  console.log("--> API URL Ð² Ñ€Ð°Ð±Ð¾Ñ‚Ðµ:", url);
 
   try {
     const response = await fetch(url, fetchOptions);
@@ -173,6 +177,10 @@ export const djangoApi = {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
+    prestige: () =>
+      djangoFetch('/profile/prestige/', {
+        method: 'POST',
+      }),
   },
 
   tasks: {
@@ -211,6 +219,10 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ is_positive: isPositive }),
       }),
+    processMissed: () =>
+      djangoFetch('/tasks/process-missed/', {
+        method: 'POST',
+      }),
   },
 
   skills: {
@@ -224,11 +236,16 @@ export const djangoApi = {
       djangoFetch('/skills/active-effects/'),
   },
 
+  inventory: {
+    equip: (id) => djangoFetch(`/inventory/${id}/equip/`, { method: 'POST' }),
+  },
+
   shop: {
+    getItems: () => djangoFetch('/shop/items/'),
     buy: (data) =>
       djangoFetch('/shop/buy/', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({ item_id: data.item_id }),
       }),
   },
 
@@ -241,4 +258,13 @@ export const djangoApi = {
         body: JSON.stringify({ boss_id: bossId, cost }),
       }),
   },
+  
+  training: {
+    log: (data) =>
+      djangoFetch('/training/log/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  },
 };
+

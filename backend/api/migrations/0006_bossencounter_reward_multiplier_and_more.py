@@ -6,23 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0005_boss_bossencounter'),
+        ("api", "0005_boss_bossencounter"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bossencounter',
-            name='reward_multiplier',
-            field=models.FloatField(default=1.0, verbose_name='Множитель наград'),
+            model_name="bossencounter",
+            name="reward_multiplier",
+            field=models.FloatField(default=1.0, verbose_name="Множитель наград"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='boss_difficulty',
-            field=models.CharField(choices=[('EASY', 'Easy'), ('NORMAL', 'Normal'), ('HARD', 'Hard'), ('EXTREME', 'Extreme')], default='NORMAL', max_length=20, verbose_name='Сложность боссов'),
+            model_name="userprofile",
+            name="boss_difficulty",
+            field=models.CharField(
+                choices=[
+                    ("EASY", "Easy"),
+                    ("NORMAL", "Normal"),
+                    ("HARD", "Hard"),
+                    ("EXTREME", "Extreme"),
+                ],
+                default="NORMAL",
+                max_length=20,
+                verbose_name="Сложность боссов",
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='prestige_count',
-            field=models.PositiveIntegerField(default=0, verbose_name='Престиж'),
+            model_name="userprofile",
+            name="prestige_count",
+            field=models.PositiveIntegerField(default=0, verbose_name="Престиж"),
         ),
     ]

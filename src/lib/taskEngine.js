@@ -235,10 +235,8 @@ export function checkAndRunDailyCron(dayStartHour) {
     const otherTasks = allTasks.filter(function(t) { return t.type !== 'daily'; });
     saveAllTasks(otherTasks.concat(cronResult.updatedDailies));
     const totalDmg = Math.abs(cronResult.hpDelta);
-    let died = false;
-    if (totalDmg > 0) { const r = applyHpDamage(totalDmg); died = r.died; }
     localStorage.setItem(CRON_KEY, String(nowMs));
-    return { fired: true, log: cronResult.log, totalDmg: totalDmg, died: died };
+    return { fired: true, log: cronResult.log, totalDmg: totalDmg, died: false };
   } catch (e) {
     console.error('[taskEngine] cron error:', e);
     return { fired: false, log: [], totalDmg: 0 };

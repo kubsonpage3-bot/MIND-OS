@@ -1,23 +1,36 @@
 from django.db import transaction
 from django.utils import timezone
-from api.models import BossEncounter, ActiveEffect
+from api.models import (
+    Boss,
+    BossEncounter,
+    ActiveEffect,
+    Item,
+    InventoryItem,
+    UserProfile,
+)
+from api.services.profile_service import gain_xp
+from api.constants import SCROLL_BOSSES_DICT, BOSS_DIFFICULTY_MULTIPLIERS
+from api.exceptions import GameLogicError
+
 
 @transaction.atomic
 def calculate_damage(user, encounter_id, base_damage):
     try:
-        encounter = BossEncounter.objects.select_for_update().get(id=encounter_id, user=user)
+        encounter = BossEncounter.objects.select_for_update().get(
+            id=encounter_id, user=user
+        )
     except BossEncounter.DoesNotExist:
         return 0
 
     if encounter.is_defeated:
         return 0
-        
+
     final_damage = float(base_damage)
-    
+
     # Интеграция с ActiveEffects
     effects = ActiveEffect.objects.filter(user=user)
     effect_notes = []
-    
+
     for effect in effects:
         # System Overload: 3x damage
         if effect.skill_id == "system_overload" and effect.data.get("active"):
@@ -26,53 +39,134 @@ def calculate_damage(user, encounter_id, base_damage):
             effect.data["active"] = False
             effect.save(update_fields=["data"])
             effect_notes.append(f"SYSTEM OVERLOAD: x{mult} Boss Damage!")
-            
+
         # Battle Fury: Доп. урон
         if effect.skill_id == "battle_fury":
             boost = effect.data.get("physicalDamageBoost", 0.5)
-            final_damage += (base_damage * boost)
+            final_damage += base_damage * boost
             effect_notes.append(f"BATTLE FURY: +{int(boost*100)}% Boss Damage")
 
     final_damage = int(final_damage)
     encounter.hp_current = max(0, encounter.hp_current - final_damage)
     encounter.save()
-    
+
     rewards = None
     if encounter.hp_current == 0:
         rewards = process_boss_death(user, encounter)
-        
+
     return {
         "damage_dealt": final_damage,
         "boss_hp_remaining": encounter.hp_current,
         "boss_defeated": encounter.is_defeated,
         "rewards": rewards,
-        "effect_notes": effect_notes
+        "effect_notes": effect_notes,
     }
+
 
 def process_boss_death(user, encounter):
     encounter.is_defeated = True
     encounter.expires_at = timezone.now()
     encounter.save()
-    
+
     profile = user.profile
     final_gold = int(encounter.boss.reward_gold * encounter.reward_multiplier)
     final_xp = int(encounter.boss.reward_xp * encounter.reward_multiplier)
-    
+
     profile.gold += final_gold
-    profile.gain_xp(final_xp)
-    
+    gain_xp(profile, final_xp)
+
     # Добавление уникального лута в инвентарь
     item_dropped = None
     if encounter.boss.drop_item_id:
-        inventory = profile.inventory if isinstance(profile.inventory, list) else []
         item_dropped = encounter.boss.drop_item_id
-        inventory.append({"id": item_dropped})
-        profile.inventory = inventory
-        
-    profile.save()
+        try:
+            item = Item.objects.get(code=item_dropped)
+            inv_item, created = InventoryItem.objects.get_or_create(
+                profile=profile, item=item
+            )
+            if not created:
+                inv_item.quantity += 1
+                inv_item.save(update_fields=["quantity"])
+        except Item.DoesNotExist:
+            pass
+
+    profile.save(update_fields=["gold"])
+
+    return {"gold": final_gold, "xp": final_xp, "item_dropped": item_dropped}
+
+
+def calculate_fail_damage(task, profile, checklist_ratio=1.0):
+    """
+    Рассчитывает урон по HP при провале привычки или дейлика по формуле из taskEngine.js.
+    """
+    BASE_DAMAGE = {"trivial": 10, "easy": 10, "medium": 10, "hard": 10, "critical": 10}
+    DIFF_MULT = {"trivial": 0.5, "easy": 1, "medium": 2, "hard": 3, "critical": 4}
+
+    difficulty = getattr(task, "difficulty", "medium")
+    if difficulty not in BASE_DAMAGE:
+        difficulty = "medium"
+
+    base = BASE_DAMAGE.get(difficulty, 10)
+    diff_mult = DIFF_MULT.get(difficulty, 2)
+
+    task_value = getattr(task, "value", 0.0)
+    if task_value < 0:
+        value_mult = 1 + abs(task_value) / 15.0
+    else:
+        value_mult = max(0.5, 1 - task_value / 30.0)
+
+    # В данный момент CON-стат зафиксирован на 5 (как в дефолтном JS)
+    con_stat = 5
+    con_reduction = min(0.55, (con_stat - 1) * 0.035)
+
+    raw = base * diff_mult * value_mult * checklist_ratio
+    damage = max(0.01, round(raw * (1 - con_reduction) * 100) / 100)
+
+    return int(round(damage))
+
+
+@transaction.atomic
+def summon_boss(user, boss_id):
+    profile = UserProfile.objects.select_for_update().get(user=user)
     
-    return {
-        "gold": final_gold,
-        "xp": final_xp,
-        "item_dropped": item_dropped
-    }
+    boss_data = SCROLL_BOSSES_DICT.get(boss_id)
+    if not boss_data:
+        raise GameLogicError("Unknown boss id.")
+        
+    cost = boss_data.get("price", 0)
+    
+    if profile.gold < cost:
+        raise GameLogicError("Not enough gold.")
+        
+    active_encounter = BossEncounter.objects.filter(user=user, is_defeated=False).first()
+    if active_encounter:
+        raise GameLogicError(f"You already have an active boss: {active_encounter.boss.name}")
+        
+    boss, created = Boss.objects.get_or_create(
+        id_name=boss_id,
+        defaults={
+            "name": boss_data["name"],
+            "hp_max": boss_data["bossHP"],
+            "level": 1,
+            "reward_gold": boss_data["reward"]["gold"],
+            "reward_xp": boss_data["reward"]["xp"],
+            "drop_item_id": boss_data.get("uniqueItem", "")
+        }
+    )
+        
+    profile.gold -= cost
+    profile.save(update_fields=["gold"])
+
+    difficulty = profile.boss_difficulty
+    mult = BOSS_DIFFICULTY_MULTIPLIERS.get(
+        difficulty, BOSS_DIFFICULTY_MULTIPLIERS["NORMAL"]
+    )
+
+    encounter = BossEncounter.objects.create(
+        user=user,
+        boss=boss,
+        hp_current=int(boss.hp_max * mult["hp"]),
+        reward_multiplier=mult["reward"],
+    )
+
+    return {"detail": f"Summoned {boss.name}!", "encounter": encounter}

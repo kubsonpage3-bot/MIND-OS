@@ -45,17 +45,6 @@ export default function SkillPanel({ classId }) {
   const activeEffects = effectsData?.active_effects || [];
   const cooldowns = effectsData?.cooldowns || [];
 
-  if (!cls) return null;
-
-  const getSkillState = (sk) => {
-    const storedCd = cooldowns.find(c => c.skill_id === sk.id);
-    const cdUntil = storedCd ? new Date(storedCd.cooldown_until).getTime() : 0;
-    const remaining = cdUntil - now;
-    const onCooldown = remaining > 0;
-    const hasMana = (profile?.mana || 0) >= sk.mana;
-    return { onCooldown, remaining, hasMana, available: !onCooldown && hasMana };
-  };
-
   const mutation = useMutation({
     mutationFn: djangoApi.skills.activate,
     onMutate: async (skillId) => {
@@ -70,7 +59,7 @@ export default function SkillPanel({ classId }) {
 
       // Optimistic profile update (subtract mana)
       if (prevProfile) {
-        const skill = cls.skills.find(s => s.id === skillId);
+        const skill = cls?.skills.find(s => s.id === skillId);
         const manaCost = skill ? skill.mana : 0;
         queryClient.setQueryData(["userprofile"], {
           ...prevProfile,
@@ -80,7 +69,7 @@ export default function SkillPanel({ classId }) {
 
       // Optimistic active effects and cooldowns update
       if (prevEffects) {
-        const skill = cls.skills.find(s => s.id === skillId);
+        const skill = cls?.skills.find(s => s.id === skillId);
         const cdHours = skill ? 24 : 0;
         const fakeCdUntil = new Date(Date.now() + cdHours * 3600000).toISOString();
         
@@ -97,7 +86,7 @@ export default function SkillPanel({ classId }) {
       }
 
       // Trigger visual animations immediately
-      triggerBurst(cls.color, 10);
+      triggerBurst(cls?.color || "#fff", 10);
       setGlowing(skillId);
       setShaking(skillId);
       setFlashId(skillId);
@@ -124,7 +113,7 @@ export default function SkillPanel({ classId }) {
     },
     onSuccess: (data) => {
       const dataObj = /** @type {any} */ (data);
-      setToast(dataObj?.detail || `${cls.skills.find(s => s.id === glowing)?.name} activated!`);
+      setToast(dataObj?.detail || `${cls?.skills.find(s => s.id === glowing)?.name || 'Skill'} activated!`);
       setTimeout(() => setToast(null), 3000);
     },
     onSettled: () => {
@@ -133,6 +122,17 @@ export default function SkillPanel({ classId }) {
       queryClient.invalidateQueries({ queryKey: ["active_effects"] });
     }
   });
+
+  if (!cls) return null;
+
+  const getSkillState = (sk) => {
+    const storedCd = cooldowns.find(c => c.skill_id === sk.id);
+    const cdUntil = storedCd ? new Date(storedCd.cooldown_until).getTime() : 0;
+    const remaining = cdUntil - now;
+    const onCooldown = remaining > 0;
+    const hasMana = (profile?.mana || 0) >= sk.mana;
+    return { onCooldown, remaining, hasMana, available: !onCooldown && hasMana };
+  };
 
   const activateSkill = (skill) => {
     const state = getSkillState(skill);

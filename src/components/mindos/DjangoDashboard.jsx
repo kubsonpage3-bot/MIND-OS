@@ -41,7 +41,7 @@ export default function DjangoDashboard() {
     setError(null);
     try {
       const data = await djangoApi.tasks.list();
-      setTasks(Array.isArray(data) ? data : []);
+      setTasks(Array.isArray(data) ? data : (data?.results || []));
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
       setError('Failed to load tasks from server.');

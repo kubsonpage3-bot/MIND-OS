@@ -3,15 +3,10 @@ import { Plus, Trash2, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
-import { queueAutoSync } from '@/lib/cloudSync';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
-import CreateTaskModal from '@/components/mindos/CreateTaskModal';
-import { applyBuffPipeline } from '@/lib/rpgEngine';
-import { getActiveBuffs } from '@/lib/gameState';
 import {
-  getTaskValueColor, calcReward, getLckStat,
-  checkAndRunDailyCron,
+  getTaskValueColor,
 } from '@/lib/taskEngine';
 import { djangoApi } from '@/api/djangoClient';
 
@@ -31,10 +26,7 @@ const CATEGORY_COLORS = {
 
 const TASK_BOSS_DAMAGE = { easy: 25, medium: 50, hard: 75, critical: 100 };
 
-function loadTasks() {
-  try { return JSON.parse(localStorage.getItem('mindos_tasks') || '[]'); } catch { return []; }
-}
-function saveTasks(tasks) { localStorage.setItem('mindos_tasks', JSON.stringify(tasks)); queueAutoSync(); }
+
 
 function getDayStartHour() {
   try {
@@ -43,77 +35,46 @@ function getDayStartHour() {
   } catch { return 0; }
 }
 
-export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
+export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
-  const [tasks, setTasks] = useState(() => loadTasks().filter(t => t.type === 'daily'));
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    name: '', type: 'daily', category: 'Math', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
-  });
-  const [formType, setFormType] = useState('daily');
+  const tasks = dailies;
   const [cronMsg, setCronMsg] = useState(null);
   const [deathMsg, setDeathMsg] = useState(null);
 
   // Запускаем cron при монтировании
   useEffect(() => {
-    const dayStartHour = getDayStartHour();
-    const result = checkAndRunDailyCron(dayStartHour);
-    if (result.fired && result.totalDmg > 0) {
-      const missed = result.log.filter(l => l.type === 'daily_missed');
-      setCronMsg(`🌙 New day: -${Math.round(result.totalDmg * 10) / 10} HP for ${missed.length} missed daily task(s)`);
-      setTimeout(() => setCronMsg(null), 6000);
-      if (result.died) {
-        setDeathMsg('💀 You died from accumulated damage! -1 Level.');
-        setTimeout(() => setDeathMsg(null), 8000);
+    const runCron = async () => {
+      try {
+        const res = await djangoApi.tasks.processMissed();
+        if (res.fired) {
+          if (res.profile) {
+            queryClient.setQueryData(["userprofile"], res.profile);
+          }
+          
+          // Синхронизируем задачи с бэкенда
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+          if (res.total_dmg > 0) {
+            const missedCount = res.log.filter(l => l.type === 'daily_missed').length;
+            setCronMsg(`🌙 New day: -${Math.round(res.total_dmg * 10) / 10} HP for ${missedCount} missed daily task(s)`);
+            setTimeout(() => setCronMsg(null), 6000);
+            
+            if (res.died) {
+              setDeathMsg('💀 You died from accumulated damage! HP restored, Rank demoted.');
+              setTimeout(() => setDeathMsg(null), 8000);
+              playSound('death');
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to execute daily cron on backend:", e);
       }
-      // Перезагружаем задачи после крона
-      setTasks(loadTasks().filter(t => t.type === 'daily'));
-    }
+    };
+    
+    runCron();
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTasks(loadTasks().filter(t => t.type === 'daily'));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
 
-  const update = (dailies) => {
-    const all = loadTasks();
-    saveTasks([...all.filter(t => t.type !== 'daily'), ...dailies]);
-    setTasks(dailies);
-  };
-
-  const createTask = async () => {
-    if (!form.name.trim()) return;
-
-    try {
-      const created = await djangoApi.tasks.create({
-        title: form.name,
-        task_type: 'daily',
-        difficulty: form.difficulty,
-        notes: form.notes || '',
-      });
-      
-      if (!created || !created.id) throw new Error("No ID returned from server");
-
-      const task = {
-        id: created.id, type: 'daily', name: form.name, category: form.category,
-        difficulty: form.difficulty, notes: form.notes, priority: form.priority,
-        completedToday: false,
-        streak: 0,         // streak по этой конкретной задаче
-        rpgValue: 0,       // Task Value
-        createdAt: new Date().toISOString(),
-      };
-      update([...tasks, task]);
-      setShowForm(false);
-      setForm({ name: '', type: 'daily', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
-    } catch (e) {
-      console.error('Django daily create failed:', e);
-      showRewardToast({ label: `Error: Could not create daily on server` });
-    }
-  };
 
   const completeDaily = async (task) => {
     const isCompleting = !task.completedToday;
@@ -122,18 +83,19 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
     let combatResult = null;
     let xpEarned = 0;
     let goldEarned = 0;
+    let res = null;
 
     if (task.id > 1000000000 || typeof task.id === 'string') {
       console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
       showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
       // Remove this invalid task locally
-      update(tasks.filter(t => t.id !== task.id));
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       return;
     }
 
     try {
       console.log('Sending daily complete for ID:', task.id);
-      const res = await djangoApi.tasks.complete(task.id, isCompleting);
+      res = await djangoApi.tasks.complete(task.id, isCompleting);
       if (res && res.combat) {
         combatResult = res.combat;
       }
@@ -142,72 +104,43 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
       if (res && res.profile) {
         queryClient.setQueryData(["userprofile"], res.profile);
       }
+      
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     } catch (e) {
       console.error('Django daily complete failed:', e);
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-      try {
-        const djangoTasks = await djangoApi.tasks.list();
-        if (Array.isArray(djangoTasks)) {
-          const mappedTasks = djangoTasks.map(dt => ({
-            id: dt.id,
-            type: dt.task_type || 'todo',
-            name: dt.title || 'Task',
-            category: 'Coding',
-            difficulty: dt.difficulty || 'medium',
-            notes: dt.notes || '',
-            done: dt.is_completed || false,
-            completedToday: dt.is_completed || false,
-            rpgValue: dt.value || 0,
-            createdAt: dt.created_at || new Date().toISOString(),
-          }));
-          localStorage.setItem('mindos_tasks', JSON.stringify(mappedTasks));
-        }
-      } catch (err) {
-        console.warn('Failed to sync tasks on error:', err);
-      }
-      showRewardToast({ label: `Error: Task could not be updated on server` });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      const errorMsg = e.data?.detail || e.message || "Task could not be updated on server";
+      showRewardToast({ label: `Error: ${errorMsg}` });
       return;
     }
 
-    const { combinedEffects } = applyBuffPipeline(getActiveBuffs());
-    const tv = task.rpgValue ?? 0;
-    const lck = getLckStat();
-
-    // Локальный фолбек для наград
-    const reward = calcReward(tv, task.difficulty || 'medium', 'daily', {
-      xpBonus: combinedEffects.xpBonus || 0,
-      goldBonus: combinedEffects.goldBonus || 0,
-      lckStat: lck,
-    });
-
-    const finalXp = xpEarned > 0 ? xpEarned : Math.round(reward.xp);
-    const finalGold = goldEarned > 0 ? goldEarned : Math.round(reward.gold);
-
     const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
     const effectNotes = combatResult?.effect_notes || [];
+    const isCrit = res?.gamification_result?.is_crit || false;
+    const itemDropped = res?.gamification_result?.item_dropped || null;
 
     if (isCompleting) {
-      onRankXP?.(finalXp);
+      onRankXP?.(xpEarned);
       if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
 
-      const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
-      showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + critLabel });
+      showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name, isCrit, itemDropped });
     } else {
-      onRankXP?.(-finalXp);
+      onRankXP?.(-xpEarned);
       showRewardToast({ label: `Reverted: ${task.name}` });
     }
 
-    update(tasks.map(t => t.id === task.id ? { ...t, completedToday: isCompleting } : t));
+
   };
 
   const deleteTask = async (id) => {
     try {
       await djangoApi.tasks.delete(id);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
       console.warn('Django daily delete failed:', e);
     }
-    update(tasks.filter(t => t.id !== id));
   };
 
   return (
@@ -215,7 +148,7 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-purple)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>DAILIES</span>
-        <button onClick={() => setShowForm(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+        <button onClick={onAddClick} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
           <Plus size={16} className="text-white" strokeWidth={3} />
         </button>
       </div>
@@ -263,9 +196,8 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: task.completedToday ? 0.5 : 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
-                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.completedToday ? '' : 'task-card'}`}
+                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.completedToday ? '' : 'task-card bg-white dark:bg-gray-900'}`}
                 style={{
-                  background: task.completedToday ? 'transparent' : '#000',
                   border: '1px solid var(--habit-border)'
                 }}
                 onClick={() => completeDaily(task)}
@@ -289,9 +221,9 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="truncate" style={{
+                  <div className={`truncate ${task.completedToday ? '' : 'text-gray-900 dark:text-gray-100'}`} style={{
                     fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-                    color: task.completedToday ? 'var(--habit-dim)' : 'var(--habit-text)',
+                    color: task.completedToday ? 'var(--habit-dim)' : undefined,
                     textDecoration: task.completedToday ? 'line-through' : 'none',
                   }}>
                     {task.name}
@@ -325,8 +257,6 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
         </AnimatePresence>
       </div>
 
-      <CreateTaskModal isOpen={showForm} onClose={() => setShowForm(false)}
-        formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
     </div>
   );
 }

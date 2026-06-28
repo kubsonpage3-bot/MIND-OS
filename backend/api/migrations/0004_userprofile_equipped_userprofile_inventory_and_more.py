@@ -6,28 +6,37 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0003_activeeffect_skillcooldown'),
+        ("api", "0003_activeeffect_skillcooldown"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='equipped',
-            field=models.JSONField(blank=True, default=dict, verbose_name='Экипировано'),
+            model_name="userprofile",
+            name="equipped",
+            field=models.JSONField(
+                blank=True, default=dict, verbose_name="Экипировано"
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='inventory',
-            field=models.JSONField(blank=True, default=list, verbose_name='Инвентарь'),
+            model_name="userprofile",
+            name="inventory",
+            field=models.JSONField(blank=True, default=list, verbose_name="Инвентарь"),
         ),
         migrations.AlterField(
-            model_name='activeeffect',
-            name='effect_id',
-            field=models.CharField(help_text='Уникальный идентификатор: blueprint_effect, iron_fast_effect...', max_length=80, unique=True, verbose_name='ID эффекта'),
+            model_name="activeeffect",
+            name="effect_id",
+            field=models.CharField(
+                help_text="Уникальный идентификатор: blueprint_effect, iron_fast_effect...",
+                max_length=80,
+                unique=True,
+                verbose_name="ID эффекта",
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='character_class',
-            field=models.CharField(default='Wanderer', max_length=50, verbose_name='Character class'),
+            model_name="userprofile",
+            name="character_class",
+            field=models.CharField(
+                default="Wanderer", max_length=50, verbose_name="Character class"
+            ),
         ),
     ]

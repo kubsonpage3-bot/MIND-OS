@@ -15,50 +15,198 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Task',
+            name="Task",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('task_type', models.CharField(choices=[('habit', 'Привычка'), ('daily', 'Дейлик'), ('todo', 'Туду')], default='todo', max_length=10, verbose_name='Тип задачи')),
-                ('title', models.CharField(max_length=255, verbose_name='Название')),
-                ('notes', models.TextField(blank=True, default='', verbose_name='Заметки')),
-                ('difficulty', models.CharField(choices=[('trivial', 'Тривиальная'), ('easy', 'Лёгкая'), ('medium', 'Средняя'), ('hard', 'Сложная')], default='medium', max_length=10, verbose_name='Сложность')),
-                ('value', models.FloatField(default=1.0, help_text='Множитель наград: 1.0 = норма, 2.0 = двойная награда', verbose_name='Значение сложности')),
-                ('is_completed', models.BooleanField(default=False, verbose_name='Выполнено')),
-                ('last_completed_at', models.DateTimeField(blank=True, null=True, verbose_name='Последнее выполнение')),
-                ('due_date', models.DateField(blank=True, null=True, verbose_name='Дедлайн')),
-                ('completion_count', models.PositiveIntegerField(default=0, verbose_name='Количество выполнений')),
-                ('order', models.PositiveIntegerField(default=0, verbose_name='Порядок')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Дата обновления')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to=settings.AUTH_USER_MODEL, verbose_name='Пользователь')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "task_type",
+                    models.CharField(
+                        choices=[
+                            ("habit", "Привычка"),
+                            ("daily", "Дейлик"),
+                            ("todo", "Туду"),
+                        ],
+                        default="todo",
+                        max_length=10,
+                        verbose_name="Тип задачи",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255, verbose_name="Название")),
+                (
+                    "notes",
+                    models.TextField(blank=True, default="", verbose_name="Заметки"),
+                ),
+                (
+                    "difficulty",
+                    models.CharField(
+                        choices=[
+                            ("trivial", "Тривиальная"),
+                            ("easy", "Лёгкая"),
+                            ("medium", "Средняя"),
+                            ("hard", "Сложная"),
+                        ],
+                        default="medium",
+                        max_length=10,
+                        verbose_name="Сложность",
+                    ),
+                ),
+                (
+                    "value",
+                    models.FloatField(
+                        default=1.0,
+                        help_text="Множитель наград: 1.0 = норма, 2.0 = двойная награда",
+                        verbose_name="Значение сложности",
+                    ),
+                ),
+                (
+                    "is_completed",
+                    models.BooleanField(default=False, verbose_name="Выполнено"),
+                ),
+                (
+                    "last_completed_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Последнее выполнение"
+                    ),
+                ),
+                (
+                    "due_date",
+                    models.DateField(blank=True, null=True, verbose_name="Дедлайн"),
+                ),
+                (
+                    "completion_count",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="Количество выполнений"
+                    ),
+                ),
+                (
+                    "order",
+                    models.PositiveIntegerField(default=0, verbose_name="Порядок"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Дата создания"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Дата обновления"),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tasks",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Пользователь",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Задача',
-                'verbose_name_plural': 'Задачи',
-                'ordering': ['order', '-created_at'],
+                "verbose_name": "Задача",
+                "verbose_name_plural": "Задачи",
+                "ordering": ["order", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('hp', models.PositiveIntegerField(default=100, verbose_name='HP (текущее)')),
-                ('hp_max', models.PositiveIntegerField(default=100, verbose_name='HP (максимум)')),
-                ('mana', models.PositiveIntegerField(default=50, verbose_name='Мана (текущая)')),
-                ('mana_max', models.PositiveIntegerField(default=50, verbose_name='Мана (максимум)')),
-                ('gold', models.PositiveIntegerField(default=0, verbose_name='Золото')),
-                ('level', models.PositiveIntegerField(default=1, verbose_name='Уровень')),
-                ('xp', models.PositiveIntegerField(default=0, verbose_name='Опыт (текущий)')),
-                ('xp_to_next_level', models.PositiveIntegerField(default=100, verbose_name='Опыт до следующего уровня')),
-                ('avatar', models.ImageField(blank=True, null=True, upload_to='avatars/', verbose_name='Аватар')),
-                ('character_class', models.CharField(default='Путник', max_length=50, verbose_name='Класс персонажа')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Дата обновления')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL, verbose_name='Пользователь')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "hp",
+                    models.PositiveIntegerField(
+                        default=100, verbose_name="HP (текущее)"
+                    ),
+                ),
+                (
+                    "hp_max",
+                    models.PositiveIntegerField(
+                        default=100, verbose_name="HP (максимум)"
+                    ),
+                ),
+                (
+                    "mana",
+                    models.PositiveIntegerField(
+                        default=50, verbose_name="Мана (текущая)"
+                    ),
+                ),
+                (
+                    "mana_max",
+                    models.PositiveIntegerField(
+                        default=50, verbose_name="Мана (максимум)"
+                    ),
+                ),
+                ("gold", models.PositiveIntegerField(default=0, verbose_name="Золото")),
+                (
+                    "level",
+                    models.PositiveIntegerField(default=1, verbose_name="Уровень"),
+                ),
+                (
+                    "xp",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="Опыт (текущий)"
+                    ),
+                ),
+                (
+                    "xp_to_next_level",
+                    models.PositiveIntegerField(
+                        default=100, verbose_name="Опыт до следующего уровня"
+                    ),
+                ),
+                (
+                    "avatar",
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to="avatars/",
+                        verbose_name="Аватар",
+                    ),
+                ),
+                (
+                    "character_class",
+                    models.CharField(
+                        default="Путник", max_length=50, verbose_name="Класс персонажа"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Дата создания"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Дата обновления"),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Пользователь",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Профиль персонажа',
-                'verbose_name_plural': 'Профили персонажей',
+                "verbose_name": "Профиль персонажа",
+                "verbose_name_plural": "Профили персонажей",
             },
         ),
     ]

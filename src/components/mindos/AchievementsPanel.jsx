@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { ACHIEVEMENTS, loadRPGData } from "@/lib/rpgSystem";
-import { showRewardToast } from "@/components/mindos/RewardToast";
-import { playSound } from "@/lib/soundEffects";
 
 const CAT_LABELS = {
   consistency: "Consistency",
