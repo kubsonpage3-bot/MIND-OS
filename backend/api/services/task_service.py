@@ -165,21 +165,55 @@ def complete_task(user, task_id, is_positive=True):
 
     # ── Боевая система: Наносим урон боссу ────────────────────────────
     from api.models import BossEncounter
-    from api.services.combat_service import calculate_damage
 
     combat_result = None
     active_encounter = BossEncounter.objects.filter(
         user=user, is_defeated=False
     ).first()
-    if active_encounter:
+    
+    if active_encounter and is_positive:
+        damage_dealt = gamification_result.get("damage_dealt", 0)
+        
         # Урон зависит от сложности (аналог фронтенда: easy=25, medium=50, hard=75, trivial=15)
+        # User requested: Base_Damage + total_stats['pwr'].
+        # However, to retain difficulty scaling, let's inject it into the mechanics.py or here.
+        # Since we already calculated damage_dealt in mechanics.py (base 10 + PWR), let's scale it by task value/difficulty.
         base_dmg_map = {"trivial": 15, "easy": 25, "medium": 50, "hard": 75}
-        base_dmg = base_dmg_map.get(task.difficulty, 25) * task.value
+        task_base_dmg = base_dmg_map.get(task.difficulty, 25) * task.value
+        
+        # Combine the mechanics damage (PWR + base 10) with task base damage
+        final_damage_dealt = int((task_base_dmg + damage_dealt) * profile.damage_multiplier)
+        
+        if gamification_result.get("is_crit"):
+            final_damage_dealt *= 2
 
-        # Apply prestige damage multiplier
-        base_dmg *= profile.damage_multiplier
-
-        combat_result = calculate_damage(user, active_encounter.id, base_dmg)
+        active_encounter.hp_current = max(0, active_encounter.hp_current - final_damage_dealt)
+        boss_defeated = False
+        
+        if active_encounter.hp_current <= 0:
+            active_encounter.hp_current = 0
+            active_encounter.is_defeated = True
+            boss_defeated = True
+            
+            # Automatically grant Boss rewards
+            boss = active_encounter.boss
+            if boss:
+                leveled_up = gain_xp(profile, boss.reward_xp) or leveled_up
+                profile.rank_xp += boss.reward_xp
+                profile.gold += boss.reward_gold
+                profile.save(update_fields=["xp", "level", "xp_to_next_level", "rank_xp", "gold"])
+                
+                # Add to total rewards response
+                rewards["xp"] += boss.reward_xp
+                rewards["gold"] += boss.reward_gold
+                
+        active_encounter.save(update_fields=["hp_current", "is_defeated"])
+        
+        combat_result = {
+            "damage_dealt": final_damage_dealt,
+            "boss_hp_remaining": active_encounter.hp_current,
+            "boss_defeated": boss_defeated
+        }
 
     return {
         "detail": "Task completed!",
