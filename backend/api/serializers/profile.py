@@ -11,6 +11,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     inventory = serializers.SerializerMethodField()
     equipped = serializers.SerializerMethodField()
     equip_stats = serializers.ReadOnlyField()
+    class_stats = serializers.ReadOnlyField()
 
     class Meta:
         model = UserProfile
@@ -41,6 +42,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "inventory",
             "equipped",
             "equip_stats",
+            "class_stats",
             "base_pwr",
             "base_foc",
             "base_spd",

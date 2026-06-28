@@ -161,6 +161,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Equipped stats breakdown
   const equipStats = profile?.equip_stats || { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
+  const classStats = profile?.class_stats || { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
   
   // Use backend stats as SSOT
   const statBreakdown = {};
@@ -168,12 +169,13 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     const backendBase = profile?.[`base_${key}`] || 5;
     const total = profile?.total_stats?.[key] || backendBase;
     const equipBonus = equipStats[key] || 0;
+    const classBonus = classStats[key] || 0;
     
     // We infer non-equip bonus (base + invested) from the backend base
     statBreakdown[key] = {
       base: backendBase,
-      points: 0, // Migrated to backend base
-      class: 0,  // Migrated to backend base
+      points: Math.max(0, backendBase - 5), // Base starts at 5, so anything above is invested points
+      class: classBonus,
       equip: equipBonus,
       total: total,
     };

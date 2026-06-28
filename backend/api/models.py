@@ -135,6 +135,26 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"Профиль {self.user.username} | Ур.{self.level} ({self.xp}/{self.xp_to_next_level} XP)"
 
+    CLASS_STAT_BONUSES = {
+        "architect": {"pwr": 3, "def": 4, "foc": 12, "mem": 10, "spd": 5, "lck": 6},
+        "ascetic": {"pwr": 7, "def": 8, "foc": 7, "mem": 10, "spd": 7, "lck": 6},
+        "linguist": {"pwr": 5, "def": 5, "foc": 10, "mem": 11, "spd": 9, "lck": 5},
+        "warlord": {"pwr": 14, "def": 10, "foc": 5, "mem": 4, "spd": 10, "lck": 7},
+    }
+
+    @property
+    def class_stats(self) -> dict:
+        """
+        Возвращает бонусы характеристик на основе выбранного класса персонажа.
+        """
+        # Convert class name to lowercase to match dict keys (e.g. "The Linguist" -> "linguist" or just handle direct ids)
+        class_id = str(self.character_class).lower().strip()
+        # Fallback if the user has a class name instead of ID, try to clean it
+        if class_id.startswith("the "):
+            class_id = class_id[4:]
+            
+        return self.CLASS_STAT_BONUSES.get(class_id, {"pwr": 0, "def": 0, "foc": 0, "mem": 0, "spd": 0, "lck": 0})
+
     @property
     def equip_stats(self) -> dict:
         """
@@ -147,6 +167,7 @@ class UserProfile(models.Model):
             "xp_boost": 0.0,
             "hp_boost": 0,
             "mana_boost": 0,
+            "pwr": 0, "def": 0, "foc": 0, "mem": 0, "spd": 0, "lck": 0 # adding for equip stats completeness
         }
         equipped = self.inventory_items.filter(is_equipped=True).select_related("item")
         for inv in equipped:
@@ -155,22 +176,30 @@ class UserProfile(models.Model):
             totals["xp_boost"] += inv.item.xp_boost
             totals["hp_boost"] += inv.item.hp_boost
             totals["mana_boost"] += inv.item.mana_boost
+            
+            # Use ItemEffects for stats like pwr, def, foc, etc.
+            for effect in inv.item.effects.all():
+                if effect.effect_name in totals:
+                    totals[effect.effect_name] += int(effect.effect_value)
+                    
         return totals
 
     @property
     def total_stats(self) -> dict:
         """
         SSOT: Возвращает итоговые характеристики персонажа
-        (базовые + бонусы от снаряжения + престиж-множители).
+        (базовые + бонусы класса + бонусы от снаряжения + престиж-множители).
         """
         equip = self.equip_stats
+        cls_stats = self.class_stats
+        
         return {
-            "pwr": self.base_pwr,
-            "foc": self.base_foc,
-            "spd": self.base_spd,
-            "lck": self.base_lck,
-            "def": self.base_def,
-            "mem": self.base_mem,
+            "pwr": self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0),
+            "foc": self.base_foc + cls_stats["foc"] + equip.get("foc", 0),
+            "spd": self.base_spd + cls_stats["spd"] + equip.get("spd", 0),
+            "lck": self.base_lck + cls_stats["lck"] + equip.get("lck", 0),
+            "def": self.base_def + cls_stats["def"] + equip.get("def", 0),
+            "mem": self.base_mem + cls_stats["mem"] + equip.get("mem", 0),
             "damage_multiplier": round(self.damage_multiplier + equip["damage_boost"], 4),
             "gold_multiplier": round(self.gold_multiplier + equip["gold_boost"], 4),
             "xp_multiplier": round(self.xp_multiplier + equip["xp_boost"], 4),
