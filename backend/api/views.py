@@ -1,4 +1,4 @@
-"""
+﻿"""
 MIND OS — Views и ViewSets.
 
 Эндпоинты:
@@ -256,21 +256,15 @@ class ShopBuyView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         
         item_id = serializer.validated_data["item_id"]
-        cost = serializer.validated_data["cost"]
-        heal_amount = serializer.validated_data.get("heal_amount", 0)
-        is_consumable = serializer.validated_data.get("is_consumable", False)
-
-        success, message, profile = buy_item(
-            request.user, item_id, cost, heal_amount, is_consumable
-        )
+        success, message, profile = buy_item(request.user, item_id)
 
         if not success:
             return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
 
-        from .serializers import UserProfileSerializer
+        profile_fresh = UserProfile.objects.prefetch_related('inventory_items__item__effects').get(user=request.user)
         return Response({
-            "detail": message,
-            "profile": UserProfileSerializer(profile).data,
+            'detail': message,
+            'profile': UserProfileSerializer(profile_fresh).data,
         }, status=status.HTTP_200_OK)
 
 
@@ -317,27 +311,28 @@ class BossSummonView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         
         boss_id = serializer.validated_data["boss_id"]
-        cost = serializer.validated_data["cost"]
 
         from django.db import transaction
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            
-            if profile.gold < cost:
-                return Response({"detail": "Not enough gold."}, status=status.HTTP_400_BAD_REQUEST)
-                
-            # Check for active encounters
-            active_encounter = BossEncounter.objects.filter(user=request.user, is_defeated=False).first()
-            if active_encounter:
-                return Response({"detail": f"You already have an active boss: {active_encounter.boss.name}"}, status=status.HTTP_400_BAD_REQUEST)
-                
+
             try:
                 boss = Boss.objects.get(id_name=boss_id)
             except Boss.DoesNotExist:
                 return Response({"detail": "Boss template not found."}, status=status.HTTP_404_NOT_FOUND)
-                
-            profile.gold -= cost
-            profile.save()
+
+            # SSOT: cost from DB, not frontend
+            summon_cost = boss.reward_gold // 2
+            if profile.gold < summon_cost:
+                return Response({"detail": f"Not enough gold. Need {summon_cost}G."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check for active encounters
+            active_encounter = BossEncounter.objects.filter(user=request.user, is_defeated=False).first()
+            if active_encounter:
+                return Response({"detail": f"You already have an active boss: {active_encounter.boss.name}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            profile.gold -= summon_cost
+            profile.save(update_fields=["gold"])
             
             # Apply difficulty multipliers
             difficulty = profile.boss_difficulty
