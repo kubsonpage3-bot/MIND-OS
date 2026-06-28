@@ -11,7 +11,7 @@ import { applyBuffPipeline } from '@/lib/rpgEngine';
 import { getActiveBuffs } from '@/lib/gameState';
 import {
   getTaskValueColor, calcReward, getLckStat,
-  addGoldToGS, addManaToGS, checkAndRunDailyCron,
+  checkAndRunDailyCron,
 } from '@/lib/taskEngine';
 import { djangoApi } from '@/api/djangoClient';
 
@@ -154,20 +154,14 @@ export default function DailiesColumn({ onXpGain, onBossDamage, onRankXP }) {
     const effectNotes = combatResult?.effect_notes || [];
 
     if (isCompleting) {
-      onXpGain(finalXp);
       onRankXP?.(finalXp);
       if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
-      addGoldToGS(finalGold);
-      addManaToGS(5);
 
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
       showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + critLabel });
     } else {
-      onXpGain(-finalXp);
       onRankXP?.(-finalXp);
-      addGoldToGS(-finalGold);
-      addManaToGS(-5);
       showRewardToast({ label: `Reverted: ${task.name}` });
     }
 

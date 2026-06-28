@@ -107,4 +107,7 @@ def complete_task(user, task_id, is_positive=True):
         "task": task,
         "profile": profile,
         "combat": combat_result,
+        "xp_earned": rewards["xp"] if is_positive else -rewards["xp"],
+        "gold_earned": rewards["gold"] if is_positive else -rewards["gold"],
+        "mana_gained": mana_gained if is_positive else -mana_gained,
     }

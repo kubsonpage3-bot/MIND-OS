@@ -28,11 +28,9 @@ import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 
 import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
-import { normalizeGold } from "@/lib/utils";
 import { getRankFromXP, calcSessionRankXP } from "@/lib/rankEngine";
 import { applySessionMutators, applyBossDamageModifiers, runDailyMutatorTick } from "@/lib/mutatorEngine";
 import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
-import { CLASSES } from "@/lib/rpgSystem";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
 
@@ -104,9 +102,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
   const [externalDamage, setExternalDamage] = useState(null);
-  const [goldDisplay, setGoldDisplay] = useState(0);
   const [rankXPData, setRankXPData] = useState(loadRankXP);
-  const [hpMana, setHpMana] = useState({ hp: 100, maxHp: 100, mana: 0, maxMana: 100, classColor: "#3b82f6" });
   const [rankDemoteNotif, setRankDemoteNotif] = useState(null);
   const [flyingRewards, setFlyingRewards] = useState([]);
   const prevHpRef = useRef(null);
@@ -222,39 +218,20 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   }, []);
 
-  // Refresh gold + HP/Mana from localStorage
+  // Detect rank demotion when HP reaches 0 (from profile cache)
   useEffect(() => {
-    const refresh = () => {
-      try {
-        const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        setGoldDisplay(normalizeGold(gs.gold || 0));
-        const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
-        const classInfo = cls.chosen ? CLASSES[cls.chosen] : null;
-        const currentHp = gs.hp !== undefined ? gs.hp : (gs.maxHp || 100);
+    if (!djangoProfile) return;
+    const currentHp = djangoProfile.hp ?? 100;
+    if (prevHpRef.current !== null && prevHpRef.current > 0 && currentHp === 0) {
+      const rankData = loadRankXP();
+      playSound('error');
+      setRankDemoteNotif(rankData.currentRank || "F");
+      setRankXPData({ ...rankData });
+      setTimeout(() => setRankDemoteNotif(null), 5000);
+    }
+    prevHpRef.current = currentHp;
+  }, [djangoProfile?.hp]);
 
-        // Detect rank demotion (HP just reached 0)
-        if (prevHpRef.current !== null && prevHpRef.current > 0 && currentHp === 0) {
-          const rankData = JSON.parse(localStorage.getItem("mindos_rank_xp") || "{}");
-          playSound('error');
-          setRankDemoteNotif(rankData.currentRank || "F");
-          setRankXPData({ ...rankData });
-          setTimeout(() => setRankDemoteNotif(null), 5000);
-        }
-        prevHpRef.current = currentHp;
-
-        setHpMana({
-          hp: currentHp,
-          maxHp: gs.maxHp || 100,
-          mana: cls.mana || 0,
-          maxMana: cls.maxMana || (classInfo?.maxMana || 100),
-          classColor: classInfo?.color || "#3b82f6",
-        });
-      } catch {}
-    };
-    refresh();
-    const interval = setInterval(refresh, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const [logs, setLogs] = useState(() => {
     try {

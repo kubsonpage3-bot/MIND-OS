@@ -12,7 +12,6 @@ import { getActiveBuffs } from '@/lib/gameState';
 import {
   getTaskValueColor, calcNewValue, calcDamage, calcReward, previewHabitDamage,
   applyHpDamage, getHpState, getConStat, getLckStat,
-  addGoldToGS, addManaToGS,
 } from '@/lib/taskEngine';
 import { djangoApi } from '@/api/djangoClient';
 
@@ -131,11 +130,8 @@ export default function HabitsColumn({ onXpGain, onBossDamage, onRankXP }) {
       const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
       const effectNotes = combatResult?.effect_notes || [];
 
-      onXpGain(finalXp);
       onRankXP?.(finalXp);
       if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
-      addGoldToGS(finalGold);
-      addManaToGS(2);
 
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');

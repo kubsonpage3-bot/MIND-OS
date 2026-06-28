@@ -11,7 +11,7 @@ import { applyBuffPipeline } from '@/lib/rpgEngine';
 import { getActiveBuffs } from '@/lib/gameState';
 import {
   getTaskValueColor, calcNewValue, calcReward,
-  getLckStat, addGoldToGS, addManaToGS,
+  getLckStat,
 } from '@/lib/taskEngine';
 
 import { djangoApi } from '@/api/djangoClient';
@@ -165,22 +165,16 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
     const effectNotes = combatResult?.effect_notes || [];
 
     if (isCompleting) {
-      onXpGain(finalXp);
       onRankXP?.(finalXp);
       if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
-      addGoldToGS(finalGold);
-      addManaToGS(3);
 
       const overdueLabel = isOverdue(task) ? ' ⚠️ late' : '';
       const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
       playSound('gold_earned');
       showRewardToast({ xp: finalXp, gold: finalGold, boss: bossDmg, effectNotes, label: task.name + overdueLabel + critLabel });
     } else {
-      onXpGain(-finalXp);
       onRankXP?.(-finalXp);
       // При откате задачи урон боссу не откатывается на сервере
-      addGoldToGS(-finalGold);
-      addManaToGS(-3);
       showRewardToast({ label: `Reverted: ${task.name}` });
     }
 
