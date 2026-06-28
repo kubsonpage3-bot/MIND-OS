@@ -430,24 +430,21 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               {Object.entries(statBreakdown).map(([key, breakdown]) => {
                 const cfg = STAT_CONFIG[key];
                 const canUpgrade = (gs.statPoints || 0) > 0;
-                // Compute live effect label
+                // Compute live effect label based on totalValue
+                const totalValue = breakdown.total;
                 let effectLabel = "";
                 if (key === "pwr") {
-                  const mult = getPwrBossDamageMultiplier();
-                  effectLabel = `+${Math.round((mult - 1) * 100)}% boss dmg`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} Base XP`;
                 } else if (key === "def") {
-                  const red = getDefDamageReduction();
-                  effectLabel = `-${Math.round(red * 100)}% HP dmg`;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% HP dmg taken`;
                 } else if (key === "foc") {
-                  effectLabel = `+${Math.max(0, breakdown.total - 5)}% focus eff`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% Crit chance`;
                 } else if (key === "mem") {
-                  effectLabel = `+${Math.round(Math.max(0, breakdown.total - 5) * 1.5)}% fatigue res`;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% Mana cost`;
                 } else if (key === "spd") {
-                  const bonus = getSpdGoldBonus();
-                  effectLabel = `+${bonus.toFixed(1)}G/task`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} Base Gold`;
                 } else if (key === "lck") {
-                  const mult = getLckGoldMultiplier();
-                  effectLabel = `+${Math.round((mult - 1) * 100)}% gold`;
+                  effectLabel = `+${totalValue}% Gold mult & Drops`;
                 }
                 return (
                   <div key={key} className="grid grid-cols-6 gap-2 items-center text-[9px] font-mono">

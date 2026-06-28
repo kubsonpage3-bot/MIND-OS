@@ -13,14 +13,15 @@ def calculate_task_outcome(user, task_type, base_xp=0, base_gold=0, base_hp_lost
     spd = stats.get("spd", 0)
     lck = stats.get("lck", 0)
     def_stat = stats.get("def", 0)
-    mem = stats.get("mem", 0)  # Reserved for future Mana usage
+    mem = stats.get("mem", 0)
     
     result = {
         "xp_earned": 0,
         "gold_earned": 0,
         "hp_lost": 0,
         "is_crit": False,
-        "item_dropped": None
+        "item_dropped": None,
+        "mana_cost_multiplier": 100.0 / (100.0 + mem) # MEM: Reduces Mana/Fatigue cost by (100 / (100 + MEM))
     }
     
     if is_positive:
