@@ -111,7 +111,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
     const newSP = sp - node.sp;
     const newTree = { ...skillTree, unlockedNodes: newUnlocked, skillPoints: newSP };
     saveRPGData("mindos_skillTree", newTree);
-    onUpdate(newTree);
+    onUpdate(newTree, node);
     onSpendGold(node.gold);
   };
 

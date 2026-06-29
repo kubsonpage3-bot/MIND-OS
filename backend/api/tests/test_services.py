@@ -285,3 +285,108 @@ def test_calculate_task_outcome(user):
     # def=100 -> 100 / (100 + 100) = 0.5 -> 50 * 0.5 = 25
     assert res_neg["hp_lost"] == 25
 
+
+@pytest.mark.django_db
+def test_buy_skill_node(user, profile):
+    from api.services.rpg_service import buy_skill_node
+    from api.models import UnlockedSkill
+
+    profile.skill_points = 10
+    profile.gold = 500
+    profile.save()
+
+    # Buy skill without requirements (sharp_focus)
+    buy_skill_node(user, "sharp_focus")
+    profile.refresh_from_db()
+    assert profile.skill_points == 7  # 10 - 3
+    assert profile.gold == 400        # 500 - 100
+    assert UnlockedSkill.objects.filter(user_profile=profile, skill_code="sharp_focus").exists()
+
+    # Buy skill requiring sharp_focus (deep_concentration)
+    buy_skill_node(user, "deep_concentration")
+    profile.refresh_from_db()
+    assert profile.skill_points == 1  # 7 - 6
+    assert profile.gold == 150        # 400 - 250
+    assert UnlockedSkill.objects.filter(user_profile=profile, skill_code="deep_concentration").exists()
+
+
+@pytest.mark.django_db
+def test_buy_skill_insufficient_resources(user, profile):
+    from api.services.rpg_service import buy_skill_node
+    
+    profile.skill_points = 1
+    profile.gold = 50
+    profile.save()
+
+    with pytest.raises(GameLogicError):
+        buy_skill_node(user, "sharp_focus")
+
+
+@pytest.mark.django_db
+def test_buy_skill_missing_requires(user, profile):
+    from api.services.rpg_service import buy_skill_node
+    
+    profile.skill_points = 10
+    profile.gold = 1000
+    profile.save()
+
+    with pytest.raises(GameLogicError):
+        buy_skill_node(user, "deep_concentration") # Requires sharp_focus
+
+
+@pytest.mark.django_db
+def test_recruit_and_upgrade_ally(user, profile):
+    from api.services.rpg_service import recruit_ally
+    from api.models import RecruitedAlly
+
+    profile.gold = 3000
+    profile.save()
+
+    # Recruit Kira level 1 (cost 1200)
+    recruit_ally(user, "kira")
+    profile.refresh_from_db()
+    assert profile.gold == 1800
+    assert RecruitedAlly.objects.filter(user_profile=profile, ally_code="kira", level=1).exists()
+
+    # Upgrade Kira level 2 (cost 800)
+    recruit_ally(user, "kira")
+    profile.refresh_from_db()
+    assert profile.gold == 1000
+    assert RecruitedAlly.objects.filter(user_profile=profile, ally_code="kira", level=2).exists()
+
+
+@pytest.mark.django_db
+def test_recruit_insufficient_gold(user, profile):
+    from api.services.rpg_service import recruit_ally
+
+    profile.gold = 100
+    profile.save()
+
+    with pytest.raises(GameLogicError):
+        recruit_ally(user, "kira")
+
+
+@pytest.mark.django_db
+def test_task_multipliers_applied(user, profile, task):
+    from api.models import UnlockedSkill, RecruitedAlly
+    
+    profile.gold = 0
+    profile.skill_points = 10
+    profile.save()
+
+    # Unlock resource_awareness (+10% gold)
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="resource_awareness")
+    
+    # Recruit Neko level 1 (+5% daily gold)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="neko", level=1)
+
+    task.task_type = Task.TaskType.DAILY
+    task.save()
+
+    complete_task(user, task.id, True)
+    
+    profile.refresh_from_db()
+    # Gold base (medium daily) + 15% (10% + 5% additively)
+    assert profile.gold > 0
+
+

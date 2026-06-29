@@ -1,4 +1,4 @@
-﻿"""
+"""
 MIND OS — Views и ViewSets.
 
 Эндпоинты:
@@ -177,12 +177,43 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "xp_earned": result.get("xp_earned", 0),
                     "gold_earned": result.get("gold_earned", 0),
                     "mana_gained": result.get("mana_gained", 0),
+                    "penalty": result.get("penalty"),
+                    "died": result.get("died", False),
                 },
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
             return Response(
                 {"detail": str(e.detail[0] if hasattr(e, 'detail') else e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(
+        detail=False,           # Не требует {id}
+        methods=["post"],       # Только POST
+        url_path="process-missed",
+    )
+    def process_missed(self, request):
+        """
+        POST /api/tasks/process-missed/
+        Processes missed daily tasks (cron trigger).
+        """
+        from api.services.task_service import process_missed_tasks
+        try:
+            result = process_missed_tasks(request.user)
+            return Response(
+                {
+                    "fired": result.get("fired", False),
+                    "total_dmg": result.get("total_dmg", 0),
+                    "died": result.get("died", False),
+                    "log": result.get("log", []),
+                    "profile": UserProfileSerializer(result["profile"]).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 # ─────────────────────────────────────────────────────────────────────────────
@@ -421,24 +452,47 @@ class PrestigeView(generics.GenericAPIView):
         from django.db import transaction
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            if profile.level < 10:
+            if profile.rank_xp < 4500:
                 return Response(
-                    {"detail": "You must reach level 10 to prestige."},
+                    {"detail": "You must reach 4500 XP to prestige."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             profile.prestige_count += 1
             profile.damage_multiplier = round(profile.damage_multiplier + 0.1, 4)
             profile.gold_multiplier = round(profile.gold_multiplier + 0.1, 4)
             profile.xp_multiplier = round(profile.xp_multiplier + 0.05, 4)
+            
+            # Increase IQ ceilings permanently by 15%
+            profile.gf_ceiling = round(profile.gf_ceiling * 1.15, 2)
+            profile.gc_ceiling = round(profile.gc_ceiling * 1.15, 2)
+            profile.ps_ceiling = round(profile.ps_ceiling * 1.15, 2)
+            profile.vm_ceiling = round(profile.vm_ceiling * 1.15, 2)
+            
             profile.level = 1
             profile.xp = 0
             profile.xp_to_next_level = 100
             profile.hp = profile.hp_max
-            profile.mana = profile.mana_max
+            profile.mana = 0
+            profile.rank_xp = 0
+            
+            # Reset training tasks if they exist in the DB (safe check for 'rank' field)
+            from api.models import Task
+            task_fields = [f.name for f in Task._meta.get_fields()]
+            if 'rank' in task_fields:
+                Task.objects.filter(user=request.user, task_type='training').update(
+                    rank='F', 
+                    value=0.0
+                )
+            
+            # Unequip all inventory items
+            profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)
             profile.save()
 
         return Response({
-            "detail": f"Prestige {profile.prestige_count} unlocked! Permanent bonuses applied.",
+            "detail": "Prestige successful!",
+            "new_rank_xp": profile.rank_xp,
+            "new_mana": profile.mana,
+            "prestige_count": profile.prestige_count,
             "profile": UserProfileSerializer(profile).data,
         }, status=status.HTTP_200_OK)
 
@@ -463,6 +517,232 @@ class TrainingLogView(generics.GenericAPIView):
         return Response({
             "log": TaskSerializer(recent, many=True).data
         }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        POST /api/training/log/
+        Logs a training session, grants XP and applies boss damage.
+        """
+        from django.db import transaction
+        from django.utils import timezone
+        from api.models import UserProfile
+        from api.services.profile_service import gain_xp
+        from api.services.mechanics import calculate_task_outcome, apply_boss_damage
+        from api.serializers.profile import UserProfileSerializer
+
+        data = request.data
+        hours = float(data.get("hours", 0))
+        focus_rating = float(data.get("focus_rating", 5))
+        mutator_multiplier = float(data.get("mutator_multiplier", 1.0))
+        flat_xp_bonus = int(data.get("flat_xp_bonus", 0))
+        activity = data.get("activity", "")
+
+        SCIENCE_ACTIVITIES = {"mathematics", "physics", "chess", "coding"}
+        EXERCISE_ACTIVITIES = {"exercise", "running"}
+        LANGUAGE_ACTIVITIES = {"english", "german", "languages"}
+        PRAYER_ACTIVITIES = {"prayer"}
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+            # Fetch passive modifiers from DB
+            unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
+            recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
+
+            # Initialize multipliers (additive approach)
+            xp_mult = 1.0
+            gold_mult = 1.0
+            gf_mult = 1.0
+            gc_mult = 1.0
+            ps_mult = 1.0
+            vm_mult = 1.0
+            boss_dmg_mult = 1.0
+            gf_flat_bonus = 0.0
+
+            # 1. Apply Skills
+            if "sharp_focus" in unlocked_skills and focus_rating >= 8:
+                xp_mult += 0.10
+
+            if "iron_conditioning" in unlocked_skills and activity in EXERCISE_ACTIVITIES:
+                xp_mult += 0.15
+
+            if "inner_stillness" in unlocked_skills and activity in PRAYER_ACTIVITIES:
+                xp_mult += 0.20
+
+            if "resource_awareness" in unlocked_skills:
+                gold_mult += 0.10
+
+            if "cognitive_supremacy" in unlocked_skills:
+                gf_mult += 0.20
+                gc_mult += 0.20
+                ps_mult += 0.20
+                vm_mult += 0.20
+
+            if "encyclopedia" in unlocked_skills:
+                gc_mult += 0.20
+
+            if "apex_predator" in unlocked_skills:
+                boss_dmg_mult += 0.30
+
+            if "flow_state" in unlocked_skills:
+                today = timezone.now().date()
+                if profile.last_training_at != today:
+                    xp_mult += 0.50  # +50% XP
+                    profile.last_training_at = today
+
+            # 2. Apply Allies
+            # Kira
+            kira_level = recruited_allies.get("kira", 0)
+            if kira_level >= 1 and activity in SCIENCE_ACTIVITIES:
+                xp_mult += 0.05 if kira_level == 1 else 0.10
+            if kira_level >= 3 and activity in SCIENCE_ACTIVITIES:
+                gf_flat_bonus += 0.002
+
+            # Neko
+            neko_level = recruited_allies.get("neko", 0)
+            if neko_level >= 5:
+                gold_mult += 0.15
+
+            # Void
+            void_level = recruited_allies.get("void", 0)
+            if void_level >= 1:
+                boss_dmg_mult += 0.50 if void_level == 5 else 0.10
+
+            # Luna
+            luna_level = recruited_allies.get("luna", 0)
+            if luna_level >= 1 and activity in EXERCISE_ACTIVITIES:
+                xp_mult += 0.08
+
+            # Sakura
+            sakura_level = recruited_allies.get("sakura", 0)
+            if sakura_level >= 1 and activity in LANGUAGE_ACTIVITIES:
+                xp_mult += 0.10
+            if sakura_level >= 2:
+                gc_mult += 0.10
+                vm_mult += 0.10
+            if sakura_level >= 4:
+                xp_mult += 0.08
+
+            # Yuki
+            yuki_level = recruited_allies.get("yuki", 0)
+            if yuki_level >= 1:
+                xp_mult += 0.08
+
+            # Nene
+            nene_level = recruited_allies.get("nene", 0)
+            if nene_level >= 1 and activity in PRAYER_ACTIVITIES:
+                xp_mult += 0.15
+            if nene_level >= 4:
+                gf_mult += 0.10
+                gc_mult += 0.10
+                ps_mult += 0.10
+                vm_mult += 0.10
+
+            # Update cognitive stats using difference (gain) and applying multipliers
+            if "gf" in data:
+                gf_gain = max(0.0, float(data["gf"]) - profile.gf)
+                profile.gf = min(profile.gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus)
+            if "gc" in data:
+                gc_gain = max(0.0, float(data["gc"]) - profile.gc)
+                profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult)
+            if "ps" in data:
+                ps_gain = max(0.0, float(data["ps"]) - profile.ps)
+                profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain * ps_mult)
+            if "vm" in data:
+                vm_gain = max(0.0, float(data["vm"]) - profile.vm)
+                profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
+
+            # Calculate XP and Gold using mechanics
+            base_xp = ((hours * focus_rating * 5) * mutator_multiplier + flat_xp_bonus) * xp_mult
+            base_gold = ((hours * 2) * mutator_multiplier) * gold_mult
+
+            outcome = calculate_task_outcome(request.user, "training", base_xp=base_xp, base_gold=base_gold, is_positive=True)
+
+            final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
+            final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
+
+            gain_xp(profile, final_xp)
+            profile.rank_xp = max(0, profile.rank_xp + final_xp)
+            profile.gold = max(0, profile.gold + final_gold)
+
+            # Boss Damage Logic
+            raw_boss_dmg = int(hours * focus_rating * 10)
+            damage_dealt = outcome.get("damage_dealt", 10) # Base 10 + PWR from mechanics
+            
+            final_damage_dealt = int((raw_boss_dmg + damage_dealt) * profile.damage_multiplier * boss_dmg_mult)
+            is_crit = outcome.get("is_crit", False)
+            
+            combat_result = apply_boss_damage(request.user, final_damage_dealt, is_crit)
+            
+            if combat_result and combat_result.get("boss_defeated"):
+                profile.save()
+                profile.refresh_from_db()
+            else:
+                profile.save()
+
+        # Needs prefetching for the response
+        profile = UserProfile.objects.prefetch_related("inventory_items__item__effects").get(user=request.user)
+        
+        return Response({
+            "detail": "Training logged successfully.",
+            "profile": UserProfileSerializer(profile).data,
+            "gold_earned": final_gold,
+            "xp_earned": final_xp,
+            "combat": combat_result
+        }, status=status.HTTP_200_OK)
+
+
+class BuySkillView(generics.GenericAPIView):
+    """
+    POST /api/skills/buy/
+    Buys a skill node.
+    Payload: { "skill_code": "some_skill" }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.rpg_service import buy_skill_node
+        skill_code = request.data.get("skill_code")
+        if not skill_code:
+            return Response({"detail": "skill_code is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            profile = buy_skill_node(request.user, skill_code)
+            # Prefetch for serializer
+            profile = UserProfile.objects.prefetch_related("inventory_items__item__effects").get(id=profile.id)
+            return Response({
+                "detail": f"Successfully unlocked skill: {skill_code}",
+                "profile": UserProfileSerializer(profile).data
+            }, status=status.HTTP_200_OK)
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RecruitAllyView(generics.GenericAPIView):
+    """
+    POST /api/allies/recruit/
+    Recruits or upgrades an ally.
+    Payload: { "ally_code": "some_ally" }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.rpg_service import recruit_ally
+        ally_code = request.data.get("ally_code")
+        if not ally_code:
+            return Response({"detail": "ally_code is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            ally_rec = recruit_ally(request.user, ally_code)
+            profile = UserProfile.objects.prefetch_related("inventory_items__item__effects").get(user=request.user)
+            return Response({
+                "detail": f"Successfully processed ally: {ally_code}",
+                "ally": {
+                    "ally_code": ally_rec.ally_code,
+                    "level": ally_rec.level
+                },
+                "profile": UserProfileSerializer(profile).data
+            }, status=status.HTTP_200_OK)
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

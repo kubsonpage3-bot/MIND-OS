@@ -8,10 +8,10 @@ export const TV_MAX = 21;
 export const TV_START = 0;
 
 /** Базовый урон по HP при нейтральном value (difficulty multiplier применяется сверху) */
-export const BASE_DAMAGE = { trivial: 10, easy: 10, medium: 10, hard: 10, critical: 10 };
-export const BASE_XP     = { trivial: 5,  easy: 5,  medium: 5,  hard: 5,  critical: 5 };
-export const BASE_GOLD   = { trivial: 5,  easy: 5,  medium: 5,  hard: 5,  critical: 5 };
-export const DIFF_MULT   = { trivial: 0.5, easy: 1,  medium: 2,  hard: 3,  critical: 4 };
+export const BASE_DAMAGE = { trivial: 10, easy: 10, medium: 10, hard: 10 };
+export const BASE_XP     = { trivial: 5,  easy: 5,  medium: 5,  hard: 5 };
+export const BASE_GOLD   = { trivial: 5,  easy: 5,  medium: 5,  hard: 5 };
+export const DIFF_MULT   = { trivial: 0.5, easy: 1,  medium: 2,  hard: 3 };
 
 /** Цвет задачи по Task Value (красный → жёлтый → зелёный → синий) */
 export function getTaskValueColor(value) {

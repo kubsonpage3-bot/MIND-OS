@@ -1,6 +1,6 @@
-﻿export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || 
-  (import.meta.env.DEV 
-    ? 'http://localhost:8000' 
+export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ||
+  (import.meta.env.DEV
+    ? 'http://localhost:8000'
     : 'https://mind-os-d5sk.onrender.com');
 
 const BASE_URL = import.meta.env.VITE_API_URL || `${API_ORIGIN}/api`;
@@ -28,7 +28,7 @@ function onRefreshed(token) {
  */
 export async function djangoFetch(endpoint, options = {}) {
   const url = apiUrl(endpoint);
-  
+
   // 1. Attach authorization header if token is present
   const accessToken = localStorage.getItem('access_token');
   const headers = {
@@ -151,13 +151,13 @@ async function handleUnauthorized(endpoint, options) {
 // Django API endpoints
 export const djangoApi = {
   auth: {
-    login: (username, password) => 
+    login: (username, password) =>
       djangoFetch('/auth/token/', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
       }),
-    
-    register: (username, email, password, password2) => 
+
+    register: (username, email, password, password2) =>
       djangoFetch('/auth/register/', {
         method: 'POST',
         body: JSON.stringify({ username, email, password, password2 }),
@@ -172,7 +172,7 @@ export const djangoApi = {
 
   profile: {
     get: () => djangoFetch('/profile/'),
-    update: (data) => 
+    update: (data) =>
       djangoFetch('/profile/', {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -219,10 +219,7 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ is_positive: isPositive }),
       }),
-    processMissed: () =>
-      djangoFetch('/tasks/process-missed/', {
-        method: 'POST',
-      }),
+    processMissed: () => djangoFetch('/tasks/process-missed/', { method: 'POST' })
   },
 
   skills: {
@@ -234,6 +231,20 @@ export const djangoApi = {
 
     getActiveEffects: () =>
       djangoFetch('/skills/active-effects/'),
+
+    buy: (skillCode) =>
+      djangoFetch('/skills/buy/', {
+        method: 'POST',
+        body: JSON.stringify({ skill_code: skillCode }),
+      }),
+  },
+
+  allies: {
+    recruit: (allyCode) =>
+      djangoFetch('/allies/recruit/', {
+        method: 'POST',
+        body: JSON.stringify({ ally_code: allyCode }),
+      }),
   },
 
   inventory: {
@@ -258,7 +269,7 @@ export const djangoApi = {
         body: JSON.stringify({ boss_id: bossId, cost }),
       }),
   },
-  
+
   training: {
     log: (data) =>
       djangoFetch('/training/log/', {
@@ -267,4 +278,3 @@ export const djangoApi = {
       }),
   },
 };
-

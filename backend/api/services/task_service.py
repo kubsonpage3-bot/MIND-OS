@@ -115,7 +115,38 @@ def complete_task(user, task_id, is_positive=True):
     leveled_up = False
 
     if is_positive:
-        outcome = calculate_task_outcome(user, task.task_type, rewards.get("xp", 0), rewards.get("gold", 0), is_positive=True)
+        # Fetch passive modifiers from DB
+        unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
+        recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
+
+        # Calculate additive multipliers
+        gold_mult = 1.0
+        xp_mult = 1.0
+
+        # Skills
+        if "resource_awareness" in unlocked_skills:
+            gold_mult += 0.10
+
+        # Allies
+        neko_level = recruited_allies.get("neko", 0)
+        if neko_level >= 1 and task.task_type == Task.TaskType.DAILY:
+            gold_mult += 0.05
+        if neko_level >= 5:
+            gold_mult += 0.15
+
+        sakura_level = recruited_allies.get("sakura", 0)
+        if sakura_level >= 4:
+            xp_mult += 0.08
+
+        yuki_level = recruited_allies.get("yuki", 0)
+        if yuki_level >= 1:
+            xp_mult += 0.08
+
+        # Apply multipliers to base task rewards
+        base_xp = int(rewards.get("xp", 0) * xp_mult)
+        base_gold = int(rewards.get("gold", 0) * gold_mult)
+
+        outcome = calculate_task_outcome(user, task.task_type, base_xp, base_gold, is_positive=True)
         gamification_result = outcome
         
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
@@ -164,56 +195,58 @@ def complete_task(user, task_id, is_positive=True):
         )
 
     # ── Боевая система: Наносим урон боссу ────────────────────────────
-    from api.models import BossEncounter
+    from api.services.mechanics import apply_boss_damage
 
     combat_result = None
-    active_encounter = BossEncounter.objects.filter(
-        user=user, is_defeated=False
-    ).first()
     
-    if active_encounter and is_positive:
+    if is_positive:
+        # 1. Урон от статов 
         damage_dealt = gamification_result.get("damage_dealt", 0)
         
-        # Урон зависит от сложности (аналог фронтенда: easy=25, medium=50, hard=75, trivial=15)
-        # User requested: Base_Damage + total_stats['pwr'].
-        # However, to retain difficulty scaling, let's inject it into the mechanics.py or here.
-        # Since we already calculated damage_dealt in mechanics.py (base 10 + PWR), let's scale it by task value/difficulty.
+        # 2. Базовый урон от сложности (Easy, Medium, Hard)
         base_dmg_map = {"trivial": 15, "easy": 25, "medium": 50, "hard": 75}
-        task_base_dmg = base_dmg_map.get(task.difficulty, 25) * task.value
+        base_dmg = base_dmg_map.get(task.difficulty, 25)
         
-        # Combine the mechanics damage (PWR + base 10) with task base damage
-        final_damage_dealt = int((task_base_dmg + damage_dealt) * profile.damage_multiplier)
+        # ИЗВЛЕКАЕМ ТИП И РАНГ (Безопасно, чтобы не сломать БД)
+        task_type = getattr(task, "task_type", "habit")
         
-        if gamification_result.get("is_crit"):
-            final_damage_dealt *= 2
-
-        active_encounter.hp_current = max(0, active_encounter.hp_current - final_damage_dealt)
-        boss_defeated = False
-        
-        if active_encounter.hp_current <= 0:
-            active_encounter.hp_current = 0
-            active_encounter.is_defeated = True
-            boss_defeated = True
+        if task_type == "training":
+            # ПРОГРЕССИЯ ТРЕНИРОВОК: Балансируем под огромный урон от привычек
+            # Ранги выступают в роли мощного множителя базы, чтобы пробивать 20к ХП
+            rank_multipliers = {
+                "F": 1.0,    # База x1
+                "E": 2.5,    # База x2.5
+                "D": 5.0,    # База x5
+                "C": 8.0,    # База x8
+                "B": 12.0,   # База x12
+                "A": 18.0,   # База x18 (Hard: 75 * 18 = 1350 урона)
+                "S": 25.0    # База x25 (Hard: 75 * 25 = 1875 урона)
+            }
             
-            # Automatically grant Boss rewards
-            boss = active_encounter.boss
-            if boss:
-                leveled_up = gain_xp(profile, boss.reward_xp) or leveled_up
-                profile.rank_xp += boss.reward_xp
-                profile.gold += boss.reward_gold
-                profile.save(update_fields=["xp", "level", "xp_to_next_level", "rank_xp", "gold"])
-                
-                # Add to total rewards response
-                rewards["xp"] += boss.reward_xp
-                rewards["gold"] += boss.reward_gold
-                
-        active_encounter.save(update_fields=["hp_current", "is_defeated"])
+            task_rank = getattr(task, "rank", "F").upper()
+            rank_multiplier = rank_multipliers.get(task_rank, 1.0)
+            
+            # Итоговый базовый урон для тренировки
+            task_base_dmg = int(base_dmg * rank_multiplier)
+            
+        else:
+            # ОБЫЧНЫЕ ПРИВЫЧКИ (ОСТАВЛЯЕМ СТАРУЮ ФОРМУЛУ КАК ЕСТЬ)
+            # Умножаем напрямую на value (избегаем отрицательного урона)
+            task_value = max(0.0, getattr(task, "value", 1.0))
+            task_base_dmg = int(base_dmg * task_value)
+
+        # 3. ФИНАЛЬНЫЙ УРОН = (Урон задачи + Статы) * Множитель профиля
+        final_damage_dealt = max(0, int((task_base_dmg + damage_dealt) * profile.damage_multiplier))
         
-        combat_result = {
-            "damage_dealt": final_damage_dealt,
-            "boss_hp_remaining": active_encounter.hp_current,
-            "boss_defeated": boss_defeated
-        }
+        is_crit = gamification_result.get("is_crit", False)
+        
+        combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
+        
+        # Add to total rewards response if boss was defeated
+        if combat_result and combat_result.get("boss_defeated"):
+            boss_rewards = combat_result.get("rewards", {})
+            rewards["xp"] += boss_rewards.get("boss_xp", 0)
+            rewards["gold"] += boss_rewards.get("boss_gold", 0)
 
     return {
         "detail": "Task completed!",

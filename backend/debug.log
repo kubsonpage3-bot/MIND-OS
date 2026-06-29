@@ -918,3 +918,120 @@ WARNING 2026-06-28 20:37:23,816 log 19248 15468 Bad Request: /api/shop/buy/
 WARNING 2026-06-28 20:37:23,817 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
 WARNING 2026-06-28 20:38:00,038 log 19248 15468 Bad Request: /api/shop/buy/
 WARNING 2026-06-28 20:38:00,039 log 19248 15468 "POST /api/shop/buy/ HTTP/1.1" 400 67
+WARNING 2026-06-28 20:56:14,599 log 25776 25972 Unauthorized: /api/profile/
+WARNING 2026-06-28 20:56:14,600 log 25776 25972 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-28 21:09:26,624 log 26880 17864 Method Not Allowed: /api/training/log/
+WARNING 2026-06-28 21:09:26,625 log 26880 17864 "POST /api/training/log/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:09:28,349 log 26880 10108 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:09:28,352 log 26880 10108 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:12:50,735 log 24460 16300 Method Not Allowed: /api/training/log/
+WARNING 2026-06-28 21:12:50,736 log 24460 16300 "POST /api/training/log/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:12:59,886 log 24460 24324 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:12:59,888 log 24460 24324 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:13:05,323 log 24460 20652 Method Not Allowed: /api/training/log/
+WARNING 2026-06-28 21:13:05,324 log 24460 20652 "POST /api/training/log/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:13:11,956 log 24460 20652 Method Not Allowed: /api/training/log/
+WARNING 2026-06-28 21:13:11,957 log 24460 20652 "POST /api/training/log/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:13:17,159 log 24460 20652 Method Not Allowed: /api/training/log/
+WARNING 2026-06-28 21:13:17,160 log 24460 20652 "POST /api/training/log/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:21:13,558 log 1712 8268 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:21:13,560 log 1712 8268 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:21:14,851 log 1712 8268 Bad Request: /api/tasks/21/complete/
+WARNING 2026-06-28 21:21:14,852 log 1712 8268 "POST /api/tasks/21/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:21:17,250 log 1712 23136 Bad Request: /api/tasks/21/complete/
+WARNING 2026-06-28 21:21:17,251 log 1712 23136 "POST /api/tasks/21/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:21:20,172 log 1712 23136 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:21:20,172 log 1712 23136 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:21:20,849 log 1712 23136 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:21:20,850 log 1712 23136 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:22:03,050 log 1712 23136 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:22:03,054 log 1712 23136 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:22:04,032 log 1712 8268 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:22:04,033 log 1712 8268 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:22:04,677 log 1712 8268 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:22:04,677 log 1712 8268 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:22:04,924 log 1712 8268 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:22:04,925 log 1712 8268 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:11,084 log 25312 24828 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:23:11,091 log 25312 24828 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:23:12,197 log 25312 23800 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:12,198 log 25312 23800 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:14,004 log 25312 23800 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:14,005 log 25312 23800 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:14,524 log 25312 23800 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:14,525 log 25312 23800 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:17,751 log 25312 11116 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:23:17,756 log 25312 11116 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:23:19,036 log 25312 24828 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:19,037 log 25312 24828 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:19,707 log 25312 24828 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:19,708 log 25312 24828 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:26,769 log 25312 24828 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:23:26,778 log 25312 24828 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:23:28,537 log 25312 24828 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:28,538 log 25312 24828 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:23:29,158 log 25312 23800 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:23:29,159 log 25312 23800 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:24:38,603 log 25312 11116 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:24:38,604 log 25312 11116 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:24:39,460 log 25312 24828 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:24:39,461 log 25312 24828 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:24:46,452 log 25312 11116 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:24:46,459 log 25312 11116 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:24:48,038 log 25312 11116 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-28 21:24:48,039 log 25312 11116 "POST /api/tasks/20/complete/ HTTP/1.1" 400 55
+WARNING 2026-06-28 21:25:34,354 log 7392 15516 Method Not Allowed: /api/tasks/process-missed/
+WARNING 2026-06-28 21:25:34,356 log 7392 15516 "POST /api/tasks/process-missed/ HTTP/1.1" 405 55
+WARNING 2026-06-28 21:47:46,451 log 15504 27644 Bad Request: /api/combat/summon/
+WARNING 2026-06-28 21:47:46,452 log 15504 27644 "POST /api/combat/summon/ HTTP/1.1" 400 41
+WARNING 2026-06-28 22:00:34,923 log 15504 20556 Unauthorized: /api/combat/encounters/
+WARNING 2026-06-28 22:00:34,925 log 15504 14372 Unauthorized: /api/skills/active-effects/
+WARNING 2026-06-28 22:00:34,927 log 15504 14372 "GET /api/skills/active-effects/ HTTP/1.1" 401 226
+WARNING 2026-06-28 22:00:34,927 log 15504 20556 "GET /api/combat/encounters/ HTTP/1.1" 401 226
+WARNING 2026-06-29 12:11:06,136 log 20100 23168 Unauthorized: /api/profile/
+WARNING 2026-06-29 12:11:06,138 log 20100 23168 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-29 12:47:07,607 log 20088 4764 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:07,607 log 20088 4764 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:09,161 log 20088 19140 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:09,162 log 20088 19140 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:10,035 log 20088 4764 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:10,036 log 20088 4764 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:10,223 log 20088 19140 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:10,224 log 20088 19140 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:10,374 log 20088 4764 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:10,375 log 20088 4764 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:10,522 log 20088 19140 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:10,522 log 20088 19140 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:11,318 log 20088 4764 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:11,319 log 20088 4764 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:12,184 log 20088 19140 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:12,184 log 20088 19140 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:12,832 log 20088 4764 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:12,832 log 20088 4764 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:13,009 log 20088 19140 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:13,010 log 20088 19140 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:47:21,986 log 20088 4764 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:47:21,987 log 20088 4764 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:50:11,686 log 20088 7812 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:50:11,686 log 20088 7812 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:50:12,629 log 20088 7812 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:50:12,630 log 20088 7812 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:50:13,077 log 20088 7812 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:50:13,078 log 20088 7812 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:50:42,316 log 20088 7812 Bad Request: /api/tasks/
+WARNING 2026-06-29 12:50:42,317 log 20088 7812 "POST /api/tasks/ HTTP/1.1" 400 103
+WARNING 2026-06-29 12:53:41,658 log 20088 20192 Bad Request: /api/skills/buy/
+WARNING 2026-06-29 12:53:41,660 log 20088 20192 "POST /api/skills/buy/ HTTP/1.1" 400 31
+WARNING 2026-06-29 13:11:30,878 log 20088 460 Unauthorized: /api/profile/
+WARNING 2026-06-29 13:11:30,879 log 20088 460 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-29 13:21:19,921 log 20088 22956 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:26:36,273 log 20088 5776 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:27:19,779 log 20088 7712 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:29:37,158 log 20088 5748 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:30:06,843 log 20088 15556 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:34:42,283 log 20088 17176 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:35:27,500 log 20088 20776 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:35:41,112 log 20088 9160 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:41:52,915 log 20088 10040 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:41:59,771 log 20088 20932 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 13:44:54,486 log 20088 9844 "GET /static/items/default.webp HTTP/1.1" 404 1981

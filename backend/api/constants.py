@@ -210,3 +210,138 @@ BOSS_DIFFICULTY_MULTIPLIERS = {
     "HARD": {"hp": 2.0, "reward": 1.5},
     "EXTREME": {"hp": 5.0, "reward": 2.5},
 }
+
+# ─── SKILL TREE CONFIGURATION ───────────────────────────────────────────────
+SKILL_TREE_CONFIG = {
+    # MIND
+    "sharp_focus": {"sp": 3, "gold": 100, "xp_bonus": 0.10},
+    "deep_concentration": {"sp": 6, "gold": 250, "requires": "sharp_focus"},
+    "flow_state": {"sp": 10, "gold": 500, "requires": "deep_concentration", "xp_bonus": 0.50},
+    "neural_expansion": {"sp": 15, "gold": 800, "requires": "flow_state", "gf_ceiling_bonus": 5},
+    "cognitive_supremacy": {"sp": 22, "gold": 1500, "requires": "neural_expansion", "cognitive_multiplier": 0.20},
+    "godmind": {"sp": 35, "gold": 3000, "requires": "cognitive_supremacy"},
+
+    # BODY
+    "iron_conditioning": {"sp": 3, "gold": 100, "xp_bonus": 0.15},
+    "endurance_protocol": {"sp": 6, "gold": 250, "requires": "iron_conditioning"},
+    "combat_reflexes": {"sp": 10, "gold": 500, "requires": "endurance_protocol", "crit_chance_bonus": 0.10},
+    "pain_threshold": {"sp": 15, "gold": 800, "requires": "combat_reflexes", "missed_daily_hp_reduction": 0.25},
+    "unbreakable": {"sp": 22, "gold": 1500, "requires": "pain_threshold", "daily_hp_regen": 3},
+    "apex_predator": {"sp": 35, "gold": 3000, "requires": "unbreakable", "boss_damage_multiplier": 0.30},
+
+    # WEALTH
+    "resource_awareness": {"sp": 3, "gold": 100, "gold_multiplier": 0.10},
+    "compound_returns": {"sp": 6, "gold": 250, "requires": "resource_awareness"},
+    "loot_magnetism": {"sp": 10, "gold": 500, "requires": "compound_returns", "drop_chance_bonus": 0.03},
+    "market_knowledge": {"sp": 15, "gold": 800, "requires": "loot_magnetism"},
+    "fortunes_favor": {"sp": 22, "gold": 1500, "requires": "market_knowledge"},
+    "golden_mind": {"sp": 35, "gold": 3000, "requires": "fortunes_favor"},
+
+    # SPIRIT
+    "inner_stillness": {"sp": 3, "gold": 100, "xp_bonus": 0.20},
+    "resilience": {"sp": 6, "gold": 250, "requires": "inner_stillness"},
+    "mindguard": {"sp": 10, "gold": 500, "requires": "resilience", "cooldown_reduction": 0.15},
+    "aura_of_focus": {"sp": 15, "gold": 800, "requires": "mindguard"},
+    "transcendent_will": {"sp": 22, "gold": 1500, "requires": "aura_of_focus"},
+    "void_clarity": {"sp": 35, "gold": 3000, "requires": "transcendent_will"},
+
+    # KNOWLEDGE
+    "polymath": {"sp": 3, "gold": 100},
+    "cross_training": {"sp": 6, "gold": 250, "requires": "polymath"},
+    "encyclopedia": {"sp": 10, "gold": 500, "requires": "cross_training", "gc_multiplier": 0.20},
+    "master_of_arts": {"sp": 15, "gold": 800, "requires": "encyclopedia"},
+    "living_library": {"sp": 22, "gold": 1500, "requires": "master_of_arts"},
+    "omniscience": {"sp": 35, "gold": 3000, "requires": "living_library"},
+}
+
+# ─── ALLIES CONFIGURATION ───────────────────────────────────────────────────
+ALLIES_CONFIG = {
+    "kira": {
+        "recruit_cost": 1200,
+        "upgrade_costs": [800, 1500, 2500, 5000],
+        "levels": {
+            1: {"science_rank_xp_multiplier": 0.05},
+            2: {"science_rank_xp_multiplier": 0.10},
+            3: {"science_rank_xp_multiplier": 0.10, "science_gf_bonus": 0.002},
+            4: {"science_rank_xp_multiplier": 0.10, "science_gf_bonus": 0.002, "science_always_crit": True},
+            5: {"science_rank_xp_multiplier": 0.10, "science_gf_bonus": 0.002, "science_always_crit": True, "science_threshold_reduction": 0.10},
+        }
+    },
+    "neko": {
+        "recruit_cost": 800,
+        "upgrade_costs": [500, 900, 1600, 3200],
+        "levels": {
+            1: {"daily_gold_multiplier": 0.05},
+            2: {"daily_gold_multiplier": 0.05, "streak_xp_multiplier": 0.08},
+            3: {"daily_gold_multiplier": 0.05, "streak_xp_multiplier": 0.08, "daily_mana_bonus": 3},
+            4: {"daily_gold_multiplier": 0.05, "streak_xp_multiplier": 0.08, "daily_mana_bonus": 3, "habit_shield": True},
+            5: {"daily_gold_multiplier": 0.05, "streak_xp_multiplier": 0.08, "daily_mana_bonus": 3, "habit_shield": True, "gold_multiplier": 0.15},
+        }
+    },
+    "void": {
+        "recruit_cost": 2500,
+        "upgrade_costs": [1500, 3000, 5000, 10000],
+        "levels": {
+            1: {"boss_damage_multiplier": 0.10},
+            2: {"boss_damage_multiplier": 0.10, "crit_damage_multiplier": 0.20},
+            3: {"boss_damage_multiplier": 0.10, "crit_damage_multiplier": 0.20, "boss_kill_mana_restore": 15},
+            4: {"boss_damage_multiplier": 0.10, "crit_damage_multiplier": 0.20, "boss_kill_mana_restore": 15, "boss_hp_reduction": 0.05},
+            5: {"boss_damage_multiplier": 0.50, "crit_damage_multiplier": 0.20, "boss_kill_mana_restore": 15, "boss_hp_reduction": 0.05},
+        }
+    },
+    "luna": {
+        "recruit_cost": 900,
+        "upgrade_costs": [600, 1100, 1800, 3600],
+        "levels": {
+            1: {"exercise_rank_xp_multiplier": 0.08},
+            2: {"exercise_rank_xp_multiplier": 0.08, "missed_daily_hp_reduction": 0.10},
+            3: {"exercise_rank_xp_multiplier": 0.08, "missed_daily_hp_reduction": 0.10, "daily_hp_regen": 1},
+            4: {"exercise_rank_xp_multiplier": 0.08, "missed_daily_hp_reduction": 0.10, "daily_hp_regen": 1, "boss_kill_hp_heal": 5},
+            5: {"exercise_rank_xp_multiplier": 0.08, "missed_daily_hp_reduction": 0.10, "daily_hp_regen": 1, "boss_kill_hp_heal": 5, "max_hp_bonus": 20},
+        }
+    },
+    "sakura": {
+        "recruit_cost": 1500,
+        "upgrade_costs": [900, 1700, 2800, 5500],
+        "levels": {
+            1: {"language_rank_xp_multiplier": 0.10},
+            2: {"language_rank_xp_multiplier": 0.10, "gc_multiplier": 0.10, "vm_multiplier": 0.10},
+            3: {"language_rank_xp_multiplier": 0.10, "gc_multiplier": 0.10, "vm_multiplier": 0.10, "language_mana_bonus": 5},
+            4: {"language_rank_xp_multiplier": 0.10, "gc_multiplier": 0.10, "vm_multiplier": 0.10, "language_mana_bonus": 5, "task_rank_xp_multiplier": 0.08},
+            5: {"language_rank_xp_multiplier": 0.10, "gc_multiplier": 0.10, "vm_multiplier": 0.10, "language_mana_bonus": 5, "task_rank_xp_multiplier": 0.08, "language_threshold_reduction": 0.20},
+        }
+    },
+    "hex": {
+        "recruit_cost": 3000,
+        "upgrade_costs": [2000, 4000, 7000, 14000],
+        "levels": {
+            1: {"cooldown_reduction": 0.15},
+            2: {"cooldown_reduction": 0.15, "mana_cost_reduction": 10},
+            3: {"cooldown_reduction": 0.15, "mana_cost_reduction": 10, "skill_boss_damage": 20},
+            4: {"cooldown_reduction": 0.35, "mana_cost_reduction": 10, "skill_boss_damage": 20},
+            5: {"cooldown_reduction": 0.35, "mana_cost_reduction": 10, "skill_boss_damage": 20, "daily_free_skill": True},
+        }
+    },
+    "yuki": {
+        "recruit_cost": 6000,
+        "upgrade_costs": [4000, 8000, 15000, 30000],
+        "levels": {
+            1: {"rank_xp_multiplier": 0.08},
+            2: {"rank_xp_multiplier": 0.08, "max_mana_bonus": 20},
+            3: {"rank_xp_multiplier": 0.08, "max_mana_bonus": 20, "prestige_bonus": 0.05},
+            4: {"rank_xp_multiplier": 0.08, "max_mana_bonus": 20, "prestige_bonus": 0.05, "skill_cost_reduction": 0.25},
+            5: {"rank_xp_multiplier": 0.08, "max_mana_bonus": 20, "prestige_bonus": 0.05, "skill_cost_reduction": 0.25, "prestige_start_rank": "C"},
+        }
+    },
+    "nene": {
+        "recruit_cost": 1800,
+        "upgrade_costs": [1200, 2200, 3500, 7000],
+        "levels": {
+            1: {"meditation_rank_xp_multiplier": 0.15},
+            2: {"meditation_rank_xp_multiplier": 0.15, "triple_subject_gold_bonus": 30},
+            3: {"meditation_rank_xp_multiplier": 0.15, "triple_subject_gold_bonus": 30, "daily_hp_regen": 2},
+            4: {"meditation_rank_xp_multiplier": 0.15, "triple_subject_gold_bonus": 30, "daily_hp_regen": 2, "cognitive_metric_multiplier": 0.10},
+            5: {"meditation_rank_xp_multiplier": 0.15, "triple_subject_gold_bonus": 30, "daily_hp_regen": 2, "cognitive_metric_multiplier": 0.10, "weekly_free_mana": True},
+        }
+    }
+}

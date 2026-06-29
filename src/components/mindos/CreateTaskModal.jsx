@@ -7,10 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 
 const CATEGORIES = ["Math", "Physics", "English", "Philosophy", "Coding", "Sleep", "Nutrition", "Reading", "Social", "Mindfulness", "Exercise"];
 const DIFFICULTIES = [
+  { id: "trivial", label: "Trivial", color: "#64748b" },
   { id: "easy", label: "Easy", color: "#22c55e" },
   { id: "medium", label: "Medium", color: "#f59e0b" },
   { id: "hard", label: "Hard", color: "#ef4444" },
-  { id: "critical", label: "Critical", color: "#a855f7" },
 ];
 const PRIORITIES = ["low", "medium", "high", "critical"];
 const PRIORITY_COLORS = { low: "#22c55e", medium: "#f59e0b", high: "#ef4444", critical: "#a855f7" };

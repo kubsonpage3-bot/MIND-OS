@@ -135,7 +135,7 @@ export default function AlliesPanel({ alliesData, onUpdate, gold, onSpendGold })
     if (gold < ally.recruitCost) return;
     const newData = { ...alliesData, recruited: [...recruited, ally.id], levels: { ...levels, [ally.id]: 1 } };
     saveRPGData("mindos_allies", newData);
-    onUpdate(newData);
+    onUpdate(newData, ally);
     onSpendGold(ally.recruitCost);
   };
 
@@ -146,7 +146,7 @@ export default function AlliesPanel({ alliesData, onUpdate, gold, onSpendGold })
     if (gold < cost) return;
     const newData = { ...alliesData, levels: { ...levels, [ally.id]: currentLevel + 1 } };
     saveRPGData("mindos_allies", newData);
-    onUpdate(newData);
+    onUpdate(newData, ally);
     onSpendGold(cost);
   };
 

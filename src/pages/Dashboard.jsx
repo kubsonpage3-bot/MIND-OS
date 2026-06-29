@@ -21,6 +21,7 @@ import CalendarPanel from "@/components/mindos/CalendarPanel";
 import TasksPanel from "@/components/mindos/TasksPanel";
 import CharacterTab from "@/components/mindos/CharacterTab";
 import RivalTab from "@/components/mindos/RivalTab";
+import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
 
 import CharacterHub from "@/components/mindos/CharacterHub";
@@ -384,7 +385,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     // No-op because task completion on backend already returns the updated rank_xp in the profile response.
   }, []);
 
-  const handleBossDamage = useCallback((amount, isCritical, isDefeated = false) => {
+  const [defeatedBossState, setDefeatedBossState] = useState(null);
+
+  const handleBossDamage = useCallback((amount, isCritical, isDefeated = false, combatResult = null, rewards = null) => {
     setExternalDamage({ amount, isCritical, ts: Date.now() });
 
     try {
@@ -395,6 +398,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       }
       if (isDefeated) {
         gs.bossIndex = (gs.bossIndex || 0) + 1;
+        setDefeatedBossState({ combatResult, rewards, isOpen: true });
       }
       localStorage.setItem("mindos_game_state", JSON.stringify(gs));
     } catch {}
@@ -442,12 +446,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     playSound('task_complete');
     if (focusRating >= 9) playSound('critical_hit');
 
-    // Boss damage from session — apply PWR stat + mutator multipliers
-    const rawBossDmg = Math.round(hours * focusRating * 10);
-    const bossDmg = applyBossDamageModifiers(rawBossDmg);
-    const isCrit = focusRating >= 10;
-    handleBossDamage(bossDmg, isCrit);
-
     logTraining.mutate({
       gf: newProfile.gf,
       gc: newProfile.gc,
@@ -456,10 +454,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       hours: hours,
       focus_rating: focusRating,
       mutator_multiplier: mutatorResult.rankXPMultiplier,
-      flat_xp_bonus: mutatorResult.cursedClockFlatXP || 0
+      flat_xp_bonus: mutatorResult.cursedClockFlatXP || 0,
+      activity: activityKey
     }, {
       onSuccess: (res) => {
         onFeedback(feedbackText, res.gold_earned);
+        if (res.combat && res.combat.damage_dealt > 0) {
+            handleBossDamage(res.combat.damage_dealt, res.combat.is_critical, res.combat.boss_defeated, res.combat, res.rewards);
+        }
       },
       onError: () => {
         onFeedback("Failed to log training.");
@@ -698,6 +700,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
       {/* Flying reward particles overlay */}
       <FlyingReward rewards={flyingRewards} />
+
+      {/* Boss Defeat Modal */}
+      <BossDefeatModal 
+        isOpen={defeatedBossState?.isOpen || false} 
+        onClose={() => setDefeatedBossState(null)} 
+        combatResult={defeatedBossState?.combatResult} 
+        rewards={defeatedBossState?.rewards} 
+      />
     </div>
   );
 }

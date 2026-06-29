@@ -64,7 +64,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     queryFn: async () => {
       try {
         const response = await djangoApi.shop.getItems();
-        return (response || []).map(item => ({
+        return (response || []).map((item) => ({
           id: item.code,
           label: item.name,
           desc: item.description,
@@ -73,7 +73,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           consumable: item.item_type === "consumable",
           stats: item.stats,
           slot: item.slot_type,
-          icon_url: item.icon_url,
+          icon_url: item.icon_url || '/static/items/default.webp',
           healAmount: item.hp_boost
         }));
       } catch (err) {
@@ -85,6 +85,68 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Reload RPG data from storage on mount
   useEffect(() => { setRpg(loadRPGData()); }, []);
+
+  // Sync skill tree and allies from backend profile to local rpg state
+  useEffect(() => {
+    if (profile) {
+      const localRpg = loadRPGData();
+      let changed = false;
+
+      // 1. Sync Skill Tree points & unlocked nodes
+      if (profile.skill_points !== undefined && localRpg.skillTree.skillPoints !== profile.skill_points) {
+        localRpg.skillTree.skillPoints = profile.skill_points;
+        changed = true;
+      }
+      if (profile.unlocked_skills !== undefined) {
+        const backendUnlocked = profile.unlocked_skills || [];
+        const localUnlocked = localRpg.skillTree.unlockedNodes || [];
+        const match = backendUnlocked.length === localUnlocked.length && backendUnlocked.every(v => localUnlocked.includes(v));
+        if (!match) {
+          localRpg.skillTree.unlockedNodes = backendUnlocked;
+          changed = true;
+        }
+      }
+      if (changed) {
+        saveRPGData("mindos_skillTree", localRpg.skillTree);
+      }
+
+      // 2. Sync Allies
+      let alliesChanged = false;
+      if (profile.recruited_allies !== undefined) {
+        const backendAllies = profile.recruited_allies || {};
+        const localRecruited = localRpg.alliesData.recruited || [];
+        const localLevels = localRpg.alliesData.levels || {};
+
+        const backendRecruitedList = Object.keys(backendAllies);
+        const matchRecruited = backendRecruitedList.length === localRecruited.length && backendRecruitedList.every(v => localRecruited.includes(v));
+        
+        let matchLevels = true;
+        for (const [k, v] of Object.entries(backendAllies)) {
+          if (localLevels[k] !== v) {
+            matchLevels = false;
+            break;
+          }
+        }
+
+        if (!matchRecruited || !matchLevels) {
+          localRpg.alliesData.recruited = backendRecruitedList;
+          localRpg.alliesData.levels = backendAllies;
+          alliesChanged = true;
+        }
+      }
+      if (alliesChanged) {
+        saveRPGData("mindos_allies", localRpg.alliesData);
+      }
+
+      if (changed || alliesChanged) {
+        setRpg(prev => ({
+          ...prev,
+          skillTree: localRpg.skillTree,
+          alliesData: localRpg.alliesData
+        }));
+      }
+    }
+  }, [profile?.skill_points, profile?.unlocked_skills, profile?.recruited_allies]);
 
   const save = (newGs) => { setGs(newGs); saveGameState(newGs); };
 
@@ -211,12 +273,32 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     setRpg(prev => ({ ...prev, classData: newClassData }));
   };
 
-  const handleSkillTreeUpdate = (newTree) => {
-    setRpg(prev => ({ ...prev, skillTree: newTree }));
+  const handleSkillTreeUpdate = async (newTree, node) => {
+    if (node) {
+      try {
+        setRpg(prev => ({ ...prev, skillTree: newTree }));
+        const res = await djangoApi.skills.buy(node.id);
+        queryClient.setQueryData(["userprofile"], res.profile);
+      } catch (e) {
+        console.error("Failed to buy skill node:", e);
+      }
+    } else {
+      setRpg(prev => ({ ...prev, skillTree: newTree }));
+    }
   };
 
-  const handleAlliesUpdate = (newAllies) => {
-    setRpg(prev => ({ ...prev, alliesData: newAllies }));
+  const handleAlliesUpdate = async (newAllies, ally) => {
+    if (ally) {
+      try {
+        setRpg(prev => ({ ...prev, alliesData: newAllies }));
+        const res = await djangoApi.allies.recruit(ally.id);
+        queryClient.setQueryData(["userprofile"], res.profile);
+      } catch (e) {
+        console.error("Failed to recruit/upgrade ally:", e);
+      }
+    } else {
+      setRpg(prev => ({ ...prev, alliesData: newAllies }));
+    }
   };
 
   const handleMutatorsUpdate = (newMut) => {
@@ -226,7 +308,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const handlePrestige = async (newPrestige) => {
     setRpg(prev => ({ ...prev, prestige: newPrestige }));
     try {
-      await djangoApi.profile.update({ prestige_count: newPrestige.count });
+      await djangoApi.profile.prestige();
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     } catch (e) {
       console.error("Failed to sync prestige with backend:", e);
@@ -593,9 +675,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded border flex items-center justify-center shrink-0 overflow-hidden"
                     style={{ borderColor: `${dealTierColor}60`, background: "rgba(10,8,6,0.8)", imageRendering: "pixelated" }}>
-                    {dealItem.icon_url
-                      ? <img src={dealItem.icon_url} alt={dealItem.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
-                      : <span className="text-lg">⭐</span>}
+                    <img src={dealItem.icon_url || '/static/items/default.webp'} alt={dealItem.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-mono font-bold" style={{ color: dealTierColor }}>{dealItem.label}</div>
@@ -687,20 +767,14 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                     {/* Icon */}
                     <div className="w-12 h-12 rounded border flex items-center justify-center shrink-0 overflow-hidden z-10 bg-gray-100 dark:bg-gray-800/50"
                       style={{ borderColor: `${tierColor}50`, imageRendering: "pixelated" }}>
-                      {item.icon_url ? (
-                        <motion.div
-                          whileHover={{ scale: 1.15, rotate: [-2, 2, -2, 0] }}
-                          transition={{ duration: 0.3 }}
-                          className="w-full h-full p-1"
-                          style={{ imageRendering: "pixelated" }}
-                        >
-                          <img src={item.icon_url} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
-                        </motion.div>
-                      ) : (
-                        <div className="w-9 h-9 rounded-none border border-border/40 bg-muted/20 flex items-center justify-center font-mono text-xs text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>
-                          {item.label[0]}
-                        </div>
-                      )}
+                      <motion.div
+                        whileHover={{ scale: 1.15, rotate: [-2, 2, -2, 0] }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full h-full p-1"
+                        style={{ imageRendering: "pixelated" }}
+                      >
+                        <img src={item.icon_url || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                      </motion.div>
                     </div>
 
                     <div className="flex-1 min-w-0">

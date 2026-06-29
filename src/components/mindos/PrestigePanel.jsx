@@ -8,7 +8,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const [animating, setAnimating] = useState(false);
 
   const count = prestige?.count || 0;
-  const canPrestige = rankXP >= 9400; // SSS threshold placeholder
+  const canPrestige = rankXP >= 4500;
 
   const confirm = () => {
     if (input !== "REBIRTH") return;
@@ -18,6 +18,9 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
       saveRPGData("mindos_prestige", newPrestige);
       // Reset rank XP
       localStorage.setItem("mindos_rank_xp", JSON.stringify({ rankXP: 0, currentRank: "F", rankHistory: [] }));
+      // Reset activity logs and hidden activities to reset training ranks to F
+      localStorage.removeItem("mindos_activity_logs");
+      localStorage.removeItem("mindos_hidden_activities");
       // Reset mana
       const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
       if (cls.chosen) {
@@ -73,9 +76,9 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
 
         {!canPrestige ? (
           <div className="text-[10px] font-mono text-muted-foreground/40 leading-relaxed">
-            Reach SSS Rank to unlock Prestige. Current: {rankXP.toFixed(0)} / 9400 XP
+            Reach 4500 XP to unlock Prestige. Current: {rankXP.toFixed(0)} / 4500 XP
             <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / 9400) * 100)}%`, background: "#f0c040" }} />
+              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / 4500) * 100)}%`, background: "#f0c040" }} />
             </div>
           </div>
         ) : (
@@ -115,6 +118,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
               <div className="p-3 rounded-lg bg-yellow-900/10 border border-yellow-900/30 space-y-1">
                 <div className="text-yellow-400 font-bold mb-1">YOU WILL GAIN:</div>
                 {[
+                  `All RPG Stats permanently +${(count + 1) * 10}%`,
                   `IQ ceiling permanently +${15 + count * 5}%`,
                   "Loot rarity permanently upgraded",
                   "Enchantment pool expands",

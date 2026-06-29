@@ -12,6 +12,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     equipped = serializers.SerializerMethodField()
     equip_stats = serializers.ReadOnlyField()
     class_stats = serializers.ReadOnlyField()
+    unlocked_skills = serializers.SerializerMethodField()
+    recruited_allies = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -50,10 +52,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "base_def",
             "base_mem",
             "unspent_stat_points",
+            "skill_points",
             "total_stats",
             "created_at",
             "updated_at",
             "rank_xp",
+            "unlocked_skills",
+            "recruited_allies",
         )
         read_only_fields = (
             "id",
@@ -65,6 +70,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "total_stats",
             "created_at",
             "updated_at",
+            "rank_xp",
+            "prestige_count",
+            "gf_ceiling",
+            "gc_ceiling",
+            "ps_ceiling",
+            "vm_ceiling",
+            "damage_multiplier",
+            "gold_multiplier",
+            "xp_multiplier",
         )
 
     def get_xp_progress_percent(self, obj) -> int:
@@ -84,3 +98,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             for inv in obj.inventory_items.all()
             if inv.is_equipped
         ]
+
+    def get_unlocked_skills(self, obj):
+        return [s.skill_code for s in obj.unlocked_skills.all()]
+
+    def get_recruited_allies(self, obj):
+        return {a.ally_code: a.level for a in obj.recruited_allies.all()}

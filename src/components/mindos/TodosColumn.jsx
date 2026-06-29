@@ -10,10 +10,10 @@ import {
 import { djangoApi } from '@/api/djangoClient';
 
 const DIFFICULTIES = [
+  { id: 'trivial',  label: 'Trivial',  color: '#64748b' },
   { id: 'easy',     label: 'Easy',     color: '#22c55e' },
   { id: 'medium',   label: 'Medium',   color: '#f59e0b' },
   { id: 'hard',     label: 'Hard',     color: '#ef4444' },
-  { id: 'critical', label: 'Critical', color: '#a855f7' },
 ];
 
 const CATEGORY_COLORS = {
@@ -23,7 +23,7 @@ const CATEGORY_COLORS = {
   Social: '#a855f7', Mindfulness: '#9944ff',
 };
 
-const TASK_BOSS_DAMAGE = { easy: 25, medium: 50, hard: 75, critical: 100 };
+const TASK_BOSS_DAMAGE = { trivial: 10, easy: 25, medium: 50, hard: 75 };
 
 
 
@@ -106,7 +106,7 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
 
     if (isCompleting) {
       onRankXP?.(xpEarned);
-      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical', combatResult?.boss_defeated);
+      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
 
       const overdueLabel = isOverdue(task) ? ' ⏳ late' : '';
       playSound('gold_earned');

@@ -12,6 +12,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from typing import TYPE_CHECKING
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Профиль персонажа
@@ -33,6 +34,32 @@ class UserProfile(models.Model):
         related_name="profile",
         verbose_name="Пользователь",
     )
+
+    if TYPE_CHECKING:
+        user: User
+        hp: int
+        hp_max: int
+        mana: int
+        mana_max: int
+        gold: int
+        level: int
+        xp: int
+        xp_to_next_level: int
+        character_class: str
+        prestige_count: int
+        damage_multiplier: float
+        gold_multiplier: float
+        xp_multiplier: float
+        rank_xp: int
+        base_pwr: int
+        base_foc: int
+        base_spd: int
+        base_lck: int
+        base_def: int
+        base_mem: int
+        unspent_stat_points: int
+        skill_points: int
+        inventory_items: models.Manager['InventoryItem']
 
     # ── Характеристики персонажа ──────────────────────────────────────────
 
@@ -81,22 +108,28 @@ class UserProfile(models.Model):
     damage_multiplier = models.FloatField(default=1.0, verbose_name="Множитель урона")
     gold_multiplier = models.FloatField(default=1.0, verbose_name="Множитель золота")
     xp_multiplier = models.FloatField(default=1.0, verbose_name="Множитель опыта")
-    rank_xp: int = models.PositiveIntegerField(
+    rank_xp = models.PositiveIntegerField(
         default=0, verbose_name="Опыт ранга (Rank XP)"
     )
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )
+    last_training_at = models.DateField(
+        null=True, blank=True, verbose_name="Последняя тренировка"
+    )
 
     # ── Базовые характеристики (RPG Stats) ───────────────────────────────
-    base_pwr: int = models.PositiveIntegerField(default=5, verbose_name="Power (PWR)")
-    base_foc: int = models.PositiveIntegerField(default=5, verbose_name="Focus (FOC)")
-    base_spd: int = models.PositiveIntegerField(default=5, verbose_name="Speed (SPD)")
-    base_lck: int = models.PositiveIntegerField(default=5, verbose_name="Luck (LCK)")
-    base_def: int = models.PositiveIntegerField(default=5, verbose_name="Defense (DEF)")
-    base_mem: int = models.PositiveIntegerField(default=5, verbose_name="Memory (MEM)")
-    unspent_stat_points: int = models.PositiveIntegerField(
+    base_pwr = models.PositiveIntegerField(default=5, verbose_name="Power (PWR)")
+    base_foc = models.PositiveIntegerField(default=5, verbose_name="Focus (FOC)")
+    base_spd = models.PositiveIntegerField(default=5, verbose_name="Speed (SPD)")
+    base_lck = models.PositiveIntegerField(default=5, verbose_name="Luck (LCK)")
+    base_def = models.PositiveIntegerField(default=5, verbose_name="Defense (DEF)")
+    base_mem = models.PositiveIntegerField(default=5, verbose_name="Memory (MEM)")
+    unspent_stat_points = models.PositiveIntegerField(
         default=0, verbose_name="Нераспределённые очки характеристик"
+    )
+    skill_points = models.PositiveIntegerField(
+        default=0, verbose_name="Очки навыков (SP)"
     )
 
     # Настройки сложности боссов
@@ -192,19 +225,20 @@ class UserProfile(models.Model):
         """
         equip = self.equip_stats
         cls_stats = self.class_stats
+        prestige_mult = 1.0 + (0.10 * self.prestige_count)
         
         return {
-            "pwr": self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0),
-            "foc": self.base_foc + cls_stats["foc"] + equip.get("foc", 0),
-            "spd": self.base_spd + cls_stats["spd"] + equip.get("spd", 0),
-            "lck": self.base_lck + cls_stats["lck"] + equip.get("lck", 0),
-            "def": self.base_def + cls_stats["def"] + equip.get("def", 0),
-            "mem": self.base_mem + cls_stats["mem"] + equip.get("mem", 0),
-            "damage_multiplier": round(self.damage_multiplier + equip["damage_boost"], 4),
-            "gold_multiplier": round(self.gold_multiplier + equip["gold_boost"], 4),
-            "xp_multiplier": round(self.xp_multiplier + equip["xp_boost"], 4),
-            "hp_max": self.hp_max + equip["hp_boost"],
-            "mana_max": self.mana_max + equip["mana_boost"],
+            "pwr": int((self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * prestige_mult),
+            "foc": int((self.base_foc + cls_stats["foc"] + equip.get("foc", 0)) * prestige_mult),
+            "spd": int((self.base_spd + cls_stats["spd"] + equip.get("spd", 0)) * prestige_mult),
+            "lck": int((self.base_lck + cls_stats["lck"] + equip.get("lck", 0)) * prestige_mult),
+            "def": int((self.base_def + cls_stats["def"] + equip.get("def", 0)) * prestige_mult),
+            "mem": int((self.base_mem + cls_stats["mem"] + equip.get("mem", 0)) * prestige_mult),
+            "damage_multiplier": float(round(self.damage_multiplier + equip["damage_boost"], 4)),
+            "gold_multiplier": float(round(self.gold_multiplier + equip["gold_boost"], 4)),
+            "xp_multiplier": float(round(self.xp_multiplier + equip["xp_boost"], 4)),
+            "hp_max": int(self.hp_max + equip["hp_boost"]),
+            "mana_max": int(self.mana_max + equip["mana_boost"]),
         }
 
     def save(self, *args, **kwargs):
@@ -651,4 +685,37 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f"{self.recipe.name}: {self.item.name} x{self.quantity}"
+
+
+class UnlockedSkill(models.Model):
+    user_profile = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name="unlocked_skills", verbose_name="Профиль пользователя"
+    )
+    skill_code = models.CharField(max_length=100, verbose_name="Код навыка")
+    unlocked_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата разблокировки")
+
+    class Meta:
+        verbose_name = "Разблокированный навык"
+        verbose_name_plural = "Разблокированные навыки"
+        unique_together = ("user_profile", "skill_code")
+
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.skill_code}"
+
+
+class RecruitedAlly(models.Model):
+    user_profile = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name="recruited_allies", verbose_name="Профиль пользователя"
+    )
+    ally_code = models.CharField(max_length=100, verbose_name="Код союзника")
+    level = models.PositiveIntegerField(default=1, verbose_name="Уровень союзника")
+    recruited_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата найма")
+
+    class Meta:
+        verbose_name = "Нанятый союзник"
+        verbose_name_plural = "Нанятые союзники"
+        unique_together = ("user_profile", "ally_code")
+
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.ally_code} (Lv {self.level})"
 

@@ -268,13 +268,9 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 <PixelFlash active={isUsed} color={effectColor} />
                 {isUsed && <PixelBurstLayer bursts={bursts} />}
 
-                {/* Icon */}
                 <div className="shrink-0 w-10 h-10 rounded-none border overflow-hidden relative"
                   style={{ imageRendering: "pixelated", background: "#0a0818", borderColor: `${effectColor}60` }}>
-                  {ITEM_ICON_MAP[item.id]
-                    ? <img src={ITEM_ICON_MAP[item.id]} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
-                    : <div className="w-full h-full flex items-center justify-center font-mono text-xs" style={{ color: effectColor }}>{item.label[0]}</div>
-                  }
+                  <img src={item.icon_url || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                   {count > 1 && (
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-mono font-black"
                       style={{ background: effectColor, color: "#000" }}>{count}</div>
