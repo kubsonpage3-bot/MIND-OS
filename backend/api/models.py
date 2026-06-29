@@ -35,32 +35,6 @@ class UserProfile(models.Model):
         verbose_name="Пользователь",
     )
 
-    if TYPE_CHECKING:
-        user: User
-        hp: int
-        hp_max: int
-        mana: int
-        mana_max: int
-        gold: int
-        level: int
-        xp: int
-        xp_to_next_level: int
-        character_class: str
-        prestige_count: int
-        damage_multiplier: float
-        gold_multiplier: float
-        xp_multiplier: float
-        rank_xp: int
-        base_pwr: int
-        base_foc: int
-        base_spd: int
-        base_lck: int
-        base_def: int
-        base_mem: int
-        unspent_stat_points: int
-        skill_points: int
-        inventory_items: models.Manager['InventoryItem']
-
     # ── Характеристики персонажа ──────────────────────────────────────────
 
     # Здоровье (Hit Points): текущее и максимальное
@@ -242,32 +216,6 @@ class UserProfile(models.Model):
         }
 
     def save(self, *args, **kwargs):
-        # Если здоровье опускается до 0, автоматически запускаем понижение ранга
-        if self.hp == 0:
-            self.hp = self.hp_max
-
-            RANK_THRESHOLDS = [
-                {"id": "F", "min": 0},
-                {"id": "D", "min": 50},
-                {"id": "C", "min": 150},
-                {"id": "B", "min": 400},
-                {"id": "A", "min": 800},
-                {"id": "S", "min": 1500},
-                {"id": "SS", "min": 2500},
-                {"id": "SSS", "min": 4000},
-            ]
-
-            current_rank_idx = 0
-            for i, r in enumerate(RANK_THRESHOLDS):
-                if self.rank_xp >= r["min"]:
-                    current_rank_idx = i
-
-            if current_rank_idx > 0:
-                new_rank_idx = current_rank_idx - 1
-                self.rank_xp = RANK_THRESHOLDS[new_rank_idx]["min"]
-            else:
-                self.rank_xp = 0
-
         super().save(*args, **kwargs)
 
 
@@ -278,9 +226,54 @@ class UserProfile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Создаёт UserProfile при регистрации нового пользователя."""
+    """Создаёт UserProfile и UserStats при регистрации нового пользователя."""
     if created:
         UserProfile.objects.create(user=instance)
+        UserStats.objects.create(user=instance)
+
+
+class UserStats(models.Model):
+    """
+    Cumulative statistics for achievements and tracking.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="stats")
+    
+    total_tasks_completed = models.PositiveIntegerField(default=0)
+    max_streak = models.PositiveIntegerField(default=0)
+    total_boss_damage = models.PositiveIntegerField(default=0)
+    bosses_defeated = models.PositiveIntegerField(default=0)
+    total_gold_earned = models.PositiveIntegerField(default=0)
+    prayer_sessions = models.PositiveIntegerField(default=0)
+    total_crits = models.PositiveIntegerField(default=0)
+    allies_recruited = models.PositiveIntegerField(default=0)
+    ally_max_level = models.PositiveIntegerField(default=0)
+    unique_subjects = models.JSONField(default=list, blank=True)
+    highest_subject_rank = models.PositiveIntegerField(default=0)
+    prayer_rank = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Статистика пользователя"
+        verbose_name_plural = "Статистика пользователей"
+
+    def __str__(self):
+        return f"Stats for {self.user.username}"
+
+
+class UserAchievement(models.Model):
+    """
+    Records unlocked achievements so they are only claimed once.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="achievements")
+    achievement_id = models.CharField(max_length=100)
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "achievement_id")
+        verbose_name = "Достижение пользователя"
+        verbose_name_plural = "Достижения пользователей"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.achievement_id}"
 
 
 @receiver(post_save, sender=User)
@@ -350,7 +343,7 @@ class Task(models.Model):
     )
 
     # Числовое значение сложности (для кастомных наград)
-    value: float = models.FloatField(
+    value = models.FloatField(
         default=1.0,
         verbose_name="Значение сложности",
         help_text="Множитель наград: 1.0 = норма, 2.0 = двойная награда",
@@ -359,7 +352,7 @@ class Task(models.Model):
     # ── Состояние задачи ──────────────────────────────────────────────────
 
     # Выполнена ли задача (для TODO)
-    is_completed: bool = models.BooleanField(default=False, verbose_name="Выполнено")
+    is_completed = models.BooleanField(default=False, verbose_name="Выполнено")
 
     # Дата выполнения дейлика (для сброса статуса)
     last_completed_at = models.DateTimeField(

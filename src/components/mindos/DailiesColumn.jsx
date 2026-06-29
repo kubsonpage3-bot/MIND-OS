@@ -77,7 +77,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
 
   const completeDaily = async (task) => {
-    const isCompleting = !task.completedToday;
+    const isCompleting = !task.is_completed;
     playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
     let combatResult = null;
@@ -187,23 +187,23 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
           {tasks.map(task => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
-            const tv = task.rpgValue ?? 0;
+            const tv = task.value ?? task.rpgValue ?? 0;
             const tvColor = getTaskValueColor(tv);
 
             return (
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: task.completedToday ? 0.5 : 1, y: 0 }}
+                animate={{ opacity: task.is_completed ? 0.5 : 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
-                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.completedToday ? '' : 'task-card bg-white dark:bg-gray-900'}`}
+                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.is_completed ? '' : 'task-card bg-white dark:bg-gray-900'}`}
                 style={{
                   border: '1px solid var(--habit-border)'
                 }}
                 onClick={() => completeDaily(task)}
               >
                 {/* Task Value bar */}
-                {!task.completedToday && (
+                {!task.is_completed && (
                   <motion.div
                     animate={{ background: tvColor }}
                     transition={{ duration: 0.6 }}
@@ -214,17 +214,17 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
                 {/* Checkbox */}
                 <div className="shrink-0">
-                  {task.completedToday
+                  {task.is_completed
                     ? <CheckSquare size={20} strokeWidth={2} style={{ color: 'var(--habit-purple)' }} />
                     : <Square size={20} strokeWidth={2} style={{ color: 'var(--habit-dim)' }} />}
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className={`truncate ${task.completedToday ? '' : 'text-gray-900 dark:text-gray-100'}`} style={{
+                  <div className={`truncate ${task.is_completed ? '' : 'text-gray-900 dark:text-gray-100'}`} style={{
                     fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-                    color: task.completedToday ? 'var(--habit-dim)' : undefined,
-                    textDecoration: task.completedToday ? 'line-through' : 'none',
+                    color: task.is_completed ? 'var(--habit-dim)' : undefined,
+                    textDecoration: task.is_completed ? 'line-through' : 'none',
                   }}>
                     {task.name}
                   </div>

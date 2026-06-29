@@ -24,6 +24,7 @@ from .views import (
     ToggleEquipView,
     BuySkillView,
     RecruitAllyView,
+    CombatSyncView,
 )
 
 # â€”â€”â€” DRF Router Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð³ÐµÐ½ÐµÑ€Ð¸Ñ€ÑƒÐµÑ‚ CRUD-Ð¼Ð°Ñ€ÑˆÑ€ÑƒÑ‚Ñ‹ â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
@@ -58,6 +59,7 @@ urlpatterns = [
     path("combat/bosses/", BossListView.as_view(), name="combat-bosses"),
     path("combat/encounters/", BossEncounterView.as_view(), name="combat-encounters"),
     path("combat/summon/", BossSummonView.as_view(), name="combat-summon"),
+    path("combat/sync/", CombatSyncView.as_view(), name="combat-sync"),
     # Ã¢â€ â‚¬Ã¢â€ â‚¬ Ã Â¢Ã‘â‚¬Ã ÂµÃ Â½Ã Â¸Ã‘â‚¬Ã Â¾Ã Â²Ã ÂºÃ Â¸ Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬
     path("training/log/", TrainingLogView.as_view(), name="training-log"),
     path("skills/buy/", BuySkillView.as_view(), name="skill-buy"),

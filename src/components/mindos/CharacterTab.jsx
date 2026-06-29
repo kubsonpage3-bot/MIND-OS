@@ -207,19 +207,21 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Map inventory and equipment from profile
   const rawInventory = profile?.inventory || [];
-  const inventory = rawInventory.map(ri => {
+  const inventory = Array.isArray(rawInventory) ? rawInventory.map(ri => {
     const found = shopItems.find(i => i.id === ri.id);
     return found ? { ...found, ...ri } : ri;
-  });
+  }) : [];
   
   const rawEquipped = profile?.equipped || [];
   const equipped = {};
-  rawEquipped.forEach(eq => {
-    const found = shopItems.find(i => i.id === eq.code);
-    if (found && found.slot) {
-      equipped[found.slot] = found;
-    }
-  });
+  if (Array.isArray(rawEquipped)) {
+    rawEquipped.forEach(eq => {
+      const found = shopItems.find(i => i.id === eq.code);
+      if (found && found.slot) {
+        equipped[found.slot] = found;
+      }
+    });
+  }
 
   // Equipped stats breakdown
   const equipStats = profile?.equip_stats || { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
@@ -378,7 +380,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     const prevProfile = queryClient.getQueryData(["userprofile"]);
     if (prevProfile) {
       // Toggle logic for optimistic update
-      const newInventory = (prevProfile.inventory || []).map(i => {
+      const newInventory = (Array.isArray(prevProfile.inventory) ? prevProfile.inventory : []).map(i => {
         if (i.id === item.id) return { ...i, is_equipped: !i.is_equipped };
         if (i.slot === item.slot && !item.is_equipped) return { ...i, is_equipped: false };
         return i;

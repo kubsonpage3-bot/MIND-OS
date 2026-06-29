@@ -132,6 +132,20 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
 
     active_encounter.save()
     
+    # Update UserStats
+    from api.models import UserStats
+    try:
+        stats = user.stats
+    except UserStats.DoesNotExist:
+        stats = UserStats.objects.create(user=user)
+        
+    stats.total_boss_damage += final_damage_dealt
+    if is_crit:
+        stats.total_crits += 1
+    if boss_defeated:
+        stats.bosses_defeated += 1
+    stats.save(update_fields=['total_boss_damage', 'total_crits', 'bosses_defeated'])
+    
     return {
         "damage_dealt": final_damage_dealt,
         "boss_hp_remaining": active_encounter.hp_current,

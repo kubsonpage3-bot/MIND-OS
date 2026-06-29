@@ -32,15 +32,19 @@ def gain_xp(profile: UserProfile, amount: int) -> bool:
 
 
 @transaction.atomic
-def check_rank_demotion(user_profile: UserProfile):
+def check_death(profile: UserProfile) -> bool:
     """
-    Проверяет, не упало ли HP до 0, и понижает ранг, если нужно.
-    Вызывается после получения урона.
+    Проверяет, не упало ли HP до 0.
+    Если да: восстанавливает HP, сбрасывает XP, понижает уровень и ранг.
+    Возвращает True если персонаж умер.
     """
-    profile = UserProfile.objects.select_for_update().get(id=user_profile.id)
-
+    has_died = False
     if profile.hp <= 0:
+        print(f"[DEATH HANDLER] {profile.user.username} died! HP dropped to {profile.hp}.")
+        has_died = True
         profile.hp = profile.hp_max
+        profile.xp = 0
+        profile.level = max(1, profile.level - 1)
 
         current_rank_idx = 0
         for i, r in enumerate(RANK_THRESHOLDS):
@@ -53,4 +57,6 @@ def check_rank_demotion(user_profile: UserProfile):
         else:
             profile.rank_xp = 0
 
-        profile.save(update_fields=["hp", "rank_xp"])
+        profile.save(update_fields=["hp", "xp", "level", "rank_xp"])
+
+    return has_died

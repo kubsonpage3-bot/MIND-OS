@@ -179,6 +179,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "mana_gained": result.get("mana_gained", 0),
                     "penalty": result.get("penalty"),
                     "died": result.get("died", False),
+                    "is_dead": result.get("died", False),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -206,6 +207,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "fired": result.get("fired", False),
                     "total_dmg": result.get("total_dmg", 0),
                     "died": result.get("died", False),
+                    "is_dead": result.get("died", False),
                     "log": result.get("log", []),
                     "profile": UserProfileSerializer(result["profile"]).data,
                 },
@@ -785,3 +787,59 @@ class CraftItemView(generics.GenericAPIView):
             "item": ItemSerializer(result_item).data,
             "profile": UserProfileSerializer(profile).data,
         }, status=status.HTTP_201_CREATED)
+
+
+class CombatSyncView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from django.db import transaction
+        from api.models import UserProfile, UserStats
+        from api.services.achievement_service import check_and_grant_achievements
+        from api.serializers.profile import UserProfileSerializer
+
+        data = request.data
+        damage_dealt = int(data.get("damage_dealt", 0))
+        damage_taken = int(data.get("damage_taken", 0))
+        crits = int(data.get("crits", 0))
+        time_elapsed_sec = int(data.get("time_elapsed_sec", 0))
+
+        if damage_dealt <= 0 and crits <= 0 and damage_taken <= 0:
+            return Response({"detail": "No combat data to sync."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            stats_dict = profile.total_stats
+            pwr = stats_dict.get("pwr", 0)
+            max_dps = (10 + pwr) * profile.damage_multiplier * 10
+            sanity_limit = max(1000, max_dps * time_elapsed_sec * 1.15)
+            
+            if time_elapsed_sec > 0 and damage_dealt > sanity_limit:
+                damage_dealt = int(sanity_limit)
+                
+            is_dead = False
+            if damage_taken > 0:
+                profile.hp = max(0, profile.hp - damage_taken)
+                from api.services.profile_service import check_death
+                is_dead = check_death(profile)
+                if not is_dead:
+                    profile.save(update_fields=['hp'])
+
+            try:
+                stats = request.user.stats
+            except UserStats.DoesNotExist:
+                stats = UserStats.objects.create(user=request.user)
+
+            stats.total_boss_damage += damage_dealt
+            stats.total_crits += crits
+            stats.save(update_fields=['total_boss_damage', 'total_crits'])
+
+            unlocked_achievements = check_and_grant_achievements(request.user)
+            profile.refresh_from_db()
+
+            return Response({
+                "detail": "Combat synced.",
+                "profile": UserProfileSerializer(profile).data,
+                "unlocked_achievements": unlocked_achievements,
+                "is_dead": is_dead
+            }, status=status.HTTP_200_OK)

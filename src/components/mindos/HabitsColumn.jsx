@@ -30,7 +30,6 @@ const TASK_BOSS_DAMAGE = { trivial: 10, easy: 25, medium: 50, hard: 75 };
 export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
   const tasks = habits;
-  const [deathMsg, setDeathMsg] = useState(null);
 
   const { data: profile } = useQuery({ queryKey: ["userprofile"], queryFn: djangoApi.profile.get });
   const hp = profile?.hp ?? 100;
@@ -69,13 +68,6 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         // Check !== undefined to correctly parse exactly 0 if backend sent it, otherwise use actual damage
         if (res?.penalty?.hp !== undefined) {
           dmg = Math.round(Math.abs(res.penalty.hp));
-        }
-
-        // Check if died on server
-        if (res?.died) {
-          setDeathMsg(`💀 You died! HP restored to max. Stay strong.`);
-          setTimeout(() => setDeathMsg(null), 5000);
-          playSound('death');
         }
 
         if (dmg > 0) {
@@ -128,15 +120,6 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
       {/* Death banner */}
       <AnimatePresence>
-        {deathMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            className="px-3 py-2 text-center text-xs font-bold"
-            style={{ background: '#1a0000', color: '#ff4444', fontFamily: "'Press Start 2P'", fontSize: 8 }}
-          >
-            {deathMsg}
-          </motion.div>
-        )}
       </AnimatePresence>
 
       {/* Task list */}
@@ -151,7 +134,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
           {tasks.map(task => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
-            const tv = task.rpgValue ?? 0;
+            const tv = task.value ?? task.rpgValue ?? 0;
             const tvColor = getTaskValueColor(tv);
             const con = getConStat();
             const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);

@@ -1035,3 +1035,17 @@ WARNING 2026-06-29 13:35:41,112 log 20088 9160 "GET /static/items/default.webp H
 WARNING 2026-06-29 13:41:52,915 log 20088 10040 "GET /static/items/default.webp HTTP/1.1" 404 1981
 WARNING 2026-06-29 13:41:59,771 log 20088 20932 "GET /static/items/default.webp HTTP/1.1" 404 1981
 WARNING 2026-06-29 13:44:54,486 log 20088 9844 "GET /static/items/default.webp HTTP/1.1" 404 1981
+WARNING 2026-06-29 14:11:47,967 log 23032 24232 Unauthorized: /api/profile/
+WARNING 2026-06-29 14:11:47,968 log 23032 24232 "GET /api/profile/ HTTP/1.1" 401 226
+WARNING 2026-06-29 14:14:58,746 log 25144 28504 Bad Request: /api/tasks/22/complete/
+WARNING 2026-06-29 14:14:58,747 log 25144 28504 "POST /api/tasks/22/complete/ HTTP/1.1" 400 54
+WARNING 2026-06-29 14:15:00,248 log 25144 28504 Bad Request: /api/tasks/22/complete/
+WARNING 2026-06-29 14:15:00,250 log 25144 28504 "POST /api/tasks/22/complete/ HTTP/1.1" 400 54
+WARNING 2026-06-29 14:15:00,798 log 25144 28504 Bad Request: /api/tasks/21/complete/
+WARNING 2026-06-29 14:15:00,799 log 25144 28504 "POST /api/tasks/21/complete/ HTTP/1.1" 400 54
+WARNING 2026-06-29 14:15:01,352 log 25144 28504 Bad Request: /api/tasks/20/complete/
+WARNING 2026-06-29 14:15:01,353 log 25144 28504 "POST /api/tasks/20/complete/ HTTP/1.1" 400 54
+WARNING 2026-06-29 14:15:41,989 log 25144 28052 Bad Request: /api/tasks/22/complete/
+WARNING 2026-06-29 14:15:41,991 log 25144 28052 "POST /api/tasks/22/complete/ HTTP/1.1" 400 54
+WARNING 2026-06-29 14:15:42,757 log 25144 28052 Bad Request: /api/tasks/22/complete/
+WARNING 2026-06-29 14:15:42,758 log 25144 28052 "POST /api/tasks/22/complete/ HTTP/1.1" 400 54

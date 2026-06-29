@@ -1,9 +1,8 @@
-export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ||
-  (import.meta.env.DEV
-    ? 'http://localhost:8000'
-    : 'https://mind-os-d5sk.onrender.com');
+export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || 
+  (import.meta.env.DEV ? 'http://localhost:8000' : '');
 
-const BASE_URL = import.meta.env.VITE_API_URL || `${API_ORIGIN}/api`;
+const BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.DEV ? `${API_ORIGIN}/api` : '/api');
 
 function apiUrl(endpoint) {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
@@ -67,7 +66,19 @@ export async function djangoFetch(endpoint, options = {}) {
     // Return JSON if present, otherwise empty object/text
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+      const data = await response.json();
+      
+      // Intercept unlocked achievements and broadcast them globally
+      if (data?.unlocked_achievements?.length > 0) {
+        window.dispatchEvent(new CustomEvent("mindos-achievements-unlocked", { detail: data.unlocked_achievements }));
+      }
+      
+      // Intercept death and broadcast it globally
+      if (data?.is_dead) {
+        window.dispatchEvent(new CustomEvent("mindos-death"));
+      }
+      
+      return data;
     }
     return await response.text();
   } catch (error) {
@@ -267,6 +278,11 @@ export const djangoApi = {
       djangoFetch('/combat/summon/', {
         method: 'POST',
         body: JSON.stringify({ boss_id: bossId, cost }),
+      }),
+    sync: (data) =>
+      djangoFetch('/combat/sync/', {
+        method: 'POST',
+        body: JSON.stringify(data),
       }),
   },
 

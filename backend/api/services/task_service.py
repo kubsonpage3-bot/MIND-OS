@@ -3,7 +3,7 @@ from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from api.models import Task, UserProfile, Item, InventoryItem
 from api.services.skill_service import apply_effects_on_task_complete
-from api.services.profile_service import gain_xp, check_rank_demotion
+from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
 
 
@@ -89,8 +89,9 @@ def complete_task(user, task_id, is_positive=True):
             else:
                 profile.hp -= final_damage
             profile.save(update_fields=["hp"])
-            if died:
-                check_rank_demotion(profile)
+            
+            died = check_death(profile)
+            
             task.save()
             return {
                 "detail": "Habit deviation noted.",
@@ -101,6 +102,7 @@ def complete_task(user, task_id, is_positive=True):
                 "rewards": {"xp": 0, "gold": 0},
                 "skill_effects": [],
                 "died": died,
+                "is_dead": died,
                 "gamification_result": outcome,
             }
 
@@ -196,57 +198,70 @@ def complete_task(user, task_id, is_positive=True):
 
     # ── Боевая система: Наносим урон боссу ────────────────────────────
     from api.services.mechanics import apply_boss_damage
+    from api.services.achievement_service import check_and_grant_achievements
+    from api.models import UserStats
 
     combat_result = None
+    unlocked_achievements = []
     
     if is_positive:
-        # 1. Урон от статов 
+        # Update UserStats
+        try:
+            stats = user.stats
+        except UserStats.DoesNotExist:
+            stats = UserStats.objects.create(user=user)
+            
+        stats.total_tasks_completed += 1
+        
+        if getattr(task, 'streak', 0) > stats.max_streak:
+            stats.max_streak = task.streak
+            
+        stats.total_gold_earned += final_gold
+        
+        category = getattr(task, 'category', getattr(task, 'tags', None))
+        if category == "Prayer/Meditation":
+            stats.prayer_sessions += 1
+            
+        if category:
+            subjects = stats.unique_subjects if isinstance(stats.unique_subjects, list) else []
+            if category not in subjects:
+                subjects.append(category)
+                stats.unique_subjects = subjects
+                
+        stats.save(update_fields=['total_tasks_completed', 'max_streak', 'total_gold_earned', 'prayer_sessions', 'unique_subjects'])
+        
+        # Урон от статов 
         damage_dealt = gamification_result.get("damage_dealt", 0)
         
-        # 2. Базовый урон от сложности (Easy, Medium, Hard)
+        # Базовый урон от сложности (Easy, Medium, Hard)
         base_dmg_map = {"trivial": 15, "easy": 25, "medium": 50, "hard": 75}
         base_dmg = base_dmg_map.get(task.difficulty, 25)
         
-        # ИЗВЛЕКАЕМ ТИП И РАНГ (Безопасно, чтобы не сломать БД)
         task_type = getattr(task, "task_type", "habit")
         
         if task_type == "training":
-            # ПРОГРЕССИЯ ТРЕНИРОВОК: Балансируем под огромный урон от привычек
-            # Ранги выступают в роли мощного множителя базы, чтобы пробивать 20к ХП
             rank_multipliers = {
-                "F": 1.0,    # База x1
-                "E": 2.5,    # База x2.5
-                "D": 5.0,    # База x5
-                "C": 8.0,    # База x8
-                "B": 12.0,   # База x12
-                "A": 18.0,   # База x18 (Hard: 75 * 18 = 1350 урона)
-                "S": 25.0    # База x25 (Hard: 75 * 25 = 1875 урона)
+                "F": 1.0, "E": 2.5, "D": 5.0, "C": 8.0, "B": 12.0, "A": 18.0, "S": 25.0
             }
-            
             task_rank = getattr(task, "rank", "F").upper()
             rank_multiplier = rank_multipliers.get(task_rank, 1.0)
-            
-            # Итоговый базовый урон для тренировки
             task_base_dmg = int(base_dmg * rank_multiplier)
-            
         else:
-            # ОБЫЧНЫЕ ПРИВЫЧКИ (ОСТАВЛЯЕМ СТАРУЮ ФОРМУЛУ КАК ЕСТЬ)
-            # Умножаем напрямую на value (избегаем отрицательного урона)
             task_value = max(0.0, getattr(task, "value", 1.0))
             task_base_dmg = int(base_dmg * task_value)
 
-        # 3. ФИНАЛЬНЫЙ УРОН = (Урон задачи + Статы) * Множитель профиля
         final_damage_dealt = max(0, int((task_base_dmg + damage_dealt) * profile.damage_multiplier))
-        
         is_crit = gamification_result.get("is_crit", False)
         
         combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
         
-        # Add to total rewards response if boss was defeated
         if combat_result and combat_result.get("boss_defeated"):
             boss_rewards = combat_result.get("rewards", {})
             rewards["xp"] += boss_rewards.get("boss_xp", 0)
             rewards["gold"] += boss_rewards.get("boss_gold", 0)
+
+        # Check achievements at the very end
+        unlocked_achievements = check_and_grant_achievements(user)
 
     return {
         "detail": "Task completed!",
@@ -260,6 +275,7 @@ def complete_task(user, task_id, is_positive=True):
         "gold_earned": rewards["gold"] if is_positive else -rewards.get("gold", 0),
         "mana_gained": mana_gained if is_positive else -mana_gained,
         "gamification_result": gamification_result,
+        "unlocked_achievements": unlocked_achievements,
     }
 
 
@@ -339,21 +355,17 @@ def process_missed_tasks(user):
 
         task.save()
 
-    died = False
-    if total_dmg > 0:
-        profile.hp = max(0, profile.hp - total_dmg)
-        if profile.hp == 0:
-            died = True
-
+    profile.hp = max(0, profile.hp - total_dmg)
     profile.last_daily_cron_at = today
     profile.save(update_fields=["hp", "last_daily_cron_at"])
-    if died:
-        check_rank_demotion(profile)
+
+    died = check_death(profile)
 
     return {
         "fired": True,
         "total_dmg": total_dmg,
         "profile": profile,
+        "is_dead": died,
         "log": log,
         "died": died,
     }
