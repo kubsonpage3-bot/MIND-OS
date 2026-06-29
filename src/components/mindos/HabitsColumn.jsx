@@ -37,6 +37,11 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
   const completeMutation = useMutation({
     mutationFn: (/** @type {any} */ { task, positive }) => djangoApi.tasks.complete(task.id, positive),
+    onMutate: async ({ task, positive }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previousTasks = queryClient.getQueryData(["tasks"]);
+      return { previousTasks };
+    },
     onSuccess: (/** @type {any} */ res, /** @type {any} */ { task, positive }) => {
       console.log("--> RAW BACKEND RESPONSE:", res);
       console.log("--> PENALTY VALUE:", res?.penalty?.hp);
@@ -78,8 +83,11 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       console.error('Django habit complete failed:', error);
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       const errorMsg = error?.["data"]?.detail || error.message || "Task could not be updated on server";
       showRewardToast({ label: `Error: ${errorMsg}` });
@@ -160,15 +168,21 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                 <div className="flex flex-col gap-1 shrink-0">
                   <motion.button
                     whileTap={{ scale: 0.8 }}
-                    onClick={() => habitClick(task, true)}
+                    onClick={() => {
+                      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                      habitClick(task, true);
+                    }}
                     className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-base"
-                    style={{ background: '#22c55e' }}
+                    style={{ background: '#22c55e', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
                   >+</motion.button>
                   <motion.button
                     whileTap={{ scale: 0.8 }}
-                    onClick={() => habitClick(task, false)}
+                    onClick={() => {
+                      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                      habitClick(task, false);
+                    }}
                     className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base"
-                    style={{ background: '#ef4444', color: 'white' }}
+                    style={{ background: '#ef4444', color: 'white', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
                   >−</motion.button>
                 </div>
 

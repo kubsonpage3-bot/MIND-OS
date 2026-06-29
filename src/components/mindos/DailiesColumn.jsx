@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
@@ -76,97 +76,98 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
 
 
-  const completeDaily = async (task) => {
-    const isCompleting = !task.is_completed;
-    console.log(`[DAILY DEBUG] task.id=${task.id} task.is_completed=${task.is_completed} → sending is_positive=${isCompleting}`);
-    playSound(isCompleting ? 'task_complete' : 'habit_negative');
+  const completeMutation = useMutation({
+    mutationFn: async ({ task, isCompleting }) => {
+      const res = await djangoApi.tasks.complete(task.id, isCompleting);
+      return { res, task, isCompleting };
+    },
+    onMutate: async ({ task, isCompleting }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previousTasks = queryClient.getQueryData(["tasks"]);
 
-    let combatResult = null;
-    let xpEarned = 0;
-    let goldEarned = 0;
-    let res = null;
+      // Optimistic Update
+      queryClient.setQueryData(["tasks"], (old) => {
+        if (!old) return old;
+        const patchedTask = {
+          ...task,
+          is_completed: isCompleting,
+          done: isCompleting,
+          completedToday: isCompleting
+        };
+        if (Array.isArray(old)) {
+          return old.map((t) => (t.id === task.id ? patchedTask : t));
+        }
+        if (old.results) {
+          return { ...old, results: old.results.map((t) => (t.id === task.id ? patchedTask : t)) };
+        }
+        return old;
+      });
 
-    if (task.id > 1000000000 || typeof task.id === 'string') {
-      console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
-      showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
-      // Remove this invalid task locally
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      return;
-    }
+      playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
-    try {
-      console.log('Sending daily complete for ID:', task.id);
-      res = await djangoApi.tasks.complete(task.id, isCompleting);
-      if (res && res.combat) {
-        combatResult = res.combat;
-      }
-      if (res && res.xp_earned) xpEarned = res.xp_earned;
-      if (res && res.gold_earned) goldEarned = res.gold_earned;
-      if (res && res.profile) {
-        queryClient.setQueryData(["userprofile"], res.profile);
-      }
-      // Instantly patch the cache with the authoritative task state from the server response.
-      // Map res.task from Django format to frontend format before writing to cache,
-      // so is_completed is correctly preserved for the next click.
-      if (res && res.task) {
+      return { previousTasks };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(["tasks"], context.previousTasks);
+      const errorMsg = err.data?.detail || err.message || "Task could not be updated on server";
+      showRewardToast({ label: `Error: ${errorMsg}` });
+    },
+    onSuccess: ({ res, task, isCompleting }) => {
+      if (res?.profile) queryClient.setQueryData(["userprofile"], res.profile);
+      
+      // Update cache with authoritative response
+      if (res?.task) {
         const dt = res.task;
         const patchedTask = {
-          id: dt.id,
-          type: dt.task_type || 'daily',
-          name: dt.title || 'Task',
-          category: 'Coding',
-          difficulty: dt.difficulty || 'medium',
-          notes: dt.notes || '',
-          done: dt.is_completed || false,
-          is_completed: dt.is_completed || false,
-          completedToday: dt.is_completed || false,
-          last_completed_at: dt.last_completed_at || null,
-          rpgValue: dt.value || 0,
-          value: dt.value || 0,
-          streak: dt.streak || 0,
-          posStreak: dt.pos_streak || 0,
-          negStreak: dt.neg_streak || 0,
-          createdAt: dt.created_at,
+          id: dt.id, type: dt.task_type || 'daily', name: dt.title || 'Task', category: 'Coding',
+          difficulty: dt.difficulty || 'medium', notes: dt.notes || '', done: dt.is_completed || false,
+          is_completed: dt.is_completed || false, completedToday: dt.is_completed || false,
+          last_completed_at: dt.last_completed_at || null, rpgValue: dt.value || 0, value: dt.value || 0,
+          streak: dt.streak || 0, posStreak: dt.pos_streak || 0, negStreak: dt.neg_streak || 0, createdAt: dt.created_at,
         };
-        queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
+        queryClient.setQueryData(["tasks"], (old) => {
           if (!old) return old;
-          if (Array.isArray(old)) {
-            return old.map((t) => (t.id === patchedTask.id ? patchedTask : t));
-          }
-          if (old.results) {
-            return { ...old, results: old.results.map((t) => (t.id === patchedTask.id ? patchedTask : t)) };
-          }
+          if (Array.isArray(old)) return old.map((t) => (t.id === patchedTask.id ? patchedTask : t));
+          if (old.results) return { ...old, results: old.results.map((t) => (t.id === patchedTask.id ? patchedTask : t)) };
           return old;
         });
       }
+
+      // Handle rewards
+      const combatResult = res?.combat;
+      const xpEarned = res?.xp_earned || 0;
+      const goldEarned = res?.gold_earned || 0;
+      const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+      const effectNotes = combatResult?.effect_notes || [];
+      const isCrit = res?.gamification_result?.is_crit || false;
+      const itemDropped = res?.gamification_result?.item_dropped || null;
+
+      if (isCompleting) {
+        onRankXP?.(xpEarned);
+        if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
+        playSound('gold_earned');
+        showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name, isCrit, itemDropped });
+      } else {
+        onRankXP?.(-xpEarned);
+        showRewardToast({ label: `Reverted: ${task.name}` });
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }
+  });
 
-    } catch (e) {
-      console.error('Django daily complete failed:', e);
+  const completeDaily = (task) => {
+    if (task.id > 1000000000 || typeof task.id === 'string') {
+      console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
+      showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      const errorMsg = e.data?.detail || e.message || "Task could not be updated on server";
-      showRewardToast({ label: `Error: ${errorMsg}` });
       return;
     }
-
-    const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
-    const effectNotes = combatResult?.effect_notes || [];
-    const isCrit = res?.gamification_result?.is_crit || false;
-    const itemDropped = res?.gamification_result?.item_dropped || null;
-
-    if (isCompleting) {
-      onRankXP?.(xpEarned);
-      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
-
-      playSound('gold_earned');
-      showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name, isCrit, itemDropped });
-    } else {
-      onRankXP?.(-xpEarned);
-      showRewardToast({ label: `Reverted: ${task.name}` });
-    }
-
-
+    const isCompleting = !task.is_completed;
+    console.log(`[DAILY DEBUG] task.id=${task.id} task.is_completed=${task.is_completed} → sending is_positive=${isCompleting}`);
+    completeMutation.mutate({ task, isCompleting });
   };
 
   const deleteTask = async (id) => {
@@ -235,7 +236,10 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                 style={{
                   border: '1px solid var(--habit-border)'
                 }}
-                onClick={() => completeDaily(task)}
+                onClick={() => {
+                  if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                  completeDaily(task);
+                }}
               >
                 {/* Task Value bar */}
                 {!task.is_completed && (

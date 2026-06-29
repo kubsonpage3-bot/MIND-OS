@@ -12,6 +12,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.functional import cached_property
 from typing import TYPE_CHECKING
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -162,7 +163,7 @@ class UserProfile(models.Model):
             
         return self.CLASS_STAT_BONUSES.get(class_id, {"pwr": 0, "def": 0, "foc": 0, "mem": 0, "spd": 0, "lck": 0})
 
-    @property
+    @cached_property
     def equip_stats(self) -> dict:
         """
         SSOT: Считает суммарные бонусы от ВСЕГО экипированного снаряжения.
@@ -191,7 +192,7 @@ class UserProfile(models.Model):
                     
         return totals
 
-    @property
+    @cached_property
     def total_stats(self) -> dict:
         """
         SSOT: Возвращает итоговые характеристики персонажа
@@ -395,6 +396,10 @@ class Task(models.Model):
         verbose_name_plural = "Задачи"
         # По умолчанию сортируем: сначала порядок, потом дата создания
         ordering = ["order", "-created_at"]
+        indexes = [
+            models.Index(fields=['user', 'task_type']),
+            models.Index(fields=['user', 'is_completed']),
+        ]
 
     def __str__(self):
         status = "✓" if self.is_completed else "○"

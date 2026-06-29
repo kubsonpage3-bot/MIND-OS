@@ -1,6 +1,6 @@
 import { Plus, Trash2, CheckSquare, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
@@ -59,65 +59,69 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
 
   // Сохранить задекейнные задачи при монтировании
 
-  const completeTodo = async (task) => {
-    const isCompleting = !task.done;
-    playSound(isCompleting ? 'task_complete' : 'habit_negative');
+  const completeMutation = useMutation({
+    mutationFn: async ({ task, isCompleting }) => {
+      const res = await djangoApi.tasks.complete(task.id, isCompleting);
+      return { res, task, isCompleting };
+    },
+    onMutate: async ({ task, isCompleting }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previousTasks = queryClient.getQueryData(["tasks"]);
 
-    let combatResult = null;
-    let xpEarned = 0;
-    let goldEarned = 0;
-    let res = null;
+      queryClient.setQueryData(["tasks"], (old) => {
+        if (!old) return old;
+        const patchedTask = { ...task, done: isCompleting, is_completed: isCompleting };
+        if (Array.isArray(old)) return old.map(t => t.id === task.id ? patchedTask : t);
+        if (old.results) return { ...old, results: old.results.map(t => t.id === task.id ? patchedTask : t) };
+        return old;
+      });
 
+      playSound(isCompleting ? 'task_complete' : 'habit_negative');
+      return { previousTasks };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(["tasks"], context.previousTasks);
+      const errorMsg = err.data?.detail || err.message || "Task could not be updated on server";
+      showRewardToast({ label: `Error: ${errorMsg}` });
+    },
+    onSuccess: ({ res, task, isCompleting }) => {
+      if (res?.profile) queryClient.setQueryData(["userprofile"], res.profile);
+      
+      const combatResult = res?.combat;
+      const xpEarned = res?.xp_earned || 0;
+      const goldEarned = res?.gold_earned || 0;
+      const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+      const effectNotes = combatResult?.effect_notes || [];
+      const isCrit = res?.gamification_result?.is_crit || false;
+      const itemDropped = res?.gamification_result?.item_dropped || null;
+
+      if (isCompleting) {
+        onRankXP?.(xpEarned);
+        if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
+        const overdueLabel = isOverdue(task) ? ' ⏳ late' : '';
+        playSound('gold_earned');
+        showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name + overdueLabel, isCrit, itemDropped });
+      } else {
+        onRankXP?.(-xpEarned);
+        showRewardToast({ label: `Reverted: ${task.name}` });
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }
+  });
+
+  const completeTodo = (task) => {
     if (task.id > 1000000000 || typeof task.id === 'string') {
       console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
       showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
-      // Remove this invalid task locally
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       return;
     }
-
-    try {
-      console.log('Sending todo complete for ID:', task.id);
-      res = await djangoApi.tasks.complete(task.id, isCompleting);
-      if (res && res.combat) {
-        combatResult = res.combat;
-      }
-      if (res && res.xp_earned) xpEarned = res.xp_earned;
-      if (res && res.gold_earned) goldEarned = res.gold_earned;
-      if (res && res.profile) {
-        queryClient.setQueryData(["userprofile"], res.profile);
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-    } catch (e) {
-      console.error('Django todo complete failed:', e);
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      const errorMsg = e.data?.detail || e.message || "Task could not be updated on server";
-      showRewardToast({ label: `Error: ${errorMsg}` });
-      return;
-    }
-
-    // Используем данные с сервера, если есть
-    const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
-    const effectNotes = combatResult?.effect_notes || [];
-    const isCrit = res?.gamification_result?.is_crit || false;
-    const itemDropped = res?.gamification_result?.item_dropped || null;
-
-    if (isCompleting) {
-      onRankXP?.(xpEarned);
-      if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
-
-      const overdueLabel = isOverdue(task) ? ' ⏳ late' : '';
-      playSound('gold_earned');
-      showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name + overdueLabel, isCrit, itemDropped });
-    } else {
-      onRankXP?.(-xpEarned);
-      // При откате задачи урон боссу не откатывается на сервере
-      showRewardToast({ label: `Reverted: ${task.name}` });
-    }
-
-
+    const isCompleting = !task.done;
+    console.log('Sending todo complete for ID:', task.id);
+    completeMutation.mutate({ task, isCompleting });
   };
 
   const deleteTask = async (id) => {
@@ -175,7 +179,10 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
                 style={{
                   border: `1px solid ${overdue && !task.done ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
                 }}
-                onClick={() => completeTodo(task)}
+                onClick={() => {
+                  if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                  completeTodo(task);
+                }}
               >
                 {/* Task Value bar (только для активных) */}
                 {!task.done && (
