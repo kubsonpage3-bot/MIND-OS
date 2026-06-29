@@ -104,9 +104,25 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       if (res && res.profile) {
         queryClient.setQueryData(["userprofile"], res.profile);
       }
-      
+      // Instantly patch the cache with the authoritative task state from the server response.
+      // This prevents a race where the user clicks again before the background refetch completes,
+      // which would send is_positive=false (another revert) instead of is_positive=true.
+      if (res && res.task) {
+        queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
+          if (!old) return old;
+          // Handle both paginated { results: [] } and plain array shapes
+          if (Array.isArray(old)) {
+            return old.map((t) => (t.id === res.task.id ? res.task : t));
+          }
+          if (old.results) {
+            return { ...old, results: old.results.map((t) => (t.id === res.task.id ? res.task : t)) };
+          }
+          return old;
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+
     } catch (e) {
       console.error('Django daily complete failed:', e);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });

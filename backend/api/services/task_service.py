@@ -39,17 +39,22 @@ def complete_task(user, task_id, is_positive=True):
             task.completion_count = max(0, task.completion_count - 1)
 
     elif task.task_type == Task.TaskType.DAILY:
+        today = timezone.now().date()
+        already_done_today = task.last_completed_at and task.last_completed_at.date() == today
+
+        # Smart Toggle: Если фронт прислал is_positive=True, но задача УЖЕ выполнена сегодня,
+        # значит это клик по активному чекбоксу (отмена). Принудительно делаем is_positive = False
+        if is_positive and already_done_today:
+            is_positive = False
+
         if is_positive:
-            today = timezone.now().date()
-            if task.is_completed and task.last_completed_at and task.last_completed_at.date() == today:
-                raise ValidationError("Daily task already completed today.")
             task.last_completed_at = timezone.now()
             task.is_completed = True
             task.value = calc_new_value(task.value, "complete", "daily")
             task.completion_count += 1
             task.streak += 1
         else:
-            # Allow revert — no date restriction, user must be able to undo accidental clicks
+            # Revert: clear both the timestamp AND the flag so the task is fully unlocked.
             task.last_completed_at = None
             task.is_completed = False
             task.value = calc_new_value(task.value, "fail", "daily")
@@ -333,6 +338,7 @@ def process_missed_tasks(user):
 
         if was_completed:
             task.is_completed = False
+            task.last_completed_at = None  # Clear timestamp so tomorrow's first click is never blocked.
             task.value = calc_new_value(task.value, "complete", "daily")
             log.append({"type": "daily_done", "id": task.id, "title": task.title})
         else:

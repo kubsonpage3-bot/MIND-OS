@@ -63,6 +63,33 @@ def test_complete_task_twice_fails(user, profile, task):
 
 
 @pytest.mark.django_db
+def test_daily_revert_then_complete_again(user, profile):
+    daily = Task.objects.create(
+        user=user,
+        title="Daily Revert Bug",
+        task_type=Task.TaskType.DAILY,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    # Step 1: complete the daily
+    complete_task(user, daily.id, True)
+    daily.refresh_from_db()
+    assert daily.is_completed is True
+    assert daily.last_completed_at is not None
+
+    # Step 2: revert (misclick)
+    complete_task(user, daily.id, False)
+    daily.refresh_from_db()
+    assert daily.is_completed is False
+    assert daily.last_completed_at is None  # timestamp MUST be cleared
+
+    # Step 3: complete again — must NOT raise "already completed today"
+    result = complete_task(user, daily.id, True)
+    daily.refresh_from_db()
+    assert daily.is_completed is True
+    assert result.get("detail") == "Task completed!"
+
+
+@pytest.mark.django_db
 def test_activate_skill_success(user, profile):
     # architect blueprint skill costs 40 mana
     initial_mana = profile.mana
