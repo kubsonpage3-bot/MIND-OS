@@ -79,6 +79,18 @@ def calculate_task_outcome(user, task_type, base_xp=0, base_gold=0, base_hp_lost
         final_hp_lost = base_hp_lost * def_multiplier * hp_loss_reduction
         result["hp_lost"] = int(final_hp_lost)
         
+        # For reverting completed tasks, calculate exact xp_lost and gold_lost
+        # using the same formula as positive, to prevent XP/Gold duplication
+        pwr_bonus = pwr * 0.5
+        final_xp_lost = base_xp + pwr_bonus
+
+        spd_bonus = spd * 0.5
+        final_gold_lost = base_gold + spd_bonus
+        final_gold_lost = final_gold_lost * (1 + (lck / 100.0))
+
+        result["xp_lost"] = int(final_xp_lost)
+        result["gold_lost"] = int(final_gold_lost)
+        
     return result
 
 def apply_boss_damage(user, final_damage_dealt, is_crit=False):
