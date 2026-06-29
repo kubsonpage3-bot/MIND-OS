@@ -41,7 +41,7 @@ def complete_task(user, task_id, is_positive=True):
     elif task.task_type == Task.TaskType.DAILY:
         if is_positive:
             today = timezone.now().date()
-            if task.last_completed_at and task.last_completed_at.date() == today:
+            if task.is_completed and task.last_completed_at and task.last_completed_at.date() == today:
                 raise ValidationError("Daily task already completed today.")
             task.last_completed_at = timezone.now()
             task.is_completed = True
@@ -49,11 +49,12 @@ def complete_task(user, task_id, is_positive=True):
             task.completion_count += 1
             task.streak += 1
         else:
+            # Allow revert — no date restriction, user must be able to undo accidental clicks
             task.last_completed_at = None
             task.is_completed = False
             task.value = calc_new_value(task.value, "fail", "daily")
             task.completion_count = max(0, task.completion_count - 1)
-            task.streak = 0
+            task.streak = max(0, task.streak - 1)
 
     elif task.task_type == Task.TaskType.HABIT:
         task.completion_count += 1

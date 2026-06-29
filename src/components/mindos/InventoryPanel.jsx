@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { Package, Zap } from "lucide-react";
+import { getMediaUrl } from "@/api/djangoClient";
 
 const CONSUMABLE_EFFECTS = {
   focus_stim: {
@@ -196,7 +197,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 <div className="shrink-0 w-10 h-10 rounded-none border overflow-hidden bg-gray-100 dark:bg-gray-800/50"
                   style={{ imageRendering: "pixelated", borderColor: `${tierColor}60` }}>
                   {item.icon_url
-                    ? <img src={item.icon_url} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                    ? <img src={getMediaUrl(item.icon_url)} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                     : <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>{item.label[0]}</div>
                   }
                 </div>
@@ -270,7 +271,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
                 <div className="shrink-0 w-10 h-10 rounded-none border overflow-hidden relative"
                   style={{ imageRendering: "pixelated", background: "#0a0818", borderColor: `${effectColor}60` }}>
-                  <img src={item.icon_url || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                  <img src={getMediaUrl(item.icon_url) || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                   {count > 1 && (
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-mono font-black"
                       style={{ background: effectColor, color: "#000" }}>{count}</div>

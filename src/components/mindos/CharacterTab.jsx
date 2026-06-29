@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
 import { loadRPGData, saveRPGData, CLASSES } from "@/lib/rpgSystem";
-import { djangoApi } from "@/api/djangoClient";
+import { djangoApi, getMediaUrl } from "@/api/djangoClient";
 import PixelCharacter from "./PixelCharacter";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { ShoppingCart, X, Hexagon, ChevronLeft } from "lucide-react";
@@ -73,7 +73,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           consumable: item.item_type === "consumable",
           stats: item.stats,
           slot: item.slot_type,
-          icon_url: item.icon_url || '/static/items/default.webp',
+          icon_url: getMediaUrl(item.icon_url) || '/static/items/default.webp',
           healAmount: item.hp_boost
         }));
       } catch (err) {

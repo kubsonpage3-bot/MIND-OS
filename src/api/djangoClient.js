@@ -1,6 +1,17 @@
 export const API_ORIGIN = 'https://mind-os-d5sk.onrender.com';
 const BASE_URL = 'https://mind-os-d5sk.onrender.com/api';
 
+/**
+ * Converts a potentially relative media/static path from the backend
+ * into an absolute URL pointing to the Render backend.
+ * Safe to call with already-absolute URLs.
+ */
+export function getMediaUrl(path) {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${API_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
 function apiUrl(endpoint) {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${BASE_URL}${path}`;
