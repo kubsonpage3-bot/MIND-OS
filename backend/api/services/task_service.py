@@ -42,18 +42,17 @@ def complete_task(user, task_id, is_positive=True):
         today = timezone.now().date()
         already_done_today = task.last_completed_at and task.last_completed_at.date() == today
 
-        # Smart Toggle: Если фронт прислал is_positive=True, но задача УЖЕ выполнена сегодня,
-        # значит это клик по активному чекбоксу (отмена). Принудительно делаем is_positive = False
-        if is_positive and already_done_today:
-            is_positive = False
-
         if is_positive:
+            if already_done_today:
+                raise ValidationError("Daily task already completed today.")
             task.last_completed_at = timezone.now()
             task.is_completed = True
             task.value = calc_new_value(task.value, "complete", "daily")
             task.completion_count += 1
             task.streak += 1
         else:
+            if not already_done_today:
+                raise ValidationError("Daily task is not completed today.")
             # Revert: clear both the timestamp AND the flag so the task is fully unlocked.
             task.last_completed_at = None
             task.is_completed = False
