@@ -262,7 +262,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent">
                   <Minus className="w-3 h-3" />
                 </button>
-                <div className="text-center">
+                <div className="text-center w-16 tabular-nums tracking-tight">
                   <div className="font-mono text-2xl font-bold text-foreground">{questions}</div>
                   <div className="text-xs text-muted-foreground">questions</div>
                 </div>
@@ -277,7 +277,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent">
                   <Minus className="w-3 h-3" />
                 </button>
-                <div className="text-center">
+                <div className="text-center w-16 tabular-nums tracking-tight">
                   <div className="font-mono text-2xl font-bold text-foreground">{hours}</div>
                   <div className="text-xs text-muted-foreground">hours</div>
                 </div>

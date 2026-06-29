@@ -3,10 +3,25 @@ import { RotateCcw, Trash2, Archive, Brain, Users, Activity } from "lucide-react
 import { motion } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { useMutation } from "@tanstack/react-query";
+import { queryClientInstance } from "@/lib/query-client";
 
 export default function ResetPanel() {
   const { refreshProfile } = useDjangoAuth();
   const [resetting, setResetting] = useState(false);
+
+  const resetMutation = useMutation({
+    mutationFn: (type) => djangoApi.profile.reset(type),
+    onSuccess: () => {
+      queryClientInstance.clear();
+      alert("Reset completed. Refreshing...");
+      window.location.reload();
+    },
+    onError: (err) => {
+      alert("Error resetting: " + (err.message || err));
+      setResetting(false);
+    }
+  });
 
   const resetTrainingActivities = async () => {
     if (!confirm("Reset all activity logs to Rank F? This will delete all your logged sessions and restore all hidden activities. Cognitive stats (Gf/Gc/Ps/Vm) remain. Continue?")) return;
@@ -37,20 +52,11 @@ export default function ResetPanel() {
     }
   };
 
-  const resetTasks = async () => {
+  const resetTasks = () => {
     if (!confirm("Delete all tasks (habits, dailies, to-dos)? This cannot be undone.")) return;
     setResetting(true);
-    try {
-      localStorage.removeItem("mindos_tasks");
-      const userTasksData = await djangoApi.tasks.list();
-      const userTasks = Array.isArray(userTasksData) ? userTasksData : (userTasksData?.results || []);
-      await Promise.all(userTasks.map(t => djangoApi.tasks.delete(t.id)));
-      alert("Tasks cleared.");
-      window.location.reload();
-    } catch (e) {
-      alert("Error: " + e.message);
-      setResetting(false);
-    }
+    localStorage.removeItem("mindos_tasks");
+    resetMutation.mutate("tasks");
   };
 
   const resetAllies = async () => {
@@ -80,89 +86,35 @@ export default function ResetPanel() {
     }
   };
 
-  const resetStats = async () => {
+  const resetStats = () => {
     if (!confirm("Reset cognitive stats, rank, gold, class? This cannot be undone.")) return;
     setResetting(true);
-    try {
-      localStorage.removeItem("mindos_game_state");
-      localStorage.removeItem("mindos_class");
-      localStorage.removeItem("mindos_rank_xp");
-      localStorage.removeItem("mindos_streak");
-      localStorage.removeItem("mindos_skill_tree");
-      localStorage.removeItem("mindos_skillTree");
-      localStorage.removeItem("mindos_allies");
-      localStorage.removeItem("mindos_mutators");
-      localStorage.removeItem("mindos_prestige");
-      localStorage.removeItem("mindos_scrolls");
+    localStorage.removeItem("mindos_game_state");
+    localStorage.removeItem("mindos_class");
+    localStorage.removeItem("mindos_rank_xp");
+    localStorage.removeItem("mindos_streak");
+    localStorage.removeItem("mindos_skill_tree");
+    localStorage.removeItem("mindos_skillTree");
+    localStorage.removeItem("mindos_allies");
+    localStorage.removeItem("mindos_mutators");
+    localStorage.removeItem("mindos_prestige");
+    localStorage.removeItem("mindos_scrolls");
 
-      // Reset profile on Django backend
-      await djangoApi.profile.update({
-        hp: 100,
-        mana: 50,
-        gold: 0,
-        level: 1,
-        xp: 0,
-        character_class: "",
-        gf: 80.0,
-        gc: 80.0,
-        ps: 80.0,
-        vm: 80.0,
-        gf_ceiling: 120,
-        gc_ceiling: 120,
-        ps_ceiling: 120,
-        vm_ceiling: 120,
-        initialized: false
-      });
-      await refreshProfile();
-
-      alert("Stats reset. Refreshing...");
-      window.location.reload();
-    } catch (e) {
-      alert("Error resetting stats: " + e.message);
-      setResetting(false);
-    }
+    resetMutation.mutate("stats");
   };
 
-  const resetAllData = async () => {
+  const resetAllData = () => {
     if (!confirm("⚠️ WARNING: This will delete ALL progress. Cannot be undone. Continue?")) return;
     const confirmation = prompt("Type 'RESET' to confirm:");
     if (confirmation !== "RESET") return;
     setResetting(true);
-    try {
-      // Clear all localStorage mindos_ keys
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith("mindos_")) localStorage.removeItem(key);
-      });
-      // Delete tasks from Django
-      const userTasksData = await djangoApi.tasks.list();
-      const userTasks = Array.isArray(userTasksData) ? userTasksData : (userTasksData?.results || []);
-      await Promise.all(userTasks.map(t => djangoApi.tasks.delete(t.id)));
-      // Reset profile
-      await djangoApi.profile.update({
-        hp: 100,
-        mana: 50,
-        gold: 0,
-        level: 1,
-        xp: 0,
-        character_class: "",
-        gf: 80.0,
-        gc: 80.0,
-        ps: 80.0,
-        vm: 80.0,
-        gf_ceiling: 120,
-        gc_ceiling: 120,
-        ps_ceiling: 120,
-        vm_ceiling: 120,
-        initialized: false
-      });
-      await refreshProfile();
+    
+    // Clear all localStorage mindos_ keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith("mindos_")) localStorage.removeItem(key);
+    });
 
-      alert("All data cleared. Refreshing...");
-      window.location.reload();
-    } catch (e) {
-      alert("Error during reset: " + e.message);
-      setResetting(false);
-    }
+    resetMutation.mutate("nuclear");
   };
 
   return (

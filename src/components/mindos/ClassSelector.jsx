@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CLASSES, CLASS_SPRITES } from "@/lib/rpgSystem";
+import { getMediaUrl } from "@/api/djangoClient";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ClassSelector({ onChoose }) {
@@ -34,7 +35,7 @@ export default function ClassSelector({ onChoose }) {
               {/* Character sprite */}
               <div className="flex justify-center mb-1 relative h-20">
                 <motion.img
-                  src={CLASS_SPRITES[cls.id]}
+                  src={getMediaUrl(CLASS_SPRITES[cls.id])}
                   alt={cls.name}
                   className="h-20 object-contain"
                   style={{
@@ -78,7 +79,7 @@ export default function ClassSelector({ onChoose }) {
               {/* Animated character sprite */}
               <div className="flex justify-center">
                 <motion.img
-                  src={CLASS_SPRITES[confirming.id]}
+                  src={getMediaUrl(CLASS_SPRITES[confirming.id])}
                   alt={confirming.name}
                   className="h-28 object-contain"
                   style={{

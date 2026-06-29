@@ -200,6 +200,12 @@ export const djangoApi = {
       djangoFetch('/profile/prestige/', {
         method: 'POST',
       }),
+      
+    reset: (resetType) =>
+      djangoFetch('/profile/reset/', {
+        method: 'POST',
+        body: JSON.stringify({ reset_type: resetType }),
+      }),
   },
 
   tasks: {

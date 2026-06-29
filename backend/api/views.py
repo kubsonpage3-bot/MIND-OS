@@ -843,3 +843,58 @@ class CombatSyncView(generics.GenericAPIView):
                 "unlocked_achievements": unlocked_achievements,
                 "is_dead": is_dead
             }, status=status.HTTP_200_OK)
+
+class ResetDataView(generics.GenericAPIView):
+    """
+    POST /api/profile/reset/
+    Resets user data based on type: "tasks", "stats", or "nuclear".
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from django.db import transaction
+        from api.models import Task, ActiveEffect, SkillCooldown, InventoryItem, BossEncounter
+        reset_type = request.data.get("reset_type", "stats")
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+            if reset_type in ["tasks", "nuclear"]:
+                Task.objects.filter(user=request.user).delete()
+                
+            if reset_type in ["stats", "nuclear"]:
+                profile.hp = 100
+                profile.hp_max = 100
+                profile.mana = 0
+                profile.max_mana = 0
+                profile.gold = 0
+                profile.level = 1
+                profile.xp = 0
+                profile.xp_to_next_level = 100
+                profile.rank_xp = 0
+                profile.prestige_count = 0
+                profile.character_class = ""
+                profile.initialized = False
+                
+                profile.gf = 10.0
+                profile.gc = 10.0
+                profile.ps = 10.0
+                profile.vm = 10.0
+                
+                profile.damage_multiplier = 1.0
+                profile.gold_multiplier = 1.0
+                profile.xp_multiplier = 1.0
+
+                ActiveEffect.objects.filter(user=request.user).delete()
+                SkillCooldown.objects.filter(user=request.user).delete()
+                BossEncounter.objects.filter(user=request.user).delete()
+
+            if reset_type == "nuclear":
+                InventoryItem.objects.filter(user_profile=profile).delete()
+                profile.unlocked_skills.all().delete()
+                profile.recruited_allies.all().delete()
+
+            profile.save()
+
+        return Response({"detail": f"Reset {reset_type} completed."}, status=status.HTTP_200_OK)
+
