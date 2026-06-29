@@ -123,8 +123,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         difficulty: dt.difficulty || 'medium',
         notes: dt.notes || '',
         done: dt.is_completed || false,
+        is_completed: dt.is_completed || false,   // ← нужно DailiesColumn
         completedToday: dt.is_completed || false,
+        last_completed_at: dt.last_completed_at || null,
         rpgValue: dt.value || 0,
+        value: dt.value || 0,
         streak: dt.streak || 0,
         posStreak: dt.pos_streak || 0,
         negStreak: dt.neg_streak || 0,

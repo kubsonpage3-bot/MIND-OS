@@ -78,6 +78,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
   const completeDaily = async (task) => {
     const isCompleting = !task.is_completed;
+    console.log(`[DAILY DEBUG] task.id=${task.id} task.is_completed=${task.is_completed} → sending is_positive=${isCompleting}`);
     playSound(isCompleting ? 'task_complete' : 'habit_negative');
 
     let combatResult = null;
@@ -105,17 +106,35 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
         queryClient.setQueryData(["userprofile"], res.profile);
       }
       // Instantly patch the cache with the authoritative task state from the server response.
-      // This prevents a race where the user clicks again before the background refetch completes,
-      // which would send is_positive=false (another revert) instead of is_positive=true.
+      // Map res.task from Django format to frontend format before writing to cache,
+      // so is_completed is correctly preserved for the next click.
       if (res && res.task) {
+        const dt = res.task;
+        const patchedTask = {
+          id: dt.id,
+          type: dt.task_type || 'daily',
+          name: dt.title || 'Task',
+          category: 'Coding',
+          difficulty: dt.difficulty || 'medium',
+          notes: dt.notes || '',
+          done: dt.is_completed || false,
+          is_completed: dt.is_completed || false,
+          completedToday: dt.is_completed || false,
+          last_completed_at: dt.last_completed_at || null,
+          rpgValue: dt.value || 0,
+          value: dt.value || 0,
+          streak: dt.streak || 0,
+          posStreak: dt.pos_streak || 0,
+          negStreak: dt.neg_streak || 0,
+          createdAt: dt.created_at,
+        };
         queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
           if (!old) return old;
-          // Handle both paginated { results: [] } and plain array shapes
           if (Array.isArray(old)) {
-            return old.map((t) => (t.id === res.task.id ? res.task : t));
+            return old.map((t) => (t.id === patchedTask.id ? patchedTask : t));
           }
           if (old.results) {
-            return { ...old, results: old.results.map((t) => (t.id === res.task.id ? res.task : t)) };
+            return { ...old, results: old.results.map((t) => (t.id === patchedTask.id ? patchedTask : t)) };
           }
           return old;
         });
