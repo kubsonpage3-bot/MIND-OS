@@ -122,38 +122,38 @@ def complete_task(user, task_id, is_positive=True):
     )
     leveled_up = False
 
+    # Fetch passive modifiers from DB
+    unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
+    recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
+
+    # Calculate additive multipliers
+    gold_mult = 1.0
+    xp_mult = 1.0
+
+    # Skills
+    if "resource_awareness" in unlocked_skills:
+        gold_mult += 0.10
+
+    # Allies
+    neko_level = recruited_allies.get("neko", 0)
+    if neko_level >= 1 and task.task_type == Task.TaskType.DAILY:
+        gold_mult += 0.05
+    if neko_level >= 5:
+        gold_mult += 0.15
+
+    sakura_level = recruited_allies.get("sakura", 0)
+    if sakura_level >= 4:
+        xp_mult += 0.08
+
+    yuki_level = recruited_allies.get("yuki", 0)
+    if yuki_level >= 1:
+        xp_mult += 0.08
+
+    # Apply multipliers to base task rewards
+    base_xp = int(rewards.get("xp", 0) * xp_mult)
+    base_gold = int(rewards.get("gold", 0) * gold_mult)
+
     if is_positive:
-        # Fetch passive modifiers from DB
-        unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
-        recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
-
-        # Calculate additive multipliers
-        gold_mult = 1.0
-        xp_mult = 1.0
-
-        # Skills
-        if "resource_awareness" in unlocked_skills:
-            gold_mult += 0.10
-
-        # Allies
-        neko_level = recruited_allies.get("neko", 0)
-        if neko_level >= 1 and task.task_type == Task.TaskType.DAILY:
-            gold_mult += 0.05
-        if neko_level >= 5:
-            gold_mult += 0.15
-
-        sakura_level = recruited_allies.get("sakura", 0)
-        if sakura_level >= 4:
-            xp_mult += 0.08
-
-        yuki_level = recruited_allies.get("yuki", 0)
-        if yuki_level >= 1:
-            xp_mult += 0.08
-
-        # Apply multipliers to base task rewards
-        base_xp = int(rewards.get("xp", 0) * xp_mult)
-        base_gold = int(rewards.get("gold", 0) * gold_mult)
-
         outcome = calculate_task_outcome(user, task.task_type, base_xp, base_gold, is_positive=True)
         gamification_result = outcome
         
@@ -176,14 +176,19 @@ def complete_task(user, task_id, is_positive=True):
                     inv_item.quantity += 1
                     inv_item.save()
     else:
-        # Reverting task rewards (ignoring multipliers for reverting, or we can use them, but easier to use base)
-        outcome = calculate_task_outcome(user, task.task_type, rewards.get("xp", 0), rewards.get("gold", 0), is_positive=False)
+        # Reverting task rewards (applying exact same multipliers to avoid XP/Gold farming)
+        outcome = calculate_task_outcome(user, task.task_type, base_xp, base_gold, is_positive=False)
         gamification_result = outcome
         
-        profile.xp = max(0, profile.xp - max(0, outcome.get("xp_lost", 0)))
-        profile.rank_xp = max(0, profile.rank_xp - max(0, outcome.get("xp_lost", 0)))
-        profile.gold = max(0, profile.gold - max(0, outcome.get("gold_lost", 0)))
+        final_xp_lost = max(0, int(outcome.get("xp_lost", 0) * profile.xp_multiplier))
+        final_gold_lost = max(0, int(outcome.get("gold_lost", 0) * profile.gold_multiplier))
+
+        profile.xp = max(0, profile.xp - final_xp_lost)
+        profile.rank_xp = max(0, profile.rank_xp - final_xp_lost)
+        profile.gold = max(0, profile.gold - final_gold_lost)
         profile.mana = max(0, profile.mana - mana_gained)
+        rewards["xp"] = final_xp_lost
+        rewards["gold"] = final_gold_lost
 
     profile.save()
 
