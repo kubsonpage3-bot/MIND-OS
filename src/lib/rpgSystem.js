@@ -1,3 +1,5 @@
+import { getMediaUrl } from "@/api/djangoClient";
+
 // ─── RPG SYSTEM DATA & LOGIC ─────────────────────────────────────────────────
 
 // Character sprites per class (used in ClassSelector and PixelCharacter)
@@ -402,41 +404,41 @@ const M_ICONS = {
 
 export const MUTATORS = [
   // ── AMPLIFIERS ──
-  { id: "bloodwork", name: "BLOODWORK", icon: "/items/bloodwork.webp", cost: 600, cat: "amplifier", toggle: false, durationDays: null, desc: "Science sessions give +20% Rank XP. Other subjects give -5%.", synergy: "tunnel_vision" },
-  { id: "monks_path", name: "MONK'S PATH", icon: "/items/monks_path.webp", cost: 700, cat: "amplifier", toggle: false, durationDays: null, desc: "Prayer/Meditation +40% Rank XP. Streak log gives +2 XP instead of +1.", synergy: "ascetic_loop" },
-  { id: "iron_routine", name: "IRON ROUTINE", icon: "/items/iron_routine.webp", cost: 800, cat: "amplifier", toggle: false, durationDays: null, desc: "Exercise/Running +25% Rank XP. Miss a daily → lose bonus for 24h.", synergy: null },
-  { id: "lexicon", name: "LEXICON", icon: "/items/lexicon.webp", cost: 600, cat: "amplifier", toggle: false, durationDays: null, desc: "Language sessions +20% Rank XP. +0.01 Gc per session.", synergy: "echo" },
-  { id: "night_owl", name: "NIGHT OWL", icon: "/items/night_owl.webp", cost: 500, cat: "amplifier", toggle: false, durationDays: null, desc: "Sessions after 21:00 give +30% Rank XP. Before 09:00: -10%.", synergy: null, conflicts: ["early_riser"] },
-  { id: "early_riser", name: "EARLY RISER", icon: "/items/early_riser.webp", cost: 500, cat: "amplifier", toggle: false, durationDays: null, desc: "Sessions before 09:00 give +30% Rank XP. After 21:00: -10%.", synergy: null, conflicts: ["night_owl"] },
-  { id: "tunnel_vision", name: "TUNNEL VISION", icon: "/items/tunnel_vision.webp", cost: 900, cat: "amplifier", toggle: false, durationDays: null, desc: "Log ONLY one subject/day: +50% Rank XP. Log 2+: bonus lost.", synergy: "bloodwork" },
+  { id: "bloodwork", name: "BLOODWORK", icon: getMediaUrl("/static/items/bloodwork.webp"), cost: 600, cat: "amplifier", toggle: false, durationDays: null, desc: "Science sessions give +20% Rank XP. Other subjects give -5%.", synergy: "tunnel_vision" },
+  { id: "monks_path", name: "MONK'S PATH", icon: getMediaUrl("/static/items/monks_path.webp"), cost: 700, cat: "amplifier", toggle: false, durationDays: null, desc: "Prayer/Meditation +40% Rank XP. Streak log gives +2 XP instead of +1.", synergy: "ascetic_loop" },
+  { id: "iron_routine", name: "IRON ROUTINE", icon: getMediaUrl("/static/items/iron_routine.webp"), cost: 800, cat: "amplifier", toggle: false, durationDays: null, desc: "Exercise/Running +25% Rank XP. Miss a daily → lose bonus for 24h.", synergy: null },
+  { id: "lexicon", name: "LEXICON", icon: getMediaUrl("/static/items/lexicon.webp"), cost: 600, cat: "amplifier", toggle: false, durationDays: null, desc: "Language sessions +20% Rank XP. +0.01 Gc per session.", synergy: "echo" },
+  { id: "night_owl", name: "NIGHT OWL", icon: getMediaUrl("/static/items/night_owl.webp"), cost: 500, cat: "amplifier", toggle: false, durationDays: null, desc: "Sessions after 21:00 give +30% Rank XP. Before 09:00: -10%.", synergy: null, conflicts: ["early_riser"] },
+  { id: "early_riser", name: "EARLY RISER", icon: getMediaUrl("/static/items/early_riser.webp"), cost: 500, cat: "amplifier", toggle: false, durationDays: null, desc: "Sessions before 09:00 give +30% Rank XP. After 21:00: -10%.", synergy: null, conflicts: ["night_owl"] },
+  { id: "tunnel_vision", name: "TUNNEL VISION", icon: getMediaUrl("/static/items/tunnel_vision.webp"), cost: 900, cat: "amplifier", toggle: false, durationDays: null, desc: "Log ONLY one subject/day: +50% Rank XP. Log 2+: bonus lost.", synergy: "bloodwork" },
   // ── ECONOMY ──
-  { id: "loan_shark", name: "LOAN SHARK", icon: "/items/loan_shark.webp", cost: 400, cat: "economy", toggle: false, durationDays: null, desc: "+40% Gold from tasks. Every midnight: lose 30G.", synergy: "compound" },
-  { id: "compound", name: "COMPOUND", icon: "/items/compound.webp", cost: 1000, cat: "economy", toggle: false, durationDays: null, desc: "Every 100G you own generates +1G/day passively.", synergy: "loan_shark" },
-  { id: "miser", name: "MISER", icon: "/items/miser.webp", cost: 700, cat: "economy", toggle: true, durationDays: null, desc: "Cannot spend Gold on shop items. Each 24h without spending: +5 Rank XP.", synergy: null },
-  { id: "tithe", name: "TITHE", icon: "/items/tithe.webp", cost: 800, cat: "economy", toggle: false, durationDays: null, desc: "Each task: pay 3G or lose 5 HP. But +15% Rank XP from all tasks.", synergy: "compound" },
+  { id: "loan_shark", name: "LOAN SHARK", icon: getMediaUrl("/static/items/loan_shark.webp"), cost: 400, cat: "economy", toggle: false, durationDays: null, desc: "+40% Gold from tasks. Every midnight: lose 30G.", synergy: "compound" },
+  { id: "compound", name: "COMPOUND", icon: getMediaUrl("/static/items/compound.webp"), cost: 1000, cat: "economy", toggle: false, durationDays: null, desc: "Every 100G you own generates +1G/day passively.", synergy: "loan_shark" },
+  { id: "miser", name: "MISER", icon: getMediaUrl("/static/items/miser.webp"), cost: 700, cat: "economy", toggle: true, durationDays: null, desc: "Cannot spend Gold on shop items. Each 24h without spending: +5 Rank XP.", synergy: null },
+  { id: "tithe", name: "TITHE", icon: getMediaUrl("/static/items/tithe.webp"), cost: 800, cat: "economy", toggle: false, durationDays: null, desc: "Each task: pay 3G or lose 5 HP. But +15% Rank XP from all tasks.", synergy: "compound" },
   // ── STREAK ──
     
-  { id: "ascetic_loop", name: "ASCETIC LOOP", icon: "/items/ascetic_loop.webp", cost: 900, cat: "streak", toggle: false, durationDays: null, desc: "Streak gives Rank XP: streak×0.2 per day. Break streak: lose all bonus XP.", synergy: "monks_path" },
-  { id: "double_nothing", name: "DOUBLE OR NOTHING", icon: "/items/double_nothing.webp", cost: 1200, cat: "streak", toggle: true, durationDays: null, desc: "Streak milestone rewards doubled. Miss 2 days in a row: streak resets to 0.", synergy: null },
-  { id: "momentum", name: "MOMENTUM", icon: "/items/momentum.webp", cost: 800, cat: "streak", toggle: false, durationDays: null, desc: "Each day with 1h+ logged: +2% Rank XP, stacks to +20%. Miss: resets.", synergy: "phantom_load" },
+  { id: "ascetic_loop", name: "ASCETIC LOOP", icon: getMediaUrl("/static/items/ascetic_loop.webp"), cost: 900, cat: "streak", toggle: false, durationDays: null, desc: "Streak gives Rank XP: streak×0.2 per day. Break streak: lose all bonus XP.", synergy: "monks_path" },
+  { id: "double_nothing", name: "DOUBLE OR NOTHING", icon: getMediaUrl("/static/items/double_nothing.webp"), cost: 1200, cat: "streak", toggle: true, durationDays: null, desc: "Streak milestone rewards doubled. Miss 2 days in a row: streak resets to 0.", synergy: null },
+  { id: "momentum", name: "MOMENTUM", icon: getMediaUrl("/static/items/momentum.webp"), cost: 800, cat: "streak", toggle: false, durationDays: null, desc: "Each day with 1h+ logged: +2% Rank XP, stacks to +20%. Miss: resets.", synergy: "phantom_load" },
   // ── CHALLENGE ──
-  { id: "diversity_lock", name: "DIVERSITY LOCK", icon: "/items/diversity_lock.webp", cost: 500, cat: "challenge", toggle: false, durationDays: 30, desc: "Cannot log same subject two sessions in a row. Reward: +20% Rank XP for 30d.", synergy: null },
-  { id: "silence", name: "SILENCE", icon: "/items/silence.webp", cost: 400, cat: "challenge", toggle: false, durationDays: 2, desc: "All skills disabled 48h. After: all cooldowns → 0.", synergy: null },
-  { id: "ironman", name: "IRONMAN", icon: "/items/ironman.webp", cost: 3000, cat: "challenge", toggle: false, durationDays: null, permanent_lock: true, desc: "HP hits 0 → forced prestige. In return: all Rank XP +15% forever.", synergy: null },
-  { id: "glass_cannon", name: "GLASS CANNON", icon: "/items/glass_cannon.webp", cost: 600, cat: "challenge", toggle: true, durationDays: null, desc: "Rank XP +25%. HP loss from misses +60%.", synergy: null },
-  { id: "zero_hour", name: "ZERO HOUR", icon: "/items/zero_hour.webp", cost: 1000, cat: "challenge", toggle: false, durationDays: 7, desc: "No Gold earned for 7 days. After: get back 3× everything you would've earned.", synergy: null },
+  { id: "diversity_lock", name: "DIVERSITY LOCK", icon: getMediaUrl("/static/items/diversity_lock.webp"), cost: 500, cat: "challenge", toggle: false, durationDays: 30, desc: "Cannot log same subject two sessions in a row. Reward: +20% Rank XP for 30d.", synergy: null },
+  { id: "silence", name: "SILENCE", icon: getMediaUrl("/static/items/silence.webp"), cost: 400, cat: "challenge", toggle: false, durationDays: 2, desc: "All skills disabled 48h. After: all cooldowns → 0.", synergy: null },
+  { id: "ironman", name: "IRONMAN", icon: getMediaUrl("/static/items/ironman.webp"), cost: 3000, cat: "challenge", toggle: false, durationDays: null, permanent_lock: true, desc: "HP hits 0 → forced prestige. In return: all Rank XP +15% forever.", synergy: null },
+  { id: "glass_cannon", name: "GLASS CANNON", icon: getMediaUrl("/static/items/glass_cannon.webp"), cost: 600, cat: "challenge", toggle: true, durationDays: null, desc: "Rank XP +25%. HP loss from misses +60%.", synergy: null },
+  { id: "zero_hour", name: "ZERO HOUR", icon: getMediaUrl("/static/items/zero_hour.webp"), cost: 1000, cat: "challenge", toggle: false, durationDays: 7, desc: "No Gold earned for 7 days. After: get back 3× everything you would've earned.", synergy: null },
   // ── SYNERGY BUILDERS ──
-  { id: "catalyst", name: "CATALYST", icon: "/items/catalyst.webp", cost: 1500, cat: "synergy", toggle: false, durationDays: null, desc: "Each OTHER active mutator gives +8% Rank XP. Alone: useless.", synergy: null },
-  { id: "echo", name: "ECHO", icon: "/items/echo.webp", cost: 1200, cat: "synergy", toggle: false, durationDays: null, desc: "Last subject logged gives double metric gains on NEXT session (diff subject).", synergy: "lexicon" },
-  { id: "mirror", name: "MIRROR", icon: "/items/mirror.webp", cost: 1100, cat: "synergy", toggle: false, durationDays: null, desc: "Same domain task as last session: +15% boss damage.", synergy: "tunnel_vision" },
-  { id: "resonance", name: "RESONANCE", icon: "/items/resonance.webp", cost: 1400, cat: "synergy", toggle: false, durationDays: null, desc: "If 2+ active mutators share a category: +10% to ALL their effects.", synergy: null },
+  { id: "catalyst", name: "CATALYST", icon: getMediaUrl("/static/items/catalyst.webp"), cost: 1500, cat: "synergy", toggle: false, durationDays: null, desc: "Each OTHER active mutator gives +8% Rank XP. Alone: useless.", synergy: null },
+  { id: "echo", name: "ECHO", icon: getMediaUrl("/static/items/echo.webp"), cost: 1200, cat: "synergy", toggle: false, durationDays: null, desc: "Last subject logged gives double metric gains on NEXT session (diff subject).", synergy: "lexicon" },
+  { id: "mirror", name: "MIRROR", icon: getMediaUrl("/static/items/mirror.webp"), cost: 1100, cat: "synergy", toggle: false, durationDays: null, desc: "Same domain task as last session: +15% boss damage.", synergy: "tunnel_vision" },
+  { id: "resonance", name: "RESONANCE", icon: getMediaUrl("/static/items/resonance.webp"), cost: 1400, cat: "synergy", toggle: false, durationDays: null, desc: "If 2+ active mutators share a category: +10% to ALL their effects.", synergy: null },
   // ── WILD ──
-  { id: "gambler", name: "GAMBLER", icon: "/items/gambler.webp", cost: 800, cat: "wild", toggle: false, durationDays: null, desc: "Each task: 20% chance double rewards, 20% chance 0 rewards, 60% normal.", synergy: "catalyst" },
-  { id: "phantom_load", name: "PHANTOM LOAD", icon: "/items/phantom_load.webp", cost: 700, cat: "wild", toggle: false, durationDays: null, desc: "Yesterday's hours count as +30% today for Rank XP calculation.", synergy: "momentum" },
-  { id: "cursed_clock", name: "CURSED CLOCK", icon: "/items/cursed_clock.webp", cost: 900, cat: "wild", toggle: false, durationDays: null, desc: "Every idle hour (8:00–22:00): lose 2G. But +1 Rank XP per logged hour.", synergy: null },
-  { id: "deja_vu", name: "DÉJÀ VU", icon: "/items/deja_vu.webp", cost: 1000, cat: "wild", toggle: false, durationDays: null, desc: "Same subject 3 days in a row: 3rd session +50% Rank XP. 4th day: normal.", synergy: null },
-  { id: "volatile", name: "VOLATILE", icon: "/items/volatile.webp", cost: 1300, cat: "wild", toggle: false, durationDays: null, desc: "First task each day: +100% rewards. Last (5+ tasks): +50%. Between: -10%.", synergy: null },
-  { id: "weight_of_history", name: "WEIGHT OF HISTORY", icon: "/items/weight_of_history.webp", cost: 1500, cat: "wild", toggle: false, durationDays: null, desc: "Lifetime hours / 100 = permanent bonus % Rank XP. At 500h: +5%. At 1000h: +10%.", synergy: null },
+  { id: "gambler", name: "GAMBLER", icon: getMediaUrl("/static/items/gambler.webp"), cost: 800, cat: "wild", toggle: false, durationDays: null, desc: "Each task: 20% chance double rewards, 20% chance 0 rewards, 60% normal.", synergy: "catalyst" },
+  { id: "phantom_load", name: "PHANTOM LOAD", icon: getMediaUrl("/static/items/phantom_load.webp"), cost: 700, cat: "wild", toggle: false, durationDays: null, desc: "Yesterday's hours count as +30% today for Rank XP calculation.", synergy: "momentum" },
+  { id: "cursed_clock", name: "CURSED CLOCK", icon: getMediaUrl("/static/items/cursed_clock.webp"), cost: 900, cat: "wild", toggle: false, durationDays: null, desc: "Every idle hour (8:00–22:00): lose 2G. But +1 Rank XP per logged hour.", synergy: null },
+  { id: "deja_vu", name: "DÉJÀ VU", icon: getMediaUrl("/static/items/deja_vu.webp"), cost: 1000, cat: "wild", toggle: false, durationDays: null, desc: "Same subject 3 days in a row: 3rd session +50% Rank XP. 4th day: normal.", synergy: null },
+  { id: "volatile", name: "VOLATILE", icon: getMediaUrl("/static/items/volatile.webp"), cost: 1300, cat: "wild", toggle: false, durationDays: null, desc: "First task each day: +100% rewards. Last (5+ tasks): +50%. Between: -10%.", synergy: null },
+  { id: "weight_of_history", name: "WEIGHT OF HISTORY", icon: getMediaUrl("/static/items/weight_of_history.webp"), cost: 1500, cat: "wild", toggle: false, durationDays: null, desc: "Lifetime hours / 100 = permanent bonus % Rank XP. At 500h: +5%. At 1000h: +10%.", synergy: null },
 ];
 
 // ─── STORAGE HELPERS ──────────────────────────────────────────────────────────
