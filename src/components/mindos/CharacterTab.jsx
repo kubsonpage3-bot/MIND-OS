@@ -425,7 +425,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 py-2 md:rounded-2xl border-b md:border border-[var(--habit-border)] md:shadow-sm" style={{ background: "var(--habit-panel)", padding: "10px 16px" }}>
+      <div className="flex items-center justify-between px-1 py-2 rounded-2xl" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", padding: "10px 16px" }}>
         <div className="flex items-center gap-2">
           {onBack && (
             <button
@@ -452,10 +452,10 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {subTab === "overview" && (
         <div className="space-y-4">
           {/* Character sprite */}
-          <div className="md:rounded-2xl p-5 flex flex-col items-center gap-3 border-b-2 md:border-2"
+          <div className="rounded-2xl p-5 flex flex-col items-center gap-3"
             style={{
               background: `radial-gradient(circle at 50% 50%, ${currentRank.color}18 0%, var(--habit-panel) 80%)`,
-              borderColor: `${currentRank.color}44`,
+              border: `2px solid ${currentRank.color}44`,
               boxShadow: `0 4px 20px ${currentRank.color}18`,
             }}>
             <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} />
@@ -468,7 +468,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           </div>
 
           {/* HP + Mana bars */}
-          <div className="md:rounded-2xl p-4 space-y-3 border-b md:border border-[var(--habit-border)] md:shadow-sm" style={{ background: "var(--habit-panel)" }}>
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
                 <span>HP</span><span style={{ color: hpColor }}>{Math.round(charHp)}/{charMaxHp}</span>
@@ -490,7 +490,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           </div>
 
           {/* Unified Stats Panel */}
-          <div className="md:rounded-2xl p-4 space-y-3 border-b md:border border-[var(--habit-border)] md:shadow-sm" style={{ background: "var(--habit-panel)" }}>
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Character Stats</span>
               {(gs.statPoints || 0) > 0 && (
@@ -568,7 +568,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           </div>
 
           {/* Equipment slots */}
-          <div className="md:rounded-2xl p-4 space-y-3 border-b md:border border-[var(--habit-border)] md:shadow-sm" style={{ background: "var(--habit-panel)" }}>
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Equipment</span>
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(SLOT_LABELS).map(([slot, label]) => {

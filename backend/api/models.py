@@ -206,7 +206,7 @@ class UserProfile(models.Model):
         """
         equip = self.equip_stats
         cls_stats = self.class_stats
-        prestige_mult = 1.0 + (0.10 * float(self.prestige_count))  # type: ignore
+        prestige_mult = 1.0 + (0.10 * float(self.prestige_count))
 
         return {
             "pwr": int(
@@ -481,7 +481,7 @@ class Task(models.Model):
         ]
 
     def __str__(self):
-        status = "✓" if bool(self.is_completed) else "○"
+        status = "✓" if self.is_completed else "○"
         return f"[{status}] {self.get_task_type_display()}: {self.title} ({self.user.username})"  # noqa: E501
 
     # ── Таблица наград по сложности ───────────────────────────────────────
@@ -500,10 +500,10 @@ class Task(models.Model):
         base = self.REWARD_TABLE.get(self.difficulty, {"xp": 10, "gold": 5})
         task_value = self.value
         if task_value < 0:
-            value_mod = 1.0 + abs(float(task_value)) * 0.05  # type: ignore
+            value_mod = 1.0 + abs(float(task_value)) * 0.05
         else:
             scale = 0.06 if self.task_type == self.TaskType.TODO else 0.04
-            value_mod = max(0.1, 1.0 - float(task_value) * scale)  # type: ignore
+            value_mod = max(0.1, 1.0 - float(task_value) * scale)
 
         xp_reward = round(base["xp"] * value_mod)
         gold_reward = round(base["gold"] * value_mod)

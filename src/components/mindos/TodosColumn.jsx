@@ -179,7 +179,7 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
   });
 
   return (
-    <div className="flex flex-col md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] md:border border-[var(--habit-border)] md:shadow-sm">
+    <div className="flex flex-col rounded-2xl overflow-hidden bg-[var(--habit-panel)] border border-[var(--habit-border)] shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-orange, #ff8800)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>TO-DOS</span>
@@ -210,10 +210,10 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: task.done ? 0.45 : 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
-                className="flex items-center gap-2 md:rounded-xl py-3.5 px-4 md:p-2.5 cursor-pointer border-b md:border border-[var(--habit-border)]"
+                className="flex items-center gap-2 rounded-xl p-2.5 cursor-pointer"
                 style={{
                   background: 'var(--habit-panel)',
-                  borderColor: overdue && !task.done ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)',
+                  border: `1px solid ${overdue && !task.done ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
                 }}
                 onClick={() => completeTodo(task)}
               >

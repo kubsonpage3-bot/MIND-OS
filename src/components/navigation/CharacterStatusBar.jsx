@@ -68,9 +68,9 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
 
   return (
     <div
-      className="sticky top-0 z-40 pt-safe backdrop-blur-md"
+      className="sticky top-0 z-40"
       style={{
-        background: "rgba(26, 26, 46, 0.85)",
+        background: "#1a1a2e",
         borderBottom: "2px solid #333",
         boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
       }}
