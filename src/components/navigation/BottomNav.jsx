@@ -125,7 +125,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
           WebkitBackdropFilter: "blur(20px)",
           paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
           paddingTop: "8px",
-          touchAction: "none",
+          touchAction: "manipulation",
           overscrollBehavior: "none",
         }}
       >

@@ -368,10 +368,9 @@ export default function Sidebar({
   return (
     <>
       <aside
-        className="hidden md:flex flex-col fixed left-0 top-0 z-40"
+        className="hidden md:flex flex-col fixed left-0 top-0 z-40 h-dvh"
         style={{
           width: collapsed ? 64 : 256,
-          height: "100dvh",
           background: "var(--habit-sidebar)",
           boxShadow: "4px 0 20px rgba(0,0,0,0.25)",
           transition: "width 0.25s ease, background-color 0.3s ease",
@@ -408,10 +407,9 @@ export default function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 340, damping: 36, mass: 0.9 }}
-              className="md:hidden fixed left-0 top-0 z-50 flex flex-col"
+              className="md:hidden fixed left-0 top-0 z-50 flex flex-col h-dvh"
               style={{
                 width: "min(300px, 84vw)",
-                height: "100dvh",
                 background: "var(--habit-sidebar)",
                 boxShadow: "8px 0 40px rgba(0,0,0,0.5)",
               }}
