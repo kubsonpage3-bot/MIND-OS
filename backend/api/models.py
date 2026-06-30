@@ -239,6 +239,11 @@ class UserProfile(models.Model):
         }
 
     def save(self, *args, **kwargs):
+        # Enforce minimum IQ metrics to fix legacy accounts
+        if self.gf < 100.0: self.gf = 100.0
+        if self.gc < 100.0: self.gc = 100.0
+        if self.ps < 100.0: self.ps = 100.0
+        if self.vm < 100.0: self.vm = 100.0
         super().save(*args, **kwargs)
 
 

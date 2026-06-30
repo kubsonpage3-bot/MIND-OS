@@ -382,7 +382,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       // Toggle logic for optimistic update
       const newInventory = (Array.isArray(prevProfile.inventory) ? prevProfile.inventory : []).map(i => {
         if (i.id === item.id) return { ...i, is_equipped: !i.is_equipped };
-        if (i.slot === item.slot && !item.is_equipped) return { ...i, is_equipped: false };
+        const foundItem = shopItems.find(s => s.id === i.id);
+        if (foundItem && foundItem.slot === item.slot && !item.is_equipped) return { ...i, is_equipped: false };
         return i;
       });
       queryClient.setQueryData(["userprofile"], { ...prevProfile, inventory: newInventory });
@@ -823,7 +824,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* Equip modal */}
       {activeSlot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" onClick={() => setActiveSlot(null)}>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" 
+          style={{ touchAction: 'none', overscrollBehavior: 'none' }}
+          onClick={() => setActiveSlot(null)}
+        >
           <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-3" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs font-bold">{SLOT_LABELS[activeSlot]} — SELECT</span>

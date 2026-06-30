@@ -105,7 +105,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const [rankUpNotif, setRankUpNotif] = useState(null);
   const [externalDamage, setExternalDamage] = useState(null);
   const [rankXPData, setRankXPData] = useState(loadRankXP);
-  const [rankDemoteNotif, setRankDemoteNotif] = useState(null);
   const [flyingRewards, setFlyingRewards] = useState([]);
   const prevHpRef = useRef(null);
   const queryClient = useQueryClient();
@@ -232,12 +231,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       const RANK_ORDER = ["F", "D", "C", "B", "A", "S", "SS", "SSS"];
       const prevIdx = RANK_ORDER.indexOf(prevRank.id);
       const newIdx = RANK_ORDER.indexOf(newRank.id);
-
-      if (newIdx < prevIdx && prev.rankXP > 0 && djangoProfile.rank_xp > 0) {
-        playSound('error');
-        setRankDemoteNotif(newRank.id);
-        setTimeout(() => setRankDemoteNotif(null), 5000);
-      }
 
       const updated = {
         rankXP: djangoProfile.rank_xp,
@@ -535,30 +528,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         <AchievementTracker />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
-        <AnimatePresence>
-          {rankDemoteNotif && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-            >
-              <div className="bg-card border border-red-500/50 rounded-2xl p-8 max-w-xs w-full text-center space-y-4">
-                <div className="text-4xl">💀</div>
-                <div className="font-mono text-red-400 font-black text-xl tracking-widest">HP REACHED 0</div>
-                <div className="font-mono text-muted-foreground text-sm">Your rank has been reduced.</div>
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl font-mono text-red-400 font-bold">
-                  DEMOTED TO RANK {rankDemoteNotif}
-                </div>
-                <div className="text-xs text-muted-foreground/60 font-mono">HP restored to 30. Rise again.</div>
-                <button onClick={() => setRankDemoteNotif(null)}
-                  className="w-full py-2.5 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 font-mono font-bold text-sm hover:bg-red-500/30 transition-colors">
-                  ACKNOWLEDGE
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <AnimatePresence>
           {badgeNotif && (

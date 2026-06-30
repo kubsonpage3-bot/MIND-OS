@@ -495,7 +495,18 @@ class ToggleEquipView(generics.GenericAPIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            inv_item.is_equipped = not inv_item.is_equipped
+            if not inv_item.is_equipped:
+                slot_type = inv_item.item.slot_type
+                if slot_type:
+                    InventoryItem.objects.filter(
+                        user_profile=profile,
+                        item__slot_type=slot_type,
+                        is_equipped=True
+                    ).update(is_equipped=False)
+                inv_item.is_equipped = True
+            else:
+                inv_item.is_equipped = False
+
             inv_item.save(update_fields=["is_equipped"])
 
         profile_fresh = UserProfile.objects.prefetch_related(
