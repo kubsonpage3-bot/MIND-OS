@@ -1,20 +1,25 @@
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckSquare, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
-import { useHaptic } from '@/hooks/useHaptic';
+import { queueAutoSync } from '@/lib/cloudSync';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
+import CreateTaskModal from '@/components/mindos/CreateTaskModal';
+import { applyBuffPipeline } from '@/lib/rpgEngine';
+import { getActiveBuffs } from '@/lib/gameState';
 import {
-  getTaskValueColor, calcNewValue,
+  getTaskValueColor, calcNewValue, calcReward,
+  getLckStat, addGoldToGS, addManaToGS,
 } from '@/lib/taskEngine';
+
 import { djangoApi } from '@/api/djangoClient';
 
 const DIFFICULTIES = [
-  { id: 'trivial',  label: 'Trivial',  color: '#64748b' },
   { id: 'easy',     label: 'Easy',     color: '#22c55e' },
   { id: 'medium',   label: 'Medium',   color: '#f59e0b' },
   { id: 'hard',     label: 'Hard',     color: '#ef4444' },
+  { id: 'critical', label: 'Critical', color: '#a855f7' },
 ];
 
 const CATEGORY_COLORS = {
@@ -24,9 +29,12 @@ const CATEGORY_COLORS = {
   Social: '#a855f7', Mindfulness: '#9944ff',
 };
 
-const TASK_BOSS_DAMAGE = { trivial: 10, easy: 25, medium: 50, hard: 75 };
+const TASK_BOSS_DAMAGE = { easy: 25, medium: 50, hard: 75, critical: 100 };
 
-
+function loadTasks() {
+  try { return JSON.parse(localStorage.getItem('mindos_tasks') || '[]'); } catch { return []; }
+}
+function saveTasks(tasks) { localStorage.setItem('mindos_tasks', JSON.stringify(tasks)); queueAutoSync(); }
 
 /** Проверяет, просрочен ли To-Do (есть dueDate и она в прошлом) */
 function isOverdue(task) {
@@ -54,90 +62,110 @@ function decayOverdueTodos(todos) {
   });
 }
 
-export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, onAddClick }) {
-  const queryClient = useQueryClient();
-  const { success, error } = useHaptic();
-  const tasks = decayOverdueTodos(todos);
+export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
+  const [tasks, setTasks] = useState(() => {
+    const raw = loadTasks().filter(t => t.type === 'todo');
+    return decayOverdueTodos(raw);
+  });
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    name: '', type: 'todo', category: 'Math', difficulty: 'medium',
+    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
+  });
+  const [formType, setFormType] = useState('todo');
 
   // Сохранить задекейнные задачи при монтировании
+  useEffect(() => {
+    const all = loadTasks();
+    const decayed = decayOverdueTodos(all.filter(t => t.type === 'todo'));
+    saveTasks([...all.filter(t => t.type !== 'todo'), ...decayed]);
+  }, []);
 
-  const completeMutation = useMutation({
-    mutationFn: async (/** @type {{task: any, isCompleting: boolean}} */ { task, isCompleting }) => {
-      const res = await djangoApi.tasks.complete(task.id, isCompleting);
-      return { res, task, isCompleting };
-    },
-    onMutate: async (/** @type {{task: any, isCompleting: boolean}} */ { task, isCompleting }) => {
-      await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      const previousTasks = queryClient.getQueryData(["tasks"]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTasks(loadTasks().filter(t => t.type === 'todo'));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
-      queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
-        if (!old) return old;
-        const patchedTask = { ...task, done: isCompleting, is_completed: isCompleting };
-        if (Array.isArray(old)) return old.map(t => t.id === task.id ? patchedTask : t);
-        if (old.results) return { ...old, results: old.results.map(t => t.id === task.id ? patchedTask : t) };
-        return old;
+  const update = (todos) => {
+    const all = loadTasks();
+    saveTasks([...all.filter(t => t.type !== 'todo'), ...todos]);
+    setTasks(todos);
+  };
+
+  const createTask = async () => {
+    if (!form.name.trim()) return;
+
+    let djangoId = Date.now();
+    try {
+      const created = await djangoApi.tasks.create({
+        title: form.name,
+        task_type: 'todo',
+        difficulty: form.difficulty,
+        notes: form.notes || '',
       });
-
-      playSound(isCompleting ? 'task_complete' : 'habit_negative');
-      if (isCompleting) {
-        success();
-      } else {
-        error();
-      }
-      return { previousTasks };
-    },
-    onError: (/** @type {any} */ err, variables, context) => {
-      queryClient.setQueryData(["tasks"], context.previousTasks);
-      const errorMsg = err.data?.detail || err.message || "Task could not be updated on server";
-      showRewardToast({ label: `Error: ${errorMsg}` });
-    },
-    onSuccess: (/** @type {any} */ { res, task, isCompleting }) => {
-      if (res?.profile) queryClient.setQueryData(["userprofile"], res.profile);
-      
-      const combatResult = res?.combat;
-      const xpEarned = res?.xp_earned || 0;
-      const goldEarned = res?.gold_earned || 0;
-      const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
-      const effectNotes = combatResult?.effect_notes || [];
-      const isCrit = res?.gamification_result?.is_crit || false;
-      const itemDropped = res?.gamification_result?.item_dropped || null;
-
-      if (isCompleting) {
-        onRankXP?.(xpEarned);
-        if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
-        const overdueLabel = isOverdue(task) ? ' ⏳ late' : '';
-        playSound('gold_earned');
-        showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name + overdueLabel, isCrit, itemDropped });
-      } else {
-        onRankXP?.(-xpEarned);
-        showRewardToast({ label: `Reverted: ${task.name}` });
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      if (created?.id) djangoId = created.id;
+    } catch (e) {
+      console.warn('Django task create failed:', e);
     }
-  });
 
-  const completeTodo = (task) => {
-    if (task.id > 1000000000 || typeof task.id === 'string') {
-      console.error('Task has a local frontend ID. Cannot complete on server. ID:', task.id);
-      showRewardToast({ label: `Error: Task is out of sync. Please refresh.` });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      return;
+    const task = {
+      id: djangoId, type: 'todo', name: form.name, category: form.category,
+      difficulty: form.difficulty, notes: form.notes, priority: form.priority,
+      done: false, dueDate: form.dueDate,
+      rpgValue: 0, // Task Value
+      createdAt: new Date().toISOString(),
+    };
+    update([...tasks, task]);
+    setShowForm(false);
+    setForm({ name: '', type: 'todo', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
+  };
+
+  const completeTodo = async (task) => {
+    if (task.done) return;
+    playSound('task_complete');
+
+    try {
+      await djangoApi.tasks.complete(task.id, true);
+    } catch (e) {
+      console.warn('Django task complete failed:', e);
     }
-    const isCompleting = !task.done;
-    console.log('Sending todo complete for ID:', task.id);
-    completeMutation.mutate({ task, isCompleting });
+
+    const { combinedEffects } = applyBuffPipeline(getActiveBuffs());
+    const tv = task.rpgValue ?? 0;
+    const lck = getLckStat();
+
+    // Награда зависит от текущего value:
+    const reward = calcReward(tv, task.difficulty || 'medium', 'todo', {
+      xpBonus: combinedEffects.xpBonus || 0,
+      goldBonus: combinedEffects.goldBonus || 0,
+      lckStat: lck,
+    });
+
+    const bossDmg = applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+
+    onXpGain(Math.round(reward.xp));
+    onRankXP?.(Math.round(reward.xp));
+    onBossDamage(bossDmg, task.difficulty === 'hard' || task.difficulty === 'critical');
+    addGoldToGS(reward.gold);
+    addManaToGS(3);
+
+    const overdueLabel = isOverdue(task) ? ' ⚠️ late' : '';
+    const critLabel = reward.critBonus > 0 ? ' ✨CRIT' : '';
+    playSound('gold_earned');
+    showRewardToast({ xp: Math.round(reward.xp), gold: Math.round(reward.gold), boss: bossDmg, label: task.name + overdueLabel + critLabel });
+
+    update(tasks.map(t => t.id === task.id ? { ...t, done: true } : t));
   };
 
   const deleteTask = async (id) => {
     try {
       await djangoApi.tasks.delete(id);
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
       console.warn('Django task delete failed:', e);
     }
+    update(tasks.filter(t => t.id !== id));
   };
 
   const activeTodos = tasks.filter(t => !t.done);
@@ -155,7 +183,7 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-orange, #ff8800)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>TO-DOS</span>
-        <button onClick={onAddClick} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+        <button onClick={() => setShowForm(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
           <Plus size={16} className="text-white" strokeWidth={3} />
         </button>
       </div>
@@ -182,14 +210,12 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: task.done ? 0.45 : 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
-                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.done ? '' : 'task-card bg-white dark:bg-gray-900'}`}
+                className="flex items-center gap-2 rounded-xl p-2.5 cursor-pointer"
                 style={{
+                  background: 'var(--habit-panel)',
                   border: `1px solid ${overdue && !task.done ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
                 }}
-                onClick={() => {
-                  if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-                  completeTodo(task);
-                }}
+                onClick={() => completeTodo(task)}
               >
                 {/* Task Value bar (только для активных) */}
                 {!task.done && (
@@ -210,9 +236,9 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className={`truncate ${task.done ? '' : overdue ? '' : 'text-gray-900 dark:text-gray-100'}`} style={{
+                  <div className="truncate" style={{
                     fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-                    color: task.done ? 'var(--habit-dim)' : overdue ? 'var(--habit-red, #ef4444)' : undefined,
+                    color: task.done ? 'var(--habit-dim)' : overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
                     textDecoration: task.done ? 'line-through' : 'none',
                   }}>
                     {task.name}
@@ -237,7 +263,7 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
                   </div>
                   {/* Предупреждение о снижении награды */}
                   {!task.done && tv < -5 && (
-                    <div style={{ fontFamily: "'Pixeltype'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
+                    <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
                       reward -{ Math.round(Math.abs(tv) * 5) }%
                     </div>
                   )}
@@ -257,6 +283,8 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
         </AnimatePresence>
       </div>
 
+      <CreateTaskModal isOpen={showForm} onClose={() => setShowForm(false)}
+        formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
     </div>
   );
 }
