@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { djangoApi } from "@/api/djangoClient";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CATEGORIES = ["Math", "Physics", "Chemistry", "Biology", "English", "Philosophy", "Coding", "Sleep", "Nutrition", "Reading", "Social", "Mindfulness", "Exercise", "Running", "Music", "Art", "History", "Languages", "Other"];
 
@@ -19,10 +21,8 @@ const PRIORITIES = [
   { id: "critical", label: "Critical", color: "#a855f7" },
 ];
 
-function saveTasks(tasks) { localStorage.setItem("mindos_tasks", JSON.stringify(tasks)); }
-function loadTasks() { try { return JSON.parse(localStorage.getItem("mindos_tasks") || "[]"); } catch { return []; } }
-
 export default function CreateTaskForm({ onCreated }) {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     name: "",
     type: "daily",
@@ -40,35 +40,34 @@ export default function CreateTaskForm({ onCreated }) {
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
-  const create = () => {
+  const create = async () => {
     if (!form.name.trim()) return;
-    const tasks = loadTasks();
-    const task = {
-      id: Date.now(),
-      type: form.type,
-      name: form.name.trim(),
-      category: form.category,
-      priority: form.priority,
-      notes: form.notes,
-      dueDate: form.dueDate,
-      xpReward: form.xpReward,
-      goldReward: form.goldReward,
-      bossDamage: form.bossDamage,
-      hpDamageOnMiss: form.hpDamageOnMiss,
-      defaultHours: form.defaultHours,
-      defaultFocus: form.defaultFocus,
-      difficulty: "custom",
-      streak: 0,
-      posStreak: 0,
-      negStreak: 0,
-      weekCount: 0,
-      completedToday: false,
-      done: false,
-      createdAt: new Date().toISOString(),
-    };
-    saveTasks([...tasks, task]);
-    onCreated?.();
-    setForm({ name: "", type: "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
+
+    try {
+      const taskData = {
+        title: form.name.trim(),
+        task_type: form.type,
+        category: form.category || "Other",
+        notes: form.notes || "",
+        difficulty: "medium", // default difficulty tier
+        due_date: form.dueDate || null,
+        
+        // Custom rewards and session defaults (with safety fallback values)
+        xp_reward: Math.max(1, parseInt(form.xpReward, 10) || 10),
+        gold_reward: Math.max(1, parseInt(form.goldReward, 10) || 8),
+        boss_damage: Math.max(1, parseInt(form.bossDamage, 10) || 15),
+        default_hours: Math.max(0.5, parseFloat(form.defaultHours) || 1.0),
+        default_focus: Math.max(1, Math.min(10, parseInt(form.defaultFocus, 10) || 7)),
+      };
+
+      await djangoApi.tasks.create(taskData);
+      
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      onCreated?.();
+      setForm({ name: "", type: "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
+    } catch (e) {
+      console.error("Failed to create custom task on backend:", e);
+    }
   };
 
   const NumStepper = ({ label, value, onChange, min = 0, max = 9999, step = 1, color = "#3b82f6" }) => (

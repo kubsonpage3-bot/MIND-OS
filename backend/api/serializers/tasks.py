@@ -35,6 +35,12 @@ class TaskSerializer(serializers.ModelSerializer):
             "neg_streak",
             "order",
             "rewards",
+            "category",
+            "default_hours",
+            "default_focus",
+            "xp_reward",
+            "gold_reward",
+            "boss_damage",
             "created_at",
             "updated_at",
         )

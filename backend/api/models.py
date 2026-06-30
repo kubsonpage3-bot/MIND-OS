@@ -302,6 +302,7 @@ class Task(models.Model):
         HABIT = "habit", "Привычка"  # Повторяющееся действие без дедлайна
         DAILY = "daily", "Дейлик"  # Ежедневная задача (сбрасывается каждый день)
         TODO = "todo", "Туду"  # Разовая задача с возможным дедлайном
+        BUTTON = "button", "Кнопка"  # Кастомная тренировка (ручной лог)
 
     class Difficulty(models.TextChoices):
         """Сложность задачи — влияет на количество XP и Gold при выполнении."""
@@ -348,6 +349,46 @@ class Task(models.Model):
         default=1.0,
         verbose_name="Значение сложности",
         help_text="Множитель наград: 1.0 = норма, 2.0 = двойная награда",
+    )
+
+    # Категория (для группировки и тренировочных коэффициентов)
+    category = models.CharField(
+        max_length=50,
+        default="Other",
+        blank=True,
+        verbose_name="Категория",
+    )
+
+    # Настройки кастомного сессионного лога (для типа BUTTON)
+    default_hours = models.FloatField(
+        default=1.0,
+        null=True,
+        blank=True,
+        verbose_name="Часы по умолчанию",
+    )
+    default_focus = models.PositiveIntegerField(
+        default=7,
+        null=True,
+        blank=True,
+        verbose_name="Фокус по умолчанию",
+    )
+    xp_reward = models.PositiveIntegerField(
+        default=10,
+        null=True,
+        blank=True,
+        verbose_name="Награда XP",
+    )
+    gold_reward = models.PositiveIntegerField(
+        default=8,
+        null=True,
+        blank=True,
+        verbose_name="Награда Золото",
+    )
+    boss_damage = models.PositiveIntegerField(
+        default=15,
+        null=True,
+        blank=True,
+        verbose_name="Урон боссу",
     )
 
     # ── Состояние задачи ──────────────────────────────────────────────────

@@ -228,6 +228,77 @@ export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursT
   };
 }
 
+export const CATEGORY_ICONS = {
+  Math: "∑",
+  Physics: "⚛",
+  Chemistry: "🧪",
+  Biology: "🧬",
+  English: "✍",
+  Philosophy: "φ",
+  Coding: "</>",
+  Sleep: "💤",
+  Nutrition: "🍎",
+  Reading: "📖",
+  Social: "🤝",
+  Mindfulness: "🧘",
+  Exercise: "💪",
+  Running: "🏃",
+  Music: "🎵",
+  Art: "🎨",
+  History: "📜",
+  Languages: "🌐",
+  Other: "🔘",
+};
+
+export const CATEGORY_COEFFICIENTS = {
+  Math: { gf: 0.08, ps: 0.04, gc: 0.01, vm: 0 },
+  Physics: { gf: 0.07, ps: 0.05, gc: 0.01, vm: 0 },
+  Chemistry: { gf: 0.05, ps: 0.05, gc: 0.03, vm: 0 },
+  Biology: { gf: 0.03, ps: 0.02, gc: 0.06, vm: 0.04 },
+  English: { gf: 0, ps: 0.02, gc: 0.07, vm: 0.10 },
+  Philosophy: { gf: 0.02, ps: 0, gc: 0.08, vm: 0.04 },
+  Coding: { gf: 0.07, ps: 0.08, gc: 0.01, vm: 0 },
+  Sleep: { gf: 0.01, ps: 0.01, gc: 0.01, vm: 0.01 },
+  Nutrition: { gf: 0.01, ps: 0.02, gc: 0.02, vm: 0.01 },
+  Reading: { gf: 0.01, ps: 0, gc: 0.07, vm: 0.05 },
+  Social: { gf: 0.01, ps: 0.03, gc: 0.03, vm: 0.05 },
+  Mindfulness: { gf: 0, ps: 0, gc: 0.06, vm: 0.06 },
+  Exercise: { gf: 0.02, ps: 0.05, gc: 0, vm: 0 },
+  Running: { gf: 0.04, ps: 0.05, gc: 0, vm: 0 },
+  Music: { gf: 0.03, ps: 0.04, gc: 0.03, vm: 0.03 },
+  Art: { gf: 0.04, ps: 0.03, gc: 0.03, vm: 0.02 },
+  History: { gf: 0.01, ps: 0, gc: 0.09, vm: 0.02 },
+  Languages: { gf: 0, ps: 0.03, gc: 0.06, vm: 0.07 },
+  Other: { gf: 0.02, ps: 0.02, gc: 0.02, vm: 0.02 },
+};
+
+export function getActivityDetails(key, tasks = []) {
+  if (ACTIVITIES[key]) return ACTIVITIES[key];
+  if (typeof key === "string" && key.startsWith("custom_task_")) {
+    const taskId = parseInt(key.replace("custom_task_", ""), 10);
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const category = task.category || "Other";
+      const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
+      return {
+        label: task.name || task.title,
+        icon: CATEGORY_ICONS[category] || "🔘",
+        description: task.notes || `Custom ${category} activity`,
+        coefficients: coeff,
+        xpPerHour: task.xpReward || 25,
+        goldReward: task.goldReward,
+        bossDamage: task.bossDamage,
+        defaultHours: task.defaultHours || 1,
+        defaultFocus: task.defaultFocus || 7,
+        isCustom: true,
+        taskId: task.id,
+        flavorText: `Procedural reasoning circuits optimized for ${task.name || task.title}`,
+      };
+    }
+  }
+  return null;
+}
+
 export function getEfficiencyColor(total) {
   if (total >= 1.0) return "#22c55e";
   if (total >= 0.7) return "#f59e0b";
@@ -235,7 +306,7 @@ export function getEfficiencyColor(total) {
 }
 
 // Smart recommendation based on current context
-export function getSmartRecommendation({ hoursToday, streak, subjectHoursMap, recentFocusRatings }) {
+export function getSmartRecommendation({ hoursToday, streak, subjectHoursMap, recentFocusRatings, tasks = [] }) {
   if (hoursToday >= 5) {
     return { icon: "🧠", text: "Switch to Vocabulary — low cognitive load, high Vm gain while fatigued" };
   }
@@ -244,7 +315,8 @@ export function getSmartRecommendation({ hoursToday, streak, subjectHoursMap, re
   }
   const heavySubject = Object.entries(subjectHoursMap).find(([, h]) => h >= 2);
   if (heavySubject) {
-    return { icon: "🔄", text: `Diminishing returns on ${ACTIVITIES[heavySubject[0]]?.label || heavySubject[0]}. Switch subjects to maximize gain.` };
+    const label = getActivityDetails(heavySubject[0], tasks)?.label || heavySubject[0];
+    return { icon: "🔄", text: `Diminishing returns on ${label}. Switch subjects to maximize gain.` };
   }
   const lastTwo = recentFocusRatings.slice(-2);
   if (lastTwo.length === 2 && lastTwo.every(r => r < 5)) {
@@ -256,8 +328,8 @@ export function getSmartRecommendation({ hoursToday, streak, subjectHoursMap, re
 // ─── APPLY ACTIVITY (with efficiency) ───────────────────────────────────────
 
 // Apply activity to current metrics
-export function applyActivity(profile, activityKey, hours, efficiencyCoeffs = null) {
-  const activity = ACTIVITIES[activityKey];
+export function applyActivity(profile, activityKey, hours, efficiencyCoeffs = null, tasks = []) {
+  const activity = getActivityDetails(activityKey, tasks);
   if (!activity) return null;
 
   const gains = {};
@@ -292,8 +364,9 @@ export function applyActivity(profile, activityKey, hours, efficiencyCoeffs = nu
   return { gains, newProfile, xpEarned, flavorText: activity.flavorText, efficiency: efficiencyCoeffs };
 }
 
-export function getFlavorText(activityKey, gains) {
-  const activity = ACTIVITIES[activityKey];
+export function getFlavorText(activityKey, gains, tasks = []) {
+  const activity = getActivityDetails(activityKey, tasks);
+  if (!activity) return "";
   const gainStrings = Object.entries(gains)
     .filter(([, v]) => v > 0)
     .map(([k, v]) => `${METRIC_CONFIG[k].abbr} +${v.toFixed(3)}`)
@@ -302,8 +375,8 @@ export function getFlavorText(activityKey, gains) {
 }
 
 // Hours needed to gain 1 full point in a metric
-export function hoursToNextPoint(current, ceiling, activityKey, metric) {
-  const activity = ACTIVITIES[activityKey];
+export function hoursToNextPoint(current, ceiling, activityKey, metric, tasks = []) {
+  const activity = getActivityDetails(activityKey, tasks);
   if (!activity || !activity.coefficients[metric]) return null;
   const multiplier = getGrowthMultiplier(current, ceiling);
   const coeff = activity.coefficients[metric];

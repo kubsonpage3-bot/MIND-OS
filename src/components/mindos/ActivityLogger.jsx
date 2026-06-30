@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
-import { ACTIVITIES, METRIC_CONFIG, computeEfficiency, getSmartRecommendation } from "@/lib/cognitiveEngine";
+import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, CATEGORY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES } from "@/lib/cognitiveEngine";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Zap, Trash2, RotateCcw } from "lucide-react";
+import { djangoApi } from "@/api/djangoClient";
+import { useQueryClient } from "@tanstack/react-query";
 import EfficiencyMeter from "./EfficiencyMeter";
 import SubjectRankBadge from "./SubjectRankBadge";
 import CreateTaskForm from "./CreateTaskForm";
@@ -11,7 +13,8 @@ function loadHiddenActivities() {
 }
 function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
 
-export default function ActivityLogger({ onLog, profile, logs }) {
+export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
+  const queryClient = useQueryClient();
   const [trainTab, setTrainTab] = useState("log"); // "log" | "create"
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [hours, setHours] = useState(1);
@@ -22,6 +25,31 @@ export default function ActivityLogger({ onLog, profile, logs }) {
   const [hiddenActivities, setHiddenActivities] = useState(loadHiddenActivities);
   const [deleteMode, setDeleteMode] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null); // activity key pending confirmation
+
+  const allActivities = useMemo(() => {
+    const list = { ...ACTIVITIES };
+    tasks.forEach(t => {
+      if (t.type === 'button') {
+        const key = `custom_task_${t.id}`;
+        const category = t.category || "Other";
+        const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
+        list[key] = {
+          label: t.name || t.title,
+          icon: CATEGORY_ICONS[category] || "🔘",
+          description: t.notes || `Custom ${category} activity`,
+          coefficients: coeff,
+          xpPerHour: t.xpReward || 25,
+          goldReward: t.goldReward,
+          bossDamage: t.bossDamage,
+          defaultHours: t.defaultHours || 1,
+          defaultFocus: t.defaultFocus || 7,
+          isCustom: true,
+          taskId: t.id
+        };
+      }
+    });
+    return list;
+  }, [tasks]);
 
   const { hoursToday, subjectHoursMap, recentFocusRatings, subjectTotalHours } = useMemo(() => {
     const today = new Date().toDateString();
@@ -41,7 +69,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
   }, [logs]);
 
   const subjectHoursToday = selectedActivity ? (subjectHoursMap[selectedActivity] || 0) : 0;
-  const isQuestionsMode = selectedActivity && ACTIVITIES[selectedActivity]?.inputType === "questions";
+  const isQuestionsMode = selectedActivity && allActivities[selectedActivity]?.inputType === "questions";
   const logValue = isQuestionsMode ? questions : hours;
 
   const efficiency = computeEfficiency({
@@ -56,6 +84,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
     streak: profile?.streak_days || 0,
     subjectHoursMap,
     recentFocusRatings,
+    tasks,
   });
 
   const confirmLog = () => {
@@ -86,10 +115,35 @@ export default function ActivityLogger({ onLog, profile, logs }) {
     setFocusRating(7);
   };
 
-  const hideActivity = (key) => {
-    const updated = [...hiddenActivities, key];
-    setHiddenActivities(updated);
-    saveHiddenActivities(updated);
+  const handleSelectActivity = (key) => {
+    if (selectedActivity === key) {
+      setSelectedActivity(null);
+      setHours(1);
+      setFocusRating(7);
+    } else {
+      setSelectedActivity(key);
+      const act = allActivities[key];
+      if (act) {
+        setHours(act.defaultHours || 1);
+        setFocusRating(act.defaultFocus || 7);
+      }
+    }
+  };
+
+  const hideActivity = async (key) => {
+    if (key.startsWith("custom_task_")) {
+      const taskId = parseInt(key.replace("custom_task_", ""), 10);
+      try {
+        await djangoApi.tasks.delete(taskId);
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      } catch (e) {
+        console.error("Failed to delete custom training activity:", e);
+      }
+    } else {
+      const updated = [...hiddenActivities, key];
+      setHiddenActivities(updated);
+      saveHiddenActivities(updated);
+    }
     setConfirmDelete(null);
     if (selectedActivity === key) setSelectedActivity(null);
   };
@@ -173,7 +227,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
 
       {/* Activity grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        {Object.entries(ACTIVITIES)
+        {Object.entries(allActivities)
           .filter(([key]) => !hiddenActivities.includes(key))
           .map(([key, activity]) => {
             const activeMetrics = Object.entries(METRIC_CONFIG)
@@ -185,7 +239,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
             return (
               <div key={key} className="relative">
                 <button
-                  onClick={() => !deleteMode && setSelectedActivity(isSelected ? null : key)}
+                  onClick={() => !deleteMode && handleSelectActivity(key)}
                   className="w-full h-[110px] sm:h-[145px] flex flex-col group relative p-3 rounded-xl transition-all duration-200 text-left overflow-hidden"
                   style={{
                     background: deleteMode ? "rgba(247,78,82,0.05)" : isSelected ? "var(--habit-purple-light)" : "var(--habit-panel)",
@@ -250,8 +304,8 @@ export default function ActivityLogger({ onLog, profile, logs }) {
           >
             <div className="flex items-center justify-between">
               <div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-text)" }}>{ACTIVITIES[selectedActivity].label}</div>
-                <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)" }}>{ACTIVITIES[selectedActivity].description}</div>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-text)" }}>{allActivities[selectedActivity].label}</div>
+                <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)" }}>{allActivities[selectedActivity].description}</div>
               </div>
               <button onClick={() => setSelectedActivity(null)} style={{ color: "var(--habit-dim)", fontSize: 16, fontWeight: 700 }}>✕</button>
             </div>
@@ -322,7 +376,7 @@ export default function ActivityLogger({ onLog, profile, logs }) {
             {/* Expected gains */}
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(METRIC_CONFIG).map(([mk, mc]) => {
-                const coeff = ACTIVITIES[selectedActivity].coefficients[mk] || 0;
+                const coeff = allActivities[selectedActivity].coefficients[mk] || 0;
                 const ceiling = profile[`${mk}_ceiling`];
                 const current = profile[mk];
                 const growthMult = Math.max(0, 1 - Math.pow(current / ceiling, 2));
@@ -357,7 +411,15 @@ export default function ActivityLogger({ onLog, profile, logs }) {
               const skills = profile?.unlocked_skills || [];
               if (skills.some(s => (s.skill_code || s) === "resource_awareness")) skillMult += 0.10;
               
-              const base_gold = (logValue * 25) * mult * skillMult;
+              const act = allActivities[selectedActivity];
+              let base_gold = (logValue * 25) * mult * skillMult;
+              if (act.isCustom) {
+                const defHours = act.defaultHours || 1;
+                const defFocus = act.defaultFocus || 7;
+                const scale = (hours / defHours) * (focusRating / defFocus);
+                base_gold = (scale * (act.goldReward || 0)) * mult * skillMult;
+              }
+              
               const spdBonus = spd * 0.5;
               const expectedGold = Math.floor((base_gold + spdBonus) * (1 + lck / 100.0));
               const total = Math.max(0, Math.floor(expectedGold * goldMultStats));

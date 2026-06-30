@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { ACTIVITIES, METRIC_CONFIG } from "@/lib/cognitiveEngine";
+import { ACTIVITIES, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { Clock } from "lucide-react";
 
-export default function HistoryLog({ logs }) {
+export default function HistoryLog({ logs, tasks = [] }) {
   const sorted = [...logs].sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime());
 
   const dailyRankMap = useMemo(() => {
@@ -46,7 +46,7 @@ export default function HistoryLog({ logs }) {
   return (
     <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
       {sorted.map((log) => {
-        const activity = ACTIVITIES[log.activity];
+        const activity = getActivityDetails(log.activity, tasks);
         const gains = Object.entries(METRIC_CONFIG)
           .filter(([mk]) => (log[`${mk}_gain`] || 0) > 0)
           .map(([mk, mc]) => ({ mk, mc, val: log[`${mk}_gain`] }));

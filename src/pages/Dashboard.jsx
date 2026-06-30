@@ -29,7 +29,7 @@ import CharacterHub from "@/components/mindos/CharacterHub";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 
-import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
+import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES, getActivityDetails } from "@/lib/cognitiveEngine";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { applySessionMutators, runDailyMutatorTick } from "@/lib/mutatorEngine";
 import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
@@ -120,7 +120,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         id: dt.id,
         type: dt.task_type || 'todo',
         name: dt.title || 'Task',
-        category: 'Coding',
+        category: dt.category || 'Other',
         difficulty: dt.difficulty || 'medium',
         notes: dt.notes || '',
         done: dt.is_completed || false,
@@ -133,6 +133,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         posStreak: dt.pos_streak || 0,
         negStreak: dt.neg_streak || 0,
         createdAt: dt.created_at || new Date().toISOString(),
+        defaultHours: dt.default_hours || 1,
+        defaultFocus: dt.default_focus || 7,
+        xpReward: dt.xp_reward || 10,
+        goldReward: dt.gold_reward || 8,
+        bossDamage: dt.boss_damage || 15,
       }));
       localStorage.setItem('mindos_tasks', JSON.stringify(mapped));
       return mapped;
@@ -423,7 +428,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const handleLog = useCallback((activityKey, hours, focusRating, efficiency, onFeedback) => {
     if (!profile) return;
 
-    const result = applyActivity(profile, activityKey, hours, efficiency);
+    const result = applyActivity(profile, activityKey, hours, efficiency, tasks);
     if (!result) return;
 
     const { gains, newProfile, xpEarned } = result;
@@ -484,7 +489,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       .filter(([, v]) => v > 0)
       .map(([mk]) => {
         const mc = METRIC_CONFIG[mk];
-        const baseCoeff = ACTIVITIES[activityKey].coefficients[mk] || 0;
+        const actDetails = getActivityDetails(activityKey, tasks);
+        const baseCoeff = actDetails ? actDetails.coefficients[mk] || 0 : 0;
         const raw = (baseCoeff * hours).toFixed(3);
         const final = gains[mk].toFixed(3);
         return `${mc.abbr} base ${raw} → +${final}`;
@@ -645,7 +651,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Train section */}
               {(activeSection === "train" || activeSection === "training") && (
                 <TabPanel title="🏋️ TRAINING">
-                  <ActivityLogger onLog={handleLog} profile={profile} logs={logs} />
+                  <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
                 </TabPanel>
               )}
 
@@ -680,7 +686,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Tools sections */}
               {activeSection === "history" && (
                 <TabPanel title="📋 HISTORY">
-                  <HistoryLog logs={logs} />
+                  <HistoryLog logs={logs} tasks={tasks} />
                 </TabPanel>
               )}
               {activeSection === "pomodoro" && (

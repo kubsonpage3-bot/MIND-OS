@@ -527,7 +527,7 @@ class TrainingLogView(generics.GenericAPIView):
         """
         from django.db import transaction
         from django.utils import timezone
-        from api.models import UserProfile
+        from api.models import UserProfile, Task
         from api.services.profile_service import gain_xp
         from api.services.mechanics import calculate_task_outcome, apply_boss_damage
         from api.serializers.profile import UserProfileSerializer
@@ -539,10 +539,26 @@ class TrainingLogView(generics.GenericAPIView):
         flat_xp_bonus = int(data.get("flat_xp_bonus", 0))
         activity = data.get("activity", "")
 
+        # Look up custom task if applicable
+        task = None
+        if isinstance(activity, str) and activity.startswith("custom_task_"):
+            try:
+                task_id = int(activity.replace("custom_task_", ""))
+                task = Task.objects.get(id=task_id, user=request.user, task_type=Task.TaskType.BUTTON)
+            except (ValueError, Task.DoesNotExist):
+                pass
+
         SCIENCE_ACTIVITIES = {"mathematics", "physics", "chess", "coding"}
         EXERCISE_ACTIVITIES = {"exercise", "running"}
         LANGUAGE_ACTIVITIES = {"english", "german", "languages"}
         PRAYER_ACTIVITIES = {"prayer"}
+
+        task_category = task.category if task else "Other"
+
+        is_science = activity in SCIENCE_ACTIVITIES or task_category in {"Math", "Physics", "Coding", "Chemistry", "Biology"}
+        is_exercise = activity in EXERCISE_ACTIVITIES or task_category in {"Exercise", "Running"}
+        is_language = activity in LANGUAGE_ACTIVITIES or task_category in {"English", "Languages", "History", "Philosophy"}
+        is_prayer = activity in PRAYER_ACTIVITIES or task_category in {"Mindfulness"}
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -565,10 +581,10 @@ class TrainingLogView(generics.GenericAPIView):
             if "sharp_focus" in unlocked_skills and focus_rating >= 8:
                 xp_mult += 0.10
 
-            if "iron_conditioning" in unlocked_skills and activity in EXERCISE_ACTIVITIES:
+            if "iron_conditioning" in unlocked_skills and is_exercise:
                 xp_mult += 0.15
 
-            if "inner_stillness" in unlocked_skills and activity in PRAYER_ACTIVITIES:
+            if "inner_stillness" in unlocked_skills and is_prayer:
                 xp_mult += 0.20
 
             if "resource_awareness" in unlocked_skills:
@@ -595,9 +611,9 @@ class TrainingLogView(generics.GenericAPIView):
             # 2. Apply Allies
             # Kira
             kira_level = recruited_allies.get("kira", 0)
-            if kira_level >= 1 and activity in SCIENCE_ACTIVITIES:
+            if kira_level >= 1 and is_science:
                 xp_mult += 0.05 if kira_level == 1 else 0.10
-            if kira_level >= 3 and activity in SCIENCE_ACTIVITIES:
+            if kira_level >= 3 and is_science:
                 gf_flat_bonus += 0.002
 
             # Neko
@@ -612,12 +628,12 @@ class TrainingLogView(generics.GenericAPIView):
 
             # Luna
             luna_level = recruited_allies.get("luna", 0)
-            if luna_level >= 1 and activity in EXERCISE_ACTIVITIES:
+            if luna_level >= 1 and is_exercise:
                 xp_mult += 0.08
 
             # Sakura
             sakura_level = recruited_allies.get("sakura", 0)
-            if sakura_level >= 1 and activity in LANGUAGE_ACTIVITIES:
+            if sakura_level >= 1 and is_language:
                 xp_mult += 0.10
             if sakura_level >= 2:
                 gc_mult += 0.10
@@ -632,7 +648,7 @@ class TrainingLogView(generics.GenericAPIView):
 
             # Nene
             nene_level = recruited_allies.get("nene", 0)
-            if nene_level >= 1 and activity in PRAYER_ACTIVITIES:
+            if nene_level >= 1 and is_prayer:
                 xp_mult += 0.15
             if nene_level >= 4:
                 gf_mult += 0.10
@@ -654,8 +670,28 @@ class TrainingLogView(generics.GenericAPIView):
                 vm_gain = max(0.0, float(data["vm"]) - profile.vm)
                 profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
 
-            base_xp = ((hours * focus_rating * 5) * mutator_multiplier + flat_xp_bonus) * xp_mult
-            base_gold = ((hours * 25) * mutator_multiplier) * gold_mult
+            if task:
+                # [CRITICAL SAFETY CONDITIONS] Check against ZeroDivisionError
+                def_hours = float(task.default_hours) if task.default_hours else 1.0
+                if def_hours <= 0:
+                    def_hours = 1.0
+                def_focus = float(task.default_focus) if task.default_focus else 7.0
+                if def_focus <= 0:
+                    def_focus = 7.0
+
+                scale = (hours / def_hours) * (focus_rating / def_focus)
+                base_xp = ((scale * task.xp_reward) * mutator_multiplier + flat_xp_bonus) * xp_mult
+                base_gold = ((scale * task.gold_reward) * mutator_multiplier) * gold_mult
+                raw_boss_dmg = int(scale * task.boss_damage)
+
+                # Increment completion stats for custom button tasks
+                task.completion_count += 1
+                task.last_completed_at = timezone.now()
+                task.save()
+            else:
+                base_xp = ((hours * focus_rating * 5) * mutator_multiplier + flat_xp_bonus) * xp_mult
+                base_gold = ((hours * 25) * mutator_multiplier) * gold_mult
+                raw_boss_dmg = int(hours * focus_rating * 10)
 
             outcome = calculate_task_outcome(request.user, "training", base_xp=base_xp, base_gold=base_gold, is_positive=True)
 
@@ -667,7 +703,6 @@ class TrainingLogView(generics.GenericAPIView):
             profile.gold = max(0, profile.gold + final_gold)
 
             # Boss Damage Logic
-            raw_boss_dmg = int(hours * focus_rating * 10)
             damage_dealt = outcome.get("damage_dealt", 10) # Base 10 + PWR from mechanics
             
             final_damage_dealt = int((raw_boss_dmg + damage_dealt) * profile.damage_multiplier * boss_dmg_mult)

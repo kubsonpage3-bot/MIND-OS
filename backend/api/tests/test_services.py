@@ -417,3 +417,41 @@ def test_task_multipliers_applied(user, profile, task):
     assert profile.gold > 0
 
 
+@pytest.mark.django_db
+def test_custom_button_task_rewards(user, profile):
+    from api.models import Task
+    button_task = Task.objects.create(
+        user=user,
+        title="Custom Boxing",
+        task_type=Task.TaskType.BUTTON,
+        category="Exercise",
+        default_hours=1.5,
+        default_focus=8,
+        xp_reward=20,
+        gold_reward=15,
+        boss_damage=30
+    )
+
+    from django.test.client import RequestFactory
+    from api.views import TrainingLogView
+    from rest_framework.test import force_authenticate
+    
+    factory = RequestFactory()
+    view = TrainingLogView.as_view()
+    
+    request = factory.post('/api/training/log/', {
+        "hours": 1.5,
+        "focus_rating": 8,
+        "activity": f"custom_task_{button_task.id}"
+    })
+    
+    force_authenticate(request, user=user)
+    response = view(request)
+    
+    assert response.status_code == 200
+    
+    button_task.refresh_from_db()
+    assert button_task.completion_count == 1
+    assert button_task.last_completed_at is not None
+
+
