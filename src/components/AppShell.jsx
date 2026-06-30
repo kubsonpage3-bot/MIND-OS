@@ -131,9 +131,6 @@ export default function AppShell({ defaultTab = "mind" }) {
 
   return (
     <div className="relative flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300" style={{ height: "100dvh" }}>
-      {/* Black status bar safe-area spacer on mobile */}
-      <div className="h-6 bg-black w-full md:hidden shrink-0" />
-
       {/* HP damage red screen flash */}
       {hpFlash && (
         <motion.div

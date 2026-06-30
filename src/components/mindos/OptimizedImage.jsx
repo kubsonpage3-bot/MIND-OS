@@ -46,7 +46,7 @@ export default function OptimizedImage({
   const { filename, baseName } = imageMeta;
 
   return (
-    <picture>
+    <picture style={{ display: "contents" }}>
       <source type="image/avif" srcSet={`/images/avif/${baseName}.avif`} />
       <source type="image/webp" srcSet={`/images/webp/${baseName}.webp`} />
       <img
