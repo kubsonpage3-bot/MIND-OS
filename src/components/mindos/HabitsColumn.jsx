@@ -3,6 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
+import { useHaptic } from '@/hooks/useHaptic';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import {
@@ -29,6 +30,7 @@ const TASK_BOSS_DAMAGE = { trivial: 10, easy: 25, medium: 50, hard: 75 };
 
 export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
+  const { success, error } = useHaptic();
   const tasks = habits;
 
   const { data: profile } = useQuery({ queryKey: ["userprofile"], queryFn: djangoApi.profile.get });
@@ -52,6 +54,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
       if (positive) {
         playSound('habit_positive');
+        success();
 
         const xpEarned = res?.xp_earned > 0 ? res.xp_earned : 0;
         const goldEarned = res?.gold_earned > 0 ? res.gold_earned : 0;
@@ -68,6 +71,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name, isCrit, itemDropped });
       } else {
         playSound('habit_negative');
+        error();
 
         let dmg = 0;
         // Check !== undefined to correctly parse exactly 0 if backend sent it, otherwise use actual damage

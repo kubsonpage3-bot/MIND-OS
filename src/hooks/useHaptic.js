@@ -26,10 +26,20 @@ async function getTauriHaptics() {
   return tauriHaptics;
 }
 
+function isHapticsEnabled() {
+  try {
+    const settings = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
+    return settings.hapticsEnabled !== false;
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Лёгкая вибрация — нажатие на кнопку, тап
  */
 export async function hapticLight() {
+  if (!isHapticsEnabled()) return;
   const haptics = await getTauriHaptics();
   if (haptics) {
     try {
@@ -45,6 +55,7 @@ export async function hapticLight() {
  * Средняя вибрация — переключение, свайп
  */
 export async function hapticMedium() {
+  if (!isHapticsEnabled()) return;
   const haptics = await getTauriHaptics();
   if (haptics) {
     try {
@@ -59,6 +70,7 @@ export async function hapticMedium() {
  * Сильная вибрация — завершение задачи, успех
  */
 export async function hapticHeavy() {
+  if (!isHapticsEnabled()) return;
   const haptics = await getTauriHaptics();
   if (haptics) {
     try {
@@ -73,6 +85,7 @@ export async function hapticHeavy() {
  * Вибрация успеха — как Habitica, когда выполнил привычку
  */
 export async function hapticSuccess() {
+  if (!isHapticsEnabled()) return;
   const haptics = await getTauriHaptics();
   if (haptics) {
     try {
@@ -87,6 +100,7 @@ export async function hapticSuccess() {
  * Вибрация ошибки — неправильное действие
  */
 export async function hapticError() {
+  if (!isHapticsEnabled()) return;
   const haptics = await getTauriHaptics();
   if (haptics) {
     try {

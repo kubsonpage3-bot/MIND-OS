@@ -23,6 +23,7 @@ import CharacterTab from "@/components/mindos/CharacterTab";
 import RivalTab from "@/components/mindos/RivalTab";
 import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
+import { hapticHeavy } from "@/hooks/useHaptic";
 
 import CharacterHub from "@/components/mindos/CharacterHub";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
@@ -344,6 +345,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (newRank.id !== oldRank.id && (res.profile?.rank_xp || 0) > (djangoProfile?.rank_xp || 0)) {
         setRankUpNotif(newRank.id);
         playSound('rank_up');
+        hapticHeavy();
       }
     },
     onError: (err) => {

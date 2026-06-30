@@ -2,6 +2,7 @@ import { Plus, Trash2, CheckSquare, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
+import { useHaptic } from '@/hooks/useHaptic';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import {
@@ -55,6 +56,7 @@ function decayOverdueTodos(todos) {
 
 export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
+  const { success, error } = useHaptic();
   const tasks = decayOverdueTodos(todos);
 
   // Сохранить задекейнные задачи при монтировании
@@ -77,6 +79,11 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
       });
 
       playSound(isCompleting ? 'task_complete' : 'habit_negative');
+      if (isCompleting) {
+        success();
+      } else {
+        error();
+      }
       return { previousTasks };
     },
     onError: (err, variables, context) => {

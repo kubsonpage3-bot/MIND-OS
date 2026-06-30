@@ -3,6 +3,7 @@ import { Plus, Trash2, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
+import { useHaptic } from '@/hooks/useHaptic';
 import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import {
@@ -37,6 +38,7 @@ function getDayStartHour() {
 
 export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
+  const { success, error } = useHaptic();
   const tasks = dailies;
   const [cronMsg, setCronMsg] = useState(null);
   const [deathMsg, setDeathMsg] = useState(null);
@@ -104,6 +106,11 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       });
 
       playSound(isCompleting ? 'task_complete' : 'habit_negative');
+      if (isCompleting) {
+        success();
+      } else {
+        error();
+      }
 
       return { previousTasks };
     },

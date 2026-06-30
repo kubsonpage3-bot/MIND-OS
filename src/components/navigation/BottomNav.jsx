@@ -1,8 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Swords, User, BarChart2, Settings } from "lucide-react";
 import PixelIcon from "./PixelIcon";
+import { hapticLight } from "@/hooks/useHaptic";
 
-function haptic(p = 8) { try { window.navigator?.vibrate?.(p); } catch { } }
+function haptic() {
+  hapticLight();
+}
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },

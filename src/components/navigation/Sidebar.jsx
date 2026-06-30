@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft, Brain, Sparkles, ChevronDown, X } from "lucide-react";
 import PixelIcon from "./PixelIcon";
 import { prefetchTab } from "@/lib/prefetch";
+import { hapticLight } from "@/hooks/useHaptic";
 
-function haptic(pattern = 10) {
-  try { window.navigator?.vibrate?.(pattern); } catch {}
+function haptic() {
+  hapticLight();
 }
 
 const APPS = [
