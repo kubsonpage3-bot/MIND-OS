@@ -331,6 +331,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           gc_ceiling: res.profile?.gc_ceiling ?? currentGs.gc_ceiling,
           ps_ceiling: res.profile?.ps_ceiling ?? currentGs.ps_ceiling,
           vm_ceiling: res.profile?.vm_ceiling ?? currentGs.vm_ceiling,
+          gold: res.profile?.gold ?? currentGs.gold,
+          hp: res.profile?.hp ?? currentGs.hp,
+          maxHp: res.profile?.hp_max ?? currentGs.maxHp,
         };
         localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
         setGameState(updatedGs);
