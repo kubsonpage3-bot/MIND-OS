@@ -133,18 +133,18 @@ export default function PixelRankRoad({ rankXP = 0 }) {
                 </div>
 
                 {/* Label */}
-                <div className="font-game text-[6px] text-[var(--habit-text)] font-bold uppercase tracking-wide truncate">
+                <div className="font-game text-[8px] text-[var(--habit-text)] font-bold uppercase tracking-wide truncate">
                   {row.label}
                 </div>
 
                 {/* Estimate */}
-                <div className="font-game text-[5px] mt-1 whitespace-pre-wrap leading-tight" style={{ color: "var(--habit-purple)" }}>
+                <div className="font-game text-[8px] mt-1 tracking-tight whitespace-pre-wrap leading-tight" style={{ color: "var(--habit-purple)" }}>
                   ⌛ {row.hoursEst.replace(" at focus 8", "")}
                 </div>
               </div>
 
               {/* XP Requirement indicator */}
-              <div className="mt-2 pt-1.5 border-t border-[var(--habit-border)] flex items-center justify-between font-game text-[5.5px]">
+              <div className="mt-2 pt-1.5 border-t border-[var(--habit-border)] flex items-center justify-between font-game text-[8px]">
                 <span className="text-[var(--habit-dim)] font-bold">REQ:</span>
                 <span className="text-[#ff8800]">{row.xpNeeded}XP</span>
               </div>

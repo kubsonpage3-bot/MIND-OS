@@ -13,13 +13,13 @@ export const RANKS = [
 
 export const RANK_XP_TABLE = [
   { id: "F",   label: "DORMANT",   xpNeeded: 0,    hoursEst: "—" },
-  { id: "D",   label: "AWAKENING", xpNeeded: 50,   hoursEst: "~6h at focus 8" },
-  { id: "C",   label: "GRINDING",  xpNeeded: 150,  hoursEst: "~19h at focus 8" },
-  { id: "B",   label: "SHARPENED", xpNeeded: 400,  hoursEst: "~50h at focus 8" },
-  { id: "A",   label: "ELITE",     xpNeeded: 800,  hoursEst: "~100h at focus 8" },
-  { id: "S",   label: "APEX",      xpNeeded: 1500, hoursEst: "~188h at focus 8" },
-  { id: "SS",  label: "SOVEREIGN", xpNeeded: 2500, hoursEst: "~313h at focus 8" },
-  { id: "SSS", label: "GOD MODE",  xpNeeded: 4000, hoursEst: "~500h at focus 8" },
+  { id: "D",   label: "AWAKENING", xpNeeded: 50,   hoursEst: "~1.5h at focus 8" },
+  { id: "C",   label: "GRINDING",  xpNeeded: 150,  hoursEst: "~4h at focus 8" },
+  { id: "B",   label: "SHARPENED", xpNeeded: 400,  hoursEst: "~10h at focus 8" },
+  { id: "A",   label: "ELITE",     xpNeeded: 800,  hoursEst: "~20h at focus 8" },
+  { id: "S",   label: "APEX",      xpNeeded: 1500, hoursEst: "~38h at focus 8" },
+  { id: "SS",  label: "SOVEREIGN", xpNeeded: 2500, hoursEst: "~63h at focus 8" },
+  { id: "SSS", label: "GOD MODE",  xpNeeded: 4000, hoursEst: "~100h at focus 8" },
 ];
 
 export function getRankFromXP(rankXP) {
