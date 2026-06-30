@@ -601,13 +601,14 @@ class TrainingLogView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        from .models import Task
+        from api.models import TrainingSession
+        from api.serializers.tasks import TrainingSessionSerializer
 
-        recent = Task.objects.filter(user=request.user, is_completed=True).order_by(
-            "-updated_at"
+        recent = TrainingSession.objects.filter(user_profile__user=request.user).order_by(
+            "-created_at"
         )[:20]
         return Response(
-            {"log": TaskSerializer(recent, many=True).data}, status=status.HTTP_200_OK
+            {"log": TrainingSessionSerializer(recent, many=True).data}, status=status.HTTP_200_OK
         )
 
     def post(self, request):
@@ -825,6 +826,21 @@ class TrainingLogView(generics.GenericAPIView):
             gain_xp(profile, final_xp)
             profile.rank_xp = max(0, profile.rank_xp + final_xp)
             profile.gold = max(0, profile.gold + final_gold)
+            
+            # ── Create TrainingSession Record ──
+            from api.models import TrainingSession
+            TrainingSession.objects.create(
+                user_profile=profile,
+                activity_key=activity,
+                hours=hours,
+                focus_rating=focus_rating,
+                efficiency=data.get("efficiency", 1.0),
+                xp_earned=final_xp,
+                gf_gain=gf_gain if "gf" in data else 0,
+                gc_gain=gc_gain if "gc" in data else 0,
+                ps_gain=ps_gain if "ps" in data else 0,
+                vm_gain=vm_gain if "vm" in data else 0,
+            )
 
             # Boss Damage Logic
             damage_dealt = outcome.get(

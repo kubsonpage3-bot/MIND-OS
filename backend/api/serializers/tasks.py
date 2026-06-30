@@ -119,3 +119,11 @@ class TaskCompleteResponseSerializer(serializers.Serializer):
     gold_earned = serializers.IntegerField()
     mana_gained = serializers.IntegerField()
     died = serializers.BooleanField()
+
+
+from api.models import TrainingSession
+
+class TrainingSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrainingSession
+        fields = '__all__'

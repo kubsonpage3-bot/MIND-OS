@@ -816,3 +816,32 @@ class RecruitedAlly(models.Model):
 
     def __str__(self):
         return f"{self.user_profile.user.username} - {self.ally_code} (Lv {self.level})"
+
+
+class TrainingSession(models.Model):
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="training_sessions",
+        verbose_name="Профиль пользователя",
+    )
+    activity_key = models.CharField(max_length=100, verbose_name="Активность")
+    hours = models.FloatField(default=0, verbose_name="Часы")
+    focus_rating = models.FloatField(default=5, verbose_name="Фокус")
+    efficiency = models.FloatField(default=1.0, verbose_name="Эффективность")
+    
+    xp_earned = models.PositiveIntegerField(default=0, verbose_name="Полученный опыт")
+    gf_gain = models.FloatField(default=0, verbose_name="Gf Gain")
+    gc_gain = models.FloatField(default=0, verbose_name="Gc Gain")
+    ps_gain = models.FloatField(default=0, verbose_name="Ps Gain")
+    vm_gain = models.FloatField(default=0, verbose_name="Vm Gain")
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата сессии")
+
+    class Meta:
+        verbose_name = "Тренировочная сессия"
+        verbose_name_plural = "Тренировочные сессии"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.activity_key} ({self.hours}h)"

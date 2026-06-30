@@ -307,6 +307,7 @@ export const djangoApi = {
   },
 
   training: {
+    getLog: () => djangoFetch('/training/log/'),
     log: (data) =>
       djangoFetch('/training/log/', {
         method: 'POST',

@@ -242,27 +242,25 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     });
   }, [djangoProfile?.rank_xp]);
 
-
-  const [logs, setLogs] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("mindos_activity_logs") || "[]");
-    } catch {
-      return [];
-    }
+  const { data: trainingLogsData, refetch: refetchTrainingLogs } = useQuery({
+    queryKey: ["trainingLogs"],
+    queryFn: djangoApi.training.getLog,
+    enabled: !!profile,
   });
+  const logs = trainingLogsData?.log || [];
 
   const dp = /** @type {any} */ (djangoProfile);
   const profile = dp ? {
     ...dp,
     initialized: true,
-    gf: gameState.gf ?? dp.gf ?? 100.0,
-    gc: gameState.gc ?? dp.gc ?? 100.0,
-    ps: gameState.ps ?? dp.ps ?? 100.0,
-    vm: gameState.vm ?? dp.vm ?? 100.0,
-    gf_ceiling: gameState.gf_ceiling ?? dp.gf_ceiling ?? 120.0,
-    gc_ceiling: gameState.gc_ceiling ?? dp.gc_ceiling ?? 135.0,
-    ps_ceiling: gameState.ps_ceiling ?? dp.ps_ceiling ?? 112.0,
-    vm_ceiling: gameState.vm_ceiling ?? dp.vm_ceiling ?? 138.0,
+    gf: dp.gf ?? 100.0,
+    gc: dp.gc ?? 100.0,
+    ps: dp.ps ?? 100.0,
+    vm: dp.vm ?? 100.0,
+    gf_ceiling: dp.gf_ceiling ?? 120.0,
+    gc_ceiling: dp.gc_ceiling ?? 135.0,
+    ps_ceiling: dp.ps_ceiling ?? 112.0,
+    vm_ceiling: dp.vm_ceiling ?? 138.0,
   } : null;
 
   const profileLoading = djangoProfileLoading || !profile;
@@ -351,18 +349,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   });
 
-  const createLog = useMutation({
-    /**
-     * @param {any} data
-     */
-    mutationFn: async (data) => {
-      const newLog = { ...data, id: Date.now(), created_date: new Date().toISOString() };
-      const currentLogs = [newLog, ...logs];
-      localStorage.setItem("mindos_activity_logs", JSON.stringify(currentLogs));
-      setLogs(currentLogs);
-      return newLog;
-    },
-  });
 
   const handleSetup = (data) => {
     try {
@@ -421,21 +407,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     if (!result) return;
 
     const { gains, newProfile, xpEarned } = result;
-    const iqBefore = calculateIQ(profile.gf, profile.gc, profile.ps, profile.vm);
-    const iqAfter = calculateIQ(newProfile.gf, newProfile.gc, newProfile.ps, newProfile.vm);
-
-    // Milestone badge notifications
-    Object.entries(METRIC_CONFIG).forEach(([mk, mc]) => {
-      const before = Math.floor(profile[mk]);
-      const after = Math.floor(newProfile[mk]);
-      if (after > before) {
-        setBadgeNotif({ metric: mc, value: after });
-        setTimeout(() => setBadgeNotif(null), 4000);
-      }
-    });
 
     // Rank XP (XP-based, hours × focus_rating) — apply mutator multipliers
-    const mutatorResult = applySessionMutators(activityKey, hours, logs);
+    const mutatorResult = applySessionMutators(activityKey, hours, []);
 
     // Gc bonus from lexicon mutator
     if (mutatorResult.gcBonus > 0) {
@@ -460,55 +434,50 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       activity: activityKey
     }, {
       onSuccess: (res) => {
+        // We now have the updated Profile in `res.profile`
+        // We do NOT simulate IQ in localStorage. We let React Query take over.
+        
+        // Milestone badge notifications
+        Object.entries(METRIC_CONFIG).forEach(([mk, mc]) => {
+          const before = Math.floor(profile[mk]);
+          const after = Math.floor(res.profile[mk]);
+          if (after > before) {
+            setBadgeNotif({ metric: mc, value: after });
+            setTimeout(() => setBadgeNotif(null), 4000);
+          }
+        });
+
+        const effStr = efficiency
+          ? `Focus(×${efficiency.focus.toFixed(2)}) · Streak(×${efficiency.streak.toFixed(2)}) · Fatigue(×${efficiency.fatigue.toFixed(2)}) · Dim(×${efficiency.diminishing.toFixed(2)}) = ×${efficiency.total.toFixed(2)}`
+          : "";
+
+        const gainLines = Object.entries(gains)
+          .filter(([, v]) => v > 0)
+          .map(([mk]) => {
+            const mc = METRIC_CONFIG[mk];
+            const actDetails = getActivityDetails(activityKey, tasks);
+            const baseCoeff = actDetails ? actDetails.coefficients[mk] || 0 : 0;
+            const raw = (baseCoeff * hours).toFixed(3);
+            const final = gains[mk].toFixed(3);
+            return `${mc.abbr} base ${raw} → +${final}`;
+          }).join(" · ");
+
+        const mutatorStr = mutatorResult.notes.length > 0 ? ` | Mutators: ${mutatorResult.notes.join(", ")}` : "";
+        const feedbackText = `${gainLines} — ${effStr}${mutatorStr}`;
+
         onFeedback(feedbackText, res.gold_earned);
         if (res.combat && res.combat.damage_dealt > 0) {
             handleBossDamage(res.combat.damage_dealt, res.combat.is_critical, res.combat.boss_defeated, res.combat, res.rewards);
         }
+        refetchTrainingLogs();
       },
       onError: () => {
         onFeedback("Failed to log training.");
       }
     });
 
-    const effStr = efficiency
-      ? `Focus(×${efficiency.focus.toFixed(2)}) · Streak(×${efficiency.streak.toFixed(2)}) · Fatigue(×${efficiency.fatigue.toFixed(2)}) · Dim(×${efficiency.diminishing.toFixed(2)}) = ×${efficiency.total.toFixed(2)}`
-      : "";
-
-    const gainLines = Object.entries(gains)
-      .filter(([, v]) => v > 0)
-      .map(([mk]) => {
-        const mc = METRIC_CONFIG[mk];
-        const actDetails = getActivityDetails(activityKey, tasks);
-        const baseCoeff = actDetails ? actDetails.coefficients[mk] || 0 : 0;
-        const raw = (baseCoeff * hours).toFixed(3);
-        const final = gains[mk].toFixed(3);
-        return `${mc.abbr} base ${raw} → +${final}`;
-      }).join(" · ");
-
-    const mutatorStr = mutatorResult.notes.length > 0 ? ` | Mutators: ${mutatorResult.notes.join(", ")}` : "";
-    const feedbackText = `${gainLines} — ${effStr}${mutatorStr}`;
-
-    createLog.mutate({
-      activity: activityKey,
-      hours,
-      gf_gain: gains.gf,
-      gc_gain: gains.gc,
-      ps_gain: gains.ps,
-      vm_gain: gains.vm,
-      iq_before: iqBefore,
-      iq_after: iqAfter,
-      xp_earned: xpEarned,
-      log_date: new Date().toISOString(),
-      focus_rating: focusRating,
-      efficiency_total: efficiency?.total,
-      efficiency_focus: efficiency?.focus,
-      efficiency_streak: efficiency?.streak,
-      efficiency_fatigue: efficiency?.fatigue,
-      efficiency_diminishing: efficiency?.diminishing,
-    });
-
     // onFeedback is now called in the onSuccess handler of logTraining
-  }, [profile, logTraining, createLog, handleBossDamage, logs]);
+  }, [profile, logTraining, handleBossDamage, logs]);
 
   if (profileLoading) {
     return (
