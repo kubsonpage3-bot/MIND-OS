@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import usePullToRefresh from "@/hooks/usePullToRefresh";
+
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -145,11 +145,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     enabled: !!djangoProfile
   });
 
-  const { pullRef, pulling, progress } = usePullToRefresh(() => {
-    queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-    queryClient.invalidateQueries({ queryKey: ["activitylogs"] });
-    setRankXPData(loadRankXP());
-  });
+
 
   // Run daily mutator tick (loan shark deductions, compound interest, etc.)
   useEffect(() => {
@@ -534,19 +530,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   }
 
   return (
-    <div ref={pullRef} className="min-h-screen font-inter bg-transparent text-[var(--habit-text)]">
-      {/* Pull-to-refresh indicator */}
-      {pulling && (
-        <div className="flex justify-center py-2 pointer-events-none">
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border text-xs font-mono text-muted-foreground"
-            style={{ opacity: Math.min(1, progress) }}
-          >
-            <RefreshCw className="w-3 h-3 animate-spin" style={{ animationPlayState: progress >= 1 ? "running" : "paused" }} />
-            {progress >= 1 ? "Release to refresh" : "Pull to refresh"}
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen font-inter bg-transparent text-[var(--habit-text)]">
       <main className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <AchievementTracker />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />

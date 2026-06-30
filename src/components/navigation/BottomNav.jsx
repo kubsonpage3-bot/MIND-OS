@@ -115,7 +115,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
       </AnimatePresence>
 
       {/* Bottom nav bar */}
-      <nav className="md:hidden shrink-0 w-full z-50 flex items-end justify-around"
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 flex items-end justify-around"
         style={{
           background: "var(--habit-bottom-bg)",
           borderTop: "1px solid var(--habit-bottom-border)",

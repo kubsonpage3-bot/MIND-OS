@@ -147,12 +147,17 @@
   }
 
   html,
-  body,
-  #root {
-    height: 100%;
+  body {
     width: 100%;
-    overflow: hidden;
-    position: fixed;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 
   body {
@@ -160,7 +165,6 @@
     color: var(--habit-text);
     font-family: 'Nunito', sans-serif;
     font-size: 15px;
-    overscroll-behavior: none;
     /* Native-app feel: disable text selection globally */
     user-select: none;
     -webkit-user-select: none;
@@ -573,16 +577,7 @@ html[data-theme="cyberpunk"] .task-card {
   scroll-behavior: smooth;
 }
 
-/* Dedicated main scroll container with pull-to-refresh & browser viewport bounce block */
-.main-scroll-container {
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  overscroll-behavior-y: contain;
-  touch-action: pan-y !important;
-  pointer-events: auto !important;
-}
+
 
 
 /* ─── PANEL / CARD ─── */

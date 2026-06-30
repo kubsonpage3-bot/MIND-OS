@@ -130,7 +130,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   const currentRank = rankXPData.currentRank || "F";
 
   return (
-    <div className="relative flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300" style={{ height: "100dvh" }}>
+    <div className="relative flex flex-col md:flex-row min-h-dvh bg-transparent text-[var(--habit-text)] transition-colors duration-300">
       {/* HP damage red screen flash */}
       {hpFlash && (
         <motion.div
@@ -156,7 +156,7 @@ export default function AppShell({ defaultTab = "mind" }) {
       />
 
       {/* Main content area */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-4 min-h-0 flex-1 main-scroll-container`}>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-4 flex-1 w-full`}>
         {activeApp === "mind" && (
           <>
             <div className="relative">
