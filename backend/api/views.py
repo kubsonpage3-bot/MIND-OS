@@ -31,12 +31,15 @@ from .serializers import (
     CraftSerializer,
     RecipeListSerializer,
 )
-from .models import ActiveEffect, SkillCooldown
+from .models import ActiveEffect, SkillCooldown, Boss, BossEncounter
 from .serializers import (
     ActiveEffectSerializer,
     SkillActivateSerializer,
     SkillCooldownSerializer,
     ShopBuySerializer,
+    BossSerializer,
+    BossEncounterSerializer,
+    BossSummonSerializer,
 )
 from api.services.task_service import complete_task
 from api.services.skill_service import activate_skill
@@ -340,8 +343,6 @@ class ShopBuyView(generics.GenericAPIView):
 # ─────────────────────────────────────────────────────────────────────────────
 # Combat System
 # ─────────────────────────────────────────────────────────────────────────────
-from .models import Boss, BossEncounter  # noqa: E402
-from .serializers import BossSerializer, BossEncounterSerializer, BossSummonSerializer  # noqa: E402,E501
 
 
 class BossListView(generics.ListAPIView):

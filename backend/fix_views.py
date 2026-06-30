@@ -54,7 +54,7 @@ if old in content:
 else:
     print("MISMATCH - dumping surrounding text:")
     idx = content.find('cost = serializer.validated_data["cost"]')
-    print(repr(content[idx - 200: idx + 400]))
+    print(repr(content[idx - 200 : idx + 400]))
 
 with open(r"C:\coder\mind-os-growth\backend\api\views.py", "w", encoding="utf-8") as f:
     f.write(content)
