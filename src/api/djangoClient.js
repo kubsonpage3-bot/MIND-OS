@@ -9,6 +9,12 @@ const BASE_URL = 'https://mind-os-d5sk.onrender.com/api';
 export function getMediaUrl(path) {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  
+  // Serve static assets directly from the frontend's public directory
+  if (path.startsWith('/static/')) {
+    return path;
+  }
+  
   return `${API_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 

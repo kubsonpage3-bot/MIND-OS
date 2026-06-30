@@ -31,12 +31,19 @@ def complete_task(user, task_id, is_positive=True):
             task.is_completed = True
             task.last_completed_at = timezone.now()
             task.completion_count += 1
+            
+            if not isinstance(task.last_reward_data, dict):
+                task.last_reward_data = {}
+            task.last_reward_data["value_before"] = task.value
         else:
             if not task.is_completed:
                 raise ValidationError("Task is not completed.")
             task.is_completed = False
             task.last_completed_at = None
             task.completion_count = max(0, task.completion_count - 1)
+            
+            if isinstance(task.last_reward_data, dict) and "value_before" in task.last_reward_data:
+                task.value = task.last_reward_data.get("value_before", task.value)
 
     elif task.task_type == Task.TaskType.DAILY:
         today = timezone.now().date()
@@ -47,6 +54,11 @@ def complete_task(user, task_id, is_positive=True):
                 raise ValidationError("Daily task already completed today.")
             task.last_completed_at = timezone.now()
             task.is_completed = True
+            
+            if not isinstance(task.last_reward_data, dict):
+                task.last_reward_data = {}
+            task.last_reward_data["value_before"] = task.value
+            
             task.value = calc_new_value(task.value, "complete", "daily")
             task.completion_count += 1
             task.streak += 1
@@ -56,7 +68,12 @@ def complete_task(user, task_id, is_positive=True):
             # Revert: clear both the timestamp AND the flag so the task is fully unlocked.
             task.last_completed_at = None
             task.is_completed = False
-            task.value = calc_new_value(task.value, "fail", "daily")
+            
+            if isinstance(task.last_reward_data, dict) and "value_before" in task.last_reward_data:
+                task.value = task.last_reward_data.get("value_before", task.value)
+            else:
+                task.value = calc_new_value(task.value, "fail", "daily")
+                
             task.completion_count = max(0, task.completion_count - 1)
             task.streak = max(0, task.streak - 1)
 
@@ -174,13 +191,46 @@ def complete_task(user, task_id, is_positive=True):
                 if not created:
                     inv_item.quantity += 1
                     inv_item.save()
+                    
+        if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
+            if not isinstance(task.last_reward_data, dict):
+                task.last_reward_data = {}
+            task.last_reward_data["xp_earned"] = final_xp
+            task.last_reward_data["gold_earned"] = final_gold
+            task.last_reward_data["item_dropped"] = outcome.get("item_dropped")
     else:
-        # Reverting task rewards (applying exact same multipliers to avoid XP/Gold farming)
-        outcome = calculate_task_outcome(user, task.task_type, base_xp, base_gold, is_positive=False)
-        gamification_result = outcome
-        
-        final_xp_lost = max(0, int(outcome.get("xp_lost", 0) * profile.xp_multiplier))
-        final_gold_lost = max(0, int(outcome.get("gold_lost", 0) * profile.gold_multiplier))
+        # Reverting task rewards (applying exact same amounts to avoid XP/Gold farming)
+        if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO] and isinstance(task.last_reward_data, dict) and "xp_earned" in task.last_reward_data:
+            final_xp_lost = task.last_reward_data.get("xp_earned", 0)
+            final_gold_lost = task.last_reward_data.get("gold_earned", 0)
+            item_dropped_code = task.last_reward_data.get("item_dropped")
+            
+            if item_dropped_code:
+                item_obj = Item.objects.filter(code=item_dropped_code).first()
+                if item_obj:
+                    inv_item = InventoryItem.objects.filter(user_profile=profile, item=item_obj).first()
+                    if inv_item:
+                        inv_item.quantity = max(0, inv_item.quantity - 1)
+                        if inv_item.quantity == 0:
+                            inv_item.delete()
+                        else:
+                            inv_item.save()
+                            
+            gamification_result = {
+                "xp_lost": final_xp_lost,
+                "gold_lost": final_gold_lost,
+                "hp_lost": 0,
+                "item_dropped": None,
+                "is_crit": False,
+                "damage_dealt": 0
+            }
+            task.last_reward_data = {}
+        else:
+            outcome = calculate_task_outcome(user, task.task_type, base_xp, base_gold, is_positive=False)
+            gamification_result = outcome
+            
+            final_xp_lost = max(0, int(outcome.get("xp_lost", 0) * profile.xp_multiplier))
+            final_gold_lost = max(0, int(outcome.get("gold_lost", 0) * profile.gold_multiplier))
 
         profile.xp = max(0, profile.xp - final_xp_lost)
         profile.rank_xp = max(0, profile.rank_xp - final_xp_lost)

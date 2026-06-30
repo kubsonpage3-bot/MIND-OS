@@ -20,12 +20,7 @@ export default defineConfig({
   // Exclude Cargo build artifacts from file watching (Windows locks compiled DLLs)
   // Use regex instead of glob — chokidar on Windows uses backslashes, globs fail to match
   server: {
-    proxy: {
-      '/static': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      }
-    },
+    proxy: {},
     watch: {
       ignored: [/src-tauri[/\\]target/],
     },

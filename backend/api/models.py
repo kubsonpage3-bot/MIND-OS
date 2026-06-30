@@ -369,6 +369,13 @@ class Task(models.Model):
         verbose_name="Дедлайн",
     )
 
+    # Точные данные наград при последнем выполнении (для отката)
+    last_reward_data = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Данные последней награды",
+    )
+
     # Счётчик выполнений (особенно полезен для привычек)
     completion_count = models.PositiveIntegerField(
         default=0,
