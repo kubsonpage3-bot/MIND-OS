@@ -37,12 +37,33 @@ async function generatePlaceholder(name) {
 
 async function processImage(filepath) {
   try {
-    // Sharp can trim background with a tolerance
-    const image = sharp(filepath);
-    const metadata = await image.metadata();
+    const image = sharp(filepath).ensureAlpha();
+    const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
 
-    const trimmed = await image
-      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 15 })
+    // Tolerance for black and white
+    const blackTolerance = 18;
+    const whiteTolerance = 240;
+
+    for (let i = 0; i < data.length; i += info.channels) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      const isBlack = r <= blackTolerance && g <= blackTolerance && b <= blackTolerance;
+      const isWhite = r >= whiteTolerance && g >= whiteTolerance && b >= whiteTolerance;
+
+      if (isBlack || isWhite) {
+        data[i + 3] = 0; // Set alpha to 0 (transparent)
+      }
+    }
+
+    const transparentImage = sharp(data, {
+      raw: { width: info.width, height: info.height, channels: info.channels }
+    });
+
+    const trimmed = await transparentImage
+      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 1 })
+      .png()
       .toBuffer();
 
     // Now we pad it to square and resize
