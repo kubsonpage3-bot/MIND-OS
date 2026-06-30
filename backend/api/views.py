@@ -654,9 +654,8 @@ class TrainingLogView(generics.GenericAPIView):
                 vm_gain = max(0.0, float(data["vm"]) - profile.vm)
                 profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
 
-            # Calculate XP and Gold using mechanics
             base_xp = ((hours * focus_rating * 5) * mutator_multiplier + flat_xp_bonus) * xp_mult
-            base_gold = ((hours * 2) * mutator_multiplier) * gold_mult
+            base_gold = ((hours * 25) * mutator_multiplier) * gold_mult
 
             outcome = calculate_task_outcome(request.user, "training", base_xp=base_xp, base_gold=base_gold, is_positive=True)
 

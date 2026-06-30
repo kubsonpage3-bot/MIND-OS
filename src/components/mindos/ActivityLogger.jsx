@@ -347,8 +347,21 @@ export default function ActivityLogger({ onLog, profile, logs }) {
                 const cons = gs.consumables || {};
                 if (cons.xp_booster?.active && (!cons.xp_booster.expiresAt || Date.now() < cons.xp_booster.expiresAt)) mult = 1.5;
               } catch {}
-              const base = Math.max(1, Math.round(logValue * 25));
-              const total = Math.round(base * mult);
+              
+              const stats = profile?.total_stats || {};
+              const spd = stats.spd || 0;
+              const lck = stats.lck || 0;
+              const goldMultStats = stats.gold_multiplier || 1.0;
+              
+              let skillMult = 1.0;
+              const skills = profile?.unlocked_skills || [];
+              if (skills.some(s => (s.skill_code || s) === "resource_awareness")) skillMult += 0.10;
+              
+              const base_gold = (logValue * 25) * mult * skillMult;
+              const spdBonus = spd * 0.5;
+              const expectedGold = Math.floor((base_gold + spdBonus) * (1 + lck / 100.0));
+              const total = Math.max(0, Math.floor(expectedGold * goldMultStats));
+
               return (
                 <div className="text-xs font-mono text-center" style={{ color: "var(--habit-gold)" }}>
                   +{total}G on completion{mult > 1 && <span className="text-green-400 ml-1">(×{mult} booster!)</span>}
