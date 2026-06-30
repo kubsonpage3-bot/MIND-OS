@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # --- Сторонние пакеты ---               # Django REST Framework
     "rest_framework_simplejwt",  # JWT-аутентификация                      # CORS для Tauri  # noqa: E501
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",  # Фильтрация списков в API
     "drf_spectacular",  # Автодокументация OpenAPI
     # --- Наши приложения ---

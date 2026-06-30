@@ -283,7 +283,7 @@ class ActiveEffectsView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        from django.utils import timezone
+        from django.utils import timezone  # type: ignore
 
         # Чистим истекшие
         ActiveEffect.objects.filter(
@@ -386,7 +386,7 @@ class BossSummonView(generics.GenericAPIView):
 
         boss_id = serializer.validated_data["boss_id"]
 
-        from django.db import transaction
+        from django.db import transaction  # type: ignore
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -481,7 +481,7 @@ class ToggleEquipView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, item_code):
-        from django.db import transaction
+        from django.db import transaction  # type: ignore
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -535,7 +535,7 @@ class PrestigeView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from django.db import transaction
+        from django.db import transaction  # type: ignore
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -616,8 +616,8 @@ class TrainingLogView(generics.GenericAPIView):
         POST /api/training/log/
         Logs a training session, grants XP and applies boss damage.
         """
-        from django.db import transaction
-        from django.utils import timezone
+        from django.db import transaction  # type: ignore
+        from django.utils import timezone  # type: ignore
         from api.models import UserProfile, Task
         from api.services.profile_service import gain_xp
         from api.services.mechanics import calculate_task_outcome, apply_boss_damage
@@ -1006,7 +1006,7 @@ class CombatSyncView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from django.db import transaction
+        from django.db import transaction  # type: ignore
         from api.models import UserProfile, UserStats
         from api.services.achievement_service import check_and_grant_achievements
         from api.serializers.profile import UserProfileSerializer
@@ -1074,7 +1074,7 @@ class ResetDataView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from django.db import transaction
+        from django.db import transaction  # type: ignore
         from api.models import (
             Task,
             ActiveEffect,
@@ -1137,6 +1137,16 @@ class ResetDataView(generics.GenericAPIView):
                 InventoryItem.objects.filter(user_profile=profile).delete()
                 profile.unlocked_skills.all().delete()
                 profile.recruited_allies.all().delete()
+                
+                # Invalidate JWT tokens to force logout on all devices
+                try:
+                    from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+                    tokens = OutstandingToken.objects.filter(user=request.user)  # type: ignore
+                    for token in tokens:
+                        BlacklistedToken.objects.get_or_create(token=token)  # type: ignore
+                except Exception as e:
+                    import logging
+                    logging.getLogger("api").error(f"Failed to blacklist tokens: {e}")
 
             profile.save()
 
