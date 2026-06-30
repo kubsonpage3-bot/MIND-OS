@@ -12,6 +12,7 @@ from api.exceptions import GameLogicError
 from api.models import Item, InventoryItem, Recipe, RecipeIngredient
 from api.services.crafting_service import craft_item
 
+
 @pytest.fixture
 def user():
     u = User.objects.create(username="testuser", password="testpassword")
@@ -156,7 +157,9 @@ class ServiceMechanicsTests(TestCase):
         self.profile.level = 1
         self.profile.save()
 
-        self.item = Item.objects.create(code="gold_sword", name="Gold Sword", item_type="equipment", cost=50)
+        self.item = Item.objects.create(
+            code="gold_sword", name="Gold Sword", item_type="equipment", cost=50
+        )
         self.task = Task.objects.create(
             user=self.user, title="Test Task", task_type="habit", difficulty="hard"
         )
@@ -237,7 +240,7 @@ class ServiceMechanicsTests(TestCase):
             code="craft_stone_sword",
             name="Craft Stone Sword",
             result_item=sword,
-            crafting_cost=50
+            crafting_cost=50,
         )
         RecipeIngredient.objects.create(recipe=recipe, item=wood, quantity=3)
         RecipeIngredient.objects.create(recipe=recipe, item=stone, quantity=2)
@@ -248,15 +251,15 @@ class ServiceMechanicsTests(TestCase):
         self.profile.refresh_from_db()
         self.assertEqual(crafted_item.code, "stone_sword")
         self.assertEqual(self.profile.gold, 50)
-        
+
         # Check inventory
         wood_inv = InventoryItem.objects.get(user_profile=self.profile, item=wood)
         self.assertEqual(wood_inv.quantity, 2)
-        
+
         # Stone should be deleted since we used 2 out of 2
         with self.assertRaises(InventoryItem.DoesNotExist):
             InventoryItem.objects.get(user_profile=self.profile, item=stone)
-            
+
         sword_inv = InventoryItem.objects.get(user_profile=self.profile, item=sword)
         self.assertEqual(sword_inv.quantity, 1)
 
@@ -276,7 +279,7 @@ class ServiceMechanicsTests(TestCase):
             code="craft_wooden_sword",
             name="Craft Wooden Sword",
             result_item=sword,
-            crafting_cost=50
+            crafting_cost=50,
         )
         RecipeIngredient.objects.create(recipe=recipe, item=wood, quantity=3)
 
@@ -294,6 +297,7 @@ class ServiceMechanicsTests(TestCase):
 @pytest.mark.django_db
 def test_calculate_task_outcome(user):
     from api.services.mechanics import calculate_task_outcome
+
     profile = UserProfile.objects.get(user=user)
     profile.base_pwr = 10
     profile.base_spd = 20
@@ -301,12 +305,14 @@ def test_calculate_task_outcome(user):
     profile.base_lck = 0  # No drop/bonus
     profile.base_def = 100
     profile.save()
-    
+
     # Positive task
-    res = calculate_task_outcome(user, "todo", base_xp=10, base_gold=10, is_positive=True)
+    res = calculate_task_outcome(
+        user, "todo", base_xp=10, base_gold=10, is_positive=True
+    )
     assert res["xp_earned"] == 10 + (10 * 0.5)  # 15
-    assert res["gold_earned"] == 10 + (20 * 0.5) # 20
-    
+    assert res["gold_earned"] == 10 + (20 * 0.5)  # 20
+
     # Negative task
     res_neg = calculate_task_outcome(user, "habit", base_hp_lost=50, is_positive=False)
     # def=100 -> 100 / (100 + 100) = 0.5 -> 50 * 0.5 = 25
@@ -326,21 +332,25 @@ def test_buy_skill_node(user, profile):
     buy_skill_node(user, "sharp_focus")
     profile.refresh_from_db()
     assert profile.skill_points == 7  # 10 - 3
-    assert profile.gold == 400        # 500 - 100
-    assert UnlockedSkill.objects.filter(user_profile=profile, skill_code="sharp_focus").exists()
+    assert profile.gold == 400  # 500 - 100
+    assert UnlockedSkill.objects.filter(
+        user_profile=profile, skill_code="sharp_focus"
+    ).exists()
 
     # Buy skill requiring sharp_focus (deep_concentration)
     buy_skill_node(user, "deep_concentration")
     profile.refresh_from_db()
     assert profile.skill_points == 1  # 7 - 6
-    assert profile.gold == 150        # 400 - 250
-    assert UnlockedSkill.objects.filter(user_profile=profile, skill_code="deep_concentration").exists()
+    assert profile.gold == 150  # 400 - 250
+    assert UnlockedSkill.objects.filter(
+        user_profile=profile, skill_code="deep_concentration"
+    ).exists()
 
 
 @pytest.mark.django_db
 def test_buy_skill_insufficient_resources(user, profile):
     from api.services.rpg_service import buy_skill_node
-    
+
     profile.skill_points = 1
     profile.gold = 50
     profile.save()
@@ -352,13 +362,13 @@ def test_buy_skill_insufficient_resources(user, profile):
 @pytest.mark.django_db
 def test_buy_skill_missing_requires(user, profile):
     from api.services.rpg_service import buy_skill_node
-    
+
     profile.skill_points = 10
     profile.gold = 1000
     profile.save()
 
     with pytest.raises(GameLogicError):
-        buy_skill_node(user, "deep_concentration") # Requires sharp_focus
+        buy_skill_node(user, "deep_concentration")  # Requires sharp_focus
 
 
 @pytest.mark.django_db
@@ -373,13 +383,17 @@ def test_recruit_and_upgrade_ally(user, profile):
     recruit_ally(user, "kira")
     profile.refresh_from_db()
     assert profile.gold == 1800
-    assert RecruitedAlly.objects.filter(user_profile=profile, ally_code="kira", level=1).exists()
+    assert RecruitedAlly.objects.filter(
+        user_profile=profile, ally_code="kira", level=1
+    ).exists()
 
     # Upgrade Kira level 2 (cost 800)
     recruit_ally(user, "kira")
     profile.refresh_from_db()
     assert profile.gold == 1000
-    assert RecruitedAlly.objects.filter(user_profile=profile, ally_code="kira", level=2).exists()
+    assert RecruitedAlly.objects.filter(
+        user_profile=profile, ally_code="kira", level=2
+    ).exists()
 
 
 @pytest.mark.django_db
@@ -396,14 +410,14 @@ def test_recruit_insufficient_gold(user, profile):
 @pytest.mark.django_db
 def test_task_multipliers_applied(user, profile, task):
     from api.models import UnlockedSkill, RecruitedAlly
-    
+
     profile.gold = 0
     profile.skill_points = 10
     profile.save()
 
     # Unlock resource_awareness (+10% gold)
     UnlockedSkill.objects.create(user_profile=profile, skill_code="resource_awareness")
-    
+
     # Recruit Neko level 1 (+5% daily gold)
     RecruitedAlly.objects.create(user_profile=profile, ally_code="neko", level=1)
 
@@ -411,7 +425,7 @@ def test_task_multipliers_applied(user, profile, task):
     task.save()
 
     complete_task(user, task.id, True)
-    
+
     profile.refresh_from_db()
     # Gold base (medium daily) + 15% (10% + 5% additively)
     assert profile.gold > 0
@@ -420,6 +434,7 @@ def test_task_multipliers_applied(user, profile, task):
 @pytest.mark.django_db
 def test_custom_button_task_rewards(user, profile):
     from api.models import Task
+
     button_task = Task.objects.create(
         user=user,
         title="Custom Boxing",
@@ -429,29 +444,26 @@ def test_custom_button_task_rewards(user, profile):
         default_focus=8,
         xp_reward=20,
         gold_reward=15,
-        boss_damage=30
+        boss_damage=30,
     )
 
     from django.test.client import RequestFactory
     from api.views import TrainingLogView
     from rest_framework.test import force_authenticate
-    
+
     factory = RequestFactory()
     view = TrainingLogView.as_view()
-    
-    request = factory.post('/api/training/log/', {
-        "hours": 1.5,
-        "focus_rating": 8,
-        "activity": f"custom_task_{button_task.id}"
-    })
-    
+
+    request = factory.post(
+        "/api/training/log/",
+        {"hours": 1.5, "focus_rating": 8, "activity": f"custom_task_{button_task.id}"},
+    )
+
     force_authenticate(request, user=user)
     response = view(request)
-    
+
     assert response.status_code == 200
-    
+
     button_task.refresh_from_db()
     assert button_task.completion_count == 1
     assert button_task.last_completed_at is not None
-
-

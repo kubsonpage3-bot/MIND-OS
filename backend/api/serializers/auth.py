@@ -2,11 +2,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     """
     Сериализатор для регистрации нового пользователя.
     Принимает: username, email, password, password2 (подтверждение).
     """
+
     password = serializers.CharField(
         write_only=True,
         required=True,
@@ -44,6 +46,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Базовые данные пользователя (используется в профиле)."""
+
     class Meta:
         model = User
         fields = ("id", "username", "email", "date_joined")

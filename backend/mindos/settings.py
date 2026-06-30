@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # --- Сторонние пакеты ---               # Django REST Framework
-    "rest_framework_simplejwt",  # JWT-аутентификация                      # CORS для Tauri
+    "rest_framework_simplejwt",  # JWT-аутентификация                      # CORS для Tauri  # noqa: E501
     "django_filters",  # Фильтрация списков в API
     "drf_spectacular",  # Автодокументация OpenAPI
     # --- Наши приложения ---
@@ -103,7 +103,7 @@ else:
 # ── Валидация паролей ─────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
@@ -277,5 +277,4 @@ LOGGING = {
     },
 }
 
-STATICFILES_DIRS = [BASE_DIR / 'static']
-
+STATICFILES_DIRS = [BASE_DIR / "static"]

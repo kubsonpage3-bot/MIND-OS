@@ -7,17 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0023_userstats_highest_subject_rank_userstats_prayer_rank'),
+        ("api", "0023_userstats_highest_subject_rank_userstats_prayer_rank"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='task',
-            index=models.Index(fields=['user', 'task_type'], name='api_task_user_id_a0ed02_idx'),
+            model_name="task",
+            index=models.Index(
+                fields=["user", "task_type"], name="api_task_user_id_a0ed02_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='task',
-            index=models.Index(fields=['user', 'is_completed'], name='api_task_user_id_ad64e3_idx'),
+            model_name="task",
+            index=models.Index(
+                fields=["user", "is_completed"], name="api_task_user_id_ad64e3_idx"
+            ),
         ),
     ]

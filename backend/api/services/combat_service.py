@@ -97,7 +97,7 @@ def process_boss_death(user, encounter):
 
 def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     """
-    Рассчитывает урон по HP при провале привычки или дейлика по формуле из taskEngine.js.
+    Рассчитывает урон по HP при провале привычки или дейлика по формуле из taskEngine.js.  # noqa: E501
     """
     BASE_DAMAGE = {"trivial": 10, "easy": 10, "medium": 10, "hard": 10, "critical": 10}
     DIFF_MULT = {"trivial": 0.5, "easy": 1, "medium": 2, "hard": 3, "critical": 4}
@@ -128,20 +128,24 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
 @transaction.atomic
 def summon_boss(user, boss_id):
     profile = UserProfile.objects.select_for_update().get(user=user)
-    
+
     boss_data = SCROLL_BOSSES_DICT.get(boss_id)
     if not boss_data:
         raise GameLogicError("Unknown boss id.")
-        
+
     cost = boss_data.get("price", 0)
-    
+
     if profile.gold < cost:
         raise GameLogicError("Not enough gold.")
-        
-    active_encounter = BossEncounter.objects.filter(user=user, is_defeated=False).first()
+
+    active_encounter = BossEncounter.objects.filter(
+        user=user, is_defeated=False
+    ).first()
     if active_encounter:
-        raise GameLogicError(f"You already have an active boss: {active_encounter.boss.name}")
-        
+        raise GameLogicError(
+            f"You already have an active boss: {active_encounter.boss.name}"
+        )
+
     boss, created = Boss.objects.get_or_create(
         id_name=boss_id,
         defaults={
@@ -150,10 +154,10 @@ def summon_boss(user, boss_id):
             "level": 1,
             "reward_gold": boss_data["reward"]["gold"],
             "reward_xp": boss_data["reward"]["xp"],
-            "drop_item_id": boss_data.get("uniqueItem", "")
-        }
+            "drop_item_id": boss_data.get("uniqueItem", ""),
+        },
     )
-        
+
     profile.gold -= cost
     profile.save(update_fields=["gold"])
 

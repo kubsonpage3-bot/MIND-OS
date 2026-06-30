@@ -1,6 +1,7 @@
 from django.db import transaction
-from api.models import UserProfile, Recipe, RecipeIngredient, InventoryItem
+from api.models import UserProfile, Recipe, InventoryItem
 from api.exceptions import GameLogicError
+
 
 @transaction.atomic
 def craft_item(user, recipe_code: str):
@@ -18,7 +19,7 @@ def craft_item(user, recipe_code: str):
         raise GameLogicError("Not enough gold for crafting.")
 
     # Проверяем наличие всех ингредиентов
-    ingredients = recipe.ingredients.select_related('item').all()
+    ingredients = recipe.ingredients.select_related("item").all()
     if not ingredients:
         raise GameLogicError("This recipe has no ingredients configured.")
 
@@ -27,7 +28,9 @@ def craft_item(user, recipe_code: str):
     for req in ingredients:
         inv_item = profile.inventory_items.filter(item=req.item).first()
         if not inv_item or inv_item.quantity < req.quantity:
-            raise GameLogicError(f"Missing ingredient: {req.item.name} (Need: {req.quantity})")
+            raise GameLogicError(
+                f"Missing ingredient: {req.item.name} (Need: {req.quantity})"
+            )
         items_to_deduct[req.id] = (inv_item, req.quantity)
 
     # Списываем золото

@@ -2,11 +2,13 @@ from rest_framework import serializers
 from api.models import Task
 from .profile import UserProfileSerializer
 
+
 class TaskSerializer(serializers.ModelSerializer):
     """
     Сериализатор задач — поддерживает создание, чтение, обновление и удаление.
     Поле 'user' устанавливается автоматически из request.user, не из запроса.
     """
+
     task_type_display = serializers.CharField(
         source="get_task_type_display", read_only=True
     )
@@ -75,9 +77,10 @@ class TaskCompleteSerializer(serializers.Serializer):
     Минимальный сериализатор для эндпоинта 'complete'.
     Подтверждает выполнение задачи и возвращает начисленные награды.
     """
+
     is_positive = serializers.BooleanField(
         default=True,
-        help_text="Для привычек: True = выполнить позитивное действие, False = нарушение",
+        help_text="Для привычек: True = выполнить позитивное действие, False = нарушение",  # noqa: E501
     )
 
 

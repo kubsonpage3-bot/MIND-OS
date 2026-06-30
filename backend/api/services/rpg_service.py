@@ -18,12 +18,19 @@ def buy_skill_node(user, skill_code: str) -> UserProfile:
     config = SKILL_TREE_CONFIG[skill_code]
 
     # Проверка: уже разблокирован?
-    if UnlockedSkill.objects.filter(user_profile=profile, skill_code=skill_code).exists():
+    if UnlockedSkill.objects.filter(
+        user_profile=profile, skill_code=skill_code
+    ).exists():
         raise GameLogicError("Skill is already unlocked.")
 
     # Проверка: зависимость (requires) разблокирована?
     requires = config.get("requires")
-    if requires and not UnlockedSkill.objects.filter(user_profile=profile, skill_code=requires).exists():
+    if (
+        requires
+        and not UnlockedSkill.objects.filter(
+            user_profile=profile, skill_code=requires
+        ).exists()
+    ):
         raise GameLogicError(f"Requires previous skill '{requires}' to be unlocked.")
 
     cost_sp = config.get("sp", 0)
@@ -37,7 +44,7 @@ def buy_skill_node(user, skill_code: str) -> UserProfile:
     # Списание ресурсов
     profile.skill_points -= cost_sp
     profile.gold -= cost_gold
-    
+
     # Применение перманентных бонусов, если они есть (например, gf_ceiling_bonus)
     gf_ceiling_bonus = config.get("gf_ceiling_bonus", 0)
     if gf_ceiling_bonus > 0:
@@ -66,9 +73,7 @@ def recruit_ally(user, ally_code: str) -> RecruitedAlly:
 
     # Получаем или создаем запись союзника с уровнем 0 (до списания)
     ally_rec, created = RecruitedAlly.objects.get_or_create(
-        user_profile=profile,
-        ally_code=ally_code,
-        defaults={"level": 0}
+        user_profile=profile, ally_code=ally_code, defaults={"level": 0}
     )
 
     current_level = ally_rec.level

@@ -1,6 +1,4 @@
 class GameLogicError(Exception):
     """
-    Exception raised for errors in the game logic (e.g. not enough gold, active encounters).
+    Exception raised for errors in the game logic (e.g. not enough gold, active encounters).  # noqa: E501
     """
-
-    pass

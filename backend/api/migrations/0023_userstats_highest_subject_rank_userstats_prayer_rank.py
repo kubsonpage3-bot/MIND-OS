@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0022_userstats_userachievement'),
+        ("api", "0022_userstats_userachievement"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userstats',
-            name='highest_subject_rank',
+            model_name="userstats",
+            name="highest_subject_rank",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='prayer_rank',
+            model_name="userstats",
+            name="prayer_rank",
             field=models.PositiveIntegerField(default=0),
         ),
     ]

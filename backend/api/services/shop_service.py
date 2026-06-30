@@ -26,11 +26,14 @@ def _apply_consumable(profile, item):
 
     # Timed buffs → ActiveEffect
     buff_mapping = {
-        "focus_stim":       {"data": {"multiplier": 1.3, "stat": "foc"},       "duration_hours": 2},
-        "xp_booster":       {"data": {"xpBoost": 0.5},                          "duration_hours": 24},
-        "daily_xp_surge":   {"data": {"xpBoost": 1.0},                          "duration_hours": 2},
-        "streak_shield":    {"data": {"protectStreak": True},                   "duration_hours": 24},
-        "boss_damage_plus": {"data": {"bossDamageMultiplier": 2.0},             "duration_hours": 2},
+        "focus_stim": {"data": {"multiplier": 1.3, "stat": "foc"}, "duration_hours": 2},
+        "xp_booster": {"data": {"xpBoost": 0.5}, "duration_hours": 24},
+        "daily_xp_surge": {"data": {"xpBoost": 1.0}, "duration_hours": 2},
+        "streak_shield": {"data": {"protectStreak": True}, "duration_hours": 24},
+        "boss_damage_plus": {
+            "data": {"bossDamageMultiplier": 2.0},
+            "duration_hours": 2,
+        },
     }
 
     if item.code in buff_mapping:
@@ -40,7 +43,7 @@ def _apply_consumable(profile, item):
             effect_id=f"{item.code}_{uuid.uuid4().hex[:8]}",
             skill_id=item.code,
             data=buff["data"],
-            expires_at=timezone.now() + timedelta(hours=buff["duration_hours"])
+            expires_at=timezone.now() + timedelta(hours=buff["duration_hours"]),
         )
 
 
@@ -51,12 +54,12 @@ def buy_item(user, item_id: str):
     Использует select_for_update() для атомарного списания золота.
     """
     profile = UserProfile.objects.select_for_update().get(user=user)
-    
+
     try:
         item = Item.objects.get(code=item_id)
     except Item.DoesNotExist:
         return False, f"Item with code '{item_id}' not found in database", profile
-        
+
     if profile.gold < item.cost:
         return False, "Not enough gold", profile
 
@@ -77,4 +80,3 @@ def buy_item(user, item_id: str):
     profile.save()
 
     return True, "Item purchased successfully", profile
-

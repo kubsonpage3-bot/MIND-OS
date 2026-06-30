@@ -40,7 +40,9 @@ def check_death(profile: UserProfile) -> bool:
     """
     has_died = False
     if profile.hp <= 0:
-        print(f"[DEATH HANDLER] {profile.user.username} died! HP dropped to {profile.hp}.")
+        print(
+            f"[DEATH HANDLER] {profile.user.username} died! HP dropped to {profile.hp}."
+        )
         has_died = True
         profile.hp = profile.hp_max
         profile.xp = 0

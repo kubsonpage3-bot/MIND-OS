@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from api.models import Boss, BossEncounter
 
+
 class BossSerializer(serializers.ModelSerializer):
     class Meta:
         model = Boss
@@ -12,7 +13,7 @@ class BossSerializer(serializers.ModelSerializer):
             "level",
             "reward_gold",
             "reward_xp",
-            "drop_item_id"
+            "drop_item_id",
         )
         read_only_fields = fields
 
@@ -30,7 +31,7 @@ class BossEncounterSerializer(serializers.ModelSerializer):
             "reward_multiplier",
             "is_defeated",
             "started_at",
-            "expires_at"
+            "expires_at",
         )
         read_only_fields = fields
 

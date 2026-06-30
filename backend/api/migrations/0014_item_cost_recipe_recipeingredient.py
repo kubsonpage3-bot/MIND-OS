@@ -7,41 +7,96 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0013_drop_json_fields'),
+        ("api", "0013_drop_json_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='item',
-            name='cost',
-            field=models.PositiveIntegerField(default=0, verbose_name='Стоимость'),
+            model_name="item",
+            name="cost",
+            field=models.PositiveIntegerField(default=0, verbose_name="Стоимость"),
         ),
         migrations.CreateModel(
-            name='Recipe',
+            name="Recipe",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=100, unique=True, verbose_name='Код рецепта')),
-                ('name', models.CharField(max_length=255, verbose_name='Название рецепта')),
-                ('crafting_cost', models.PositiveIntegerField(default=0, verbose_name='Стоимость крафта (Gold)')),
-                ('result_item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recipes', to='api.item', verbose_name='Результат крафта')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        max_length=100, unique=True, verbose_name="Код рецепта"
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=255, verbose_name="Название рецепта"),
+                ),
+                (
+                    "crafting_cost",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="Стоимость крафта (Gold)"
+                    ),
+                ),
+                (
+                    "result_item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recipes",
+                        to="api.item",
+                        verbose_name="Результат крафта",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Рецепт',
-                'verbose_name_plural': 'Рецепты',
+                "verbose_name": "Рецепт",
+                "verbose_name_plural": "Рецепты",
             },
         ),
         migrations.CreateModel(
-            name='RecipeIngredient',
+            name="RecipeIngredient",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField(default=1, verbose_name='Количество')),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.item', verbose_name='Предмет-ингредиент')),
-                ('recipe', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ingredients', to='api.recipe', verbose_name='Рецепт')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "quantity",
+                    models.PositiveIntegerField(default=1, verbose_name="Количество"),
+                ),
+                (
+                    "item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="api.item",
+                        verbose_name="Предмет-ингредиент",
+                    ),
+                ),
+                (
+                    "recipe",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ingredients",
+                        to="api.recipe",
+                        verbose_name="Рецепт",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Ингредиент рецепта',
-                'verbose_name_plural': 'Ингредиенты рецептов',
-                'unique_together': {('recipe', 'item')},
+                "verbose_name": "Ингредиент рецепта",
+                "verbose_name_plural": "Ингредиенты рецептов",
+                "unique_together": {("recipe", "item")},
             },
         ),
     ]

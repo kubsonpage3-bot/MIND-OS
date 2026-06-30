@@ -13,7 +13,6 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.functional import cached_property
-from typing import TYPE_CHECKING
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Профиль персонажа
@@ -141,7 +140,7 @@ class UserProfile(models.Model):
         verbose_name_plural = "Профили персонажей"
 
     def __str__(self):
-        return f"Профиль {self.user.username} | Ур.{self.level} ({self.xp}/{self.xp_to_next_level} XP)"
+        return f"Профиль {self.user.username} | Ур.{self.level} ({self.xp}/{self.xp_to_next_level} XP)"  # noqa: E501
 
     CLASS_STAT_BONUSES = {
         "architect": {"pwr": 3, "def": 4, "foc": 12, "mem": 10, "spd": 5, "lck": 6},
@@ -155,13 +154,15 @@ class UserProfile(models.Model):
         """
         Возвращает бонусы характеристик на основе выбранного класса персонажа.
         """
-        # Convert class name to lowercase to match dict keys (e.g. "The Linguist" -> "linguist" or just handle direct ids)
+        # Convert class name to lowercase to match dict keys (e.g. "The Linguist" -> "linguist" or just handle direct ids)  # noqa: E501
         class_id = str(self.character_class).lower().strip()
         # Fallback if the user has a class name instead of ID, try to clean it
         if class_id.startswith("the "):
             class_id = class_id[4:]
-            
-        return self.CLASS_STAT_BONUSES.get(class_id, {"pwr": 0, "def": 0, "foc": 0, "mem": 0, "spd": 0, "lck": 0})
+
+        return self.CLASS_STAT_BONUSES.get(
+            class_id, {"pwr": 0, "def": 0, "foc": 0, "mem": 0, "spd": 0, "lck": 0}
+        )
 
     @cached_property
     def equip_stats(self) -> dict:
@@ -175,7 +176,12 @@ class UserProfile(models.Model):
             "xp_boost": 0.0,
             "hp_boost": 0,
             "mana_boost": 0,
-            "pwr": 0, "def": 0, "foc": 0, "mem": 0, "spd": 0, "lck": 0 # adding for equip stats completeness
+            "pwr": 0,
+            "def": 0,
+            "foc": 0,
+            "mem": 0,
+            "spd": 0,
+            "lck": 0,  # adding for equip stats completeness
         }
         equipped = self.inventory_items.filter(is_equipped=True).select_related("item")
         for inv in equipped:
@@ -184,12 +190,12 @@ class UserProfile(models.Model):
             totals["xp_boost"] += inv.item.xp_boost
             totals["hp_boost"] += inv.item.hp_boost
             totals["mana_boost"] += inv.item.mana_boost
-            
+
             # Use ItemEffects for stats like pwr, def, foc, etc.
             for effect in inv.item.effects.all():
                 if effect.effect_name in totals:
                     totals[effect.effect_name] += int(effect.effect_value)
-                    
+
         return totals
 
     @cached_property
@@ -201,16 +207,32 @@ class UserProfile(models.Model):
         equip = self.equip_stats
         cls_stats = self.class_stats
         prestige_mult = 1.0 + (0.10 * self.prestige_count)
-        
+
         return {
-            "pwr": int((self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * prestige_mult),
-            "foc": int((self.base_foc + cls_stats["foc"] + equip.get("foc", 0)) * prestige_mult),
-            "spd": int((self.base_spd + cls_stats["spd"] + equip.get("spd", 0)) * prestige_mult),
-            "lck": int((self.base_lck + cls_stats["lck"] + equip.get("lck", 0)) * prestige_mult),
-            "def": int((self.base_def + cls_stats["def"] + equip.get("def", 0)) * prestige_mult),
-            "mem": int((self.base_mem + cls_stats["mem"] + equip.get("mem", 0)) * prestige_mult),
-            "damage_multiplier": float(round(self.damage_multiplier + equip["damage_boost"], 4)),
-            "gold_multiplier": float(round(self.gold_multiplier + equip["gold_boost"], 4)),
+            "pwr": int(
+                (self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * prestige_mult
+            ),
+            "foc": int(
+                (self.base_foc + cls_stats["foc"] + equip.get("foc", 0)) * prestige_mult
+            ),
+            "spd": int(
+                (self.base_spd + cls_stats["spd"] + equip.get("spd", 0)) * prestige_mult
+            ),
+            "lck": int(
+                (self.base_lck + cls_stats["lck"] + equip.get("lck", 0)) * prestige_mult
+            ),
+            "def": int(
+                (self.base_def + cls_stats["def"] + equip.get("def", 0)) * prestige_mult
+            ),
+            "mem": int(
+                (self.base_mem + cls_stats["mem"] + equip.get("mem", 0)) * prestige_mult
+            ),
+            "damage_multiplier": float(
+                round(self.damage_multiplier + equip["damage_boost"], 4)
+            ),
+            "gold_multiplier": float(
+                round(self.gold_multiplier + equip["gold_boost"], 4)
+            ),
             "xp_multiplier": float(round(self.xp_multiplier + equip["xp_boost"], 4)),
             "hp_max": int(self.hp_max + equip["hp_boost"]),
             "mana_max": int(self.mana_max + equip["mana_boost"]),
@@ -237,8 +259,9 @@ class UserStats(models.Model):
     """
     Cumulative statistics for achievements and tracking.
     """
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="stats")
-    
+
     total_tasks_completed = models.PositiveIntegerField(default=0)
     max_streak = models.PositiveIntegerField(default=0)
     total_boss_damage = models.PositiveIntegerField(default=0)
@@ -264,7 +287,10 @@ class UserAchievement(models.Model):
     """
     Records unlocked achievements so they are only claimed once.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="achievements")
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="achievements"
+    )
     achievement_id = models.CharField(max_length=100)
     unlocked_at = models.DateTimeField(auto_now_add=True)
 
@@ -445,13 +471,13 @@ class Task(models.Model):
         # По умолчанию сортируем: сначала порядок, потом дата создания
         ordering = ["order", "-created_at"]
         indexes = [
-            models.Index(fields=['user', 'task_type']),
-            models.Index(fields=['user', 'is_completed']),
+            models.Index(fields=["user", "task_type"]),
+            models.Index(fields=["user", "is_completed"]),
         ]
 
     def __str__(self):
         status = "✓" if self.is_completed else "○"
-        return f"[{status}] {self.get_task_type_display()}: {self.title} ({self.user.username})"
+        return f"[{status}] {self.get_task_type_display()}: {self.title} ({self.user.username})"  # noqa: E501
 
     # ── Таблица наград по сложности ───────────────────────────────────────
     REWARD_TABLE = {
@@ -612,7 +638,7 @@ class BossEncounter(models.Model):
         ordering = ["-started_at"]
 
     def __str__(self):
-        return f"{self.user.username} vs {self.boss.name} (HP: {self.hp_current}/{self.boss.hp_max})"
+        return f"{self.user.username} vs {self.boss.name} (HP: {self.hp_current}/{self.boss.hp_max})"  # noqa: E501
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -638,7 +664,9 @@ class Item(models.Model):
     item_type = models.CharField(
         max_length=20, choices=ItemType.choices, default=ItemType.EQUIPMENT
     )
-    icon_url = models.CharField(max_length=255, blank=True, verbose_name="URL иконки (WEBP)")
+    icon_url = models.CharField(
+        max_length=255, blank=True, verbose_name="URL иконки (WEBP)"
+    )
     cost = models.PositiveIntegerField(default=0, verbose_name="Стоимость")
     slot_type = models.CharField(
         max_length=50,
@@ -693,16 +721,23 @@ class InventoryItem(models.Model):
 # Crafting System (Крафт и Рецепты)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Recipe(models.Model):
     """
     Рецепт для создания предмета.
     """
+
     code = models.CharField(max_length=100, unique=True, verbose_name="Код рецепта")
     name = models.CharField(max_length=255, verbose_name="Название рецепта")
     result_item = models.ForeignKey(
-        Item, on_delete=models.CASCADE, related_name="recipes", verbose_name="Результат крафта"
+        Item,
+        on_delete=models.CASCADE,
+        related_name="recipes",
+        verbose_name="Результат крафта",
     )
-    crafting_cost = models.PositiveIntegerField(default=0, verbose_name="Стоимость крафта (Gold)")
+    crafting_cost = models.PositiveIntegerField(
+        default=0, verbose_name="Стоимость крафта (Gold)"
+    )
 
     class Meta:
         verbose_name = "Рецепт"
@@ -716,8 +751,12 @@ class RecipeIngredient(models.Model):
     """
     Ингредиент, необходимый для рецепта.
     """
+
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name="ingredients", verbose_name="Рецепт"
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="ingredients",
+        verbose_name="Рецепт",
     )
     item = models.ForeignKey(
         Item, on_delete=models.CASCADE, verbose_name="Предмет-ингредиент"
@@ -735,10 +774,15 @@ class RecipeIngredient(models.Model):
 
 class UnlockedSkill(models.Model):
     user_profile = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, related_name="unlocked_skills", verbose_name="Профиль пользователя"
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="unlocked_skills",
+        verbose_name="Профиль пользователя",
     )
     skill_code = models.CharField(max_length=100, verbose_name="Код навыка")
-    unlocked_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата разблокировки")
+    unlocked_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата разблокировки"
+    )
 
     class Meta:
         verbose_name = "Разблокированный навык"
@@ -751,7 +795,10 @@ class UnlockedSkill(models.Model):
 
 class RecruitedAlly(models.Model):
     user_profile = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, related_name="recruited_allies", verbose_name="Профиль пользователя"
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="recruited_allies",
+        verbose_name="Профиль пользователя",
     )
     ally_code = models.CharField(max_length=100, verbose_name="Код союзника")
     level = models.PositiveIntegerField(default=1, verbose_name="Уровень союзника")
@@ -764,4 +811,3 @@ class RecruitedAlly(models.Model):
 
     def __str__(self):
         return f"{self.user_profile.user.username} - {self.ally_code} (Lv {self.level})"
-

@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0024_task_api_task_user_id_a0ed02_idx_and_more'),
+        ("api", "0024_task_api_task_user_id_a0ed02_idx_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='task',
-            name='last_reward_data',
-            field=models.JSONField(blank=True, default=dict, verbose_name='Данные последней награды'),
+            model_name="task",
+            name="last_reward_data",
+            field=models.JSONField(
+                blank=True, default=dict, verbose_name="Данные последней награды"
+            ),
         ),
     ]

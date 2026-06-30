@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from api.models import ActiveEffect, SkillCooldown
 
+
 class ActiveEffectSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActiveEffect

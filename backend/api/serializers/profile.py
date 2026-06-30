@@ -2,10 +2,12 @@ from rest_framework import serializers
 from api.models import UserProfile
 from .auth import UserSerializer
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     """
     Сериализатор профиля персонажа MIND OS.
     """
+
     user = UserSerializer(read_only=True)
     xp_progress_percent = serializers.SerializerMethodField()
     inventory = serializers.SerializerMethodField()
@@ -88,7 +90,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_inventory(self, obj):
         return [
-            {"id": inv.item.code, "quantity": inv.quantity, "is_equipped": inv.is_equipped}
+            {
+                "id": inv.item.code,
+                "quantity": inv.quantity,
+                "is_equipped": inv.is_equipped,
+            }
             for inv in obj.inventory_items.all()
         ]
 

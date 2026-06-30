@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0014_item_cost_recipe_recipeingredient'),
+        ("api", "0014_item_cost_recipe_recipeingredient"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='item',
-            name='icon_url',
-            field=models.CharField(blank=True, max_length=255, verbose_name='URL иконки (WEBP)'),
+            model_name="item",
+            name="icon_url",
+            field=models.CharField(
+                blank=True, max_length=255, verbose_name="URL иконки (WEBP)"
+            ),
         ),
     ]

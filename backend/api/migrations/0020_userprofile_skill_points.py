@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0019_item_slot_type'),
+        ("api", "0019_item_slot_type"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='skill_points',
-            field=models.PositiveIntegerField(default=0, verbose_name='Очки навыков (SP)'),
+            model_name="userprofile",
+            name="skill_points",
+            field=models.PositiveIntegerField(
+                default=0, verbose_name="Очки навыков (SP)"
+            ),
         ),
     ]

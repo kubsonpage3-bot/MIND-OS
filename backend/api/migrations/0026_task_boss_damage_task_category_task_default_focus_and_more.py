@@ -6,43 +6,65 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0025_task_last_reward_data'),
+        ("api", "0025_task_last_reward_data"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='task',
-            name='boss_damage',
-            field=models.PositiveIntegerField(blank=True, default=15, null=True, verbose_name='Урон боссу'),
+            model_name="task",
+            name="boss_damage",
+            field=models.PositiveIntegerField(
+                blank=True, default=15, null=True, verbose_name="Урон боссу"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='category',
-            field=models.CharField(blank=True, default='Other', max_length=50, verbose_name='Категория'),
+            model_name="task",
+            name="category",
+            field=models.CharField(
+                blank=True, default="Other", max_length=50, verbose_name="Категория"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='default_focus',
-            field=models.PositiveIntegerField(blank=True, default=7, null=True, verbose_name='Фокус по умолчанию'),
+            model_name="task",
+            name="default_focus",
+            field=models.PositiveIntegerField(
+                blank=True, default=7, null=True, verbose_name="Фокус по умолчанию"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='default_hours',
-            field=models.FloatField(blank=True, default=1.0, null=True, verbose_name='Часы по умолчанию'),
+            model_name="task",
+            name="default_hours",
+            field=models.FloatField(
+                blank=True, default=1.0, null=True, verbose_name="Часы по умолчанию"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='gold_reward',
-            field=models.PositiveIntegerField(blank=True, default=8, null=True, verbose_name='Награда Золото'),
+            model_name="task",
+            name="gold_reward",
+            field=models.PositiveIntegerField(
+                blank=True, default=8, null=True, verbose_name="Награда Золото"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='xp_reward',
-            field=models.PositiveIntegerField(blank=True, default=10, null=True, verbose_name='Награда XP'),
+            model_name="task",
+            name="xp_reward",
+            field=models.PositiveIntegerField(
+                blank=True, default=10, null=True, verbose_name="Награда XP"
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='task_type',
-            field=models.CharField(choices=[('habit', 'Привычка'), ('daily', 'Дейлик'), ('todo', 'Туду'), ('button', 'Кнопка')], default='todo', max_length=10, verbose_name='Тип задачи'),
+            model_name="task",
+            name="task_type",
+            field=models.CharField(
+                choices=[
+                    ("habit", "Привычка"),
+                    ("daily", "Дейлик"),
+                    ("todo", "Туду"),
+                    ("button", "Кнопка"),
+                ],
+                default="todo",
+                max_length=10,
+                verbose_name="Тип задачи",
+            ),
         ),
     ]

@@ -6,47 +6,49 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0017_userprofile_base_def_userprofile_base_foc_and_more'),
+        ("api", "0017_userprofile_base_def_userprofile_base_foc_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='item',
-            name='slot_type',
+            model_name="item",
+            name="slot_type",
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='base_def',
-            field=models.PositiveIntegerField(default=5, verbose_name='Defense (DEF)'),
+            model_name="userprofile",
+            name="base_def",
+            field=models.PositiveIntegerField(default=5, verbose_name="Defense (DEF)"),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='base_foc',
-            field=models.PositiveIntegerField(default=5, verbose_name='Focus (FOC)'),
+            model_name="userprofile",
+            name="base_foc",
+            field=models.PositiveIntegerField(default=5, verbose_name="Focus (FOC)"),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='base_lck',
-            field=models.PositiveIntegerField(default=5, verbose_name='Luck (LCK)'),
+            model_name="userprofile",
+            name="base_lck",
+            field=models.PositiveIntegerField(default=5, verbose_name="Luck (LCK)"),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='base_mem',
-            field=models.PositiveIntegerField(default=5, verbose_name='Memory (MEM)'),
+            model_name="userprofile",
+            name="base_mem",
+            field=models.PositiveIntegerField(default=5, verbose_name="Memory (MEM)"),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='base_pwr',
-            field=models.PositiveIntegerField(default=5, verbose_name='Power (PWR)'),
+            model_name="userprofile",
+            name="base_pwr",
+            field=models.PositiveIntegerField(default=5, verbose_name="Power (PWR)"),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='base_spd',
-            field=models.PositiveIntegerField(default=5, verbose_name='Speed (SPD)'),
+            model_name="userprofile",
+            name="base_spd",
+            field=models.PositiveIntegerField(default=5, verbose_name="Speed (SPD)"),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='unspent_stat_points',
-            field=models.PositiveIntegerField(default=0, verbose_name='Нераспределённые очки характеристик'),
+            model_name="userprofile",
+            name="unspent_stat_points",
+            field=models.PositiveIntegerField(
+                default=0, verbose_name="Нераспределённые очки характеристик"
+            ),
         ),
     ]

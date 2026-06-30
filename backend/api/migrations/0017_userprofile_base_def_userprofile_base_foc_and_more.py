@@ -6,43 +6,45 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0016_item_slot_type'),
+        ("api", "0016_item_slot_type"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='base_def',
-            field=models.PositiveIntegerField(default=5, verbose_name='Base Defense'),
+            model_name="userprofile",
+            name="base_def",
+            field=models.PositiveIntegerField(default=5, verbose_name="Base Defense"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='base_foc',
-            field=models.PositiveIntegerField(default=5, verbose_name='Base Focus'),
+            model_name="userprofile",
+            name="base_foc",
+            field=models.PositiveIntegerField(default=5, verbose_name="Base Focus"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='base_lck',
-            field=models.PositiveIntegerField(default=5, verbose_name='Base Luck'),
+            model_name="userprofile",
+            name="base_lck",
+            field=models.PositiveIntegerField(default=5, verbose_name="Base Luck"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='base_mem',
-            field=models.PositiveIntegerField(default=5, verbose_name='Base Memory'),
+            model_name="userprofile",
+            name="base_mem",
+            field=models.PositiveIntegerField(default=5, verbose_name="Base Memory"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='base_pwr',
-            field=models.PositiveIntegerField(default=5, verbose_name='Base Power'),
+            model_name="userprofile",
+            name="base_pwr",
+            field=models.PositiveIntegerField(default=5, verbose_name="Base Power"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='base_spd',
-            field=models.PositiveIntegerField(default=5, verbose_name='Base Speed'),
+            model_name="userprofile",
+            name="base_spd",
+            field=models.PositiveIntegerField(default=5, verbose_name="Base Speed"),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='unspent_stat_points',
-            field=models.PositiveIntegerField(default=0, verbose_name='Unspent Stat Points'),
+            model_name="userprofile",
+            name="unspent_stat_points",
+            field=models.PositiveIntegerField(
+                default=0, verbose_name="Unspent Stat Points"
+            ),
         ),
     ]

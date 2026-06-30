@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0018_remove_item_slot_type_alter_userprofile_base_def_and_more'),
+        ("api", "0018_remove_item_slot_type_alter_userprofile_base_def_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='item',
-            name='slot_type',
-            field=models.CharField(blank=True, max_length=50, null=True, verbose_name='Слот экипировки (напр. headware, ring1)'),
+            model_name="item",
+            name="slot_type",
+            field=models.CharField(
+                blank=True,
+                max_length=50,
+                null=True,
+                verbose_name="Слот экипировки (напр. headware, ring1)",
+            ),
         ),
     ]

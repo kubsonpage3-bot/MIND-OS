@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0015_item_icon_url'),
+        ("api", "0015_item_icon_url"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='item',
-            name='slot_type',
-            field=models.CharField(blank=True, max_length=50, null=True, verbose_name='Слот экипировки (напр. headware, ring1)'),
+            model_name="item",
+            name="slot_type",
+            field=models.CharField(
+                blank=True,
+                max_length=50,
+                null=True,
+                verbose_name="Слот экипировки (напр. headware, ring1)",
+            ),
         ),
     ]

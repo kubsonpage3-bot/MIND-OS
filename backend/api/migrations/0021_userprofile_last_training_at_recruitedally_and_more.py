@@ -7,42 +7,95 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0020_userprofile_skill_points'),
+        ("api", "0020_userprofile_skill_points"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='last_training_at',
-            field=models.DateField(blank=True, null=True, verbose_name='Последняя тренировка'),
+            model_name="userprofile",
+            name="last_training_at",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Последняя тренировка"
+            ),
         ),
         migrations.CreateModel(
-            name='RecruitedAlly',
+            name="RecruitedAlly",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ally_code', models.CharField(max_length=100, verbose_name='Код союзника')),
-                ('level', models.PositiveIntegerField(default=1, verbose_name='Уровень союзника')),
-                ('recruited_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата найма')),
-                ('user_profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recruited_allies', to='api.userprofile', verbose_name='Профиль пользователя')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "ally_code",
+                    models.CharField(max_length=100, verbose_name="Код союзника"),
+                ),
+                (
+                    "level",
+                    models.PositiveIntegerField(
+                        default=1, verbose_name="Уровень союзника"
+                    ),
+                ),
+                (
+                    "recruited_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Дата найма"),
+                ),
+                (
+                    "user_profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recruited_allies",
+                        to="api.userprofile",
+                        verbose_name="Профиль пользователя",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Нанятый союзник',
-                'verbose_name_plural': 'Нанятые союзники',
-                'unique_together': {('user_profile', 'ally_code')},
+                "verbose_name": "Нанятый союзник",
+                "verbose_name_plural": "Нанятые союзники",
+                "unique_together": {("user_profile", "ally_code")},
             },
         ),
         migrations.CreateModel(
-            name='UnlockedSkill',
+            name="UnlockedSkill",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('skill_code', models.CharField(max_length=100, verbose_name='Код навыка')),
-                ('unlocked_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата разблокировки')),
-                ('user_profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='unlocked_skills', to='api.userprofile', verbose_name='Профиль пользователя')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "skill_code",
+                    models.CharField(max_length=100, verbose_name="Код навыка"),
+                ),
+                (
+                    "unlocked_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Дата разблокировки"
+                    ),
+                ),
+                (
+                    "user_profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="unlocked_skills",
+                        to="api.userprofile",
+                        verbose_name="Профиль пользователя",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Разблокированный навык',
-                'verbose_name_plural': 'Разблокированные навыки',
-                'unique_together': {('user_profile', 'skill_code')},
+                "verbose_name": "Разблокированный навык",
+                "verbose_name_plural": "Разблокированные навыки",
+                "unique_together": {("user_profile", "skill_code")},
             },
         ),
     ]
