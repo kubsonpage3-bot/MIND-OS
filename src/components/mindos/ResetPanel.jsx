@@ -11,11 +11,13 @@ export default function ResetPanel() {
   const [resetting, setResetting] = useState(false);
 
   const resetMutation = useMutation({
-    mutationFn: (type) => djangoApi.profile.reset(type),
-    onSuccess: () => {
+    mutationFn: /** @param {string} type */ (type) => djangoApi.profile.reset(type),
+    onSuccess: (data, variables) => {
       queryClientInstance.clear();
-      alert("Reset completed. Refreshing...");
-      window.location.reload();
+      if (variables !== "nuclear") {
+        alert("Reset completed. Refreshing...");
+        window.location.reload();
+      }
     },
     onError: (err) => {
       alert("Error resetting: " + (err.message || err));
@@ -103,7 +105,7 @@ export default function ResetPanel() {
     resetMutation.mutate("stats");
   };
 
-  const resetAllData = () => {
+  const resetAllData = async () => {
     if (!confirm("⚠️ WARNING: This will delete ALL progress. Cannot be undone. Continue?")) return;
     const confirmation = prompt("Type 'RESET' to confirm:");
     if (confirmation !== "RESET") return;
@@ -114,7 +116,16 @@ export default function ResetPanel() {
       if (key.startsWith("mindos_")) localStorage.removeItem(key);
     });
 
-    resetMutation.mutate("nuclear");
+    try {
+      await resetMutation.mutateAsync("nuclear");
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      window.dispatchEvent(new CustomEvent('django-auth-logout'));
+      window.location.href = '/login';
+    } catch (e) {
+      console.error("Nuclear reset failed:", e);
+      setResetting(false);
+    }
   };
 
   return (

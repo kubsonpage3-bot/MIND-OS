@@ -1081,6 +1081,9 @@ class ResetDataView(generics.GenericAPIView):
             SkillCooldown,
             InventoryItem,
             BossEncounter,
+            UserStats,
+            UserAchievement,
+            TrainingSession,
         )
 
         reset_type = request.data.get("reset_type", "stats")
@@ -1132,11 +1135,28 @@ class ResetDataView(generics.GenericAPIView):
                 ActiveEffect.objects.filter(user=request.user).delete()
                 SkillCooldown.objects.filter(user=request.user).delete()
                 BossEncounter.objects.filter(user=request.user).delete()
+                TrainingSession.objects.filter(user=request.user).delete()
+
+                stats, _ = UserStats.objects.get_or_create(user=request.user)
+                stats.total_tasks_completed = 0
+                stats.max_streak = 0
+                stats.total_boss_damage = 0
+                stats.bosses_defeated = 0
+                stats.total_gold_earned = 0
+                stats.prayer_sessions = 0
+                stats.total_crits = 0
+                stats.allies_recruited = 0
+                stats.ally_max_level = 0
+                stats.unique_subjects = []
+                stats.highest_subject_rank = 0
+                stats.prayer_rank = 0
+                stats.save()
 
             if reset_type == "nuclear":
                 InventoryItem.objects.filter(user_profile=profile).delete()
                 profile.unlocked_skills.all().delete()
                 profile.recruited_allies.all().delete()
+                UserAchievement.objects.filter(user=request.user).delete()
                 
                 # Invalidate JWT tokens to force logout on all devices
                 try:
