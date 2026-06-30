@@ -14,7 +14,7 @@ export default function HistoryLog({ logs, tasks = [] }) {
       map[day].hours += log.hours || 0;
       if (log.focus_rating) map[day].focusRatings.push(log.focus_rating);
       if (log.iq_after) map[day].iq = log.iq_after;
-      if (log.activity) map[day].activities.add(log.activity);
+      if (log.activity_key) map[day].activities.add(log.activity_key);
     });
     const result = {};
     Object.entries(map).forEach(([day, data]) => {
@@ -46,7 +46,7 @@ export default function HistoryLog({ logs, tasks = [] }) {
   return (
     <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
       {sorted.map((log) => {
-        const activity = getActivityDetails(log.activity, tasks);
+        const activity = getActivityDetails(log.activity_key, tasks);
         const gains = Object.entries(METRIC_CONFIG)
           .filter(([mk]) => (log[`${mk}_gain`] || 0) > 0)
           .map(([mk, mc]) => ({ mk, mc, val: log[`${mk}_gain`] }));
@@ -73,7 +73,7 @@ export default function HistoryLog({ logs, tasks = [] }) {
                 <span className="text-xl shrink-0">{activity?.icon || "📌"}</span>
                 <div className="min-w-0">
                   <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "var(--habit-text)" }} className="truncate">
-                    {activity?.label || log.activity}
+                    {activity?.label || log.activity_key}
                   </div>
                   <div className="flex items-center gap-1 mt-0.5" style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }}>
                     <Clock className="w-3 h-3" />

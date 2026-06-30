@@ -35,8 +35,8 @@ export default function RadarChart({ profile, logs }) {
     // Sum hours per subject key across all logs
     const hoursBySubject = {};
     logs.forEach(l => {
-      if (l.activity) {
-        hoursBySubject[l.activity] = (hoursBySubject[l.activity] || 0) + (l.hours || 0);
+      if (l.activity_key) {
+        hoursBySubject[l.activity_key] = (hoursBySubject[l.activity_key] || 0) + (l.hours || 0);
       }
     });
 

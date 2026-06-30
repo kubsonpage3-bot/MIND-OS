@@ -228,7 +228,7 @@ export function applySessionMutators(activityKey, hours, logs = []) {
   // TUNNEL_VISION: check if only 1 unique subject logged today
   if (isActive("tunnel_vision")) {
     const todayLogs = logs.filter(l => l.log_date?.startsWith(today));
-    const uniqueSubjects = new Set(todayLogs.map(l => l.activity));
+    const uniqueSubjects = new Set(todayLogs.map(l => l.activity_key));
     uniqueSubjects.add(activityKey);
     if (uniqueSubjects.size === 1) {
       rankXPMult *= 1.5;
@@ -239,7 +239,7 @@ export function applySessionMutators(activityKey, hours, logs = []) {
   // DIVERSITY_LOCK: can't log same as last session, but +20% if followed
   if (isActive("diversity_lock")) {
     const lastLog = logs[0];
-    if (lastLog && lastLog.activity === activityKey) {
+    if (lastLog && lastLog.activity_key === activityKey) {
       // penalty: -30% for repeating
       rankXPMult *= 0.7;
       notes.push("⚠️ Diversity Lock penalty");
@@ -255,7 +255,7 @@ export function applySessionMutators(activityKey, hours, logs = []) {
     const dayMap = {};
     logs.forEach(l => {
       const d = l.log_date?.split("T")[0];
-      if (d && l.activity === activityKey) dayMap[d] = true;
+      if (d && l.activity_key === activityKey) dayMap[d] = true;
     });
     const days = Object.keys(dayMap).sort().reverse();
     if (days.length >= 2) {

@@ -68,8 +68,8 @@ export default function ProjectionTable({ profile, logs }) {
 
     // Subject category hours
     const subjectStats = SUBJECT_CATS.map(cat => {
-      const catLogs = logs.filter(l => cat.activities.includes(l.activity));
-      const recentCatLogs = recentLogs.filter(l => cat.activities.includes(l.activity));
+      const catLogs = logs.filter(l => cat.activities.includes(l.activity_key));
+      const recentCatLogs = recentLogs.filter(l => cat.activities.includes(l.activity_key));
       const totalHours = catLogs.reduce((s, l) => s + (l.hours || 0), 0);
       const weekHours = recentCatLogs.reduce((s, l) => s + (l.hours || 0), 0);
       const dailyRate = weekHours / 7;

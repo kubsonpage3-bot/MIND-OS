@@ -57,12 +57,12 @@ export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
     const hoursToday = todayLogs.reduce((s, l) => s + (l.hours || 0), 0);
     const subjectHoursMap = {};
     todayLogs.forEach(l => {
-      subjectHoursMap[l.activity] = (subjectHoursMap[l.activity] || 0) + (l.hours || 0);
+      subjectHoursMap[l.activity_key] = (subjectHoursMap[l.activity_key] || 0) + (l.hours || 0);
     });
     // Total hours per subject across all logs
     const subjectTotalHours = {};
     logs.forEach(l => {
-      subjectTotalHours[l.activity] = (subjectTotalHours[l.activity] || 0) + (l.hours || 0);
+      subjectTotalHours[l.activity_key] = (subjectTotalHours[l.activity_key] || 0) + (l.hours || 0);
     });
     const recentFocusRatings = logs.slice(0, 5).map(l => l.focus_rating || 5);
     return { hoursToday, subjectHoursMap, recentFocusRatings, subjectTotalHours };

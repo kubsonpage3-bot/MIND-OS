@@ -20,8 +20,8 @@ export default function AchievementsPanel({ logs, alliesData, prestigeData }) {
   const stats = useMemo(() => {
     const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
     const streak = (() => { try { return JSON.parse(localStorage.getItem("mindos_streak") || "{}").streakCount || 0; } catch { return 0; } })();
-    const uniqueSubjects = new Set(logs.map(l => l.activity)).size;
-    const prayerSessions = logs.filter(l => l.activity === "prayer_meditation" || l.activity === "prayer").length;
+    const uniqueSubjects = new Set(logs.map(l => l.activity_key)).size;
+    const prayerSessions = logs.filter(l => l.activity_key === "prayer_meditation" || l.activity_key === "prayer").length;
     const totalCrits = gs.totalCrits || 0;
     const totalBossDamage = gs.totalBossDamage || 0;
     const bossesDefeated = gs.bossIndex || 0;

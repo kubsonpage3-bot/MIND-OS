@@ -123,8 +123,8 @@ export default function Achievements() {
     return {
       totalSessions: logs.length,
       maxStreak: streak,
-      uniqueSubjects: new Set(logs.map(l => l.activity)).size,
-      prayerSessions: logs.filter(l => l.activity === "prayer_meditation" || l.activity === "prayer").length,
+      uniqueSubjects: new Set(logs.map(l => l.activity_key)).size,
+      prayerSessions: logs.filter(l => l.activity_key === "prayer_meditation" || l.activity_key === "prayer").length,
       totalCrits: gs.totalCrits || 0,
       totalBossDamage: gs.totalBossDamage || 0,
       bossesDefeated: bossIndex,

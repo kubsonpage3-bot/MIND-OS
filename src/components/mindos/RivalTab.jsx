@@ -254,7 +254,7 @@ function loadAndUpdateRivalData(playerRankXP, playerStreak, logs) {
   const weekAgo = Date.now() - 7 * 86400000;
   const weekLogs = logs.filter(l => new Date(l.log_date || l.created_date).getTime() >= weekAgo);
   const subjectCounts = {};
-  weekLogs.forEach(l => { subjectCounts[l.activity] = (subjectCounts[l.activity] || 0) + 1; });
+  weekLogs.forEach(l => { subjectCounts[l.activity_key] = (subjectCounts[l.activity_key] || 0) + 1; });
   const playerSubjectWeights = Object.entries(subjectCounts)
     .map(([subject, count]) => ({ subject, count }))
     .sort((a, b) => b.count - a.count);
@@ -455,7 +455,7 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
     const playerHoursWeek = weekLogs.reduce((s, l) => s + (l.hours || 0), 0);
     const focusArr = weekLogs.map(l => l.focus_rating || 5);
     const playerAvgFocus = focusArr.length > 0 ? focusArr.reduce((a, b) => a + b, 0) / focusArr.length : 0;
-    const playerSubjectsWeek = new Set(weekLogs.map(l => l.activity)).size;
+    const playerSubjectsWeek = new Set(weekLogs.map(l => l.activity_key)).size;
     const playerWeeklyRankXP = weekLogs.reduce((s, l) => s + (l.hours || 0) * (l.focus_rating || 5), 0);
     return { playerHoursWeek, playerAvgFocus, playerSubjectsWeek, playerWeeklyRankXP };
   }, [logs]);
