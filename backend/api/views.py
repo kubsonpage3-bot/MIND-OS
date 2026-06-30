@@ -1129,7 +1129,7 @@ class ResetDataView(generics.GenericAPIView):
                     ActiveEffect.objects.filter(user=request.user).delete()
                     SkillCooldown.objects.filter(user=request.user).delete()
                     BossEncounter.objects.filter(user=request.user).delete()
-                    TrainingSession.objects.filter(user=request.user).delete()
+                    TrainingSession.objects.filter(user_profile=profile).delete()
 
                     # Direct update as requested
                     UserStats.objects.filter(user=request.user).update(
