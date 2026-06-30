@@ -717,7 +717,7 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
       </div>
 
       {/* WEEKLY COMPARISON TABLE (psychological) */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
+      <div className="md:rounded-2xl overflow-hidden border-b md:border border-[var(--habit-border)] md:shadow-sm" style={{ background: "var(--habit-panel)" }}>
         <div className="px-4 py-2.5" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: "1px solid var(--habit-border)" }}>
           Weekly Comparison
         </div>
@@ -820,7 +820,7 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
       </div>
 
       {/* RIVAL HISTORY (collapsible) */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
+      <div className="md:rounded-2xl overflow-hidden border-b md:border border-[var(--habit-border)] md:shadow-sm" style={{ background: "var(--habit-panel)" }}>
         <button
           onClick={() => setHistoryOpen(!historyOpen)}
           className="w-full flex items-center gap-2 px-4 py-2.5 transition-colors"

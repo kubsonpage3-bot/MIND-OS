@@ -156,10 +156,10 @@ export default function AppShell({ defaultTab = "mind" }) {
       />
 
       {/* Main content area */}
-      <div className={`overflow-y-auto overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}>
+      <div className={`flex flex-col transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} flex-1 w-full h-dvh overflow-hidden`}>
         {activeApp === "mind" && (
           <>
-            <div className="relative">
+            <div className="relative shrink-0 z-40">
               <CharacterStatusBar rankXP={rankXPData.rankXP} currentRankId={currentRank} onToggleSidebar={() => setMobileSidebarOpen(true)} />
               <button
                 onClick={handleManualSync}
@@ -175,15 +175,21 @@ export default function AppShell({ defaultTab = "mind" }) {
                 </span>
               </button>
             </div>
-            <Dashboard
-              activeSection={activeSection}
-              activeSubItem={activeSubItem}
-              onSectionChange={handleSectionChange}
-              onSubItemChange={handleSubItemChange}
-            />
+            <div className="overflow-y-auto overscroll-y-auto overflow-x-hidden flex-1 w-full pb-[130px] md:pb-8">
+              <Dashboard
+                activeSection={activeSection}
+                activeSubItem={activeSubItem}
+                onSectionChange={handleSectionChange}
+                onSubItemChange={handleSubItemChange}
+              />
+            </div>
           </>
         )}
-        {activeApp === "life" && <LifeOS />}
+        {activeApp === "life" && (
+          <div className="overflow-y-auto overscroll-y-auto overflow-x-hidden flex-1 w-full pb-[130px] md:pb-8">
+            <LifeOS />
+          </div>
+        )}
       </div>
 
       {/* Bottom navigation — mobile only */}

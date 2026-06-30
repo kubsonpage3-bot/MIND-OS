@@ -28,7 +28,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
   const hpColor = "#ef4444"; // red like Habitica
 
   return (
-    <div className="rounded-2xl overflow-hidden bg-[var(--habit-panel)] border border-[var(--habit-border)] shadow-sm">
+    <div className="md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-b border-[var(--habit-border)] md:border md:border-[var(--habit-border)] md:shadow-sm">
       {/* Character portrait */}
       <div className="flex flex-col items-center py-6 px-4">
         <div className="w-28 h-28 rounded-2xl overflow-hidden flex items-center justify-center mb-3"

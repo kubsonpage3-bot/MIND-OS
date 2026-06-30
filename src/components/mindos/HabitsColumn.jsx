@@ -121,7 +121,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   };
 
   return (
-    <div className="flex flex-col rounded-2xl overflow-hidden bg-[var(--habit-panel)] border border-[var(--habit-border)] shadow-sm">
+    <div className="flex flex-col md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] md:border border-[var(--habit-border)] md:shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-red, #f74e52)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>HABITS</span>
@@ -157,8 +157,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 30 }}
-                className="task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900"
-                style={{ border: '1px solid var(--habit-border)' }}
+                className="task-card flex items-center gap-2 md:rounded-xl py-3.5 px-4 md:p-2.5 bg-white dark:bg-gray-900 border-b md:border border-[var(--habit-border)]"
               >
                 {/* Task Value color bar */}
                 <motion.div

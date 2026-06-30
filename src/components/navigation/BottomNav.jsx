@@ -68,39 +68,36 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
               style={{ width: 20, background: "linear-gradient(to left, var(--habit-bottom-sub-bg), transparent)" }}
             />
             {/* Segmented Control Track */}
-            <div className="overflow-x-auto px-3 py-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}>
-              <div className="flex items-center rounded-2xl relative overflow-hidden"
+            <div className="overflow-x-auto w-full py-0.5 px-0" style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}>
+              <div className="flex items-center relative overflow-hidden"
                 style={{
-                  background: "var(--habit-panel)",
-                  border: "1px solid var(--habit-border)",
+                  background: "transparent",
                   minWidth: "max-content",
-                  height: 36
+                  height: 38
                 }}
               >
                 {CHARACTER_SUBITEMS.map((sub, idx) => {
                   const active = isSubActive(sub);
-                  const isLast = idx === CHARACTER_SUBITEMS.length - 1;
                   return (
                     <button
                       key={sub.id}
                       onClick={() => handleSubTap(sub.id)}
                       className="relative shrink-0 flex items-center justify-center gap-1.5 transition-colors z-10 h-full"
                       style={{
-                        padding: "0 14px",
+                        padding: "0 16px",
                         fontFamily: "'Nunito', sans-serif",
                         fontSize: 11,
                         fontWeight: active ? 800 : 600,
                         color: active ? sub.color : "var(--habit-dim)",
                         letterSpacing: "0.01em",
-                        borderRight: !isLast ? "1px solid rgba(255,255,255,0.06)" : "none",
                       }}
                     >
                       {active && (
                         <motion.div
                           layoutId="subnav-pill"
-                          className="absolute inset-0 -z-10"
+                          className="absolute inset-x-0 bottom-0 h-0.5 -z-10"
                           style={{
-                            background: `${sub.color}25`,
+                            background: sub.color,
                           }}
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />

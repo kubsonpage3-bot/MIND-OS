@@ -50,7 +50,7 @@ const TABS = [
 
 function TabPanel({ title, children }) {
   return (
-    <div className="rounded-2xl overflow-hidden bg-[var(--habit-panel)] border border-[var(--habit-border)] shadow-sm">
+    <div className="md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-b border-[var(--habit-border)] md:border md:border-[var(--habit-border)] md:shadow-sm">
       <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid var(--habit-border)" }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{title}</span>
       </div>
@@ -493,7 +493,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   return (
     <div className="min-h-screen font-inter bg-transparent text-[var(--habit-text)]">
-      <main className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+      <main className="max-w-7xl mx-auto px-0 md:px-4 py-0 md:py-6 space-y-4 md:space-y-6">
         <AchievementTracker />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
@@ -514,7 +514,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </AnimatePresence>
 
         {/* Main content area */}
-        <div className="rounded-xl md:rounded-2xl p-3 md:p-5" style={{ background: 'transparent' }}>
+        <div className="md:rounded-2xl md:p-5 p-0" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
             <>
               <motion.div
@@ -528,7 +528,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 <>
                   {/* IQ + Metrics block */}
                   {profile && (
-                    <div className="mb-4 rounded-2xl overflow-hidden bg-[var(--habit-panel)] border border-[var(--habit-border)] shadow-sm">
+                    <div className="mb-4 md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-b border-[var(--habit-border)] md:border md:border-[var(--habit-border)] md:shadow-sm">
                       {/* Header */}
                       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>🧠 COGNITIVE METRICS</span>
@@ -564,7 +564,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                   />
 
                   {/* Pixel Rank Road Map */}
-                  <div className="mt-4">
+                  <div className="mt-2 md:mt-4">
                     <PixelRankRoad rankXP={rankXPData.rankXP} />
                   </div>
                 </>

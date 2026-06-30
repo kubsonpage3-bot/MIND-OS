@@ -80,7 +80,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   // Если нет активного босса, показываем заглушку "Призвать"
   if (!activeEncounter || !activeBossTemplate) {
     return (
-      <div className="rounded-2xl border border-[var(--habit-border)] bg-[var(--habit-panel)] overflow-hidden">
+      <div className="md:rounded-2xl border-b md:border border-[var(--habit-border)] bg-[var(--habit-panel)] overflow-hidden">
         <div className="p-5 flex flex-col items-center justify-center text-center space-y-3">
           <div className="w-16 h-16 rounded-xl bg-muted/20 border border-border flex items-center justify-center text-2xl">
             📜
@@ -114,7 +114,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
         )}
       </AnimatePresence>
 
-      <div className="rounded-2xl border bg-card overflow-hidden" style={{ borderColor: `${color}40` }}>
+      <div className="md:rounded-2xl border-b md:border bg-card overflow-hidden" style={{ borderColor: `${color}40` }}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-3 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"

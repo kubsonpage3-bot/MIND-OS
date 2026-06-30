@@ -70,10 +70,9 @@
     --habit-sidebar-sub-bg: rgba(255, 255, 255, 0.04);
     --habit-sidebar-sub-text: rgba(255, 255, 255, 0.55);
 
-    /* Bottom Nav Variables */
-    --habit-bottom-bg: rgba(29, 29, 33, 0.98);
+    --habit-bottom-bg: rgba(29, 29, 33, 0.85);
     --habit-bottom-border: rgba(255, 255, 255, 0.09);
-    --habit-bottom-sub-bg: rgba(29, 29, 33, 0.95);
+    --habit-bottom-sub-bg: rgba(29, 29, 33, 0.82);
     --habit-bottom-item-bg: rgba(255, 255, 255, 0.05);
     --habit-bottom-text: rgba(255, 255, 255, 0.55);
     --habit-bottom-active-text: #ffffff;
@@ -108,10 +107,9 @@
     --habit-sidebar-hover: rgba(255, 255, 255, 0.09);
     --habit-sidebar-sub-bg: rgba(255, 255, 255, 0.04);
     --habit-sidebar-sub-text: rgba(255, 255, 255, 0.55);
-    
-    --habit-bottom-bg: rgba(21, 21, 24, 0.98);
+    --habit-bottom-bg: rgba(21, 21, 24, 0.85);
     --habit-bottom-border: rgba(255, 255, 255, 0.08);
-    --habit-bottom-sub-bg: rgba(21, 21, 24, 0.95);
+    --habit-bottom-sub-bg: rgba(21, 21, 24, 0.82);
     --habit-bottom-item-bg: rgba(255, 255, 255, 0.05);
     --habit-bottom-text: rgba(255, 255, 255, 0.55);
     --habit-bottom-active-text: #ffffff;
@@ -150,7 +148,7 @@
   body {
     width: 100%;
     overflow-x: hidden;
-    overscroll-behavior-x: none;
+    overscroll-behavior: none;
   }
 
   #root {
@@ -278,10 +276,9 @@ html[data-theme="dark"] {
   --habit-sidebar-hover: rgba(157, 124, 255, 0.12);
   --habit-sidebar-sub-bg: rgba(13, 8, 32, 0.4);
   --habit-sidebar-sub-text: rgba(224, 220, 245, 0.55);
-  
-  --habit-bottom-bg: rgba(13, 8, 32, 0.95);
+  --habit-bottom-bg: rgba(13, 8, 32, 0.85);
   --habit-bottom-border: rgba(255, 255, 255, 0.08);
-  --habit-bottom-sub-bg: rgba(13, 8, 32, 0.9);
+  --habit-bottom-sub-bg: rgba(13, 8, 32, 0.82);
   --habit-bottom-item-bg: rgba(157, 124, 255, 0.1);
   --habit-bottom-text: rgba(224, 220, 245, 0.65);
   --habit-bottom-active-text: #ffffff;
@@ -752,4 +749,13 @@ html[data-theme="cyberpunk"] .task-card {
 .pixel-art {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+
+@layer utilities {
+  .pt-safe {
+    padding-top: var(--sat);
+  }
+  .pb-safe {
+    padding-bottom: var(--sab);
+  }
 }
