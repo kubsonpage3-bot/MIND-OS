@@ -177,7 +177,7 @@ function NavContent({
 
 
 
-      <nav className="px-2 py-2 flex-1 min-h-0 overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+      <nav className="px-2 py-2 flex-1 min-h-0 overflow-y-auto max-md:pb-[100px]" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         {SECTION_GROUPS.map((group, gi) => (
           <div key={gi} className={gi > 0 ? "mt-3" : ""}>
             {!collapsed && group.label && (
