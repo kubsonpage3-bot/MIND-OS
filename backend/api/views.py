@@ -1087,6 +1087,7 @@ class ResetDataView(generics.GenericAPIView):
             TrainingSession,
         )
 
+        logger = logging.getLogger(__name__)
         reset_type = request.data.get("reset_type", "stats")
         
         try:
@@ -1170,12 +1171,15 @@ class ResetDataView(generics.GenericAPIView):
                     tokens = OutstandingToken.objects.filter(user=request.user)  # type: ignore
                     for token in tokens:
                         BlacklistedToken.objects.get_or_create(token=token)  # type: ignore
-                except Exception as e:
-                    logging.getLogger("api").error(f"Failed to blacklist tokens: {e}")
+                except Exception as jwt_error:
+                    logger.warning(f"Failed to blacklist tokens: {jwt_error}")
 
             return Response(
-                {"detail": f"Reset {reset_type} completed."}, status=status.HTTP_200_OK
+                {"message": "Data reset successfully"}, status=status.HTTP_200_OK
             )
         except Exception as e:
-            logging.getLogger("api").error(f"Reset failed: {e}")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Reset error: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "Internal server error during data reset. Please try again."}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

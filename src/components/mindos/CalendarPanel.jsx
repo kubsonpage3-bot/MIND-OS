@@ -250,15 +250,16 @@ export default function CalendarPanel() {
 
     const onMove = (mv) => {
       if (!dragRef.current || !gridRef.current) return;
+      const { eventId, duration, offsetMins, currentDate } = dragRef.current;
       const gridRect = gridRef.current.getBoundingClientRect();
       const scrollTop = scrollRef.current ? scrollRef.current.scrollTop : 0;
-      let rawMins = ((mv.clientY - gridRect.top + scrollTop) / HOUR_PX) * 60 - dragRef.current.offsetMins;
+      let rawMins = ((mv.clientY - gridRect.top + scrollTop) / HOUR_PX) * 60 - offsetMins;
       let newStart = snapTo15(Math.max(0, Math.min(23 * 60, rawMins)));
-      let newEnd = newStart + dragRef.current.duration;
-      if (newEnd > 24 * 60) { newEnd = 24 * 60; newStart = newEnd - dragRef.current.duration; }
+      let newEnd = newStart + duration;
+      if (newEnd > 24 * 60) { newEnd = 24 * 60; newStart = newEnd - duration; }
 
       // Detect column (for week view) by checking x position
-      let newDate = dragRef.current.currentDate;
+      let newDate = currentDate;
       if (gridRef.current) {
         const cols = gridRef.current.querySelectorAll("[data-day-col]");
         cols.forEach(col => {
@@ -270,7 +271,7 @@ export default function CalendarPanel() {
       }
       dragRef.current.currentDate = newDate;
 
-      setEvents(prev => prev.map(ev => ev.id === dragRef.current.eventId
+      setEvents(prev => prev.map(ev => ev.id === eventId
         ? { ...ev, date: newDate, startTime: minsToTime(newStart), endTime: minsToTime(newEnd) }
         : ev
       ));
@@ -297,11 +298,12 @@ export default function CalendarPanel() {
 
     const onMove = (mv) => {
       if (!resizeRef.current || !gridRef.current) return;
+      const { eventId, startMins } = resizeRef.current;
       const gridRect = gridRef.current.getBoundingClientRect();
       const scrollTop = scrollRef.current ? scrollRef.current.scrollTop : 0;
       let rawEndMins = ((mv.clientY - gridRect.top + scrollTop) / HOUR_PX) * 60;
-      let newEnd = snapTo15(Math.max(resizeRef.current.startMins + MIN_EVENT_MINS, Math.min(24 * 60, rawEndMins)));
-      setEvents(prev => prev.map(ev => ev.id === resizeRef.current.eventId
+      let newEnd = snapTo15(Math.max(startMins + MIN_EVENT_MINS, Math.min(24 * 60, rawEndMins)));
+      setEvents(prev => prev.map(ev => ev.id === eventId
         ? { ...ev, endTime: minsToTime(newEnd) }
         : ev
       ));
