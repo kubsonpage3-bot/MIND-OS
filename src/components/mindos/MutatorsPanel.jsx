@@ -91,31 +91,29 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
               const canAfford = purchased_ || gold >= mut.cost;
               const conflicted = !isActive(mut.id) && mut.conflicts?.some(c => isActive(c));
 
-              const borderColor = active_ ? "#f0c040" : purchased_ ? "#00aa8840" : "#1e1a38";
-              const bgColor = active_ ? "#f0c04008" : purchased_ ? "#00aa8808" : "#0a0818";
-              const glowColor = active_ ? "0 0 12px #f0c04040" : "none";
+              const cardBorderClass = active_ ? "border-[#f0c040]" : purchased_ ? "border-primary/40" : "border-border";
+              const cardBgClass = active_ ? "bg-[#f0c04008]" : purchased_ ? "bg-primary/5" : "bg-card";
+              const glowStyle = active_ ? { boxShadow: "0 0 12px #f0c04040" } : {};
 
               return (
-                <div key={mut.id} className="p-3 rounded-xl border transition-all"
-                  style={{ borderColor, background: bgColor, boxShadow: glowColor }}>
+                <div key={mut.id} className={`p-3 rounded-xl border transition-all ${cardBorderClass} ${cardBgClass}`}
+                  style={glowStyle}>
                   <div className="flex items-start gap-2.5">
                     {/* Pixel art icon */}
-                    <div className="shrink-0 w-9 h-9 rounded-lg border overflow-hidden"
-                      style={{ imageRendering: "pixelated", background: "#050310", borderColor: active_ ? "#f0c04060" : "#1e1a38" }}>
+                    <div className={`shrink-0 w-9 h-9 rounded-lg border overflow-hidden flex items-center justify-center ${active_ ? "border-[#f0c04060] bg-[#f0c04010]" : "border-border bg-muted/30"}`}
+                      style={{ imageRendering: "pixelated" }}>
                       <img src={mut.icon} alt={mut.name} className="w-full h-full object-contain"
                         style={{ imageRendering: "pixelated" }} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-[11px] font-black tracking-wide"
-                          style={{ color: active_ ? "#f0c040" : purchased_ ? "#00cc88" : "#e8e0ff" }}>
+                        <span className={`font-mono text-[11px] font-black tracking-wide ${active_ ? "text-[#f0c040]" : purchased_ ? "text-primary" : "text-foreground"}`}>
                           {mut.name}
                         </span>
                         {active_ && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded"
                           style={{ background: "#f0c04025", color: "#f0c040", border: "1px solid #f0c04040" }}>ACTIVE</span>}
-                        {purchased_ && !active_ && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded"
-                          style={{ background: "#00aa8815", color: "#00aa88", border: "1px solid #00aa8840" }}>BOUGHT</span>}
+                        {purchased_ && !active_ && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary">BOUGHT</span>}
                         {mut.toggle && <span className="text-[8px] font-mono text-muted-foreground/40">[toggle]</span>}
                         {mut.durationDays && <span className="text-[8px] font-mono text-muted-foreground/40">{mut.durationDays}d</span>}
                       </div>
@@ -123,8 +121,7 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
 
                       {/* Synergy line */}
                       {mut.synergy && (
-                        <div className="mt-1 text-[8px] font-mono italic"
-                          style={{ color: synActive ? "#f0c040" : "#4a4060" }}>
+                        <div className={`mt-1 text-[8px] font-mono italic ${synActive ? "text-[#f0c040]" : "text-muted-foreground/60"}`}>
                           {synActive ? `⚡ Synergy: ${MUTATORS.find(m => m.id === mut.synergy)?.name} — ACTIVE ✦` : `Synergy: ${MUTATORS.find(m => m.id === mut.synergy)?.name}`}
                         </div>
                       )}
@@ -133,13 +130,12 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
                     <button
                       onClick={() => activate(mut)}
                       disabled={(!canAfford && !purchased_) || (!canActivate && !active_) || conflicted}
-                      className="shrink-0 px-2.5 py-1.5 text-[9px] font-mono font-bold rounded-lg border transition-all"
-                      style={{
-                        borderColor: active_ ? "#f0c040" : canAfford && canActivate && !conflicted ? "#555" : "#1e1a38",
-                        color: active_ ? "#000" : canAfford && canActivate && !conflicted ? "#e8e0ff" : "#4a4060",
-                        background: active_ ? "#f0c040" : canAfford && canActivate && !conflicted ? "#ffffff10" : "transparent",
-                        opacity: conflicted ? 0.4 : 1,
-                      }}
+                      className={`shrink-0 px-2.5 py-1.5 text-[9px] font-mono font-bold rounded-lg border transition-all ${
+                        active_ ? "border-[#f0c040] bg-[#f0c040] text-black" :
+                        canAfford && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
+                        "border-border/50 text-muted-foreground/40 bg-transparent"
+                      }`}
+                      style={{ opacity: conflicted ? 0.4 : 1 }}
                     >
                       {active_ ? (mut.permanent_lock ? "🔒" : "ON") : purchased_ ? "OFF" : conflicted ? "×" : `${mut.cost}G`}
                     </button>
