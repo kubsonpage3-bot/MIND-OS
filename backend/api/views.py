@@ -15,11 +15,15 @@ MIND OS — Views и ViewSets.
   POST   /api/tasks/{id}/complete/   — выполнить задачу (начисляет XP + Gold)
 """
 
+import logging
+from django.db import transaction
+
 from rest_framework import viewsets, generics, status, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 from .models import UserProfile, Task, Item, InventoryItem, Recipe
 from .serializers import (
@@ -31,7 +35,7 @@ from .serializers import (
     CraftSerializer,
     RecipeListSerializer,
 )
-from .models import ActiveEffect, SkillCooldown, Boss, BossEncounter
+from .models import ActiveEffect, SkillCooldown, Boss, BossEncounter, UserStats, UserAchievement, TrainingSession
 from .serializers import (
     ActiveEffectSerializer,
     SkillActivateSerializer,
@@ -1074,19 +1078,6 @@ class ResetDataView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        import logging
-        from django.db import transaction  # type: ignore
-        from api.models import (
-            Task,
-            ActiveEffect,
-            SkillCooldown,
-            InventoryItem,
-            BossEncounter,
-            UserStats,
-            UserAchievement,
-            TrainingSession,
-        )
-
         logger = logging.getLogger(__name__)
         reset_type = request.data.get("reset_type", "stats")
         
@@ -1151,7 +1142,7 @@ class ResetDataView(generics.GenericAPIView):
                         total_crits=0,
                         allies_recruited=0,
                         ally_max_level=0,
-                        unique_subjects=list(),
+                        unique_subjects=[],
                         highest_subject_rank=0,
                         prayer_rank=0
                     )
@@ -1167,7 +1158,6 @@ class ResetDataView(generics.GenericAPIView):
             # Token invalidation STRICTLY AFTER successful db transaction commit
             if reset_type == "nuclear":
                 try:
-                    from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
                     tokens = OutstandingToken.objects.filter(user=request.user)  # type: ignore
                     for token in tokens:
                         BlacklistedToken.objects.get_or_create(token=token)  # type: ignore
