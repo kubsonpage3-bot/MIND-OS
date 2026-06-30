@@ -132,7 +132,7 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
         >
           <motion.div
             key={Math.round(displayIQ * 10)}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: "1.25rem", color: level.color, lineHeight: 1 }}
+            style={{ fontFamily: "'Pixeltype'", fontSize: "1.25rem", color: level.color, lineHeight: 1 }}
           >
             {displayIQ.toFixed(1)}
           </motion.div>
@@ -149,7 +149,7 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
             exit={{ opacity: 0 }}
             transition={{ duration: 1.6 }}
             className="absolute top-4 right-0 z-20"
-            style={{ fontFamily: "'Press Start 2P'", fontSize: 9, color: "#22c55e", pointerEvents: "none", textShadow: "0 0 8px #22c55e66" }}
+            style={{ fontFamily: "'Pixeltype'", fontSize: 9, color: "#22c55e", pointerEvents: "none", textShadow: "0 0 8px #22c55e66" }}
           >
             {gained}
           </motion.div>

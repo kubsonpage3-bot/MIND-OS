@@ -203,7 +203,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
                   {/* HP bar */}
                   <div className="flex items-center gap-1.5 mt-1.5">
-                    <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#f74e52', minWidth: 12 }}>HP</span>
+                    <span style={{ fontFamily: "'Pixeltype'", fontSize: 5, color: '#f74e52', minWidth: 12 }}>HP</span>
                     <div className="flex-1 relative" style={{ height: 6, background: '#fee2e2', borderRadius: 2, overflow: 'hidden' }}>
                       <motion.div
                         animate={{ width: `${hpPct}%` }}
@@ -211,7 +211,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                         style={{ height: '100%', background: hpColor, borderRadius: 2 }}
                       />
                     </div>
-                    <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
+                    <span style={{ fontFamily: "'Pixeltype'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
                       {Math.round(hp)}/{maxHp}
                     </span>
                   </div>
@@ -219,11 +219,11 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                   {/* Streaks + next damage preview */}
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex gap-2">
-                      <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#22c55e' }}>+{task.posStreak || 0}</span>
-                      <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#ef4444' }}>−{task.negStreak || 0}</span>
+                      <span style={{ fontFamily: "'Pixeltype'", fontSize: 5, color: '#22c55e' }}>+{task.posStreak || 0}</span>
+                      <span style={{ fontFamily: "'Pixeltype'", fontSize: 5, color: '#ef4444' }}>−{task.negStreak || 0}</span>
                     </div>
                     {(task.negStreak || 0) > 0 && (
-                      <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#f59e0b' }}>
+                      <span style={{ fontFamily: "'Pixeltype'", fontSize: 5, color: '#f59e0b' }}>
                         next: -{Math.round(nextDmg * 10) / 10}hp
                       </span>
                     )}

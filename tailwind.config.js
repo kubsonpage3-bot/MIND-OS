@@ -12,8 +12,8 @@ module.exports = {
   		fontFamily: {
   			inter:   ['Nunito', 'sans-serif'],
   			nunito:  ['Nunito', 'sans-serif'],
-  			mono:    ['Press Start 2P', 'monospace'],
-  			pixel:   ['Press Start 2P', 'monospace'],
+  			mono:    ['Pixeltype', 'monospace'],
+  			pixel:   ['Pixeltype', 'monospace'],
   		},
   		colors: {
   			background: 'hsl(var(--background))',

@@ -230,7 +230,7 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
                   </div>
                   {/* Предупреждение о снижении награды */}
                   {!task.done && tv < -5 && (
-                    <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
+                    <div style={{ fontFamily: "'Pixeltype'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
                       reward -{ Math.round(Math.abs(tv) * 5) }%
                     </div>
                   )}

@@ -90,7 +90,7 @@ export default function HistoryLog({ logs }) {
                     {isBestDay && <span className="text-xs">🏆</span>}
                     <span
                       style={{
-                        fontFamily: "'Press Start 2P'", fontSize: 8,
+                        fontFamily: "'Pixeltype'", fontSize: 8,
                         color: rank.color, background: `${rank.color}22`,
                         border: `1px solid ${rank.color}44`,
                         padding: "2px 6px", borderRadius: 4
@@ -101,7 +101,7 @@ export default function HistoryLog({ logs }) {
                   </div>
                 )}
                 {log.xp_earned && (
-                  <div style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "var(--habit-purple)" }}>
+                  <div style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-purple)" }}>
                     +{log.xp_earned} XP
                   </div>
                 )}
