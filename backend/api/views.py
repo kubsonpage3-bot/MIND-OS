@@ -1063,6 +1063,7 @@ class ResetDataView(generics.GenericAPIView):
 
             if reset_type in ["tasks", "nuclear"]:
                 Task.objects.filter(user=request.user).delete()
+                profile.rank_xp = 0
 
             if reset_type in ["stats", "nuclear"]:
                 profile.hp = 100
@@ -1078,10 +1079,10 @@ class ResetDataView(generics.GenericAPIView):
                 profile.character_class = ""
                 profile.initialized = False
 
-                profile.gf = 10.0
-                profile.gc = 10.0
-                profile.ps = 10.0
-                profile.vm = 10.0
+                profile.gf = 100.0
+                profile.gc = 100.0
+                profile.ps = 100.0
+                profile.vm = 100.0
 
                 profile.gf_ceiling = 120.0
                 profile.gc_ceiling = 135.0

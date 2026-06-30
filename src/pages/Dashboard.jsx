@@ -233,7 +233,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       const prevIdx = RANK_ORDER.indexOf(prevRank.id);
       const newIdx = RANK_ORDER.indexOf(newRank.id);
 
-      if (newIdx < prevIdx && prev.rankXP > 0) {
+      if (newIdx < prevIdx && prev.rankXP > 0 && djangoProfile.rank_xp > 0) {
         playSound('error');
         setRankDemoteNotif(newRank.id);
         setTimeout(() => setRankDemoteNotif(null), 5000);
