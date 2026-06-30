@@ -39,8 +39,7 @@ function ProtectedRoutes() {
     );
   }
 
-  const needsSetup = !profile?.initialized || !profile?.character_class;
-
+  const needsSetup = !profile?.character_class || profile.character_class === "Wanderer";
   if (needsSetup && location.pathname !== '/select-class') {
     return <Navigate to="/select-class" replace />;
   }

@@ -11,7 +11,7 @@ export default function SelectClass() {
 
   const mutation = useMutation({
     mutationFn: async (classId) => {
-      return djangoApi.profile.update({ character_class: classId, initialized: true });
+      return djangoApi.profile.update({ character_class: classId });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });

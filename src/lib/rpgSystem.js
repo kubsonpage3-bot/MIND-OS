@@ -2,12 +2,17 @@ import { getMediaUrl } from "@/api/djangoClient";
 
 // ─── RPG SYSTEM DATA & LOGIC ─────────────────────────────────────────────────
 
+import architectSprite from "/public/images/original/7958b621c_characters2.png";
+import asceticSprite from "/public/images/original/303411c1f_characters3.png";
+import linguistSprite from "/public/images/original/eb9d93154_characters4.png";
+import warlordSprite from "/public/images/original/f5c789146_characters1.png";
+
 // Character sprites per class (used in ClassSelector and PixelCharacter)
 export const CLASS_SPRITES = {
-  architect: "/images/original/7958b621c_characters2.png",
-  ascetic:   "/images/original/303411c1f_characters3.png",
-  linguist:  "/images/original/eb9d93154_characters4.png",
-  warlord:   "/images/original/f5c789146_characters1.png",
+  architect: architectSprite,
+  ascetic: asceticSprite,
+  linguist: linguistSprite,
+  warlord: warlordSprite,
 };
 
 // Rank→character progression using class sprites with visual filters by rank
