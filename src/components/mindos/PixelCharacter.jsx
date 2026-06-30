@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CLASS_SPRITES, RANK_CHARACTER_FILTERS } from "@/lib/rpgSystem";
 import OptimizedImage from "./OptimizedImage";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 // Rank background scenes (pixel-art anime style descriptions → we use CSS + emoji layers)
 const RANK_CONFIG = {
@@ -163,18 +164,11 @@ export default function PixelCharacter({ rankId, rankColor, size = 140 }) {
   const cfg = RANK_CONFIG[rankId] || RANK_CONFIG["F"];
   const sprite = RANK_SPRITES[rankId] || RANK_SPRITES["F"];
 
-  // Load chosen class from localStorage to pick the right character sprite
-  const [chosenClass, setChosenClass] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mindos_class") || "{}").chosen || null; } catch { return null; }
-  });
-  useEffect(() => {
-    const check = () => {
-      try { setChosenClass(JSON.parse(localStorage.getItem("mindos_class") || "{}").chosen || null); } catch {}
-    };
-    const interval = setInterval(check, 2000);
-    window.addEventListener("storage", check);
-    return () => { clearInterval(interval); window.removeEventListener("storage", check); };
-  }, []);
+  const { profile } = useDjangoAuth();
+  const chosenClass = profile?.character_class && profile.character_class !== "Wanderer"
+    ? profile.character_class.toLowerCase()
+    : null;
+
 
   const classSprite = chosenClass ? CLASS_SPRITES[chosenClass] : null;
   const rankFilter = RANK_CHARACTER_FILTERS[rankId] || RANK_CHARACTER_FILTERS["F"];

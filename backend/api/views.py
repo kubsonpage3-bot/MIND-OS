@@ -1068,7 +1068,7 @@ class ResetDataView(generics.GenericAPIView):
                 profile.hp = 100
                 profile.hp_max = 100
                 profile.mana = 0
-                profile.max_mana = 0
+                profile.mana_max = 100
                 profile.gold = 0
                 profile.level = 1
                 profile.xp = 0
@@ -1082,6 +1082,11 @@ class ResetDataView(generics.GenericAPIView):
                 profile.gc = 10.0
                 profile.ps = 10.0
                 profile.vm = 10.0
+
+                profile.gf_ceiling = 120.0
+                profile.gc_ceiling = 135.0
+                profile.ps_ceiling = 115.0
+                profile.vm_ceiling = 125.0
 
                 profile.damage_multiplier = 1.0
                 profile.gold_multiplier = 1.0
