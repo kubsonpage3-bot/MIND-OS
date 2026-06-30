@@ -7,7 +7,7 @@ import PixelCharacter from "./PixelCharacter";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { ShoppingCart, X, Hexagon, ChevronLeft } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
-import { getPwrBossDamageMultiplier, getDefDamageReduction, getLckGoldMultiplier, getSpdGoldBonus } from "@/lib/mutatorEngine";
+
 import { motion } from "framer-motion";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { playSound } from "@/lib/soundEffects.js";

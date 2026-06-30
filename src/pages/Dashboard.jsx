@@ -31,7 +31,7 @@ import AchievementTracker from "@/components/mindos/AchievementTracker";
 
 import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES } from "@/lib/cognitiveEngine";
 import { getRankFromXP } from "@/lib/rankEngine";
-import { applySessionMutators, applyBossDamageModifiers, runDailyMutatorTick } from "@/lib/mutatorEngine";
+import { applySessionMutators, runDailyMutatorTick } from "@/lib/mutatorEngine";
 import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
@@ -539,7 +539,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </div>
       )}
       <main className="max-w-7xl mx-auto px-2 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
-        <AchievementTracker logs={logs} />
+        <AchievementTracker />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
         <AnimatePresence>

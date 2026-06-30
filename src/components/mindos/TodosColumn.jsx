@@ -62,15 +62,15 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
   // Сохранить задекейнные задачи при монтировании
 
   const completeMutation = useMutation({
-    mutationFn: async ({ task, isCompleting }) => {
+    mutationFn: async (/** @type {{task: any, isCompleting: boolean}} */ { task, isCompleting }) => {
       const res = await djangoApi.tasks.complete(task.id, isCompleting);
       return { res, task, isCompleting };
     },
-    onMutate: async ({ task, isCompleting }) => {
+    onMutate: async (/** @type {{task: any, isCompleting: boolean}} */ { task, isCompleting }) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
       const previousTasks = queryClient.getQueryData(["tasks"]);
 
-      queryClient.setQueryData(["tasks"], (old) => {
+      queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
         if (!old) return old;
         const patchedTask = { ...task, done: isCompleting, is_completed: isCompleting };
         if (Array.isArray(old)) return old.map(t => t.id === task.id ? patchedTask : t);
@@ -86,12 +86,12 @@ export default function TodosColumn({ todos, onXpGain, onBossDamage, onRankXP, o
       }
       return { previousTasks };
     },
-    onError: (err, variables, context) => {
+    onError: (/** @type {any} */ err, variables, context) => {
       queryClient.setQueryData(["tasks"], context.previousTasks);
       const errorMsg = err.data?.detail || err.message || "Task could not be updated on server";
       showRewardToast({ label: `Error: ${errorMsg}` });
     },
-    onSuccess: ({ res, task, isCompleting }) => {
+    onSuccess: (/** @type {any} */ { res, task, isCompleting }) => {
       if (res?.profile) queryClient.setQueryData(["userprofile"], res.profile);
       
       const combatResult = res?.combat;

@@ -79,16 +79,16 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
 
   const completeMutation = useMutation({
-    mutationFn: async ({ task, isCompleting }) => {
+    mutationFn: async (/** @type {{task: any, isCompleting: boolean}} */ { task, isCompleting }) => {
       const res = await djangoApi.tasks.complete(task.id, isCompleting);
       return { res, task, isCompleting };
     },
-    onMutate: async ({ task, isCompleting }) => {
+    onMutate: async (/** @type {{task: any, isCompleting: boolean}} */ { task, isCompleting }) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
       const previousTasks = queryClient.getQueryData(["tasks"]);
 
       // Optimistic Update
-      queryClient.setQueryData(["tasks"], (old) => {
+      queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
         if (!old) return old;
         const patchedTask = {
           ...task,
@@ -114,12 +114,12 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
       return { previousTasks };
     },
-    onError: (err, variables, context) => {
+    onError: (/** @type {any} */ err, variables, context) => {
       queryClient.setQueryData(["tasks"], context.previousTasks);
       const errorMsg = err.data?.detail || err.message || "Task could not be updated on server";
       showRewardToast({ label: `Error: ${errorMsg}` });
     },
-    onSuccess: ({ res, task, isCompleting }) => {
+    onSuccess: (/** @type {any} */ { res, task, isCompleting }) => {
       if (res?.profile) queryClient.setQueryData(["userprofile"], res.profile);
       
       // Update cache with authoritative response
@@ -132,7 +132,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
           last_completed_at: dt.last_completed_at || null, rpgValue: dt.value || 0, value: dt.value || 0,
           streak: dt.streak || 0, posStreak: dt.pos_streak || 0, negStreak: dt.neg_streak || 0, createdAt: dt.created_at,
         };
-        queryClient.setQueryData(["tasks"], (old) => {
+        queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
           if (!old) return old;
           if (Array.isArray(old)) return old.map((t) => (t.id === patchedTask.id ? patchedTask : t));
           if (old.results) return { ...old, results: old.results.map((t) => (t.id === patchedTask.id ? patchedTask : t)) };

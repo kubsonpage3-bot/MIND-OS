@@ -48,7 +48,7 @@ export async function hapticLight() {
     } catch {}
   }
   // Фоллбэк: Web Vibration API (работает на Android Chrome)
-  if (navigator.vibrate) navigator.vibrate(10);
+  if (navigator.vibrate) navigator.vibrate(30);
 }
 
 /**
@@ -63,7 +63,7 @@ export async function hapticMedium() {
       return;
     } catch {}
   }
-  if (navigator.vibrate) navigator.vibrate(20);
+  if (navigator.vibrate) navigator.vibrate(50);
 }
 
 /**
@@ -78,7 +78,7 @@ export async function hapticHeavy() {
       return;
     } catch {}
   }
-  if (navigator.vibrate) navigator.vibrate([30, 10, 30]);
+  if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
 }
 
 /**
@@ -93,7 +93,7 @@ export async function hapticSuccess() {
       return;
     } catch {}
   }
-  if (navigator.vibrate) navigator.vibrate([15, 5, 40]);
+  if (navigator.vibrate) navigator.vibrate([40, 20, 60]);
 }
 
 /**
@@ -108,7 +108,7 @@ export async function hapticError() {
       return;
     } catch {}
   }
-  if (navigator.vibrate) navigator.vibrate([50, 10, 50, 10, 50]);
+  if (navigator.vibrate) navigator.vibrate([60, 30, 60, 30, 60]);
 }
 
 /**

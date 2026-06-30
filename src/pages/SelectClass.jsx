@@ -23,11 +23,11 @@ export default function SelectClass() {
   });
 
   return (
-    <div className="min-h-screen bg-[#05040a] text-foreground p-6 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="h-full w-full bg-[#05040a] text-foreground p-6 flex flex-col items-center justify-start md:justify-center relative overflow-y-auto overflow-x-hidden">
       {/* Background decorations */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.08)_0%,transparent_70%)] pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.08)_0%,transparent_70%)] pointer-events-none" />
       
-      <div className="w-full max-w-3xl relative z-10">
+      <div className="w-full max-w-3xl relative z-10 my-auto py-8">
         <div className="text-center mb-8 space-y-2">
           <h1 className="text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
             SYSTEM INITIALIZATION
