@@ -170,7 +170,7 @@ class UserProfile(models.Model):
         SSOT: Считает суммарные бонусы от ВСЕГО экипированного снаряжения.
         Возвращает словарь с агрегированными бустами.
         """
-        totals = {
+        totals: dict[str, float | int] = {
             "damage_boost": 0.0,
             "gold_boost": 0.0,
             "xp_boost": 0.0,
@@ -183,7 +183,7 @@ class UserProfile(models.Model):
             "spd": 0,
             "lck": 0,  # adding for equip stats completeness
         }
-        equipped = self.inventory_items.filter(is_equipped=True).select_related("item")
+        equipped = self.inventory_items.filter(is_equipped=True).select_related("item")  # type: ignore
         for inv in equipped:
             totals["damage_boost"] += inv.item.damage_boost
             totals["gold_boost"] += inv.item.gold_boost
@@ -206,7 +206,7 @@ class UserProfile(models.Model):
         """
         equip = self.equip_stats
         cls_stats = self.class_stats
-        prestige_mult = 1.0 + (0.10 * self.prestige_count)
+        prestige_mult = 1.0 + (0.10 * float(self.prestige_count))
 
         return {
             "pwr": int(
@@ -240,10 +240,10 @@ class UserProfile(models.Model):
 
     def save(self, *args, **kwargs):
         # Enforce minimum IQ metrics to fix legacy accounts
-        if self.gf < 100.0: self.gf = 100.0
-        if self.gc < 100.0: self.gc = 100.0
-        if self.ps < 100.0: self.ps = 100.0
-        if self.vm < 100.0: self.vm = 100.0
+        if self.gf < 100.0: self.gf = 100.0  # type: ignore
+        if self.gc < 100.0: self.gc = 100.0  # type: ignore
+        if self.ps < 100.0: self.ps = 100.0  # type: ignore
+        if self.vm < 100.0: self.vm = 100.0  # type: ignore
         super().save(*args, **kwargs)
 
 
@@ -256,8 +256,8 @@ class UserProfile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     """Создаёт UserProfile и UserStats при регистрации нового пользователя."""
     if created:
-        UserProfile.objects.create(user=instance)
-        UserStats.objects.create(user=instance)
+        UserProfile.objects.create(user=instance)  # type: ignore
+        UserStats.objects.create(user=instance)  # type: ignore
 
 
 class UserStats(models.Model):
@@ -500,10 +500,10 @@ class Task(models.Model):
         base = self.REWARD_TABLE.get(self.difficulty, {"xp": 10, "gold": 5})
         task_value = self.value
         if task_value < 0:
-            value_mod = 1.0 + abs(task_value) * 0.05
+            value_mod = 1.0 + abs(float(task_value)) * 0.05
         else:
             scale = 0.06 if self.task_type == self.TaskType.TODO else 0.04
-            value_mod = max(0.1, 1.0 - task_value * scale)
+            value_mod = max(0.1, 1.0 - float(task_value) * scale)
 
         xp_reward = round(base["xp"] * value_mod)
         gold_reward = round(base["gold"] * value_mod)
@@ -719,7 +719,7 @@ class InventoryItem(models.Model):
         unique_together = ("user_profile", "item")
 
     def __str__(self):
-        return f"{self.user_profile.user.username} - {self.item.name} x{self.quantity}"
+        return f"{self.user_profile.user.username} - {self.item.name} x{self.quantity}"  # type: ignore
 
 
 # ─────────────────────────────────────────────────────────────────────────────

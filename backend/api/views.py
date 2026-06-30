@@ -1015,7 +1015,7 @@ class CombatSyncView(generics.GenericAPIView):
             sanity_limit = max(1000, max_dps * time_elapsed_sec * 1.15)
 
             if time_elapsed_sec > 0 and damage_dealt > sanity_limit:
-                damage_dealt = int(sanity_limit)
+                damage_dealt = int(sanity_limit)  # type: ignore
 
             is_dead = False
             if damage_taken > 0:
