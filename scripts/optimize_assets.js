@@ -3,7 +3,7 @@ import path from 'path';
 import sharp from 'sharp';
 
 const RAW_DIR = 'c:/coder/mind-os-growth/_raw_assets';
-const OUT_DIR = 'c:/coder/mind-os-growth/backend/static/items';
+const OUT_DIR = 'c:/coder/mind-os-growth/public/static/items';
 
 // Known mutators
 const MUTATORS = [
