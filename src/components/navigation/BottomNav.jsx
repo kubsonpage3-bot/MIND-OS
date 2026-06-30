@@ -55,6 +55,8 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
               backdropFilter: "blur(20px)",
               WebkitBackdropFilter: "blur(20px)",
               padding: "10px 0",
+              touchAction: "pan-x",
+              overscrollBehavior: "none",
             }}
           >
             {/* Fade left edge */}
@@ -123,6 +125,8 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
           WebkitBackdropFilter: "blur(20px)",
           paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
           paddingTop: "8px",
+          touchAction: "none",
+          overscrollBehavior: "none",
         }}
       >
         {NAV_ITEMS.map((item) => {
