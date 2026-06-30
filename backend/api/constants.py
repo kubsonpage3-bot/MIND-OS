@@ -188,13 +188,13 @@ SCROLL_BOSSES_DICT = {b["id"]: b for b in SCROLL_BOSSES}
 
 RANK_THRESHOLDS = [
     {"id": "F", "min": 0},
-    {"id": "D", "min": 50},
-    {"id": "C", "min": 150},
-    {"id": "B", "min": 400},
-    {"id": "A", "min": 800},
-    {"id": "S", "min": 1500},
-    {"id": "SS", "min": 2500},
-    {"id": "SSS", "min": 4000},
+    {"id": "D", "min": 200},
+    {"id": "C", "min": 600},
+    {"id": "B", "min": 1200},
+    {"id": "A", "min": 2500},
+    {"id": "S", "min": 4000},
+    {"id": "SS", "min": 6000},
+    {"id": "SSS", "min": 8000},
 ]
 
 TASK_REWARD_TABLE = {

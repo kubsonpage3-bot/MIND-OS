@@ -92,14 +92,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
     staleTime: 5000,
   });
 
-  let rankXP = 0;
-  try {
-    const rankDataRaw = localStorage.getItem("mindos_rank_xp");
-    if (rankDataRaw) {
-      const parsed = JSON.parse(rankDataRaw);
-      rankXP = parsed.rankXP || 0;
-    }
-  } catch (e) {}
+  let rankXP = profileData?.profile?.rank_xp || 0;
   const { id: currentRankId } = getRankFromXP(rankXP);
 
   // Находим активного босса

@@ -12,9 +12,8 @@ import { queueAutoSync } from "@/lib/cloudSync";
 import { applyAppearanceSettings } from "@/lib/applyAppearance";
 import RewardToast from "@/components/mindos/RewardToast";
 
-function loadRankXP() {
-  try { return JSON.parse(localStorage.getItem("mindos_rank_xp") || "{}"); } catch { return { rankXP: 0, currentRank: "F" }; }
-}
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { getRankFromXP } from "@/lib/rankEngine";
 
 const APPS = [
   { id: "mind", label: "MIND OS", icon: Brain, color: "text-primary" },
@@ -39,7 +38,7 @@ export default function AppShell({ defaultTab = "mind" }) {
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [rankXPData, setRankXPData] = useState(loadRankXP());
+  const { profile: djangoProfile } = useDjangoAuth();
   const [currentTheme, setCurrentTheme] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}").theme || 'dark'; } catch { return 'dark'; }
   });
@@ -84,8 +83,6 @@ export default function AppShell({ defaultTab = "mind" }) {
   useEffect(() => {
     const refresh = () => {
       try {
-        const raw = localStorage.getItem("mindos_rank_xp");
-        if (raw) setRankXPData(JSON.parse(raw));
         const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
         applyAppearanceSettings(settings);
         if (settings.theme && settings.theme !== currentTheme) {
@@ -127,8 +124,8 @@ export default function AppShell({ defaultTab = "mind" }) {
     }, 800);
   };
 
-  const currentRank = rankXPData.currentRank || "F";
-
+  const rankXP = djangoProfile?.rank_xp || 0;
+  const { id: currentRank } = getRankFromXP ? getRankFromXP(rankXP) : { id: "F" };
   return (
     <div className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300">
       {/* HP damage red screen flash */}
@@ -160,7 +157,7 @@ export default function AppShell({ defaultTab = "mind" }) {
         {activeApp === "mind" && (
           <>
             <div className="relative">
-              <CharacterStatusBar rankXP={rankXPData.rankXP} currentRankId={currentRank} onToggleSidebar={() => setMobileSidebarOpen(true)} />
+              <CharacterStatusBar rankXP={rankXP} currentRankId={currentRank} onToggleSidebar={() => setMobileSidebarOpen(true)} />
               <button
                 onClick={handleManualSync}
                 className="absolute top-2 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full transition-all"

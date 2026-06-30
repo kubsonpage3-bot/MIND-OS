@@ -53,7 +53,6 @@ export default function DataPanel() {
     const data = {
       gameState: localStorage.getItem("mindos_game_state"),
       class: localStorage.getItem("mindos_class"),
-      rankXP: localStorage.getItem("mindos_rank_xp"),
       tasks: localStorage.getItem("mindos_tasks"),
       streak: localStorage.getItem("mindos_streak"),
       skillTree: localStorage.getItem("mindos_skill_tree"),

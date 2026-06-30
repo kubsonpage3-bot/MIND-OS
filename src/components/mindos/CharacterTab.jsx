@@ -170,9 +170,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     }
   };
 
-  // Use prop if provided (synced from Dashboard), fallback to localStorage
-  const rankXP = rankXPProp !== undefined ? rankXPProp : (() => { try { return JSON.parse(localStorage.getItem("mindos_rank_xp") || "{}").rankXP || 0; } catch { return 0; } })();
-
+  // Use prop if provided, fallback to profile data
+  const rankXP = rankXPProp !== undefined ? rankXPProp : (profile?.rank_xp || 0);
   // Auto-sync legacy localStorage class to backend
   useEffect(() => {
     const syncLocalClass = async () => {

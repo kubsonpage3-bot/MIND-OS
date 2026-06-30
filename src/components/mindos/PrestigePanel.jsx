@@ -16,8 +16,6 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
     setTimeout(() => {
       const newPrestige = { count: count + 1, iqCeilingBonus: (count + 1) * 0.15 };
       saveRPGData("mindos_prestige", newPrestige);
-      // Reset rank XP
-      localStorage.setItem("mindos_rank_xp", JSON.stringify({ rankXP: 0, currentRank: "F", rankHistory: [] }));
       // Reset activity logs and hidden activities to reset training ranks to F
       localStorage.removeItem("mindos_activity_logs");
       localStorage.removeItem("mindos_hidden_activities");

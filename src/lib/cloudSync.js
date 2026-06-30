@@ -1,7 +1,6 @@
 const STORAGE_KEYS = {
   game_state: "mindos_game_state",
   class_data: "mindos_class",
-  rank_xp: "mindos_rank_xp",
   tasks: "mindos_tasks",
   streak: "mindos_streak",
   skill_tree: "mindos_skill_tree",

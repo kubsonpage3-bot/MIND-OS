@@ -62,15 +62,7 @@ function TabPanel({ title, children }) {
 }
 
 function loadRankXP() {
-  try {
-    const raw = localStorage.getItem("mindos_rank_xp");
-    if (raw) return JSON.parse(raw);
-  } catch {}
   return { rankXP: 0, currentRank: "F", rankHistory: [] };
-}
-
-function saveRankXP(data) {
-  localStorage.setItem("mindos_rank_xp", JSON.stringify(data));
 }
 
 export default function Dashboard({ activeSection = "dashboard", activeSubItem = null, onSectionChange, onSubItemChange }) {
@@ -225,19 +217,30 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   // Sync rankXPData with backend rank_xp and detect rank demotion
   useEffect(() => {
     if (!djangoProfile || djangoProfile.rank_xp === undefined) return;
+    
     setRankXPData(prev => {
-      const prevRank = getRankFromXP(prev.rankXP || 0);
       const newRank = getRankFromXP(djangoProfile.rank_xp);
+      const oldRank = getRankFromXP(prev.rankXP);
+      
       const RANK_ORDER = ["F", "D", "C", "B", "A", "S", "SS", "SSS"];
-      const prevIdx = RANK_ORDER.indexOf(prevRank.id);
+      const prevIdx = RANK_ORDER.indexOf(oldRank.id);
       const newIdx = RANK_ORDER.indexOf(newRank.id);
-
+      
       const updated = {
+        ...prev,
         rankXP: djangoProfile.rank_xp,
         currentRank: newRank.id,
-        rankHistory: prev.rankHistory || []
       };
-      saveRankXP(updated);
+      
+      if (newIdx < prevIdx && prevIdx !== -1) {
+        updated.rankHistory = [...prev.rankHistory, {
+          date: new Date().toISOString(),
+          from: oldRank.id,
+          to: newRank.id,
+          reason: "Death Penalty"
+        }];
+      }
+      
       return updated;
     });
   }, [djangoProfile?.rank_xp]);
@@ -333,6 +336,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         console.error("Failed to update game state in localStorage:", e);
       }
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
       refreshProfile();
       
       const oldRank = getRankFromXP(djangoProfile?.rank_xp || 0);
