@@ -1089,6 +1089,15 @@ class ResetDataView(generics.GenericAPIView):
                 profile.prestige_count = 0
                 profile.character_class = ""
                 profile.initialized = False
+                profile.skill_points = 0
+                profile.unspent_stat_points = 0
+                
+                profile.base_pwr = 5
+                profile.base_foc = 5
+                profile.base_spd = 5
+                profile.base_lck = 5
+                profile.base_def = 5
+                profile.base_mem = 5
 
                 profile.gf = 100.0
                 profile.gc = 100.0
