@@ -245,7 +245,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const { data: trainingLogsData, refetch: refetchTrainingLogs } = useQuery({
     queryKey: ["trainingLogs"],
     queryFn: djangoApi.training.getLog,
-    enabled: !!profile,
+    enabled: !!djangoProfile,
   });
   const logs = trainingLogsData?.log || [];
 
