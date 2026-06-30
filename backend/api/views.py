@@ -1074,6 +1074,7 @@ class ResetDataView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        import logging
         from django.db import transaction  # type: ignore
         from api.models import (
             Task,
@@ -1087,89 +1088,94 @@ class ResetDataView(generics.GenericAPIView):
         )
 
         reset_type = request.data.get("reset_type", "stats")
+        
+        try:
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
 
-        with transaction.atomic():
-            profile = UserProfile.objects.select_for_update().get(user=request.user)
+                if reset_type in ["tasks", "nuclear"]:
+                    Task.objects.filter(user=request.user).delete()
+                    profile.rank_xp = 0
 
-            if reset_type in ["tasks", "nuclear"]:
-                Task.objects.filter(user=request.user).delete()
-                profile.rank_xp = 0
+                if reset_type in ["stats", "nuclear"]:
+                    profile.hp = 100
+                    profile.hp_max = 100
+                    profile.mana = 0
+                    profile.mana_max = 100
+                    profile.gold = 0
+                    profile.level = 1
+                    profile.xp = 0
+                    profile.xp_to_next_level = 100
+                    profile.rank_xp = 0
+                    profile.prestige_count = 0
+                    profile.character_class = ""
+                    profile.initialized = False
+                    profile.skill_points = 0
+                    profile.unspent_stat_points = 0
+                    
+                    profile.base_pwr = 5
+                    profile.base_foc = 5
+                    profile.base_spd = 5
+                    profile.base_lck = 5
+                    profile.base_def = 5
+                    profile.base_mem = 5
 
-            if reset_type in ["stats", "nuclear"]:
-                profile.hp = 100
-                profile.hp_max = 100
-                profile.mana = 0
-                profile.mana_max = 100
-                profile.gold = 0
-                profile.level = 1
-                profile.xp = 0
-                profile.xp_to_next_level = 100
-                profile.rank_xp = 0
-                profile.prestige_count = 0
-                profile.character_class = ""
-                profile.initialized = False
-                profile.skill_points = 0
-                profile.unspent_stat_points = 0
-                
-                profile.base_pwr = 5
-                profile.base_foc = 5
-                profile.base_spd = 5
-                profile.base_lck = 5
-                profile.base_def = 5
-                profile.base_mem = 5
+                    profile.gf = 100.0
+                    profile.gc = 100.0
+                    profile.ps = 100.0
+                    profile.vm = 100.0
 
-                profile.gf = 100.0
-                profile.gc = 100.0
-                profile.ps = 100.0
-                profile.vm = 100.0
+                    profile.gf_ceiling = 120.0
+                    profile.gc_ceiling = 135.0
+                    profile.ps_ceiling = 115.0
+                    profile.vm_ceiling = 125.0
 
-                profile.gf_ceiling = 120.0
-                profile.gc_ceiling = 135.0
-                profile.ps_ceiling = 115.0
-                profile.vm_ceiling = 125.0
+                    profile.damage_multiplier = 1.0
+                    profile.gold_multiplier = 1.0
+                    profile.xp_multiplier = 1.0
 
-                profile.damage_multiplier = 1.0
-                profile.gold_multiplier = 1.0
-                profile.xp_multiplier = 1.0
+                    ActiveEffect.objects.filter(user=request.user).delete()
+                    SkillCooldown.objects.filter(user=request.user).delete()
+                    BossEncounter.objects.filter(user=request.user).delete()
+                    TrainingSession.objects.filter(user=request.user).delete()
 
-                ActiveEffect.objects.filter(user=request.user).delete()
-                SkillCooldown.objects.filter(user=request.user).delete()
-                BossEncounter.objects.filter(user=request.user).delete()
-                TrainingSession.objects.filter(user=request.user).delete()
+                    # Direct update as requested
+                    UserStats.objects.filter(user=request.user).update(
+                        total_tasks_completed=0,
+                        max_streak=0,
+                        total_boss_damage=0,
+                        bosses_defeated=0,
+                        total_gold_earned=0,
+                        prayer_sessions=0,
+                        total_crits=0,
+                        allies_recruited=0,
+                        ally_max_level=0,
+                        unique_subjects=list(),
+                        highest_subject_rank=0,
+                        prayer_rank=0
+                    )
 
-                stats, _ = UserStats.objects.get_or_create(user=request.user)
-                stats.total_tasks_completed = 0
-                stats.max_streak = 0
-                stats.total_boss_damage = 0
-                stats.bosses_defeated = 0
-                stats.total_gold_earned = 0
-                stats.prayer_sessions = 0
-                stats.total_crits = 0
-                stats.allies_recruited = 0
-                stats.ally_max_level = 0
-                stats.unique_subjects = []
-                stats.highest_subject_rank = 0
-                stats.prayer_rank = 0
-                stats.save()
+                if reset_type == "nuclear":
+                    InventoryItem.objects.filter(user_profile=profile).delete()
+                    profile.unlocked_skills.all().delete()
+                    profile.recruited_allies.all().delete()
+                    UserAchievement.objects.filter(user=request.user).delete()
 
+                profile.save()
+            
+            # Token invalidation STRICTLY AFTER successful db transaction commit
             if reset_type == "nuclear":
-                InventoryItem.objects.filter(user_profile=profile).delete()
-                profile.unlocked_skills.all().delete()
-                profile.recruited_allies.all().delete()
-                UserAchievement.objects.filter(user=request.user).delete()
-                
-                # Invalidate JWT tokens to force logout on all devices
                 try:
                     from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
                     tokens = OutstandingToken.objects.filter(user=request.user)  # type: ignore
                     for token in tokens:
                         BlacklistedToken.objects.get_or_create(token=token)  # type: ignore
                 except Exception as e:
-                    import logging
                     logging.getLogger("api").error(f"Failed to blacklist tokens: {e}")
 
-            profile.save()
-
-        return Response(
-            {"detail": f"Reset {reset_type} completed."}, status=status.HTTP_200_OK
-        )
+            return Response(
+                {"detail": f"Reset {reset_type} completed."}, status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            logging.getLogger("api").error(f"Reset failed: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
