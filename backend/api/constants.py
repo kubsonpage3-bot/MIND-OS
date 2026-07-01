@@ -1,4 +1,5 @@
 # Constants for static data (like bosses)
+PRESTIGE_XP_REQUIRED = 9000
 
 SCROLL_BOSSES = [
     {

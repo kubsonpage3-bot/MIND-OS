@@ -619,12 +619,17 @@ class PrestigeView(generics.GenericAPIView):
 
     def post(self, request):
         from django.db import transaction  # type: ignore
+        from api.constants import PRESTIGE_XP_REQUIRED
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            if profile.rank_xp < 8000:
+            if profile.rank_xp < PRESTIGE_XP_REQUIRED:
                 return Response(
-                    {"detail": "You must reach 8000 XP to prestige."},
+                    {
+                        "detail": (
+                            f"You must reach {PRESTIGE_XP_REQUIRED} " "XP to prestige."
+                        )
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             profile.prestige_count += 1

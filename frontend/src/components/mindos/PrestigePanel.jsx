@@ -14,7 +14,8 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const queryClient = useQueryClient();
 
   const count = profile?.prestige_count || prestige?.count || 0;
-  const canPrestige = rankXP >= 8000;
+  const xpRequired = profile?.prestige_xp_required || 9000;
+  const canPrestige = rankXP >= xpRequired;
   
   const prestigeMutation = useMutation({
     mutationFn: () => djangoApi.profile.update({
@@ -90,9 +91,9 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
 
         {!canPrestige ? (
           <div className="text-[10px] font-mono text-muted-foreground/40 leading-relaxed">
-            Reach 4500 XP to unlock Prestige. Current: {rankXP.toFixed(0)} / 4500 XP
+            Reach {xpRequired} XP to unlock Prestige. Current: {rankXP.toFixed(0)} / {xpRequired} XP
             <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / 4500) * 100)}%`, background: "#f0c040" }} />
+              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / xpRequired) * 100)}%`, background: "#f0c040" }} />
             </div>
           </div>
         ) : (

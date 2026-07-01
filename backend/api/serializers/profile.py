@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from api.models import UserProfile
 from .auth import UserSerializer
+from api.constants import PRESTIGE_XP_REQUIRED
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -19,6 +20,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     max_hp = serializers.SerializerMethodField()
     hp_max = serializers.SerializerMethodField()
     unlocked_achievements = serializers.SerializerMethodField()
+    prestige_xp_required = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -46,6 +48,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "vm_ceiling",
             "boss_difficulty",
             "prestige_count",
+            "prestige_xp_required",
             "inventory",
             "equipped",
             "equip_stats",
@@ -82,6 +85,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "updated_at",
             "rank_xp",
             "prestige_count",
+            "prestige_xp_required",
             "gf_ceiling",
             "gc_ceiling",
             "ps_ceiling",
@@ -96,6 +100,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_hp_max(self, obj) -> int:
         return obj.max_hp
+
+    def get_prestige_xp_required(self, obj) -> int:
+        return PRESTIGE_XP_REQUIRED
 
     def get_xp_progress_percent(self, obj) -> int:
         if obj.xp_to_next_level == 0:

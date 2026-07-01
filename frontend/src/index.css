@@ -151,6 +151,7 @@
     width: 100%;
     overflow-x: hidden;
     overscroll-behavior-x: none;
+    touch-action: manipulation;
   }
 
   #root {
@@ -176,6 +177,10 @@
   input, textarea, [contenteditable], .selectable {
     user-select: text;
     -webkit-user-select: text;
+  }
+
+  button, a, input, select, textarea, [role="button"], .clickable {
+    touch-action: manipulation;
   }
 
   button,
