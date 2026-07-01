@@ -9,15 +9,13 @@ import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "./RewardToast";
 
 const TASK_TABS = [
-  { id: 'habits',     label: 'Habits' },
-  { id: 'dailies',   label: 'Dailies' },
-  { id: 'todos',     label: 'To-Dos' },
+  { id: 'tasks',     label: 'Tasks' },
   { id: 'activities', label: 'Activities' },
 ];
 
 export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly }) {
   const queryClient = useQueryClient();
-  const [taskTab, setTaskTab] = useState('habits');
+  const [taskTab, setTaskTab] = useState('tasks');
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [formType, setFormType] = useState('habit');
   const [form, setForm] = useState({
@@ -93,9 +91,13 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
       {/* Mobile: show only the active tab */}
       <div className="md:hidden">
-        {taskTab === 'habits'     && <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('habit')} />}
-        {taskTab === 'dailies'    && <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('daily')} />}
-        {taskTab === 'todos'      && <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('todo')} />}
+        {taskTab === 'tasks' && (
+          <div className="flex flex-col gap-6">
+            <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('habit')} />
+            <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('daily')} />
+            <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('todo')} />
+          </div>
+        )}
         {taskTab === 'activities' && <ActivityLogger />}
       </div>
 
