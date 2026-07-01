@@ -74,7 +74,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
   const efficiency = computeEfficiency({
     focus: focusRating,
-    streakDays: profile?.streak_days || 0,
+    streakDays: profile?.streak || 0,
     hoursToday,
     subjectHoursToday,
     statFoc: profile?.total_stats?.foc || 5,
@@ -83,7 +83,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
   const recommendation = getSmartRecommendation({
     hoursToday,
-    streak: profile?.streak_days || 0,
+    streak: profile?.streak || 0,
     subjectHoursMap,
     recentFocusRatings,
     tasks,

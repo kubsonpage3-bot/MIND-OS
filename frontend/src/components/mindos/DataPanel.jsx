@@ -22,7 +22,6 @@ export default function DataPanel() {
       gameState: localStorage.getItem("mindos_game_state"),
       class: localStorage.getItem("mindos_class"),
       tasks: localStorage.getItem("mindos_tasks"),
-      streak: localStorage.getItem("mindos_streak"),
       skillTree: localStorage.getItem("mindos_skill_tree"),
       allies: localStorage.getItem("mindos_allies"),
       mutators: localStorage.getItem("mindos_mutators"),

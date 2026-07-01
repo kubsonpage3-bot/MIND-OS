@@ -62,6 +62,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "rank_xp",
+            "streak",
             "unlocked_skills",
             "recruited_allies",
             "max_hp",

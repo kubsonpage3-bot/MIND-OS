@@ -28,19 +28,7 @@ function PixelBar({ pct, fillColor, glowColor, label, value }) {
 
 export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSidebar }) {
   const { profile } = useDjangoAuth();
-  const [streak, setStreak] = useState(0);
-
-  useEffect(() => {
-    const refresh = () => {
-      try {
-        const st = JSON.parse(localStorage.getItem("mindos_streak") || "{}");
-        setStreak(st.streakCount || 0);
-      } catch {}
-    };
-    refresh();
-    const interval = setInterval(refresh, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const streak = profile?.streak || 0;
 
 
   const classData = {

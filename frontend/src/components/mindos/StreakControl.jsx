@@ -1,39 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { djangoApi } from "@/api/djangoClient";
 
 function getTodayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function loadStreakData() {
-  try {
-    const raw = localStorage.getItem("mindos_streak");
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { streakCount: 0, lastStreakLogDate: null, streakLogHistory: [] };
-}
-
-function saveStreakData(data) {
-  localStorage.setItem("mindos_streak", JSON.stringify(data));
-}
-
 export default function StreakControl() {
-  const [data, setData] = useState(loadStreakData);
+  const { profile } = useDjangoAuth();
+  const queryClient = useQueryClient();
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState(null);
+  
+  // Track daily log status locally so we don't spam the button
+  const [lastLogDate, setLastLogDate] = useState(() => localStorage.getItem("mindos_streak_last_log"));
 
   const today = getTodayStr();
-  const alreadyLogged = data.lastStreakLogDate === today;
+  const alreadyLogged = lastLogDate === today;
+  const currentStreak = profile?.streak || 0;
+
+  const mutation = useMutation({
+    mutationFn: (newStreak) => djangoApi.profile.update({ streak: newStreak }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+    }
+  });
 
   const handleLog = () => {
     if (alreadyLogged) return;
-    const next = {
-      streakCount: data.streakCount + 1,
-      lastStreakLogDate: today,
-      streakLogHistory: [...(data.streakLogHistory || []), today],
-    };
-    setData(next);
-    saveStreakData(next);
+    const nextStreak = currentStreak + 1;
+    
+    setLastLogDate(today);
+    localStorage.setItem("mindos_streak_last_log", today);
+    mutation.mutate(nextStreak);
+    
     // +10 MP on streak log
     try {
       const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
@@ -43,7 +46,7 @@ export default function StreakControl() {
         localStorage.setItem("mindos_class", JSON.stringify(cls));
       }
     } catch {}
-    setToast(`Day ${next.streakCount} logged — +10 MP restored 🔥`);
+    setToast(`Day ${nextStreak} logged — +10 MP restored 🔥`);
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -53,9 +56,9 @@ export default function StreakControl() {
       setTimeout(() => setShowConfirm(false), 4000);
       return;
     }
-    const next = { streakCount: 0, lastStreakLogDate: null, streakLogHistory: [] };
-    setData(next);
-    saveStreakData(next);
+    setLastLogDate(null);
+    localStorage.removeItem("mindos_streak_last_log");
+    mutation.mutate(0);
     setShowConfirm(false);
   };
 
@@ -70,7 +73,7 @@ export default function StreakControl() {
 
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
-          <span className="text-ps font-bold">+{data.streakCount}</span>
+          <span className="text-ps font-bold">+{currentStreak}</span>
           <span>day streak</span>
         </div>
         <button

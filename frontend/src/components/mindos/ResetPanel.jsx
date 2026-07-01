@@ -30,7 +30,6 @@ export default function ResetPanel() {
       const keysToClear = [
         "mindos_game_state", 
         "mindos_tasks", 
-        "mindos_streak", 
         "mindos_class",
         "mindos_activity_logs", 
         "mindos_hidden_activities"
@@ -66,7 +65,7 @@ export default function ResetPanel() {
     if (!confirm("Reset your streak counter? This will set it to 0.")) return;
     setResetting(true);
     try {
-      localStorage.removeItem("mindos_streak");
+      await djangoApi.profile.update({ streak: 0 });
       alert("Streak reset.");
       window.location.reload();
     } catch (e) {
@@ -111,7 +110,6 @@ export default function ResetPanel() {
     setResetting(true);
     localStorage.removeItem("mindos_game_state");
     localStorage.removeItem("mindos_class");
-    localStorage.removeItem("mindos_streak");
     resetMutation.mutate("stats");
   };
 

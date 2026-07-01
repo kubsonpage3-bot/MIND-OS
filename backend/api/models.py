@@ -84,6 +84,9 @@ class UserProfile(models.Model):
     rank_xp = models.PositiveIntegerField(
         default=0, verbose_name="Опыт ранга (Rank XP)"
     )
+    streak = models.PositiveIntegerField(
+        default=0, verbose_name="Стрик (дней подряд)"
+    )
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )

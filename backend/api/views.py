@@ -1207,6 +1207,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.initialized = False
                     profile.skill_points = 0
                     profile.unspent_stat_points = 0
+                    profile.streak = 0
 
                     profile.base_pwr = 5
                     profile.base_foc = 5
