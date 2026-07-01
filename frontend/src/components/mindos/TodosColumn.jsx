@@ -49,7 +49,7 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
 
   const { data: todosData, isLoading } = useQuery({
     queryKey: ['todos'],
-    queryFn: () => djangoApi.tasks.getAll({ task_type: 'todo' })
+    queryFn: () => djangoApi.tasks.list({ task_type: 'todo' })
   });
 
   const tasks = Array.isArray(todosData) ? todosData : (todosData?.results || []);
