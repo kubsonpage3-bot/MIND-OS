@@ -24,7 +24,7 @@ export default function StreakControl() {
   const mutation = useMutation({
     mutationFn: (newStreak) => djangoApi.profile.update({ streak: newStreak }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
     }
   });
@@ -36,19 +36,11 @@ export default function StreakControl() {
     setLastLogDate(today);
     localStorage.setItem("mindos_streak_last_log", today);
     mutation.mutate(nextStreak);
-    
-    // +10 MP on streak log
-    try {
-      const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
-      if (cls.chosen) {
-        const maxMana = cls.maxMana || 100;
-        cls.mana = Math.min(maxMana, (cls.mana || 0) + 10);
-        localStorage.setItem("mindos_class", JSON.stringify(cls));
-      }
-    } catch {}
-    setToast(`Day ${nextStreak} logged — +10 MP restored 🔥`);
+
+    setToast(`Day ${nextStreak} logged 🔥`);
     setTimeout(() => setToast(null), 3000);
   };
+
 
   const handleReset = () => {
     if (!showConfirm) {

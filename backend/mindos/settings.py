@@ -7,14 +7,15 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+import dj_database_url
 
-# ── Базовый путь проекта ──────────────────────────────────────────────────────
+# ── Базовый путь проекта ──────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Загружаем .env (manage.py тоже делает это, но страхуемся)
 load_dotenv(BASE_DIR / ".env")
 
-# ── Безопасность ──────────────────────────────────────────────────────────────
+# ── Безопасность ──────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-insecure-key-change-me")
 
 # Режим отладки: True только в разработке!
@@ -27,7 +28,7 @@ ALLOWED_HOSTS = [
     "mind-os-d5sk.onrender.com",  # <--- Добавили вот это!
 ]
 
-# ── Приложения ────────────────────────────────────────────────────────────────
+# ── Приложения ────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
@@ -46,7 +47,7 @@ INSTALLED_APPS = [
     "api",  # Основное API-приложение
 ]
 
-# ── Middleware ────────────────────────────────────────────────────────────────
+# ── Middleware ────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     # CorsMiddleware ДОЛЖЕН стоять первым, до CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
@@ -91,33 +92,39 @@ if USE_SQLITE:
     }
 else:
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "mindos_db"),
-            "USER": os.environ.get("DB_USER", "mindos_user"),
-            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-            "HOST": os.environ.get("DB_HOST", "localhost"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-        }
+        "default": dj_database_url.config(
+            default=os.environ.get(
+                "DATABASE_URL",
+                "postgres://mindos_user:@localhost:5432/mindos_db",
+            ),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
 
-# ── Валидация паролей ─────────────────────────────────────────────────────────
+# ── Валидация паролей ─────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"  # noqa: E501
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"  # noqa: E501
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"  # noqa: E501
+    },
 ]
 
-# ── Локализация ───────────────────────────────────────────────────────────────
+# ── Локализация ───────────────────────────────────────────────────────────
 LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
 USE_TZ = True
 
-# ── Статика и медиа ───────────────────────────────────────────────────────────
+# ── Статика и медиа ───────────────────────────────────────────────────────
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -126,7 +133,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ── CORS — разрешаем запросы от Tauri ─────────────────────────────────────────
+# ── CORS — разрешаем запросы от Tauri ─────────────────────────────────────
 # Tauri может обращаться с разных схем в зависимости от платформы:
 #   - tauri://localhost          (macOS/Linux)
 #   - http://tauri.localhost     (Windows)
@@ -180,15 +187,19 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# ── Django REST Framework ─────────────────────────────────────────────────────
+# ── Django REST Framework ─────────────────────────────────────────────────
 REST_FRAMEWORK = {
     # По умолчанию требуем JWT-токен для всех эндпоинтов
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),  # noqa: E501
     # Пагинация списков
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),  # noqa: E501
     "PAGE_SIZE": 25,
     # Поддержка фильтрации через django-filter
     "DEFAULT_FILTER_BACKENDS": [
@@ -210,7 +221,7 @@ REST_FRAMEWORK = {
     # },
 }
 
-# ── JWT-настройки (djangorestframework-simplejwt) ─────────────────────────────
+# ── JWT-настройки (djangorestframework-simplejwt) ─────────────────────────
 SIMPLE_JWT = {
     # Время жизни access-токена — 60 минут
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
@@ -229,10 +240,12 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
-# ── drf-spectacular (OpenAPI документация) ────────────────────────────────────
+# ── drf-spectacular (OpenAPI документация) ─────────────────────────────────
 SPECTACULAR_SETTINGS = {
     "TITLE": "MIND OS API",
-    "DESCRIPTION": "REST API для десктопного приложения MIND OS (Tauri + React)",
+    "DESCRIPTION": (
+        "REST API для десктопного приложения MIND OS (Tauri + React)"
+    ),  # noqa: E501
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
@@ -243,7 +256,10 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": (
+                "{levelname} {asctime} {module} "
+                "{process:d} {thread:d} {message}"  # noqa: E501
+            ),
             "style": "{",
         },
         "simple": {
