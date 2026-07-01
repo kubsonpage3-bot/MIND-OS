@@ -366,8 +366,8 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(METRIC_CONFIG).map(([mk, mc]) => {
                 const coeff = allActivities[selectedActivity].coefficients[mk] || 0;
-                const ceiling = profile[`${mk}_ceiling`];
-                const current = profile[mk];
+                const ceiling = profile?.[`${mk}_ceiling`] || 1;
+                const current = profile?.[mk] || 0;
                 const growthMult = Math.max(0, 1 - Math.pow(current / ceiling, 2));
                 const rawGain = coeff * logValue * growthMult;
                 const effGain = rawGain * efficiency.total;
