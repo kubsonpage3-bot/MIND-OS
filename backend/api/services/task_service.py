@@ -212,9 +212,7 @@ def complete_task(user, task_id, is_positive=True):
             task.last_reward_data["xp_earned"] = final_xp
             task.last_reward_data["gold_earned"] = final_gold
             task.last_reward_data["item_dropped"] = outcome.get("item_dropped")
-            if combat_result:
-                task.last_reward_data["encounter_id"] = combat_result.get("encounter_id")
-                task.last_reward_data["damage_dealt"] = combat_result.get("damage_dealt", 0)
+            task.save(update_fields=["last_reward_data"])
     else:
         # Reverting task rewards (applying exact same amounts to avoid XP/Gold farming)
         if (
@@ -368,6 +366,14 @@ def complete_task(user, task_id, is_positive=True):
         is_crit = gamification_result.get("is_crit", False)
 
         combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
+
+        if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
+            if not isinstance(task.last_reward_data, dict):
+                task.last_reward_data = {}
+            if combat_result:
+                task.last_reward_data["encounter_id"] = combat_result.get("encounter_id")
+                task.last_reward_data["damage_dealt"] = combat_result.get("damage_dealt", 0)
+                task.save(update_fields=["last_reward_data"])
 
         if combat_result and combat_result.get("boss_defeated"):
             boss_rewards = combat_result.get("rewards", {})
