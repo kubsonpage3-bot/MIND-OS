@@ -1193,7 +1193,6 @@ class ResetDataView(generics.GenericAPIView):
                     profile.rank_xp = 0
 
                 if reset_type in ["stats", "nuclear"]:
-                    profile.hp = profile.max_hp
                     profile.mana = 0
                     profile.mana_max = 100
                     profile.gold = 0
@@ -1202,6 +1201,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.xp_to_next_level = 100
                     profile.rank_xp = 0
                     profile.prestige_count = 0
+                    profile.hp = profile.max_hp
                     profile.character_class = ""
                     profile.initialized = False
                     profile.skill_points = 0
