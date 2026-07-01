@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { normalizeGold } from "@/lib/utils";
-import { ALLIES, saveRPGData } from "@/lib/rpgSystem";
+import { ALLIES } from "@/constants/rpgData";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { showRewardToast } from "@/components/mindos/RewardToast";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
 
@@ -126,16 +130,30 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
   );
 }
 
-export default function AlliesPanel({ alliesData, onUpdate, gold, onSpendGold }) {
+export default function AlliesPanel({ onSpendGold }) {
   const [selected, setSelected] = useState(null);
-  const recruited = alliesData.recruited || [];
-  const levels = alliesData.levels || {};
+  const { profile, refetchProfile } = useDjangoAuth();
+  const queryClient = useQueryClient();
+
+  const recruited = profile?.recruited_allies ? Object.keys(profile.recruited_allies) : [];
+  const levels = profile?.recruited_allies || {};
+  const gold = profile?.gold || 0;
+
+  const recruitMutation = useMutation({
+    mutationFn: (allyId) => djangoApi.allies.recruit(allyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["player-stats"] });
+      refetchProfile();
+    },
+    onError: (err) => {
+      showRewardToast({ label: `❌ Recruit failed: ${err.message}` });
+    }
+  });
 
   const recruit = (ally) => {
     if (gold < ally.recruitCost) return;
-    const newData = { ...alliesData, recruited: [...recruited, ally.id], levels: { ...levels, [ally.id]: 1 } };
-    saveRPGData("mindos_allies", newData);
-    onUpdate(newData, ally);
+    recruitMutation.mutate(ally.id);
     onSpendGold(ally.recruitCost);
   };
 
@@ -144,9 +162,8 @@ export default function AlliesPanel({ alliesData, onUpdate, gold, onSpendGold })
     if (currentLevel >= 5) return;
     const cost = ally.upgradeCosts[currentLevel - 1];
     if (gold < cost) return;
-    const newData = { ...alliesData, levels: { ...levels, [ally.id]: currentLevel + 1 } };
-    saveRPGData("mindos_allies", newData);
-    onUpdate(newData, ally);
+    
+    recruitMutation.mutate(ally.id);
     onSpendGold(cost);
   };
 
