@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { MUTATORS, saveRPGData } from "@/lib/rpgSystem";
+import { MUTATORS } from "@/constants/rpgData";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { showRewardToast } from "@/components/mindos/RewardToast";
 
 const CAT_LABELS = {
   amplifier: { label: "AMPLIFIERS", color: "#3b82f6" },
@@ -12,8 +16,14 @@ const CAT_LABELS = {
 
 const MAX_ACTIVE = 3;
 
-export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold }) {
+export default function MutatorsPanel({ onSpendGold }) {
   const [confirmIronman, setConfirmIronman] = useState(false);
+  const { profile, refetchProfile } = useDjangoAuth();
+  const queryClient = useQueryClient();
+
+  const mutators = profile?.active_mutators || { active: [], purchased: [] };
+  const gold = profile?.gold || 0;
+
   const active = mutators.active || [];
   const purchased = mutators.purchased || [];
 
@@ -26,6 +36,18 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
     if (!mut.synergy) return false;
     return isActive(mut.id) && isActive(mut.synergy);
   };
+
+  const mutatorsMutation = useMutation({
+    mutationFn: (newData) => djangoApi.profile.update({ active_mutators: newData }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+      refetchProfile();
+    },
+    onError: (err) => {
+      showRewardToast({ label: `❌ Mutators update failed: ${err.message}` });
+    }
+  });
 
   const activate = (mutator) => {
     if (mutator.id === "ironman" && !isActive(mutator.id)) { setConfirmIronman(true); return; }
@@ -48,8 +70,9 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
     }
     const newPurchased = isPurchased(mutator.id) ? purchased : [...purchased, mutator.id];
     const newData = { ...mutators, active: newActive, purchased: newPurchased };
-    saveRPGData("mindos_mutators", newData);
-    onUpdate(newData);
+    
+    mutatorsMutation.mutate(newData);
+    
     if (!isPurchased(mutator.id) && mutator.cost > 0) onSpendGold(mutator.cost);
   };
 
@@ -57,8 +80,8 @@ export default function MutatorsPanel({ mutators, onUpdate, gold, onSpendGold })
     const newActive = [...active, { id: "ironman", activatedAt: Date.now(), duration: null }];
     const newPurchased = [...purchased, "ironman"];
     const newData = { ...mutators, active: newActive, purchased: newPurchased };
-    saveRPGData("mindos_mutators", newData);
-    onUpdate(newData);
+    
+    mutatorsMutation.mutate(newData);
     onSpendGold(3000);
     setConfirmIronman(false);
   };
