@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { ACHIEVEMENTS, loadRPGData } from "@/lib/rpgSystem";
+import { useState, useMemo } from "react";
+import { ACHIEVEMENTS } from "@/constants/rpgData";
 
 const CAT_LABELS = {
   consistency: "Consistency",
@@ -12,37 +12,20 @@ const CAT_LABELS = {
   prestige: "Prestige",
 };
 
-export default function AchievementsPanel({ logs, alliesData, prestigeData }) {
-  const { achievements } = loadRPGData();
-  const unlocked = achievements.unlocked || [];
+export default function AchievementsPanel({ profile, onClaimReward }) {
+  const [selectedCat, setSelectedCat] = useState("ALL");
+  const [claiming, setClaiming] = useState(null);
+
+  const unlocked = profile?.unlocked_achievements || [];
 
   // Build stats for checking
-  const stats = useMemo(() => {
-    const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-    const streak = (() => { try { return JSON.parse(localStorage.getItem("mindos_streak") || "{}").streakCount || 0; } catch { return 0; } })();
-    const uniqueSubjects = new Set(logs.map(l => l.activity_key)).size;
-    const prayerSessions = logs.filter(l => l.activity_key === "prayer_meditation" || l.activity_key === "prayer").length;
-    const totalCrits = gs.totalCrits || 0;
-    const totalBossDamage = gs.totalBossDamage || 0;
-    const bossesDefeated = gs.bossIndex || 0;
-    const recruited = alliesData?.recruited || [];
-    const allyLevels = alliesData?.levels || {};
-    return {
-      totalSessions: logs.length,
-      maxStreak: streak,
-      uniqueSubjects,
-      prayerSessions,
-      totalCrits,
-      totalBossDamage,
-      bossesDefeated,
-      alliesRecruited: recruited.length,
-      allyMaxLevel: Math.max(0, ...Object.values(allyLevels)),
-      totalGoldEarned: gs.totalGoldEarned || 0,
-      highestSubjectRank: 0,
-      prayerRank: 0,
-      prestigeCount: prestigeData?.count || 0,
-    };
-  }, [logs, alliesData, prestigeData]);
+  const stats = useMemo(() => ({
+    totalSessions: profile?.total_sessions || 0,
+    maxStreak: profile?.streak_count || 0,
+    alliesRecruited: profile?.allies_count || 0,
+    totalGoldEarned: profile?.total_gold_earned || 0,
+    prestigeCount: profile?.prestige_count || 0,
+  }), [profile]);
 
   const byCategory = {};
   ACHIEVEMENTS.forEach(ach => {
@@ -50,21 +33,10 @@ export default function AchievementsPanel({ logs, alliesData, prestigeData }) {
     byCategory[ach.cat].push(ach);
   });
 
-  const [unlockedList, setUnlockedList] = useState(unlocked);
-
-  useEffect(() => {
-    const handleUpdate = () => {
-      const rpg = loadRPGData();
-      setUnlockedList(rpg.achievements.unlocked || []);
-    };
-    window.addEventListener("mindos-achievements-updated", handleUpdate);
-    return () => window.removeEventListener("mindos-achievements-updated", handleUpdate);
-  }, []);
-
   return (
     <div className="space-y-4">
       <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
-        Achievements — {unlockedList.length}/{ACHIEVEMENTS.length} unlocked
+        Achievements — {unlocked.length}/{ACHIEVEMENTS.length} unlocked
       </div>
 
       {Object.entries(byCategory).map(([cat, achs]) => (
@@ -74,7 +46,7 @@ export default function AchievementsPanel({ logs, alliesData, prestigeData }) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             {achs.map(ach => {
-              const isUnlocked = unlockedList.includes(ach.id);
+              const isUnlocked = unlocked.includes(ach.id);
               return (
                 <div key={ach.id} className="p-2 rounded-xl border text-center transition-all"
                    style={{
