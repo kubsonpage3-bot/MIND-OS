@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CLASSES } from "@/lib/rpgSystem";
+import { CLASSES } from "@/constants/rpgData";
 import { getRankFromXP, getNextRankFromXP } from "@/lib/rankEngine";
 import PixelCharacter from "../mindos/PixelCharacter";
 import { Menu } from "lucide-react";
@@ -28,19 +27,7 @@ function PixelBar({ pct, fillColor, glowColor, label, value }) {
 
 export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSidebar }) {
   const { profile } = useDjangoAuth();
-  const [streak, setStreak] = useState(0);
 
-  useEffect(() => {
-    const refresh = () => {
-      try {
-        const st = JSON.parse(localStorage.getItem("mindos_streak") || "{}");
-        setStreak(st.streakCount || 0);
-      } catch {}
-    };
-    refresh();
-    const interval = setInterval(refresh, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const classData = {
     chosen: profile?.character_class !== "Wanderer" ? profile?.character_class : null,
@@ -112,9 +99,9 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
           </div>
 
           {/* Portrait — flush right */}
-          <div className="flex items-center justify-center shrink-0"
+          <div className="flex items-center justify-center shrink-0 overflow-hidden"
             style={{
-              width: 64, minHeight: 64,
+              width: 64, minHeight: 64, maxWidth: 70,
               background: `${classColor}22`,
               borderLeft: `2px solid ${classColor}44`,
               imageRendering: "pixelated",

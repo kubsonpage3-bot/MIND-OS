@@ -1,6 +1,6 @@
 import PixelCharacter from "@/components/mindos/PixelCharacter";
 import BossPanel from "@/components/mindos/BossPanel";
-import { CLASSES } from "@/lib/rpgSystem";
+import { CLASSES } from "@/constants/rpgData";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 

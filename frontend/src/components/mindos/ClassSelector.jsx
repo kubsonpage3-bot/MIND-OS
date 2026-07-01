@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CLASSES, CLASS_SPRITES } from "@/lib/rpgSystem";
+import { CLASSES, CLASS_SPRITES } from "@/constants/rpgData";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ClassSelector({ onChoose }) {

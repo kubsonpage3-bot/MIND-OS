@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CLASS_SPRITES, RANK_CHARACTER_FILTERS } from "@/lib/rpgSystem";
+import { CLASS_SPRITES, RANK_CHARACTER_FILTERS } from "@/constants/rpgData";
 import OptimizedImage from "./OptimizedImage";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
@@ -296,7 +295,7 @@ export default function PixelCharacter({ rankId, rankColor, size = 140 }) {
 
       {/* Rank label */}
       <div
-        className="font-mono text-[9px] tracking-[0.25em] uppercase font-bold px-2 py-0.5 rounded"
+        className="font-mono text-[8px] sm:text-[9px] tracking-[0.25em] uppercase font-bold px-1.5 py-0.5 rounded truncate w-full text-center"
         style={{
           color: cfg.frameColor,
           textShadow: `0 0 8px ${cfg.frameColor}`,

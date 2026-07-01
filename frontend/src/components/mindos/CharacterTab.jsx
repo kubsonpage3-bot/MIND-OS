@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
-import { getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
-import { loadRPGData, saveRPGData, CLASSES } from "@/lib/rpgSystem";
+import { getTierColor } from "@/lib/gameState";
+import { CLASSES } from "@/constants/rpgData";
 import { djangoApi, getMediaUrl } from "@/api/djangoClient";
 import PixelCharacter from "./PixelCharacter";
 import { getRankFromXP } from "@/lib/rankEngine";
@@ -51,8 +51,6 @@ const SUB_TABS = [
 
 export default function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
   const queryClient = useQueryClient();
-  const [gs, setGs] = useState(() => loadGameState());
-  const [rpg, setRpg] = useState(() => loadRPGData());
   const subTab = externalSubTab || "overview";
   const [shopTab, setShopTab] = useState("gear");
   const [activeSlot, setActiveSlot] = useState(null);
@@ -83,79 +81,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     }
   });
 
-  // Reload RPG data from storage on mount
-  useEffect(() => { setRpg(loadRPGData()); }, []);
-
-  // Sync skill tree and allies from backend profile to local rpg state
-  useEffect(() => {
-    if (profile) {
-      const localRpg = loadRPGData();
-      let changed = false;
-
-      // 1. Sync Skill Tree points & unlocked nodes
-      if (profile.skill_points !== undefined && localRpg.skillTree.skillPoints !== profile.skill_points) {
-        localRpg.skillTree.skillPoints = profile.skill_points;
-        changed = true;
-      }
-      if (profile.unlocked_skills !== undefined) {
-        const backendUnlocked = profile.unlocked_skills || [];
-        const localUnlocked = localRpg.skillTree.unlockedNodes || [];
-        const match = backendUnlocked.length === localUnlocked.length && backendUnlocked.every(v => localUnlocked.includes(v));
-        if (!match) {
-          localRpg.skillTree.unlockedNodes = backendUnlocked;
-          changed = true;
-        }
-      }
-      if (changed) {
-        saveRPGData("mindos_skillTree", localRpg.skillTree);
-      }
-
-      // 2. Sync Allies
-      let alliesChanged = false;
-      if (profile.recruited_allies !== undefined) {
-        const backendAllies = profile.recruited_allies || {};
-        const localRecruited = localRpg.alliesData.recruited || [];
-        const localLevels = localRpg.alliesData.levels || {};
-
-        const backendRecruitedList = Object.keys(backendAllies);
-        const matchRecruited = backendRecruitedList.length === localRecruited.length && backendRecruitedList.every(v => localRecruited.includes(v));
-        
-        let matchLevels = true;
-        for (const [k, v] of Object.entries(backendAllies)) {
-          if (localLevels[k] !== v) {
-            matchLevels = false;
-            break;
-          }
-        }
-
-        if (!matchRecruited || !matchLevels) {
-          localRpg.alliesData.recruited = backendRecruitedList;
-          localRpg.alliesData.levels = backendAllies;
-          alliesChanged = true;
-        }
-      }
-      if (alliesChanged) {
-        saveRPGData("mindos_allies", localRpg.alliesData);
-      }
-
-      if (changed || alliesChanged) {
-        setRpg(prev => ({
-          ...prev,
-          skillTree: localRpg.skillTree,
-          alliesData: localRpg.alliesData
-        }));
-      }
-    }
-  }, [profile?.skill_points, profile?.unlocked_skills, profile?.recruited_allies]);
-
-  const save = (newGs) => { setGs(newGs); saveGameState(newGs); };
-
   const gold = profile?.gold || 0;
   const spendGold = async (amount) => {
-    // For legacy sub-panels that still rely on local gs
-    const ng = { ...gs, gold: Math.max(0, (gs.gold || 0) - amount) };
-    save(ng);
-
     if (profile) {
       const newGold = Math.max(0, (profile.gold || 0) - amount);
       // Optimistic update
@@ -172,28 +99,6 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // Use prop if provided, fallback to profile data
   const rankXP = rankXPProp !== undefined ? rankXPProp : (profile?.rank_xp || 0);
-  // Auto-sync legacy localStorage class to backend
-  useEffect(() => {
-    const syncLocalClass = async () => {
-      const localRpg = loadRPGData();
-      if (profile && profile.character_class === "Wanderer" && localRpg?.classData?.chosen) {
-        const cls = CLASSES[localRpg.classData.chosen];
-        if (cls) {
-          try {
-            await djangoApi.profile.update({
-              character_class: localRpg.classData.chosen,
-              mana: localRpg.classData.mana || cls.maxMana,
-              mana_max: cls.maxMana
-            });
-            queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-          } catch (e) {
-            console.error("Auto-sync class failed:", e);
-          }
-        }
-      }
-    };
-    syncLocalClass();
-  }, [profile?.character_class]);
 
   // Class data
   const classData = { 
@@ -253,7 +158,6 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   const handleChooseClass = async (classId) => {
     const cls = CLASSES[classId];
-    const newClassData = { chosen: classId, mana: cls.maxMana, maxMana: cls.maxMana, skills: [] };
     
     try {
       await djangoApi.profile.update({
@@ -265,55 +169,40 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     } catch (e) {
       console.error("Failed to sync class with backend:", e);
     }
-
-    saveRPGData("mindos_class", newClassData);
-    setRpg(prev => ({ ...prev, classData: newClassData }));
   };
 
-  const handleSkillUsed = (skill, newClassData) => {
-    setRpg(prev => ({ ...prev, classData: newClassData }));
+  const handleSkillUsed = () => {
+    // Skills use React Query mutations internally, refetch profile if needed
+    queryClient.invalidateQueries({ queryKey: ["userprofile"] });
   };
 
   const handleSkillTreeUpdate = async (newTree, node) => {
     if (node) {
       try {
-        setRpg(prev => ({ ...prev, skillTree: newTree }));
         const res = await djangoApi.skills.buy(node.id);
         queryClient.setQueryData(["userprofile"], res.profile);
       } catch (e) {
         console.error("Failed to buy skill node:", e);
       }
-    } else {
-      setRpg(prev => ({ ...prev, skillTree: newTree }));
     }
   };
 
   const handleAlliesUpdate = async (newAllies, ally) => {
     if (ally) {
       try {
-        setRpg(prev => ({ ...prev, alliesData: newAllies }));
         const res = await djangoApi.allies.recruit(ally.id);
         queryClient.setQueryData(["userprofile"], res.profile);
       } catch (e) {
-        console.error("Failed to recruit/upgrade ally:", e);
+        console.error("Failed to recruit ally:", e);
       }
-    } else {
-      setRpg(prev => ({ ...prev, alliesData: newAllies }));
     }
   };
 
-  const handleMutatorsUpdate = (newMut) => {
-    setRpg(prev => ({ ...prev, mutators: newMut }));
+  const handleMutatorsUpdate = () => {
   };
 
-  const handlePrestige = async (newPrestige) => {
-    setRpg(prev => ({ ...prev, prestige: newPrestige }));
-    try {
-      await djangoApi.profile.prestige();
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-    } catch (e) {
-      console.error("Failed to sync prestige with backend:", e);
-    }
+  const handlePrestige = () => {
+    // Prestige logic is now handled fully in PrestigePanel
   };
 
   const mutation = useMutation({

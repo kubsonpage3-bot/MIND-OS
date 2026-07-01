@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CLASSES } from "@/lib/rpgSystem";
+import { CLASSES } from "@/constants/rpgData";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
