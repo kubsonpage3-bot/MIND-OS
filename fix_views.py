@@ -1,10 +1,10 @@
 import os
 
-path = 'backend/api/views.py'
-with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+path = "backend/api/views.py"
+with open(path, "r", encoding="utf-8", errors="ignore") as f:
     text = f.read()
 
-bad_idx = text.find('#')
+bad_idx = text.find("#")
 # Actually wait, let me just replace the bottom part.
 # The corrupted part starts around line 1250 maybe. Let me just find ResetDataView
 
@@ -33,10 +33,10 @@ class RivalView(generics.GenericAPIView):
 '''
 
 # Find the end of ResetDataView
-end_reset_idx = text.find('Internal server error during data reset')
+end_reset_idx = text.find("Internal server error during data reset")
 if end_reset_idx != -1:
-    end_reset_idx = text.find(')', end_reset_idx) + 1
+    end_reset_idx = text.find(")", end_reset_idx) + 1
     text = text[:end_reset_idx]
 
-with open(path, 'w', encoding='utf-8') as f:
-    f.write(text.strip() + '\n\n' + valid_code)
+with open(path, "w", encoding="utf-8") as f:
+    f.write(text.strip() + "\n\n" + valid_code)

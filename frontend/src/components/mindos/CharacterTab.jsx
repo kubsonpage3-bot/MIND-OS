@@ -297,9 +297,35 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     setActiveSlot(null);
   };
 
-  const upgradeStat = (stat) => {
-    if ((gs.statPoints || 0) <= 0) return;
-    save({ ...gs, statPoints: (gs.statPoints || 0) - 1, stats: { ...gs.stats, [stat]: ((gs.stats?.[stat] || 0) + 1) } });
+  const upgradeStat = async (stat) => {
+    if ((profile?.unspent_stat_points || 0) <= 0) return;
+    playSound('level_up');
+    
+    const nextVal = (profile?.[`base_${stat}`] || 5) + 1;
+    const nextPoints = (profile?.unspent_stat_points || 0) - 1;
+    
+    // Optimistic Update
+    const prevProfile = queryClient.getQueryData(["userprofile"]);
+    if (prevProfile) {
+      queryClient.setQueryData(["userprofile"], {
+        ...prevProfile,
+        [`base_${stat}`]: nextVal,
+        unspent_stat_points: nextPoints
+      });
+    }
+
+    try {
+      await djangoApi.profile.update({
+        [`base_${stat}`]: nextVal,
+        unspent_stat_points: nextPoints
+      });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    } catch (e) {
+      console.error("Failed to upgrade stat on backend:", e);
+      if (prevProfile) {
+        queryClient.setQueryData(["userprofile"], prevProfile);
+      }
+    }
   };
 
   const gearItems = shopItems.filter(i => !i.consumable);
@@ -381,9 +407,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Character Stats</span>
-              {(gs.statPoints || 0) > 0 && (
+              {(profile?.unspent_stat_points || 0) > 0 && (
                 <span className="font-mono text-xs text-primary flex items-center gap-1">
-                  <FantasyIcon size={12}><Hexagon /></FantasyIcon> {gs.statPoints} pts
+                  <FantasyIcon size={12}><Hexagon /></FantasyIcon> {profile?.unspent_stat_points} pts
                 </span>
               )}
             </div>
@@ -402,7 +428,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               {/* Stat rows */}
               {Object.entries(statBreakdown).map(([key, breakdown]) => {
                 const cfg = STAT_CONFIG[key];
-                const canUpgrade = (gs.statPoints || 0) > 0;
+                const canUpgrade = (profile?.unspent_stat_points || 0) > 0;
                 // Compute live effect label based on totalValue
                 const totalValue = breakdown.total;
                 let effectLabel = "";
@@ -614,7 +640,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <ScrollsPanel gold={gold} onSpendGold={spendGold} />
           )}
           {shopTab === "inventory" && (
-            <InventoryPanel gs={{...gs, inventory, equipped}} onSave={save} onToggleEquip={equipItem} />
+            <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => {}} onToggleEquip={equipItem} />
           )}
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {(shopTab === "scrolls" || shopTab === "inventory") ? null : (shopTab === "gear" ? gearItems : consumables)

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateIQ } from "@/lib/cognitiveEngine";
 import { Brain, Zap, BookOpen, Eye, Info } from "lucide-react";
@@ -39,6 +40,7 @@ function Slider({ value, min, max, step = 0.1, color, onChange }) {
 
 export default function MetricsPanel() {
   const { profile } = useDjangoAuth();
+  const [activeHint, setActiveHint] = useState(null);
 
   if (!profile) return (
     <div className="text-center py-12 text-sm text-[var(--habit-dim)]">
