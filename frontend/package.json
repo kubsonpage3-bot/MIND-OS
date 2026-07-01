@@ -7,7 +7,7 @@
     "dev": "vite",
     "predev": "node ../scripts/compress-images.js",
     "build": "vite build",
-    "prebuild": "node ../scripts/compress-images.js",
+    "prebuild": "node ../scripts/compress-images.js || true",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
