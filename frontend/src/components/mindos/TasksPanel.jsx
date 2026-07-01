@@ -13,7 +13,7 @@ const TASK_TABS = [
   { id: 'activities', label: 'Activities' },
 ];
 
-export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly }) {
+export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly, onLog, profile, logs = [] }) {
   const queryClient = useQueryClient();
   const [taskTab, setTaskTab] = useState('tasks');
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
@@ -97,7 +97,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
             <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('todo')} />
           </div>
         )}
-        {taskTab === 'activities' && <ActivityLogger />}
+        {taskTab === 'activities' && <ActivityLogger onLog={onLog} profile={profile} logs={logs} tasks={tasks} />}
       </div>
 
       {/* Desktop: side-by-side layout (unchanged) */}

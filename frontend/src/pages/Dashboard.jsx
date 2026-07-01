@@ -456,7 +456,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Tasks section with sub-tabs */}
               {activeSection === "tasks" && (
                 <TabPanel title="⚔️ TASKS">
-                  <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} />
+                  <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
                 </TabPanel>
               )}
 
