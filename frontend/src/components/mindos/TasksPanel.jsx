@@ -74,7 +74,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
             key={tab.id}
             onClick={() => setTaskTab(tab.id)}
             className={`
-              text-xs font-bold uppercase tracking-widest
+              font-pixel text-xl uppercase tracking-widest
               px-4 py-2 rounded-full whitespace-nowrap
               transition-all duration-150 active:scale-95
               ${taskTab === tab.id
@@ -82,7 +82,6 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
                 : 'bg-white/10 text-white/50 hover:bg-white/20'
               }
             `}
-            style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}
           >
             {tab.label}
           </button>

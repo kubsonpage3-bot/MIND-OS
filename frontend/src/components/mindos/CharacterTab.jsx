@@ -536,7 +536,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* ACHIEVEMENTS */}
       {subTab === "achievements" && (
-        <AchievementsPanel logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} />
+        <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} />
       )}
 
       {/* MUTATORS */}

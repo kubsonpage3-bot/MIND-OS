@@ -99,8 +99,8 @@ export async function djangoFetch(endpoint, options = {}) {
         const data = await response.json();
 
         // Intercept unlocked achievements and broadcast them globally
-        if (data?.unlocked_achievements?.length > 0) {
-          window.dispatchEvent(new CustomEvent('mindos-achievements-unlocked', { detail: data.unlocked_achievements }));
+        if (data?.newly_unlocked_achievements?.length > 0) {
+          window.dispatchEvent(new CustomEvent('mindos-achievements-unlocked', { detail: data.newly_unlocked_achievements }));
         }
 
         // Intercept death and broadcast it globally

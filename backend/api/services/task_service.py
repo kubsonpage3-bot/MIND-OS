@@ -242,6 +242,7 @@ def complete_task(user, task_id, is_positive=True):
             encounter_id = task.last_reward_data.get("encounter_id")
             if damage_to_heal > 0 and encounter_id:
                 from api.services.mechanics import revert_boss_damage
+
                 revert_boss_damage(user, encounter_id, damage_to_heal)
 
             gamification_result = {
@@ -371,8 +372,12 @@ def complete_task(user, task_id, is_positive=True):
             if not isinstance(task.last_reward_data, dict):
                 task.last_reward_data = {}
             if combat_result:
-                task.last_reward_data["encounter_id"] = combat_result.get("encounter_id")
-                task.last_reward_data["damage_dealt"] = combat_result.get("damage_dealt", 0)
+                task.last_reward_data["encounter_id"] = combat_result.get(
+                    "encounter_id"
+                )
+                task.last_reward_data["damage_dealt"] = combat_result.get(
+                    "damage_dealt", 0
+                )
                 task.save(update_fields=["last_reward_data"])
 
         if combat_result and combat_result.get("boss_defeated"):
@@ -395,7 +400,7 @@ def complete_task(user, task_id, is_positive=True):
         "gold_earned": rewards["gold"] if is_positive else -rewards.get("gold", 0),
         "mana_gained": mana_gained if is_positive else -mana_gained,
         "gamification_result": gamification_result,
-        "unlocked_achievements": unlocked_achievements,
+        "newly_unlocked_achievements": unlocked_achievements,
     }
 
 

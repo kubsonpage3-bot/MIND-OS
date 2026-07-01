@@ -150,15 +150,11 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
       <div className="flex gap-1 p-1 rounded-2xl" style={{ background: "var(--habit-bg)" }}>
         {[{ id: "log", label: "Log Session" }, { id: "create", label: "Create Task" }].map(t => (
           <button key={t.id} onClick={() => setTrainTab(t.id)}
-            className="flex-1 py-2 rounded-xl transition-all"
+            className="flex-1 py-2 rounded-xl transition-all font-pixel text-2xl tracking-widest"
             style={{
-              fontFamily: "'Nunito'",
-              fontWeight: trainTab === t.id ? 800 : 600,
-              fontSize: 12,
               background: trainTab === t.id ? "var(--habit-purple)" : "transparent",
               color: trainTab === t.id ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
               boxShadow: trainTab === t.id ? "0 2px 8px var(--habit-purple-glow)" : "none",
-              letterSpacing: "0.04em",
             }}>
             {t.label}
           </button>
@@ -192,17 +188,17 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
       {/* Activity grid header */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Activities</span>
+        <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">Activities</span>
         <div className="flex items-center gap-1.5">
           {hiddenActivities.length > 0 && (
             <button onClick={restoreActivities}
-              className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-muted-foreground/60 hover:text-foreground border border-border/40 rounded transition-colors">
+              className="flex items-center gap-1 px-2 py-1 text-sm font-pixel text-muted-foreground/60 hover:text-foreground border border-border/40 rounded transition-colors">
               <RotateCcw className="w-2.5 h-2.5" /> Restore all ({hiddenActivities.length})
             </button>
           )}
           <button
             onClick={() => { setDeleteMode(d => !d); setConfirmDelete(null); }}
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-mono border rounded transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 text-sm font-pixel border rounded transition-colors ${
               deleteMode
                 ? "border-red-500/60 text-red-400 bg-red-500/10"
                 : "border-border/40 text-muted-foreground/60 hover:text-foreground"
@@ -236,12 +232,12 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                   }}
                 >
                   <div className="text-xl mb-1">{activity.icon}</div>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "var(--habit-text)" }} className="leading-tight">{activity.label}</div>
+                  <div className="font-pixel text-2xl text-habit-text leading-none">{activity.label}</div>
                   <div style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }} className="mt-0.5 hidden sm:block line-clamp-2">{activity.description}</div>
                   <div className="flex-1" /> {/* Spacer to push metrics down if needed */}
                   <div className="flex gap-1 mt-2 flex-wrap">
                     {activeMetrics.map(([mk, mc]) => (
-                      <span key={mk} className={`text-[9px] font-mono px-1 py-0.5 rounded bg-${mc.color}/10 text-${mc.color}`}>
+                      <span key={mk} className={`text-sm font-pixel px-1 py-0.5 rounded bg-${mc.color}/10 text-${mc.color}`}>
                         +{mc.abbr}
                       </span>
                     ))}
@@ -258,11 +254,11 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                       <div className="flex gap-1">
                         <button
                           onClick={() => hideActivity(key)}
-                          className="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-red-500 text-white rounded"
+                          className="px-1.5 py-0.5 text-sm font-pixel bg-red-500 text-white rounded"
                         >✓ YES</button>
                         <button
                           onClick={() => setConfirmDelete(null)}
-                          className="px-1.5 py-0.5 text-[9px] font-mono bg-muted text-muted-foreground rounded"
+                          className="px-1.5 py-0.5 text-sm font-pixel bg-muted text-muted-foreground rounded"
                         >✕</button>
                       </div>
                     ) : (
@@ -292,7 +288,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
           >
             <div className="flex items-center justify-between">
               <div>
-                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-text)" }}>{allActivities[selectedActivity].label}</div>
+                <div className="font-pixel text-3xl text-habit-text">{allActivities[selectedActivity].label}</div>
                 <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)" }}>{allActivities[selectedActivity].description}</div>
               </div>
               <button onClick={() => setSelectedActivity(null)} style={{ color: "var(--habit-dim)", fontSize: 16, fontWeight: 700 }}>✕</button>
@@ -305,7 +301,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                   <Minus className="w-3 h-3" />
                 </button>
                 <div className="text-center w-16 tabular-nums tracking-tight">
-                  <div className="font-mono text-2xl font-bold text-foreground">{questions}</div>
+                  <div className="font-pixel text-4xl text-foreground">{questions}</div>
                   <div className="text-xs text-muted-foreground">questions</div>
                 </div>
                 <button onClick={() => setQuestions(Math.min(20, questions + 1))}
@@ -320,7 +316,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                   <Minus className="w-3 h-3" />
                 </button>
                 <div className="text-center w-16 tabular-nums tracking-tight">
-                  <div className="font-mono text-2xl font-bold text-foreground">{hours}</div>
+                  <div className="font-pixel text-4xl text-foreground">{hours}</div>
                   <div className="text-xs text-muted-foreground">hours</div>
                 </div>
                 <button onClick={() => setHours(hours + 0.5)}
@@ -333,8 +329,8 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
             {/* Focus rating */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Focus Quality</span>
-                <span className="font-mono text-sm font-bold" style={{ color: focusColors[focusRating] }}>
+                <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">Focus Quality</span>
+                <span className="font-pixel text-2xl" style={{ color: focusColors[focusRating] }}>
                   {focusRating}/10
                   {focusRating >= 9 ? " — Flow State" : focusRating >= 7 ? " — Good" : focusRating >= 4 ? " — Average" : " — Distracted"}
                 </span>
@@ -374,8 +370,8 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                 const effGain = rawGain * efficiency.total;
                 return (
                   <div key={mk} className="text-center p-2 rounded-lg bg-muted/40">
-                    <div className={`text-xs font-mono font-bold text-${mc.color}`}>{mc.abbr}</div>
-                    <div className="text-xs font-mono text-foreground/70 mt-0.5">
+                    <div className={`text-xl font-pixel text-${mc.color}`}>{mc.abbr}</div>
+                    <div className="text-lg font-pixel text-foreground/70 mt-0.5">
                       {effGain > 0 ? `+${effGain.toFixed(3)}` : "—"}
                     </div>
                   </div>
@@ -409,7 +405,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
               const total = Math.max(0, Math.floor(expectedGold * goldMultStats));
 
               return (
-                <div className="text-xs font-mono text-center" style={{ color: "var(--habit-gold)" }}>
+                <div className="text-2xl font-pixel text-center" style={{ color: "var(--habit-gold)" }}>
                   +{total}G on completion{mult > 1 && <span className="text-green-400 ml-1">(×{mult} booster!)</span>}
                 </div>
               );
@@ -425,7 +421,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                     animate={{ opacity: 0, y: -30 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 1.5 }}
-                    className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono font-bold text-sm pointer-events-none"
+                    className="absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-3xl pointer-events-none"
                     style={{ color: "var(--habit-gold)" }}
                   >
                     +{goldFloat.value}G
@@ -434,8 +430,8 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
               </AnimatePresence>
               <button
                 onClick={confirmLog}
-                className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
+                className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98] font-pixel text-3xl tracking-widest"
+                style={{ background: "var(--habit-purple)", color: "white", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
                 Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} efficiency
               </button>

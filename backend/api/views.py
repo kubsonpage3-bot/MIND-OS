@@ -226,6 +226,9 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "penalty": result.get("penalty"),
                     "died": result.get("died", False),
                     "is_dead": result.get("died", False),
+                    "newly_unlocked_achievements": result.get(
+                        "newly_unlocked_achievements", []
+                    ),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -305,6 +308,9 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "new_gold": result["profile"].gold,
                     "combat": result.get("combat"),
                     "gamification_result": result.get("gamification_result"),
+                    "newly_unlocked_achievements": result.get(
+                        "newly_unlocked_achievements", []
+                    ),
                 },
                 status=status.HTTP_200_OK,
             )
