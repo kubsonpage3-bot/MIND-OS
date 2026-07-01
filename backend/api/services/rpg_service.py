@@ -59,6 +59,52 @@ def buy_skill_node(user, skill_code: str) -> UserProfile:
 
 
 @transaction.atomic
+def respec_skill_nodes(user) -> UserProfile:
+    """
+    Сбрасывает все изученные узлы навыков, возвращает очки навыков (SP) и списывает золото.
+    """
+    profile = UserProfile.objects.select_for_update().get(user=user)
+    
+    unlocked_skills = UnlockedSkill.objects.filter(user_profile=profile)
+    unlocked_count = unlocked_skills.count()
+    
+    if unlocked_count == 0:
+        raise GameLogicError("No skills to respec.")
+        
+    respec_cost = max(50, unlocked_count * 80)
+    
+    if profile.gold < respec_cost:
+        raise GameLogicError(f"Insufficient Gold. Respec costs {respec_cost}G.")
+        
+    total_sp_refund = 0
+    total_gf_ceiling_refund = 0
+    
+    for us in unlocked_skills:
+        if us.skill_code in SKILL_TREE_CONFIG:
+            config = SKILL_TREE_CONFIG[us.skill_code]
+            total_sp_refund += config.get("sp", 0)
+            total_gf_ceiling_refund += config.get("gf_ceiling_bonus", 0)
+            
+    # Списание золота, возврат SP
+    profile.gold -= respec_cost
+    profile.skill_points += total_sp_refund
+    
+    # Возврат ceiling bonus
+    if total_gf_ceiling_refund > 0:
+        profile.gf_ceiling = round(max(5.0, profile.gf_ceiling - total_gf_ceiling_refund), 2)
+        if profile.gf > profile.gf_ceiling:
+            profile.gf = profile.gf_ceiling
+            
+    profile.save(update_fields=["gold", "skill_points", "gf_ceiling", "gf"])
+    
+    # Удаляем изученные навыки
+    unlocked_skills.delete()
+    
+    return profile
+
+
+
+@transaction.atomic
 def recruit_ally(user, ally_code: str) -> RecruitedAlly:
     """
     Нанимает союзника или повышает его уровень.

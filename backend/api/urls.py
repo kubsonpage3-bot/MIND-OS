@@ -23,6 +23,7 @@ from .views import (
     RecipeListView,
     ToggleEquipView,
     BuySkillView,
+    RespecSkillView,
     RecruitAllyView,
     CombatSyncView,
     ResetDataView,
@@ -69,6 +70,7 @@ urlpatterns = [
     # Ã¢â€ â‚¬Ã¢â€ â‚¬ Ã Â¢Ã‘â‚¬Ã ÂµÃ Â½Ã Â¸Ã‘â‚¬Ã Â¾Ã Â²Ã ÂºÃ Â¸ Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬  # noqa: E501
     path("training/log/", TrainingLogView.as_view(), name="training-log"),
     path("skills/buy/", BuySkillView.as_view(), name="skill-buy"),
+    path("skills/respec/", RespecSkillView.as_view(), name="skill-respec"),
     path("allies/recruit/", RecruitAllyView.as_view(), name="ally-recruit"),
     # ─── Крафт ──────────────────────────────────────────────────────────────────
     path("crafting/recipes/", RecipeListView.as_view(), name="crafting-recipes"),

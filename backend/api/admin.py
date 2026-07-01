@@ -22,7 +22,7 @@ class UserProfileAdmin(admin.ModelAdmin):
             "Характеристики",
             {
                 "fields": (
-                    ("hp", "hp_max"),
+                    ("hp",),
                     ("mana", "mana_max"),
                     "gold",
                 )

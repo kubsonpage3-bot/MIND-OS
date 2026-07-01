@@ -151,7 +151,7 @@ class ServiceMechanicsTests(TestCase):
         )
         self.profile = UserProfile.objects.get(user=self.user)
         self.profile.gold = 500
-        self.profile.hp_max = 100
+
         self.profile.hp = 100
         self.profile.xp = 0
         self.profile.level = 1

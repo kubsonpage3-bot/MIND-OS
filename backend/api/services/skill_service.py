@@ -309,7 +309,7 @@ def apply_effects_on_task_complete(profile, task):
         # IRON FAST: +5 HP за задачу
         if effect.skill_id == "iron_fast":
             heal = effect.data.get("healingPerTask", 5)
-            profile.hp = min(profile.hp_max, profile.hp + heal)
+            profile.hp = min(profile.max_hp, profile.hp + heal)
             result["hp_heal"] += heal
             result["notes"].append(f"IRON FAST: +{heal} HP")
 

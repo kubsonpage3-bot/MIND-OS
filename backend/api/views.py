@@ -241,6 +241,80 @@ class TaskViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="toggle",
+    )
+    def toggle(self, request, pk=None):
+        """
+        POST /api/tasks/{id}/toggle/
+        Habitica-style toggle for ToDos:
+          - If not completed → award XP+Gold, store amounts, mark completed.
+          - If completed → revoke exactly the stored amounts, mark incomplete.
+        """
+        from django.utils import timezone
+
+        with transaction.atomic():
+            task = self.get_object()
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+            if not task.is_completed:
+                # COMPLETING: calculate and award
+                rewards = task.get_rewards()
+                xp_gain = int(rewards["xp"] * profile.xp_multiplier)
+                gold_gain = int(rewards["gold"] * profile.gold_multiplier)
+
+                task.is_completed = True
+                task.last_completed_at = timezone.now()
+                task.xp_awarded = xp_gain
+                task.gold_awarded = gold_gain
+                task.completion_count += 1
+                task.save()
+
+                profile.xp += xp_gain
+                profile.gold += gold_gain
+                profile.rank_xp += xp_gain
+                profile.save()
+
+                return Response(
+                    {
+                        "completed": True,
+                        "xp_change": xp_gain,
+                        "gold_change": gold_gain,
+                        "new_xp": profile.xp,
+                        "new_gold": profile.gold,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                # UNCOMPLETING: revoke exactly what was awarded
+                xp_to_remove = task.xp_awarded
+                gold_to_remove = task.gold_awarded
+
+                task.is_completed = False
+                task.last_completed_at = None
+                task.xp_awarded = 0
+                task.gold_awarded = 0
+                task.completion_count = max(0, task.completion_count - 1)
+                task.save()
+
+                profile.xp = max(0, profile.xp - xp_to_remove)
+                profile.gold = max(0, profile.gold - gold_to_remove)
+                profile.rank_xp = max(0, profile.rank_xp - xp_to_remove)
+                profile.save()
+
+                return Response(
+                    {
+                        "completed": False,
+                        "xp_change": -xp_to_remove,
+                        "gold_change": -gold_to_remove,
+                        "new_xp": profile.xp,
+                        "new_gold": profile.gold,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Скиллы — активация и эффекты
@@ -543,9 +617,9 @@ class PrestigeView(generics.GenericAPIView):
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            if profile.rank_xp < 4500:
+            if profile.rank_xp < 8000:
                 return Response(
-                    {"detail": "You must reach 4500 XP to prestige."},
+                    {"detail": "You must reach 8000 XP to prestige."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             profile.prestige_count += 1
@@ -562,7 +636,9 @@ class PrestigeView(generics.GenericAPIView):
             profile.level = 1
             profile.xp = 0
             profile.xp_to_next_level = 100
-            profile.hp = profile.hp_max
+            # Use computed max_hp property (SSOT: 100 + prestige_count * 50)
+            # prestige_count already incremented above, so max_hp reflects the new level
+            profile.hp = profile.max_hp
             profile.mana = 0
             profile.rank_xp = 0
 
@@ -918,6 +994,33 @@ class BuySkillView(generics.GenericAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class RespecSkillView(generics.GenericAPIView):
+    """
+    POST /api/skills/respec/
+    Resets all skills, refunds SP, and costs gold.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.rpg_service import respec_skill_nodes
+
+        try:
+            profile = respec_skill_nodes(request.user)
+            profile = UserProfile.objects.prefetch_related(
+                "inventory_items__item__effects"
+            ).get(id=profile.id)
+            return Response(
+                {
+                    "detail": "Successfully reset skill tree.",
+                    "profile": UserProfileSerializer(profile).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class RecruitAllyView(generics.GenericAPIView):
     """
     POST /api/allies/recruit/
@@ -1090,8 +1193,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.rank_xp = 0
 
                 if reset_type in ["stats", "nuclear"]:
-                    profile.hp = 100
-                    profile.hp_max = 100
+                    profile.hp = profile.max_hp
                     profile.mana = 0
                     profile.mana_max = 100
                     profile.gold = 0

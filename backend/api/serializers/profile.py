@@ -16,6 +16,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class_stats = serializers.ReadOnlyField()
     unlocked_skills = serializers.SerializerMethodField()
     recruited_allies = serializers.SerializerMethodField()
+    max_hp = serializers.SerializerMethodField()
+    hp_max = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -61,6 +63,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "rank_xp",
             "unlocked_skills",
             "recruited_allies",
+            "max_hp",
         )
         read_only_fields = (
             "id",
@@ -82,6 +85,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "gold_multiplier",
             "xp_multiplier",
         )
+
+    def get_max_hp(self, obj) -> int:
+        return obj.max_hp
+
+    def get_hp_max(self, obj) -> int:
+        return obj.max_hp
 
     def get_xp_progress_percent(self, obj) -> int:
         if obj.xp_to_next_level == 0:

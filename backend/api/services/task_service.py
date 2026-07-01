@@ -274,11 +274,11 @@ def complete_task(user, task_id, is_positive=True):
         profile.save(
             update_fields=[
                 "xp",
-                "xp_to_next_level",
                 "level",
+                "xp_to_next_level",
                 "hp",
-                "hp_max",
                 "mana_max",
+                "rank_xp",
             ]
         )
 

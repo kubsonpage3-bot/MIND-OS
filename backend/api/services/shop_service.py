@@ -21,7 +21,7 @@ def _apply_consumable(profile, item):
 
     # HP heal (small_heal, medium_heal, large_heal, health_potion, elixir)
     if item.hp_boost > 0:
-        profile.hp = min(profile.hp_max, profile.hp + item.hp_boost)
+        profile.hp = min(profile.max_hp, profile.hp + item.hp_boost)
         return
 
     # Timed buffs → ActiveEffect

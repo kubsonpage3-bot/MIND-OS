@@ -19,13 +19,12 @@ def gain_xp(profile: UserProfile, amount: int) -> bool:
         # Формула масштабирования: каждый уровень требует на 50% больше XP
         profile.xp_to_next_level = int(profile.xp_to_next_level * 1.5)
         # Бонусы при level-up
-        profile.hp_max += 10
-        profile.hp = profile.hp_max  # Восстанавливаем HP при повышении уровня
+        profile.hp = profile.max_hp  # Восстанавливаем HP при повышении уровня
         profile.mana_max += 5
         leveled_up = True
 
     profile.save(
-        update_fields=["xp", "level", "xp_to_next_level", "hp_max", "hp", "mana_max"]
+        update_fields=["xp", "level", "xp_to_next_level", "hp", "mana_max"]
     )
 
     return leveled_up
@@ -44,7 +43,7 @@ def check_death(profile: UserProfile) -> bool:
             f"[DEATH HANDLER] {profile.user.username} died! HP dropped to {profile.hp}."
         )
         has_died = True
-        profile.hp = profile.hp_max
+        profile.hp = profile.max_hp
         profile.xp = 0
         profile.level = max(1, profile.level - 1)
 

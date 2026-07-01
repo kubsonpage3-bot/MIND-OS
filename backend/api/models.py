@@ -39,7 +39,6 @@ class UserProfile(models.Model):
 
     # Здоровье (Hit Points): текущее и максимальное
     hp = models.PositiveIntegerField(default=100, verbose_name="HP (текущее)")
-    hp_max = models.PositiveIntegerField(default=100, verbose_name="HP (максимум)")
 
     # Мана: текущая и максимальная
     mana = models.PositiveIntegerField(default=50, verbose_name="Мана (текущая)")
@@ -234,7 +233,7 @@ class UserProfile(models.Model):
                 round(self.gold_multiplier + equip["gold_boost"], 4)
             ),
             "xp_multiplier": float(round(self.xp_multiplier + equip["xp_boost"], 4)),
-            "hp_max": int(self.hp_max + equip["hp_boost"]),
+            "hp_max": int(self.max_hp + equip["hp_boost"]),
             "mana_max": int(self.mana_max + equip["mana_boost"]),
         }
 
@@ -245,6 +244,17 @@ class UserProfile(models.Model):
         if self.ps < 100.0: self.ps = 100.0  # type: ignore
         if self.vm < 100.0: self.vm = 100.0  # type: ignore
         super().save(*args, **kwargs)
+
+    @property
+    def max_hp(self) -> int:
+        """
+        Computed max HP — derived from prestige level, never stored directly.
+        Formula: 100 + (prestige_count × 50)
+        This is the SSOT for HP maximum.
+        """
+        BASE_HP = 100
+        HP_PER_PRESTIGE = 50
+        return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -446,6 +456,16 @@ class Task(models.Model):
         default=dict,
         blank=True,
         verbose_name="Данные последней награды",
+    )
+
+    # Сохранённые суммы XP и Gold при выполнении (для обратной отмены)
+    xp_awarded = models.IntegerField(
+        default=0,
+        verbose_name="XP выдано (для отмены)",
+    )
+    gold_awarded = models.IntegerField(
+        default=0,
+        verbose_name="Gold выдано (для отмены)",
     )
 
     # Счётчик выполнений (особенно полезен для привычек)
