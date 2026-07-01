@@ -1,35 +1,51 @@
 import { useState } from "react";
-import { saveRPGData } from "@/lib/rpgSystem";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { showRewardToast } from "@/components/mindos/RewardToast";
 
 export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [animating, setAnimating] = useState(false);
+  
+  const { profile, refetchProfile } = useDjangoAuth();
+  const queryClient = useQueryClient();
 
-  const count = prestige?.count || 0;
+  const count = profile?.prestige_count || prestige?.count || 0;
   const canPrestige = rankXP >= 8000;
+  
+  const prestigeMutation = useMutation({
+    mutationFn: () => djangoApi.profile.update({
+      prestige_count: count + 1,
+      mana: 0,
+      unlocked_skills: []
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+      refetchProfile();
+      onPrestige({ count: count + 1 });
+      setAnimating(false);
+      setOpen(false);
+      setInput("");
+    },
+    onError: (err) => {
+      showRewardToast({ label: `❌ Prestige failed: ${err.message}` });
+      setAnimating(false);
+    }
+  });
 
   const confirm = () => {
     if (input !== "REBIRTH") return;
     setAnimating(true);
     setTimeout(() => {
-      const newPrestige = { count: count + 1, iqCeilingBonus: (count + 1) * 0.15 };
-      saveRPGData("mindos_prestige", newPrestige);
-      // Reset activity logs and hidden activities to reset training ranks to F
+      // Clean up any remaining local logs that aren't migrated to backend yet
       localStorage.removeItem("mindos_activity_logs");
       localStorage.removeItem("mindos_hidden_activities");
-      // Reset mana
-      const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
-      if (cls.chosen) {
-        cls.mana = 0;
-        cls.skills = [];
-        saveRPGData("mindos_class", cls);
-      }
-      onPrestige(newPrestige);
-      setAnimating(false);
-      setOpen(false);
-      setInput("");
+      
+      prestigeMutation.mutate();
     }, 2500);
   };
 
