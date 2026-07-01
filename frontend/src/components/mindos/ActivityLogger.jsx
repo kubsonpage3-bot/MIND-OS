@@ -150,8 +150,11 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
       <div className="flex gap-1 p-1 rounded-2xl" style={{ background: "var(--habit-bg)" }}>
         {[{ id: "log", label: "Log Session" }, { id: "create", label: "Create Task" }].map(t => (
           <button key={t.id} onClick={() => setTrainTab(t.id)}
-            className="flex-1 py-2 rounded-xl transition-all font-pixel text-2xl tracking-widest"
+            className="flex-1 py-2 rounded-xl transition-all"
             style={{
+              fontFamily: "'Nunito'",
+              fontWeight: trainTab === t.id ? 800 : 600,
+              fontSize: 13,
               background: trainTab === t.id ? "var(--habit-purple)" : "transparent",
               color: trainTab === t.id ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
               boxShadow: trainTab === t.id ? "0 2px 8px var(--habit-purple-glow)" : "none",
@@ -232,7 +235,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                   }}
                 >
                   <div className="text-xl mb-1">{activity.icon}</div>
-                  <div className="font-pixel text-2xl text-habit-text leading-none">{activity.label}</div>
+                  <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "var(--habit-text)" }} className="leading-tight">{activity.label}</div>
                   <div style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }} className="mt-0.5 hidden sm:block line-clamp-2">{activity.description}</div>
                   <div className="flex-1" /> {/* Spacer to push metrics down if needed */}
                   <div className="flex gap-1 mt-2 flex-wrap">
@@ -288,7 +291,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-pixel text-3xl text-habit-text">{allActivities[selectedActivity].label}</div>
+                <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{allActivities[selectedActivity].label}</div>
                 <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)" }}>{allActivities[selectedActivity].description}</div>
               </div>
               <button onClick={() => setSelectedActivity(null)} style={{ color: "var(--habit-dim)", fontSize: 16, fontWeight: 700 }}>✕</button>
@@ -430,8 +433,8 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
               </AnimatePresence>
               <button
                 onClick={confirmLog}
-                className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98] font-pixel text-3xl tracking-widest"
-                style={{ background: "var(--habit-purple)", color: "white", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
+                className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, letterSpacing: "0.02em", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
                 Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} efficiency
               </button>
