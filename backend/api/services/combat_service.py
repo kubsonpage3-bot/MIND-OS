@@ -11,6 +11,19 @@ from api.models import (
 from api.services.profile_service import gain_xp
 from api.constants import SCROLL_BOSSES_DICT, BOSS_DIFFICULTY_MULTIPLIERS
 from api.exceptions import GameLogicError
+import random
+
+BOSS_RANK_STATS = {
+    "F": {"count": 1, "min": 1, "max": 1},
+    "D": {"count": 1, "min": 1, "max": 2},
+    "C": {"count": 2, "min": 2, "max": 2},
+    "B": {"count": 2, "min": 2, "max": 3},
+    "A": {"count": 3, "min": 3, "max": 3},
+    "S": {"count": 3, "min": 3, "max": 4},
+    "SS": {"count": 4, "min": 4, "max": 4},
+    "SSS": {"count": 4, "min": 4, "max": 5},
+}
+POSSIBLE_STATS = ["pwr", "def", "foc", "mem", "spd", "lck"]
 
 
 @transaction.atomic
@@ -81,8 +94,18 @@ def process_boss_death(user, encounter):
         item_dropped = encounter.boss.drop_item_id
         try:
             item = Item.objects.get(code=item_dropped)
+
+            rolled_stats = {}
+            if item.boss_rank and item.boss_rank in BOSS_RANK_STATS:
+                rules = BOSS_RANK_STATS[item.boss_rank]
+                chosen_stats = random.sample(POSSIBLE_STATS, rules["count"])
+                for stat in chosen_stats:
+                    rolled_stats[stat] = random.randint(rules["min"], rules["max"])
+
             inv_item, created = InventoryItem.objects.get_or_create(
-                profile=profile, item=item
+                profile=profile,
+                item=item,
+                defaults={"stat_bonuses": rolled_stats} if rolled_stats else {},
             )
             if not created:
                 inv_item.quantity += 1

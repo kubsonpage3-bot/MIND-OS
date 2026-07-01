@@ -84,9 +84,7 @@ class UserProfile(models.Model):
     rank_xp = models.PositiveIntegerField(
         default=0, verbose_name="Опыт ранга (Rank XP)"
     )
-    streak = models.PositiveIntegerField(
-        default=0, verbose_name="Стрик (дней подряд)"
-    )
+    streak = models.PositiveIntegerField(default=0, verbose_name="Стрик (дней подряд)")
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )
@@ -211,6 +209,11 @@ class UserProfile(models.Model):
             for effect in inv.item.effects.all():
                 if effect.effect_name in totals:
                     totals[effect.effect_name] += int(effect.effect_value)
+
+            if inv.stat_bonuses:
+                for stat_key, stat_value in inv.stat_bonuses.items():
+                    if stat_key in totals:
+                        totals[stat_key] += int(stat_value)
 
         return totals
 
@@ -727,6 +730,35 @@ class Item(models.Model):
     hp_boost = models.IntegerField(default=0, verbose_name="Бонус к HP (Flat)")
     mana_boost = models.IntegerField(default=0, verbose_name="Бонус к Мане (Flat)")
 
+    is_purchasable = models.BooleanField(
+        default=True,
+        verbose_name="Доступен в магазине",
+    )
+    source = models.CharField(
+        max_length=20,
+        choices=[
+            ("shop", "Shop"),
+            ("boss_drop", "Boss Drop"),
+            ("quest_reward", "Quest Reward"),
+        ],
+        default="shop",
+    )
+    boss_rank = models.CharField(
+        max_length=5,
+        choices=[
+            ("F", "F"),
+            ("D", "D"),
+            ("C", "C"),
+            ("B", "B"),
+            ("A", "A"),
+            ("S", "S"),
+            ("SS", "SS"),
+            ("SSS", "SSS"),
+        ],
+        null=True,
+        blank=True,
+    )
+
     def __str__(self):
         return f"{self.name} ({self.code})"
 
@@ -755,6 +787,11 @@ class InventoryItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, verbose_name="Количество")
     is_equipped = models.BooleanField(default=False, verbose_name="Экипировано")
+    stat_bonuses = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Уникальные характеристики",
+    )
 
     class Meta:
         unique_together = ("user_profile", "item")

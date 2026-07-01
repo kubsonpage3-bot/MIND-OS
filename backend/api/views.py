@@ -546,7 +546,7 @@ class ShopItemListView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = ItemSerializer
-    queryset = Item.objects.prefetch_related("effects").all()
+    queryset = Item.objects.prefetch_related("effects").filter(is_purchasable=True)
     pagination_class = None
 
 

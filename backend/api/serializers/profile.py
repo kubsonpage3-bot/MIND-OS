@@ -113,10 +113,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return [
             {
                 "id": inv.item.code,
+                "name": inv.item.name,
+                "description": inv.item.description,
+                "slot": inv.item.slot_type,
+                "icon_url": inv.item.icon_url,
+                "consumable": inv.item.item_type == "consumable",
                 "quantity": inv.quantity,
                 "is_equipped": inv.is_equipped,
+                "stat_bonuses": inv.stat_bonuses,
             }
-            for inv in obj.inventory_items.all()
+            for inv in obj.inventory_items.select_related("item").all()
         ]
 
     def get_equipped(self, obj):
