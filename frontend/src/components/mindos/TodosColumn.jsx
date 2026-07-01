@@ -1,20 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, CheckSquare, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
-import { queueAutoSync } from '@/lib/cloudSync';
-import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
-import { applyBuffPipeline } from '@/lib/rpgEngine';
-import { getActiveBuffs } from '@/lib/gameState';
-import {
-  getTaskValueColor, calcNewValue, calcReward,
-  getLckStat, addGoldToGS, addManaToGS,
-} from '@/lib/taskEngine';
-
 import { djangoApi } from '@/api/djangoClient';
+
+function getTaskValueColor(tv) {
+  if (tv > 0) return '#22c55e';
+  if (tv < 0) return '#ef4444';
+  return '#f59e0b';
+}
 
 const DIFFICULTIES = [
   { id: 'easy',     label: 'Easy',     color: '#22c55e' },
@@ -30,7 +27,7 @@ const CATEGORY_COLORS = {
   Social: '#a855f7', Mindfulness: '#9944ff',
 };
 
-const TASK_BOSS_DAMAGE = { easy: 25, medium: 50, hard: 75, critical: 100 };
+
 
 /** Проверяет, просрочен ли To-Do (есть due_date и она в прошлом) */
 function isOverdue(task) {
@@ -135,7 +132,7 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
   });
 
   return (
-    <div className="flex flex-col rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+    <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-orange, #ff8800)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>TO-DOS</span>

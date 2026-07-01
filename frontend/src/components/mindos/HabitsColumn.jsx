@@ -4,12 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { useHaptic } from '@/hooks/useHaptic';
-import { applyBossDamageModifiers } from '@/lib/mutatorEngine';
 import { showRewardToast } from '@/components/mindos/RewardToast';
-import {
-  getTaskValueColor, previewHabitDamage, getConStat,
-} from '@/lib/taskEngine';
 import { djangoApi } from '@/api/djangoClient';
+
+function getTaskValueColor(tv) {
+  if (tv > 0) return '#22c55e';
+  if (tv < 0) return '#ef4444';
+  return '#f59e0b';
+}
+
+function previewHabitDamage(tv, difficulty, con) {
+  // Purely cosmetic fallback since backend handles real damage
+  return Math.max(1, Math.abs(tv) * 1.5);
+}
+
+function getConStat() {
+  return 5;
+}
 
 const DIFFICULTIES = [
   { id: 'trivial',  label: 'Trivial',  color: '#64748b' },
@@ -25,7 +36,7 @@ const CATEGORY_COLORS = {
   Social: '#a855f7', Mindfulness: '#9944ff',
 };
 
-const TASK_BOSS_DAMAGE = { trivial: 10, easy: 25, medium: 50, hard: 75 };
+
 
 
 export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP, onAddClick }) {
@@ -59,7 +70,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         const xpEarned = res?.xp_earned > 0 ? res.xp_earned : 0;
         const goldEarned = res?.gold_earned > 0 ? res.gold_earned : 0;
         const combatResult = res?.combat;
-        const bossDmg = combatResult?.damage_dealt || applyBossDamageModifiers(TASK_BOSS_DAMAGE[task.difficulty] || 25);
+        const bossDmg = combatResult?.damage_dealt || 0;
         const effectNotes = combatResult?.effect_notes || [];
         const isCrit = res?.gamification_result?.is_crit || false;
         const itemDropped = res?.gamification_result?.item_dropped || null;
@@ -121,7 +132,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   };
 
   return (
-    <div className="flex flex-col rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+    <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-red, #f74e52)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>HABITS</span>
