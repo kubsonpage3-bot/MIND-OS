@@ -91,6 +91,20 @@ class UserProfile(models.Model):
         null=True, blank=True, verbose_name="Последняя тренировка"
     )
 
+    last_daily_cron_at = models.DateField(
+        null=True, blank=True, verbose_name="Последнее ежедневное обновление (Mutators)"
+    )
+
+    # Активные мутаторы (список ID мутаторов)
+    active_mutators = models.JSONField(
+        default=list, blank=True, verbose_name="Активные мутаторы"
+    )
+
+    # Данные соперника (RivalTab)
+    rival_data = models.JSONField(
+        default=dict, blank=True, verbose_name="Данные соперника"
+    )
+
     # ── Базовые характеристики (RPG Stats) ───────────────────────────────
     base_pwr = models.PositiveIntegerField(default=5, verbose_name="Power (PWR)")
     base_foc = models.PositiveIntegerField(default=5, verbose_name="Focus (FOC)")
@@ -239,10 +253,14 @@ class UserProfile(models.Model):
 
     def save(self, *args, **kwargs):
         # Enforce minimum IQ metrics to fix legacy accounts
-        if self.gf < 100.0: self.gf = 100.0  # type: ignore
-        if self.gc < 100.0: self.gc = 100.0  # type: ignore
-        if self.ps < 100.0: self.ps = 100.0  # type: ignore
-        if self.vm < 100.0: self.vm = 100.0  # type: ignore
+        if self.gf < 100.0:
+            self.gf = 100.0  # type: ignore
+        if self.gc < 100.0:
+            self.gc = 100.0  # type: ignore
+        if self.ps < 100.0:
+            self.ps = 100.0  # type: ignore
+        if self.vm < 100.0:
+            self.vm = 100.0  # type: ignore
         super().save(*args, **kwargs)
 
     @property
@@ -849,7 +867,7 @@ class TrainingSession(models.Model):
     hours = models.FloatField(default=0, verbose_name="Часы")
     focus_rating = models.FloatField(default=5, verbose_name="Фокус")
     efficiency = models.FloatField(default=1.0, verbose_name="Эффективность")
-    
+
     xp_earned = models.PositiveIntegerField(default=0, verbose_name="Полученный опыт")
     gf_gain = models.FloatField(default=0, verbose_name="Gf Gain")
     gc_gain = models.FloatField(default=0, verbose_name="Gc Gain")
@@ -864,4 +882,6 @@ class TrainingSession(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user_profile.user.username} - {self.activity_key} ({self.hours}h)"
+        return (
+            f"{self.user_profile.user.username} - {self.activity_key} ({self.hours}h)"
+        )
