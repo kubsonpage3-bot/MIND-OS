@@ -79,8 +79,8 @@ export default function MetricsPanel() {
       {["gf", "gc", "ps", "vm"].map(mk => {
         const meta = METRIC_META[mk];
         const Icon = meta.icon;
-        const val = draft?.[mk] ?? 80;
-        const ceil = draft?.[`${mk}_ceiling`] ?? 120;
+        const val = profile?.[mk] ?? 80;
+        const ceil = profile?.[`${mk}_ceiling`] ?? 120;
         return (
           <motion.div
             key={mk}

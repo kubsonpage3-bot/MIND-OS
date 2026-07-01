@@ -1,0 +1,38 @@
+# Task: Retire Legacy Offline Engines
+
+- [x] Step 1 — Extract pure constants
+  - [x] Create `frontend/src/constants/rpgData.js`
+  - [x] Update imports in UI components
+  - [x] Run test suite & verify
+- [x] Step 2 — Kill auto-sync at the source
+  - [x] Delete `cloudSync.js`
+  - [x] Modify `Dashboard.jsx` (remove localStorage, runDailyMutatorTick, applySessionMutators)
+  - [x] Clean up leftover imports and verify with build
+- [x] Step 3 — Remove local computation from task columns
+  - [x] Modify `DailiesColumn.jsx`
+  - [x] Modify `HabitsColumn.jsx`
+  - [x] Modify `TodosColumn.jsx`
+  - [x] Point `onCheck` handlers strictly to `useMutation` pointing to Django API.
+  - [x] Ensure `queryClient.invalidateQueries` fires on success to update UI.
+  - [x] Run test suite & verify
+- [ ] Step 4 — Move Daily Mutators to Django
+  - [ ] Add `active_mutators` tracking to `UserProfile` if missing
+  - [ ] Create `daily_mutator_tick.py` management command
+  - [ ] Run test suite & verify
+- [ ] Step 5 — Remove remaining loadRPGData/saveRPGData usage
+  - [ ] Modify `Achievements.jsx`
+  - [ ] Modify `AlliesPanel.jsx`
+  - [ ] Modify `CharacterTab.jsx`
+  - [ ] Modify `MutatorsPanel.jsx`
+  - [ ] Modify `PrestigePanel.jsx`
+  - [ ] Modify `SkillTreePanel.jsx`
+  - [ ] Delete `rpgSystem.js`
+  - [ ] Run test suite & verify
+- [ ] Step 6 — Fix RivalTab.jsx
+  - [ ] Create `GET /api/rival/` endpoint
+  - [ ] Update `RivalTab.jsx`
+  - [ ] Run test suite & verify
+- [ ] Step 7 — Final verification
+  - [ ] `grep` for `localStorage`
+  - [ ] Clean up `ResetPanel.jsx`
+  - [ ] Run `pytest` and `npm run build`

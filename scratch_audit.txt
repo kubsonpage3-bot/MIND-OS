@@ -1,0 +1,203 @@
+frontend/src\App.jsx:18:const saved = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
+frontend/src\App.jsx:23:localStorage.setItem("mindos_settings", JSON.stringify(settings));
+frontend/src\api\djangoClient.js:47:const accessToken = localStorage.getItem('access_token');
+frontend/src\api\djangoClient.js:150:const refreshToken = localStorage.getItem('refresh_token');
+frontend/src\api\djangoClient.js:169:localStorage.setItem('access_token', data.access);
+frontend/src\api\djangoClient.js:171:localStorage.setItem('refresh_token', data.refresh);
+frontend/src\api\djangoClient.js:188:localStorage.removeItem('access_token');
+frontend/src\api\djangoClient.js:189:localStorage.removeItem('refresh_token');
+frontend/src\components\AppShell.jsx:46:try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}").theme || 'dark'; } catch { return 'dark'; }
+frontend/src\components\AppShell.jsx:72:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\AppShell.jsx:90:const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
+frontend/src\components\mindos\AccountPanel.jsx:17:setCharacterName(localStorage.getItem("mindos_character_name") || "");
+frontend/src\components\mindos\AccountPanel.jsx:23:localStorage.setItem("mindos_character_name", name);
+frontend/src\components\mindos\AchievementsPanel.jsx:21:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\AchievementsPanel.jsx:22:const streak = (() => { try { return JSON.parse(localStorage.getItem("mindos_streak") || "{}").streakCount || 0; } catch { return 0; } })();
+frontend/src\components\mindos\ActivityLogger.jsx:12:try { return JSON.parse(localStorage.getItem("mindos_hidden_activities") || "[]"); } catch { return []; }
+frontend/src\components\mindos\ActivityLogger.jsx:14:function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
+frontend/src\components\mindos\ActivityLogger.jsx:96:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\ActivityLogger.jsx:103:localStorage.setItem("mindos_game_state", JSON.stringify(gs));
+frontend/src\components\mindos\ActivityLogger.jsx:400:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\AppearancePanel.jsx:9:try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}"); } catch { return {}; }
+frontend/src\components\mindos\AppearancePanel.jsx:15:localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
+frontend/src\components\mindos\BossPanel.jsx:12:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\CalendarConnectPanel.jsx:17:const connected = localStorage.getItem("mindos_calendar_connected") === "true";
+frontend/src\components\mindos\CalendarConnectPanel.jsx:35:localStorage.setItem("mindos_calendar_connected", "true");
+frontend/src\components\mindos\CalendarConnectPanel.jsx:41:localStorage.removeItem("mindos_calendar_connected");
+frontend/src\components\mindos\CalendarPanel.jsx:116:try { return JSON.parse(localStorage.getItem("calendar_events") || "[]"); } catch { return []; }
+frontend/src\components\mindos\CalendarPanel.jsx:130:// Load tasks from localStorage and convert daily tasks with showInCalendar to events
+frontend/src\components\mindos\CalendarPanel.jsx:133:const loaded = JSON.parse(localStorage.getItem("mindos_tasks") || "[]");
+frontend/src\components\mindos\CalendarPanel.jsx:173:localStorage.setItem("calendar_events", JSON.stringify(evs));
+frontend/src\components\mindos\CalendarPanel.jsx:282:setEvents(prev => { localStorage.setItem("calendar_events", JSON.stringify(prev)); return prev; });
+frontend/src\components\mindos\CalendarPanel.jsx:313:setEvents(prev => { localStorage.setItem("calendar_events", JSON.stringify(prev)); return prev; });
+frontend/src\components\mindos\CalendarSyncPanel.jsx:18:const connected = localStorage.getItem("mindos_calendar_connected") === "true";
+frontend/src\components\mindos\CalendarSyncPanel.jsx:25:const storedEvents = JSON.parse(localStorage.getItem("mindos_calendar_events") || "[]");
+frontend/src\components\mindos\CalendarSyncPanel.jsx:35:if (localStorage.getItem("mindos_calendar_connected") === "true") {
+frontend/src\components\mindos\CalendarSyncPanel.jsx:46:localStorage.setItem("mindos_calendar_connected", "true");
+frontend/src\components\mindos\CalendarSyncPanel.jsx:58:localStorage.removeItem("mindos_calendar_connected");
+frontend/src\components\mindos\CalendarSyncPanel.jsx:72:const currentEvents = JSON.parse(localStorage.getItem("mindos_calendar_events") || "[]");
+frontend/src\components\mindos\CalendarSyncPanel.jsx:74:localStorage.setItem("mindos_calendar_events", JSON.stringify(updated));
+frontend/src\components\mindos\CharacterTab.jsx:175:// Auto-sync legacy localStorage class to backend
+frontend/src\components\mindos\DailiesColumn.jsx:34:const s = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
+frontend/src\components\mindos\DataPanel.jsx:54:gameState: localStorage.getItem("mindos_game_state"),
+frontend/src\components\mindos\DataPanel.jsx:55:class: localStorage.getItem("mindos_class"),
+frontend/src\components\mindos\DataPanel.jsx:56:tasks: localStorage.getItem("mindos_tasks"),
+frontend/src\components\mindos\DataPanel.jsx:57:streak: localStorage.getItem("mindos_streak"),
+frontend/src\components\mindos\DataPanel.jsx:58:skillTree: localStorage.getItem("mindos_skill_tree"),
+frontend/src\components\mindos\DataPanel.jsx:59:allies: localStorage.getItem("mindos_allies"),
+frontend/src\components\mindos\DataPanel.jsx:60:mutators: localStorage.getItem("mindos_mutators"),
+frontend/src\components\mindos\DataPanel.jsx:61:prestige: localStorage.getItem("mindos_prestige"),
+frontend/src\components\mindos\DataPanel.jsx:62:scrolls: localStorage.getItem("mindos_scrolls"),
+frontend/src\components\mindos\DataPanel.jsx:63:hiddenActivities: localStorage.getItem("mindos_hidden_activities"),
+frontend/src\components\mindos\DataPanel.jsx:64:reminders: localStorage.getItem("mindos_reminders"),
+frontend/src\components\mindos\DataPanel.jsx:65:calendarEvents: localStorage.getItem("mindos_calendar_events"),
+frontend/src\components\mindos\DataPanel.jsx:66:settings: localStorage.getItem("mindos_settings"),
+frontend/src\components\mindos\DataPanel.jsx:67:notifications: localStorage.getItem("mindos_notifications"),
+frontend/src\components\mindos\DataPanel.jsx:68:gameplay: localStorage.getItem("mindos_gameplay_settings"),
+frontend/src\components\mindos\DataPanel.jsx:69:privacy: localStorage.getItem("mindos_privacy"),
+frontend/src\components\mindos\DataPanel.jsx:96:if (value) localStorage.setItem(`mindos_${key}`, value);
+frontend/src\components\mindos\DataPanel.jsx:206:{Object.keys(localStorage).filter(k => k.startsWith("mindos_")).length} mindos keys active
+frontend/src\components\mindos\GameplayPanel.jsx:65:return JSON.parse(localStorage.getItem("mindos_gameplay_settings") || "{}");
+frontend/src\components\mindos\GameplayPanel.jsx:74:localStorage.setItem("mindos_gameplay_settings", JSON.stringify(newSettings));
+frontend/src\components\mindos\LanguagePanel.jsx:17:try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}"); } catch { return {}; }
+frontend/src\components\mindos\LanguagePanel.jsx:24:localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
+frontend/src\components\mindos\MetricsPanel.jsx:50:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\MetricsPanel.jsx:72:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\MetricsPanel.jsx:84:localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+frontend/src\components\mindos\NotificationPanel.jsx:9:return JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
+frontend/src\components\mindos\NotificationPanel.jsx:16:localStorage.setItem("mindos_notifications", JSON.stringify(settings));
+frontend/src\components\mindos\NotificationsPanel.jsx:19:return JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
+frontend/src\components\mindos\NotificationsPanel.jsx:27:return JSON.parse(localStorage.getItem("mindos_reminders") || "{}").time || "21:00";
+frontend/src\components\mindos\NotificationsPanel.jsx:35:return JSON.parse(localStorage.getItem("mindos_notifications") || "{}").channel || "push";
+frontend/src\components\mindos\NotificationsPanel.jsx:44:localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
+frontend/src\components\mindos\NotificationsPanel.jsx:50:const current = JSON.parse(localStorage.getItem("mindos_reminders") || "{}");
+frontend/src\components\mindos\NotificationsPanel.jsx:51:localStorage.setItem("mindos_reminders", JSON.stringify({ ...current, time }));
+frontend/src\components\mindos\NotificationsPanel.jsx:57:const current = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
+frontend/src\components\mindos\NotificationsPanel.jsx:58:localStorage.setItem("mindos_notifications", JSON.stringify({ ...current, channel: newChannel }));
+frontend/src\components\mindos\NotificationsPanel.jsx:66:localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
+frontend/src\components\mindos\PrestigePanel.jsx:20:localStorage.removeItem("mindos_activity_logs");
+frontend/src\components\mindos\PrestigePanel.jsx:21:localStorage.removeItem("mindos_hidden_activities");
+frontend/src\components\mindos\PrestigePanel.jsx:23:const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
+frontend/src\components\mindos\PrivacyPanel.jsx:9:return JSON.parse(localStorage.getItem("mindos_privacy") || "{}");
+frontend/src\components\mindos\PrivacyPanel.jsx:18:localStorage.setItem("mindos_privacy", JSON.stringify(newSettings));
+frontend/src\components\mindos\ReminderControl.jsx:8:const settings = JSON.parse(localStorage.getItem("mindos_reminder_settings") || "{}");
+frontend/src\components\mindos\ReminderControl.jsx:20:localStorage.setItem("mindos_reminder_settings", JSON.stringify(settings));
+frontend/src\components\mindos\ReminderControl.jsx:25:localStorage.setItem(key, "true");
+frontend/src\components\mindos\ReminderControl.jsx:30:return localStorage.getItem(key) === "true";
+frontend/src\components\mindos\ResetPanel.jsx:28:// Clear legacy offline-engine localStorage state to prevent it from overwriting the fresh reset
+frontend/src\components\mindos\ResetPanel.jsx:29:Object.keys(localStorage).forEach(key => {
+frontend/src\components\mindos\ResetPanel.jsx:31:localStorage.removeItem(key);
+frontend/src\components\mindos\ResetPanel.jsx:50:// 1. Clear hidden activities in localStorage
+frontend/src\components\mindos\ResetPanel.jsx:51:localStorage.removeItem("mindos_hidden_activities");
+frontend/src\components\mindos\ResetPanel.jsx:52:// 2. Clear activity logs in localStorage
+frontend/src\components\mindos\ResetPanel.jsx:53:localStorage.removeItem("mindos_activity_logs");
+frontend/src\components\mindos\ResetPanel.jsx:66:localStorage.removeItem("mindos_streak");
+frontend/src\components\mindos\ResetPanel.jsx:78:localStorage.removeItem("mindos_tasks");
+frontend/src\components\mindos\ResetPanel.jsx:86:localStorage.removeItem("mindos_allies");
+frontend/src\components\mindos\ResetPanel.jsx:99:localStorage.removeItem("mindos_skill_tree");
+frontend/src\components\mindos\ResetPanel.jsx:100:localStorage.removeItem("mindos_skillTree");
+frontend/src\components\mindos\ResetPanel.jsx:112:localStorage.removeItem("mindos_game_state");
+frontend/src\components\mindos\ResetPanel.jsx:113:localStorage.removeItem("mindos_class");
+frontend/src\components\mindos\ResetPanel.jsx:114:localStorage.removeItem("mindos_rank_xp");
+frontend/src\components\mindos\ResetPanel.jsx:115:localStorage.removeItem("mindos_streak");
+frontend/src\components\mindos\ResetPanel.jsx:116:localStorage.removeItem("mindos_skill_tree");
+frontend/src\components\mindos\ResetPanel.jsx:117:localStorage.removeItem("mindos_skillTree");
+frontend/src\components\mindos\ResetPanel.jsx:118:localStorage.removeItem("mindos_allies");
+frontend/src\components\mindos\ResetPanel.jsx:119:localStorage.removeItem("mindos_mutators");
+frontend/src\components\mindos\ResetPanel.jsx:120:localStorage.removeItem("mindos_prestige");
+frontend/src\components\mindos\ResetPanel.jsx:121:localStorage.removeItem("mindos_scrolls");
+frontend/src\components\mindos\ResetPanel.jsx:132:// Clear all localStorage mindos_ keys
+frontend/src\components\mindos\ResetPanel.jsx:133:Object.keys(localStorage).forEach(key => {
+frontend/src\components\mindos\ResetPanel.jsx:134:if (key.startsWith("mindos_")) localStorage.removeItem(key);
+frontend/src\components\mindos\ResetPanel.jsx:139:localStorage.removeItem('access_token');
+frontend/src\components\mindos\ResetPanel.jsx:140:localStorage.removeItem('refresh_token');
+frontend/src\components\mindos\RivalTab.jsx:251:try { stored = JSON.parse(localStorage.getItem("rival_data") || "{}"); } catch {}
+frontend/src\components\mindos\RivalTab.jsx:306:localStorage.setItem("rival_data", JSON.stringify(data));
+frontend/src\components\mindos\RivalTab.jsx:382:const settings = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
+frontend/src\components\mindos\RivalTab.jsx:575:const settings = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
+frontend/src\components\mindos\RivalTab.jsx:577:localStorage.setItem("mindos_notifications", JSON.stringify(settings));
+frontend/src\components\mindos\ScrollsPanel.jsx:64:// Removed localStorage functions
+frontend/src\components\mindos\SetupModal.jsx:51:// 2. Save cognitive baseline metrics to localStorage
+frontend/src\components\mindos\SetupModal.jsx:52:const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\components\mindos\SetupModal.jsx:68:localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+frontend/src\components\mindos\SkillTreePanel.jsx:18:try { return JSON.parse(localStorage.getItem("mindos_skill_presets") || "[]"); } catch { return []; }
+frontend/src\components\mindos\SkillTreePanel.jsx:20:function savePresets(presets) { localStorage.setItem("mindos_skill_presets", JSON.stringify(presets)); }
+frontend/src\components\mindos\StatsPanel.jsx:6:const raw = localStorage.getItem("mindos_streak");
+frontend/src\components\mindos\StreakControl.jsx:10:const raw = localStorage.getItem("mindos_streak");
+frontend/src\components\mindos\StreakControl.jsx:17:localStorage.setItem("mindos_streak", JSON.stringify(data));
+frontend/src\components\mindos\StreakControl.jsx:39:const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
+frontend/src\components\mindos\StreakControl.jsx:43:localStorage.setItem("mindos_class", JSON.stringify(cls));
+frontend/src\components\navigation\CharacterStatusBar.jsx:36:const st = JSON.parse(localStorage.getItem("mindos_streak") || "{}");
+frontend/src\hooks\useHaptic.js:31:const settings = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
+frontend/src\hooks\useProfileSync.js:7:* Never polls localStorage for HP/Mana/Gold - use this hook instead.
+frontend/src\lib\cloudSync.js:14:// Load all game data from localStorage
+frontend/src\lib\cloudSync.js:19:const raw = localStorage.getItem(storageKey);
+frontend/src\lib\cloudSync.js:28:// Save all game data to localStorage
+frontend/src\lib\cloudSync.js:32:localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(value));
+frontend/src\lib\cloudSync.js:37:// Sync localStorage to database (Mocked for offline gameplay synchronization)
+frontend/src\lib\cloudSync.js:49:// Load from database to localStorage (Mocked for offline gameplay synchronization)
+frontend/src\lib\cognitiveEngine.js:195:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\lib\DjangoAuthContext.jsx:24:return !!localStorage.getItem('access_token');
+frontend/src\lib\DjangoAuthContext.jsx:64:localStorage.setItem('access_token', tokenData.access);
+frontend/src\lib\DjangoAuthContext.jsx:65:localStorage.setItem('refresh_token', tokenData.refresh);
+frontend/src\lib\DjangoAuthContext.jsx:94:localStorage.removeItem('access_token');
+frontend/src\lib\DjangoAuthContext.jsx:95:localStorage.removeItem('refresh_token');
+frontend/src\lib\gameState.js:1:// Global game state for RPG features — persisted to localStorage
+frontend/src\lib\gameState.js:25:const raw = localStorage.getItem(KEY);
+frontend/src\lib\gameState.js:34:localStorage.setItem(KEY, JSON.stringify(state));
+frontend/src\lib\lifeOS.js:1:// LIFE OS - Data engine (localStorage-based)
+frontend/src\lib\lifeOS.js:55:const raw = localStorage.getItem(STORAGE_KEY);
+frontend/src\lib\lifeOS.js:62:localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+frontend/src\lib\mutatorEngine.js:4:* All functions read state from localStorage (mutators, game_state).
+frontend/src\lib\mutatorEngine.js:6:* back to localStorage.
+frontend/src\lib\mutatorEngine.js:55:try { return JSON.parse(localStorage.getItem("mindos_mutators") || "{}"); } catch { return {}; }
+frontend/src\lib\mutatorEngine.js:59:try { return JSON.parse(localStorage.getItem("mindos_game_state") || "{}"); } catch { return {}; }
+frontend/src\lib\mutatorEngine.js:63:localStorage.setItem("mindos_game_state", JSON.stringify(gs));
+frontend/src\lib\mutatorEngine.js:107:const cls = JSON.parse(localStorage.getItem("mindos_class") || "{}");
+frontend/src\lib\rpgSystem.js:452:const get = (key, def) => { try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; } };
+frontend/src\lib\rpgSystem.js:466:localStorage.setItem(key, JSON.stringify(data));
+frontend/src\lib\rpgSystem.js:506:let gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\lib\rpgSystem.js:569:localStorage.setItem("mindos_game_state", JSON.stringify(gs));
+frontend/src\lib\taskEngine.js:166:function loadGS() { try { return JSON.parse(localStorage.getItem(GS_KEY) || '{}'); } catch { return {}; } }
+frontend/src\lib\taskEngine.js:167:function saveGS(gs) { try { localStorage.setItem(GS_KEY, JSON.stringify(gs)); queueAutoSync(); } catch {} }
+frontend/src\lib\taskEngine.js:168:function loadAllTasks() { try { return JSON.parse(localStorage.getItem(TASKS_KEY) || '[]'); } catch { return []; } }
+frontend/src\lib\taskEngine.js:169:function saveAllTasks(t) { try { localStorage.setItem(TASKS_KEY, JSON.stringify(t)); queueAutoSync(); } catch {} }
+frontend/src\lib\taskEngine.js:211:const cls = JSON.parse(localStorage.getItem('mindos_class') || '{}');
+frontend/src\lib\taskEngine.js:214:localStorage.setItem('mindos_class', JSON.stringify(cls));
+frontend/src\lib\taskEngine.js:225:const lastTick = parseInt(localStorage.getItem(CRON_KEY) || '0', 10);
+frontend/src\lib\taskEngine.js:230:localStorage.setItem(CRON_KEY, String(nowMs));
+frontend/src\lib\taskEngine.js:238:localStorage.setItem(CRON_KEY, String(nowMs));
+frontend/src\pages\Achievements.jsx:109:const bossIndex = (() => { try { return JSON.parse(localStorage.getItem("mindos_game_state") || "{}").bossIndex || 0; } catch { return 0; } })();
+frontend/src\pages\Achievements.jsx:112:return JSON.parse(localStorage.getItem("mindos_activity_logs") || "[]");
+frontend/src\pages\Achievements.jsx:119:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Achievements.jsx:120:const streak = (() => { try { return JSON.parse(localStorage.getItem("mindos_streak") || "{}").streakCount || 0; } catch { return 0; } })();
+frontend/src\pages\Achievements.jsx:158:localStorage.setItem("mindos_achievements", JSON.stringify(rpgData.achievements));
+frontend/src\pages\Dashboard.jsx:72:return JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Dashboard.jsx:81:setGameState(JSON.parse(localStorage.getItem("mindos_game_state") || "{}"));
+frontend/src\pages\Dashboard.jsx:133:localStorage.setItem('mindos_tasks', JSON.stringify(mapped));
+frontend/src\pages\Dashboard.jsx:144:const lastTick = localStorage.getItem("mindos_mutator_tick_date") || "";
+frontend/src\pages\Dashboard.jsx:148:if (ran) localStorage.setItem("mindos_mutator_tick_date", today);
+frontend/src\pages\Dashboard.jsx:159:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Dashboard.jsx:176:localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+frontend/src\pages\Dashboard.jsx:285:const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Dashboard.jsx:297:localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+frontend/src\pages\Dashboard.jsx:300:console.error("Failed to update game state in localStorage:", e);
+frontend/src\pages\Dashboard.jsx:318:const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Dashboard.jsx:333:localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+frontend/src\pages\Dashboard.jsx:336:console.error("Failed to update game state in localStorage:", e);
+frontend/src\pages\Dashboard.jsx:359:const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Dashboard.jsx:364:localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+frontend/src\pages\Dashboard.jsx:367:console.error("Failed to save initial game state to localStorage:", e);
+frontend/src\pages\Dashboard.jsx:386:const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
+frontend/src\pages\Dashboard.jsx:395:localStorage.setItem("mindos_game_state", JSON.stringify(gs));
+frontend/src\pages\Dashboard.jsx:420:const pending = (() => { try { return JSON.parse(localStorage.getItem("mindos_pending_gains") || "{}"); } catch { return {}; } })();
+frontend/src\pages\Dashboard.jsx:422:localStorage.setItem("mindos_pending_gains", JSON.stringify(pending));
+frontend/src\pages\Dashboard.jsx:442:// We do NOT simulate IQ in localStorage. We let React Query take over.
+frontend/src\pages\Dashboard.jsx:601:<RivalTab playerRankXP={rankXPData.rankXP} playerStreak={(() => { try { return JSON.parse(localStorage.getItem("mindos_streak") || "{}").streakCount || 0; } catch { return 0; } })()} logs={logs} />
+frontend/src\utils\secureStorage.js:4:* and falls back to browser's `localStorage` in web environments.
+frontend/src\utils\secureStorage.js:23:console.warn('Tauri Store plugin is not installed/configured, falling back to localStorage.', error);
+frontend/src\utils\secureStorage.js:53:const value = localStorage.getItem(key);
+frontend/src\utils\secureStorage.js:80:localStorage.setItem(key, value);
+frontend/src\utils\secureStorage.js:102:localStorage.removeItem(key);
+frontend/src\utils\secureStorage.js:121:localStorage.removeItem('access_token');
+frontend/src\utils\secureStorage.js:122:localStorage.removeItem('refresh_token');

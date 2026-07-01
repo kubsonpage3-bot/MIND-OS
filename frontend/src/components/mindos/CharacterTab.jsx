@@ -325,9 +325,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             </button>
           )}
           <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass?.name}</span>
-          {rpg.prestige?.count > 0 && (
+          {profile?.prestige_count > 0 && (
             <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, background: "var(--habit-border)", color: "var(--habit-gold)", border: "1px solid var(--habit-border)", padding: "2px 6px", borderRadius: 4 }}>
-              ×{rpg.prestige.count} PRESTIGE
+              ×{profile?.prestige_count} PRESTIGE
             </span>
           )}
         </div>
@@ -479,7 +479,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           </div>
 
           {/* Prestige panel */}
-          <PrestigePanel prestige={rpg.prestige} rankXP={rankXP} onPrestige={handlePrestige} />
+          <PrestigePanel prestige={{ count: profile?.prestige_count || 0 }} rankXP={rankXP} onPrestige={handlePrestige} />
         </div>
       )}
 
@@ -491,7 +491,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* SKILL TREE */}
       {subTab === "skill_tree" && (
         <SkillTreePanel
-          skillTree={rpg.skillTree}
+          skillTree={profile?.unlocked_skills || []}
           onUpdate={handleSkillTreeUpdate}
           gold={gold}
           onSpendGold={spendGold}
@@ -501,7 +501,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* ALLIES */}
       {subTab === "allies" && (
         <AlliesPanel
-          alliesData={rpg.alliesData}
+          alliesData={profile?.recruited_allies || {}}
           onUpdate={handleAlliesUpdate}
           gold={gold}
           onSpendGold={spendGold}
@@ -510,12 +510,12 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* ACHIEVEMENTS */}
       {subTab === "achievements" && (
-        <AchievementsPanel logs={logs || []} alliesData={rpg.alliesData} prestigeData={rpg.prestige} />
+        <AchievementsPanel logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} />
       )}
 
       {/* MUTATORS */}
       {subTab === "mutators" && (
-        <MutatorsPanel mutators={rpg.mutators} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
+        <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
       )}
 
       {/* SHOP */}
