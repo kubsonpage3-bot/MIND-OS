@@ -29,10 +29,9 @@ import CharacterHub from "@/components/mindos/CharacterHub";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 
-import { applyActivity, calculateIQ, METRIC_CONFIG, ACTIVITIES, getActivityDetails } from "@/lib/cognitiveEngine";
+import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 import { getRankFromXP } from "@/lib/rankEngine";
-import { applySessionMutators, runDailyMutatorTick } from "@/lib/mutatorEngine";
-import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, RefreshCw } from "lucide-react";
+import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings } from "lucide-react";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
 
@@ -67,29 +66,6 @@ function loadRankXP() {
 
 export default function Dashboard({ activeSection = "dashboard", activeSubItem = null, onSectionChange, onSubItemChange }) {
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
-  const [gameState, setGameState] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-    } catch {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    const handleStateUpdate = () => {
-      try {
-        setGameState(JSON.parse(localStorage.getItem("mindos_game_state") || "{}"));
-      } catch {}
-    };
-    window.addEventListener("storage", handleStateUpdate);
-    window.addEventListener("mindos-state-change", handleStateUpdate);
-    // Initial fetch to be safe
-    handleStateUpdate();
-    return () => {
-      window.removeEventListener("storage", handleStateUpdate);
-      window.removeEventListener("mindos-state-change", handleStateUpdate);
-    };
-  }, [djangoProfile]);
 
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
@@ -130,58 +106,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         goldReward: dt.gold_reward || 8,
         bossDamage: dt.boss_damage || 15,
       }));
-      localStorage.setItem('mindos_tasks', JSON.stringify(mapped));
       return mapped;
     },
     enabled: !!djangoProfile
   });
 
 
-
-  // Run daily mutator tick (loan shark deductions, compound interest, etc.)
-  useEffect(() => {
-    try {
-      const lastTick = localStorage.getItem("mindos_mutator_tick_date") || "";
-      const today = new Date().toISOString().split("T")[0];
-      if (lastTick !== today) {
-        const ran = runDailyMutatorTick(lastTick);
-        if (ran) localStorage.setItem("mindos_mutator_tick_date", today);
-      }
-    } catch {}
-  }, []);
-
-
-
-  // Auto-initialize game state metrics if not initialized yet
-  useEffect(() => {
-    if (djangoProfile) {
-      try {
-        const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        if (!gs.initialized) {
-          const updatedGs = {
-            ...gs,
-            initialized: true,
-            gf: gs.gf ?? djangoProfile.gf ?? 100.0,
-            gc: gs.gc ?? djangoProfile.gc ?? 100.0,
-            ps: gs.ps ?? djangoProfile.ps ?? 100.0,
-            vm: gs.vm ?? djangoProfile.vm ?? 100.0,
-            gf_ceiling: gs.gf_ceiling ?? djangoProfile.gf_ceiling ?? 120.0,
-            gc_ceiling: gs.gc_ceiling ?? djangoProfile.gc_ceiling ?? 135.0,
-            ps_ceiling: gs.ps_ceiling ?? djangoProfile.ps_ceiling ?? 112.0,
-            vm_ceiling: gs.vm_ceiling ?? djangoProfile.vm_ceiling ?? 138.0,
-            hp: gs.hp ?? djangoProfile.hp ?? 100,
-            maxHp: gs.maxHp ?? djangoProfile.hp_max ?? 100,
-            gold: gs.gold ?? djangoProfile.gold ?? 0,
-          };
-          localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
-          setGameState(updatedGs);
-          window.dispatchEvent(new CustomEvent("mindos-state-change"));
-        }
-      } catch (e) {
-        console.warn("Failed to auto-initialize game state:", e);
-      }
-    }
-  }, [djangoProfile]);
 
   // Sync tasks from Django to LocalStorage on mount/load
   useEffect(() => {
@@ -281,24 +211,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
      * @param {any} variables
      */
     onSuccess: (res, variables) => {
-      try {
-        const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        const updatedGs = {
-          ...currentGs,
-          gf: res.gf ?? variables.data.gf ?? currentGs.gf,
-          gc: res.gc ?? variables.data.gc ?? currentGs.gc,
-          ps: res.ps ?? variables.data.ps ?? currentGs.ps,
-          vm: res.vm ?? variables.data.vm ?? currentGs.vm,
-          gf_ceiling: res.gf_ceiling ?? variables.data.gf_ceiling ?? currentGs.gf_ceiling,
-          gc_ceiling: res.gc_ceiling ?? variables.data.gc_ceiling ?? currentGs.gc_ceiling,
-          ps_ceiling: res.ps_ceiling ?? variables.data.ps_ceiling ?? currentGs.ps_ceiling,
-          vm_ceiling: res.vm_ceiling ?? variables.data.vm_ceiling ?? currentGs.vm_ceiling,
-        };
-        localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
-        setGameState(updatedGs);
-      } catch (e) {
-        console.error("Failed to update game state in localStorage:", e);
-      }
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       refreshProfile();
     },
@@ -313,27 +225,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     onSuccess: (res, variables) => {
       if (res.profile) {
         queryClient.setQueryData(["userprofile"], res.profile);
-      }
-      try {
-        const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        const updatedGs = {
-          ...currentGs,
-          gf: res.profile?.gf ?? variables.gf ?? currentGs.gf,
-          gc: res.profile?.gc ?? variables.gc ?? currentGs.gc,
-          ps: res.profile?.ps ?? variables.ps ?? currentGs.ps,
-          vm: res.profile?.vm ?? variables.vm ?? currentGs.vm,
-          gf_ceiling: res.profile?.gf_ceiling ?? currentGs.gf_ceiling,
-          gc_ceiling: res.profile?.gc_ceiling ?? currentGs.gc_ceiling,
-          ps_ceiling: res.profile?.ps_ceiling ?? currentGs.ps_ceiling,
-          vm_ceiling: res.profile?.vm_ceiling ?? currentGs.vm_ceiling,
-          gold: res.profile?.gold ?? currentGs.gold,
-          hp: res.profile?.hp ?? currentGs.hp,
-          maxHp: res.profile?.hp_max ?? currentGs.maxHp,
-        };
-        localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
-        setGameState(updatedGs);
-      } catch (e) {
-        console.error("Failed to update game state in localStorage:", e);
       }
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
@@ -355,17 +246,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
 
   const handleSetup = (data) => {
-    try {
-      const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-      const updatedGs = {
-        ...currentGs,
-        ...data,
-      };
-      localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
-      setGameState(updatedGs);
-    } catch (e) {
-      console.error("Failed to save initial game state to localStorage:", e);
-    }
+    // Rely exclusively on API update.
+    updateProfile.mutate({ id: djangoProfile?.id, data });
   };
 
   const handleXpGain = useCallback((xp) => {
@@ -382,18 +264,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const handleBossDamage = useCallback((amount, isCritical, isDefeated = false, combatResult = null, rewards = null) => {
     setExternalDamage({ amount, isCritical, ts: Date.now() });
 
-    try {
-      const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-      gs.totalBossDamage = (gs.totalBossDamage || 0) + amount;
-      if (isCritical) {
-        gs.totalCrits = (gs.totalCrits || 0) + 1;
-      }
-      if (isDefeated) {
-        gs.bossIndex = (gs.bossIndex || 0) + 1;
-        setDefeatedBossState({ combatResult, rewards, isOpen: true });
-      }
-      localStorage.setItem("mindos_game_state", JSON.stringify(gs));
-    } catch {}
+    if (isDefeated) {
+      setDefeatedBossState({ combatResult, rewards, isOpen: true });
+    }
   }, []);
 
   const handleRewardFly = useCallback((reward) => {
@@ -412,16 +285,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     const { gains, newProfile, xpEarned } = result;
 
-    // Rank XP (XP-based, hours × focus_rating) — apply mutator multipliers
-    const mutatorResult = applySessionMutators(activityKey, hours, []);
-
-    // Gc bonus from lexicon mutator
-    if (mutatorResult.gcBonus > 0) {
-      const pending = (() => { try { return JSON.parse(localStorage.getItem("mindos_pending_gains") || "{}"); } catch { return {}; } })();
-      pending.gc = (pending.gc || 0) + mutatorResult.gcBonus;
-      localStorage.setItem("mindos_pending_gains", JSON.stringify(pending));
-    }
-
     // Sound effects
     playSound('task_complete');
     if (focusRating >= 9) playSound('critical_hit');
@@ -433,8 +296,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       vm: newProfile.vm,
       hours: hours,
       focus_rating: focusRating,
-      mutator_multiplier: mutatorResult.rankXPMultiplier,
-      flat_xp_bonus: mutatorResult.cursedClockFlatXP || 0,
+      mutator_multiplier: 1.0,
+      flat_xp_bonus: 0,
       activity: activityKey
     }, {
       onSuccess: (res) => {
@@ -466,8 +329,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
             return `${mc.abbr} base ${raw} → +${final}`;
           }).join(" · ");
 
-        const mutatorStr = mutatorResult.notes.length > 0 ? ` | Mutators: ${mutatorResult.notes.join(", ")}` : "";
-        const feedbackText = `${gainLines} — ${effStr}${mutatorStr}`;
+        const feedbackText = `${gainLines} — ${effStr}`;
 
         onFeedback(feedbackText, res.gold_earned);
         if (res.combat && res.combat.damage_dealt > 0) {
@@ -598,7 +460,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Rival section */}
               {activeSection === "rival" && (
                 <TabPanel title="👥 RIVAL">
-                  <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={(() => { try { return JSON.parse(localStorage.getItem("mindos_streak") || "{}").streakCount || 0; } catch { return 0; } })()} logs={logs} />
+                  <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
                 </TabPanel>
               )}
 
