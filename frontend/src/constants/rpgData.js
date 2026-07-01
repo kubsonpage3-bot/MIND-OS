@@ -2,10 +2,10 @@ import { getMediaUrl } from "@/api/djangoClient";
 
 // ─── RPG SYSTEM DATA & LOGIC ─────────────────────────────────────────────────
 
-import architectSprite from "/public/images/original/7958b621c_characters2.png";
-import asceticSprite from "/public/images/original/303411c1f_characters3.png";
-import linguistSprite from "/public/images/original/eb9d93154_characters4.png";
-import warlordSprite from "/public/images/original/f5c789146_characters1.png";
+import architectSprite from "/images/webp/7958b621c_characters2.webp";
+import asceticSprite from "/images/webp/303411c1f_characters3.webp";
+import linguistSprite from "/images/webp/eb9d93154_characters4.webp";
+import warlordSprite from "/images/webp/f5c789146_characters1.webp";
 
 // Character sprites per class (used in ClassSelector and PixelCharacter)
 export const CLASS_SPRITES = {

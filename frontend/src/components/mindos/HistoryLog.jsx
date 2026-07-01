@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ACTIVITIES, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
+import { METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 import { getRankFromXP } from "@/lib/rankEngine";
 import { Clock } from "lucide-react";
 

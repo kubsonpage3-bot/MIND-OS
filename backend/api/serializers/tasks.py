@@ -1,3 +1,4 @@
+from api.models import TrainingSession
 from rest_framework import serializers
 from api.models import Task
 from .profile import UserProfileSerializer
@@ -121,9 +122,7 @@ class TaskCompleteResponseSerializer(serializers.Serializer):
     died = serializers.BooleanField()
 
 
-from api.models import TrainingSession
-
 class TrainingSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingSession
-        fields = '__all__'
+        fields = "__all__"

@@ -7,18 +7,10 @@ import { playSound } from "@/lib/soundEffects.js";
 import ParticleStrike from "./ParticleStrike";
 import OptimizedImage from "./OptimizedImage";
 
-function getPwrMultiplier() {
-  try {
-    const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-    const basePwr = gs.stats?.pwr || 5;
-    const equipped = gs.equipped || {};
-    let bonusPwr = 0;
-    Object.values(equipped).forEach(item => { if (item?.stats?.pwr) bonusPwr += item.stats.pwr; });
-    return 1 + ((basePwr + bonusPwr) - 5) * 0.02;
-  } catch { return 1; }
-}
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function BossPanel({ externalDamage, currentScore, onBossDamage }) {
+  const { profile } = useDjangoAuth();
   const [damageFloat, setDamageFloat] = useState(null);
   const [isCritical, setIsCritical] = useState(false);
   const [flash, setFlash] = useState(false);

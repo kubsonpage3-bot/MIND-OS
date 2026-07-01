@@ -59,7 +59,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
           queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
           if (res.total_dmg > 0) {
-            const missedCount = res.log.filter(l => l.type === 'daily_missed').length;
+            const missedCount = (res.log || []).filter(l => l.type === 'daily_missed').length;
             setCronMsg(`🌙 New day: -${Math.round(res.total_dmg * 10) / 10} HP for ${missedCount} missed daily task(s)`);
             setTimeout(() => setCronMsg(null), 6000);
             

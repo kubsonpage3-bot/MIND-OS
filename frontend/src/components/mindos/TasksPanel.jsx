@@ -15,7 +15,7 @@ const TASK_TABS = [
   { id: 'activities', label: 'Activities' },
 ];
 
-export default function TasksPanel({ tasks, onXpGain, onBossDamage, onRankXP, subTab, onRewardFly }) {
+export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly }) {
   const queryClient = useQueryClient();
   const [taskTab, setTaskTab] = useState('habits');
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
@@ -62,12 +62,15 @@ export default function TasksPanel({ tasks, onXpGain, onBossDamage, onRankXP, su
   return (
     <>
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
-      <div className="
-        md:hidden
-        flex gap-2 overflow-x-auto scrollbar-hide
-        px-4 py-3 sticky top-0 z-30
-        bg-black/40 backdrop-blur-md border-b border-white/10
-      ">
+      <div 
+        className="
+          md:hidden
+          flex gap-2 overflow-x-auto scrollbar-hide
+          px-4 py-3 sticky top-0 z-30
+          bg-black/40 backdrop-blur-md border-b border-white/10
+        "
+        onPointerDownCapture={(e) => e.stopPropagation()}
+      >
         {TASK_TABS.map(tab => (
           <button
             key={tab.id}

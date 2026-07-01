@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { Loader2 } from 'lucide-react';
@@ -10,6 +10,13 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('mindos_session_expired') === 'true') {
+      setError('Session expired. Please log in again.');
+      sessionStorage.removeItem('mindos_session_expired');
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

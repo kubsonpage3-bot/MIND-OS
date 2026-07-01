@@ -46,13 +46,6 @@ export default function SetupModal({ onSave }) {
         mana: 50,
         mana_max: 50,
         gold: 0,
-      });
-
-      // 2. Save cognitive baseline metrics to localStorage
-      const currentGs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-      const updatedGs = {
-        ...currentGs,
-        initialized: true,
         gf: values.gf,
         gc: values.gc,
         ps: values.ps,
@@ -61,19 +54,15 @@ export default function SetupModal({ onSave }) {
         gc_ceiling: values.gc_ceiling,
         ps_ceiling: values.ps_ceiling,
         vm_ceiling: values.vm_ceiling,
-        hp: 100,
-        maxHp: 100,
-        gold: 0,
-      };
-      localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
+      });
 
-      // 3. Invalidate React Query cache and refresh DjangoAuth profile state
+      // 2. Invalidate React Query cache and refresh DjangoAuth profile state
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       await refreshProfile();
 
-      // 4. Trigger onSave callback to sync parent state
+      // 3. Trigger onSave callback to sync parent state
       if (typeof onSave === "function") {
-        onSave(updatedGs);
+        onSave();
       }
 
       // 5. Redirect to Dashboard root

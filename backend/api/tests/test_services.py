@@ -477,7 +477,7 @@ def test_todo_completion_boss_damage_revert(user, profile, task):
     """
     from api.models import Boss, BossEncounter
     from api.services.combat_service import summon_boss
-    
+
     # Setup boss encounter manually to avoid SCROLL_BOSSES_DICT constraints
     boss = Boss.objects.create(
         name="Test Boss", level=1, hp_max=1000, reward_xp=50, reward_gold=20
@@ -489,15 +489,18 @@ def test_todo_completion_boss_damage_revert(user, profile, task):
 
     # Complete To-Do (Toggle ON)
     result_on = complete_task(user, task.id, is_positive=True)
-    
+
     encounter.refresh_from_db()
     hp_after_hit = encounter.hp_current
-    assert hp_after_hit < initial_boss_hp, "Boss should take damage when To-Do is completed."
-    
+    assert (
+        hp_after_hit < initial_boss_hp
+    ), "Boss should take damage when To-Do is completed."
+
     # Revert To-Do (Toggle OFF)
     result_off = complete_task(user, task.id, is_positive=False)
-    
+
     encounter.refresh_from_db()
     hp_after_revert = encounter.hp_current
-    assert hp_after_revert == initial_boss_hp, "Boss HP should be fully restored on revert."
-
+    assert (
+        hp_after_revert == initial_boss_hp
+    ), "Boss HP should be fully restored on revert."

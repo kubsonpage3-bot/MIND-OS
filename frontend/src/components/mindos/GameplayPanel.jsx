@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
-import { queueAutoSync } from "@/lib/cloudSync";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 const WEEK_START_OPTIONS = [
   { id: "monday", label: "Monday" },
@@ -47,7 +47,7 @@ const TIME_OPTIONS = [
 
 export default function GameplayPanel() {
   const queryClient = useQueryClient();
-  const { data: profile } = useQuery({ queryKey: ["userprofile"], queryFn: djangoApi.profile.get });
+  const { profile } = useDjangoAuth();
   
   const difficultyMutation = useMutation({
     /**
@@ -72,7 +72,6 @@ export default function GameplayPanel() {
     const newSettings = { ...gameplay, [key]: value };
     setGameplay(newSettings);
     localStorage.setItem("mindos_gameplay_settings", JSON.stringify(newSettings));
-    queueAutoSync();
   };
 
   const updateDomainWeight = (domain, stats) => {

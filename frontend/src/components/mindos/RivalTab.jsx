@@ -4,9 +4,31 @@ import { getRankFromXP } from "@/lib/rankEngine";
 import { ACTIVITIES } from "@/lib/cognitiveEngine";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 const RIVAL_NAME = "JOHAN";
-const ALL_SUBJECTS = Object.keys(ACTIVITIES);
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function getDayNumber() {
+  return Math.floor(Date.now() / 86400000);
+}
+
+function hashSelect(arr, seedStr) {
+  let h = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(31, h) + seedStr.charCodeAt(i) | 0;
+  }
+  return arr[Math.abs(h) % arr.length];
+}
+
+function getDayPattern(dateStr) {
+  const h = hashSelect([0, 1, 2, 3], dateStr + "pattern");
+  if (h === 0) return { type: "surge" };
+  if (h === 1) return { type: "weak" };
+  return { type: "normal" };
+}
 
 // ─── TAUNT POOLS ────────────────────────────────────────────────────────────
 const AHEAD_TAUNTS = [
@@ -36,137 +58,6 @@ const DEFAULT_TAUNTS = [
   "Your next session determines the gap.",
 ];
 
-// ─── HASH-BASED SELECTION (no pure random — feels curated) ───────────────────
-function hashSelect(pool, seed) {
-  const h = Math.abs(
-    String(seed).split("").reduce((acc, ch) => acc * 31 + ch.charCodeAt(0), 0)
-  );
-  return pool[h % pool.length];
-}
-
-// ─── DETERMINISTIC PRNG from date string ─────────────────────────────────────
-function makePrng(seed) {
-  let s = String(seed).split("").reduce((a, b) => a * 31 + b.charCodeAt(0), 0) >>> 0;
-  return () => {
-    s = ((s * 1664525) + 1013904223) >>> 0;
-    return s / 0xffffffff;
-  };
-}
-
-function getDayNumber() {
-  return Math.floor(Date.now() / 86400000);
-}
-
-// ─── BEHAVIORAL PATTERN LOGIC ────────────────────────────────────────────────
-// morning person: days 1-7, 15-21 of month
-// night owl: days 8-14, 22-28
-// surge/weak: determined by seeded dayOfWeek
-function getDayPattern(dateStr) {
-  const d = new Date(dateStr);
-  const dayOfMonth = d.getDate();
-  const dayOfWeek = d.getDay(); // 0=Sun ... 6=Sat
-  const rand = makePrng(dateStr + "pattern");
-
-  // 1 surge day/week (seeded), 2 weak days/week (seeded)
-  const surgeDay = Math.floor(rand() * 7);
-  const weakDay1 = Math.floor(rand() * 7);
-  const weakDay2 = (weakDay1 + 2) % 7;
-
-  if (dayOfWeek === surgeDay) return { type: "surge", multiplier: 1.5, msg: `${RIVAL_NAME}: intensive session today.` };
-  if (dayOfWeek === weakDay1 || dayOfWeek === weakDay2) return { type: "weak", multiplier: 0.5, msg: "Short session today." };
-  if ((dayOfMonth >= 1 && dayOfMonth <= 7) || (dayOfMonth >= 15 && dayOfMonth <= 21)) return { type: "morning", multiplier: 1.0, msg: "Early session logged." };
-  return { type: "night", multiplier: 1.0, msg: "Late night grind." };
-}
-
-function getSessionTimeRange(pattern) {
-  if (pattern.type === "morning") return { startH: 7, endH: 10 };
-  if (pattern.type === "night") return { startH: 21, endH: 23 };
-  return { startH: 8, endH: 20 };
-}
-
-// ─── SESSION GENERATION (weighted by player subjects) ────────────────────────
-function generateDailySessions(dateStr, playerSubjectWeights, pattern) {
-  const rand = makePrng(dateStr + "sessions");
-  const count = pattern.type === "weak" ? 1 : 1 + Math.floor(rand() * 2) + 1; // 1 if weak, else 2-3
-  const { startH, endH } = getSessionTimeRange(pattern);
-
-  const sessions = [];
-  let scheduledMinutes = (startH * 60) + Math.floor(rand() * 30);
-
-  for (let i = 0; i < count; i++) {
-    // Subject selection: 70% copies player dominant, 30% random
-    let subject;
-    if (playerSubjectWeights.length > 0 && rand() < 0.7) {
-      // Weighted pick from player subjects
-      const totalWeight = playerSubjectWeights.reduce((s, x) => s + x.count, 0);
-      let pick = rand() * totalWeight;
-      subject = playerSubjectWeights[playerSubjectWeights.length - 1].subject;
-      for (const sw of playerSubjectWeights) {
-        pick -= sw.count;
-        if (pick <= 0) { subject = sw.subject; break; }
-      }
-    } else {
-      subject = ALL_SUBJECTS[Math.floor(rand() * ALL_SUBJECTS.length)];
-    }
-
-    const baseHours = 0.5 + rand() * 2.0;
-    const hours = Math.round(baseHours * pattern.multiplier * 2) / 2;
-    const focus = Math.round((6.0 + rand() * 3.5) * 10) / 10;
-
-    const hh = Math.floor(scheduledMinutes / 60);
-    const mm = scheduledMinutes % 60;
-    const clampedH = Math.min(hh, endH);
-    const scheduledTime = `${String(clampedH).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-
-    // Session format template (A/B/C)
-    const templateIdx = Math.floor(rand() * 3);
-    const act = ACTIVITIES[subject];
-    const subjectLabel = act?.label || subject;
-    let displayText;
-    if (templateIdx === 0) displayText = `${subjectLabel} · ${hours}h · Focus ${focus}`;
-    else if (templateIdx === 1) displayText = `${subjectLabel} session · ${hours}h`;
-    else displayText = `Deep work: ${subjectLabel} · ${hours}h · ${focus} focus`;
-
-    sessions.push({ subject, hours, focus, scheduledTime, displayText, patternMsg: pattern.msg });
-    scheduledMinutes += Math.round(hours * 60) + 15 + Math.floor(rand() * 30);
-  }
-
-  return sessions;
-}
-
-// ─── ADAPTIVE XP ALGORITHM ───────────────────────────────────────────────────
-function calcJohanXP(playerRankXP, dailyXPHistory, dayNumber) {
-  // JOHAN mirrors player's 7-day average with sine wave fluctuation
-  const last7 = dailyXPHistory.slice(-7);
-  const playerAvg = last7.length > 0 ? last7.reduce((a, b) => a + b, 0) / last7.length : 0;
-
-  // Sine wave creates natural rhythm — some days ahead, some behind
-  const dayFactor = 0.85 + 0.30 * Math.sin(dayNumber * 0.8);
-
-  // Clamp: never more than 20% ahead, never more than 25% behind
-  const raw = playerAvg * dayFactor;
-  const maxDaily = playerAvg * 1.20;
-  const minDaily = playerAvg * 0.75;
-  const clampedDaily = Math.max(minDaily, Math.min(maxDaily, raw));
-
-  // Build Johan's cumulative XP starting from a base close to player's
-  // Johan's XP oscillates ±15% around player's XP
-  const baseXP = playerRankXP * (0.85 + 0.30 * Math.sin(dayNumber * 0.8));
-  const clampedXP = Math.max(playerRankXP * 0.75, Math.min(playerRankXP * 1.20, baseXP));
-
-  // Never exactly equal — add small offset based on dayNumber
-  const offset = ((dayNumber % 7) - 3) * 0.5;
-  return Math.max(1, Math.round((clampedXP + offset) * 10) / 10);
-}
-
-// ─── STREAK LOGIC ─────────────────────────────────────────────────────────────
-function calcJohanStreak(playerStreak, dayNumber) {
-  const rand = makePrng(dayNumber + "streak");
-  const offset = Math.floor(rand() * 4) - 1; // -1 to +2
-  if (playerStreak >= 5) return playerStreak + 1; // permanent 1-day deficit
-  return Math.max(1, Math.min(playerStreak + 3, playerStreak + offset));
-}
-
 // ─── DYNAMIC MESSAGE SYSTEM ───────────────────────────────────────────────────
 function calcJohanMessage(
   playerRankXP, johanXP, playerTodayHours, johanTodayHours,
@@ -177,11 +68,8 @@ function calcJohanMessage(
   const pctAhead = playerRankXP > 0 ? (johanXP - playerRankXP) / playerRankXP : 0;
   const hourSeed = `${new Date().toDateString()}${nowH}`;
 
-  // Check if player just logged (within 1 hour)
   const oneHourAgo = Date.now() - 3600000;
   const recentLog = logs.find(l => new Date(l.log_date || l.created_date).getTime() > oneHourAgo);
-
-  // Perfect focus check
   const hasPerfectFocus = logs.some(l => (l.focus_rating || 0) >= 10);
 
   if (playerTodayHours === 0 && nowH >= 15 && johanTodayHours > 0) {
@@ -242,71 +130,6 @@ function calcJohanMessage(
   };
 }
 
-// ─── LOAD / SAVE RIVAL DATA ───────────────────────────────────────────────────
-function loadAndUpdateRivalData(playerRankXP, playerStreak, logs) {
-  const today = new Date().toISOString().split("T")[0];
-  const dayNum = getDayNumber();
-
-  let stored = {};
-  try { stored = JSON.parse(localStorage.getItem("rival_data") || "{}"); } catch {}
-
-  // Build player subject weights from last 7 days
-  const weekAgo = Date.now() - 7 * 86400000;
-  const weekLogs = logs.filter(l => new Date(l.log_date || l.created_date).getTime() >= weekAgo);
-  const subjectCounts = {};
-  weekLogs.forEach(l => { subjectCounts[l.activity_key] = (subjectCounts[l.activity_key] || 0) + 1; });
-  const playerSubjectWeights = Object.entries(subjectCounts)
-    .map(([subject, count]) => ({ subject, count }))
-    .sort((a, b) => b.count - a.count);
-
-  // Regenerate today's sessions if needed (new day or first run)
-  let todaySessions = stored.todaySessions;
-  const pattern = getDayPattern(today);
-  if (!stored.lastUpdated || stored.lastUpdated !== today) {
-    todaySessions = generateDailySessions(today, playerSubjectWeights, pattern);
-  }
-
-  // Build daily XP history from logs
-  const dailyXPMap = {};
-  logs.forEach(l => {
-    const date = (l.log_date || l.created_date || "").split("T")[0];
-    if (date) dailyXPMap[date] = (dailyXPMap[date] || 0) + (l.hours || 0) * (l.focus_rating || 5);
-  });
-  const dailyXPHistory = Object.values(dailyXPMap);
-
-  // Adaptive XP
-  const johanXP = calcJohanXP(playerRankXP, dailyXPHistory, dayNum);
-
-  // Streak
-  const johanStreak = calcJohanStreak(playerStreak, dayNum);
-
-  // Weekly history (Johan's)
-  const weeklyHistory = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(Date.now() - (6 - i) * 86400000).toISOString().split("T")[0];
-    const p = getDayPattern(d);
-    const prevStored = (stored.weeklyHistory || []).find(x => x.date === d);
-    if (prevStored) return prevStored;
-    const sessions = generateDailySessions(d, playerSubjectWeights, p);
-    return {
-      date: d,
-      hours: sessions.reduce((s, x) => s + x.hours, 0),
-      xp: Math.round(sessions.reduce((s, x) => s + x.hours * x.focus, 0) * 10) / 10,
-    };
-  });
-
-  const data = {
-    totalXP: johanXP,
-    streak: johanStreak,
-    lastUpdated: today,
-    todaySessions,
-    weeklyHistory,
-    currentPattern: pattern.type,
-  };
-
-  localStorage.setItem("rival_data", JSON.stringify(data));
-  return data;
-}
-
 // ─── GHOST AVATAR ─────────────────────────────────────────────────────────────
 function GhostAvatar({ pulse = false, overtook, playerOvertook }) {
   return (
@@ -335,7 +158,7 @@ function GhostAvatar({ pulse = false, overtook, playerOvertook }) {
         />
       )}
       <OptimizedImage
-        src="/images/original/6aa09434f_grafik.png"
+        src="/images/webp/6aa09434f_grafik.webp"
         alt="JOHAN"
         style={{
           width: 72, height: 72, objectFit: "cover", borderRadius: "50%",
@@ -367,42 +190,47 @@ function TypingDots() {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = [] }) {
+export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [rivalData, setRivalData] = useState(null);
   const [sessionToast, setSessionToast] = useState(null);
-  const [cardFlash, setCardFlash] = useState(null); // "cyan" | "green" | "red"
+  const [cardFlash, setCardFlash] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [prevJohanXP, setPrevJohanXP] = useState(null);
   const [prevPlayerXP, setPrevPlayerXP] = useState(null);
   const toastTimerRef = useRef(null);
 
-  const [rivalEnabled, setRivalEnabled] = useState(() => {
-    try {
-      const settings = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
-      return settings.rivalEnabled !== false;
-    } catch { return true; }
+  const { profile, refetchProfile } = useDjangoAuth();
+  const queryClient = useQueryClient();
+
+  const { data: rivalDataQuery, isLoading: isRivalLoading } = useQuery({
+    queryKey: ["rival"],
+    queryFn: () => djangoApi.rival.get(),
   });
 
-  // Load rival data on mount and whenever player XP changes
-  useEffect(() => {
-    const data = loadAndUpdateRivalData(playerRankXP, playerStreak, logs);
-    setRivalData(data);
-  }, [playerRankXP, playerStreak, logs.length]);
+  const rivalData = rivalDataQuery || profile?.rival_data;
 
-  // Detect when Johan "logs a session" (timestamp passes current time)
+  const rivalDataMutation = useMutation({
+    mutationFn: (newData) => djangoApi.profile.update({ rival_data: newData }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      refetchProfile();
+    }
+  });
+
+  const savedRivalData = profile?.rival_data || {};
+  const [rivalEnabled, setRivalEnabled] = useState(savedRivalData.rivalEnabled ?? true);
+
+  // Detect when Johan "logs a session"
   useEffect(() => {
     if (!rivalData) return;
-    const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
     const checkSessionAppear = setInterval(() => {
       const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
       const justVisible = (rivalData.todaySessions || []).filter(s => {
         const [h, m] = s.scheduledTime.split(":").map(Number);
         const sessionMin = h * 60 + m;
-        return sessionMin <= nowMin && sessionMin > nowMin - 1; // just appeared in last 1 min
+        return sessionMin <= nowMin && sessionMin > nowMin - 1; 
       });
       if (justVisible.length > 0) {
-        const s = justVisible[0];
         setCardFlash("cyan");
         setSessionToast(`${RIVAL_NAME} logged a session`);
         setTimeout(() => setCardFlash(null), 600);
@@ -413,17 +241,15 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
     return () => clearInterval(checkSessionAppear);
   }, [rivalData]);
 
-  // Detect overtake events → flash card
+  // Detect overtake events
   useEffect(() => {
     if (!rivalData || playerRankXP === prevPlayerXP) return;
     const johanXP = rivalData.totalXP;
     if (prevJohanXP !== null && prevPlayerXP !== null) {
       if (johanXP > playerRankXP && prevJohanXP <= prevPlayerXP) {
-        // Johan just overtook
         setCardFlash("red");
         setTimeout(() => setCardFlash(null), 600);
       } else if (playerRankXP > johanXP && prevPlayerXP <= prevJohanXP) {
-        // Player just overtook
         setCardFlash("green");
         setTimeout(() => setCardFlash(null), 600);
       }
@@ -432,7 +258,7 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
     setPrevPlayerXP(playerRankXP);
   }, [playerRankXP, rivalData]);
 
-  // Typing indicator before midnight (message about to change)
+  // Typing indicator before midnight
   useEffect(() => {
     const checkMidnight = () => {
       const now = new Date();
@@ -460,7 +286,7 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
     return { playerHoursWeek, playerAvgFocus, playerSubjectsWeek, playerWeeklyRankXP };
   }, [logs]);
 
-  if (!rivalData) return <div className="py-8 text-center text-muted-foreground/40 text-xs font-mono">Loading rival data...</div>;
+  if (isRivalLoading || !rivalData) return <div className="py-8 text-center text-muted-foreground/40 text-xs font-mono">Loading rival data...</div>;
 
   const { totalXP: johanXP, streak: johanStreak, todaySessions = [], weeklyHistory = [] } = rivalData;
 
@@ -468,12 +294,11 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
   const playerAhead = playerRankXP > johanXP;
   const diff = Math.abs(johanXP - playerRankXP);
   const pctDiff = playerRankXP > 0 ? diff / playerRankXP : 0;
-  const isClosing = rivalAhead && pctDiff < 0.10; // within 10%
+  const isClosing = rivalAhead && pctDiff < 0.10;
 
   const rivalRank = getRankFromXP(johanXP);
   const playerRank = getRankFromXP(playerRankXP);
 
-  // Sessions split: visible now vs future
   const visibleSessions = todaySessions.filter(s => {
     const [h, m] = s.scheduledTime.split(":").map(Number);
     return h * 60 + m <= nowMinutes;
@@ -487,13 +312,11 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
   const todayLogs = logs.filter(l => new Date(l.log_date || l.created_date).toDateString() === new Date().toDateString());
   const playerTodayHours = todayLogs.reduce((s, l) => s + (l.hours || 0), 0);
 
-  // Dynamic message
   const msgObj = calcJohanMessage(
     playerRankXP, johanXP, playerTodayHours, rivalTodayHours,
     playerStreak, johanStreak, logs, getDayNumber()
   );
 
-  // Johan weekly stats
   const johanWeekHours = weeklyHistory.reduce((s, d) => s + (d.hours || 0), 0);
   const johanAvgFocus = Math.round(
     (playerAvgFocus + (Math.sin(getDayNumber() * 0.4) * 0.5 - 0.1)) * 10
@@ -503,7 +326,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
 
   const maxBarH = Math.max(...weeklyHistory.map(d => d.hours || 0), 1);
 
-  // Card border color based on state
   const cardBorderColor = cardFlash === "red" ? "#ef4444"
     : cardFlash === "green" ? "#00cc88"
     : cardFlash === "cyan" ? "#00e5ff"
@@ -519,7 +341,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
 
   return (
     <div className="space-y-4 relative">
-      {/* Session toast bottom-right */}
       <AnimatePresence>
         {sessionToast && (
           <motion.div
@@ -534,7 +355,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
         )}
       </AnimatePresence>
 
-      {/* Alert banner when Johan overtakes by >5% */}
       <AnimatePresence>
         {rivalAhead && pctDiff > 0.05 && (
           <motion.div
@@ -555,7 +375,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
         )}
       </AnimatePresence>
 
-      {/* RIVAL CARD */}
       <motion.div
         className="rounded-xl border p-4 space-y-3"
         animate={{
@@ -565,16 +384,14 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
         transition={{ duration: 0.3 }}
         style={{ background: "#060c14" }}
       >
-        {/* Notification toggle */}
         <div className="flex items-center justify-between pt-2 border-t border-border/30">
           <div className="text-[10px] font-mono text-muted-foreground/50">🔔 RIVAL ALERTS</div>
           <button
             onClick={() => {
               const newVal = !rivalEnabled;
               setRivalEnabled(newVal);
-              const settings = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
-              settings.rivalEnabled = newVal;
-              localStorage.setItem("mindos_notifications", JSON.stringify(settings));
+              const updatedData = { ...savedRivalData, rivalEnabled: newVal };
+              rivalDataMutation.mutate(updatedData);
               if (newVal && "Notification" in window && Notification.permission !== "granted") {
                 Notification.requestPermission();
               }
@@ -585,7 +402,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
           </button>
         </div>
 
-        {/* Avatar + name */}
         <div className="flex items-center gap-4">
           <GhostAvatar
             overtook={rivalAhead && pctDiff > 0.05}
@@ -595,7 +411,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
             <div className="font-mono font-black text-lg tracking-widest" style={{ color: "#00e5ff", fontVariantLigatures: "none" }}>
               {RIVAL_NAME}<span className="text-xs opacity-50 ml-1">_Ω</span>
             </div>
-            {/* Dynamic message with typing indicator */}
             <div className="mt-1 text-xs font-mono italic" style={{ color: msgObj.color, minHeight: 18 }}>
               {isTyping ? <TypingDots /> : `"${msgObj.text}"`}
             </div>
@@ -621,7 +436,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
           </div>
         </div>
 
-        {/* Rival Rank XP bar */}
         <div className="space-y-1">
           <div className="flex justify-between text-[10px] font-mono text-muted-foreground/60">
             <span>RIVAL RANK XP</span>
@@ -633,7 +447,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
           </div>
         </div>
 
-        {/* Comparison line */}
         <div className="text-xs font-mono font-semibold" style={{ color: rivalAhead ? "#ff8800" : "#00cc88" }}>
           {rivalAhead
             ? `⚠ ${RIVAL_NAME} is ahead by ${diff.toFixed(1)} XP — close the gap`
@@ -647,7 +460,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
         </div>
       </motion.div>
 
-      {/* TODAY'S ACTIVITY */}
       <div className="space-y-2">
         <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">
           {RIVAL_NAME} — TODAY
@@ -707,7 +519,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
           Today: {rivalTodayHours.toFixed(1)}h logged
         </div>
 
-        {/* Slacking warning */}
         {playerTodayHours === 0 && new Date().getHours() >= 15 && rivalTodayHours > 0 && (
           <div className="px-3 py-2 rounded-xl"
             style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 12, border: "1.5px solid #f59e0b", color: "#f59e0b", background: "rgba(245,158,11,0.06)" }}>
@@ -716,7 +527,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
         )}
       </div>
 
-      {/* WEEKLY COMPARISON TABLE (psychological) */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
         <div className="px-4 py-2.5" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: "1px solid var(--habit-border)" }}>
           Weekly Comparison
@@ -730,7 +540,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
             </tr>
           </thead>
           <tbody>
-            {/* Hours row */}
             {(() => {
               const pWins = playerHoursWeek >= johanWeekHours;
               const hourDiff = Math.abs(playerHoursWeek - johanWeekHours).toFixed(1);
@@ -753,7 +562,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
               );
             })()}
 
-            {/* Avg Focus row */}
             {(() => {
               const pWins = playerAvgFocus >= johanAvgFocus;
               return (
@@ -769,7 +577,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
               );
             })()}
 
-            {/* Subjects row */}
             {(() => {
               const pWins = playerSubjectsWeek >= johanSubjectsWeek;
               return (
@@ -794,7 +601,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
               );
             })()}
 
-            {/* Rank XP row with trend arrow */}
             {(() => {
               const pWins = playerWeeklyRankXP >= johanWeekRankXP;
               const trendArrow = rivalAhead ? "↑ " : "↓ ";
@@ -819,7 +625,6 @@ export default function RivalTab({ playerRankXP = 0, playerStreak = 0, logs = []
         </table>
       </div>
 
-      {/* RIVAL HISTORY (collapsible) */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
         <button
           onClick={() => setHistoryOpen(!historyOpen)}

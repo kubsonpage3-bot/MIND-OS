@@ -15,15 +15,20 @@ MIND OS — Views и ViewSets.
   POST   /api/tasks/{id}/complete/   — выполнить задачу (начисляет XP + Gold)
 """
 
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 import logging
 from django.db import transaction
 
 from rest_framework import viewsets, generics, status, filters
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    OutstandingToken,
+    BlacklistedToken,
+)
 
 from .models import UserProfile, Task, Item, InventoryItem, Recipe
 from .serializers import (
@@ -35,7 +40,15 @@ from .serializers import (
     CraftSerializer,
     RecipeListSerializer,
 )
-from .models import ActiveEffect, SkillCooldown, Boss, BossEncounter, UserStats, UserAchievement, TrainingSession
+from .models import (
+    ActiveEffect,
+    SkillCooldown,
+    Boss,
+    BossEncounter,
+    UserStats,
+    UserAchievement,
+    TrainingSession,
+)
 from .serializers import (
     ActiveEffectSerializer,
     SkillActivateSerializer,
@@ -49,7 +62,17 @@ from api.services.task_service import complete_task
 from api.services.skill_service import activate_skill
 from api.services.shop_service import buy_item
 from api.services.crafting_service import craft_item
+from api.services.rival_service import compute_rival_data
 from api.exceptions import GameLogicError
+
+logger = logging.getLogger(__name__)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_check(request):
+    return Response({"status": "ok"})
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Аутентификация
@@ -83,15 +106,12 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Профиль персонажа
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     GET    /api/profile/ — получить свой профиль
@@ -120,7 +140,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-@method_decorator(never_cache, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class TaskViewSet(viewsets.ModelViewSet):
     """
     Полный CRUD для задач пользователя.
@@ -261,12 +281,21 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         try:
             from api.services.task_service import complete_task
+
             result = complete_task(request.user, pk, is_positive)
-            
+
             # Match old API response shape while adding new combat payload
-            xp_change = result.get("xp_earned", 0) if is_positive else -result.get("gamification_result", {}).get("xp_lost", 0)
-            gold_change = result.get("gold_earned", 0) if is_positive else -result.get("gamification_result", {}).get("gold_lost", 0)
-            
+            xp_change = (
+                result.get("xp_earned", 0)
+                if is_positive
+                else -result.get("gamification_result", {}).get("xp_lost", 0)
+            )
+            gold_change = (
+                result.get("gold_earned", 0)
+                if is_positive
+                else -result.get("gamification_result", {}).get("gold_lost", 0)
+            )
+
             return Response(
                 {
                     "completed": is_positive,
@@ -284,6 +313,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 {"detail": str(e.detail[0] if hasattr(e, "detail") else e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Скиллы — активация и эффекты
@@ -548,7 +578,7 @@ class ToggleEquipView(generics.GenericAPIView):
                     InventoryItem.objects.filter(
                         user_profile=profile,
                         item__slot_type=slot_type,
-                        is_equipped=True
+                        is_equipped=True,
                     ).update(is_equipped=False)
                 inv_item.is_equipped = True
             else:
@@ -653,11 +683,12 @@ class TrainingLogView(generics.GenericAPIView):
         from api.models import TrainingSession
         from api.serializers.tasks import TrainingSessionSerializer
 
-        recent = TrainingSession.objects.filter(user_profile__user=request.user).order_by(
-            "-created_at"
-        )[:20]
+        recent = TrainingSession.objects.filter(
+            user_profile__user=request.user
+        ).order_by("-created_at")[:20]
         return Response(
-            {"log": TrainingSessionSerializer(recent, many=True).data}, status=status.HTTP_200_OK
+            {"log": TrainingSessionSerializer(recent, many=True).data},
+            status=status.HTTP_200_OK,
         )
 
     def post(self, request):
@@ -875,9 +906,10 @@ class TrainingLogView(generics.GenericAPIView):
             gain_xp(profile, final_xp)
             profile.rank_xp = max(0, profile.rank_xp + final_xp)
             profile.gold = max(0, profile.gold + final_gold)
-            
+
             # ── Create TrainingSession Record ──
             from api.models import TrainingSession
+
             TrainingSession.objects.create(
                 user_profile=profile,
                 activity_key=activity,
@@ -1152,7 +1184,7 @@ class ResetDataView(generics.GenericAPIView):
     def post(self, request):
         logger = logging.getLogger(__name__)
         reset_type = request.data.get("reset_type", "stats")
-        
+
         try:
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -1175,7 +1207,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.initialized = False
                     profile.skill_points = 0
                     profile.unspent_stat_points = 0
-                    
+
                     profile.base_pwr = 5
                     profile.base_foc = 5
                     profile.base_spd = 5
@@ -1215,7 +1247,7 @@ class ResetDataView(generics.GenericAPIView):
                         ally_max_level=0,
                         unique_subjects=[],
                         highest_subject_rank=0,
-                        prayer_rank=0
+                        prayer_rank=0,
                     )
 
                 if reset_type == "nuclear":
@@ -1225,7 +1257,7 @@ class ResetDataView(generics.GenericAPIView):
                     UserAchievement.objects.filter(user=request.user).delete()
 
                 profile.save()
-            
+
             # Token invalidation STRICTLY AFTER successful db transaction commit
             if reset_type == "nuclear":
                 try:
@@ -1241,6 +1273,30 @@ class ResetDataView(generics.GenericAPIView):
         except Exception as e:
             logger.error(f"Reset error: {str(e)}", exc_info=True)
             return Response(
-                {"error": "Internal server error during data reset. Please try again."}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Internal server error during data reset. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+# ——— Rival System ————————————————————————————————————————————————
+
+
+class RivalView(generics.GenericAPIView):
+    """
+    GET /api/rival/
+    Returns rival data generated deterministically for the current day.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            rival_data = compute_rival_data(profile)
+            return Response(rival_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error computing rival data: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "Failed to compute rival data"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

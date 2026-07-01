@@ -13,7 +13,7 @@ function loadHiddenActivities() {
 }
 function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
 
-export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
+export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }) {
   const queryClient = useQueryClient();
   const [trainTab, setTrainTab] = useState("log"); // "log" | "create"
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -77,6 +77,8 @@ export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
     streakDays: profile?.streak_days || 0,
     hoursToday,
     subjectHoursToday,
+    statFoc: profile?.total_stats?.foc || 5,
+    statMem: profile?.total_stats?.mem || 5,
   });
 
   const recommendation = getSmartRecommendation({
@@ -90,21 +92,7 @@ export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
   const confirmLog = () => {
     if (!selectedActivity) return;
 
-    // Check active consumables (Keep local mutator visual logic for now, but remove gold writes)
     let effectiveFocus = focusRating;
-    try {
-      const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-      const cons = gs.consumables || {};
-
-      // Focus Stim: ×1.3 FOC for this session
-      if (cons.focus_stim?.active) {
-        effectiveFocus = Math.min(10, effectiveFocus * 1.3);
-        gs.consumables.focus_stim = { active: false };
-        localStorage.setItem("mindos_game_state", JSON.stringify(gs));
-      }
-    } catch (e) {
-      console.error(e);
-    }
 
     onLog(selectedActivity, logValue, effectiveFocus, efficiency, (msg) => {
       setFeedbackMsg(msg);
@@ -371,6 +359,8 @@ export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
               streakDays={profile?.streak_days || 0}
               hoursToday={hoursToday}
               subjectHoursToday={subjectHoursToday}
+              statFoc={profile?.total_stats?.foc || 5}
+              statMem={profile?.total_stats?.mem || 5}
             />
 
             {/* Expected gains */}
@@ -396,12 +386,6 @@ export default function ActivityLogger({ onLog, profile, logs, tasks = [] }) {
             {/* Gold preview */}
             {(() => {
               let mult = 1;
-              try {
-                const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-                const cons = gs.consumables || {};
-                if (cons.xp_booster?.active && (!cons.xp_booster.expiresAt || Date.now() < cons.xp_booster.expiresAt)) mult = 1.5;
-              } catch {}
-              
               const stats = profile?.total_stats || {};
               const spd = stats.spd || 0;
               const lck = stats.lck || 0;

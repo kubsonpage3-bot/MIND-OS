@@ -27,6 +27,8 @@ from .views import (
     RecruitAllyView,
     CombatSyncView,
     ResetDataView,
+    RivalView,
+    health_check,
 )
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
@@ -37,6 +39,8 @@ router = DefaultRouter()
 router.register(r"tasks", TaskViewSet, basename="task")
 
 urlpatterns = [
+    # ——— Здоровье / Healthcheck ——————————————————————————————————————
+    path("health/", health_check, name="health_check"),
     # ——— Регистрация —————————————————————————————————————————————————
     # POST /api/auth/register/
     path("auth/register/", RegisterView.as_view(), name="register"),
@@ -47,6 +51,7 @@ urlpatterns = [
     path("profile/", UserProfileView.as_view(), name="user-profile"),
     path("profile/prestige/", PrestigeView.as_view(), name="profile-prestige"),
     path("profile/reset/", ResetDataView.as_view(), name="profile-reset"),
+    path("rival/", RivalView.as_view(), name="rival"),
     # ——— Задачи (CRUD + complete) —————————————————————————————————————
     path("", include(router.urls)),
     # ——— Скиллы ——————————————————————————————————————————————————————

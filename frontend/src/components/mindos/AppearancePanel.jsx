@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Palette, Type, Volume2, VolumeX, Waves, Smartphone } from "lucide-react";
 import { THEMES, applyTheme } from "@/lib/themes";
 import { ACCENT_PALETTES, applyAppearanceSettings } from "@/lib/applyAppearance";
-import { queueAutoSync } from "@/lib/cloudSync";
 
 export default function AppearancePanel() {
   const [settings, setSettings] = useState(() => {
@@ -15,7 +14,6 @@ export default function AppearancePanel() {
     localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
     applyAppearanceSettings(newSettings);
     if (key === "theme") applyTheme(value);
-    queueAutoSync();
   };
 
   // Apply on mount

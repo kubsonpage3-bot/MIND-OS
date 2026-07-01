@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Bell, Mail, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
-import { queueAutoSync } from "@/lib/cloudSync";
 
 const NOTIFICATION_TYPES = [
   { id: "streak_risk", label: "Risk of losing streak", icon: "🔥", default: true },
@@ -42,21 +41,18 @@ export default function NotificationsPanel() {
     const newNotifs = { ...notifications, [typeId]: enabled };
     setNotifications(newNotifs);
     localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
-    queueAutoSync();
   };
 
   const updateReminderTime = (time) => {
     setReminderTime(time);
     const current = JSON.parse(localStorage.getItem("mindos_reminders") || "{}");
     localStorage.setItem("mindos_reminders", JSON.stringify({ ...current, time }));
-    queueAutoSync();
   };
 
   const updateChannel = (newChannel) => {
     setChannel(newChannel);
     const current = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
     localStorage.setItem("mindos_notifications", JSON.stringify({ ...current, channel: newChannel }));
-    queueAutoSync();
   };
 
   const toggleAll = (enable) => {
@@ -64,7 +60,6 @@ export default function NotificationsPanel() {
     NOTIFICATION_TYPES.forEach(t => { newNotifs[t.id] = enable; });
     setNotifications(newNotifs);
     localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
-    queueAutoSync();
   };
 
   return (

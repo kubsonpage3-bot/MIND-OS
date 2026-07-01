@@ -8,7 +8,6 @@ import CharacterStatusBar from "@/components/navigation/CharacterStatusBar";
 import Dashboard from "@/pages/Dashboard";
 import LifeOS from "@/pages/LifeOS";
 import { applyTheme } from "@/lib/themes";
-import { queueAutoSync } from "@/lib/cloudSync";
 import { applyAppearanceSettings } from "@/lib/applyAppearance";
 import RewardToast from "@/components/mindos/RewardToast";
 
@@ -67,21 +66,14 @@ export default function AppShell({ defaultTab = "mind" }) {
   // HP damage flash detection
   useEffect(() => {
     let lastHp = null;
-    const check = () => {
-      try {
-        const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-        const hp = gs.hp ?? 100;
-        if (lastHp !== null && hp < lastHp) {
-          setHpFlash(true);
-          if (window.navigator?.vibrate) window.navigator.vibrate([30, 15, 30]);
-          setTimeout(() => setHpFlash(false), 500);
-        }
-        lastHp = hp;
-      } catch {}
-    };
-    const interval = setInterval(check, 800);
-    return () => clearInterval(interval);
-  }, []);
+    const hp = djangoProfile?.hp ?? 100;
+    if (lastHp !== null && hp < lastHp) {
+      setHpFlash(true);
+      if (window.navigator?.vibrate) window.navigator.vibrate([30, 15, 30]);
+      setTimeout(() => setHpFlash(false), 500);
+    }
+    lastHp = hp;
+  }, [djangoProfile?.hp]);
 
   // Sync rank data + zoom + theme
   useEffect(() => {
@@ -120,11 +112,6 @@ export default function AppShell({ defaultTab = "mind" }) {
     setLastSync(new Date());
   }, []);
 
-  useEffect(() => {
-    const handleStorageChange = () => queueAutoSync();
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
 
   const handleManualSync = () => {
     setSyncStatus("syncing");

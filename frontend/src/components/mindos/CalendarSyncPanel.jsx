@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const CONNECTOR_ID = "6a3c683c1511b0c03aa71701";
 
-export default function CalendarSyncPanel({ tasks }) {
+export default function CalendarSyncPanel({ tasks = [] }) {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);

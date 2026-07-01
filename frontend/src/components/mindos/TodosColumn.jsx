@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, CheckSquare, Square, Clock } from 'lucide-react';
+import { Plus, Trash2, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
@@ -35,7 +35,7 @@ function isOverdue(task) {
   return new Date(task.due_date) < new Date();
 }
 
-export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
+export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRankXP }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -44,17 +44,12 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
   });
   const [formType, setFormType] = useState('todo');
 
-  const { data: todosData, isLoading } = useQuery({
-    queryKey: ['todos'],
-    queryFn: () => djangoApi.tasks.list({ task_type: 'todo' })
-  });
-
-  const tasks = Array.isArray(todosData) ? todosData : (todosData?.results || []);
+  const activeTodos = todos.filter(t => !t.is_completed);
 
   const createTaskMutation = useMutation({
     mutationFn: (taskData) => djangoApi.tasks.create(taskData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowForm(false);
       setForm({ name: '', type: 'todo', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
     }
@@ -74,6 +69,18 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
 
   const toggleMutation = useMutation({
     mutationFn: (todoId) => djangoApi.tasks.toggle(todoId),
+    onMutate: async (todoId) => {
+      // Opt-update UI immediately (getQueryData -> filter -> setQueryData)
+      const previousTodos = queryClient.getQueryData(['tasks']);
+      if (previousTodos) {
+        if (Array.isArray(previousTodos)) {
+          queryClient.setQueryData(['tasks'], previousTodos.filter(t => t.id !== todoId));
+        } else if (previousTodos.results) {
+          queryClient.setQueryData(['tasks'], { ...previousTodos, results: previousTodos.results.filter(t => t.id !== todoId) });
+        }
+      }
+      return { previousTodos };
+    },
     onSuccess: (data) => {
       const isCompleting = data.completed;
       const sign = isCompleting ? '+' : '-';
@@ -95,7 +102,7 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
       
       if (isCompleting) playSound('task_complete');
       
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['boss-battle'] });
@@ -103,7 +110,12 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
           queryClient.invalidateQueries({ queryKey: ['inventory'] });
       }
     },
-    onError: () => showRewardToast({ label: '❌ Failed to update task' }),
+    onError: (err, todoId, context) => {
+      if (context?.previousTodos) {
+        queryClient.setQueryData(['tasks'], context.previousTodos);
+      }
+      showRewardToast({ label: '❌ Failed to update task' });
+    },
   });
 
   const completeTodo = (task) => {
@@ -113,16 +125,13 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
   const deleteMutation = useMutation({
     mutationFn: (id) => djangoApi.tasks.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
   });
 
   const deleteTask = (id) => {
     deleteMutation.mutate(id);
   };
-
-  const activeTodos = tasks.filter(t => !t.is_completed);
-  const doneTodos = tasks.filter(t => t.is_completed);
 
   // Сортировка: просроченные вверху
   const sortedActive = [...activeTodos].sort((a, b) => {
@@ -143,14 +152,14 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
 
       {/* Task list */}
       <div className="flex-1 p-3 space-y-2" style={{ background: 'var(--habit-panel)', minHeight: 120 }}>
-        {tasks.length === 0 && (
+        {activeTodos.length === 0 && (
           <div className="text-center py-8">
             <div className="text-3xl mb-2">📜</div>
             <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>No to-dos yet. Add a quest!</div>
           </div>
         )}
         <AnimatePresence>
-          {[...sortedActive, ...doneTodos].map(task => {
+          {sortedActive.map(task => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
             const tv = task.value ?? 0;
@@ -161,38 +170,34 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: task.is_completed ? 0.45 : 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: 30 }}
                 className="flex items-center gap-2 rounded-xl p-2.5 cursor-pointer"
                 style={{
                   background: 'var(--habit-panel)',
-                  border: `1px solid ${overdue && !task.is_completed ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+                  border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
                 }}
                 onClick={() => !toggleMutation.isPending && completeTodo(task)}
               >
-                {/* Task Value bar (только для активных) */}
-                {!task.is_completed && (
-                  <motion.div
-                    animate={{ background: tvColor }}
-                    transition={{ duration: 0.6 }}
-                    style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
-                    title={`Task Value: ${tv.toFixed(1)}`}
-                  />
-                )}
+                {/* Task Value bar */}
+                <motion.div
+                  animate={{ background: tvColor }}
+                  transition={{ duration: 0.6 }}
+                  style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                  title={`Task Value: ${tv.toFixed(1)}`}
+                />
 
                 {/* Checkbox */}
                 <div className="shrink-0">
-                  {task.is_completed
-                    ? <CheckSquare size={20} strokeWidth={2} style={{ color: 'var(--habit-orange, #ff8800)' }} />
-                    : <Square size={20} strokeWidth={2} style={{ color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)' }} />}
+                  <Square size={20} strokeWidth={2} style={{ color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)' }} />
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="truncate" style={{
                     fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-                    color: task.is_completed ? 'var(--habit-dim)' : overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
-                    textDecoration: task.is_completed ? 'line-through' : 'none',
+                    color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
+                    textDecoration: 'none',
                   }}>
                     {task.title}
                   </div>
@@ -200,13 +205,11 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{task.category}</span>
                     <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
                     {/* Task Value — показывает, насколько упала награда */}
-                    {!task.is_completed && (
-                      <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-                        TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-                      </span>
-                    )}
+                    <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+                      TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+                    </span>
                     {/* Due date */}
-                    {task.due_date && !task.is_completed && (
+                    {task.due_date && (
                       <span className="flex items-center gap-0.5 text-[10px]" style={{ color: overdue ? 'var(--habit-red)' : 'var(--habit-dim)' }}>
                         <Clock size={8} />
                         {new Date(task.due_date).toLocaleDateString()}
@@ -215,7 +218,7 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
                     )}
                   </div>
                   {/* Предупреждение о снижении награды */}
-                  {!task.is_completed && tv < -5 && (
+                  {tv < -5 && (
                     <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
                       reward -{ Math.round(Math.abs(tv) * 5) }%
                     </div>

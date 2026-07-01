@@ -18,6 +18,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     recruited_allies = serializers.SerializerMethodField()
     max_hp = serializers.SerializerMethodField()
     hp_max = serializers.SerializerMethodField()
+    unlocked_achievements = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -64,6 +65,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "unlocked_skills",
             "recruited_allies",
             "max_hp",
+            "active_mutators",
+            "unlocked_achievements",
+            "rival_data",
         )
         read_only_fields = (
             "id",
@@ -119,3 +123,66 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_recruited_allies(self, obj):
         return {a.ally_code: a.level for a in obj.recruited_allies.all()}
+
+    def get_unlocked_achievements(self, obj):
+        # UserAchievement is linked to User, not UserProfile
+        return [a.achievement_id for a in obj.user.achievements.all()]
+
+    def update(self, instance, validated_data):
+        # Handle standard fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Handle relational arrays sent from frontend to mimic saveRPGData
+        request = self.context.get("request")
+        if request and hasattr(request, "data"):
+            data = request.data
+
+            # Update Active Mutators (since it's a JSON field, it might already be in validated_data, but just in case)
+            if "active_mutators" in data:
+                instance.active_mutators = data["active_mutators"]
+
+            # Update Rival Data
+            if "rival_data" in data:
+                instance.rival_data = data["rival_data"]
+
+            # Update Achievements
+            if "unlocked_achievements" in data:
+                from api.models import UserAchievement
+
+                current = set(
+                    a.achievement_id for a in instance.user.achievements.all()
+                )
+                new_achievements = set(data["unlocked_achievements"])
+                for ach in new_achievements - current:
+                    UserAchievement.objects.create(
+                        user=instance.user, achievement_id=ach
+                    )
+
+            # Update Skills
+            if "unlocked_skills" in data:
+                from api.models import UnlockedSkill
+
+                current = set(s.skill_code for s in instance.unlocked_skills.all())
+                new_skills = set(data["unlocked_skills"])
+                for sk in new_skills - current:
+                    UnlockedSkill.objects.create(user_profile=instance, skill_code=sk)
+
+            # Update Allies
+            if "recruited_allies" in data:
+                from api.models import RecruitedAlly
+
+                allies_data = data["recruited_allies"]
+                if isinstance(allies_data, dict):
+                    for code, level in allies_data.items():
+                        obj, created = RecruitedAlly.objects.get_or_create(
+                            user_profile=instance,
+                            ally_code=code,
+                            defaults={"level": level},
+                        )
+                        if not created and obj.level != level:
+                            obj.level = level
+                            obj.save()
+
+        instance.save()
+        return instance

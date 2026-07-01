@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Database, Download, Upload, Cloud, CloudOff, RefreshCw, FileJson, Globe } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
-import { syncToCloud, syncFromCloud } from "@/lib/cloudSync";
 
 export default function DataPanel() {
   const { profile } = useDjangoAuth();
@@ -11,42 +10,11 @@ export default function DataPanel() {
   const [importError, setImportError] = useState(null);
 
   const handleSyncToCloud = async () => {
-    setSyncStatus("syncing");
-    try {
-      const userId = profile?.id || "local-user";
-      const result = await syncToCloud(userId);
-      if (result.success) {
-        setSyncStatus("synced");
-        setLastSync(new Date());
-        setTimeout(() => setSyncStatus("idle"), 3000);
-      } else {
-        setSyncStatus("error");
-        setTimeout(() => setSyncStatus("idle"), 3000);
-      }
-    } catch {
-      setSyncStatus("error");
-      setTimeout(() => setSyncStatus("idle"), 3000);
-    }
+    alert("Sync is now handled entirely by the backend.");
   };
 
   const handleSyncFromCloud = async () => {
-    setSyncStatus("syncing");
-    try {
-      const userId = profile?.id || "local-user";
-      const result = await syncFromCloud(userId);
-      if (result.success) {
-        setSyncStatus("synced");
-        setLastSync(new Date());
-        alert("Data synced successfully! Refreshing...");
-        window.location.reload();
-      } else {
-        setSyncStatus("error");
-        setTimeout(() => setSyncStatus("idle"), 3000);
-      }
-    } catch {
-      setSyncStatus("error");
-      setTimeout(() => setSyncStatus("idle"), 3000);
-    }
+    alert("Sync is now handled entirely by the backend.");
   };
 
   const exportAllData = () => {

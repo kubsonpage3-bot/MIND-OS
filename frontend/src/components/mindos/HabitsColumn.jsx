@@ -6,6 +6,7 @@ import { playSound } from '@/lib/soundEffects.js';
 import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import { djangoApi } from '@/api/djangoClient';
+import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -44,7 +45,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   const { success, error } = useHaptic();
   const tasks = habits;
 
-  const { data: profile } = useQuery({ queryKey: ["userprofile"], queryFn: djangoApi.profile.get });
+  const { profile } = useDjangoAuth();
   const hp = profile?.hp ?? 100;
   const maxHp = profile?.hp_max ?? 100;
 

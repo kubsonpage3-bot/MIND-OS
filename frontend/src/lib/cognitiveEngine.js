@@ -189,28 +189,13 @@ export function getSubjectDiminishingMultiplier(subjectHoursToday) {
   return 0.2;
 }
 
-// Get total FOC and MEM from equipment + base stats
-function getEquipmentStatBonuses() {
-  try {
-    const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-    const baseFoc = gs.stats?.foc || 5;
-    const baseMem = gs.stats?.mem || 5;
-    const equipped = gs.equipped || {};
-    let bonusFoc = 0, bonusMem = 0;
-    Object.values(equipped).forEach(item => {
-      if (item?.stats?.foc) bonusFoc += item.stats.foc;
-      if (item?.stats?.mem) bonusMem += item.stats.mem;
-    });
-    return { foc: baseFoc + bonusFoc, mem: baseMem + bonusMem };
-  } catch { return { foc: 5, mem: 5 }; }
-}
 
-export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursToday }) {
-  const { foc, mem } = getEquipmentStatBonuses();
+
+export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursToday, statFoc = 5, statMem = 5 }) {
   // FOC stat boosts focus multiplier: each point above 5 = +1% bonus
-  const focStatBonus = 1 + (foc - 5) * 0.01;
+  const focStatBonus = 1 + (statFoc - 5) * 0.01;
   // MEM stat reduces fatigue penalty: each point above 5 = 1.5% less fatigue penalty
-  const memFatigueBonus = 1 + (mem - 5) * 0.015;
+  const memFatigueBonus = 1 + (statMem - 5) * 0.015;
 
   const focusMult = getFocusMultiplier(focus) * focStatBonus;
   const streakMult = getStreakMultiplier(streakDays);

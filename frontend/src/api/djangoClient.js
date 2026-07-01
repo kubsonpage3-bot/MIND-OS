@@ -187,6 +187,7 @@ async function handleUnauthorized(endpoint, options) {
     isRefreshing = false;
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    sessionStorage.setItem('mindos_session_expired', 'true');
     // Dispatch custom event so the UI knows to redirect to login
     window.dispatchEvent(new CustomEvent('django-auth-logout'));
     throw {
@@ -236,6 +237,10 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ reset_type: resetType }),
       }),
+  },
+
+  rival: {
+    get: () => djangoFetch('/rival/'),
   },
 
   tasks: {

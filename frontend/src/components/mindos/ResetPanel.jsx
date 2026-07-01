@@ -25,6 +25,18 @@ export default function ResetPanel() {
         }
       }
 
+      // Clear specific legacy offline-engine localStorage state
+      // (Explicit list prevents wiping valid client-only settings like mindos_settings)
+      const keysToClear = [
+        "mindos_game_state", 
+        "mindos_tasks", 
+        "mindos_streak", 
+        "mindos_class",
+        "mindos_activity_logs", 
+        "mindos_hidden_activities"
+      ];
+      keysToClear.forEach(key => localStorage.removeItem(key));
+
       if (variables !== "nuclear") {
         alert("Reset completed. Refreshing...");
         window.location.reload();
@@ -40,9 +52,7 @@ export default function ResetPanel() {
     if (!confirm("Reset all activity logs to Rank F? This will delete all your logged sessions and restore all hidden activities. Cognitive stats (Gf/Gc/Ps/Vm) remain. Continue?")) return;
     setResetting(true);
     try {
-      // 1. Clear hidden activities in localStorage
       localStorage.removeItem("mindos_hidden_activities");
-      // 2. Clear activity logs in localStorage
       localStorage.removeItem("mindos_activity_logs");
       alert("Training activities reset to Rank F. Refreshing...");
       window.location.reload();
@@ -76,7 +86,6 @@ export default function ResetPanel() {
     if (!confirm("Reset ally progress? All unlocked allies will be locked again.")) return;
     setResetting(true);
     try {
-      localStorage.removeItem("mindos_allies");
       alert("Allies reset.");
       window.location.reload();
     } catch (e) {
@@ -89,8 +98,6 @@ export default function ResetPanel() {
     if (!confirm("Reset skill tree unlocks? All SP will be refunded.")) return;
     setResetting(true);
     try {
-      localStorage.removeItem("mindos_skill_tree");
-      localStorage.removeItem("mindos_skillTree");
       alert("Skill tree reset.");
       window.location.reload();
     } catch (e) {
@@ -104,15 +111,7 @@ export default function ResetPanel() {
     setResetting(true);
     localStorage.removeItem("mindos_game_state");
     localStorage.removeItem("mindos_class");
-    localStorage.removeItem("mindos_rank_xp");
     localStorage.removeItem("mindos_streak");
-    localStorage.removeItem("mindos_skill_tree");
-    localStorage.removeItem("mindos_skillTree");
-    localStorage.removeItem("mindos_allies");
-    localStorage.removeItem("mindos_mutators");
-    localStorage.removeItem("mindos_prestige");
-    localStorage.removeItem("mindos_scrolls");
-
     resetMutation.mutate("stats");
   };
 

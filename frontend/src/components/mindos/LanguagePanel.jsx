@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Globe, Ruler, ChevronDown, Check } from "lucide-react";
-import { queueAutoSync } from "@/lib/cloudSync";
 import BottomSheet from "@/components/ui/BottomSheet";
 
 const LANGUAGES = [
@@ -22,7 +21,6 @@ export default function LanguagePanel() {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
-    queueAutoSync();
   };
 
   const currentLang = LANGUAGES.find(l => l.id === (settings.language || "en")) || LANGUAGES[0];

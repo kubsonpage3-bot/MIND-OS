@@ -1,13 +1,7 @@
 import { useMemo } from "react";
 import { getLevelTitle } from "@/lib/cognitiveEngine";
 
-function getStreakCount() {
-  try {
-    const raw = localStorage.getItem("mindos_streak");
-    if (raw) return JSON.parse(raw).streakCount || 0;
-  } catch {}
-  return 0;
-}
+
 
 const XP_PER_LEVEL = 500;
 
@@ -20,7 +14,7 @@ export default function StatsPanel({ profile, logs }) {
 
   const weeklyXP = weekLogs.reduce((sum, l) => sum + (l.xp_earned || 0), 0);
   const xpPct = (weeklyXP % XP_PER_LEVEL) / XP_PER_LEVEL * 100;
-  const streak = getStreakCount();
+  const streak = 0;
 
   const cognitiveROI = useMemo(() => {
     const withEff = weekLogs.filter(l => l.efficiency_total != null);

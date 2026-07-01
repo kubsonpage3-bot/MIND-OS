@@ -106,9 +106,11 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     from api.models import BossEncounter, UserProfile
     from api.services.profile_service import gain_xp
 
-    active_encounter = BossEncounter.objects.select_for_update().filter(
-        user=user, is_defeated=False
-    ).first()
+    active_encounter = (
+        BossEncounter.objects.select_for_update()
+        .filter(user=user, is_defeated=False)
+        .first()
+    )
 
     if not active_encounter:
         return None
@@ -179,17 +181,18 @@ def revert_boss_damage(user, encounter_id, damage_to_heal):
     """
     from api.models import BossEncounter, UserStats
 
-    active_encounter = BossEncounter.objects.select_for_update().filter(
-        id=encounter_id, user=user, is_defeated=False
-    ).first()
+    active_encounter = (
+        BossEncounter.objects.select_for_update()
+        .filter(id=encounter_id, user=user, is_defeated=False)
+        .first()
+    )
 
     if not active_encounter:
         return  # Safe no-op if boss was defeated or encounter is gone
 
     # Heal the boss, capping at max HP
     active_encounter.hp_current = min(
-        active_encounter.boss.hp_max, 
-        active_encounter.hp_current + damage_to_heal
+        active_encounter.boss.hp_max, active_encounter.hp_current + damage_to_heal
     )
     active_encounter.save(update_fields=["hp_current"])
 

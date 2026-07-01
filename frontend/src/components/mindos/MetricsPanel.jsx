@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateIQ } from "@/lib/cognitiveEngine";
-import { Brain, Zap, BookOpen, Eye, Save, RefreshCw, Info } from "lucide-react";
+import { Brain, Zap, BookOpen, Eye, Info } from "lucide-react";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 const METRIC_META = {
   gf: { icon: Brain,   color: "#3b82f6", bg: "rgba(59, 130, 246, 0.08)", border: "rgba(59, 130, 246, 0.25)", label: "Fluid Intelligence",         abbr: "Gf", hint: "Abstract reasoning, pattern recognition, problem solving" },
@@ -38,78 +38,15 @@ function Slider({ value, min, max, step = 0.1, color, onChange }) {
 }
 
 export default function MetricsPanel() {
-  const [gameState, setGameState] = useState(null);
-  const [draft, setDraft] = useState(null);
-  const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [activeHint, setActiveHint] = useState(null);
+  const { profile } = useDjangoAuth();
 
-  useEffect(() => {
-    try {
-      const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-      setGameState(gs);
-      setDraft({
-        gf: gs.gf ?? 100.0,
-        gc: gs.gc ?? 100.0,
-        ps: gs.ps ?? 100.0,
-        vm: gs.vm ?? 100.0,
-        gf_ceiling: gs.gf_ceiling ?? 120.0,
-        gc_ceiling: gs.gc_ceiling ?? 135.0,
-        ps_ceiling: gs.ps_ceiling ?? 112.0,
-        vm_ceiling: gs.vm_ceiling ?? 138.0,
-      });
-      setLoading(false);
-    } catch (e) {
-      console.error("Failed to load game state in MetricsPanel:", e);
-    }
-  }, []);
-
-  const handleSave = async () => {
-    if (!draft) return;
-    setSaving(true);
-    try {
-      const gs = JSON.parse(localStorage.getItem("mindos_game_state") || "{}");
-      const updatedGs = {
-        ...gs,
-        gf: draft.gf,
-        gc: draft.gc,
-        ps: draft.ps,
-        vm: draft.vm,
-        gf_ceiling: draft.gf_ceiling,
-        gc_ceiling: draft.gc_ceiling,
-        ps_ceiling: draft.ps_ceiling,
-        vm_ceiling: draft.vm_ceiling,
-      };
-      localStorage.setItem("mindos_game_state", JSON.stringify(updatedGs));
-      setGameState(updatedGs);
-
-      // Dispatch event to notify dashboard of state changes
-      window.dispatchEvent(new Event("storage"));
-      window.dispatchEvent(new CustomEvent("mindos-state-change", { detail: updatedGs }));
-
-      setSaved(true);
-    } catch (e) {
-      console.error("Failed to save game state:", e);
-    } finally {
-      setSaving(false);
-      setTimeout(() => setSaved(false), 2000);
-    }
-  };
-
-  const draftIQ = draft ? calculateIQ(draft.gf, draft.gc, draft.ps, draft.vm) : 0;
-
-  if (loading) return (
-    <div className="flex items-center justify-center py-12">
-      <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "var(--habit-purple)" }} />
-    </div>
-  );
-
-  if (!gameState) return (
+  if (!profile) return (
     <div className="text-center py-12 text-sm text-[var(--habit-dim)]">
       No profile found. Complete the setup first.
     </div>
   );
+
+  const draftIQ = calculateIQ(profile.gf, profile.gc, profile.ps, profile.vm);
 
   return (
     <div className="space-y-4">
@@ -192,56 +129,27 @@ export default function MetricsPanel() {
               )}
             </AnimatePresence>
 
-            {/* Current value slider */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] text-[var(--habit-dim)]">
-                <span>Current Value</span>
-                <span>80 → {ceil}</span>
+            {/* Values display */}
+            <div className="space-y-1 mt-3">
+              <div className="flex justify-between text-[10px] text-[var(--habit-dim)] mb-1">
+                <span>Value</span>
+                <span>{val} / {ceil}</span>
               </div>
-              <Slider value={val} min={80} max={ceil} step={0.1} color={meta.color}
-                onChange={v => setDraft(d => ({ ...d, [mk]: Math.round(v * 10) / 10 }))} />
-            </div>
-
-            {/* Ceiling slider */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] text-[var(--habit-dim)]">
-                <span>Genetic Ceiling</span>
-                <span style={{ color: meta.color, fontWeight: 700 }}>{ceil}</span>
+              
+              {/* Mini progress bar */}
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: meta.border }}>
+                <motion.div
+                  animate={{ width: `${Math.min(100, ((val - 80) / (ceil - 80)) * 100)}%` }}
+                  transition={{ duration: 0.4 }}
+                  className="h-full rounded-full"
+                  style={{ background: meta.color, boxShadow: `0 0 6px ${meta.color}88` }}
+                />
               </div>
-              <Slider value={ceil} min={90} max={160} step={1} color={meta.color + "88"}
-                onChange={v => setDraft(d => ({ ...d, [`${mk}_ceiling`]: Math.round(v) }))} />
-            </div>
-
-            {/* Mini progress bar */}
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: meta.border }}>
-              <motion.div
-                animate={{ width: `${Math.min(100, ((val - 80) / (ceil - 80)) * 100)}%` }}
-                transition={{ duration: 0.4 }}
-                className="h-full rounded-full"
-                style={{ background: meta.color, boxShadow: `0 0 6px ${meta.color}88` }}
-              />
             </div>
           </motion.div>
         );
       })}
 
-      {/* Save button */}
-      <motion.button
-        onClick={handleSave}
-        disabled={saving}
-        whileTap={{ scale: 0.97 }}
-        className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-        style={{
-          background: saved ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, var(--habit-purple), #9b87ff)",
-          color: "white",
-          boxShadow: saved ? "0 4px 16px rgba(34,197,94,0.4)" : "0 4px 16px var(--habit-purple-glow)",
-        }}
-        animate={{ scale: saved ? [1, 1.02, 1] : 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        {saved ? "✓ Saved!" : saving ? "Saving..." : "Save Metrics"}
-      </motion.button>
     </div>
   );
 }

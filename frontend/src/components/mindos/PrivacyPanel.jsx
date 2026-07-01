@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Shield, Eye, UserX, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
-import { queueAutoSync } from "@/lib/cloudSync";
 
 export default function PrivacyPanel() {
   const [privacy, setPrivacy] = useState(() => {
@@ -16,7 +15,6 @@ export default function PrivacyPanel() {
     const newSettings = { ...privacy, [key]: value };
     setPrivacy(newSettings);
     localStorage.setItem("mindos_privacy", JSON.stringify(newSettings));
-    queueAutoSync();
   };
 
   return (

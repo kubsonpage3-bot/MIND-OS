@@ -15,7 +15,7 @@ const PRESETS = [
 const CHARACTERS = {
   work: {
     name: "BEATRIX",
-    image: "/images/original/5325ab6bf_pomodorp3.png",
+    image: "/images/webp/5325ab6bf_pomodorp3.webp",
     color: "#60a5fa",
     glow: "rgba(96,165,250,0.5)",
     accent: "#3b82f6",
@@ -24,7 +24,7 @@ const CHARACTERS = {
   },
   break: {
     name: "LIGHTNING",
-    image: "/images/original/fa6645d8f_pomodorp2.png",
+    image: "/images/webp/fa6645d8f_pomodorp2.webp",
     color: "#f472b6",
     glow: "rgba(244,114,182,0.5)",
     accent: "#ec4899",
@@ -33,7 +33,7 @@ const CHARACTERS = {
   },
   longBreak: {
     name: "SUMMONER",
-    image: "/images/original/cb162ffce_pomodorp1.png",
+    image: "/images/webp/cb162ffce_pomodorp1.webp",
     color: "#a78bfa",
     glow: "rgba(167,139,250,0.5)",
     accent: "#8b5cf6",
