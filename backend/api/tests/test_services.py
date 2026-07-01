@@ -432,8 +432,45 @@ def test_task_multipliers_applied(user, profile, task):
 
 
 @pytest.mark.django_db
+def test_tithe_mutator_triggers_death(user, profile, task):
+    """
+    Tests that the Tithe mutator applies its drawback, 
+    and if HP drops to <= 0, check_death is triggered.
+    """
+    from api.services.task_service import complete_task
+    
+    profile.gold = 0
+    profile.hp = 2
+    profile.level = 5
+    profile.rank_xp = 500
+    
+    profile.active_mutators = {
+        "active": [{"id": "tithe", "duration": None}],
+        "purchased": ["tithe"]
+    }
+    profile.save()
+    
+    # Complete a task
+    result = complete_task(user, task.id, True)
+    
+    profile.refresh_from_db()
+    
+    # Tithe drawback should deduct 5 HP since gold < 3.
+    # Original HP was 2, so it falls <= 0, triggering check_death.
+    assert result.get("is_dead") is True
+    assert profile.hp == profile.max_hp
+    # profile.xp may be > 0 because the task reward is applied AFTER the death reset.
+    assert profile.xp >= 0
+    assert profile.level == 4
+    # Rank XP should be dropped to the minimum of rank 4 (or whatever rank_xp corresponds to).
+    
+
+@pytest.mark.django_db
 def test_custom_button_task_rewards(user, profile):
     from api.models import Task
+    from api.views import TrainingLogView
+    from django.test.client import RequestFactory
+    from rest_framework.test import force_authenticate
 
     button_task = Task.objects.create(
         user=user,
@@ -446,10 +483,6 @@ def test_custom_button_task_rewards(user, profile):
         gold_reward=15,
         boss_damage=30,
     )
-
-    from django.test.client import RequestFactory
-    from api.views import TrainingLogView
-    from rest_framework.test import force_authenticate
 
     factory = RequestFactory()
     view = TrainingLogView.as_view()

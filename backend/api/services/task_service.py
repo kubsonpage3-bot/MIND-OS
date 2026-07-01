@@ -152,9 +152,24 @@ def complete_task(user, task_id, is_positive=True):
     unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
     recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
 
+    # Apply mutators
+    from api.services.mechanics import apply_active_mutators
+    
+    task_category = getattr(task, "category", "")
+    is_science = task_category in {"Math", "Physics", "Coding", "Chemistry", "Biology"}
+    is_language = task_category in {"English", "Languages", "History", "Philosophy"}
+    
+    mutator_effects = apply_active_mutators(profile, {
+        "is_science": is_science,
+        "is_language": is_language,
+        "hours": 0
+    })
+
+    mutator_died = mutator_effects.get("is_dead", False)
+
     # Calculate additive multipliers
-    gold_mult = 1.0
-    xp_mult = 1.0
+    gold_mult = mutator_effects.get("gold_mult", 1.0)
+    xp_mult = mutator_effects.get("xp_mult", 1.0)
 
     # Skills
     if "resource_awareness" in unlocked_skills:
@@ -401,6 +416,8 @@ def complete_task(user, task_id, is_positive=True):
         "mana_gained": mana_gained if is_positive else -mana_gained,
         "gamification_result": gamification_result,
         "newly_unlocked_achievements": unlocked_achievements,
+        "is_dead": mutator_died,
+        "died": mutator_died,
     }
 
 

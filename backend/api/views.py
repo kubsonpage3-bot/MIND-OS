@@ -717,7 +717,6 @@ class TrainingLogView(generics.GenericAPIView):
         data = request.data
         hours = float(data.get("hours", 0))
         focus_rating = float(data.get("focus_rating", 5))
-        mutator_multiplier = float(data.get("mutator_multiplier", 1.0))
         flat_xp_bonus = int(data.get("flat_xp_bonus", 0))
         activity = data.get("activity", "")
 
@@ -769,9 +768,20 @@ class TrainingLogView(generics.GenericAPIView):
                 a.ally_code: a.level for a in profile.recruited_allies.all()
             }
 
+            # Apply mutators
+            from api.services.mechanics import apply_active_mutators
+            mutator_effects = apply_active_mutators(profile, {
+                "is_science": is_science,
+                "is_language": is_language,
+                "hours": hours,
+            })
+
             # Initialize multipliers (additive approach)
-            xp_mult = 1.0
-            gold_mult = 1.0
+            xp_mult = mutator_effects.get("xp_mult", 1.0)
+            gold_mult = mutator_effects.get("gold_mult", 1.0)
+            flat_xp_bonus += mutator_effects.get("flat_xp", 0)
+            gc_flat_bonus = mutator_effects.get("gc_flat", 0.0)
+
             gf_mult = 1.0
             gc_mult = 1.0
             ps_mult = 1.0
@@ -868,7 +878,7 @@ class TrainingLogView(generics.GenericAPIView):
             )
             
             gc_gain = gains["gc"]
-            profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult)
+            profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult + gc_flat_bonus)
             
             ps_gain = gains["ps"]
             profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain * ps_mult)
@@ -887,10 +897,10 @@ class TrainingLogView(generics.GenericAPIView):
 
                 scale = (hours / def_hours) * (focus_rating / def_focus)
                 base_xp = (
-                    (scale * task.xp_reward) * mutator_multiplier + flat_xp_bonus
+                    (scale * task.xp_reward) + flat_xp_bonus
                 ) * xp_mult
                 base_gold = (
-                    (scale * task.gold_reward) * mutator_multiplier
+                    (scale * task.gold_reward)
                 ) * gold_mult
                 raw_boss_dmg = int(scale * task.boss_damage)
 
@@ -900,9 +910,9 @@ class TrainingLogView(generics.GenericAPIView):
                 task.save()
             else:
                 base_xp = (
-                    (hours * focus_rating * 5) * mutator_multiplier + flat_xp_bonus
+                    (hours * focus_rating * 5) + flat_xp_bonus
                 ) * xp_mult
-                base_gold = ((hours * 25) * mutator_multiplier) * gold_mult
+                base_gold = ((hours * 25)) * gold_mult
                 raw_boss_dmg = int(hours * focus_rating * 10)
 
             outcome = calculate_task_outcome(

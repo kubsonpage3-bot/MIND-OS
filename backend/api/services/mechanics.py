@@ -252,3 +252,56 @@ def revert_boss_damage(user, encounter_id, damage_to_heal):
         stats.save(update_fields=["total_boss_damage"])
     except UserStats.DoesNotExist:
         pass
+
+
+def apply_active_mutators(profile, context: dict):
+    """
+    Applies active mutators on the profile and handles immediate drawbacks like Tithe.
+    Returns a dictionary with multipliers and flags.
+    context keys: is_science (bool), is_language (bool), hours (float)
+    """
+    from api.services.profile_service import check_death
+    
+    active_mutators = profile.active_mutators or {}
+    active_list = active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
+    active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+
+    is_science = context.get("is_science", False)
+    is_language = context.get("is_language", False)
+    hours = context.get("hours", 0)
+    
+    effects = {
+        "xp_mult": 1.0,
+        "gold_mult": 1.0,
+        "flat_xp": 0,
+        "gc_flat": 0.0,
+        "is_dead": False
+    }
+
+    if "loan_shark" in active_ids:
+        effects["gold_mult"] += 0.40
+        
+    if "cursed_clock" in active_ids and hours > 0:
+        effects["flat_xp"] += int(hours * 1)
+        
+    if "bloodwork" in active_ids:
+        if is_science:
+            effects["xp_mult"] += 0.20
+        else:
+            effects["xp_mult"] -= 0.05
+            
+    if "lexicon" in active_ids:
+        if is_language:
+            effects["xp_mult"] += 0.20
+        effects["gc_flat"] += 0.01
+        
+    if "tithe" in active_ids:
+        effects["xp_mult"] += 0.15
+        if profile.gold >= 3:
+            profile.gold -= 3
+        else:
+            profile.hp = max(0, profile.hp - 5)
+            if check_death(profile):
+                effects["is_dead"] = True
+                
+    return effects

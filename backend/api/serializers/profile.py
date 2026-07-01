@@ -152,9 +152,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if request and hasattr(request, "data"):
             data = request.data
 
-            # Update Active Mutators (since it's a JSON field, it might already be in validated_data, but just in case)
+            # Update Active Mutators
             if "active_mutators" in data:
-                instance.active_mutators = data["active_mutators"]
+                active_mutators_data = data["active_mutators"]
+                if isinstance(active_mutators_data, dict):
+                    active_list = active_mutators_data.get("active", [])
+                    if len(active_list) > 3:
+                        from rest_framework.exceptions import ValidationError
+                        raise ValidationError("Maximum of 3 active mutators allowed.")
+                instance.active_mutators = active_mutators_data
 
             # Update Rival Data
             if "rival_data" in data:
