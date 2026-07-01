@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { SKILL_TREE, saveRPGData } from "@/lib/rpgSystem";
+
+import { SKILL_TREE } from "@/constants/rpgData";
 import { Lock, RotateCcw, Save } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playSound } from "@/lib/soundEffects.js";
