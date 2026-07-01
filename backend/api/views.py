@@ -83,11 +83,15 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Профиль персонажа
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+@method_decorator(never_cache, name='dispatch')
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     GET    /api/profile/ — получить свой профиль
@@ -116,6 +120,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+@method_decorator(never_cache, name='dispatch')
 class TaskViewSet(viewsets.ModelViewSet):
     """
     Полный CRUD для задач пользователя.

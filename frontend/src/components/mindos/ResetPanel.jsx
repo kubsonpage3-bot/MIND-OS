@@ -12,8 +12,19 @@ export default function ResetPanel() {
 
   const resetMutation = useMutation({
     mutationFn: /** @param {string} type */ (type) => djangoApi.profile.reset(type),
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       queryClientInstance.clear();
+      
+      // Force-clear the SW cache to prevent stale data
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        } catch (e) {
+          console.error("Failed to clear SW cache:", e);
+        }
+      }
+
       if (variables !== "nuclear") {
         alert("Reset completed. Refreshing...");
         window.location.reload();

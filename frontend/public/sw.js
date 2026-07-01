@@ -40,11 +40,25 @@ self.addEventListener('activate', (event) => {
 // Fetch events: Stale-While-Revalidate strategy for static assets
 self.addEventListener('fetch', (event) => {
   // Only cache GET requests
-  if (event.request.method !== 'GET') return;
-  // Ignore API requests
-  if (event.request.url.includes('/api/')) return;
+  if (event.request.method !== 'GET') {
+    // For non-GET requests (POST, PATCH, DELETE) to API, just fetch directly
+    return;
+  }
+  
+  const url = event.request.url;
+
+  // 1. All requests to the API domain must bypass both SW and Browser HTTP cache
+  if (url.includes('/api/') || url.includes('mind-os-d5sk.onrender.com')) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' }).catch((err) => {
+        throw err;
+      })
+    );
+    return;
+  }
+
   // Ignore hot-reloads or chrome extensions
-  if (!event.request.url.startsWith(self.location.origin)) return;
+  if (!url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
