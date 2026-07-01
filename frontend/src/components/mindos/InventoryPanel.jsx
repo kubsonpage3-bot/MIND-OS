@@ -1,68 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getTierColor, loadGameState, saveGameState } from "@/lib/gameState";
+import { getTierColor } from "@/lib/gameState";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { Package, Zap } from "lucide-react";
 import { getMediaUrl } from "@/api/djangoClient";
 
-const CONSUMABLE_EFFECTS = {
-  focus_stim: {
-    apply: (gs) => {
-      // Store a flag: next session focus multiplier ×1.3
-      return { ...gs, consumables: { ...(gs.consumables || {}), focus_stim: { active: true, usedAt: Date.now() } } };
-    },
-    desc: "Focus Stim active — your next session gets ×1.3 FOC multiplier",
-    color: "#00aaff",
-  },
-  memory_patch: {
-    apply: (gs, profile, setProfile) => {
-      // +0.2 Gc instantly — stored via a pending cognitive gain flag
-      const current = gs.consumables || {};
-      return { ...gs, consumables: { ...current, memory_patch: { gc_gain: 0.2, usedAt: Date.now() } } };
-    },
-    desc: "+0.2 Gc stored — will apply on next activity log",
-    color: "#22c55e",
-  },
-  xp_booster: {
-    apply: (gs) => {
-      return { ...gs, consumables: { ...(gs.consumables || {}), xp_booster: { active: true, expiresAt: Date.now() + 86400000 } } };
-    },
-    desc: "+50% XP active for 24 hours",
-    color: "#f0c040",
-  },
-  streak_shield: {
-    apply: (gs) => {
-      return { ...gs, consumables: { ...(gs.consumables || {}), streak_shield: { active: true, usedAt: Date.now() } } };
-    },
-    desc: "Streak Shield active — your next missed day won't break the streak",
-    color: "#a855f7",
-  },
-  boss_damage_plus: {
-    apply: (gs) => {
-      return { ...gs, consumables: { ...(gs.consumables || {}), boss_damage_plus: { active: true, usedAt: Date.now() } } };
-    },
-    desc: "×2 boss damage active for your next session",
-    color: "#ef4444",
-  },
-};
+// Consumable effects are handled server-side via the shop buy endpoint.
+// Do NOT track consumable state in localStorage — use the backend profile as SSOT.
 
-export function getActiveConsumable(id) {
-  try {
-    const gs = loadGameState();
-    const c = gs.consumables?.[id];
-    if (!c || !c.active) return null;
-    if (c.expiresAt && Date.now() > c.expiresAt) return null;
-    return c;
-  } catch { return null; }
-}
 
-export function consumeEffect(id) {
-  try {
-    const gs = loadGameState();
-    const newGs = { ...gs, consumables: { ...(gs.consumables || {}), [id]: { active: false } } };
-    saveGameState(newGs);
-  } catch {}
-}
 
 export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [tab, setTab] = useState("gear");

@@ -82,20 +82,12 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   });
 
   const gold = profile?.gold || 0;
-  const spendGold = async (amount) => {
-    if (profile) {
-      const newGold = Math.max(0, (profile.gold || 0) - amount);
-      // Optimistic update
-      queryClient.setQueryData(["userprofile"], { ...profile, gold: newGold });
-      try {
-        await djangoApi.profile.update({ gold: newGold });
-      } catch (e) {
-        console.error("Failed to update gold on backend:", e);
-        // Rollback
-        queryClient.setQueryData(["userprofile"], profile);
-      }
-    }
-  };
+  // Gold is SSOT on the Django backend.
+  // It is only mutated as a side-effect of shop/ally/skill mutations,
+  // which each call invalidateQueries(['userprofile']) in their onSuccess.
+  // We NEVER write gold directly from local state — that caused the reset resurrection bug.
+  const spendGold = () => {}; // no-op: child panels use their own mutations
+
 
   // Use prop if provided, fallback to profile data
   const rankXP = rankXPProp !== undefined ? rankXPProp : (profile?.rank_xp || 0);

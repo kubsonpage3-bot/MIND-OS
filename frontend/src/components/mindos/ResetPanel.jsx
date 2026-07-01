@@ -32,7 +32,12 @@ export default function ResetPanel() {
         "mindos_tasks", 
         "mindos_class",
         "mindos_activity_logs", 
-        "mindos_hidden_activities"
+        "mindos_hidden_activities",
+        "mindos_prestige",
+        "mindos_scrolls",
+        "mindos_mutators",
+        "mindos_allies",
+        "mindos_skill_tree",
       ];
       keysToClear.forEach(key => localStorage.removeItem(key));
 
@@ -129,7 +134,11 @@ export default function ResetPanel() {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       window.dispatchEvent(new CustomEvent('django-auth-logout'));
-      window.location.href = '/login';
+      // Wait 600ms for Django's async token blacklist to propagate
+      // before potentially re-logging in, to prevent stale session resurrection
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 600);
     } catch (e) {
       console.error("Nuclear reset failed:", e);
       setResetting(false);
