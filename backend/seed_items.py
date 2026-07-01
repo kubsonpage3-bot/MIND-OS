@@ -1,4 +1,4 @@
-﻿import os
+import os
 import django
 
 # Setup Django if not running via manage.py shell
@@ -250,6 +250,147 @@ items_data = [
         "tier": "Epic",
         "cost": 500,
         "hp_boost": 9999,
+    },
+    # BOSS DROPS
+    {
+        "id": "wanderers_hood",
+        "slot": "headware",
+        "name": "Wanderer's Hood",
+        "tier": "Rare",
+        "cost": 0,
+    },
+    {
+        "id": "bone_bracelet",
+        "slot": "arms",
+        "name": "Bone Bracelet",
+        "tier": "Rare",
+        "cost": 0,
+    },
+    {
+        "id": "heralds_fang",
+        "slot": "core",
+        "name": "Herald's Fang",
+        "tier": "Rare",
+        "cost": 0,
+    },
+    {
+        "id": "wardens_quill",
+        "slot": "arms",
+        "name": "Warden's Quill",
+        "tier": "Rare",
+        "cost": 0,
+    },
+    {
+        "id": "echo_bell",
+        "slot": "ring1",
+        "name": "Echo Bell",
+        "tier": "Epic",
+        "cost": 0,
+    },
+    {
+        "id": "frostbite_blade",
+        "slot": "arms",
+        "name": "Frostbite Blade",
+        "tier": "Epic",
+        "cost": 0,
+    },
+    {
+        "id": "silk_mantle",
+        "slot": "core",
+        "name": "Silk Mantle",
+        "tier": "Epic",
+        "cost": 0,
+    },
+    {
+        "id": "ember_gauntlet",
+        "slot": "arms",
+        "name": "Ember Gauntlet",
+        "tier": "Epic",
+        "cost": 0,
+    },
+    {
+        "id": "glass_tear",
+        "slot": "ring2",
+        "name": "Glass Tear",
+        "tier": "Epic",
+        "cost": 0,
+    },
+    {
+        "id": "leviathan_scale",
+        "slot": "core",
+        "name": "Leviathan Scale",
+        "tier": "Epic",
+        "cost": 0,
+    },
+    {
+        "id": "crown_of_ash",
+        "slot": "headware",
+        "name": "Crown of Ash",
+        "tier": "Legendary",
+        "cost": 0,
+    },
+    {
+        "id": "golems_grip",
+        "slot": "arms",
+        "name": "Golem's Grip",
+        "tier": "Legendary",
+        "cost": 0,
+    },
+    {
+        "id": "scar_shard",
+        "slot": "core",
+        "name": "Scar Shard",
+        "tier": "Legendary",
+        "cost": 0,
+    },
+    {
+        "id": "forgotten_score",
+        "slot": "neural_link",
+        "name": "Forgotten Score",
+        "tier": "Legendary",
+        "cost": 0,
+    },
+    {
+        "id": "abyssal_purse",
+        "slot": "ring1",
+        "name": "Abyssal Purse",
+        "tier": "Legendary",
+        "cost": 0,
+    },
+    {
+        "id": "winter_plate",
+        "slot": "core",
+        "name": "Winter Plate",
+        "tier": "Legendary",
+        "cost": 0,
+    },
+    {
+        "id": "throne_seal",
+        "slot": "ring2",
+        "name": "Throne Seal",
+        "tier": "Mythic",
+        "cost": 0,
+    },
+    {
+        "id": "eclipse_eye",
+        "slot": "neural_link",
+        "name": "Eclipse Eye",
+        "tier": "Mythic",
+        "cost": 0,
+    },
+    {
+        "id": "mask_nameless",
+        "slot": "headware",
+        "name": "Mask of the Nameless",
+        "tier": "Mythic",
+        "cost": 0,
+    },
+    {
+        "id": "blade_final_dusk",
+        "slot": "arms",
+        "name": "Blade of Final Dusk",
+        "tier": "Mythic",
+        "cost": 0,
     },
 ]
 
