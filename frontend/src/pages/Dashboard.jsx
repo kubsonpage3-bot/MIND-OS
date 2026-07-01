@@ -4,6 +4,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "@/components/ui/use-toast";
 
 import IQDisplay from "@/components/mindos/IQDisplay";
 import MetricBar from "@/components/mindos/MetricBar";
@@ -240,6 +241,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     },
     onError: (err) => {
       console.error("Training logging failed:", err);
+      toast({
+        variant: "destructive",
+        title: "Session Expired",
+        description: "Your session may have expired. Please log in again if this persists.",
+      });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     }
   });
@@ -290,15 +296,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     if (focusRating >= 9) playSound('critical_hit');
 
     logTraining.mutate({
-      gf: newProfile.gf,
-      gc: newProfile.gc,
-      ps: newProfile.ps,
-      vm: newProfile.vm,
       hours: hours,
       focus_rating: focusRating,
       mutator_multiplier: 1.0,
       flat_xp_bonus: 0,
-      activity: activityKey
+      activity: activityKey,
+      efficiency: efficiency?.total || 1.0
     }, {
       onSuccess: (res) => {
         // We now have the updated Profile in `res.profile`
@@ -318,14 +321,21 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           ? `Focus(×${efficiency.focus.toFixed(2)}) · Streak(×${efficiency.streak.toFixed(2)}) · Fatigue(×${efficiency.fatigue.toFixed(2)}) · Dim(×${efficiency.diminishing.toFixed(2)}) = ×${efficiency.total.toFixed(2)}`
           : "";
 
-        const gainLines = Object.entries(gains)
+        const backendGains = {
+          gf: res.gf_gain || 0,
+          gc: res.gc_gain || 0,
+          ps: res.ps_gain || 0,
+          vm: res.vm_gain || 0,
+        };
+
+        const gainLines = Object.entries(backendGains)
           .filter(([, v]) => v > 0)
           .map(([mk]) => {
             const mc = METRIC_CONFIG[mk];
             const actDetails = getActivityDetails(activityKey, tasks);
             const baseCoeff = actDetails ? actDetails.coefficients[mk] || 0 : 0;
             const raw = (baseCoeff * hours).toFixed(3);
-            const final = gains[mk].toFixed(3);
+            const final = backendGains[mk].toFixed(3);
             return `${mc.abbr} base ${raw} → +${final}`;
           }).join(" · ");
 

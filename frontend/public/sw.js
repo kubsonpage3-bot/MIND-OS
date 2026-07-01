@@ -60,6 +60,32 @@ self.addEventListener('fetch', (event) => {
   // Ignore hot-reloads or chrome extensions
   if (!url.startsWith(self.location.origin)) return;
 
+  const acceptHeader = event.request.headers.get('accept') || '';
+  const isHTML = acceptHeader.includes('text/html') || url === self.location.origin + '/';
+  const isJS = url.endsWith('.js');
+
+  // 2. HTML and JS Bundles MUST be Network-First to prevent stale versions on mobile
+  if (isHTML || isJS) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache if offline
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // 3. Other static assets (images, fonts, manifest) use Stale-While-Revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

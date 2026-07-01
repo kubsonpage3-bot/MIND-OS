@@ -9,12 +9,12 @@ const BASE_URL = 'https://mind-os-d5sk.onrender.com/api';
 export function getMediaUrl(path) {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  
+
   // Serve static assets directly from the frontend's public directory
   if (path.startsWith('/static/')) {
     return path;
   }
-  
+
   return `${API_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
@@ -231,7 +231,7 @@ export const djangoApi = {
       djangoFetch('/profile/prestige/', {
         method: 'POST',
       }),
-      
+
     reset: (resetType) =>
       djangoFetch('/profile/reset/', {
         method: 'POST',
@@ -303,7 +303,7 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ skill_code: skillCode }),
       }),
-      
+
     respec: () => djangoFetch('/skills/respec/', { method: 'POST' }),
   },
 

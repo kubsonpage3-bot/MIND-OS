@@ -1,6 +1,55 @@
 import random
 from api.models import UserProfile, Item
 
+COGNITIVE_COEFFICIENTS = {
+    "mathematics": {"gf": 0.08, "ps": 0.04, "gc": 0.01, "vm": 0},
+    "physics": {"gf": 0.07, "ps": 0.05, "gc": 0.01, "vm": 0},
+    "chemistry": {"gf": 0.05, "ps": 0.05, "gc": 0.03, "vm": 0},
+    "biology": {"gf": 0.03, "ps": 0.02, "gc": 0.06, "vm": 0.04},
+    "history": {"gf": 0.01, "ps": 0, "gc": 0.09, "vm": 0.02},
+    "english": {"gf": 0, "ps": 0.02, "gc": 0.07, "vm": 0.10},
+    "philosophy": {"gf": 0.02, "ps": 0, "gc": 0.08, "vm": 0.04},
+    "vocabulary": {"gf": 0, "ps": 0, "gc": 0.05, "vm": 0.12},
+    "languages": {"gf": 0, "ps": 0.03, "gc": 0.06, "vm": 0.07},
+    "chess": {"gf": 0.09, "ps": 0.06, "gc": 0, "vm": 0},
+    "coding": {"gf": 0.07, "ps": 0.08, "gc": 0.01, "vm": 0},
+    "creative_answers": {"gf": 0.015, "gc": 0.010, "vm": 0.008, "ps": 0.005},
+    "exercise": {"gf": 0.02, "ps": 0.05, "gc": 0, "vm": 0},
+    "running": {"gf": 0.04, "ps": 0.05, "gc": 0, "vm": 0},
+    "prayer": {"gf": 0, "ps": 0, "gc": 0.06, "vm": 0.06},
+    "mindfulness": {"gf": 0, "ps": 0, "gc": 0.06, "vm": 0.06},
+    "sleep": {"gf": 0.01, "ps": 0.01, "gc": 0.01, "vm": 0.01},
+    "nutrition": {"gf": 0.01, "ps": 0.02, "gc": 0.02, "vm": 0.01},
+    "reading": {"gf": 0.01, "ps": 0, "gc": 0.07, "vm": 0.05},
+    "social": {"gf": 0.01, "ps": 0.03, "gc": 0.03, "vm": 0.05},
+    "music": {"gf": 0.03, "ps": 0.04, "gc": 0.03, "vm": 0.03},
+    "art": {"gf": 0.04, "ps": 0.03, "gc": 0.03, "vm": 0.02},
+    "other": {"gf": 0.02, "ps": 0.02, "gc": 0.02, "vm": 0.02},
+}
+
+def calculate_cognitive_gains(activity, hours, eff_total, profile):
+    # Normalize activity key (e.g., lowercase)
+    activity_key = activity.lower() if isinstance(activity, str) else "other"
+    # Fallback for custom tasks mapped to categories
+    if activity_key not in COGNITIVE_COEFFICIENTS:
+        activity_key = "other"
+    
+    coeffs = COGNITIVE_COEFFICIENTS[activity_key]
+    
+    def get_growth_multiplier(current, ceiling):
+        if ceiling <= 0:
+            return 0
+        ratio = current / ceiling
+        return max(0.0, 1.0 - (ratio ** 2))
+
+    # Base gain formula from frontend: coeff * hours * multiplier * effTotal
+    return {
+        "gf": coeffs.get("gf", 0) * hours * eff_total * get_growth_multiplier(profile.gf, profile.gf_ceiling),
+        "gc": coeffs.get("gc", 0) * hours * eff_total * get_growth_multiplier(profile.gc, profile.gc_ceiling),
+        "ps": coeffs.get("ps", 0) * hours * eff_total * get_growth_multiplier(profile.ps, profile.ps_ceiling),
+        "vm": coeffs.get("vm", 0) * hours * eff_total * get_growth_multiplier(profile.vm, profile.vm_ceiling),
+    }
+
 
 def calculate_task_outcome(
     user, task_type, base_xp=0, base_gold=0, base_hp_lost=0, is_positive=True

@@ -711,7 +711,7 @@ class TrainingLogView(generics.GenericAPIView):
         from django.utils import timezone  # type: ignore
         from api.models import UserProfile, Task
         from api.services.profile_service import gain_xp
-        from api.services.mechanics import calculate_task_outcome, apply_boss_damage
+        from api.services.mechanics import calculate_task_outcome, apply_boss_damage, calculate_cognitive_gains
         from api.serializers.profile import UserProfileSerializer
 
         data = request.data
@@ -858,21 +858,23 @@ class TrainingLogView(generics.GenericAPIView):
                 ps_mult += 0.10
                 vm_mult += 0.10
 
-            # Update cognitive stats using difference (gain) and applying multipliers
-            if "gf" in data:
-                gf_gain = max(0.0, float(data["gf"]) - profile.gf)
-                profile.gf = min(
-                    profile.gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus
-                )
-            if "gc" in data:
-                gc_gain = max(0.0, float(data["gc"]) - profile.gc)
-                profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult)
-            if "ps" in data:
-                ps_gain = max(0.0, float(data["ps"]) - profile.ps)
-                profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain * ps_mult)
-            if "vm" in data:
-                vm_gain = max(0.0, float(data["vm"]) - profile.vm)
-                profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
+            # Update cognitive stats using backend calculation
+            eff_total = float(data.get("efficiency", 1.0))
+            gains = calculate_cognitive_gains(activity, hours, eff_total, profile)
+
+            gf_gain = gains["gf"]
+            profile.gf = min(
+                profile.gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus
+            )
+            
+            gc_gain = gains["gc"]
+            profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult)
+            
+            ps_gain = gains["ps"]
+            profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain * ps_mult)
+            
+            vm_gain = gains["vm"]
+            profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
 
             if task:
                 # [CRITICAL SAFETY CONDITIONS] Check against ZeroDivisionError
@@ -926,12 +928,12 @@ class TrainingLogView(generics.GenericAPIView):
                 activity_key=activity,
                 hours=hours,
                 focus_rating=focus_rating,
-                efficiency=data.get("efficiency", 1.0),
+                efficiency=eff_total,
                 xp_earned=final_xp,
-                gf_gain=gf_gain if "gf" in data else 0,
-                gc_gain=gc_gain if "gc" in data else 0,
-                ps_gain=ps_gain if "ps" in data else 0,
-                vm_gain=vm_gain if "vm" in data else 0,
+                gf_gain=gf_gain,
+                gc_gain=gc_gain,
+                ps_gain=ps_gain,
+                vm_gain=vm_gain,
             )
 
             # Boss Damage Logic
@@ -966,6 +968,10 @@ class TrainingLogView(generics.GenericAPIView):
                 "gold_earned": final_gold,
                 "xp_earned": final_xp,
                 "combat": combat_result,
+                "gf_gain": gf_gain,
+                "gc_gain": gc_gain,
+                "ps_gain": ps_gain,
+                "vm_gain": vm_gain,
             },
             status=status.HTTP_200_OK,
         )
