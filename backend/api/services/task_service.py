@@ -14,7 +14,7 @@ def complete_task(user, task_id, is_positive=True):
     Использует transaction.atomic и select_for_update для предотвращения состояния гонки.  # noqa: E501
     """
     try:
-        task = Task.objects.get(id=task_id, user=user)
+        task = Task.objects.select_for_update().get(id=task_id, user=user)
     except Task.DoesNotExist:
         raise ValidationError("Task not found.")
 
@@ -212,6 +212,9 @@ def complete_task(user, task_id, is_positive=True):
             task.last_reward_data["xp_earned"] = final_xp
             task.last_reward_data["gold_earned"] = final_gold
             task.last_reward_data["item_dropped"] = outcome.get("item_dropped")
+            if combat_result:
+                task.last_reward_data["encounter_id"] = combat_result.get("encounter_id")
+                task.last_reward_data["damage_dealt"] = combat_result.get("damage_dealt", 0)
     else:
         # Reverting task rewards (applying exact same amounts to avoid XP/Gold farming)
         if (
@@ -235,6 +238,13 @@ def complete_task(user, task_id, is_positive=True):
                             inv_item.delete()
                         else:
                             inv_item.save()
+
+            # Safely revert boss damage if recorded
+            damage_to_heal = task.last_reward_data.get("damage_dealt", 0)
+            encounter_id = task.last_reward_data.get("encounter_id")
+            if damage_to_heal > 0 and encounter_id:
+                from api.services.mechanics import revert_boss_damage
+                revert_boss_damage(user, encounter_id, damage_to_heal)
 
             gamification_result = {
                 "xp_lost": final_xp_lost,

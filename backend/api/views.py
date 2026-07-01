@@ -254,72 +254,36 @@ class TaskViewSet(viewsets.ModelViewSet):
     def toggle(self, request, pk=None):
         """
         POST /api/tasks/{id}/toggle/
-        Habitica-style toggle for ToDos:
-          - If not completed → award XP+Gold, store amounts, mark completed.
-          - If completed → revoke exactly the stored amounts, mark incomplete.
+        Wraps complete_task to handle Habitica-style toggle for ToDos.
         """
-        from django.utils import timezone
+        task = self.get_object()
+        is_positive = not task.is_completed
 
-        with transaction.atomic():
-            task = self.get_object()
-            profile = UserProfile.objects.select_for_update().get(user=request.user)
-
-            if not task.is_completed:
-                # COMPLETING: calculate and award
-                rewards = task.get_rewards()
-                xp_gain = int(rewards["xp"] * profile.xp_multiplier)
-                gold_gain = int(rewards["gold"] * profile.gold_multiplier)
-
-                task.is_completed = True
-                task.last_completed_at = timezone.now()
-                task.xp_awarded = xp_gain
-                task.gold_awarded = gold_gain
-                task.completion_count += 1
-                task.save()
-
-                profile.xp += xp_gain
-                profile.gold += gold_gain
-                profile.rank_xp += xp_gain
-                profile.save()
-
-                return Response(
-                    {
-                        "completed": True,
-                        "xp_change": xp_gain,
-                        "gold_change": gold_gain,
-                        "new_xp": profile.xp,
-                        "new_gold": profile.gold,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            else:
-                # UNCOMPLETING: revoke exactly what was awarded
-                xp_to_remove = task.xp_awarded
-                gold_to_remove = task.gold_awarded
-
-                task.is_completed = False
-                task.last_completed_at = None
-                task.xp_awarded = 0
-                task.gold_awarded = 0
-                task.completion_count = max(0, task.completion_count - 1)
-                task.save()
-
-                profile.xp = max(0, profile.xp - xp_to_remove)
-                profile.gold = max(0, profile.gold - gold_to_remove)
-                profile.rank_xp = max(0, profile.rank_xp - xp_to_remove)
-                profile.save()
-
-                return Response(
-                    {
-                        "completed": False,
-                        "xp_change": -xp_to_remove,
-                        "gold_change": -gold_to_remove,
-                        "new_xp": profile.xp,
-                        "new_gold": profile.gold,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-
+        try:
+            from api.services.task_service import complete_task
+            result = complete_task(request.user, pk, is_positive)
+            
+            # Match old API response shape while adding new combat payload
+            xp_change = result.get("xp_earned", 0) if is_positive else -result.get("gamification_result", {}).get("xp_lost", 0)
+            gold_change = result.get("gold_earned", 0) if is_positive else -result.get("gamification_result", {}).get("gold_lost", 0)
+            
+            return Response(
+                {
+                    "completed": is_positive,
+                    "xp_change": xp_change,
+                    "gold_change": gold_change,
+                    "new_xp": result["profile"].xp,
+                    "new_gold": result["profile"].gold,
+                    "combat": result.get("combat"),
+                    "gamification_result": result.get("gamification_result"),
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": str(e.detail[0] if hasattr(e, "detail") else e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Скиллы — активация и эффекты

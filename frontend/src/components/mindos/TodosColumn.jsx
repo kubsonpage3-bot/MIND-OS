@@ -78,17 +78,33 @@ export default function TodosColumn({ onXpGain, onBossDamage, onRankXP }) {
   const toggleMutation = useMutation({
     mutationFn: (todoId) => djangoApi.tasks.toggle(todoId),
     onSuccess: (data) => {
-      const sign = data.xp_change > 0 ? '+' : '';
-      const icon = data.completed ? '✅' : '↩️';
+      const isCompleting = data.completed;
+      const sign = isCompleting ? '+' : '-';
+      const icon = isCompleting ? '✅' : '↩️';
+      
+      const combatResult = data.combat;
+      const isCrit = data.gamification_result?.is_crit || false;
+      const itemDropped = data.gamification_result?.item_dropped || null;
+      const bossDmg = combatResult?.damage_dealt || 0;
+
       showRewardToast({
         xp: Math.abs(data.xp_change),
         gold: Math.abs(data.gold_change),
-        label: `${icon} ${sign}${data.xp_change} XP  ${sign}${data.gold_change} Gold`,
+        boss: isCompleting ? bossDmg : 0,
+        isCrit,
+        itemDropped,
+        label: `${icon} ${sign}${Math.abs(data.xp_change)} XP  ${sign}${Math.abs(data.gold_change)} Gold`,
       });
-      if (data.completed) playSound('task_complete');
+      
+      if (isCompleting) playSound('task_complete');
+      
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['boss-battle'] });
+      if (itemDropped || !isCompleting) {
+          queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      }
     },
     onError: () => showRewardToast({ label: '❌ Failed to update task' }),
   });

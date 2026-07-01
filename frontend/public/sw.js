@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mind-os-cache-v1';
+const CACHE_NAME = 'mind-os-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -85,6 +85,14 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, responseToCache);
         });
         return response;
+      }).catch((err) => {
+        // Network failed (offline or 404). Fallback to cache if available.
+        return caches.match(event.request).then((fallbackResponse) => {
+          if (fallbackResponse) {
+            return fallbackResponse;
+          }
+          throw err;
+        });
       });
     })
   );

@@ -106,7 +106,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     from api.models import BossEncounter, UserProfile
     from api.services.profile_service import gain_xp
 
-    active_encounter = BossEncounter.objects.filter(
+    active_encounter = BossEncounter.objects.select_for_update().filter(
         user=user, is_defeated=False
     ).first()
 
@@ -163,9 +163,40 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     stats.save(update_fields=["total_boss_damage", "total_crits", "bosses_defeated"])
 
     return {
+        "encounter_id": active_encounter.id,
         "damage_dealt": final_damage_dealt,
         "boss_hp_remaining": active_encounter.hp_current,
         "boss_defeated": boss_defeated,
         "boss_name": boss.name if boss else None,
         "rewards": rewards,
     }
+
+
+def revert_boss_damage(user, encounter_id, damage_to_heal):
+    """
+    Safely heals a boss if a task completion is reverted.
+    Only heals if the encounter ID matches and the boss isn't defeated.
+    """
+    from api.models import BossEncounter, UserStats
+
+    active_encounter = BossEncounter.objects.select_for_update().filter(
+        id=encounter_id, user=user, is_defeated=False
+    ).first()
+
+    if not active_encounter:
+        return  # Safe no-op if boss was defeated or encounter is gone
+
+    # Heal the boss, capping at max HP
+    active_encounter.hp_current = min(
+        active_encounter.boss.hp_max, 
+        active_encounter.hp_current + damage_to_heal
+    )
+    active_encounter.save(update_fields=["hp_current"])
+
+    # Revert UserStats total damage
+    try:
+        stats = user.stats
+        stats.total_boss_damage = max(0, stats.total_boss_damage - damage_to_heal)
+        stats.save(update_fields=["total_boss_damage"])
+    except UserStats.DoesNotExist:
+        pass
