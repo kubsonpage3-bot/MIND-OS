@@ -711,7 +711,11 @@ class TrainingLogView(generics.GenericAPIView):
         from django.utils import timezone  # type: ignore
         from api.models import UserProfile, Task
         from api.services.profile_service import gain_xp
-        from api.services.mechanics import calculate_task_outcome, apply_boss_damage, calculate_cognitive_gains
+        from api.services.mechanics import (
+            calculate_task_outcome,
+            apply_boss_damage,
+            calculate_cognitive_gains,
+        )
         from api.serializers.profile import UserProfileSerializer
 
         data = request.data
@@ -760,113 +764,67 @@ class TrainingLogView(generics.GenericAPIView):
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
 
-            # Fetch passive modifiers from DB
+            # Apply mutators and passives
+            from api.services.mechanics import (
+                apply_active_mutators,
+                get_passive_multipliers,
+            )
+
+            context = {
+                "is_science": is_science,
+                "is_language": is_language,
+                "is_exercise": is_exercise,
+                "is_prayer": is_prayer,
+                "task_type": "training",
+                "hours": hours,
+                "focus_rating": focus_rating,
+            }
+
+            mutator_effects = apply_active_mutators(profile, context)
+            passive_effects = get_passive_multipliers(profile, context)
+
+            # Combine multipliers (additive)
+            xp_mult = (
+                mutator_effects.get("xp_mult", 1.0)
+                + passive_effects.get("xp_mult", 1.0)
+                - 1.0
+            )
+            gold_mult = (
+                mutator_effects.get("gold_mult", 1.0)
+                + passive_effects.get("gold_mult", 1.0)
+                - 1.0
+            )
+            flat_xp_bonus += mutator_effects.get("flat_xp", 0) + passive_effects.get(
+                "flat_xp", 0
+            )
+
+            gf_mult = passive_effects.get("gf_mult", 1.0)
+            gc_mult = passive_effects.get("gc_mult", 1.0)
+            ps_mult = passive_effects.get("ps_mult", 1.0)
+            vm_mult = passive_effects.get("vm_mult", 1.0)
+            boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
+            gf_flat_bonus = mutator_effects.get("gc_flat", 0.0) + passive_effects.get(
+                "gf_flat_bonus", 0.0
+            )
+            gc_flat_bonus = passive_effects.get("gc_flat_bonus", 0.0)
+
             unlocked_skills = set(
                 profile.unlocked_skills.values_list("skill_code", flat=True)
             )
-            recruited_allies = {
-                a.ally_code: a.level for a in profile.recruited_allies.all()
-            }
-
-            # Apply mutators
-            from api.services.mechanics import apply_active_mutators
-            mutator_effects = apply_active_mutators(profile, {
-                "is_science": is_science,
-                "is_language": is_language,
-                "hours": hours,
-            })
-
-            # Initialize multipliers (additive approach)
-            xp_mult = mutator_effects.get("xp_mult", 1.0)
-            gold_mult = mutator_effects.get("gold_mult", 1.0)
-            flat_xp_bonus += mutator_effects.get("flat_xp", 0)
-            gc_flat_bonus = mutator_effects.get("gc_flat", 0.0)
-
-            gf_mult = 1.0
-            gc_mult = 1.0
-            ps_mult = 1.0
-            vm_mult = 1.0
-            boss_dmg_mult = 1.0
-            gf_flat_bonus = 0.0
-
-            # 1. Apply Skills
-            if "sharp_focus" in unlocked_skills and focus_rating >= 8:
-                xp_mult += 0.10
-
-            if "iron_conditioning" in unlocked_skills and is_exercise:
-                xp_mult += 0.15
-
-            if "inner_stillness" in unlocked_skills and is_prayer:
-                xp_mult += 0.20
-
-            if "resource_awareness" in unlocked_skills:
-                gold_mult += 0.10
-
-            if "cognitive_supremacy" in unlocked_skills:
-                gf_mult += 0.20
-                gc_mult += 0.20
-                ps_mult += 0.20
-                vm_mult += 0.20
-
-            if "encyclopedia" in unlocked_skills:
-                gc_mult += 0.20
-
-            if "apex_predator" in unlocked_skills:
-                boss_dmg_mult += 0.30
-
             if "flow_state" in unlocked_skills:
-                today = timezone.now().date()
-                if profile.last_training_at != today:
-                    xp_mult += 0.50  # +50% XP
-                    profile.last_training_at = today
+                profile.last_training_at = timezone.now().date()
 
-            # 2. Apply Allies
-            # Kira
-            kira_level = recruited_allies.get("kira", 0)
-            if kira_level >= 1 and is_science:
-                xp_mult += 0.05 if kira_level == 1 else 0.10
-            if kira_level >= 3 and is_science:
-                gf_flat_bonus += 0.002
+            # Track unique subjects
+            try:
+                stats = request.user.stats
+            except Exception:
+                from api.models import UserStats
 
-            # Neko
-            neko_level = recruited_allies.get("neko", 0)
-            if neko_level >= 5:
-                gold_mult += 0.15
+                stats, _ = UserStats.objects.get_or_create(user=request.user)
 
-            # Void
-            void_level = recruited_allies.get("void", 0)
-            if void_level >= 1:
-                boss_dmg_mult += 0.50 if void_level == 5 else 0.10
+            from api.services.mechanics import add_unique_subject_today
 
-            # Luna
-            luna_level = recruited_allies.get("luna", 0)
-            if luna_level >= 1 and is_exercise:
-                xp_mult += 0.08
-
-            # Sakura
-            sakura_level = recruited_allies.get("sakura", 0)
-            if sakura_level >= 1 and is_language:
-                xp_mult += 0.10
-            if sakura_level >= 2:
-                gc_mult += 0.10
-                vm_mult += 0.10
-            if sakura_level >= 4:
-                xp_mult += 0.08
-
-            # Yuki
-            yuki_level = recruited_allies.get("yuki", 0)
-            if yuki_level >= 1:
-                xp_mult += 0.08
-
-            # Nene
-            nene_level = recruited_allies.get("nene", 0)
-            if nene_level >= 1 and is_prayer:
-                xp_mult += 0.15
-            if nene_level >= 4:
-                gf_mult += 0.10
-                gc_mult += 0.10
-                ps_mult += 0.10
-                vm_mult += 0.10
+            add_unique_subject_today(stats, activity)
 
             # Update cognitive stats using backend calculation
             eff_total = float(data.get("efficiency", 1.0))
@@ -876,13 +834,15 @@ class TrainingLogView(generics.GenericAPIView):
             profile.gf = min(
                 profile.gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus
             )
-            
+
             gc_gain = gains["gc"]
-            profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult + gc_flat_bonus)
-            
+            profile.gc = min(
+                profile.gc_ceiling, profile.gc + gc_gain * gc_mult + gc_flat_bonus
+            )
+
             ps_gain = gains["ps"]
             profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain * ps_mult)
-            
+
             vm_gain = gains["vm"]
             profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
 
@@ -896,12 +856,8 @@ class TrainingLogView(generics.GenericAPIView):
                     def_focus = 7.0
 
                 scale = (hours / def_hours) * (focus_rating / def_focus)
-                base_xp = (
-                    (scale * task.xp_reward) + flat_xp_bonus
-                ) * xp_mult
-                base_gold = (
-                    (scale * task.gold_reward)
-                ) * gold_mult
+                base_xp = ((scale * task.xp_reward) + flat_xp_bonus) * xp_mult
+                base_gold = ((scale * task.gold_reward)) * gold_mult
                 raw_boss_dmg = int(scale * task.boss_damage)
 
                 # Increment completion stats for custom button tasks
@@ -909,9 +865,7 @@ class TrainingLogView(generics.GenericAPIView):
                 task.last_completed_at = timezone.now()
                 task.save()
             else:
-                base_xp = (
-                    (hours * focus_rating * 5) + flat_xp_bonus
-                ) * xp_mult
+                base_xp = ((hours * focus_rating * 5) + flat_xp_bonus) * xp_mult
                 base_gold = ((hours * 25)) * gold_mult
                 raw_boss_dmg = int(hours * focus_rating * 10)
 

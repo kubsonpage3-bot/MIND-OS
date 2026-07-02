@@ -148,50 +148,44 @@ def complete_task(user, task_id, is_positive=True):
     )
     leveled_up = False
 
-    # Fetch passive modifiers from DB
-    unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
-    recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
+    # Apply mutators and passives
+    from api.services.mechanics import apply_active_mutators, get_passive_multipliers
 
-    # Apply mutators
-    from api.services.mechanics import apply_active_mutators
-    
     task_category = getattr(task, "category", "")
     is_science = task_category in {"Math", "Physics", "Coding", "Chemistry", "Biology"}
     is_language = task_category in {"English", "Languages", "History", "Philosophy"}
-    
-    mutator_effects = apply_active_mutators(profile, {
+    is_exercise = task_category in {"Exercise", "Running"}
+    is_prayer = task_category in {"Prayer", "Mindfulness", "Prayer/Meditation"}
+
+    context = {
         "is_science": is_science,
         "is_language": is_language,
-        "hours": 0
-    })
+        "is_exercise": is_exercise,
+        "is_prayer": is_prayer,
+        "task_type": "daily" if task.task_type == Task.TaskType.DAILY else "",
+        "hours": 0,
+    }
+
+    mutator_effects = apply_active_mutators(profile, context)
+    passive_effects = get_passive_multipliers(profile, context)
 
     mutator_died = mutator_effects.get("is_dead", False)
 
     # Calculate additive multipliers
-    gold_mult = mutator_effects.get("gold_mult", 1.0)
-    xp_mult = mutator_effects.get("xp_mult", 1.0)
-
-    # Skills
-    if "resource_awareness" in unlocked_skills:
-        gold_mult += 0.10
-
-    # Allies
-    neko_level = recruited_allies.get("neko", 0)
-    if neko_level >= 1 and task.task_type == Task.TaskType.DAILY:
-        gold_mult += 0.05
-    if neko_level >= 5:
-        gold_mult += 0.15
-
-    sakura_level = recruited_allies.get("sakura", 0)
-    if sakura_level >= 4:
-        xp_mult += 0.08
-
-    yuki_level = recruited_allies.get("yuki", 0)
-    if yuki_level >= 1:
-        xp_mult += 0.08
+    gold_mult = (
+        mutator_effects.get("gold_mult", 1.0)
+        + passive_effects.get("gold_mult", 1.0)
+        - 1.0
+    )
+    xp_mult = (
+        mutator_effects.get("xp_mult", 1.0) + passive_effects.get("xp_mult", 1.0) - 1.0
+    )
+    flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get(
+        "flat_xp", 0
+    )
 
     # Apply multipliers to base task rewards
-    base_xp = int(rewards.get("xp", 0) * xp_mult)
+    base_xp = int((rewards.get("xp", 0) + flat_xp_bonus) * xp_mult)
     base_gold = int(rewards.get("gold", 0) * gold_mult)
 
     if is_positive:
@@ -332,6 +326,13 @@ def complete_task(user, task_id, is_positive=True):
         if category == "Prayer/Meditation":
             stats.prayer_sessions += 1
 
+        updated_fields = [
+            "total_tasks_completed",
+            "max_streak",
+            "total_gold_earned",
+            "prayer_sessions",
+        ]
+
         if category:
             subjects = (
                 stats.unique_subjects if isinstance(stats.unique_subjects, list) else []
@@ -339,16 +340,15 @@ def complete_task(user, task_id, is_positive=True):
             if category not in subjects:
                 subjects.append(category)
                 stats.unique_subjects = subjects
+                updated_fields.append("unique_subjects")
 
-        stats.save(
-            update_fields=[
-                "total_tasks_completed",
-                "max_streak",
-                "total_gold_earned",
-                "prayer_sessions",
-                "unique_subjects",
-            ]
-        )
+        if updated_fields:
+            stats.save(update_fields=updated_fields)
+
+        if category:
+            from api.services.mechanics import add_unique_subject_today
+
+            add_unique_subject_today(stats, category)
 
         # Урон от статов
         damage_dealt = gamification_result.get("damage_dealt", 0)
@@ -376,8 +376,14 @@ def complete_task(user, task_id, is_positive=True):
             task_value = max(0.0, getattr(task, "value", 1.0))
             task_base_dmg = int(base_dmg * task_value)
 
+        boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
         final_damage_dealt = max(
-            0, int((task_base_dmg + damage_dealt) * profile.damage_multiplier)
+            0,
+            int(
+                (task_base_dmg + damage_dealt)
+                * profile.damage_multiplier
+                * boss_dmg_mult
+            ),
         )
         is_crit = gamification_result.get("is_crit", False)
 

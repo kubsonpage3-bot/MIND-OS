@@ -1,5 +1,29 @@
 import random
+from django.utils import timezone
 from api.models import UserProfile, Item
+
+
+def get_unique_subjects_today(stats):
+    if not stats:
+        return []
+    today_str = str(timezone.now().date())
+    data = stats.unique_subjects_today
+    if isinstance(data, dict):
+        if data.get("date") == today_str:
+            return data.get("subjects", [])
+    return []
+
+
+def add_unique_subject_today(stats, subject):
+    if not stats:
+        return
+    today_str = str(timezone.now().date())
+    subjects = get_unique_subjects_today(stats)
+    if subject not in subjects:
+        subjects.append(subject)
+        stats.unique_subjects_today = {"date": today_str, "subjects": subjects}
+        stats.save(update_fields=["unique_subjects_today"])
+
 
 COGNITIVE_COEFFICIENTS = {
     "mathematics": {"gf": 0.08, "ps": 0.04, "gc": 0.01, "vm": 0},
@@ -27,27 +51,40 @@ COGNITIVE_COEFFICIENTS = {
     "other": {"gf": 0.02, "ps": 0.02, "gc": 0.02, "vm": 0.02},
 }
 
+
 def calculate_cognitive_gains(activity, hours, eff_total, profile):
     # Normalize activity key (e.g., lowercase)
     activity_key = activity.lower() if isinstance(activity, str) else "other"
     # Fallback for custom tasks mapped to categories
     if activity_key not in COGNITIVE_COEFFICIENTS:
         activity_key = "other"
-    
+
     coeffs = COGNITIVE_COEFFICIENTS[activity_key]
-    
+
     def get_growth_multiplier(current, ceiling):
         if ceiling <= 0:
             return 0
         ratio = current / ceiling
-        return max(0.0, 1.0 - (ratio ** 2))
+        return max(0.0, 1.0 - (ratio**2))
 
     # Base gain formula from frontend: coeff * hours * multiplier * effTotal
     return {
-        "gf": coeffs.get("gf", 0) * hours * eff_total * get_growth_multiplier(profile.gf, profile.gf_ceiling),
-        "gc": coeffs.get("gc", 0) * hours * eff_total * get_growth_multiplier(profile.gc, profile.gc_ceiling),
-        "ps": coeffs.get("ps", 0) * hours * eff_total * get_growth_multiplier(profile.ps, profile.ps_ceiling),
-        "vm": coeffs.get("vm", 0) * hours * eff_total * get_growth_multiplier(profile.vm, profile.vm_ceiling),
+        "gf": coeffs.get("gf", 0)
+        * hours
+        * eff_total
+        * get_growth_multiplier(profile.gf, profile.gf_ceiling),
+        "gc": coeffs.get("gc", 0)
+        * hours
+        * eff_total
+        * get_growth_multiplier(profile.gc, profile.gc_ceiling),
+        "ps": coeffs.get("ps", 0)
+        * hours
+        * eff_total
+        * get_growth_multiplier(profile.ps, profile.ps_ceiling),
+        "vm": coeffs.get("vm", 0)
+        * hours
+        * eff_total
+        * get_growth_multiplier(profile.vm, profile.vm_ceiling),
     }
 
 
@@ -261,40 +298,42 @@ def apply_active_mutators(profile, context: dict):
     context keys: is_science (bool), is_language (bool), hours (float)
     """
     from api.services.profile_service import check_death
-    
+
     active_mutators = profile.active_mutators or {}
-    active_list = active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
+    active_list = (
+        active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
+    )
     active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
 
     is_science = context.get("is_science", False)
     is_language = context.get("is_language", False)
     hours = context.get("hours", 0)
-    
+
     effects = {
         "xp_mult": 1.0,
         "gold_mult": 1.0,
         "flat_xp": 0,
         "gc_flat": 0.0,
-        "is_dead": False
+        "is_dead": False,
     }
 
     if "loan_shark" in active_ids:
         effects["gold_mult"] += 0.40
-        
+
     if "cursed_clock" in active_ids and hours > 0:
         effects["flat_xp"] += int(hours * 1)
-        
+
     if "bloodwork" in active_ids:
         if is_science:
             effects["xp_mult"] += 0.20
         else:
             effects["xp_mult"] -= 0.05
-            
+
     if "lexicon" in active_ids:
         if is_language:
             effects["xp_mult"] += 0.20
         effects["gc_flat"] += 0.01
-        
+
     if "tithe" in active_ids:
         effects["xp_mult"] += 0.15
         if profile.gold >= 3:
@@ -303,5 +342,116 @@ def apply_active_mutators(profile, context: dict):
             profile.hp = max(0, profile.hp - 5)
             if check_death(profile):
                 effects["is_dead"] = True
-                
+
+    return effects
+
+
+def get_passive_multipliers(profile, context: dict):
+    from django.utils import timezone
+
+    unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
+    recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
+
+    effects = {
+        "xp_mult": 1.0,
+        "gold_mult": 1.0,
+        "boss_dmg_mult": 1.0,
+        "gf_mult": 1.0,
+        "gc_mult": 1.0,
+        "ps_mult": 1.0,
+        "vm_mult": 1.0,
+        "gf_flat_bonus": 0.0,
+        "gc_flat_bonus": 0.0,
+        "flat_xp": 0,
+    }
+
+    focus_rating = context.get("focus_rating", 0.0)
+    is_exercise = context.get("is_exercise", False)
+    is_prayer = context.get("is_prayer", False)
+    is_science = context.get("is_science", False)
+    is_language = context.get("is_language", False)
+    task_type = context.get("task_type", "")
+
+    # SKILLS
+    if "sharp_focus" in unlocked_skills and focus_rating >= 8.0:
+        effects["xp_mult"] += 0.10
+
+    if "iron_conditioning" in unlocked_skills and is_exercise:
+        effects["xp_mult"] += 0.15
+
+    if "inner_stillness" in unlocked_skills and is_prayer:
+        effects["xp_mult"] += 0.20
+
+    if "resource_awareness" in unlocked_skills:
+        effects["gold_mult"] += 0.10
+
+    if "cognitive_supremacy" in unlocked_skills:
+        effects["gf_mult"] += 0.20
+        effects["gc_mult"] += 0.20
+        effects["ps_mult"] += 0.20
+        effects["vm_mult"] += 0.20
+
+    if "encyclopedia" in unlocked_skills:
+        effects["gc_mult"] += 0.20
+
+    if "apex_predator" in unlocked_skills:
+        effects["boss_dmg_mult"] += 0.30
+
+    if "flow_state" in unlocked_skills:
+        today = timezone.now().date()
+        if profile.last_training_at != today:
+            effects["xp_mult"] += 0.50
+            # Flow state profile update happens in view if needed, but we can't update it here purely
+            # without side effects. We'll leave the profile save up to the caller.
+
+    if "polymath" in unlocked_skills:
+        stats = getattr(profile.user, "stats", None)
+        if stats:
+            unique_today = get_unique_subjects_today(stats)
+            if len(unique_today) >= 3:
+                effects["flat_xp"] += 20
+
+    # ALLIES
+    kira_level = recruited_allies.get("kira", 0)
+    if kira_level >= 1 and is_science:
+        effects["xp_mult"] += 0.05 if kira_level == 1 else 0.10
+    if kira_level >= 3 and is_science:
+        effects["gf_flat_bonus"] += 0.002
+
+    neko_level = recruited_allies.get("neko", 0)
+    if neko_level >= 1 and task_type == "daily":
+        effects["gold_mult"] += 0.05
+    if neko_level >= 5:
+        effects["gold_mult"] += 0.15
+
+    void_level = recruited_allies.get("void", 0)
+    if void_level >= 1:
+        effects["boss_dmg_mult"] += 0.10
+
+    luna_level = recruited_allies.get("luna", 0)
+    if luna_level >= 1 and is_exercise:
+        effects["xp_mult"] += 0.08
+
+    sakura_level = recruited_allies.get("sakura", 0)
+    if sakura_level >= 1 and is_language:
+        effects["xp_mult"] += 0.10
+    if sakura_level >= 2:
+        effects["gc_mult"] += 0.10
+        effects["vm_mult"] += 0.10
+    if sakura_level >= 4:
+        effects["xp_mult"] += 0.08
+
+    yuki_level = recruited_allies.get("yuki", 0)
+    if yuki_level >= 1:
+        effects["xp_mult"] += 0.08
+
+    nene_level = recruited_allies.get("nene", 0)
+    if nene_level >= 1 and is_prayer:
+        effects["xp_mult"] += 0.15
+    if nene_level >= 4:
+        effects["gf_mult"] += 0.10
+        effects["gc_mult"] += 0.10
+        effects["ps_mult"] += 0.10
+        effects["vm_mult"] += 0.10
+
     return effects

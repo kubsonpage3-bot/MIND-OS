@@ -434,27 +434,27 @@ def test_task_multipliers_applied(user, profile, task):
 @pytest.mark.django_db
 def test_tithe_mutator_triggers_death(user, profile, task):
     """
-    Tests that the Tithe mutator applies its drawback, 
+    Tests that the Tithe mutator applies its drawback,
     and if HP drops to <= 0, check_death is triggered.
     """
     from api.services.task_service import complete_task
-    
+
     profile.gold = 0
     profile.hp = 2
     profile.level = 5
     profile.rank_xp = 500
-    
+
     profile.active_mutators = {
         "active": [{"id": "tithe", "duration": None}],
-        "purchased": ["tithe"]
+        "purchased": ["tithe"],
     }
     profile.save()
-    
+
     # Complete a task
     result = complete_task(user, task.id, True)
-    
+
     profile.refresh_from_db()
-    
+
     # Tithe drawback should deduct 5 HP since gold < 3.
     # Original HP was 2, so it falls <= 0, triggering check_death.
     assert result.get("is_dead") is True
@@ -463,7 +463,7 @@ def test_tithe_mutator_triggers_death(user, profile, task):
     assert profile.xp >= 0
     assert profile.level == 4
     # Rank XP should be dropped to the minimum of rank 4 (or whatever rank_xp corresponds to).
-    
+
 
 @pytest.mark.django_db
 def test_custom_button_task_rewards(user, profile):
@@ -537,3 +537,48 @@ def test_todo_completion_boss_damage_revert(user, profile, task):
     assert (
         hp_after_revert == initial_boss_hp
     ), "Boss HP should be fully restored on revert."
+
+
+@pytest.mark.django_db
+def test_skills_and_allies_multipliers(user, profile):
+    from api.services.mechanics import get_passive_multipliers
+    from api.models import UnlockedSkill, RecruitedAlly
+
+    # 1. Base case
+    effects = get_passive_multipliers(profile, {"is_science": True, "focus_rating": 8})
+    assert effects["xp_mult"] == 1.0
+
+    # 2. Add Kira (Science +5%) and Sharp Focus (Focus >=8 +10%)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="sharp_focus")
+
+    # Refresh recruited_allies
+    profile.refresh_from_db()
+
+    effects2 = get_passive_multipliers(profile, {"is_science": True, "focus_rating": 8})
+    # Base 1.0 + 0.05 (Kira) + 0.10 (Sharp Focus)
+    # The dictionary tracks additive increments
+    assert round(effects2["xp_mult"], 2) == 1.15
+
+    # 3. Add Polymath bonus
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="polymath")
+    from api.models import UserStats, UserProfile
+
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    from django.utils import timezone
+
+    stats.unique_subjects_today = {
+        "date": str(timezone.now().date()),
+        "subjects": ["Math", "Physics", "Chemistry"],
+    }
+    stats.save()
+    profile = UserProfile.objects.get(id=profile.id)
+
+    effects3 = get_passive_multipliers(profile, {})
+    assert effects3["flat_xp"] == 20
+
+    # 4. Void boss damage
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="void", level=1)
+    profile.refresh_from_db()
+    effects4 = get_passive_multipliers(profile, {})
+    assert effects4["boss_dmg_mult"] == 1.10

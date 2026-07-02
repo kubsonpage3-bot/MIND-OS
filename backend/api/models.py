@@ -311,6 +311,7 @@ class UserStats(models.Model):
     allies_recruited = models.PositiveIntegerField(default=0)
     ally_max_level = models.PositiveIntegerField(default=0)
     unique_subjects = models.JSONField(default=list, blank=True)
+    unique_subjects_today = models.JSONField(default=list, blank=True)
     highest_subject_rank = models.PositiveIntegerField(default=0)
     prayer_rank = models.PositiveIntegerField(default=0)
 

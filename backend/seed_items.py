@@ -258,6 +258,7 @@ items_data = [
         "name": "Wanderer's Hood",
         "tier": "Rare",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "bone_bracelet",
@@ -265,6 +266,7 @@ items_data = [
         "name": "Bone Bracelet",
         "tier": "Rare",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "heralds_fang",
@@ -272,6 +274,7 @@ items_data = [
         "name": "Herald's Fang",
         "tier": "Rare",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "wardens_quill",
@@ -279,6 +282,7 @@ items_data = [
         "name": "Warden's Quill",
         "tier": "Rare",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "echo_bell",
@@ -286,6 +290,7 @@ items_data = [
         "name": "Echo Bell",
         "tier": "Epic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "frostbite_blade",
@@ -293,6 +298,7 @@ items_data = [
         "name": "Frostbite Blade",
         "tier": "Epic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "silk_mantle",
@@ -300,6 +306,7 @@ items_data = [
         "name": "Silk Mantle",
         "tier": "Epic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "ember_gauntlet",
@@ -307,6 +314,7 @@ items_data = [
         "name": "Ember Gauntlet",
         "tier": "Epic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "glass_tear",
@@ -314,6 +322,7 @@ items_data = [
         "name": "Glass Tear",
         "tier": "Epic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "leviathan_scale",
@@ -321,6 +330,7 @@ items_data = [
         "name": "Leviathan Scale",
         "tier": "Epic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "crown_of_ash",
@@ -328,6 +338,7 @@ items_data = [
         "name": "Crown of Ash",
         "tier": "Legendary",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "golems_grip",
@@ -335,6 +346,7 @@ items_data = [
         "name": "Golem's Grip",
         "tier": "Legendary",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "scar_shard",
@@ -342,6 +354,7 @@ items_data = [
         "name": "Scar Shard",
         "tier": "Legendary",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "forgotten_score",
@@ -349,6 +362,7 @@ items_data = [
         "name": "Forgotten Score",
         "tier": "Legendary",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "abyssal_purse",
@@ -356,6 +370,7 @@ items_data = [
         "name": "Abyssal Purse",
         "tier": "Legendary",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "winter_plate",
@@ -363,6 +378,7 @@ items_data = [
         "name": "Winter Plate",
         "tier": "Legendary",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "throne_seal",
@@ -370,6 +386,7 @@ items_data = [
         "name": "Throne Seal",
         "tier": "Mythic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "eclipse_eye",
@@ -377,6 +394,7 @@ items_data = [
         "name": "Eclipse Eye",
         "tier": "Mythic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "mask_nameless",
@@ -384,6 +402,7 @@ items_data = [
         "name": "Mask of the Nameless",
         "tier": "Mythic",
         "cost": 0,
+        "source": "boss_drop",
     },
     {
         "id": "blade_final_dusk",
@@ -391,6 +410,7 @@ items_data = [
         "name": "Blade of Final Dusk",
         "tier": "Mythic",
         "cost": 0,
+        "source": "boss_drop",
     },
 ]
 
@@ -402,6 +422,8 @@ for data in items_data:
     slot_type = None if is_consumable else data["slot"]
 
     # 1. Store or update Item
+    is_purchasable = data.get("source", "shop") == "shop"
+
     item, created = Item.objects.get_or_create(
         code=data["id"],
         defaults={
@@ -412,7 +434,7 @@ for data in items_data:
             "icon_url": icon_path,
             "cost": data["cost"],
             "hp_boost": data.get("hp_boost", 0),
-            "icon_url": icon_path,
+            "is_purchasable": is_purchasable,
         },
     )
 
@@ -423,7 +445,7 @@ for data in items_data:
         item.icon_url = icon_path
         item.cost = data["cost"]
         item.hp_boost = data.get("hp_boost", 0)
-        item.icon_url = icon_path
+        item.is_purchasable = is_purchasable
         item.save()
 
     # 2. Store ItemEffect entries for stats

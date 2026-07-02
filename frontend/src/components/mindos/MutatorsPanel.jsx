@@ -87,7 +87,7 @@ export default function MutatorsPanel({ onSpendGold }) {
   };
 
   const byCategory = {};
-  MUTATORS.forEach(m => { if (!byCategory[m.cat]) byCategory[m.cat] = []; byCategory[m.cat].push(m); });
+  MUTATORS.filter(m => !m.disabled).forEach(m => { if (!byCategory[m.cat]) byCategory[m.cat] = []; byCategory[m.cat].push(m); });
 
   return (
     <div className="space-y-5">

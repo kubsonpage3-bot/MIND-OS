@@ -1049,3 +1049,205 @@ WARNING 2026-06-29 14:15:41,989 log 25144 28052 Bad Request: /api/tasks/22/compl
 WARNING 2026-06-29 14:15:41,991 log 25144 28052 "POST /api/tasks/22/complete/ HTTP/1.1" 400 54
 WARNING 2026-06-29 14:15:42,757 log 25144 28052 Bad Request: /api/tasks/22/complete/
 WARNING 2026-06-29 14:15:42,758 log 25144 28052 "POST /api/tasks/22/complete/ HTTP/1.1" 400 54
+WARNING 2026-07-01 22:59:51,308 log 27744 26440 Unauthorized: /api/
+WARNING 2026-07-01 22:59:51,309 basehttp 27744 26440 "HEAD /api/ HTTP/1.1" 401 0
+WARNING 2026-07-01 23:00:11,516 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:11,516 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 275
+WARNING 2026-07-01 23:00:11,922 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:11,924 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:12,193 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:12,194 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:12,463 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:12,464 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:12,722 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:12,722 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:12,977 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:12,979 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:13,231 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:13,231 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:13,500 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:13,501 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:13,851 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:13,852 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:14,118 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:14,119 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:14,512 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:14,512 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:14,765 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:14,766 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:15,029 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:15,029 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:15,284 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:15,284 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:15,545 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:15,545 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:15,799 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:15,799 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:16,063 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:16,065 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:16,315 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:16,316 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:16,573 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:16,573 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:16,835 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:16,835 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:17,087 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:17,087 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:17,342 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:17,343 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:17,592 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:17,593 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:17,848 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:17,849 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:18,114 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:18,115 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:18,371 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:18,371 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:18,641 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:18,642 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:18,904 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:18,905 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:19,177 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:19,179 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:19,437 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:19,437 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:19,717 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:19,717 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:19,979 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:19,979 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:20,266 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:20,268 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:20,527 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:20,527 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:20,783 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:20,784 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:21,038 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:21,039 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:21,297 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:21,298 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:21,575 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:21,576 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:21,831 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:21,832 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:22,084 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:22,085 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:22,337 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:22,338 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:22,597 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:22,598 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:22,882 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:22,883 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:23,157 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:23,158 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:23,494 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:23,495 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:23,794 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:23,796 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:24,057 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:24,058 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:24,325 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:24,326 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:24,589 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:24,589 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:24,850 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:24,850 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:25,115 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:25,116 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:25,446 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:25,446 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:25,714 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:25,715 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:25,970 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:25,971 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:26,227 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:26,228 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:26,486 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:26,487 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:26,769 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:26,770 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:27,029 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:27,030 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:27,303 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:27,305 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:27,557 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:27,558 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:27,809 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:27,809 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:28,066 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:28,067 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:28,338 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:28,339 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:28,593 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:28,594 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:28,844 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:28,846 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:29,096 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:29,097 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:29,379 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:29,380 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:29,635 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:29,635 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:29,892 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:29,893 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:30,146 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:30,147 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:30,441 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:30,441 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:30,699 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:30,699 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:30,952 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:30,953 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:31,206 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:31,206 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:31,463 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:31,464 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:31,762 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:31,763 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:32,018 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:32,019 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:32,278 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:32,278 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:32,531 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:32,532 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:32,791 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:32,792 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:33,050 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:33,050 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:33,308 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:33,309 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:33,602 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:33,603 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:33,875 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:33,876 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:34,128 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:34,128 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:34,502 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:34,503 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:34,760 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:34,761 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:35,016 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:35,017 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:35,273 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:35,274 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:35,588 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:35,589 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:35,842 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:35,843 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:36,094 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:36,096 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:36,355 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:36,355 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:36,652 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:36,652 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:36,915 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:36,917 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:37,181 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:37,182 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:37,439 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:37,440 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:37,698 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:37,699 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:37,954 log 27744 4284 Unauthorized: /api/profile/
+WARNING 2026-07-01 23:00:37,955 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
+WARNING 2026-07-01 23:00:42,340 log 27744 14828 Unauthorized: /api/auth/token/
+WARNING 2026-07-01 23:00:42,342 basehttp 27744 14828 "POST /api/auth/token/ HTTP/1.1" 401 116
