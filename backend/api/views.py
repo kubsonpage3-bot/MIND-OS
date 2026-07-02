@@ -1195,6 +1195,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.rank_xp = 0
 
                 if reset_type in ["stats", "nuclear"]:
+                    InventoryItem.objects.filter(user_profile=profile).delete()
                     profile.mana = 0
                     profile.mana_max = 100
                     profile.gold = 0

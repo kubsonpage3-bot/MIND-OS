@@ -261,6 +261,14 @@ items_data = [
         "source": "boss_drop",
     },
     {
+        "id": "misted_hood",
+        "slot": "headware",
+        "name": "Misted Wanderer's Hood",
+        "tier": "Rare",
+        "cost": 0,
+        "source": "boss_drop",
+    },
+    {
         "id": "bone_bracelet",
         "slot": "arms",
         "name": "Bone Bracelet",
