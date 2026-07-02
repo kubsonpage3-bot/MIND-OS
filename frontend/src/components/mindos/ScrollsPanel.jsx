@@ -29,8 +29,8 @@ export const SCROLL_BOSS_IMAGES = {
   winter_thorn: "/images/webp/6d76d3ff3_Screenshot2026-06-23224315.webp",
   king_ashen_throne: "/images/webp/5c7e4cb15_Screenshot2026-06-23224351.webp",
   eclipse_warden: "/images/webp/094797a95_Screenshot2026-06-23213805.webp",
-  nameless_god: "/images/webp/094797a95_Screenshot2026-06-23213805.webp",
-  final_dusk: "/images/webp/5c7e4cb15_Screenshot2026-06-23224351.webp",
+  nameless_god: "/images/webp/nameless_god.webp",
+  final_dusk: "/images/webp/final_dusk.webp",
 };
 
 export const RANK_COLORS = {
