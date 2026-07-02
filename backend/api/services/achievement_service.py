@@ -120,6 +120,21 @@ def check_and_grant_achievements(user):
         # We need to use F expressions or direct additions securely
         user.profile.gold += total_gold_reward
         user.profile.skill_points += total_sp_reward
-        user.profile.save(update_fields=["gold", "skill_points"])
+
+        from api.models import UnlockedSkill
+
+        if UnlockedSkill.objects.filter(
+            user_profile=user.profile, skill_code="omniscience"
+        ).exists():
+            for _ in new_achievements:
+                user.profile.gf = min(user.profile.gf_ceiling, user.profile.gf + 0.3)
+                user.profile.gc = min(user.profile.gc_ceiling, user.profile.gc + 0.3)
+                user.profile.ps = min(user.profile.ps_ceiling, user.profile.ps + 0.3)
+                user.profile.vm = min(user.profile.vm_ceiling, user.profile.vm + 0.3)
+            user.profile.save(
+                update_fields=["gold", "skill_points", "gf", "gc", "ps", "vm"]
+            )
+        else:
+            user.profile.save(update_fields=["gold", "skill_points"])
 
     return new_achievements

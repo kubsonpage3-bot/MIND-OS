@@ -2,9 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTierColor } from "@/lib/gameState";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
-import { Package, Zap } from "lucide-react";
-import { getMediaUrl } from "@/api/djangoClient";
-
+import { Package, Zap, Coins } from "lucide-react";
+import { getMediaUrl, djangoApi } from "@/api/djangoClient";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 // Consumable effects are handled server-side via the shop buy endpoint.
 // Do NOT track consumable state in localStorage — use the backend profile as SSOT.
 
@@ -15,6 +15,19 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [toast, setToast] = useState(null);
   const [usedId, setUsedId] = useState(null);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
+  const queryClient = useQueryClient();
+
+  const sellMutation = useMutation({
+    mutationFn: (itemId) => djangoApi.shop.sell(itemId, 1),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      showToast(data.detail || "Item sold", "#fbbf24");
+    },
+    onError: (error) => {
+      showToast(error.message || "Failed to sell", "#ef4444");
+    }
+  });
 
   const inventory = gs.inventory || [];
   const consumables_active = gs.consumables || {};
@@ -160,17 +173,31 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 </div>
 
                 <div className="flex flex-col gap-1 shrink-0">
-                  {!equipped_now ? (
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
-                      className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all"
-                      style={{ borderColor: `${tierColor}60`, color: tierColor, background: `${tierColor}15` }}
-                    >EQUIP</motion.button>
-                  ) : (
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
-                      className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all"
-                      style={{ borderColor: "#ef444460", color: "#ef4444", background: "#ef444415" }}
-                    >UNEQUIP</motion.button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {!equipped_now ? (
+                      <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
+                        className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all"
+                        style={{ borderColor: `${tierColor}60`, color: tierColor, background: `${tierColor}15` }}
+                      >EQUIP</motion.button>
+                    ) : (
+                      <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
+                        className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all opacity-50"
+                        style={{ borderColor: "#1e293b", color: "#4a4060", background: "transparent" }}
+                      >UNEQUIP</motion.button>
+                    )}
+                    
+                    {!equipped_now && (
+                      <motion.button 
+                        whileTap={{ scale: 0.9 }} 
+                        onClick={() => sellMutation.mutate(item.id)}
+                        disabled={sellMutation.isPending}
+                        className="px-2 py-1 text-[10px] font-mono font-bold rounded-none border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20"
+                      >
+                        <Coins className="w-3 h-3 inline-block mr-1" />
+                        SELL
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             );
@@ -238,29 +265,41 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                   </div>
                 </div>
 
-                <motion.button
-                  onClick={() => applyConsumable(item)}
-                  disabled={alreadyActive}
-                  whileTap={!alreadyActive ? { scale: 0.88, y: 2 } : {}}
-                  className="shrink-0 px-3 py-1.5 text-[10px] font-mono font-black rounded-none border transition-all relative overflow-hidden"
-                  style={{
-                    borderColor: alreadyActive ? "#1e293b" : effectColor,
-                    color: alreadyActive ? "#4a4060" : effectColor,
-                    background: alreadyActive ? "transparent" : `${effectColor}20`,
-                    opacity: alreadyActive ? 0.5 : 1,
-                  }}
-                >
-                  {!alreadyActive && (
-                    <motion.div className="absolute inset-0 pointer-events-none"
-                      animate={{ x: ["-100%", "120%"] }}
-                      transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 2.5 }}
-                      style={{ background: `linear-gradient(90deg, transparent, ${effectColor}35, transparent)`, width: "55%" }}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center gap-1">
-                    {alreadyActive ? "■ ACTIVE" : <><Zap className="w-3 h-3" /> USE</>}
-                  </span>
-                </motion.button>
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    onClick={() => applyConsumable(item)}
+                    disabled={alreadyActive}
+                    whileTap={!alreadyActive ? { scale: 0.88, y: 2 } : {}}
+                    className="shrink-0 px-3 py-1.5 text-[10px] font-mono font-black rounded-none border transition-all relative overflow-hidden"
+                    style={{
+                      borderColor: alreadyActive ? "#1e293b" : effectColor,
+                      color: alreadyActive ? "#4a4060" : effectColor,
+                      background: alreadyActive ? "transparent" : `${effectColor}20`,
+                      opacity: alreadyActive ? 0.5 : 1,
+                    }}
+                  >
+                    {!alreadyActive && (
+                      <motion.div className="absolute inset-0 pointer-events-none"
+                        animate={{ x: ["-100%", "120%"] }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 2.5 }}
+                        style={{ background: `linear-gradient(90deg, transparent, ${effectColor}35, transparent)`, width: "55%" }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-1">
+                      {alreadyActive ? "■ ACTIVE" : <><Zap className="w-3 h-3" /> USE</>}
+                    </span>
+                  </motion.button>
+                  
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }} 
+                    onClick={() => sellMutation.mutate(item.id)}
+                    disabled={sellMutation.isPending}
+                    className="shrink-0 px-3 py-1.5 text-[10px] font-mono font-black rounded-none border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20"
+                  >
+                    <Coins className="w-3 h-3 inline-block mr-1" />
+                    SELL
+                  </motion.button>
+                </div>
               </motion.div>
             );
           })}

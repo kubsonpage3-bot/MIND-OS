@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CLASSES } from "@/constants/rpgData";
-import { getRankFromXP, getNextRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
 import PixelCharacter from "../mindos/PixelCharacter";
 import { Menu } from "lucide-react";
 import { normalizeGold } from "@/lib/utils";
@@ -44,14 +44,18 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
 
   const classInfo = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = classInfo?.color || "#7B61FF";
-  const rankInfo = getRankFromXP(rankXP || 0);
+  const rankInfo = getRankDisplayData(profile?.rank_info?.current_id || "F");
   const rankId = currentRankId || rankInfo.id;
   const rankColor = rankInfo.color || "#7B61FF";
 
-  const nextRankInfo = getNextRankFromXP(rankXP || 0);
-  const xpInRank = Math.max(0, (rankXP || 0) - (rankInfo.xpMin || 0));
-  const xpRange = Math.max(1, ((nextRankInfo?.xpMin || rankInfo.xpMax || 9999)) - (rankInfo.xpMin || 0));
-  const xpPct = Math.min(100, (xpInRank / xpRange) * 100);
+  const thresholds = profile?.rank_info?.thresholds || [];
+  const currentIdx = thresholds.findIndex(t => t.id === rankInfo.id);
+  const currentRankMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
+  const nextRankMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
+
+  const xpInRank = Math.max(0, (rankXP || 0) - currentRankMin);
+  const xpRange = nextRankMin !== null ? Math.max(1, nextRankMin - currentRankMin) : 1;
+  const xpPct = nextRankMin !== null ? Math.min(100, (xpInRank / xpRange) * 100) : 100;
   const hpPct = Math.max(0, (gameState.hp / gameState.maxHp) * 100);
   const manaPct = Math.min(100, (classData.mana / classData.maxMana) * 100);
 

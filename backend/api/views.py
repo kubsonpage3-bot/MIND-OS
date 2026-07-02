@@ -127,6 +127,11 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         """Возвращаем профиль текущего авторизованного пользователя с предзагрузкой инвентаря."""  # noqa: E501
+        from api.services.daily_service import process_daily_login
+
+        # Trigger lazy daily login check (wrapped in atomic inside service)
+        process_daily_login(self.request.user)
+
         profile, created = UserProfile.objects.get_or_create(user=self.request.user)
         if not created:
             profile = UserProfile.objects.prefetch_related(
@@ -426,6 +431,43 @@ class ShopBuyView(generics.GenericAPIView):
 # ─────────────────────────────────────────────────────────────────────────────
 # Combat System
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+class ShopSellView(generics.GenericAPIView):
+    """
+    POST /api/shop/sell/
+    Sells an item from inventory and adds gold to profile.
+    """
+
+    permission_classes = [IsAuthenticated]
+    from api.serializers.shop import ShopSellSerializer
+
+    serializer_class = ShopSellSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        item_id = serializer.validated_data["item_id"]
+        quantity = serializer.validated_data.get("quantity", 1)
+
+        from api.services.shop_service import sell_item
+
+        success, message, profile = sell_item(request.user, item_id, quantity)
+
+        if not success:
+            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile_fresh = UserProfile.objects.prefetch_related(
+            "inventory_items__item__effects"
+        ).get(user=request.user)
+        return Response(
+            {
+                "detail": message,
+                "profile": UserProfileSerializer(profile_fresh).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class BossListView(generics.ListAPIView):
@@ -884,6 +926,25 @@ class TrainingLogView(generics.GenericAPIView):
             )
 
             final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
+
+            if "godmind" in unlocked_skills:
+                godmind_bonus = int(
+                    (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
+                )
+                final_xp += godmind_bonus
+
+            task_cat_lower = task_category.lower() if task_category else ""
+            if (
+                isinstance(activity, str)
+                and activity.lower() in ["reading", "philosophy"]
+            ) or task_cat_lower in ["reading", "philosophy"]:
+                if "living_library" in unlocked_skills:
+                    final_xp = int(final_xp * 1.15)
+
+            if is_language and "cross_training" in unlocked_skills:
+                profile.humanities_xp += hours * 0.3
+                profile.save(update_fields=["humanities_xp"])
+
             final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
             gain_xp(profile, final_xp)

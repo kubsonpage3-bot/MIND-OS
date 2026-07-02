@@ -6,6 +6,11 @@ class ShopBuySerializer(serializers.Serializer):
     item_id = serializers.CharField(max_length=100, required=True)
 
 
+class ShopSellSerializer(serializers.Serializer):
+    item_id = serializers.CharField(max_length=100, required=True)
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
+
+
 class ItemSerializer(serializers.ModelSerializer):
     stats = serializers.SerializerMethodField()
     icon_url = serializers.SerializerMethodField()

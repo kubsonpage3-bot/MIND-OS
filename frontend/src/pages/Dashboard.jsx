@@ -31,7 +31,7 @@ import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
-import { getRankFromXP } from "@/lib/rankEngine";
+// Removed getRankFromXP
 import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings } from "lucide-react";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
@@ -150,24 +150,24 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     if (!djangoProfile || djangoProfile.rank_xp === undefined) return;
     
     setRankXPData(prev => {
-      const newRank = getRankFromXP(djangoProfile.rank_xp);
-      const oldRank = getRankFromXP(prev.rankXP);
+      const newRankId = djangoProfile.rank_info?.current_id || "F";
+      const oldRankId = prev.currentRank || "F";
       
       const RANK_ORDER = ["F", "D", "C", "B", "A", "S", "SS", "SSS"];
-      const prevIdx = RANK_ORDER.indexOf(oldRank.id);
-      const newIdx = RANK_ORDER.indexOf(newRank.id);
+      const prevIdx = RANK_ORDER.indexOf(oldRankId);
+      const newIdx = RANK_ORDER.indexOf(newRankId);
       
       const updated = {
         ...prev,
         rankXP: djangoProfile.rank_xp,
-        currentRank: newRank.id,
+        currentRank: newRankId,
       };
       
       if (newIdx < prevIdx && prevIdx !== -1) {
         updated.rankHistory = [...prev.rankHistory, {
           date: new Date().toISOString(),
-          from: oldRank.id,
-          to: newRank.id,
+          from: oldRankId,
+          to: newRankId,
           reason: "Death Penalty"
         }];
       }
@@ -231,10 +231,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
       refreshProfile();
       
-      const oldRank = getRankFromXP(djangoProfile?.rank_xp || 0);
-      const newRank = getRankFromXP(res.profile?.rank_xp || 0);
-      if (newRank.id !== oldRank.id && (res.profile?.rank_xp || 0) > (djangoProfile?.rank_xp || 0)) {
-        setRankUpNotif(newRank.id);
+      const oldRankId = djangoProfile?.rank_info?.current_id || "F";
+      const newRankId = res.profile?.rank_info?.current_id || "F";
+      if (newRankId !== oldRankId && (res.profile?.rank_xp || 0) > (djangoProfile?.rank_xp || 0)) {
+        setRankUpNotif(newRankId);
         playSound('rank_up');
         hapticHeavy();
       }

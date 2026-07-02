@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
-import { getRankFromXP } from "@/lib/rankEngine";
+// Removed getRankFromXP
 import OptimizedImage from "./OptimizedImage";
 import { normalizeGold } from "@/lib/utils";
 
@@ -92,8 +92,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
     staleTime: 5000,
   });
 
-  let rankXP = profile?.rank_xp || 0;
-  const { id: currentRankId } = getRankFromXP(rankXP);
+  const currentRankId = profile?.rank_info?.current_id || "F";
 
   // Находим активного босса
   const activeEncounter = encounters.find(e => !e.is_defeated);

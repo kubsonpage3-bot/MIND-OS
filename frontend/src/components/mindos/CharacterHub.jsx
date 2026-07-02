@@ -1,7 +1,7 @@
 import PixelCharacter from "@/components/mindos/PixelCharacter";
 import BossPanel from "@/components/mindos/BossPanel";
 import { CLASSES } from "@/constants/rpgData";
-import { getRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function CharacterHub({ rankXP, currentRankId, onBossDamage, externalDamage }) {
@@ -20,7 +20,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
 
   const classInfo = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = classInfo?.color || "#3b82f6";
-  const rankInfo = getRankFromXP(rankXP || 0);
+  const rankInfo = getRankDisplayData(profile?.rank_info?.current_id || "F");
   const rankId = currentRankId || rankInfo.id;
 
   const hpPct = Math.max(0, Math.min(100, charMaxHp > 0 ? (charHp / charMaxHp) * 100 : 0));

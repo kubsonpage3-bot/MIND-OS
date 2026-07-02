@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
-import { getRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
 import { Clock } from "lucide-react";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function HistoryLog({ logs, tasks = [] }) {
+  const { profile } = useDjangoAuth();
   const sorted = [...logs].sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime());
 
   const dailyRankMap = useMemo(() => {
@@ -22,10 +24,18 @@ export default function HistoryLog({ logs, tasks = [] }) {
         ? data.focusRatings.reduce((a, b) => a + b, 0) / data.focusRatings.length
         : 5;
       const score = data.hours * focusAvg;
-      result[day] = { score, rank: getRankFromXP(score * 10) };
+      
+      const xp = score * 10;
+      const thresholds = profile?.rank_info?.thresholds || [];
+      let rankId = "F";
+      for (const t of thresholds) {
+        if (xp >= t.min) rankId = t.id;
+      }
+      
+      result[day] = { score, rank: getRankDisplayData(rankId) };
     });
     return result;
-  }, [logs]);
+  }, [logs, profile]);
 
   const bestRankScore = useMemo(() => {
     const scores = Object.values(dailyRankMap).map(d => d.score);

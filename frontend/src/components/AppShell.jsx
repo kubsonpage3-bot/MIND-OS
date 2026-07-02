@@ -12,7 +12,7 @@ import { applyAppearanceSettings } from "@/lib/applyAppearance";
 import RewardToast from "@/components/mindos/RewardToast";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
-import { getRankFromXP } from "@/lib/rankEngine";
+// Removed getRankFromXP
 
 const APPS = [
   { id: "mind", label: "MIND OS", icon: Brain, color: "text-primary" },
@@ -122,7 +122,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   };
 
   const rankXP = djangoProfile?.rank_xp || 0;
-  const { id: currentRank } = getRankFromXP ? getRankFromXP(rankXP) : { id: "F" };
+  const currentRank = djangoProfile?.rank_info?.current_id || "F";
 
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);

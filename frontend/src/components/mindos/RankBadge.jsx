@@ -1,4 +1,5 @@
-import { getNextRankFromXP, getRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import PixelCharacter from "./PixelCharacter";
 
 const pixelBox = (color) => ({
@@ -15,14 +16,23 @@ function getRankBarColor(rankId) {
 }
 
 export default function RankBadge({ rankXP = 0, compact = false }) {
-  const rank = getRankFromXP(rankXP);
-  const nextRank = getNextRankFromXP(rankXP);
+  const { profile } = useDjangoAuth();
+  
+  const thresholds = profile?.rank_info?.thresholds || [];
+  const currentRankId = profile?.rank_info?.current_id || "F";
+  const rank = getRankDisplayData(currentRankId);
+  
+  const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
+  const nextRankId = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].id : null;
+  const nextRank = nextRankId ? getRankDisplayData(nextRankId) : null;
+  const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
+  const nextMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
 
-  const progressPct = nextRank
-    ? Math.min(100, ((rankXP - rank.xpMin) / (nextRank.xpMin - rank.xpMin)) * 100)
+  const progressPct = nextMin !== null
+    ? Math.min(100, ((rankXP - currentMin) / (nextMin - currentMin)) * 100)
     : 100;
 
-  const xpToNext = nextRank ? nextRank.xpMin - rankXP : 0;
+  const xpToNext = nextMin !== null ? nextMin - rankXP : 0;
   const barColor = getRankBarColor(rank.id);
 
   if (compact) {

@@ -94,10 +94,6 @@ class UserProfile(models.Model):
         null=True, blank=True, verbose_name="Последняя тренировка"
     )
 
-    last_daily_cron_at = models.DateField(
-        null=True, blank=True, verbose_name="Последнее ежедневное обновление (Mutators)"
-    )
-
     # Активные мутаторы (список ID мутаторов)
     active_mutators = models.JSONField(
         default=list, blank=True, verbose_name="Активные мутаторы"
@@ -121,6 +117,7 @@ class UserProfile(models.Model):
     skill_points = models.PositiveIntegerField(
         default=0, verbose_name="Очки навыков (SP)"
     )
+    humanities_xp = models.FloatField(default=0.0, verbose_name="Humanities XP")
 
     # Настройки сложности боссов
     class BossDifficulty(models.TextChoices):

@@ -1,6 +1,6 @@
 from django.db import transaction
 from api.models import UserProfile
-from api.constants import RANK_THRESHOLDS
+from api.constants import RANK_THRESHOLDS, HUMANITIES_RANK_THRESHOLDS
 
 
 @transaction.atomic
@@ -23,11 +23,52 @@ def gain_xp(profile: UserProfile, amount: int) -> bool:
         profile.mana_max += 5
         leveled_up = True
 
-    profile.save(
-        update_fields=["xp", "level", "xp_to_next_level", "hp", "mana_max"]
-    )
+    profile.save(update_fields=["xp", "level", "xp_to_next_level", "hp", "mana_max"])
 
     return leveled_up
+
+
+def get_rank_info(profile: UserProfile) -> dict:
+    """
+    Вычисляет пороги рангов с учетом пассивок (endurance_protocol)
+    и возвращает текущий ранг и обновленную матрицу порогов.
+    """
+    # Если endurance_protocol разблокирован, пороги уменьшаются на 20%
+    has_endurance = profile.unlocked_skills.filter(
+        skill_code="endurance_protocol"
+    ).exists()
+    multiplier = 0.8 if has_endurance else 1.0
+
+    thresholds = []
+    for r in RANK_THRESHOLDS:
+        thresholds.append({"id": r["id"], "min": int(r["min"] * multiplier)})
+
+    current_id = thresholds[0]["id"]
+    for t in thresholds:
+        if profile.rank_xp >= t["min"]:
+            current_id = t["id"]
+
+    return {"current_id": current_id, "thresholds": thresholds}
+
+
+def get_humanities_rank_info(profile: UserProfile) -> dict:
+    """
+    Вычисляет пороги рангов Humanities с учетом пассивок (master_of_arts)
+    и возвращает текущий ранг и обновленную матрицу порогов.
+    """
+    has_master = profile.unlocked_skills.filter(skill_code="master_of_arts").exists()
+    multiplier = 0.85 if has_master else 1.0
+
+    thresholds = []
+    for r in HUMANITIES_RANK_THRESHOLDS:
+        thresholds.append({"id": r["id"], "min": int(r["min"] * multiplier)})
+
+    current_id = thresholds[0]["id"]
+    for t in thresholds:
+        if profile.humanities_xp >= t["min"]:
+            current_id = t["id"]
+
+    return {"current_id": current_id, "thresholds": thresholds}
 
 
 @transaction.atomic
@@ -47,14 +88,17 @@ def check_death(profile: UserProfile) -> bool:
         profile.xp = 0
         profile.level = max(1, profile.level - 1)
 
+        rank_info = get_rank_info(profile)
+        thresholds = rank_info["thresholds"]
+
         current_rank_idx = 0
-        for i, r in enumerate(RANK_THRESHOLDS):
-            if profile.rank_xp >= r["min"]:
+        for i, t in enumerate(thresholds):
+            if profile.rank_xp >= t["min"]:
                 current_rank_idx = i
 
         if current_rank_idx > 0:
             new_rank_idx = current_rank_idx - 1
-            profile.rank_xp = RANK_THRESHOLDS[new_rank_idx]["min"]
+            profile.rank_xp = thresholds[new_rank_idx]["min"]
         else:
             profile.rank_xp = 0
 

@@ -710,6 +710,7 @@ def test_golden_mind_guaranteed_drop(user, profile):
     inv_count = InventoryItem.objects.filter(user_profile=profile).count()
     assert inv_count == 1
 
+
 @pytest.mark.django_db
 def test_void_clarity_weekly_cast(user, profile):
     from api.models import UnlockedSkill, SkillCooldown
@@ -721,10 +722,10 @@ def test_void_clarity_weekly_cast(user, profile):
     profile.save()
 
     # Create void_clarity
-    UnlockedSkill.objects.create(user_profile=profile, skill_code='void_clarity')
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="void_clarity")
 
     # First cast: should cost 0 mana instead of 40 (blueprint)
-    success, msg, _, _ = activate_skill(user, 'blueprint')
+    success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 100  # Mana not deducted
@@ -732,7 +733,7 @@ def test_void_clarity_weekly_cast(user, profile):
     # Second cast immediately: should cost 70 mana (system_overload)
     # Also need to reset blueprint cooldown if we want to cast blueprint again,
     # but we can just cast a different skill
-    success, msg, _, _ = activate_skill(user, 'system_overload')
+    success, msg, _, _ = activate_skill(user, "system_overload")
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 30  # 100 - 70
@@ -745,7 +746,7 @@ def test_void_clarity_weekly_cast(user, profile):
     SkillCooldown.objects.all().delete()
 
     # Third cast: should cost 0 mana again
-    success, msg, _, _ = activate_skill(user, 'blueprint')
+    success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 30  # Mana not deducted again
@@ -762,15 +763,150 @@ def test_mindguard_cooldown_reduction(user, profile):
     profile.save()
 
     # Create mindguard
-    UnlockedSkill.objects.create(user_profile=profile, skill_code='mindguard')
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="mindguard")
 
     # Activate skill (blueprint normally has 24h cooldown)
-    success, msg, _, _ = activate_skill(user, 'blueprint')
+    success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
 
-    cd = SkillCooldown.objects.get(user=user, skill_id='blueprint')
+    cd = SkillCooldown.objects.get(user=user, skill_id="blueprint")
     now = timezone.now()
-    
+
     # Check if cooldown is around 24 * 0.85 = 20.4 hours
     delta_hours = (cd.cooldown_until - now).total_seconds() / 3600
     assert 20.3 < delta_hours < 20.5
+
+
+@pytest.mark.django_db
+def test_endurance_protocol_reduces_rank_thresholds(user, profile):
+    from api.services.profile_service import get_rank_info
+
+    # Without passive, Rank D requires 200 XP
+    info = get_rank_info(profile)
+    assert info["thresholds"][1]["id"] == "D"
+    assert info["thresholds"][1]["min"] == 200
+
+    # Give profile 160 XP. Without passive, this is Rank F
+    profile.rank_xp = 160
+    profile.save()
+    info = get_rank_info(profile)
+    assert info["current_id"] == "F"
+
+    # Unlock endurance_protocol
+    from api.models import UnlockedSkill
+
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="endurance_protocol")
+
+    # Now Rank D should require 160 XP (-20% of 200)
+    info = get_rank_info(profile)
+    assert info["thresholds"][1]["min"] == 160
+
+    # And 160 XP should now be Rank D
+    assert info["current_id"] == "D"
+
+
+@pytest.mark.django_db
+def test_daily_login_streak(user, profile):
+    from api.services.daily_service import process_daily_login
+    from datetime import timedelta
+    from django.utils import timezone
+
+    # 1. Initial login (streak becomes 1)
+    profile.last_daily_cron_at = None
+    profile.save()
+    p = process_daily_login(user)
+    assert p.streak == 1
+    assert p.last_daily_cron_at == timezone.now().date()
+
+    # 2. Consecutive day (streak becomes 2)
+    p.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    p.save()
+    p = process_daily_login(user)
+    assert p.streak == 2
+
+    # 3. Gap > 1 day (streak resets to 1)
+    p.last_daily_cron_at = timezone.now().date() - timedelta(days=3)
+    p.save()
+    p = process_daily_login(user)
+    assert p.streak == 1
+
+    # 4. Same day login (streak remains unchanged)
+    p.streak = 5
+    p.save()
+    p = process_daily_login(user)
+    assert p.streak == 5
+
+    # 5. Unlock skills and check compound_returns & fortunes_favor
+    from api.models import UnlockedSkill
+
+    UnlockedSkill.objects.create(user_profile=p, skill_code="fortunes_favor")
+    UnlockedSkill.objects.create(user_profile=p, skill_code="compound_returns")
+
+    # 5a. Simulate day change to reach streak 6
+    p.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    p.streak = 5
+    p.save()
+
+    gold_before = p.gold
+    p = process_daily_login(user)
+    assert p.streak == 6
+    assert (
+        p.gold == gold_before + 100
+    )  # Only fortunes_favor fires, NOT compound_returns
+
+    # 5b. Simulate day change to reach streak 7 (compound_returns should fire)
+    p.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    p.save()
+
+    gold_before = p.gold
+    p = process_daily_login(user)
+    assert p.streak == 7
+    assert (
+        p.gold == gold_before + 100 + 200
+    )  # fortunes_favor (100) + compound_returns (200)
+
+    # 5c. Simulate streak gap > 1 (streak resets to 1), confirm no compound_returns fires
+    p.last_daily_cron_at = timezone.now().date() - timedelta(days=2)
+    p.save()
+
+    gold_before = p.gold
+    p = process_daily_login(user)
+    assert p.streak == 1  # Reset!
+    assert (
+        p.gold == gold_before + 100
+    )  # Only fortunes_favor fires, NOT compound_returns
+
+
+@pytest.mark.django_db
+def test_sell_item(user, profile):
+    from api.services.shop_service import sell_item
+    from api.models import Item, InventoryItem, UnlockedSkill
+    from api.constants import BASE_SELL_RATE, MARKET_KNOWLEDGE_SELL_RATE
+
+    item = Item.objects.create(code="test_sword", name="Test Sword", cost=100)
+    InventoryItem.objects.create(user_profile=profile, item=item, quantity=2)
+
+    initial_gold = profile.gold
+
+    # Sell 1 without market knowledge
+    success, msg, p = sell_item(user, "test_sword", 1)
+    assert success is True
+    assert p.gold == initial_gold + int(100 * BASE_SELL_RATE)
+
+    inv_item = InventoryItem.objects.get(user_profile=p, item__code="test_sword")
+    assert inv_item.quantity == 1
+
+    # Unlock market_knowledge
+    UnlockedSkill.objects.create(user_profile=p, skill_code="market_knowledge")
+
+    current_gold = p.gold
+
+    # Sell 1 with market knowledge
+    success, msg, p = sell_item(user, "test_sword", 1)
+    assert success is True
+    assert p.gold == current_gold + int(100 * MARKET_KNOWLEDGE_SELL_RATE)
+
+    # Item should be deleted from inventory since quantity is 0
+    assert not InventoryItem.objects.filter(
+        user_profile=p, item__code="test_sword"
+    ).exists()

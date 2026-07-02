@@ -1,11 +1,21 @@
-import { RANK_XP_TABLE, getRankFromXP, getNextRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function RankRoadTable({ rankXP = 0 }) {
-  const currentRank = getRankFromXP(rankXP);
-  const nextRank = getNextRankFromXP(rankXP);
+  const { profile } = useDjangoAuth();
+  
+  const thresholds = profile?.rank_info?.thresholds || [];
+  const currentRankId = profile?.rank_info?.current_id || "F";
+  const currentRank = getRankDisplayData(currentRankId);
+  
+  const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
+  const nextRankId = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].id : null;
+  const nextRank = nextRankId ? getRankDisplayData(nextRankId) : null;
+  const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
+  const nextMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
 
-  const progressPct = nextRank
-    ? Math.min(100, ((rankXP - currentRank.xpMin) / (nextRank.xpMin - currentRank.xpMin)) * 100)
+  const progressPct = nextMin !== null
+    ? Math.min(100, ((rankXP - currentMin) / (nextMin - currentMin)) * 100)
     : 100;
 
   return (
@@ -23,10 +33,10 @@ export default function RankRoadTable({ rankXP = 0 }) {
             </tr>
           </thead>
           <tbody>
-            {RANK_XP_TABLE.map((row) => {
+            {thresholds.map((row) => {
               const isCurrent = row.id === currentRank.id;
               const isNext = nextRank && row.id === nextRank.id;
-              const rankData = RANK_XP_TABLE.find(r => r.id === row.id);
+              const displayData = getRankDisplayData(row.id);
               // color from RANKS
               const rankColors = {
                 F: "#64748b", D: "#ef4444", C: "#f97316", B: "#eab308",
@@ -44,12 +54,12 @@ export default function RankRoadTable({ rankXP = 0 }) {
                     <span className="font-bold" style={{ color }}>{row.id}</span>
                   </td>
                   <td className="py-2 pr-3">
-                    <span className={isCurrent ? "text-foreground" : "text-muted-foreground/70"}>{row.label}</span>
+                    <span className={isCurrent ? "text-foreground" : "text-muted-foreground/70"}>{displayData.label}</span>
                     {isCurrent && <span className="ml-2 text-[10px] text-primary">← YOU</span>}
                     {isNext && <span className="ml-2 text-[10px] text-yellow-400">← NEXT</span>}
                   </td>
-                  <td className="py-2 pr-3 text-right text-muted-foreground/80">{row.xpNeeded}</td>
-                  <td className="py-2 text-right text-muted-foreground/60 hidden sm:table-cell">{row.hoursEst}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground/80">{row.min}</td>
+                  <td className="py-2 text-right text-muted-foreground/60 hidden sm:table-cell">~{Math.round(row.min/10)}h</td>
                 </tr>
               );
             })}
@@ -72,7 +82,7 @@ export default function RankRoadTable({ rankXP = 0 }) {
             />
           </div>
           <div className="text-[10px] font-mono text-muted-foreground/50 text-right">
-            {Math.floor(rankXP)} / {nextRank.xpMin} XP — {progressPct.toFixed(0)}% to {nextRank.id} {nextRank.label}
+            {Math.floor(rankXP)} / {nextMin} XP — {progressPct.toFixed(0)}% to {nextRank.id} {nextRank.label}
           </div>
         </div>
       )}

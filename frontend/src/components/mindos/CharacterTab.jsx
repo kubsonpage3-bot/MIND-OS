@@ -4,7 +4,7 @@ import { getTierColor } from "@/lib/gameState";
 import { CLASSES } from "@/constants/rpgData";
 import { djangoApi, getMediaUrl } from "@/api/djangoClient";
 import PixelCharacter from "./PixelCharacter";
-import { getRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
 import { ShoppingCart, X, Hexagon, ChevronLeft } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
 
@@ -142,7 +142,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   });
 
   // Use currentRankId prop if provided for sync with header character icon
-  const currentRank = currentRankId ? { ...getRankFromXP(rankXP), id: currentRankId } : getRankFromXP(rankXP);
+  const currentRankIdValue = currentRankId || profile?.rank_info?.current_id || "F";
+  const currentRank = getRankDisplayData(currentRankIdValue);
   const charHp = profile?.hp !== undefined ? profile.hp : 100;
   const charMaxHp = profile?.hp_max || 100;
   const hpPct = Math.max(0, (charHp / charMaxHp) * 100);
@@ -559,7 +560,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             const isOwned = !featuredItem.consumable && (inventory || []).some(i => i.id === featuredItem.id);
             // Bonus unique items not in regular shop (only in featured slot)
             const bonusPool = [
-              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 0, consumable: true, effect: "+100% XP for 2h" },
+              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 0, consumable: true, effect: "+100% XP for 2h", icon_url: "/static/items/daily_xp_surge.webp" },
             ];
             const bonusItem = bonusPool[seed % bonusPool.length];
             const isBonusDay = seed % 5 === 0; // every 5 days a unique bonus item appears

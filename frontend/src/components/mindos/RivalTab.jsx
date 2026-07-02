@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import OptimizedImage from "./OptimizedImage";
-import { getRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
 import { ACTIVITIES } from "@/lib/cognitiveEngine";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -296,8 +296,13 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   const pctDiff = playerRankXP > 0 ? diff / playerRankXP : 0;
   const isClosing = rivalAhead && pctDiff < 0.10;
 
-  const rivalRank = getRankFromXP(johanXP);
-  const playerRank = getRankFromXP(playerRankXP);
+  const thresholds = profile?.rank_info?.thresholds || [];
+  let johanRankId = "F";
+  for (const t of thresholds) {
+    if (johanXP >= t.min) johanRankId = t.id;
+  }
+  const rivalRank = getRankDisplayData(johanRankId);
+  const playerRank = getRankDisplayData(profile?.rank_info?.current_id || "F");
 
   const visibleSessions = todaySessions.filter(s => {
     const [h, m] = s.scheduledTime.split(":").map(Number);

@@ -21,6 +21,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     hp_max = serializers.SerializerMethodField()
     unlocked_achievements = serializers.SerializerMethodField()
     prestige_xp_required = serializers.SerializerMethodField()
+    rank_info = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -72,6 +73,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "active_mutators",
             "unlocked_achievements",
             "rival_data",
+            "rank_info",
         )
         read_only_fields = (
             "id",
@@ -93,10 +95,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "damage_multiplier",
             "gold_multiplier",
             "xp_multiplier",
+            "rank_info",
         )
 
     def get_max_hp(self, obj) -> int:
         return obj.max_hp
+
+    def get_rank_info(self, obj):
+        from api.services.profile_service import get_rank_info
+
+        return get_rank_info(obj)
 
     def get_hp_max(self, obj) -> int:
         return obj.max_hp
@@ -159,6 +167,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     active_list = active_mutators_data.get("active", [])
                     if len(active_list) > 3:
                         from rest_framework.exceptions import ValidationError
+
                         raise ValidationError("Maximum of 3 active mutators allowed.")
                 instance.active_mutators = active_mutators_data
 

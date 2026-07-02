@@ -13,6 +13,7 @@ from .views import (
     SkillActivateView,
     ActiveEffectsView,
     ShopBuyView,
+    ShopSellView,
     ShopItemListView,
     BossListView,
     BossEncounterView,
@@ -61,6 +62,7 @@ urlpatterns = [
     path("skills/active-effects/", ActiveEffectsView.as_view(), name="active-effects"),
     # Ã¢â€â‚¬Ã¢â€â‚¬ ÃÅ“ÃÂ°ÃÂ³ÃÂ°ÃÂ·ÃÂ¸ÃÂ½ Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬  # noqa: E501
     path("shop/buy/", ShopBuyView.as_view(), name="shop-buy"),
+    path("shop/sell/", ShopSellView.as_view(), name="shop-sell"),
     path("shop/items/", ShopItemListView.as_view(), name="shop-items"),
     path(
         "inventory/<str:item_code>/equip/",

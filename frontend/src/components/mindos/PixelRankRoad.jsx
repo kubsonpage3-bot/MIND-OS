@@ -1,14 +1,23 @@
 import { motion } from "framer-motion";
-import { RANK_XP_TABLE, getRankFromXP, getNextRankFromXP } from "@/lib/rankEngine";
+import { getRankDisplayData } from "@/lib/rankEngine";
 import { Trophy } from "lucide-react";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function PixelRankRoad({ rankXP = 0 }) {
-  const currentRank = getRankFromXP(rankXP);
-  const nextRank = getNextRankFromXP(rankXP);
+  const { profile } = useDjangoAuth();
+  
+  const thresholds = profile?.rank_info?.thresholds || [];
+  const currentRankId = profile?.rank_info?.current_id || "F";
+  const currentRank = getRankDisplayData(currentRankId);
+  
+  const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
+  const nextRank = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? getRankDisplayData(thresholds[currentIdx + 1].id) : null;
+  const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
+  const nextMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
 
   // Calculate progress within current rank range to next rank
-  const progressPct = nextRank
-    ? Math.min(100, ((rankXP - currentRank.xpMin) / (nextRank.xpMin - currentRank.xpMin)) * 100)
+  const progressPct = nextMin !== null
+    ? Math.min(100, ((rankXP - currentMin) / (nextMin - currentMin)) * 100)
     : 100;
 
   const rankColors = {
@@ -83,15 +92,13 @@ export default function PixelRankRoad({ rankXP = 0 }) {
 
       {/* Ranks list */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 relative z-10">
-        {RANK_XP_TABLE.map((row) => {
+        {thresholds.map((row, index) => {
           const isCurrent = row.id === currentRank.id;
           const color = rankColors[row.id];
           
           // Determine status: unlocked, current, or locked
-          const rankIndex = RANK_XP_TABLE.findIndex(r => r.id === row.id);
-          const currentRankIndex = RANK_XP_TABLE.findIndex(r => r.id === currentRank.id);
-          const isUnlocked = rankIndex < currentRankIndex;
-          const isLocked = rankIndex > currentRankIndex;
+          const isUnlocked = index < currentIdx;
+          const isLocked = index > currentIdx;
 
           return (
             <motion.div
@@ -146,7 +153,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
               {/* XP Requirement indicator */}
               <div className="mt-2 pt-1.5 border-t border-[var(--habit-border)] flex items-center justify-between font-game text-[11px]">
                 <span className="text-[var(--habit-dim)] font-bold">REQ:</span>
-                <span className="text-[#ff8800]">{row.xpNeeded}XP</span>
+                <span className="opacity-80 block text-xs truncate">{row.min} XP</span>
               </div>
             </motion.div>
           );

@@ -321,10 +321,15 @@ export const djangoApi = {
 
   shop: {
     getItems: () => djangoFetch('/shop/items/'),
-    buy: (data) =>
+    buy: (itemId) =>
       djangoFetch('/shop/buy/', {
         method: 'POST',
-        body: JSON.stringify({ item_id: data.item_id }),
+        body: JSON.stringify({ item_id: itemId }),
+      }),
+    sell: (itemId, quantity = 1) =>
+      djangoFetch('/shop/sell/', {
+        method: 'POST',
+        body: JSON.stringify({ item_id: itemId, quantity }),
       }),
   },
 

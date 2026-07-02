@@ -146,6 +146,13 @@ def compute_rival_data(user_profile):
 
     johan_xp = calc_johan_xp(player_rank_xp, day_num)
 
+    from api.models import UnlockedSkill
+
+    if UnlockedSkill.objects.filter(
+        user_profile=user_profile, skill_code="transcendent_will"
+    ).exists():
+        johan_xp = max(1.0, round(johan_xp * 0.9, 1))
+
     new_data = {
         "totalXP": johan_xp,
         "streak": johan_streak,

@@ -1,6 +1,9 @@
 # Constants for static data (like bosses)
 PRESTIGE_XP_REQUIRED = 9000
 
+BASE_SELL_RATE = 0.30
+MARKET_KNOWLEDGE_SELL_RATE = 0.60
+
 SCROLL_BOSSES = [
     {
         "id": "misted_wanderer",
@@ -188,6 +191,17 @@ SCROLL_BOSSES_DICT = {b["id"]: b for b in SCROLL_BOSSES}
 
 
 RANK_THRESHOLDS = [
+    {"id": "F", "min": 0},
+    {"id": "D", "min": 200},
+    {"id": "C", "min": 600},
+    {"id": "B", "min": 1200},
+    {"id": "A", "min": 2500},
+    {"id": "S", "min": 4000},
+    {"id": "SS", "min": 6000},
+    {"id": "SSS", "min": 8000},
+]
+
+HUMANITIES_RANK_THRESHOLDS = [
     {"id": "F", "min": 0},
     {"id": "D", "min": 200},
     {"id": "C", "min": 600},
