@@ -7,7 +7,7 @@ import math
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
-from api.models import UserProfile, ActiveEffect, SkillCooldown
+from api.models import UserProfile, ActiveEffect, SkillCooldown, UnlockedSkill
 
 # ─── Определения классов и скиллов (зеркало rpgSystem.js) ─────────────────
 
@@ -125,11 +125,24 @@ def activate_skill(user, skill_id):
             None,
         )
 
+    # Passives checks
+    has_void_clarity = UnlockedSkill.objects.filter(user_profile=profile, skill_code='void_clarity').exists()
+    has_mindguard = UnlockedSkill.objects.filter(user_profile=profile, skill_code='mindguard').exists()
+
+    effective_mana_cost = skill_def["mana"]
+    used_void_clarity = False
+
+    if has_void_clarity:
+        now = timezone.now()
+        if profile.void_clarity_last_used is None or (now - profile.void_clarity_last_used).days >= 7:
+            effective_mana_cost = 0
+            used_void_clarity = True
+
     # Проверка маны
-    if profile.mana < skill_def["mana"]:
+    if profile.mana < effective_mana_cost:
         return (
             False,
-            f"Not enough mana: requires {skill_def['mana']}, available {profile.mana}",
+            f"Not enough mana: requires {effective_mana_cost}, available {profile.mana}",
             None,
             None,
         )
@@ -141,11 +154,21 @@ def activate_skill(user, skill_id):
         return False, f"Cooldown: {_fmt_td(remaining)} remaining", None, None
 
     # Списываем ману
-    profile.mana -= skill_def["mana"]
-    profile.save(update_fields=["mana"])
+    if effective_mana_cost > 0:
+        profile.mana -= effective_mana_cost
+    
+    if used_void_clarity:
+        profile.void_clarity_last_used = timezone.now()
+        profile.save(update_fields=["mana", "void_clarity_last_used"])
+    else:
+        profile.save(update_fields=["mana"])
 
     # Ставим кулдаун
-    cd_until = timezone.now() + timedelta(hours=skill_def["cooldown_h"])
+    effective_cooldown_h = skill_def["cooldown_h"]
+    if has_mindguard:
+        effective_cooldown_h *= 0.85
+
+    cd_until = timezone.now() + timedelta(hours=effective_cooldown_h)
     SkillCooldown.objects.update_or_create(
         user=profile.user,
         skill_id=skill_id,

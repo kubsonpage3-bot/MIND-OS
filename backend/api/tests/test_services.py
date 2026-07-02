@@ -709,3 +709,68 @@ def test_golden_mind_guaranteed_drop(user, profile):
 
     inv_count = InventoryItem.objects.filter(user_profile=profile).count()
     assert inv_count == 1
+
+@pytest.mark.django_db
+def test_void_clarity_weekly_cast(user, profile):
+    from api.models import UnlockedSkill, SkillCooldown
+    from api.services.skill_service import activate_skill
+    from django.utils import timezone
+    from datetime import timedelta
+
+    profile.mana = 100
+    profile.save()
+
+    # Create void_clarity
+    UnlockedSkill.objects.create(user_profile=profile, skill_code='void_clarity')
+
+    # First cast: should cost 0 mana instead of 40 (blueprint)
+    success, msg, _, _ = activate_skill(user, 'blueprint')
+    assert success is True
+    profile.refresh_from_db()
+    assert profile.mana == 100  # Mana not deducted
+
+    # Second cast immediately: should cost 70 mana (system_overload)
+    # Also need to reset blueprint cooldown if we want to cast blueprint again,
+    # but we can just cast a different skill
+    success, msg, _, _ = activate_skill(user, 'system_overload')
+    assert success is True
+    profile.refresh_from_db()
+    assert profile.mana == 30  # 100 - 70
+
+    # Fast forward void_clarity_last_used by 8 days
+    profile.void_clarity_last_used = timezone.now() - timedelta(days=8)
+    profile.save()
+
+    # Reset cooldowns just in case
+    SkillCooldown.objects.all().delete()
+
+    # Third cast: should cost 0 mana again
+    success, msg, _, _ = activate_skill(user, 'blueprint')
+    assert success is True
+    profile.refresh_from_db()
+    assert profile.mana == 30  # Mana not deducted again
+
+
+@pytest.mark.django_db
+def test_mindguard_cooldown_reduction(user, profile):
+    from api.models import UnlockedSkill, SkillCooldown
+    from api.services.skill_service import activate_skill
+    from django.utils import timezone
+    from datetime import timedelta
+
+    profile.mana = 100
+    profile.save()
+
+    # Create mindguard
+    UnlockedSkill.objects.create(user_profile=profile, skill_code='mindguard')
+
+    # Activate skill (blueprint normally has 24h cooldown)
+    success, msg, _, _ = activate_skill(user, 'blueprint')
+    assert success is True
+
+    cd = SkillCooldown.objects.get(user=user, skill_id='blueprint')
+    now = timezone.now()
+    
+    # Check if cooldown is around 24 * 0.85 = 20.4 hours
+    delta_hours = (cd.cooldown_until - now).total_seconds() / 3600
+    assert 20.3 < delta_hours < 20.5

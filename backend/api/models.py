@@ -77,6 +77,8 @@ class UserProfile(models.Model):
     # Уровень престижа
     prestige_count = models.PositiveIntegerField(default=0, verbose_name="Престиж")
 
+    # Track last used for void_clarity active skill passive
+    void_clarity_last_used = models.DateTimeField(null=True, blank=True)
     # Престиж-множители (перманентные бонусы)
     damage_multiplier = models.FloatField(default=1.0, verbose_name="Множитель урона")
     gold_multiplier = models.FloatField(default=1.0, verbose_name="Множитель золота")
