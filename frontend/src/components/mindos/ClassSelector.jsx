@@ -51,7 +51,7 @@ export default function ClassSelector({ onChoose }) {
               {/* Character sprite */}
               <div className="flex justify-center mb-1 relative h-20">
                 <motion.img
-                  src={CLASS_SPRITES[cls.id]}
+                  src={typeof CLASS_SPRITES[cls.id] === 'object' ? CLASS_SPRITES[cls.id]['S'] : CLASS_SPRITES[cls.id]}
                   alt={cls.name}
                   className="h-20 object-contain"
                   style={{

@@ -169,8 +169,12 @@ export default function PixelCharacter({ rankId, rankColor, size = 140 }) {
     : null;
 
 
-  const classSprite = chosenClass ? CLASS_SPRITES[chosenClass] : null;
-  const rankFilter = RANK_CHARACTER_FILTERS[rankId] || RANK_CHARACTER_FILTERS["F"];
+  const rawClassSprite = chosenClass ? CLASS_SPRITES[chosenClass] : null;
+  const isObjectSprite = rawClassSprite && typeof rawClassSprite === 'object';
+  const classSprite = isObjectSprite ? (rawClassSprite[rankId] || rawClassSprite["F"]) : rawClassSprite;
+  
+  // If it's an object sprite, we don't apply the CSS rankFilter because the image is already rank-specific
+  const rankFilter = isObjectSprite ? "none" : (RANK_CHARACTER_FILTERS[rankId] || RANK_CHARACTER_FILTERS["F"]);
   const isGod = rankId === "SSS";
   const isSS = rankId === "SS";
   const particleCount = rankId === "F" ? 4 : rankId === "D" ? 6 : rankId === "C" ? 8 : rankId === "B" ? 10 : rankId === "A" ? 12 : rankId === "S" ? 14 : rankId === "SS" ? 16 : 20;
@@ -235,7 +239,7 @@ export default function PixelCharacter({ rankId, rankColor, size = 140 }) {
               className="w-full h-full object-contain"
               style={{
                 imageRendering: "pixelated",
-                filter: `${rankFilter} drop-shadow(0 0 4px ${cfg.frameColor}80)`,
+                filter: rankFilter === "none" ? `drop-shadow(0 0 4px ${cfg.frameColor}80)` : `${rankFilter} drop-shadow(0 0 4px ${cfg.frameColor}80)`,
               }}
               priority={true}
             />
