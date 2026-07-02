@@ -3,7 +3,9 @@ import shutil
 from rembg import remove
 from PIL import Image
 
-src_dir = r"C:\Users\kubso\.gemini\antigravity-ide\brain\41282a9e-2b65-467c-ac94-3aaf58f573e2"
+src_dir = (
+    r"C:\Users\kubso\.gemini\antigravity-ide\brain\41282a9e-2b65-467c-ac94-3aaf58f573e2"
+)
 dest_dir = r"c:\coder\mind-os-growth\frontend\public\images\webp"
 
 images_map = {
@@ -15,6 +17,7 @@ images_map = {
     "S": "warlord_s_1783019234618.png",
     "SS": "warlord_ss_1783019241783.png",
 }
+
 
 def process_image(img_path, dest_path):
     print(f"Processing {img_path} -> {dest_path}")
@@ -29,6 +32,7 @@ def process_image(img_path, dest_path):
             newData.append((255, 255, 255, 0))
     output_img.putdata(newData)
     output_img.save(dest_path, format="WEBP", quality=100, method=6)
+
 
 for rank, filename in images_map.items():
     src_path = os.path.join(src_dir, filename)

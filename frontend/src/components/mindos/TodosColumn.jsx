@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects.js';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';

@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Settings, Palette, Bell, User, Gamepad2, Shield, Globe, Database, RotateCcw, Info, ChevronLeft, Brain } from "lucide-react";
+import { Settings, Palette, Bell, User, Gamepad2, Shield, Globe, RotateCcw, Info, ChevronLeft, Brain } from "lucide-react";
 
 import NotificationsPanel from "@/components/mindos/NotificationsPanel";
 import AccountPanel from "@/components/mindos/AccountPanel";
 import GameplayPanel from "@/components/mindos/GameplayPanel";
 import PrivacyPanel from "@/components/mindos/PrivacyPanel";
 import AppearancePanel from "@/components/mindos/AppearancePanel";
-import DataPanel from "@/components/mindos/DataPanel";
 import ResetPanel from "@/components/mindos/ResetPanel";
 import LanguagePanel from "@/components/mindos/LanguagePanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
@@ -30,7 +29,6 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
     { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
     { id: "privacy", label: "Privacy", icon: Shield },
     { id: "language", label: "Language", icon: Globe },
-    { id: "data", label: "Data", icon: Database },
     { id: "reset", label: "Reset", icon: RotateCcw },
     { id: "about", label: "About", icon: Info },
   ];
@@ -97,9 +95,6 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* LANGUAGE */}
       {showDataTab === "language" && <LanguagePanel />}
-
-      {/* DATA */}
-      {showDataTab === "data" && <DataPanel />}
 
       {/* RESET */}
       {showDataTab === "reset" && <ResetPanel />}

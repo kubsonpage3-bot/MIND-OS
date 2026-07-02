@@ -134,7 +134,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     // We infer non-equip bonus (base + invested) from the backend base
     statBreakdown[key] = {
       base: backendBase,
-      points: Math.max(0, backendBase - 5), // Base starts at 5, so anything above is invested points
+      points: backendBase, // Base starts at 5, plus any invested points
       class: classBonus,
       equip: equipBonus,
       total: total,
@@ -414,7 +414,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 <div className="text-left col-span-2">Stat / Effect</div>
                 <div className="text-center">Class</div>
                 <div className="text-center">Equip</div>
-                <div className="text-center">Pts</div>
+                <div className="text-center">Base</div>
                 <div className="text-right">Total</div>
               </div>
               
@@ -470,7 +470,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             
             {/* Formula explanation */}
             <div className="text-[8px] font-mono text-muted-foreground/40 pt-2 border-t border-border/40">
-              Total = Base (including points & class) + Equipment
+              Total = Class + Equip + Base
             </div>
           </div>
 
