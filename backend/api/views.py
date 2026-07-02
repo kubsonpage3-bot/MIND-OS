@@ -783,6 +783,8 @@ class TrainingLogView(generics.GenericAPIView):
             mutator_effects = apply_active_mutators(profile, context)
             passive_effects = get_passive_multipliers(profile, context)
 
+            focus_rating = max(focus_rating, passive_effects.get("min_focus", 0.0))
+
             # Combine multipliers (additive)
             xp_mult = (
                 mutator_effects.get("xp_mult", 1.0)
@@ -831,8 +833,11 @@ class TrainingLogView(generics.GenericAPIView):
             gains = calculate_cognitive_gains(activity, hours, eff_total, profile)
 
             gf_gain = gains["gf"]
+            effective_gf_ceiling = profile.gf_ceiling + passive_effects.get(
+                "gf_ceiling_flat", 0.0
+            )
             profile.gf = min(
-                profile.gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus
+                effective_gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus
             )
 
             gc_gain = gains["gc"]
@@ -875,6 +880,7 @@ class TrainingLogView(generics.GenericAPIView):
                 base_xp=base_xp,
                 base_gold=base_gold,
                 is_positive=True,
+                passive_effects=passive_effects,
             )
 
             final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
@@ -883,6 +889,19 @@ class TrainingLogView(generics.GenericAPIView):
             gain_xp(profile, final_xp)
             profile.rank_xp = max(0, profile.rank_xp + final_xp)
             profile.gold = max(0, profile.gold + final_gold)
+
+            # Handle item drops
+            if outcome.get("item_dropped"):
+                from api.models import Item, InventoryItem
+
+                item_obj = Item.objects.filter(code=outcome["item_dropped"]).first()
+                if item_obj:
+                    inv_item, created = InventoryItem.objects.get_or_create(
+                        user_profile=profile, item=item_obj
+                    )
+                    if not created:
+                        inv_item.quantity += 1
+                        inv_item.save()
 
             # ── Create TrainingSession Record ──
             from api.models import TrainingSession
@@ -936,6 +955,7 @@ class TrainingLogView(generics.GenericAPIView):
                 "gc_gain": gc_gain,
                 "ps_gain": ps_gain,
                 "vm_gain": vm_gain,
+                "item_dropped": outcome.get("item_dropped"),
             },
             status=status.HTTP_200_OK,
         )

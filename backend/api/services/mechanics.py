@@ -89,11 +89,19 @@ def calculate_cognitive_gains(activity, hours, eff_total, profile):
 
 
 def calculate_task_outcome(
-    user, task_type, base_xp=0, base_gold=0, base_hp_lost=0, is_positive=True
+    user,
+    task_type,
+    base_xp=0,
+    base_gold=0,
+    base_hp_lost=0,
+    is_positive=True,
+    passive_effects=None,
 ):
     """
     Calculates the final outcome of a task based on the user's total RPG stats.
     """
+    if passive_effects is None:
+        passive_effects = {}
     profile = UserProfile.objects.get(user=user)
     stats = profile.total_stats
 
@@ -129,7 +137,7 @@ def calculate_task_outcome(
         final_gold = base_gold + spd_bonus
 
         # Focus (FOC): Grants a "Critical Focus" chance. Formula: FOC * 0.5% chance. If triggered, multiply final XP and Gold by 2.  # noqa: E501
-        crit_chance = foc * 0.005
+        crit_chance = foc * 0.005 + passive_effects.get("crit_chance_bonus", 0.0)
         if random.random() < crit_chance:
             result["is_crit"] = True
             final_xp *= 2
@@ -140,8 +148,9 @@ def calculate_task_outcome(
         final_gold = final_gold * (1 + (lck / 100.0))
 
         # Drop chance: LCK * 0.2% to find a random item.
-        drop_chance = lck * 0.002
-        if random.random() < drop_chance:
+        drop_chance = lck * 0.002 + passive_effects.get("drop_chance_bonus", 0.0)
+        guaranteed_drop = passive_effects.get("guaranteed_loot_drop", False)
+        if guaranteed_drop or random.random() < drop_chance:
             items = list(Item.objects.all())
             if items:
                 dropped_item = random.choice(items)
@@ -355,14 +364,21 @@ def get_passive_multipliers(profile, context: dict):
     effects = {
         "xp_mult": 1.0,
         "gold_mult": 1.0,
-        "boss_dmg_mult": 1.0,
+        "flat_xp": 0,
         "gf_mult": 1.0,
         "gc_mult": 1.0,
         "ps_mult": 1.0,
         "vm_mult": 1.0,
+        "boss_dmg_mult": 1.0,
+        "crit_chance_bonus": 0.0,
+        "drop_chance_bonus": 0.0,
+        "mana_regen_mult": 1.0,
+        "ally_stat_mult": 1.0,
+        "min_focus": 0.0,
+        "gf_ceiling_flat": 0.0,
         "gf_flat_bonus": 0.0,
-        "gc_flat_bonus": 0.0,
-        "flat_xp": 0,
+        "daily_hp_regen": 0.0,
+        "guaranteed_loot_drop": False,
     }
 
     focus_rating = context.get("focus_rating", 0.0)
@@ -411,47 +427,77 @@ def get_passive_multipliers(profile, context: dict):
             if len(unique_today) >= 3:
                 effects["flat_xp"] += 20
 
+    # BATCH 1 SKILLS
+    if "combat_reflexes" in unlocked_skills:
+        effects["crit_chance_bonus"] += 0.10
+
+    if "fortunes_pull" in unlocked_skills or "loot_magnetism" in unlocked_skills:
+        effects["drop_chance_bonus"] += 0.03
+
+    if "resilience" in unlocked_skills:
+        effects["mana_regen_mult"] += 0.25
+
+    if "aura_of_focus" in unlocked_skills:
+        effects["ally_stat_mult"] += 0.10
+
+    if "deep_concentration" in unlocked_skills:
+        effects["min_focus"] = 7.0
+
+    if "neural_expansion" in unlocked_skills:
+        effects["gf_ceiling_flat"] += 20.0
+
+    # BATCH 2 SKILLS
+    if "unbreakable" in unlocked_skills:
+        effects["daily_hp_regen"] += 3.0
+
+    if "golden_mind" in unlocked_skills:
+        hours = context.get("hours", 0.0)
+        if hours >= 2.0:
+            effects["guaranteed_loot_drop"] = True
+
     # ALLIES
+    ally_mult = effects["ally_stat_mult"]
+
     kira_level = recruited_allies.get("kira", 0)
     if kira_level >= 1 and is_science:
-        effects["xp_mult"] += 0.05 if kira_level == 1 else 0.10
+        effects["xp_mult"] += (0.05 if kira_level == 1 else 0.10) * ally_mult
     if kira_level >= 3 and is_science:
-        effects["gf_flat_bonus"] += 0.002
+        effects["gf_flat_bonus"] += 0.002 * ally_mult
 
     neko_level = recruited_allies.get("neko", 0)
     if neko_level >= 1 and task_type == "daily":
-        effects["gold_mult"] += 0.05
+        effects["gold_mult"] += 0.05 * ally_mult
     if neko_level >= 5:
-        effects["gold_mult"] += 0.15
+        effects["gold_mult"] += 0.15 * ally_mult
 
     void_level = recruited_allies.get("void", 0)
     if void_level >= 1:
-        effects["boss_dmg_mult"] += 0.10
+        effects["boss_dmg_mult"] += 0.10 * ally_mult
 
     luna_level = recruited_allies.get("luna", 0)
     if luna_level >= 1 and is_exercise:
-        effects["xp_mult"] += 0.08
+        effects["xp_mult"] += 0.08 * ally_mult
 
     sakura_level = recruited_allies.get("sakura", 0)
     if sakura_level >= 1 and is_language:
-        effects["xp_mult"] += 0.10
+        effects["xp_mult"] += 0.10 * ally_mult
     if sakura_level >= 2:
-        effects["gc_mult"] += 0.10
-        effects["vm_mult"] += 0.10
+        effects["gc_mult"] += 0.10 * ally_mult
+        effects["vm_mult"] += 0.10 * ally_mult
     if sakura_level >= 4:
-        effects["xp_mult"] += 0.08
+        effects["xp_mult"] += 0.08 * ally_mult
 
     yuki_level = recruited_allies.get("yuki", 0)
     if yuki_level >= 1:
-        effects["xp_mult"] += 0.08
+        effects["xp_mult"] += 0.08 * ally_mult
 
     nene_level = recruited_allies.get("nene", 0)
     if nene_level >= 1 and is_prayer:
-        effects["xp_mult"] += 0.15
+        effects["xp_mult"] += 0.15 * ally_mult
     if nene_level >= 4:
-        effects["gf_mult"] += 0.10
-        effects["gc_mult"] += 0.10
-        effects["ps_mult"] += 0.10
-        effects["vm_mult"] += 0.10
+        effects["gf_mult"] += 0.10 * ally_mult
+        effects["gc_mult"] += 0.10 * ally_mult
+        effects["ps_mult"] += 0.10 * ally_mult
+        effects["vm_mult"] += 0.10 * ally_mult
 
     return effects

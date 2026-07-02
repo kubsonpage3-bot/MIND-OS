@@ -509,7 +509,6 @@ def test_todo_completion_boss_damage_revert(user, profile, task):
     Ensures that toggling a To-Do ON deals damage, and toggling it OFF reverts that exact damage.
     """
     from api.models import Boss, BossEncounter
-    from api.services.combat_service import summon_boss
 
     # Setup boss encounter manually to avoid SCROLL_BOSSES_DICT constraints
     boss = Boss.objects.create(
@@ -521,7 +520,7 @@ def test_todo_completion_boss_damage_revert(user, profile, task):
     initial_boss_hp = encounter.hp_current
 
     # Complete To-Do (Toggle ON)
-    result_on = complete_task(user, task.id, is_positive=True)
+    complete_task(user, task.id, is_positive=True)
 
     encounter.refresh_from_db()
     hp_after_hit = encounter.hp_current
@@ -530,7 +529,7 @@ def test_todo_completion_boss_damage_revert(user, profile, task):
     ), "Boss should take damage when To-Do is completed."
 
     # Revert To-Do (Toggle OFF)
-    result_off = complete_task(user, task.id, is_positive=False)
+    complete_task(user, task.id, is_positive=False)
 
     encounter.refresh_from_db()
     hp_after_revert = encounter.hp_current
@@ -582,3 +581,131 @@ def test_skills_and_allies_multipliers(user, profile):
     profile.refresh_from_db()
     effects4 = get_passive_multipliers(profile, {})
     assert effects4["boss_dmg_mult"] == 1.10
+
+
+@pytest.mark.django_db
+def test_additive_stacking_passive_multipliers(user, profile):
+    from api.services.mechanics import get_passive_multipliers
+    from api.models import UnlockedSkill, RecruitedAlly
+
+    # Unlock multiple passive multipliers simultaneously (Batch 1 + existing)
+    UnlockedSkill.objects.create(
+        user_profile=profile, skill_code="combat_reflexes"
+    )  # crit_chance_bonus += 0.10
+    UnlockedSkill.objects.create(
+        user_profile=profile, skill_code="resilience"
+    )  # mana_regen_mult += 0.25
+    UnlockedSkill.objects.create(
+        user_profile=profile, skill_code="aura_of_focus"
+    )  # ally_stat_mult += 0.10
+    UnlockedSkill.objects.create(
+        user_profile=profile, skill_code="deep_concentration"
+    )  # min_focus = 7.0
+    UnlockedSkill.objects.create(
+        user_profile=profile, skill_code="neural_expansion"
+    )  # gf_ceiling_flat += 20.0
+
+    # Add an ally to test Aura of Focus (ally_mult)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
+
+    profile.refresh_from_db()
+
+    context = {"is_science": True, "focus_rating": 5.0}  # Kira requires is_science
+    effects = get_passive_multipliers(profile, context)
+
+    assert effects["crit_chance_bonus"] == 0.10
+    assert effects["mana_regen_mult"] == 1.25
+    assert effects["ally_stat_mult"] == 1.10
+    assert effects["min_focus"] == 7.0
+    assert effects["gf_ceiling_flat"] == 20.0
+
+    # Kira's level 1 bonus is 0.05. With aura_of_focus (1.10 multiplier), it should be 0.055
+    assert round(effects["xp_mult"], 3) == 1.055
+
+    # Existing base keys should remain intact
+    assert effects["gold_mult"] == 1.0
+
+
+@pytest.mark.django_db
+def test_resilience_mana_regen(user, profile):
+    from api.services.task_service import complete_task
+    from api.models import Task, UnlockedSkill
+
+    profile.mana = 0
+    profile.mana_max = 100
+    profile.save()
+
+    task = Task.objects.create(
+        user=user,
+        title="Test Daily",
+        task_type=Task.TaskType.DAILY,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+
+    # Base daily mana gain is 5
+    complete_task(user, task.id, is_positive=True)
+    profile.refresh_from_db()
+    assert profile.mana == 5
+
+    # Now unlock resilience
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="resilience")
+    profile.mana = 0
+    profile.save()
+
+    # Complete again
+    task.last_completed_at = None
+    task.save()
+    complete_task(user, task.id, is_positive=True)
+    profile.refresh_from_db()
+
+    # With resilience (1.25x), base mana (5) * 1.25 = 6.25 -> int(6.25) = 6
+    assert profile.mana == 6
+
+
+@pytest.mark.django_db
+def test_unbreakable_daily_regen(user, profile):
+    from api.services.task_service import process_missed_tasks
+    from api.models import UnlockedSkill
+    from django.utils import timezone
+    from datetime import timedelta
+
+    profile.hp = 10
+    profile.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    profile.save()
+
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")
+
+    res = process_missed_tasks(user)
+    assert res["fired"] is True
+
+    profile.refresh_from_db()
+    # It adds 3 hp, 10 + 3 = 13. Or maybe it goes over max hp? No, max is min(hp_max, hp+3). So 13.
+    assert profile.hp == 13
+
+
+@pytest.mark.django_db
+def test_golden_mind_guaranteed_drop(user, profile):
+    from api.models import UnlockedSkill, Item, InventoryItem
+    from rest_framework.test import APIRequestFactory, force_authenticate
+    from api.views import TrainingLogView
+
+    Item.objects.create(code="test_item", name="Test Item", item_type="material")
+
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="golden_mind")
+
+    factory = APIRequestFactory()
+    request = factory.post(
+        "/api/training/log/",
+        {"activity": "reading", "hours": 2.5, "focus_rating": 7},
+        format="json",
+    )
+    force_authenticate(request, user=user)
+
+    view = TrainingLogView.as_view()
+    response = view(request)
+
+    assert response.status_code == 200
+    assert response.data.get("item_dropped") is not None
+
+    inv_count = InventoryItem.objects.filter(user_profile=profile).count()
+    assert inv_count == 1

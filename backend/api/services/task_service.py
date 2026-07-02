@@ -141,7 +141,7 @@ def complete_task(user, task_id, is_positive=True):
     task.save()
 
     # ── Начисляем награды персонажу ───────────────────────────────────
-    mana_gained = (
+    base_mana = (
         2
         if task.task_type == Task.TaskType.HABIT
         else (5 if task.task_type == Task.TaskType.DAILY else 3)
@@ -171,6 +171,8 @@ def complete_task(user, task_id, is_positive=True):
 
     mutator_died = mutator_effects.get("is_dead", False)
 
+    mana_gained = int(base_mana * passive_effects.get("mana_regen_mult", 1.0))
+
     # Calculate additive multipliers
     gold_mult = (
         mutator_effects.get("gold_mult", 1.0)
@@ -190,7 +192,12 @@ def complete_task(user, task_id, is_positive=True):
 
     if is_positive:
         outcome = calculate_task_outcome(
-            user, task.task_type, base_xp, base_gold, is_positive=True
+            user,
+            task.task_type,
+            base_xp,
+            base_gold,
+            is_positive=True,
+            passive_effects=passive_effects,
         )
         gamification_result = outcome
 
@@ -508,7 +515,15 @@ def process_missed_tasks(user):
 
         task.save()
 
+    from api.services.mechanics import get_passive_multipliers
+
+    passive_effects = get_passive_multipliers(profile, {})
+    daily_regen = passive_effects.get("daily_hp_regen", 0.0)
+
     profile.hp = max(0, profile.hp - total_dmg)
+    if daily_regen > 0:
+        profile.hp = min(profile.max_hp, profile.hp + daily_regen)
+
     profile.last_daily_cron_at = today
     profile.save(update_fields=["hp", "last_daily_cron_at"])
 
