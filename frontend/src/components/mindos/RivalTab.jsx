@@ -69,7 +69,7 @@ function calcJohanMessage(
   const hourSeed = `${new Date().toDateString()}${nowH}`;
 
   const oneHourAgo = Date.now() - 3600000;
-  const recentLog = logs.find(l => new Date(l.log_date || l.created_date).getTime() > oneHourAgo);
+  const recentLog = logs.find(l => new Date(l.created_at).getTime() > oneHourAgo);
   const hasPerfectFocus = logs.some(l => (l.focus_rating || 0) >= 10);
 
   if (playerTodayHours === 0 && nowH >= 15 && johanTodayHours > 0) {
@@ -277,7 +277,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   // Player weekly stats
   const { playerHoursWeek, playerAvgFocus, playerSubjectsWeek, playerWeeklyRankXP } = useMemo(() => {
     const weekAgo = new Date(Date.now() - 7 * 86400000);
-    const weekLogs = logs.filter(l => new Date(l.log_date || l.created_date) >= weekAgo);
+    const weekLogs = logs.filter(l => new Date(l.created_at) >= weekAgo);
     const playerHoursWeek = weekLogs.reduce((s, l) => s + (l.hours || 0), 0);
     const focusArr = weekLogs.map(l => l.focus_rating || 5);
     const playerAvgFocus = focusArr.length > 0 ? focusArr.reduce((a, b) => a + b, 0) / focusArr.length : 0;
@@ -314,7 +314,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   });
 
   const rivalTodayHours = visibleSessions.reduce((s, x) => s + x.hours, 0);
-  const todayLogs = logs.filter(l => new Date(l.log_date || l.created_date).toDateString() === new Date().toDateString());
+  const todayLogs = logs.filter(l => new Date(l.created_at).toDateString() === new Date().toDateString());
   const playerTodayHours = todayLogs.reduce((s, l) => s + (l.hours || 0), 0);
 
   const msgObj = calcJohanMessage(

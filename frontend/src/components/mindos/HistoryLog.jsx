@@ -6,12 +6,12 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function HistoryLog({ logs, tasks = [] }) {
   const { profile } = useDjangoAuth();
-  const sorted = [...logs].sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime());
+  const sorted = [...logs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const dailyRankMap = useMemo(() => {
     const map = {};
     logs.forEach(log => {
-      const day = new Date(log.log_date || log.created_date).toDateString();
+      const day = new Date(log.created_at).toDateString();
       if (!map[day]) map[day] = { iq: log.iq_after || 110, hours: 0, focusRatings: [], activities: new Set() };
       map[day].hours += log.hours || 0;
       if (log.focus_rating) map[day].focusRatings.push(log.focus_rating);
@@ -61,13 +61,13 @@ export default function HistoryLog({ logs, tasks = [] }) {
           .filter(([mk]) => (log[`${mk}_gain`] || 0) > 0)
           .map(([mk, mc]) => ({ mk, mc, val: log[`${mk}_gain`] }));
 
-        const date = new Date(log.created_date);
+        const date = new Date(log.created_at);
         const timeStr = date.toLocaleString("en-US", {
           month: "short", day: "numeric",
           hour: "numeric", minute: "2-digit"
         });
 
-        const day = new Date(log.log_date || log.created_date).toDateString();
+        const day = new Date(log.created_at).toDateString();
         const dayData = dailyRankMap[day];
         const rank = dayData?.rank;
         const isBestDay = dayData && Math.abs(dayData.score - bestRankScore) < 0.001;

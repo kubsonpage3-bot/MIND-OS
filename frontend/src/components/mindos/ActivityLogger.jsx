@@ -53,7 +53,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
   const { hoursToday, subjectHoursMap, recentFocusRatings, subjectTotalHours } = useMemo(() => {
     const today = new Date().toDateString();
-    const todayLogs = logs.filter(l => new Date(l.log_date).toDateString() === today);
+    const todayLogs = logs.filter(l => new Date(l.created_at).toDateString() === today);
     const hoursToday = todayLogs.reduce((s, l) => s + (l.hours || 0), 0);
     const subjectHoursMap = {};
     todayLogs.forEach(l => {

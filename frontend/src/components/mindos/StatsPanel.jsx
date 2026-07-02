@@ -10,16 +10,16 @@ export default function StatsPanel({ profile, logs }) {
   const level = getLevelTitle(Math.round(iq));
 
   const weekAgo = new Date(Date.now() - 7 * 86400000);
-  const weekLogs = logs.filter(l => new Date(l.log_date) >= weekAgo);
+  const weekLogs = logs.filter(l => new Date(l.created_at) >= weekAgo);
 
   const weeklyXP = weekLogs.reduce((sum, l) => sum + (l.xp_earned || 0), 0);
   const xpPct = (weeklyXP % XP_PER_LEVEL) / XP_PER_LEVEL * 100;
-  const streak = 0;
+  const streak = profile?.streak || 0;
 
   const cognitiveROI = useMemo(() => {
-    const withEff = weekLogs.filter(l => l.efficiency_total != null);
+    const withEff = weekLogs.filter(l => l.efficiency != null);
     if (withEff.length === 0) return null;
-    const avg = withEff.reduce((s, l) => s + l.efficiency_total, 0) / withEff.length;
+    const avg = withEff.reduce((s, l) => s + l.efficiency, 0) / withEff.length;
     return Math.round(Math.min((avg / 1.5) * 100, 100));
   }, [weekLogs]);
 

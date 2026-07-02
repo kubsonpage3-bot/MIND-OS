@@ -39,7 +39,7 @@ export default function ProjectionTable({ profile, logs }) {
   const { dailyRates, projections, avgHoursPerDay, avgFocus, subjectStats } = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentLogs = logs.filter(l => new Date(l.log_date) >= sevenDaysAgo);
+    const recentLogs = logs.filter(l => new Date(l.created_at) >= sevenDaysAgo);
 
     const dailyRates = {};
     Object.keys(METRIC_CONFIG).forEach(mk => {
