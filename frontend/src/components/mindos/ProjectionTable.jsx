@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { METRIC_CONFIG, calculateIQ } from "@/lib/cognitiveEngine";
 
 const SUBJECT_CATS = [
@@ -142,6 +143,31 @@ export default function ProjectionTable({ profile, logs }) {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* Radar Chart */}
+      <div className="border-t border-border pt-5 space-y-4">
+        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📊 MASTERY RADAR</div>
+        <div className="h-[250px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={subjectStats}>
+              <PolarGrid stroke="rgba(255,255,255,0.15)" />
+              <PolarAngleAxis 
+                dataKey="label" 
+                tick={({ payload, x, y, textAnchor }) => {
+                  const cat = subjectStats.find(s => s.label === payload.value);
+                  return (
+                    <text x={x} y={y} textAnchor={textAnchor} fill={cat?.color || "#fff"} fontSize={10} fontFamily="monospace" fontWeight="bold" dy={4}>
+                      {payload.value}
+                    </text>
+                  );
+                }} 
+              />
+              <Radar name="Projected (+30d)" dataKey="pct30d" stroke="#888" fill="#888" fillOpacity={0.1} strokeDasharray="3 3" />
+              <Radar name="Current" dataKey="pct" stroke="#22c55e" fill="#22c55e" fillOpacity={0.4} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Subject categories */}
