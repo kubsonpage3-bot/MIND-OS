@@ -118,7 +118,6 @@ def generate_daily_sessions(date_str, pattern):
 
 def calc_johan_xp(player_rank_xp, day_number):
     # Fallback playerAvg approximation since we don't track daily XP history yet
-    player_avg = player_rank_xp * 0.1
 
     base_xp = player_rank_xp * (0.85 + 0.30 * math.sin(day_number * 0.8))
     clamped_xp = max(player_rank_xp * 0.75, min(player_rank_xp * 1.20, base_xp))
@@ -146,7 +145,13 @@ def compute_rival_data(user_profile):
 
     johan_xp = calc_johan_xp(player_rank_xp, day_num)
 
-    from api.models import UnlockedSkill
+    from api.models import UnlockedSkill, ActiveEffect
+
+    transcendence_active = ActiveEffect.objects.filter(
+        user=user_profile.user, skill_id="transcendence"
+    ).exists()
+    if transcendence_active:
+        johan_xp = stored.get("totalXP", johan_xp)
 
     if UnlockedSkill.objects.filter(
         user_profile=user_profile, skill_code="transcendent_will"

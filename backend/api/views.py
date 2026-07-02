@@ -874,7 +874,27 @@ class TrainingLogView(generics.GenericAPIView):
             eff_total = float(data.get("efficiency", 1.0))
             gains = calculate_cognitive_gains(activity, hours, eff_total, profile)
 
+            from api.models import ActiveEffect
+
+            if ActiveEffect.objects.filter(
+                user=request.user, skill_id="infinite_loop"
+            ).exists():
+                for key in gains:
+                    gains[key] *= 2
+
             gf_gain = gains["gf"]
+            gc_gain = gains["gc"]
+            ps_gain = gains["ps"]
+            vm_gain = gains["vm"]
+
+            actual_gc_gain = gc_gain * gc_mult
+            actual_vm_gain = vm_gain * vm_mult
+
+            if ActiveEffect.objects.filter(
+                user=request.user, skill_id="memetic_transfer"
+            ).exists():
+                gf_flat_bonus += (actual_gc_gain + actual_vm_gain) * 0.5
+
             effective_gf_ceiling = profile.gf_ceiling + passive_effects.get(
                 "gf_ceiling_flat", 0.0
             )
@@ -882,7 +902,6 @@ class TrainingLogView(generics.GenericAPIView):
                 effective_gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus
             )
 
-            gc_gain = gains["gc"]
             profile.gc = min(
                 profile.gc_ceiling, profile.gc + gc_gain * gc_mult + gc_flat_bonus
             )

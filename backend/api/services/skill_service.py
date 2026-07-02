@@ -126,15 +126,22 @@ def activate_skill(user, skill_id):
         )
 
     # Passives checks
-    has_void_clarity = UnlockedSkill.objects.filter(user_profile=profile, skill_code='void_clarity').exists()
-    has_mindguard = UnlockedSkill.objects.filter(user_profile=profile, skill_code='mindguard').exists()
+    has_void_clarity = UnlockedSkill.objects.filter(
+        user_profile=profile, skill_code="void_clarity"
+    ).exists()
+    has_mindguard = UnlockedSkill.objects.filter(
+        user_profile=profile, skill_code="mindguard"
+    ).exists()
 
     effective_mana_cost = skill_def["mana"]
     used_void_clarity = False
 
     if has_void_clarity:
         now = timezone.now()
-        if profile.void_clarity_last_used is None or (now - profile.void_clarity_last_used).days >= 7:
+        if (
+            profile.void_clarity_last_used is None
+            or (now - profile.void_clarity_last_used).days >= 7
+        ):
             effective_mana_cost = 0
             used_void_clarity = True
 
@@ -156,7 +163,7 @@ def activate_skill(user, skill_id):
     # Списываем ману
     if effective_mana_cost > 0:
         profile.mana -= effective_mana_cost
-    
+
     if used_void_clarity:
         profile.void_clarity_last_used = timezone.now()
         profile.save(update_fields=["mana", "void_clarity_last_used"])
@@ -281,6 +288,8 @@ def _create_effect(skill_id, profile):
 
     effect_id, data, expires_at = entry
 
+    from api.models import BossEncounter
+
     # Мгновенные эффекты
     if skill_id == "contemplate":
         profile.gf = (profile.gf or 100.0) + 3
@@ -290,10 +299,41 @@ def _create_effect(skill_id, profile):
         profile.save(update_fields=["gf", "gc", "ps", "vm"])
         return None
 
+    if skill_id == "polyglot_surge":
+        from api.services.mechanics import calculate_cognitive_gains
+
+        gains = calculate_cognitive_gains("languages", 2, 1.0, profile)
+        profile.gf = (profile.gf or 100.0) + gains.get("gf", 0)
+        profile.gc = (profile.gc or 100.0) + gains.get("gc", 0)
+        profile.ps = (profile.ps or 100.0) + gains.get("ps", 0)
+        profile.vm = (profile.vm or 100.0) + gains.get("vm", 0)
+        profile.save(update_fields=["gf", "gc", "ps", "vm"])
+        return None
+
+    if skill_id == "war_cry":
+        encounter = BossEncounter.objects.filter(
+            user=profile.user, is_defeated=False
+        ).first()
+        if encounter and encounter.boss:
+            dmg = int(encounter.boss.hp_max * 0.10)
+            encounter.hp_current = max(0, encounter.hp_current - dmg)
+            # Ensure boss doesn't die instantly from war_cry (must be finished by a task or click)
+            if encounter.hp_current <= 0:
+                encounter.hp_current = 1
+            encounter.save(update_fields=["hp_current"])
+        # Return the effect for the stun duration
+        return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
+
     if skill_id == "tactical_retreat":
         mana_restore = math.floor(profile.mana_max * 0.25)
         profile.mana = min(profile.mana_max, profile.mana + mana_restore)
         profile.save(update_fields=["mana"])
+        encounter = BossEncounter.objects.filter(
+            user=profile.user, is_defeated=False
+        ).first()
+        if encounter and encounter.boss:
+            encounter.hp_current = encounter.boss.hp_max
+            encounter.save(update_fields=["hp_current"])
         return None
 
     return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
@@ -313,7 +353,13 @@ def apply_effects_on_task_complete(profile, task):
     ).delete()
 
     effects = ActiveEffect.objects.filter(user=profile.user)
-    result = {"xp_bonus": 0, "hp_heal": 0, "effect_ids_consumed": [], "notes": []}
+    result = {
+        "xp_bonus": 0,
+        "hp_heal": 0,
+        "effect_ids_consumed": [],
+        "notes": [],
+        "system_overload_triggered": False,
+    }
 
     for effect in effects:
         # BLUEPRINT: +50% XP за следующие 3 задачи
@@ -339,14 +385,9 @@ def apply_effects_on_task_complete(profile, task):
         # SYSTEM OVERLOAD: помечаем как готовый к потреблению
         if effect.skill_id == "system_overload" and effect.data.get("active"):
             result["notes"].append("SYSTEM OVERLOAD: 3x boss damage ready!")
+            result["system_overload_triggered"] = True
             effect.data["active"] = False
             effect.save(update_fields=["data"])
-
-        # MEMETIC TRANSFER: зеркалирование Gc/Vm → Gf
-        if effect.skill_id == "memetic_transfer" and effect.data.get("mirrorGcVmToGf"):
-            mirror_gain = (profile.gc or 100.0) * 0.005 + (profile.vm or 100.0) * 0.005
-            profile.gf = (profile.gf or 100.0) + mirror_gain
-            result["notes"].append(f"MEMETIC TRANSFER: +{mirror_gain:.2f} Gf")
 
     if result["hp_heal"] > 0:
         profile.save(update_fields=["hp"])

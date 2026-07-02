@@ -24,6 +24,11 @@ def complete_task(user, task_id, is_positive=True):
     gamification_result = {}
 
     # ── Логика по типу задачи ─────────────────────────────────────────
+    from api.models import ActiveEffect
+
+    transcendence_active = ActiveEffect.objects.filter(
+        user=user, skill_id="transcendence"
+    ).exists()
     if task.task_type == Task.TaskType.TODO:
         if is_positive:
             if task.is_completed:
@@ -83,7 +88,8 @@ def complete_task(user, task_id, is_positive=True):
                 task.value = calc_new_value(task.value, "fail", "daily")
 
             task.completion_count = max(0, task.completion_count - 1)
-            task.streak = max(0, task.streak - 1)
+            if not transcendence_active:
+                task.streak = max(0, task.streak - 1)
 
     elif task.task_type == Task.TaskType.HABIT:
         task.completion_count += 1
@@ -99,7 +105,8 @@ def complete_task(user, task_id, is_positive=True):
             rewards["gold"] = int(rewards["gold"] * streak_mult)
         else:
             task.neg_streak += 1
-            task.pos_streak = 0
+            if not transcendence_active:
+                task.pos_streak = 0
 
             from api.services.combat_service import calculate_fail_damage
 
@@ -172,6 +179,12 @@ def complete_task(user, task_id, is_positive=True):
     mutator_died = mutator_effects.get("is_dead", False)
 
     mana_gained = int(base_mana * passive_effects.get("mana_regen_mult", 1.0))
+
+    battle_fury_active = ActiveEffect.objects.filter(
+        user=user, skill_id="battle_fury"
+    ).exists()
+    if battle_fury_active:
+        mana_gained = int(mana_gained * 0.8)
 
     # Calculate additive multipliers
     gold_mult = (
@@ -357,6 +370,18 @@ def complete_task(user, task_id, is_positive=True):
 
             add_unique_subject_today(stats, category)
 
+            # BABEL MODE: Count languages as 3 subjects
+            if (
+                is_language
+                and ActiveEffect.objects.filter(
+                    user=user, skill_id="babel_mode"
+                ).exists()
+            ):
+                add_unique_subject_today(stats, "Languages")
+                add_unique_subject_today(stats, "English")
+                add_unique_subject_today(stats, "Vocabulary")
+                ActiveEffect.objects.filter(user=user, skill_id="babel_mode").delete()
+
         # Урон от статов
         damage_dealt = gamification_result.get("damage_dealt", 0)
 
@@ -384,12 +409,20 @@ def complete_task(user, task_id, is_positive=True):
             task_base_dmg = int(base_dmg * task_value)
 
         boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
+
+        system_overload_mult = (
+            3.0 if skill_effects.get("system_overload_triggered") else 1.0
+        )
+        battle_fury_mult = 1.5 if battle_fury_active else 1.0
+
         final_damage_dealt = max(
             0,
             int(
                 (task_base_dmg + damage_dealt)
                 * profile.damage_multiplier
                 * boss_dmg_mult
+                * system_overload_mult
+                * battle_fury_mult
             ),
         )
         is_crit = gamification_result.get("is_crit", False)
@@ -475,6 +508,14 @@ def process_missed_tasks(user):
     log = []
 
     from api.services.combat_service import calculate_fail_damage
+    from api.models import ActiveEffect
+
+    iron_fast_active = ActiveEffect.objects.filter(
+        user=user, skill_id="iron_fast"
+    ).exists()
+    transcendence_active = ActiveEffect.objects.filter(
+        user=user, skill_id="transcendence"
+    ).exists()
 
     for task in dailies:
         # Проверяем, был ли дейлик выполнен вчера
@@ -495,13 +536,16 @@ def process_missed_tasks(user):
         else:
             # Missed daily
             dmg = calculate_fail_damage(task, profile)
+            if iron_fast_active:
+                dmg = 0
             outcome = calculate_task_outcome(
                 user, "daily", base_hp_lost=dmg, is_positive=False
             )
             final_dmg = outcome["hp_lost"]
             total_dmg += final_dmg
             task.is_completed = False
-            task.streak = 0
+            if not transcendence_active:
+                task.streak = 0
             task.value = calc_new_value(task.value, "fail", "daily")
             log.append(
                 {
