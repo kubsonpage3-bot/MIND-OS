@@ -99,6 +99,8 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           // Determine status: unlocked, current, or locked
           const isUnlocked = index < currentIdx;
           const isLocked = index > currentIdx;
+          
+          const rankData = getRankDisplayData(row.id);
 
           return (
             <motion.div
@@ -141,12 +143,12 @@ export default function PixelRankRoad({ rankXP = 0 }) {
 
                 {/* Label */}
                 <div className="font-game text-[11px] text-[var(--habit-text)] font-bold uppercase tracking-wide truncate">
-                  {row.label}
+                  {rankData.label}
                 </div>
 
                 {/* Estimate */}
                 <div className="font-game text-[11px] mt-1 tracking-tight whitespace-pre-wrap leading-tight" style={{ color: "var(--habit-purple)" }}>
-                  ⌛ {row.hoursEst.replace(" at focus 8", "")}
+                  ⌛ {rankData.hoursEst?.replace(" at focus 8", "") || ""}
                 </div>
               </div>
 
