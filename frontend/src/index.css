@@ -196,9 +196,9 @@
     cursor: pointer;
   }
 
-  .font-game { font-family: 'Press Start 2P', monospace; }
-  .font-hud  { font-family: 'Press Start 2P', monospace; }
-  .font-mono { font-family: 'Press Start 2P', monospace; font-size: 0.7em; }
+  .font-game { font-family: 'Pixeltype', monospace; }
+  .font-hud  { font-family: 'Pixeltype', monospace; }
+  .font-mono { font-family: 'Pixeltype', monospace; font-size: 0.7em; }
   .font-inter { font-family: 'Nunito', sans-serif; }
 }
 

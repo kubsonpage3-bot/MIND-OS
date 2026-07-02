@@ -132,7 +132,7 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
 
 export default function AlliesPanel({ onSpendGold }) {
   const [selected, setSelected] = useState(null);
-  const { profile, refetchProfile } = useDjangoAuth();
+  const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
   const recruited = profile?.recruited_allies ? Object.keys(profile.recruited_allies) : [];
@@ -144,7 +144,7 @@ export default function AlliesPanel({ onSpendGold }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["player-stats"] });
-      refetchProfile();
+      refreshProfile();
     },
     onError: (err) => {
       showRewardToast({ label: `❌ Recruit failed: ${err.message}` });

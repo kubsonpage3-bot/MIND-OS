@@ -199,7 +199,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   const [prevPlayerXP, setPrevPlayerXP] = useState(null);
   const toastTimerRef = useRef(null);
 
-  const { profile, refetchProfile } = useDjangoAuth();
+  const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
   const { data: rivalDataQuery, isLoading: isRivalLoading } = useQuery({
@@ -213,7 +213,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
     mutationFn: (newData) => djangoApi.profile.update({ rival_data: newData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-      refetchProfile();
+      refreshProfile();
     }
   });
 

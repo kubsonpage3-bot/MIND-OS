@@ -98,7 +98,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const [presets, setPresets] = useState(loadPresets);
   const [confirmPreset, setConfirmPreset] = useState(null);
   
-  const { profile, refetchProfile } = useDjangoAuth();
+  const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
   const unlocked = profile?.unlocked_skills || [];
@@ -119,7 +119,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       playSound('purchase');
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
-      refetchProfile();
+      refreshProfile();
     },
     onError: (err) => {
       playSound('error');
@@ -140,7 +140,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       playSound('error'); // standard for reset
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
-      refetchProfile();
+      refreshProfile();
       setShowRespec(false);
     },
     onError: (err) => {

@@ -18,7 +18,7 @@ const MAX_ACTIVE = 3;
 
 export default function MutatorsPanel({ onSpendGold }) {
   const [confirmIronman, setConfirmIronman] = useState(false);
-  const { profile, refetchProfile } = useDjangoAuth();
+  const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
   const mutators = profile?.active_mutators || { active: [], purchased: [] };
@@ -42,7 +42,7 @@ export default function MutatorsPanel({ onSpendGold }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
-      refetchProfile();
+      refreshProfile();
     },
     onError: (err) => {
       showRewardToast({ label: `❌ Mutators update failed: ${err.message}` });

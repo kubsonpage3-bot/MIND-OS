@@ -10,7 +10,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const [input, setInput] = useState("");
   const [animating, setAnimating] = useState(false);
   
-  const { profile, refetchProfile } = useDjangoAuth();
+  const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
   const count = profile?.prestige_count || prestige?.count || 0;
@@ -26,7 +26,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
-      refetchProfile();
+      refreshProfile();
       onPrestige({ count: count + 1 });
       setAnimating(false);
       setOpen(false);
