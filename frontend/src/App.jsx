@@ -51,7 +51,7 @@ function ProtectedRoutes() {
         <Route path="/Dashboard" element={<AppShell defaultTab="mind" />} />
         <Route path="/LifeOS" element={<AppShell defaultTab="life" />} />
         <Route path="/achievements" element={<Achievements />} />
-        <Route path="/select-class" element={needsSetup ? <SelectClass /> : <Navigate to="/" replace />} />
+        <Route path="/select-class" element={<SelectClass />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Navigate to="/" replace />} />
         <Route path="*" element={<PageNotFound />} />
