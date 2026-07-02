@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { djangoApi } from "@/api/djangoClient";
 import { queryClientInstance } from "@/lib/query-client";
 import ClassSelector from "@/components/mindos/ClassSelector";
 
 export default function SelectClass() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isChanging = location.state?.changingClass;
   const [errorMsg, setErrorMsg] = useState(null);
 
   const mutation = useMutation({
@@ -30,10 +32,10 @@ export default function SelectClass() {
       <div className="w-full max-w-3xl relative z-10 my-auto py-8">
         <div className="text-center mb-8 space-y-2">
           <h1 className="text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
-            SYSTEM INITIALIZATION
+            {isChanging ? "CLASS RECALIBRATION" : "SYSTEM INITIALIZATION"}
           </h1>
           <p className="text-sm font-mono text-muted-foreground">
-            Please define your baseline neural architecture.
+            {isChanging ? "Please select a new baseline neural architecture." : "Please define your baseline neural architecture."}
           </p>
         </div>
 

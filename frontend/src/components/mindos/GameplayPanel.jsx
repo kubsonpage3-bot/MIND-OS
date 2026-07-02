@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown, UserCog } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
@@ -48,6 +49,7 @@ const TIME_OPTIONS = [
 export default function GameplayPanel() {
   const queryClient = useQueryClient();
   const { profile } = useDjangoAuth();
+  const navigate = useNavigate();
   
   const difficultyMutation = useMutation({
     /**
@@ -201,6 +203,21 @@ export default function GameplayPanel() {
             );
           })}
         </div>
+      </div>
+
+      {/* Change Class */}
+      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+        <div className="flex items-center gap-2">
+          <UserCog className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="font-mono text-xs font-bold">Change Class</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground/70">Select a new baseline neural architecture. Your current rank and progress will be preserved.</p>
+        <button
+          onClick={() => navigate("/select-class", { state: { changingClass: true } })}
+          className="w-full py-2.5 px-4 text-xs font-mono rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all text-center tracking-widest"
+        >
+          RECALIBRATE CLASS
+        </button>
       </div>
 
       {/* Streak Freeze */}
