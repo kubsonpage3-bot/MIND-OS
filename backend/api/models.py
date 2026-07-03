@@ -8,6 +8,9 @@ MIND OS — модели базы данных.
   Task — задачи пользователя (привычки, дейлики, туду)
 """
 
+import secrets
+import string
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -925,3 +928,76 @@ class TrainingSession(models.Model):
         return (
             f"{self.user_profile.user.username} - {self.activity_key} ({self.hours}h)"
         )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Party System (v1)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _generate_invite_code() -> str:
+    """Generate a 6-character alphanumeric invite code."""
+    alphabet = string.ascii_uppercase + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(6))
+
+
+class Party(models.Model):
+    """
+    A group of users who can view each other's public progress.
+    v1: read-only visibility, no shared boss, no chat.
+    """
+
+    objects = models.Manager()
+
+    name = models.CharField(max_length=64, verbose_name="Party name")
+    invite_code = models.CharField(
+        max_length=6,
+        unique=True,
+        default=_generate_invite_code,
+        verbose_name="Invite code",
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_parties",
+        verbose_name="Creator",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Party"
+        verbose_name_plural = "Parties"
+
+    def __str__(self) -> str:
+        return f"{self.name} [{self.invite_code}]"
+
+
+class PartyMembership(models.Model):
+    """
+    Links a User to a Party. OneToOneField on user enforces
+    the v1 constraint: one user can only be in ONE party at a time.
+    """
+
+    objects = models.Manager()
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="party_membership",
+        verbose_name="Member",
+    )
+    party = models.ForeignKey(
+        Party,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+        verbose_name="Party",
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Party membership"
+        verbose_name_plural = "Party memberships"
+
+    def __str__(self) -> str:
+        return f"{self.user.username} → {self.party.name}"

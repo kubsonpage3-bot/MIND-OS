@@ -29,6 +29,10 @@ from .views import (
     CombatSyncView,
     ResetDataView,
     RivalView,
+    PartyCreateView,
+    PartyJoinView,
+    PartyLeaveView,
+    PartyMembersView,
     health_check,
 )
 
@@ -82,4 +86,9 @@ urlpatterns = [
     # ─── Крафт ──────────────────────────────────────────────────────────────────
     path("crafting/recipes/", RecipeListView.as_view(), name="crafting-recipes"),
     path("crafting/craft/", CraftItemView.as_view(), name="crafting-craft"),
+    # ─── Party System ─────────────────────────────────────────────────────────
+    path("party/create/", PartyCreateView.as_view(), name="party-create"),
+    path("party/join/", PartyJoinView.as_view(), name="party-join"),
+    path("party/leave/", PartyLeaveView.as_view(), name="party-leave"),
+    path("party/members/", PartyMembersView.as_view(), name="party-members"),
 ]

@@ -1371,3 +1371,109 @@ class RivalView(generics.GenericAPIView):
                 {"error": "Failed to compute rival data"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+# ─── Party System ─────────────────────────────────────────────────────────────
+
+
+class PartyCreateView(generics.GenericAPIView):
+    """POST /api/party/create/  — create a new party and auto-join as creator."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.party_service import create_party
+        from api.serializers.party import PartySerializer
+        from api.exceptions import GameLogicError
+
+        name = request.data.get("name", "").strip()
+        if not name:
+            return Response(
+                {"error": "Party name is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            party = create_party(request.user, name)
+            return Response(PartySerializer(party).data, status=status.HTTP_201_CREATED)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error("Party create error: %s", str(e), exc_info=True)
+            return Response(
+                {"error": "Internal server error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class PartyJoinView(generics.GenericAPIView):
+    """POST /api/party/join/  — join a party by invite_code."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.party_service import join_party
+        from api.serializers.party import PartySerializer
+        from api.exceptions import GameLogicError
+
+        invite_code = request.data.get("invite_code", "").strip()
+        if not invite_code:
+            return Response(
+                {"error": "invite_code is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            party = join_party(request.user, invite_code)
+            return Response(PartySerializer(party).data, status=status.HTTP_200_OK)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error("Party join error: %s", str(e), exc_info=True)
+            return Response(
+                {"error": "Internal server error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class PartyLeaveView(generics.GenericAPIView):
+    """POST /api/party/leave/  — leave the user's current party."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.party_service import leave_party
+        from api.exceptions import GameLogicError
+
+        try:
+            leave_party(request.user)
+            return Response(
+                {"message": "You have left the party."}, status=status.HTTP_200_OK
+            )
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error("Party leave error: %s", str(e), exc_info=True)
+            return Response(
+                {"error": "Internal server error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class PartyMembersView(generics.GenericAPIView):
+    """
+    GET /api/party/members/
+    Returns the current user's party + all member public profiles.
+    Returns 404 if user is not in a party.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from api.services.party_service import get_party_with_members
+        from api.serializers.party import PartySerializer
+
+        party = get_party_with_members(request.user)
+        if party is None:
+            return Response({"party": None}, status=status.HTTP_200_OK)
+
+        return Response(PartySerializer(party).data, status=status.HTTP_200_OK)
