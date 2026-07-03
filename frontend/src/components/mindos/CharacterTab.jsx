@@ -5,8 +5,10 @@ import { CLASSES } from "@/constants/rpgData";
 import { djangoApi, getMediaUrl } from "@/api/djangoClient";
 import PixelCharacter from "./PixelCharacter";
 import { getRankDisplayData } from "@/lib/rankEngine";
-import { ShoppingCart, X, Hexagon, ChevronLeft } from "lucide-react";
+import { ShoppingCart, X, Hexagon, ChevronLeft, Share2 } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
+import html2canvas from "html2canvas";
+import ShareCard from "@/components/ui/ShareCard";
 
 import { motion } from "framer-motion";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
@@ -60,7 +62,50 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const [shopTab, setShopTab] = useState("gear");
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
+
+  const handleShare = async () => {
+    try {
+      setIsSharing(true);
+      // Brief delay to ensure any layout shifts settle
+      await new Promise(r => setTimeout(r, 100));
+      
+      const container = document.getElementById("share-card-container");
+      if (!container) return;
+      
+      const canvas = await html2canvas(container, {
+        backgroundColor: null,
+        scale: 2,
+        logging: false,
+      });
+      const dataUrl = canvas.toDataURL("image/png");
+      const filename = `mind-os-${profile?.user__username || 'agent'}-progress.png`;
+
+      if (navigator.share) {
+        try {
+          const blob = await (await fetch(dataUrl)).blob();
+          const file = new File([blob], filename, { type: "image/png" });
+          await navigator.share({
+            title: "My MIND OS Progress",
+            files: [file]
+          });
+          return;
+        } catch (e) {
+          console.error("Native share failed, falling back to download", e);
+        }
+      }
+
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error("Failed to generate share image", e);
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   const { data: shopItems = [], isLoading: isShopLoading } = useQuery({
     queryKey: ["shopItems"],
@@ -355,9 +400,20 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             </span>
           )}
         </div>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>
-          🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
-        </span>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleShare}
+            disabled={isSharing}
+            className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent/50 disabled:opacity-50"
+            style={{ color: "var(--habit-gold)" }}
+            title="Share Progress"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
+          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>
+            🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
+          </span>
+        </div>
       </div>
 
       {/* Sub-tab navigation handled by sidebar */}
@@ -791,6 +847,21 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           </div>
         </div>
       )}
+
+      {/* Off-screen container for generating Shareable Image */}
+      <div 
+        style={{ 
+          position: "absolute", 
+          left: -9999, 
+          top: -9999, 
+          width: 1080, 
+          height: 1080 
+        }}
+      >
+        <div id="share-card-container">
+          <ShareCard profile={profile} logs={logs} />
+        </div>
+      </div>
     </div>
   );
 }
