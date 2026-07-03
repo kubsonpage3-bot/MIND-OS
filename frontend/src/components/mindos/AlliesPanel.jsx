@@ -51,7 +51,7 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
             <OptimizedImage
               src={ally.image}
               alt={ally.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               style={{
                 filter: isRecruited
                   ? `brightness(1.1) saturate(1.2) drop-shadow(0 0 4px ${ally.color})`
@@ -289,7 +289,7 @@ export default function AlliesPanel({ onSpendGold }) {
                   <OptimizedImage
                     src={selected.image}
                     alt={selected.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     style={{ imageRendering: "pixelated", filter: displayAsRecruited ? "brightness(1.1) saturate(1.3)" : "brightness(0.5) grayscale(0.5)" }}
                   />
                 </motion.div>
