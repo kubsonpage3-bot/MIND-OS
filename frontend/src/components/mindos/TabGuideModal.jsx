@@ -93,7 +93,7 @@ export default function TabGuideModal({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-sm rounded-xl border border-white/10 bg-bg-dark/95 p-6 shadow-2xl backdrop-blur-md"
+            className="relative w-full max-w-sm max-h-[85vh] overflow-y-auto rounded-xl border border-white/10 bg-bg-dark/95 p-6 shadow-2xl backdrop-blur-md custom-scrollbar"
             style={{
               boxShadow: "0 0 40px rgba(0,229,255,0.1), inset 0 0 20px rgba(255,255,255,0.02)",
             }}
