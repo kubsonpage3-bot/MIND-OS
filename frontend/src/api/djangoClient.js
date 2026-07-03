@@ -356,4 +356,19 @@ export const djangoApi = {
         body: JSON.stringify(data),
       }),
   },
+
+  party: {
+    members: () => djangoFetch('/party/members/'),
+    create: (name) =>
+      djangoFetch('/party/create/', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      }),
+    join: (invite_code) =>
+      djangoFetch('/party/join/', {
+        method: 'POST',
+        body: JSON.stringify({ invite_code }),
+      }),
+    leave: () => djangoFetch('/party/leave/', { method: 'POST' }),
+  },
 };

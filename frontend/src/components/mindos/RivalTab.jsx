@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import PartyTab from "./PartyTab";
 
 const RIVAL_NAME = "JOHAN";
 
@@ -191,6 +192,7 @@ function TypingDots() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function RivalTab({ playerRankXP, playerStreak, logs }) {
+  const [activeTab, setActiveTab] = useState("rival");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sessionToast, setSessionToast] = useState(null);
   const [cardFlash, setCardFlash] = useState(null);
@@ -346,6 +348,40 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   return (
     <div className="space-y-4 relative">
+      {/* ── Sub-tab switcher: RIVAL | PARTY ── */}
+      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
+        {[
+          { id: "rival", label: "RIVAL" },
+          { id: "party", label: "PARTY" },
+        ].map((t) => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className="flex-1 px-3 py-1.5 rounded-xl transition-all"
+              style={{
+                fontFamily: "'Nunito'",
+                fontWeight: isActive ? 800 : 600,
+                fontSize: 11,
+                background: isActive ? "var(--habit-purple)" : "transparent",
+                color: isActive ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
+                boxShadow: isActive ? "0 2px 8px var(--habit-purple-glow)" : "none",
+                letterSpacing: "0.08em",
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Party tab ── */}
+      {activeTab === "party" && <PartyTab />}
+
+      {/* ── Rival tab (existing Johan content) ── */}
+      {activeTab === "rival" && (
+      <>
       <AnimatePresence>
         {sessionToast && (
           <motion.div
@@ -669,6 +705,8 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }
