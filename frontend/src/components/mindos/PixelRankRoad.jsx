@@ -57,7 +57,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         {/* Next Rank Progress Display */}
         {nextRank ? (
           <div className="font-game text-[8px] text-[var(--habit-dim)]">
-            Next: <span style={{ color: rankColors[nextRank.id] }}>{nextRank.id}</span> | <AnimatedNumber value={Math.floor(rankXP)} /> / {nextRank.xpMin} XP
+            Next: <span style={{ color: rankColors[nextRank.id] }}>{nextRank.id}</span> | <AnimatedNumber value={Math.floor(rankXP)} /> / {nextMin} XP
           </div>
         ) : (
           <div className="font-game text-[8px] text-[#ca8a04]">Max Rank Reached!</div>
@@ -87,7 +87,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
             </motion.div>
           </div>
           <div className="mt-2 text-[7px] font-game text-[var(--habit-dim)] text-center">
-            <AnimatedNumber value={Math.ceil(nextRank.xpMin - rankXP)} /> XP remaining to advance
+            <AnimatedNumber value={Math.ceil(nextMin - rankXP)} /> XP remaining to advance
           </div>
         </div>
       )}

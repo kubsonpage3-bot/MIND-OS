@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.4.4",
+    "date": "2026-07-03",
+    "changes": [
+      { "type": "fix", "text": "Fixed a visual bug that displayed 'NaN' and missing XP requirements on the Rank Progression screen." }
+    ]
+  },
+  {
     "version": "1.4.3",
     "date": "2026-07-03",
     "changes": [
@@ -9,7 +16,8 @@
       { "type": "content", "text": "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style." },
       { "type": "fix", "text": "Resolved ShareCard text clipping issues for long class titles and removed redundant status labels." },
       { "type": "feature", "text": "Updated Settings to show direct PayPal donation info and removed deprecated support website links." },
-      { "type": "fix", "text": "Synchronized the Sidebar navigation menu with the Settings tab bar, restoring missing sections and removing dead links." }
+      { "type": "fix", "text": "Synchronized the Sidebar navigation menu with the Settings tab bar, restoring missing sections and removing dead links." },
+      { "type": "feature", "text": "Migrated the local privacy tracking toggle into a robust, cloud-synced backend setting." }
     ]
   },
   {

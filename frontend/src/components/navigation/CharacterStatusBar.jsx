@@ -80,7 +80,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-2 py-2 md:px-3 md:py-2.5">
           <PixelBar pct={hpPct} fillColor="#f74e52" glowColor="#f74e5288" label="HP" value={`${Math.round(gameState.hp)}/${gameState.maxHp}`} />
           <PixelBar pct={manaPct} fillColor={classColor} glowColor={classColor + "88"} label="MP" value={`${Math.round(classData.mana)}/${classData.maxMana}`} />
-          <PixelBar pct={xpPct} fillColor="#7B61FF" glowColor="#7B61FF88" label="XP" value={`${Math.round(xpInRank)}/${Math.round(xpRange)}`} />
+          <PixelBar pct={xpPct} fillColor="#7B61FF" glowColor="#7B61FF88" label="XP" value={nextRankMin !== null ? `${Math.round(xpInRank)}/${Math.round(xpRange)}` : 'MAX'} />
         </div>
 
         {/* Right section: Gold/Rank/Streak + Portrait */}
