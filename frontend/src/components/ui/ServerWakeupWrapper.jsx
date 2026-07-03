@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import ServerWakeupSkeleton from "./ServerWakeupSkeleton";
-import { API_ORIGIN } from "@/api/djangoClient";
+import { HOST_ORIGIN } from "@/api/djangoClient";
 
 export default function ServerWakeupWrapper({ children }) {
   const [isAwake, setIsAwake] = useState(false);
@@ -22,7 +22,7 @@ export default function ServerWakeupWrapper({ children }) {
       if (!active) return;
       
       try {
-        const response = await fetch(`${API_ORIGIN}/api/health/`, {
+        const response = await fetch(`${HOST_ORIGIN}/api/health/`, {
           method: 'GET',
           // Let the browser handle cache bypassing natively to prevent CORS preflight issues
           cache: 'no-store'

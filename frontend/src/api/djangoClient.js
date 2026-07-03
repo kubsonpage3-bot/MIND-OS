@@ -1,5 +1,9 @@
 export const API_ORIGIN = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const BASE_URL = `${API_ORIGIN}/api`;
+// HOST_ORIGIN is always the bare scheme+host — never includes /api.
+// Guards against VITE_API_URL being set to 'https://host/api' in Cloudflare Pages,
+// which would produce /api/api/health/ double-path bugs.
+export const HOST_ORIGIN = API_ORIGIN.replace(/\/api\/?$/, '');
+const BASE_URL = `${HOST_ORIGIN}/api`;
 
 /**
  * Converts a potentially relative media/static path from the backend
