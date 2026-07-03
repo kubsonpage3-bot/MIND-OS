@@ -76,7 +76,7 @@ export default function Register() {
               autoComplete="username"
               required
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value.trim())}
               className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-white outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono transition-all"
             />
           </div>
@@ -91,7 +91,7 @@ export default function Register() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.trim())}
               className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-white outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono transition-all"
             />
           </div>
