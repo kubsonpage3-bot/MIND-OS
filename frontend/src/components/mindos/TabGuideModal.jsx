@@ -31,10 +31,8 @@ export default function TabGuideModal({
   // Mutation to mark guide as seen
   const markSeenMutation = useMutation({
     mutationFn: async () => {
-      const resp = await djangoApi.post("/api/profile/mark-guide-seen/", {
-        guide_id: guideId,
-      });
-      return resp.data;
+      const resp = await djangoApi.profile.markGuideSeen(guideId);
+      return resp; // djangoFetch returns the data directly, not an axios resp object with .data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });

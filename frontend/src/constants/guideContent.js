@@ -43,7 +43,7 @@ export const GUIDE_CONTENT = {
   mutators: {
     icon: "🃏",
     title: "Mutators",
-    body: "Like Jokers in Balatro: equip up to 3 at once, each with a real bonus AND a real drawback — nothing's free. Some Mutators have synergy pairs that combo together. Choosing your 3 is a real build decision.",
+    body: "Optional modifiers that reshape how you play. Each one gives a real bonus AND takes something in return — nothing here is free. You can equip up to 3 at once, so every choice is a tradeoff: focus everything on one subject, or spread your bonuses out. Some pairs are marked as Synergy — equip both for a stronger combined effect.",
   },
  
   shop: {

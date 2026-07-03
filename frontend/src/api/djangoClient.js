@@ -227,6 +227,11 @@ export const djangoApi = {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
+    markGuideSeen: (guideId) =>
+      djangoFetch('/profile/mark-guide-seen/', {
+        method: 'POST',
+        body: JSON.stringify({ guide_id: guideId }),
+      }),
     prestige: () =>
       djangoFetch('/profile/prestige/', {
         method: 'POST',
