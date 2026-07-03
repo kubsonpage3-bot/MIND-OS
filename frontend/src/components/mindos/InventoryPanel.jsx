@@ -5,10 +5,9 @@ import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { Package, Zap, Coins } from "lucide-react";
 import { getMediaUrl, djangoApi } from "@/api/djangoClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import GameCard from "@/components/ui/GameCard";
 // Consumable effects are handled server-side via the shop buy endpoint.
 // Do NOT track consumable state in localStorage — use the backend profile as SSOT.
-
-
 
 export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [tab, setTab] = useState("gear");
@@ -141,12 +140,14 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
             const tierColor = getTierColor(item.tier);
             const equipped_now = isEquipped(item);
             return (
-              <motion.div key={`${item.id}-${idx}`}
+              <GameCard key={`${item.id}-${idx}`}
+                isActive={equipped_now}
+                borderColor={tierColor}
+                glowColor={tierColor}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.04 }}
-                className={`flex items-center gap-3 p-3 rounded-xl border relative overflow-hidden bg-white dark:bg-gray-900 transition-all ${equipped_now ? "ring-2 ring-yellow-500" : ""}`}
-                style={{ borderColor: equipped_now ? `${tierColor}80` : `${tierColor}25`, background: equipped_now ? `${tierColor}0c` : undefined }}
+                className="flex items-center gap-3"
               >
                 {/* Scanlines */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -199,7 +200,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </GameCard>
             );
           })}
         </div>
@@ -224,16 +225,14 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
             if (firstIdx !== idx) return null;
 
             return (
-              <motion.div key={item.id}
+              <GameCard key={item.id}
+                isActive={alreadyActive || isUsed}
+                borderColor={effectColor}
+                glowColor={effectColor}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0, scale: isUsed ? [1, 1.03, 1] : 1 }}
                 transition={{ delay: idx * 0.04, scale: isUsed ? { duration: 0.3 } : {} }}
-                className="flex items-center gap-3 p-3 rounded-xl border relative overflow-hidden"
-                style={{
-                  borderColor: isUsed ? `${effectColor}80` : alreadyActive ? `${effectColor}60` : `${tierColor}30`,
-                  background: alreadyActive ? `${effectColor}10` : "#0a0818",
-                  boxShadow: isUsed ? `0 0 14px ${effectColor}40` : "none",
-                }}
+                className="flex items-center gap-3"
               >
                 {/* Scanlines */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -243,7 +242,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 {isUsed && <PixelBurstLayer bursts={bursts} />}
 
                 <div className="shrink-0 w-10 h-10 rounded-none border overflow-hidden relative"
-                  style={{ imageRendering: "pixelated", background: "#0a0818", borderColor: `${effectColor}60` }}>
+                  style={{ imageRendering: "pixelated", background: "var(--habit-panel)", borderColor: `${effectColor}60` }}>
                   <img src={getMediaUrl(item.icon_url) || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                   {count > 1 && (
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-mono font-black"
@@ -300,7 +299,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     SELL
                   </motion.button>
                 </div>
-              </motion.div>
+              </GameCard>
             );
           })}
         </div>

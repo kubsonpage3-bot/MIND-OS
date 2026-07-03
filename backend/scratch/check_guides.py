@@ -11,4 +11,6 @@ django.setup()
 from api.models import UserProfile
 
 for profile in UserProfile.objects.all():
-    print(f"User: {profile.user.username}, seen_guides: {json.dumps(profile.seen_guides)}")
+    print(
+        f"User: {profile.user.username}, seen_guides: {json.dumps(profile.seen_guides)}"
+    )

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
+import GameCard from "@/components/ui/GameCard";
 
 const CAT_LABELS = {
   amplifier: { label: "AMPLIFIERS", color: "#3b82f6" },
@@ -119,8 +120,12 @@ export default function MutatorsPanel({ onSpendGold }) {
               const glowStyle = active_ ? { boxShadow: "0 0 12px #f0c04040" } : {};
 
               return (
-                <div key={mut.id} className={`p-3 rounded-xl border transition-all ${cardBorderClass} ${cardBgClass}`}
-                  style={glowStyle}>
+                <GameCard key={mut.id} 
+                  isActive={active_}
+                  borderColor={active_ ? "#f0c040" : purchased_ ? "hsl(var(--primary)/0.4)" : undefined}
+                  glowColor="#f0c040"
+                  className={purchased_ && !active_ ? "bg-primary/5" : ""}
+                >
                   <div className="flex items-start gap-2.5">
                     {/* Pixel art icon */}
                     <div className={`shrink-0 w-9 h-9 rounded-lg border overflow-hidden flex items-center justify-center ${active_ ? "border-[#f0c04060] bg-[#f0c04010]" : "border-border bg-muted/30"}`}
@@ -163,7 +168,7 @@ export default function MutatorsPanel({ onSpendGold }) {
                       {active_ ? (mut.permanent_lock ? "🔒" : "ON") : purchased_ ? "OFF" : conflicted ? "×" : `${mut.cost}G`}
                     </button>
                   </div>
-                </div>
+                </GameCard>
               );
             })}
           </div>

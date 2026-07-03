@@ -2,9 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
-// Removed getRankFromXP
 import OptimizedImage from "./OptimizedImage";
 import { normalizeGold } from "@/lib/utils";
+import GameCard from "@/components/ui/GameCard";
 
 const RANK_ORDER = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
 
@@ -192,17 +192,16 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                 const hpPct = Math.max(0, (bossHP / scroll.bossHP) * 100);
 
                 return (
-                  <motion.div
+                  <GameCard
                     key={scroll.id}
-                    layout
+                    isActive={isActive}
+                    borderColor={isDefeated ? "#22c55e" : color}
+                    glowColor={color}
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-xl overflow-hidden border relative"
                     style={{
-                      borderColor: isActive ? `${color}80` : isDefeated ? "#22c55e40" : `${color}25`,
-                      background: isActive ? `${color}0c` : isDefeated ? "#22c55e08" : "#0a0a14",
-                      boxShadow: isActive ? `0 0 20px ${color}25` : "none",
                       opacity: !rankUnlocked && !isActive && !isDefeated ? 0.45 : 1,
+                      background: isDefeated ? "#22c55e08" : undefined
                     }}
                   >
                     {/* Active pulse overlay */}
@@ -293,7 +292,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </GameCard>
                 );
               })}
             </div>

@@ -7,6 +7,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
+import GameCard from "@/components/ui/GameCard";
 
 const RANK_COLORS = { E: "#888", D: "#22c55e", C: "#3b82f6", B: "#a855f7", A: "#f0c040", S: "#ff3355" };
 const RANK_GLOW = { E: "#88888840", D: "#22c55e40", C: "#3b82f640", B: "#a855f740", A: "#f0c04040", S: "#ff335540" };
@@ -21,16 +22,13 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
   const rankGlow = RANK_GLOW[ally.rank] || "#88888840";
 
   return (
-    <motion.div
-      layout
+    <GameCard
+      isHoverable
+      isActive={isRecruited}
+      borderColor={isRecruited ? ally.color : undefined}
+      glowColor={ally.color}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border overflow-hidden transition-all cursor-pointer"
-      style={{
-        borderColor: isRecruited ? `${ally.color}60` : "var(--habit-border)",
-        background: "var(--habit-panel)",
-        boxShadow: isRecruited ? `0 0 16px ${ally.color}25` : "none",
-      }}
       onClick={() => setShowDetail(true)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -126,7 +124,7 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
           )}
         </div>
       </div>
-    </motion.div>
+    </GameCard>
   );
 }
 

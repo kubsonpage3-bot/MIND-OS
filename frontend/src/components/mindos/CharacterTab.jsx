@@ -19,6 +19,8 @@ import AlliesPanel from "./AlliesPanel";
 import AchievementsPanel from "./AchievementsPanel";
 import MutatorsPanel from "./MutatorsPanel";
 import TabGuideModal from "./TabGuideModal";
+import TabErrorBoundary from "./TabErrorBoundary";
+import GameCard from "@/components/ui/GameCard";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
@@ -676,8 +678,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 const isBought = boughtItem === item.id;
                 const tierColor = getTierColor(item.tier);
                 return (
-                  <motion.div
+                  <GameCard
                     key={item.id}
+                    isActive={isBought}
+                    borderColor={tierColor}
+                    glowColor="#f0c040"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{
                       opacity: 1,
@@ -689,12 +694,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                       x: { duration: 0.2, delay: idx * 0.045 },
                       scale: isBought ? { duration: 0.35, ease: "easeOut" } : {},
                     }}
-                    className="flex items-center justify-between p-3 rounded-none border bg-muted/10 gap-2 relative overflow-hidden"
-                    style={{
-                      borderColor: isBought ? "#f0c04080" : "hsl(var(--border))",
-                      boxShadow: isBought ? "0 0 16px #f0c04050" : "none",
-                      imageRendering: "pixelated",
-                    }}
+                    className="flex items-center justify-between gap-2"
+                    style={{ imageRendering: "pixelated" }}
                   >
                     {/* Pixel scanlines */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -754,7 +755,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                         {(!item.consumable && owned) ? "■ OWNED" : isBought ? "✦ BOUGHT" : `${item.cost}G`}
                       </span>
                     </motion.button>
-                  </motion.div>
+                  </GameCard>
                 );
               })}
           </div>
