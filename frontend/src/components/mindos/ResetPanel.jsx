@@ -131,14 +131,8 @@ export default function ResetPanel() {
 
     try {
       await resetMutation.mutateAsync("nuclear");
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.dispatchEvent(new CustomEvent('django-auth-logout'));
-      // Wait 600ms for Django's async token blacklist to propagate
-      // before potentially re-logging in, to prevent stale session resurrection
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 600);
+      // Reload the page to take the user to the character creation screen without logging out
+      window.location.href = '/';
     } catch (e) {
       console.error("Nuclear reset failed:", e);
       setResetting(false);

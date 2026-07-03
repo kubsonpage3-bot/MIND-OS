@@ -25,10 +25,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework_simplejwt.token_blacklist.models import (
-    OutstandingToken,
-    BlacklistedToken,
-)
+
 
 from .models import UserProfile, Task, Item, InventoryItem, Recipe
 from .serializers import (
@@ -1340,15 +1337,6 @@ class ResetDataView(generics.GenericAPIView):
                     UserAchievement.objects.filter(user=request.user).delete()
 
                 profile.save()
-
-            # Token invalidation STRICTLY AFTER successful db transaction commit
-            if reset_type == "nuclear":
-                try:
-                    tokens = OutstandingToken.objects.filter(user=request.user)  # type: ignore
-                    for token in tokens:
-                        BlacklistedToken.objects.get_or_create(token=token)  # type: ignore
-                except Exception as jwt_error:
-                    logger.warning(f"Failed to blacklist tokens: {jwt_error}")
 
             return Response(
                 {"message": "Data reset successfully"}, status=status.HTTP_200_OK
