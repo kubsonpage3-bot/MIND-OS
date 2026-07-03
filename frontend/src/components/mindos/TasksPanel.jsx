@@ -35,8 +35,12 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
       const created = await djangoApi.tasks.create({
         title: form.name,
         task_type: form.type,
-        difficulty: form.difficulty,
+        category: form.category || 'Math',
+        difficulty: form.difficulty || 'medium',
         notes: form.notes || '',
+        due_date: form.dueDate || null,
+        scheduled_time: form.scheduledTime || null,
+        show_in_calendar: !!form.showInCalendar,
       });
 
       console.log('Успешно создано:', created);

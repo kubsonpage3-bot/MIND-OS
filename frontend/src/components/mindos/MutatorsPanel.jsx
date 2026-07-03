@@ -73,6 +73,7 @@ export default function MutatorsPanel({ onSpendGold }) {
     const newData = { ...mutators, active: newActive, purchased: newPurchased };
     
     mutatorsMutation.mutate(newData);
+    djangoApi.analytics.logEvent("mutator_activated");
     
     if (!isPurchased(mutator.id) && mutator.cost > 0) onSpendGold(mutator.cost);
   };
@@ -83,6 +84,7 @@ export default function MutatorsPanel({ onSpendGold }) {
     const newData = { ...mutators, active: newActive, purchased: newPurchased };
     
     mutatorsMutation.mutate(newData);
+    djangoApi.analytics.logEvent("mutator_activated");
     onSpendGold(3000);
     setConfirmIronman(false);
   };

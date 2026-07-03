@@ -1,5 +1,5 @@
-export const API_ORIGIN = 'https://mind-os-d5sk.onrender.com';
-const BASE_URL = 'https://mind-os-d5sk.onrender.com/api';
+export const API_ORIGIN = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE_URL = `${API_ORIGIN}/api`;
 
 /**
  * Converts a potentially relative media/static path from the backend
@@ -217,6 +217,14 @@ export const djangoApi = {
       djangoFetch('/auth/token/verify/', {
         method: 'POST',
         body: JSON.stringify({ token }),
+      }),
+  },
+
+  analytics: {
+    logEvent: (eventName) =>
+      djangoFetch('/analytics/event/', {
+        method: 'POST',
+        body: JSON.stringify({ event_name: eventName }),
       }),
   },
 

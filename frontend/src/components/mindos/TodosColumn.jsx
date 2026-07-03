@@ -64,6 +64,8 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       difficulty: form.difficulty,
       notes: form.notes || '',
       due_date: form.dueDate || null,
+      scheduled_time: form.scheduledTime || null,
+      show_in_calendar: !!form.showInCalendar,
     });
   };
 

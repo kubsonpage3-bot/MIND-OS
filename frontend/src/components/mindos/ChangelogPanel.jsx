@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import GameCard from "@/components/ui/GameCard";
 import changelogData from "@/data/changelog.json";
+import { djangoApi } from "@/api/djangoClient";
 
 export default function ChangelogPanel() {
   // When viewed, mark latest version as seen
@@ -10,6 +11,7 @@ export default function ChangelogPanel() {
       localStorage.setItem("mindos_last_seen_changelog", latestVersion);
       // Dispatch custom event to notify Settings/Tabs that badge should be cleared
       window.dispatchEvent(new Event("changelogViewed"));
+      djangoApi.analytics.logEvent("changelog_viewed");
     }
   }, []);
 

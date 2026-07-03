@@ -1,8 +1,20 @@
 import { useState } from "react";
-import { Shield, Eye, UserX, BarChart3 } from "lucide-react";
+import { Shield, Eye, UserX, BarChart3, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useDjangoAuth } from '@/lib/DjangoAuthContext';
+import { useMutation } from '@tanstack/react-query';
+import { djangoApi } from '@/api/djangoClient';
+import { queryClientInstance } from '@/lib/query-client';
 
 export default function PrivacyPanel() {
+  const { profile } = useDjangoAuth();
+  
+  const updateProfile = useMutation({
+    mutationFn: ({ data }) => djangoApi.profile.update(data),
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+    },
+  });
   const [privacy, setPrivacy] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("mindos_privacy") || "{}");
@@ -79,14 +91,20 @@ export default function PrivacyPanel() {
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-muted-foreground">Enable analytics</span>
           <button
-            onClick={() => updateSetting("analyticsEnabled", privacy.analyticsEnabled !== false)}
-            className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
-              privacy.analyticsEnabled !== false
+            onClick={() => {
+              if (!profile) return;
+              updateProfile.mutate({ 
+                data: { analytics_enabled: !profile.analytics_enabled }
+              });
+            }}
+            disabled={updateProfile.isPending || !profile}
+            className={`px-3 py-1.5 flex items-center justify-center min-w-[50px] text-xs font-mono rounded border transition-all ${
+              profile?.analytics_enabled
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
                 : "border-border/40 text-muted-foreground"
-            }`}
+            } ${updateProfile.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {privacy.analyticsEnabled !== false ? "ON" : "OFF"}
+            {updateProfile.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (profile?.analytics_enabled ? "ON" : "OFF")}
           </button>
         </div>
       </div>

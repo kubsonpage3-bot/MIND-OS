@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CLASSES, CLASS_SPRITES } from "@/constants/rpgData";
 import { motion, AnimatePresence } from "framer-motion";
+import { djangoApi } from "@/api/djangoClient";
 
 export default function ClassSelector({ onChoose }) {
   const [hovered, setHovered] = useState(null);
@@ -13,6 +14,7 @@ export default function ClassSelector({ onChoose }) {
     setIsSubmitting(true);
     try {
       await onChoose(selectedClass.id);
+      djangoApi.analytics.logEvent("class_selected");
     } catch (error) {
       console.error("Failed to select class:", error);
     } finally {

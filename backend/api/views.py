@@ -61,6 +61,8 @@ from api.services.shop_service import buy_item
 from api.services.crafting_service import craft_item
 from api.services.rival_service import compute_rival_data
 from api.exceptions import GameLogicError
+from api.models import CalendarEvent
+from api.serializers.calendar import CalendarEventSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -1539,3 +1541,52 @@ class MarkGuideSeenView(generics.GenericAPIView):
         from api.serializers.profile import UserProfileSerializer
 
         return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
+
+
+class FeatureEventView(generics.GenericAPIView):
+    """
+    POST /api/analytics/event/
+    Логирует использование фич.
+    Если пользователь авторизован, проверяет analytics_enabled.
+    """
+
+    permission_classes = (
+        []
+    )  # Allow both authenticated and unauthenticated to hit it, we handle logic inside
+
+    def post(self, request, *args, **kwargs):
+        event_name = request.data.get("event_name")
+        if not event_name:
+            return Response(
+                {"error": "event_name required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = None
+        if request.user.is_authenticated:
+            # Check if analytics is enabled for this user
+            if hasattr(request.user, "profile"):
+                if not request.user.profile.analytics_enabled:
+                    # Silent drop: pretend it succeeded to not clutter client logs
+                    return Response({"status": "ignored"}, status=status.HTTP_200_OK)
+            user = request.user
+
+        from api.models import FeatureEvent
+
+        FeatureEvent.objects.create(user=user, event_name=event_name)
+        return Response({"status": "logged"}, status=status.HTTP_201_CREATED)
+
+
+class CalendarEventViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for CalendarEvent.
+    Supports CRUD operations for manual calendar events.
+    """
+
+    serializer_class = CalendarEventSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return CalendarEvent.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

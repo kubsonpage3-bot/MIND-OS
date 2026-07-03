@@ -130,6 +130,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const unlock = (node, branchKey) => {
     if (!canUnlock(node)) return;
     buyMutation.mutate(node.id);
+    djangoApi.analytics.logEvent("skill_purchased");
   };
 
   const respecCost = getRespecCost(unlocked.length);
@@ -186,6 +187,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
     // For now, sequentially mutate. This is a bit heavy, but it works.
     newNodes.forEach(id => {
       buyMutation.mutate(id);
+      djangoApi.analytics.logEvent("skill_purchased");
     });
     setConfirmPreset(null);
   };

@@ -75,6 +75,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "rival_data",
             "seen_guides",
             "rank_info",
+            "analytics_enabled",
         )
         read_only_fields = (
             "id",

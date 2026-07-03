@@ -200,32 +200,15 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Daily-specific: Scheduled Time */}
                   {form.type === "daily" && (
-                    <>
-                      <div>
-                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Scheduled Time</label>
-                        <Input
-                          type="time"
-                          value={form.scheduledTime}
-                          onChange={e => setForm({ ...form, scheduledTime: e.target.value })}
-                          className="font-mono text-sm h-11"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Show in Calendar</label>
-                        <button
-                          onClick={() => setForm({ ...form, showInCalendar: !form.showInCalendar })}
-                          className="w-full px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all"
-                          style={{
-                            borderColor: form.showInCalendar ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.3)",
-                            color: form.showInCalendar ? "#f0c040" : "#64748b",
-                            background: form.showInCalendar ? "rgba(240,192,64,0.12)" : "rgba(255,255,255,0.02)",
-                            boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
-                          }}
-                        >
-                          {form.showInCalendar ? "✓ VISIBLE IN CALENDAR" : "✗ HIDDEN FROM CALENDAR"}
-                        </button>
-                      </div>
-                    </>
+                    <div>
+                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Scheduled Time</label>
+                      <Input
+                        type="time"
+                        value={form.scheduledTime}
+                        onChange={e => setForm({ ...form, scheduledTime: e.target.value })}
+                        className="font-mono text-sm h-11"
+                      />
+                    </div>
                   )}
 
                   {/* Daily-specific: Show in Calendar toggle */}

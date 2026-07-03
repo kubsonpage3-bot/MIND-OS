@@ -47,6 +47,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
       localStorage.removeItem("mindos_hidden_activities");
       
       prestigeMutation.mutate();
+    djangoApi.analytics.logEvent("prestige_activated");
     }, 2500);
   };
 

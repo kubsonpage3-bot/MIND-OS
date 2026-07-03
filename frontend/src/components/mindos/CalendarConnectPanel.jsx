@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, ExternalLink, Link2, CheckCircle, Copy, Info, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
+import { djangoApi } from "@/api/djangoClient";
 
 export default function CalendarConnectPanel() {
   const [copied, setCopied] = useState(false);
@@ -33,6 +34,11 @@ export default function CalendarConnectPanel() {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     localStorage.setItem("mindos_calendar_connected", "true");
+    
+    // Tracking placeholder UI click only, since actual OAuth integration doesn't exist yet.
+    // When real Calendar integration is built, this event should be split or renamed.
+    djangoApi.analytics.logEvent("calendar_connect_button_clicked");
+    
     setIsConnected(true);
     setIsLoading(false);
   };

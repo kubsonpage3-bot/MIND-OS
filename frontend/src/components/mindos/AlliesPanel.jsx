@@ -171,6 +171,7 @@ export default function AlliesPanel({ onSpendGold }) {
     setRevealState("shaking");
     try {
       await recruitMutation.mutateAsync(ally.id);
+      djangoApi.analytics.logEvent("ally_recruited");
       onSpendGold(ally.recruitCost);
       
       setTimeout(() => {
@@ -192,6 +193,7 @@ export default function AlliesPanel({ onSpendGold }) {
     
     try {
       await recruitMutation.mutateAsync(ally.id);
+      djangoApi.analytics.logEvent("ally_recruited");
       onSpendGold(cost);
     } catch (e) {
       // ignore

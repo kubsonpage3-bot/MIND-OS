@@ -1,7 +1,5 @@
-import { Info, Book, MessageSquare, ExternalLink, Shield, Zap, Calendar } from "lucide-react";
+import { Info, Book, MessageSquare, ExternalLink, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import CalendarConnectPanel from "@/components/mindos/CalendarConnectPanel";
-
 const APP_VERSION = "1.0.0";
 const BUILD_DATE = "2026-06-23";
 
@@ -52,18 +50,6 @@ export default function AboutPanel() {
           <li>• Cloud sync across devices</li>
           <li>• Pomodoro timer & calendar</li>
         </ul>
-      </div>
-
-      {/* Google Calendar Integration */}
-      <div className="p-4 rounded-xl border border-border bg-card">
-        <div className="flex items-center gap-2 mb-3">
-          <Calendar className="w-4 h-4 text-primary" />
-          <span className="font-mono text-xs font-bold text-foreground">Google Calendar Sync</span>
-        </div>
-        <p className="text-xs font-mono text-muted-foreground/80 leading-relaxed mb-3">
-          Connect your Google Calendar to sync MIND OS tasks and events automatically.
-        </p>
-        <CalendarConnectPanel />
       </div>
 
       {/* Links */}

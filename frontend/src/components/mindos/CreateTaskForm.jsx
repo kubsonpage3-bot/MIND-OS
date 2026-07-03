@@ -62,6 +62,7 @@ export default function CreateTaskForm({ onCreated }) {
 
       await djangoApi.tasks.create(taskData);
       
+      djangoApi.analytics.logEvent("task_created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onCreated?.();
       setForm({ name: "", type: "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });

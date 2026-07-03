@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 import CalendarSyncPanel from "@/components/mindos/CalendarSyncPanel";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { djangoFetch } from "@/api/djangoClient";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -110,15 +112,63 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers }) {
 }
 
 export default function CalendarPanel() {
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("week");
-  const [events, setEvents] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("calendar_events") || "[]"); } catch { return []; }
-  });
+  const [events, setEvents] = useState([]);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
-  const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const todayStr = new Date().toISOString().split("T")[0];
+
+  // API Queries
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => djangoFetch("/tasks/").then(r => r.json()).then(data => data.results || data || []),
+  });
+
+  const { data: apiEvents = [] } = useQuery({
+    queryKey: ["calendar-events"],
+    queryFn: () => djangoFetch("/calendar/events/").then(r => r.json()).then(data => data.results || data || []),
+  });
+
+  // Sync local events state with API data when it loads
+  useEffect(() => {
+    setEvents(apiEvents.map(e => ({
+      id: e.id,
+      title: e.title,
+      description: e.description,
+      date: e.date,
+      startTime: (e.start_time || "").substring(0, 5),
+      endTime: (e.end_time || "").substring(0, 5),
+      color: e.color
+    })));
+  }, [apiEvents]);
+
+  // Mutations
+  const createEventMut = useMutation({
+    mutationFn: (ev) => djangoFetch("/calendar/events/", {
+      method: "POST", body: JSON.stringify({
+        title: ev.title, description: ev.description,
+        date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
+      })
+    }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
+  });
+
+  const updateEventMut = useMutation({
+    mutationFn: (ev) => djangoFetch(`/calendar/events/${ev.id}/`, {
+      method: "PATCH", body: JSON.stringify({
+        title: ev.title, description: ev.description,
+        date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
+      })
+    }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
+  });
+
+  const deleteEventMut = useMutation({
+    mutationFn: (id) => djangoFetch(`/calendar/events/${id}/`, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
+  });
   
   const CATEGORY_COLORS = {
     Math: "#3b82f6", Physics: "#3b82f6", Coding: "#3b82f6",
@@ -127,34 +177,9 @@ export default function CalendarPanel() {
     Social: "#a855f7", Mindfulness: "#9944ff",
   };
 
-  // Load tasks from localStorage and convert daily tasks with showInCalendar to events
-  useEffect(() => {
-    try {
-      const loaded = JSON.parse(localStorage.getItem("mindos_tasks") || "[]");
-      setTasks(loaded);
-    } catch {}
-  }, []);
 
-  // Convert daily tasks with showInCalendar to calendar events
-  const taskEvents = tasks
-    .filter(t => t.type === "daily" && t.showInCalendar && t.scheduledTime)
-    .map(t => {
-      const [hours, mins] = t.scheduledTime.split(":").map(Number);
-      const endMins = (hours * 60 + mins) + 60; // 1 hour duration
-      const endHours = Math.floor(endMins / 60);
-      const endMinsRem = endMins % 60;
-      return {
-        id: `task-${t.id}`,
-        title: t.name,
-        description: t.notes || "",
-        date: t.date || new Date().toISOString().split("T")[0],
-        startTime: t.scheduledTime,
-        endTime: `${String(endHours).padStart(2, "0")}:${String(endMinsRem).padStart(2, "0")}`,
-        color: CATEGORY_COLORS[t.category] || "#3b82f6",
-        isTask: true,
-        taskId: t.id,
-      };
-    });
+
+
   const [editingEvent, setEditingEvent] = useState(null);
   const [newEvent, setNewEvent] = useState({
     title: "", description: "",
@@ -168,24 +193,29 @@ export default function CalendarPanel() {
   const gridRef = useRef(null);
   const scrollRef = useRef(null); // scrollable container
 
-  const save = (evs) => {
-    setEvents(evs);
-    localStorage.setItem("calendar_events", JSON.stringify(evs));
-  };
+
 
   const addOrUpdateEvent = () => {
     if (!newEvent.title) return;
     if (editingEvent) {
-      save(events.map(e => e.id === editingEvent ? { ...e, ...newEvent } : e));
+      const updatedEv = { ...events.find(e => e.id === editingEvent), ...newEvent };
+      setEvents(events.map(e => e.id === editingEvent ? updatedEv : e));
+      updateEventMut.mutate(updatedEv);
       setEditingEvent(null);
     } else {
-      save([...events, { ...newEvent, id: Date.now() }]);
+      const tempId = Date.now();
+      const createdEv = { ...newEvent, id: tempId };
+      setEvents([...events, createdEv]);
+      createEventMut.mutate(createdEv);
     }
     setShowForm(false);
     setNewEvent({ title: "", description: "", date: new Date().toISOString().split("T")[0], startTime: "09:00", endTime: "10:00", color: "#3b82f6" });
   };
 
-  const deleteEvent = (id) => save(events.filter(e => e.id !== id));
+  const deleteEvent = (id) => {
+    setEvents(events.filter(e => e.id !== id));
+    deleteEventMut.mutate(id);
+  };
 
   const openEdit = (event) => {
     setNewEvent({ title: event.title, description: event.description || "", date: event.date, startTime: event.startTime, endTime: event.endTime, color: event.color });
@@ -222,14 +252,14 @@ export default function CalendarPanel() {
     const regularEvents = events.filter(e => e.date === dateStr && !e.isTask);
     // Daily tasks with showInCalendar - show on all dates (recurring)
     const dailyTaskEvents = tasks
-      .filter(t => t.type === "daily" && t.showInCalendar && t.scheduledTime)
+      .filter(t => t.task_type === "daily" && t.show_in_calendar && t.scheduled_time)
       .map(t => ({
         id: `task-${t.id}-${dateStr}`,
-        title: t.name,
+        title: t.title,
         description: t.notes || "",
         date: dateStr,
-        startTime: t.scheduledTime,
-        endTime: minsToTime(timeToMins(t.scheduledTime) + 60),
+        startTime: t.scheduled_time.substring(0, 5),
+        endTime: minsToTime(timeToMins(t.scheduled_time.substring(0, 5)) + Math.round((t.default_hours || 1) * 60)),
         color: CATEGORY_COLORS[t.category] || "#3b82f6",
         isTask: true,
         taskId: t.id,
@@ -279,7 +309,14 @@ export default function CalendarPanel() {
 
     const onUp = () => {
       if (dragRef.current) {
-        setEvents(prev => { localStorage.setItem("calendar_events", JSON.stringify(prev)); return prev; });
+        if (dragRef.current || resizeRef.current) {
+        const evId = dragRef.current ? dragRef.current.eventId : resizeRef.current.eventId;
+        setEvents(prev => {
+          const ev = prev.find(e => e.id === evId);
+          if (ev && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
+          return prev;
+        });
+      }
       }
       dragRef.current = null;
       window.removeEventListener("mousemove", onMove);
@@ -310,7 +347,14 @@ export default function CalendarPanel() {
     };
 
     const onUp = () => {
-      setEvents(prev => { localStorage.setItem("calendar_events", JSON.stringify(prev)); return prev; });
+      if (dragRef.current || resizeRef.current) {
+        const evId = dragRef.current ? dragRef.current.eventId : resizeRef.current.eventId;
+        setEvents(prev => {
+          const ev = prev.find(e => e.id === evId);
+          if (ev && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
+          return prev;
+        });
+      }
       resizeRef.current = null;
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);

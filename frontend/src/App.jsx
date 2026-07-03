@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import SelectClass from "./pages/SelectClass";
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
+import AnalyticsMigrationGate from '@/components/AnalyticsMigrationGate';
 
 function useSystemTheme() {
   useEffect(() => {
@@ -46,6 +47,7 @@ function ProtectedRoutes() {
 
   return (
     <>
+      <AnalyticsMigrationGate />
       <Routes>
         <Route path="/" element={<AppShell />} />
         <Route path="/Dashboard" element={<AppShell defaultTab="mind" />} />

@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.5",
+    "date": "2026-07-03",
+    "changes": [
+      { "type": "feature", "text": "Calendar events are now saved to the cloud — they persist across devices and sessions instead of being lost on browser clear." },
+      { "type": "feature", "text": "Daily tasks with a scheduled time now appear on every day in the Calendar view, automatically recurring." },
+      { "type": "fix", "text": "Fixed duplicate 'Show in Calendar' field appearing twice in the task creation form." },
+      { "type": "fix", "text": "Task creation now correctly saves the scheduled time and calendar visibility settings to the server." }
+    ]
+  },
+  {
     "version": "1.4.4",
     "date": "2026-07-03",
     "changes": [

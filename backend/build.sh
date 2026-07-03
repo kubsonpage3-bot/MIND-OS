@@ -13,3 +13,6 @@ python manage.py sync_boss_drops
 
 # Temporary emergency password reset
 python manage.py reset_my_password
+
+# Temporary superuser creation for Django Admin access
+python create_superuser.py

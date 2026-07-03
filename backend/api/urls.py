@@ -35,7 +35,9 @@ from .views import (
     PartyLeaveView,
     PartyMembersView,
     MarkGuideSeenView,
+    FeatureEventView,
     health_check,
+    CalendarEventViewSet,
 )
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
@@ -44,6 +46,7 @@ from .views import (
 #               /api/tasks/{id}/complete/
 router = DefaultRouter()
 router.register(r"tasks", TaskViewSet, basename="task")
+router.register(r"calendar/events", CalendarEventViewSet, basename="calendar-event")
 
 urlpatterns = [
     # ——— Здоровье / Healthcheck ——————————————————————————————————————
@@ -63,6 +66,7 @@ urlpatterns = [
         MarkGuideSeenView.as_view(),
         name="profile-mark-guide-seen",
     ),
+    path("analytics/event/", FeatureEventView.as_view(), name="analytics-event"),
     path("rival/", RivalView.as_view(), name="rival"),
     # ——— Задачи (CRUD + complete) —————————————————————————————————————
     path("", include(router.urls)),

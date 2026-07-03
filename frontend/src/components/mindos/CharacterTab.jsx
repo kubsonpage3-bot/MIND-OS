@@ -68,6 +68,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const handleShare = async () => {
     try {
       setIsSharing(true);
+      djangoApi.analytics.logEvent("share_card_generated");
       // Brief delay to ensure any layout shifts settle
       await new Promise(r => setTimeout(r, 100));
       

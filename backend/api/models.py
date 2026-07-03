@@ -38,6 +38,12 @@ class UserProfile(models.Model):
         verbose_name="Пользователь",
     )
 
+    # Privacy & Analytics
+    analytics_enabled = models.BooleanField(
+        default=True,
+        verbose_name="Аналитика включена",
+    )
+
     # ── Характеристики персонажа ──────────────────────────────────────────
 
     # Здоровье (Hit Points): текущее и максимальное
@@ -430,6 +436,17 @@ class Task(models.Model):
         default="Other",
         blank=True,
         verbose_name="Категория",
+    )
+
+    # Календарь
+    scheduled_time = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Время (календарь)",
+    )
+    show_in_calendar = models.BooleanField(
+        default=False,
+        verbose_name="Показывать в календаре",
     )
 
     # Настройки кастомного сессионного лога (для типа BUTTON)
@@ -1006,3 +1023,64 @@ class PartyMembership(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} → {self.party.name}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Calendar Events (Ручные события в календаре)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class CalendarEvent(models.Model):
+    """
+    Ручное событие в календаре (ранее хранилось в localStorage).
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="calendar_events",
+        verbose_name="Пользователь",
+    )
+    title = models.CharField(max_length=255, verbose_name="Название")
+    description = models.TextField(blank=True, default="", verbose_name="Описание")
+    date = models.DateField(verbose_name="Дата")
+    start_time = models.TimeField(verbose_name="Время начала")
+    end_time = models.TimeField(verbose_name="Время окончания")
+    color = models.CharField(max_length=15, default="#3b82f6", verbose_name="Цвет")
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        verbose_name = "Событие календаря"
+        verbose_name_plural = "События календаря"
+        ordering = ["date", "start_time"]
+
+    def __str__(self):
+        return f"{self.title} ({self.date} {self.start_time}-{self.end_time})"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Analytics
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class FeatureEvent(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feature_events",
+        verbose_name="Пользователь",
+    )
+    event_name = models.CharField(max_length=128, verbose_name="Имя события")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Время события")
+
+    class Meta:
+        verbose_name = "Событие аналитики"
+        verbose_name_plural = "События аналитики"
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        return f"FeatureEvent: {self.event_name} @ {self.timestamp}"

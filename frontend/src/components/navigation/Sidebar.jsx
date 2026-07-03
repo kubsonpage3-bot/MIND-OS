@@ -5,6 +5,7 @@ import PixelIcon from "./PixelIcon";
 import { SETTINGS_TABS } from "@/components/mindos/SettingsPanel";
 import { prefetchTab } from "@/lib/prefetch";
 import { hapticLight } from "@/hooks/useHaptic";
+import { djangoApi } from "@/api/djangoClient";
 
 function haptic() {
   hapticLight();
@@ -134,7 +135,7 @@ function NavContent({
           return (
             <motion.button
               key={app.id}
-              onClick={() => { haptic(12); onAppChange(app.id); onClose?.(); }}
+              onClick={() => { haptic(12); onAppChange(app.id); onClose?.(); djangoApi.analytics.logEvent("mind_life_os_switched"); }}
               className="w-full flex items-center gap-2.5 px-3 rounded-xl"
               style={{
                 height: 44,

@@ -133,6 +133,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
   const confirmBuy = () => {
     if (!confirmScroll) return;
     summonMutation.mutate({ bossId: confirmScroll.id, cost: confirmScroll.price });
+    djangoApi.analytics.logEvent("boss_summoned");
     setConfirmScroll(null);
   };
 
