@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { METRIC_CONFIG, calculateIQ } from "@/lib/cognitiveEngine";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 import { motion } from "framer-motion";
+import MasteryRadar from "./MasteryRadar";
 
 const SUBJECT_CATS = [
   { id: "body", label: "BODY", color: "#ff4400", icon: "💪", activities: ["exercise", "running", "cold_shower", "nutrition", "sleep"] },
@@ -152,44 +152,13 @@ export default function ProjectionTable({ profile, logs }) {
       <div className="border-t border-border pt-5 space-y-4">
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📊 MASTERY RADAR</div>
         <div className="h-[250px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={subjectStats}>
-              <PolarGrid stroke="rgba(255,255,255,0.15)" />
-              <PolarAngleAxis 
-                dataKey="label" 
-                tick={({ payload, x, y, textAnchor }) => {
-                  const cat = subjectStats.find(s => s.label === payload.value);
-                  return (
-                    <text x={x} y={y} textAnchor={textAnchor} fill={cat?.color || "#fff"} fontSize={10} fontFamily="monospace" fontWeight="bold" dy={4}>
-                      {payload.value}
-                    </text>
-                  );
-                }} 
-              />
-              <Radar 
-                name="Current" 
-                dataKey="pct" 
-                stroke="transparent" 
-                fill="transparent" 
-                isAnimationActive={false}
-                dot={(props) => {
-                  const { cx, cy, payload } = props;
-                  const color = payload.color || "#fff";
-                  return (
-                    <circle 
-                      key={`dot-${payload.id}`}
-                      cx={cx} 
-                      cy={cy} 
-                      r={5} 
-                      fill={color} 
-                      stroke="none"
-                      style={{ filter: `drop-shadow(0 0 6px ${color})` }}
-                    />
-                  );
-                }}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
+          <MasteryRadar 
+            subjectStats={subjectStats} 
+            outerRadius="65%" 
+            fontSize={10} 
+            dotRadius={5} 
+            showIcons={false} 
+          />
         </div>
       </div>
 

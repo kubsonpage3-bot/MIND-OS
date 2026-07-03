@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { CLASSES } from "@/constants/rpgData";
 import PixelCharacter from "@/components/mindos/PixelCharacter";
+import MasteryRadar from "./MasteryRadar";
 
 const SUBJECT_CATS = [
   { id: "body", label: "BODY", color: "#ff4400", icon: "💪", activities: ["exercise", "running", "cold_shower", "nutrition", "sleep"] },
@@ -55,16 +55,18 @@ export default function ShareCard({ profile, logs }) {
         
         {/* Header: Name/Class & Rank Badge */}
         <div className="flex justify-between items-start">
-          <div className="flex items-center gap-6">
-            <div className="w-32 h-32 rounded-3xl flex items-center justify-center bg-black/40 border-4" style={{ borderColor: currentRank.color, boxShadow: `0 0 30px ${currentRank.color}40` }}>
-              <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={110} />
-            </div>
-            <div>
-              <div className="font-mono text-3xl text-muted-foreground uppercase tracking-widest" style={{ color: chosenClass?.color || "#3b82f6" }}>
-                {chosenClass?.name || "Wanderer"}
+          <div className="flex items-center gap-8">
+            <div className="shrink-0 rounded-3xl overflow-hidden border-4 bg-black/40 relative flex items-center justify-center" style={{ borderColor: currentRank.color, boxShadow: `0 0 30px ${currentRank.color}40`, width: 140, height: 140 }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={140} />
               </div>
-              <div className="text-6xl font-black tracking-tight mt-2 text-white">
+            </div>
+            <div className="flex flex-col justify-center mt-2">
+              <div className="text-6xl font-black tracking-tight text-white mb-2">
                 {profile?.user__username || "Agent"}
+              </div>
+              <div className="font-mono text-3xl uppercase tracking-widest" style={{ color: chosenClass?.color || "#3b82f6" }}>
+                {chosenClass?.name || "Wanderer"}
               </div>
             </div>
           </div>
@@ -87,50 +89,16 @@ export default function ShareCard({ profile, logs }) {
         </div>
 
         {/* Center: Radar Chart */}
-        <div className="flex-1 flex flex-col items-center justify-center -my-8">
-          <div className="font-mono text-2xl uppercase tracking-[0.2em] text-muted-foreground/60 mb-6">Mastery Radar</div>
+        <div className="flex-1 flex flex-col items-center justify-center py-4">
+          <div className="font-mono text-2xl uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">Mastery Radar</div>
           <div className="w-[600px] h-[600px] relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={subjectStats}>
-                <PolarGrid stroke="rgba(255,255,255,0.15)" strokeWidth={2} />
-                <PolarAngleAxis 
-                  dataKey="label" 
-                  tick={({ payload, x, y, textAnchor }) => {
-                    const cat = subjectStats.find(s => s.label === payload.value);
-                    return (
-                      <text x={x} y={y} textAnchor={textAnchor} fill={cat?.color || "#fff"} fontSize={20} fontFamily="monospace" fontWeight="bold" dy={6}>
-                        {cat?.icon} {payload.value}
-                      </text>
-                    );
-                  }} 
-                />
-                <Radar 
-                  name="Current" 
-                  dataKey="pct" 
-                  stroke={currentRank.color} 
-                  strokeWidth={4}
-                  fill={currentRank.color}
-                  fillOpacity={0.2}
-                  isAnimationActive={false}
-                  dot={(props) => {
-                    const { cx, cy, payload } = props;
-                    const color = payload.color || "#fff";
-                    return (
-                      <circle 
-                        key={`dot-${payload.id}`}
-                        cx={cx} 
-                        cy={cy} 
-                        r={10} 
-                        fill={color} 
-                        stroke="#000"
-                        strokeWidth={2}
-                        style={{ filter: `drop-shadow(0 0 12px ${color})` }}
-                      />
-                    );
-                  }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+            <MasteryRadar 
+              subjectStats={subjectStats}
+              outerRadius="55%"
+              fontSize={18}
+              dotRadius={10}
+              showIcons={true}
+            />
           </div>
         </div>
 
