@@ -47,7 +47,6 @@ export default function AppShell({ defaultTab = "mind" }) {
   const [syncStatus, setSyncStatus] = useState("idle");
   const [lastSync, setLastSync] = useState(null);
   const [hpFlash, setHpFlash] = useState(false);
-  const [serverWaking, setServerWaking] = useState(false);
 
   // Navigation helpers — push to history so Android back button works
   const setNav = useCallback((app, section, subItem) => {
@@ -94,17 +93,6 @@ export default function AppShell({ defaultTab = "mind" }) {
   // Apply theme
   useEffect(() => { applyTheme(currentTheme); }, [currentTheme]);
 
-  // Server cold-start banner events
-  useEffect(() => {
-    const onWaking = () => setServerWaking(true);
-    const onReady = () => setServerWaking(false);
-    window.addEventListener('mindos-server-waking', onWaking);
-    window.addEventListener('mindos-server-ready', onReady);
-    return () => {
-      window.removeEventListener('mindos-server-waking', onWaking);
-      window.removeEventListener('mindos-server-ready', onReady);
-    };
-  }, []);
 
   // Initial cloud sync on mount
   useEffect(() => {
@@ -153,21 +141,6 @@ export default function AppShell({ defaultTab = "mind" }) {
         />
       )}
 
-      {/* Server waking up banner (Render cold start) */}
-      {serverWaking && (
-        <motion.div
-          initial={{ y: -48, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -48, opacity: 0 }}
-          className="fixed top-0 left-0 right-0 z-[998] flex items-center justify-center gap-2 py-2 px-4"
-          style={{ background: "rgba(161, 98, 7, 0.95)", backdropFilter: "blur(12px)" }}
-        >
-          <RefreshCw className="w-3.5 h-3.5 text-amber-200 animate-spin" />
-          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 700, fontSize: 12, color: "#fef3c7" }}>
-            Server waking up… please wait a moment
-          </span>
-        </motion.div>
-      )}
 
       {/* Left sidebar — desktop only */}
       <Sidebar
