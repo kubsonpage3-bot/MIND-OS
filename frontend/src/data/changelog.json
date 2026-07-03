@@ -4,7 +4,8 @@
     "date": "2026-07-03",
     "changes": [
       { "type": "feature", "text": "Implemented Changelog system to track user-facing game updates directly in MIND OS." },
-      { "type": "polish", "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card." }
+      { "type": "polish", "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card." },
+      { "type": "fix", "text": "Rebuilt ShareCard layout with fixed scaling zones to permanently prevent text clipping and overlap." }
     ]
   },
   {

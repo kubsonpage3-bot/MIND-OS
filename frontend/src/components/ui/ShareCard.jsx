@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { getRankDisplayData } from "@/lib/rankEngine";
-import { METRIC_CONFIG } from "@/lib/cognitiveEngine";
 import { CLASSES, ACHIEVEMENTS } from "@/constants/rpgData";
 import PixelCharacter from "@/components/mindos/PixelCharacter";
 import MasteryRadar from "@/components/mindos/MasteryRadar";
@@ -12,16 +11,6 @@ const SUBJECT_CATS = [
   { id: "spirit", label: "SPIRIT", color: "#9944ff", icon: "✨", activities: ["prayer_meditation", "prayer", "meditation", "mindfulness", "reading_philosophy"] },
   { id: "humanities", label: "HUMANITIES", color: "#f0c040", icon: "📚", activities: ["reading", "philosophy", "history", "humanities", "writing"] },
 ];
-
-function StatItem({ label, value, metricKey }) {
-  const color = METRIC_CONFIG[metricKey]?.colorHex || "#ffffff";
-  return (
-    <div className="flex items-baseline gap-3">
-      <span className="font-mono text-2xl uppercase tracking-wider" style={{ color }}>{label}</span>
-      <span className="text-4xl font-bold text-white">{Math.round(value)}</span>
-    </div>
-  );
-}
 
 export default function ShareCard({ profile, logs }) {
   const currentRankIdValue = profile?.rank_info?.current_id || "F";
@@ -49,7 +38,7 @@ export default function ShareCard({ profile, logs }) {
 
   return (
     <div 
-      className="relative font-mono flex items-center justify-center p-8" 
+      className="relative font-game" 
       style={{
         width: 1080,
         height: 1080,
@@ -65,59 +54,59 @@ export default function ShareCard({ profile, logs }) {
 
       {/* Main Card Frame */}
       <div 
-        className="relative w-full h-full rounded-[3rem] border-[4px] flex flex-col z-10 overflow-hidden"
+        className="absolute inset-[40px] rounded-[3rem] border-[4px] flex flex-col z-10 p-[40px] overflow-hidden"
         style={{ 
           borderColor: `${currentRank.color}40`,
           boxShadow: `inset 0 0 100px ${currentRank.color}15, 0 0 60px ${currentRank.color}20`,
           background: "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)"
         }}
       >
-        {/* Header Region */}
-        <div className="flex items-center justify-between p-12 border-b-2" style={{ borderColor: `${currentRank.color}20` }}>
+        {/* HEADER ZONE: 200px */}
+        <div className="w-full h-[200px] flex items-center justify-between border-b-[3px] pb-[40px]" style={{ borderColor: `${currentRank.color}20` }}>
+          
           {/* Left: Avatar + Details */}
-          <div className="flex items-center gap-12">
-            <div className="shrink-0 rounded-[3rem] overflow-hidden border-[4px] bg-black/60 relative flex items-center justify-center" 
-                 style={{ borderColor: "rgba(255,255,255,0.15)", width: 240, height: 240 }}>
+          <div className="flex items-center gap-12 h-full">
+            <div className="shrink-0 w-[160px] h-[160px] rounded-[2rem] border-[4px] bg-black/60 relative flex items-center justify-center overflow-hidden" 
+                 style={{ borderColor: "rgba(255,255,255,0.15)" }}>
               <div className="absolute inset-0 flex items-center justify-center">
-                <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={240} />
+                <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={200} />
               </div>
             </div>
             
             <div className="flex flex-col justify-center">
               {username && (
-                <div className="text-[72px] font-black tracking-tight text-white mb-2 leading-none">
+                <div className="text-[72px] font-black tracking-tight text-white leading-none mb-1">
                   {username}
                 </div>
               )}
-              <div className="text-[40px] uppercase tracking-widest" style={{ color: chosenClass?.color || "#3b82f6" }}>
+              <div className="text-[44px] uppercase tracking-widest leading-none mt-2" style={{ color: chosenClass?.color || "#3b82f6" }}>
                 {chosenClass?.name || "Wanderer"}
               </div>
             </div>
           </div>
           
           {/* Right: Integrated Rank Badge */}
-          <div className="flex flex-col items-center justify-center rounded-[2rem] px-12 py-6 border-[3px]"
+          <div className="flex flex-col items-center justify-center rounded-[2rem] w-[220px] h-[160px] border-[3px]"
                style={{ 
                  borderColor: `${currentRank.color}60`,
                  background: `linear-gradient(135deg, ${currentRank.color}15, transparent)`,
                  boxShadow: `0 0 40px ${currentRank.color}20`
                }}>
-            <div className="text-2xl text-muted-foreground uppercase tracking-[0.3em] mb-2">Rank</div>
-            <div className="text-[100px] font-black flex items-center justify-center leading-tight" style={{ color: currentRank.color, textShadow: `0 0 40px ${currentRank.color}` }}>
+            <div className="text-3xl text-muted-foreground uppercase tracking-[0.3em] mb-1">Rank</div>
+            {/* Using flex and precise line-height/padding to prevent clipping */}
+            <div className="text-[120px] font-black flex items-center justify-center h-[90px] leading-[0]" style={{ color: currentRank.color, textShadow: `0 0 40px ${currentRank.color}` }}>
               {currentRank.id}
             </div>
           </div>
         </div>
 
-        {/* Center: The Radar (Dominant) */}
-        <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-           
-           {/* Scaled-up Radar */}
-           <div className="w-[850px] h-[850px] relative z-10 flex items-center justify-center">
+        {/* RADAR ZONE: 560px */}
+        <div className="w-full h-[560px] relative flex items-center justify-center">
+           <div className="w-[600px] h-[600px] relative z-10 flex items-center justify-center">
              <MasteryRadar 
                subjectStats={subjectStats}
-               outerRadius="60%"
-               fontSize={24}
+               outerRadius="55%"
+               fontSize={32}
                dotRadius={12}
                showIcons={true}
                strokeColor={currentRank.color}
@@ -125,36 +114,24 @@ export default function ShareCard({ profile, logs }) {
                fillOpacity={0.15}
              />
            </div>
-           
-           {/* Compact Stat Row Overlay */}
-           <div className="absolute bottom-10 left-0 right-0 flex justify-center z-20">
-             <div className="flex gap-10 px-12 py-4 rounded-full border border-white/10 bg-black/60 backdrop-blur-md shadow-2xl">
-                <StatItem label="Gf" metricKey="gf" value={profile?.gf || 100} />
-                <StatItem label="Gc" metricKey="gc" value={profile?.gc || 100} />
-                <StatItem label="Ps" metricKey="ps" value={profile?.ps || 100} />
-                <StatItem label="Vm" metricKey="vm" value={profile?.vm || 100} />
-             </div>
-           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center px-12 py-10 border-t-2 bg-black/20" style={{ borderColor: `${currentRank.color}20` }}>
-          <div className="flex gap-16">
+        {/* FOOTER ZONE: 160px */}
+        <div className="w-full h-[160px] flex items-center justify-between border-t-[3px] pt-[40px]" style={{ borderColor: `${currentRank.color}20` }}>
+          <div className="flex gap-16 items-center">
             <div>
-              <div className="text-xl text-muted-foreground/80 uppercase tracking-widest mb-2">Allies</div>
-              <div className="text-4xl font-black text-white">{alliesCount} <span className="text-2xl text-white/40">/ 8</span></div>
+              <div className="text-3xl text-muted-foreground/80 uppercase tracking-widest mb-2">Allies</div>
+              <div className="text-6xl font-black text-white">{alliesCount} <span className="text-4xl text-white/40">/ 8</span></div>
             </div>
             <div>
-              <div className="text-xl text-muted-foreground/80 uppercase tracking-widest mb-2">Achievements</div>
-              <div className="text-4xl font-black text-white">{achievementsCount} <span className="text-2xl text-white/40">/ {achievementsTotal}</span></div>
+              <div className="text-3xl text-muted-foreground/80 uppercase tracking-widest mb-2">Achievements</div>
+              <div className="text-6xl font-black text-white">{achievementsCount} <span className="text-4xl text-white/40">/ {achievementsTotal}</span></div>
             </div>
           </div>
           
-          <div className="text-right flex items-center gap-6">
-            <span className="text-5xl filter brightness-150">⚡</span>
-            <div className="text-left">
-              <div className="text-2xl text-muted-foreground/60 tracking-widest uppercase">mindos.app</div>
-            </div>
+          <div className="flex items-center gap-6">
+            <span className="text-7xl filter brightness-150">⚡</span>
+            <div className="text-4xl text-muted-foreground/60 tracking-widest uppercase">mindos.app</div>
           </div>
         </div>
 

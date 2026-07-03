@@ -25,8 +25,8 @@ export default function MasteryRadar({
                 textAnchor={textAnchor} 
                 fill={cat?.color || "#fff"} 
                 fontSize={fontSize} 
-                fontFamily="monospace" 
-                fontWeight="bold" 
+                fontFamily="'Pixeltype', monospace" 
+                fontWeight="normal" 
                 dy={fontSize * 0.4}
               >
                 {showIcons && cat?.icon ? `${cat.icon} ` : ""}{payload.value}
