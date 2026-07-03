@@ -3,6 +3,8 @@
     "version": "1.4.7",
     "date": "2026-07-04",
     "changes": [
+      { "type": "fix", "text": "Removed duplicate sub-navigation bar on the Character tab for mobile users." },
+      { "type": "polish", "text": "Top sub-navigation tabs (Tools, Character) no longer stay pinned to the screen while scrolling on mobile, freeing up screen real estate. Tasks tab retains its pinned behavior." },
       { "type": "polish", "text": "Unified mobile sub-navigation: Tools and Character tabs now use the same pill-toggle style as Tasks. Character tabs wrap smoothly to multiple rows on small screens for better visibility." },
       { "type": "feature", "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. 'The Defiant', 'Revenant') based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard." },
       { "type": "fix", "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the 'AWAKENING' rank title instead of their actual rank." },
