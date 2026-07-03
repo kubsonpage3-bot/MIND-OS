@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { CLASSES } from "@/constants/rpgData";
 import PixelCharacter from "@/components/mindos/PixelCharacter";
-import MasteryRadar from "./MasteryRadar";
+import MasteryRadar from "@/components/mindos/MasteryRadar";
 
 const SUBJECT_CATS = [
   { id: "body", label: "BODY", color: "#ff4400", icon: "💪", activities: ["exercise", "running", "cold_shower", "nutrition", "sleep"] },
