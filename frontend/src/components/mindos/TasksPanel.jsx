@@ -68,7 +68,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
       <TabGuideModal guideId="tasks" profile={profile} />
 
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
-      <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} wrap={false} />
+      <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} wrap={false} sticky={true} />
 
       {/* Mobile: show only the active tab */}
       <div className="md:hidden">

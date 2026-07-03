@@ -1,9 +1,10 @@
-export default function PillTabBar({ tabs, activeTab, onChange, wrap = false }) {
+export default function PillTabBar({ tabs, activeTab, onChange, wrap = false, sticky = false }) {
   return (
     <div 
       className={`
         md:hidden
-        flex gap-2 px-4 py-3 sticky top-0 z-30
+        flex gap-2 px-4 py-3
+        ${sticky ? 'sticky top-0 z-30' : ''}
         bg-black/40 backdrop-blur-md border-b border-white/10
         ${wrap ? 'flex-wrap' : 'overflow-x-auto scrollbar-hide'}
       `}
