@@ -5,6 +5,7 @@ import DailiesColumn from "./DailiesColumn";
 import TodosColumn from "./TodosColumn";
 import ActivityLogger from "./ActivityLogger";
 import CreateTaskModal from "./CreateTaskModal";
+import TabGuideModal from "./TabGuideModal";
 import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "./RewardToast";
 
@@ -59,6 +60,10 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
   return (
     <>
+      <TabGuideModal guideId="tasks" title="Tasks" profile={profile}>
+        Placeholder text for the Tasks guide. We will replace this with final copy later.
+      </TabGuideModal>
+
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
       <div 
         className="

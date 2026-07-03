@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import PartyTab from "./PartyTab";
+import TabGuideModal from "./TabGuideModal";
 
 const RIVAL_NAME = "JOHAN";
 
@@ -376,12 +377,22 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         })}
       </div>
 
-      {/* ── Party tab ── */}
-      {activeTab === "party" && <PartyTab />}
+      {/* 🏆 Party tab 🏆 */}
+      {activeTab === "party" && (
+        <>
+          <TabGuideModal guideId="party" title="Party" profile={queryClient.getQueryData(["userprofile"]) || {}}>
+            Placeholder text for the Party guide. We will replace this with final copy later.
+          </TabGuideModal>
+          <PartyTab />
+        </>
+      )}
 
-      {/* ── Rival tab (existing Johan content) ── */}
+      {/* 🗡️ Rival tab (existing Johan content) 🗡️ */}
       {activeTab === "rival" && (
       <>
+      <TabGuideModal guideId="rival" title="Rival" profile={queryClient.getQueryData(["userprofile"]) || {}}>
+        Placeholder text for the Rival guide. We will replace this with final copy later.
+      </TabGuideModal>
       <AnimatePresence>
         {sessionToast && (
           <motion.div

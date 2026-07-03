@@ -23,6 +23,7 @@ import TasksPanel from "@/components/mindos/TasksPanel";
 import CharacterTab from "@/components/mindos/CharacterTab";
 import RivalTab from "@/components/mindos/RivalTab";
 import BossDefeatModal from "@/components/mindos/BossDefeatModal";
+import TabGuideModal from "@/components/mindos/TabGuideModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
@@ -400,10 +401,13 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 transition={{ duration: 0.15 }}
               >
               {/* Dashboard — Habitica-style layout */}
-              {activeSection === "dashboard" && (
-                <>
-                  {/* IQ + Metrics block */}
-                  {profile && (
+                {activeSection === "dashboard" && (
+                  <>
+                    <TabGuideModal guideId="dashboard" title="Dashboard" profile={profile}>
+                      Placeholder text for the Dashboard guide. We will replace this with final copy later.
+                    </TabGuideModal>
+                    {/* IQ + Metrics block */}
+                    {profile && (
                     <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
                       {/* Header */}
                       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
@@ -448,7 +452,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Train section */}
               {(activeSection === "train" || activeSection === "training") && (
-                <TabPanel title="🏋️ TRAINING">
+                <TabPanel title="🏋️‍♀️ TRAINING">
+                  <TabGuideModal guideId="training" title="Training" profile={profile}>
+                    Placeholder text for the Training guide. We will replace this with final copy later.
+                  </TabGuideModal>
                   <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
                 </TabPanel>
               )}

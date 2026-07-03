@@ -18,6 +18,7 @@ import SkillTreePanel from "./SkillTreePanel";
 import AlliesPanel from "./AlliesPanel";
 import AchievementsPanel from "./AchievementsPanel";
 import MutatorsPanel from "./MutatorsPanel";
+import TabGuideModal from "./TabGuideModal";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
@@ -358,6 +359,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* OVERVIEW */}
       {subTab === "overview" && (
         <div className="space-y-4">
+          <TabGuideModal guideId="character" title="Character" profile={profile}>
+            Placeholder text for the Character guide. We will replace this with final copy later.
+          </TabGuideModal>
           {/* Character sprite */}
           <div className="rounded-2xl p-5 flex flex-col items-center gap-3"
             style={{
@@ -509,22 +513,32 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* SKILL TREE */}
       {subTab === "skill_tree" && (
-        <SkillTreePanel
-          skillTree={profile?.unlocked_skills || []}
-          onUpdate={handleSkillTreeUpdate}
-          gold={gold}
-          onSpendGold={spendGold}
-        />
+        <>
+          <TabGuideModal guideId="skill_tree" title="Skill Tree" profile={profile}>
+            Placeholder text for the Skill Tree guide. We will replace this with final copy later.
+          </TabGuideModal>
+          <SkillTreePanel
+            skillTree={profile?.unlocked_skills || []}
+            onUpdate={handleSkillTreeUpdate}
+            gold={gold}
+            onSpendGold={spendGold}
+          />
+        </>
       )}
 
       {/* ALLIES */}
       {subTab === "allies" && (
-        <AlliesPanel
-          alliesData={profile?.recruited_allies || {}}
-          onUpdate={handleAlliesUpdate}
-          gold={gold}
-          onSpendGold={spendGold}
-        />
+        <>
+          <TabGuideModal guideId="allies" title="Allies" profile={profile}>
+            Placeholder text for the Allies guide. We will replace this with final copy later.
+          </TabGuideModal>
+          <AlliesPanel
+            alliesData={profile?.recruited_allies || {}}
+            onUpdate={handleAlliesUpdate}
+            gold={gold}
+            onSpendGold={spendGold}
+          />
+        </>
       )}
 
       {/* ACHIEVEMENTS */}
@@ -534,12 +548,20 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* MUTATORS */}
       {subTab === "mutators" && (
-        <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
+        <>
+          <TabGuideModal guideId="mutators" title="Mutators" profile={profile}>
+            Placeholder text for the Mutators guide. We will replace this with final copy later.
+          </TabGuideModal>
+          <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
+        </>
       )}
 
       {/* SHOP */}
       {subTab === "shop" && (
         <div className="space-y-3">
+          <TabGuideModal guideId="shop" title="Shop" profile={profile}>
+            Placeholder text for the Shop guide. We will replace this with final copy later.
+          </TabGuideModal>
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
               <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> SHOP

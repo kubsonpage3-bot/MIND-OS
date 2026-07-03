@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Palette, Bell, User, Gamepad2, Shield, Globe, RotateCcw, Info, ChevronLeft, Brain } from "lucide-react";
+import { Settings, Palette, Bell, User, Gamepad2, Shield, Globe, RotateCcw, Info, ChevronLeft, Brain, BookOpen } from "lucide-react";
 
 import NotificationsPanel from "@/components/mindos/NotificationsPanel";
 import AccountPanel from "@/components/mindos/AccountPanel";
@@ -10,6 +10,7 @@ import ResetPanel from "@/components/mindos/ResetPanel";
 import LanguagePanel from "@/components/mindos/LanguagePanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
 import MetricsPanel from "@/components/mindos/MetricsPanel";
+import GuidesPanel from "@/components/mindos/GuidesPanel";
 
 export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
   const [showDataTab, setShowDataTab] = useState(activeSubTab || "appearance");
@@ -29,6 +30,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
     { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
     { id: "privacy", label: "Privacy", icon: Shield },
     { id: "language", label: "Language", icon: Globe },
+    { id: "guides", label: "Guides", icon: BookOpen },
     { id: "reset", label: "Reset", icon: RotateCcw },
     { id: "about", label: "About", icon: Info },
   ];
@@ -95,6 +97,9 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* LANGUAGE */}
       {showDataTab === "language" && <LanguagePanel />}
+
+      {/* GUIDES */}
+      {showDataTab === "guides" && <GuidesPanel />}
 
       {/* RESET */}
       {showDataTab === "reset" && <ResetPanel />}
