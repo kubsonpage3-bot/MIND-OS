@@ -150,7 +150,7 @@ export default function ProjectionTable({ profile, logs }) {
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📊 MASTERY RADAR</div>
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={subjectStats}>
+            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={subjectStats.map(s => ({ ...s, vizPct: Math.max(3, s.pct), vizPct30d: Math.max(3, s.pct30d) }))}>
               <PolarGrid stroke="rgba(255,255,255,0.15)" />
               <PolarAngleAxis 
                 dataKey="label" 
@@ -163,8 +163,17 @@ export default function ProjectionTable({ profile, logs }) {
                   );
                 }} 
               />
-              <Radar name="Projected (+30d)" dataKey="pct30d" stroke="#888" fill="#888" fillOpacity={0.1} strokeDasharray="3 3" />
-              <Radar name="Current" dataKey="pct" stroke="#22c55e" fill="#22c55e" fillOpacity={0.4} />
+              <Radar name="Projected (+30d)" dataKey="vizPct30d" stroke="#888" fill="#888" fillOpacity={0.1} strokeDasharray="3 3" />
+              <Radar 
+                name="Current" 
+                dataKey="vizPct" 
+                stroke="rgba(255,255,255,0.4)" 
+                fill="rgba(255,255,255,0.08)" 
+                dot={(props) => {
+                  const { cx, cy, payload } = props;
+                  return <circle key={`dot-${payload.id}`} cx={cx} cy={cy} r={4} fill={payload.color} stroke="rgba(0,0,0,0.5)" strokeWidth={1} />;
+                }}
+              />
             </RadarChart>
           </ResponsiveContainer>
         </div>
