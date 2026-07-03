@@ -10,7 +10,14 @@ import architectSpriteA from "/images/webp/architect_a.webp";
 import architectSpriteS from "/images/webp/architect_s.webp";
 import architectSpriteSS from "/images/webp/architect_ss.webp";
 import architectSpriteSSS from "/images/webp/architect_sss.webp";
-import asceticSprite from "/images/webp/303411c1f_characters3.webp";
+import asceticSpriteF from "/images/webp/ascetic_f.webp";
+import asceticSpriteD from "/images/webp/ascetic_d.webp";
+import asceticSpriteC from "/images/webp/ascetic_c.webp";
+import asceticSpriteB from "/images/webp/ascetic_b.webp";
+import asceticSpriteA from "/images/webp/ascetic_a.webp";
+import asceticSpriteS from "/images/webp/ascetic_s.webp";
+import asceticSpriteSS from "/images/webp/ascetic_ss.webp";
+import asceticSpriteSSS from "/images/webp/ascetic_sss.webp";
 import linguistSpriteF from "/images/webp/linguist_f.webp";
 import linguistSpriteD from "/images/webp/linguist_d.webp";
 import linguistSpriteC from "/images/webp/linguist_c.webp";
@@ -40,7 +47,16 @@ export const CLASS_SPRITES = {
     SS: architectSpriteSS,
     SSS: architectSpriteSSS,
   },
-  ascetic: asceticSprite,
+  ascetic: {
+    F: asceticSpriteF,
+    D: asceticSpriteD,
+    C: asceticSpriteC,
+    B: asceticSpriteB,
+    A: asceticSpriteA,
+    S: asceticSpriteS,
+    SS: asceticSpriteSS,
+    SSS: asceticSpriteSSS,
+  },
   linguist: {
     F: linguistSpriteF,
     D: linguistSpriteD,
