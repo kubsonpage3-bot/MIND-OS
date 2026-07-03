@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft, Brain, Sparkles, ChevronDown, X } from "lucide-react";
 import PixelIcon from "./PixelIcon";
+import { SETTINGS_TABS } from "@/components/mindos/SettingsPanel";
 import { prefetchTab } from "@/lib/prefetch";
 import { hapticLight } from "@/hooks/useHaptic";
 
@@ -52,16 +53,7 @@ const SECTION_GROUPS = [
         { id: "pomodoro", label: "Pomodoro" },
         { id: "calendar", label: "Calendar" },
       ]},
-      { id: "settings", label: "Settings", icon: "settings", subItems: [
-        { id: "metrics",       label: "Metrics" },
-        { id: "appearance",    label: "Appearance" },
-        { id: "notifications", label: "Notifications" },
-        { id: "account",       label: "Account" },
-        { id: "gameplay",      label: "Gameplay" },
-        { id: "privacy",       label: "Privacy" },
-        { id: "data",          label: "Data" },
-        { id: "reset",         label: "Reset" },
-      ]},
+      { id: "settings", label: "Settings", icon: "settings", subItems: SETTINGS_TABS.map(t => ({ id: t.id, label: t.label })) },
     ],
   },
 ];

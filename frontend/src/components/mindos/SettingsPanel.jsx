@@ -14,6 +14,19 @@ import GuidesPanel from "@/components/mindos/GuidesPanel";
 import ChangelogPanel from "@/components/mindos/ChangelogPanel";
 import changelogData from "@/data/changelog.json";
 
+export const SETTINGS_TABS = [
+  { id: "metrics", label: "Metrics", icon: Brain },
+  { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "account", label: "Account", icon: User },
+  { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
+  { id: "privacy", label: "Privacy", icon: Shield },
+  { id: "language", label: "Language", icon: Globe },
+  { id: "guides", label: "Guides", icon: BookOpen },
+  { id: "changelog", label: "Updates", icon: Info },
+  { id: "reset", label: "Reset", icon: RotateCcw },
+  { id: "about", label: "About", icon: Info },
+];
 export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
   const [showDataTab, setShowDataTab] = useState(activeSubTab || "appearance");
   const [hasNewChangelog, setHasNewChangelog] = useState(false);
@@ -38,20 +51,6 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
     return () => window.removeEventListener("changelogViewed", checkChangelog);
   }, []);
 
-  const TABS = [
-    { id: "metrics", label: "Metrics", icon: Brain },
-    { id: "appearance", label: "Appearance", icon: Palette },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "account", label: "Account", icon: User },
-    { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
-    { id: "privacy", label: "Privacy", icon: Shield },
-    { id: "language", label: "Language", icon: Globe },
-    { id: "guides", label: "Guides", icon: BookOpen },
-    { id: "changelog", label: "Updates", icon: Info },
-    { id: "reset", label: "Reset", icon: RotateCcw },
-    { id: "about", label: "About", icon: Info },
-  ];
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -71,7 +70,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
-        {TABS.map(t => {
+        {SETTINGS_TABS.map(t => {
           const isActive = showDataTab === t.id;
           return (
             <button
