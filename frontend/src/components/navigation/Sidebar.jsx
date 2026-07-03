@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft, Brain, Sparkles, ChevronDown, X } from "lucide-react";
 import PixelIcon from "./PixelIcon";
@@ -72,6 +72,22 @@ function NavContent({
   expandedSection, setExpandedSection,
   onClose, isMobile,
 }) {
+  const [isStandalonePWA, setIsStandalonePWA] = useState(true);
+
+  useEffect(() => {
+    const checkPWA = () => {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    };
+    setIsStandalonePWA(checkPWA());
+    
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const handler = (e) => setIsStandalonePWA(e.matches || window.navigator.standalone === true);
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, []);
+
   const handleSectionNavigate = (section) => {
     haptic(10);
     if (section.subItems?.length > 0) {
@@ -341,6 +357,32 @@ function NavContent({
           </div>
         ))}
       </nav>
+
+      {/* Hidden in PWA standalone mode per Google Play policy — external payment links must not be reachable from within the installed app. */}
+      {!isStandalonePWA && (
+        <div className="shrink-0 p-3 mt-auto" style={{ borderTop: "1px solid var(--habit-sidebar-border)" }}>
+          <a
+            href="https://mindos.pages.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full rounded-xl transition-transform hover:scale-95"
+            style={{ 
+              height: 44,
+              background: "var(--habit-purple)", 
+              color: "white",
+              fontFamily: "'Nunito'",
+              fontWeight: 800,
+              fontSize: 13,
+              letterSpacing: "0.04em",
+              boxShadow: "0 2px 14px var(--habit-purple-glow)",
+              textDecoration: "none"
+            }}
+          >
+            <Sparkles size={18} className="shrink-0" />
+            {!collapsed && <span>Support Dev</span>}
+          </a>
+        </div>
+      )}
 
       <div className="shrink-0 h-4" />
     </>

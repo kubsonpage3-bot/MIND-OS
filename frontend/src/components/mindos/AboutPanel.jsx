@@ -102,6 +102,14 @@ export default function AboutPanel() {
         </a>
       </div>
 
+      {/* Support / Premium (Text Only) */}
+      <div className="p-4 rounded-xl border border-border bg-card">
+        <p className="text-[10px] font-mono text-muted-foreground/60 leading-relaxed text-center">
+          Want to support the developer or unlock Premium?<br/>
+          Visit mindos.pages.dev in your browser to donate.
+        </p>
+      </div>
+
       {/* Credits */}
       <div className="p-4 rounded-xl border border-border bg-card">
         <div className="text-[10px] font-mono text-muted-foreground/50 text-center">
