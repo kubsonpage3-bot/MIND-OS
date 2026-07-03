@@ -76,9 +76,9 @@ export default function ProjectionTable({ profile, logs }) {
       const dailyRate = weekHours / 7;
       // Estimate % toward a notional "mastery" of 500 hours
       const MASTERY = 500;
-      const pct = Math.min(100, (totalHours / MASTERY) * 100);
-      const pct30d = Math.min(100, ((totalHours + dailyRate * 30) / MASTERY) * 100);
-      const pct90d = Math.min(100, ((totalHours + dailyRate * 90) / MASTERY) * 100);
+      const pct = Math.max(3, Math.min(100, (totalHours / MASTERY) * 100));
+      const pct30d = Math.max(3, Math.min(100, ((totalHours + dailyRate * 30) / MASTERY) * 100));
+      const pct90d = Math.max(3, Math.min(100, ((totalHours + dailyRate * 90) / MASTERY) * 100));
       return { ...cat, totalHours, weekHours, dailyRate, pct, pct30d, pct90d };
     });
 
@@ -150,7 +150,7 @@ export default function ProjectionTable({ profile, logs }) {
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📊 MASTERY RADAR</div>
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={subjectStats.map(s => ({ ...s, vizPct: Math.max(3, s.pct), vizPct30d: Math.max(3, s.pct30d) }))}>
+            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={subjectStats}>
               <PolarGrid stroke="rgba(255,255,255,0.15)" />
               <PolarAngleAxis 
                 dataKey="label" 
@@ -163,15 +163,26 @@ export default function ProjectionTable({ profile, logs }) {
                   );
                 }} 
               />
-              <Radar name="Projected (+30d)" dataKey="vizPct30d" stroke="#888" fill="#888" fillOpacity={0.1} strokeDasharray="3 3" />
               <Radar 
                 name="Current" 
-                dataKey="vizPct" 
-                stroke="rgba(255,255,255,0.4)" 
-                fill="rgba(255,255,255,0.08)" 
+                dataKey="pct" 
+                stroke="transparent" 
+                fill="transparent" 
+                isAnimationActive={false}
                 dot={(props) => {
                   const { cx, cy, payload } = props;
-                  return <circle key={`dot-${payload.id}`} cx={cx} cy={cy} r={4} fill={payload.color} stroke="rgba(0,0,0,0.5)" strokeWidth={1} />;
+                  const color = payload.color || "#fff";
+                  return (
+                    <circle 
+                      key={`dot-${payload.id}`}
+                      cx={cx} 
+                      cy={cy} 
+                      r={5} 
+                      fill={color} 
+                      stroke="none"
+                      style={{ filter: `drop-shadow(0 0 6px ${color})` }}
+                    />
+                  );
                 }}
               />
             </RadarChart>
