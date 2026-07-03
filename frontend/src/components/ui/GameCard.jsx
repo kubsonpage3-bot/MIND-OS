@@ -48,7 +48,7 @@ export default function GameCard({
       } : {
         boxShadow: finalShadow
       })}
-      transition={transition ? { ...transition, ...(isActive && !transition.boxShadow ? { boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" } } : {}) } : (isActive ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {})}
+      transition={transition ? { ...transition, ...(isActive && !transition.boxShadow ? { boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" } } : {}) } : (isActive ? { boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" } } : {})}
       {...props}
     >
       {children}

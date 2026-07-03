@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { normalizeGold } from "@/lib/utils";
 import { ALLIES } from "@/constants/rpgData";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,18 @@ const RANK_GLOW = { E: "#88888840", D: "#22c55e40", C: "#3b82f640", B: "#a855f74
 function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
   const [hovered, setHovered] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [justRecruited, setJustRecruited] = useState(false);
+  const prevRecruited = useRef(isRecruited);
+
+  useEffect(() => {
+    if (!prevRecruited.current && isRecruited) {
+      setJustRecruited(true);
+      const t = setTimeout(() => setJustRecruited(false), 1000);
+      return () => clearTimeout(t);
+    }
+    prevRecruited.current = isRecruited;
+  }, [isRecruited]);
+
   const nextCost = isRecruited ? ally.upgradeCosts[level - 1] : null;
   const canAffordRecruit = gold >= ally.recruitCost;
   const canAffordUpgrade = nextCost != null && gold >= nextCost;
@@ -28,7 +40,10 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
       borderColor={isRecruited ? ally.color : undefined}
       glowColor={ally.color}
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0, scale: justRecruited ? [0.9, 1.05, 1] : 1 }}
+      transition={{
+        scale: justRecruited ? { duration: 0.5, ease: "easeOut" } : {}
+      }}
       onClick={() => setShowDetail(true)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
