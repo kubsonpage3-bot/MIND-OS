@@ -77,6 +77,12 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
           >
             {rank.label}
           </div>
+          <div
+            className="font-mono font-bold tracking-[0.2em] text-[9px] mt-2 uppercase"
+            style={{ color: "#94a3b8", opacity: 0.7, fontFamily: "'Space Mono', monospace" }}
+          >
+            &lt; {profile?.streak_title || "The Forsaken"} &gt;
+          </div>
         </div>
       </div>
 

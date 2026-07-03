@@ -53,6 +53,13 @@ export default function ShareCard({ profile }) {
           {chosenClass?.name || "THE ASCETIC"}
         </div>
 
+        {/* Streak Title */}
+        <div 
+          className="text-[40px] font-bold tracking-widest text-center mt-6 text-slate-400 uppercase"
+        >
+          &lt; {profile?.streak_title || "The Forsaken"} &gt;
+        </div>
+
       </div>
 
       {/* Bottom Rank Badge Pill */}
@@ -71,7 +78,7 @@ export default function ShareCard({ profile }) {
             textShadow: `0 0 40px ${currentRank.color}, 0 0 10px #ffffff` 
           }}
         >
-          {currentRank.id} — {currentRank.title || "AWAKENING"}
+          {currentRank.id} — {currentRank.label}
         </div>
       </div>
 

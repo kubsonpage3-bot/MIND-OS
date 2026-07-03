@@ -22,6 +22,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     unlocked_achievements = serializers.SerializerMethodField()
     prestige_xp_required = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
+    streak_title = serializers.ReadOnlyField()
 
     class Meta:
         model = UserProfile
@@ -75,6 +76,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "rival_data",
             "seen_guides",
             "rank_info",
+            "streak_title",
             "analytics_enabled",
         )
         read_only_fields = (

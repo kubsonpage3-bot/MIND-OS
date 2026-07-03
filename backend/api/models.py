@@ -293,6 +293,24 @@ class UserProfile(models.Model):
         HP_PER_PRESTIGE = 50
         return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE)
 
+    @property
+    def streak_title(self) -> str:
+        """
+        Computed title based on the user's current streak.
+        Provides gamified feedback for long-term consistency.
+        """
+        s = self.streak
+        if s < 7:
+            return "The Forsaken"
+        elif s < 30:
+            return "The Defiant"
+        elif s < 90:
+            return "Iron-Willed"
+        elif s < 365:
+            return "Revenant"
+        else:
+            return "Abyssal Sovereign"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Сигнал: автоматически создаём UserProfile при создании User
