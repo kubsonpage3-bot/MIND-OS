@@ -1251,3 +1251,33 @@ WARNING 2026-07-01 23:00:37,954 log 27744 4284 Unauthorized: /api/profile/
 WARNING 2026-07-01 23:00:37,955 basehttp 27744 4284 "GET /api/profile/ HTTP/1.1" 401 79
 WARNING 2026-07-01 23:00:42,340 log 27744 14828 Unauthorized: /api/auth/token/
 WARNING 2026-07-01 23:00:42,342 basehttp 27744 14828 "POST /api/auth/token/ HTTP/1.1" 401 116
+ERROR 2026-07-03 11:14:09,118 exception 25412 24624 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+WARNING 2026-07-03 11:14:09,302 log 25412 24624 Bad Request: /api/profile/mark-guide-seen/
+ERROR 2026-07-03 11:14:09,361 exception 25412 24624 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+WARNING 2026-07-03 11:14:09,378 log 25412 24624 Bad Request: /api/profile/

@@ -132,6 +132,7 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
 
 export default function AlliesPanel({ onSpendGold }) {
   const [selected, setSelected] = useState(null);
+  const [revealState, setRevealState] = useState("idle"); // idle, shaking, flipping_front, revealed
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
@@ -151,20 +152,43 @@ export default function AlliesPanel({ onSpendGold }) {
     }
   });
 
-  const recruit = (ally) => {
+  const recruit = async (ally) => {
     if (gold < ally.recruitCost) return;
-    recruitMutation.mutate(ally.id);
-    onSpendGold(ally.recruitCost);
+    
+    setRevealState("shaking");
+    try {
+      await recruitMutation.mutateAsync(ally.id);
+      onSpendGold(ally.recruitCost);
+      
+      setTimeout(() => {
+        setRevealState("flipping_front");
+        setTimeout(() => {
+          setRevealState("revealed");
+        }, 300);
+      }, 1200);
+    } catch (e) {
+      setRevealState("idle");
+    }
   };
 
-  const upgrade = (ally) => {
+  const upgrade = async (ally) => {
     const currentLevel = levels[ally.id] || 1;
     if (currentLevel >= 5) return;
     const cost = ally.upgradeCosts[currentLevel - 1];
     if (gold < cost) return;
     
-    recruitMutation.mutate(ally.id);
-    onSpendGold(cost);
+    try {
+      await recruitMutation.mutateAsync(ally.id);
+      onSpendGold(cost);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const closeDetail = () => {
+    if (revealState === "shaking" || revealState === "flipping_front") return;
+    setSelected(null);
+    setRevealState("idle");
   };
 
   const activeAllies = ALLIES.filter(a => recruited.includes(a.id));
@@ -184,7 +208,7 @@ export default function AlliesPanel({ onSpendGold }) {
           const isRecruited = recruited.includes(ally.id);
           const level = levels[ally.id] || 0;
           return (
-            <div key={ally.id} onClick={() => setSelected(ally)}>
+            <div key={ally.id} onClick={() => { setSelected(ally); setRevealState("idle"); }}>
               <AllyCard
                 ally={ally}
                 isRecruited={isRecruited}
@@ -213,13 +237,17 @@ export default function AlliesPanel({ onSpendGold }) {
 
       {/* Detail modal */}
       <AnimatePresence>
-        {selected && (
+        {selected && (() => {
+          const isRecruitedStatus = recruited.includes(selected.id);
+          const displayAsRecruited = isRecruitedStatus && revealState !== "shaking" && revealState !== "flipping_front";
+
+          return (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-            onClick={() => setSelected(null)}
+            onClick={closeDetail}
           >
             <motion.div
               initial={{ scale: 0.85, opacity: 0 }}
@@ -231,22 +259,44 @@ export default function AlliesPanel({ onSpendGold }) {
               onClick={e => e.stopPropagation()}
             >
               {/* Big portrait */}
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-2 relative">
+                {revealState === "revealed" && (
+                  <motion.div 
+                    initial={{ scale: 0.5, opacity: 1 }} 
+                    animate={{ scale: 2, opacity: 0 }} 
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0 rounded-full" 
+                    style={{ background: `radial-gradient(circle, ${selected.color} 0%, transparent 70%)` }}
+                  />
+                )}
                 <motion.div
-                  animate={{ boxShadow: [`0 0 20px ${selected.color}60`, `0 0 40px ${selected.color}40`, `0 0 20px ${selected.color}60`] }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
-                  className="w-28 h-28 rounded-2xl overflow-hidden border-2"
+                  animate={
+                    revealState === "shaking" 
+                      ? { x: [-5, 5, -5, 5, -3, 3, 0], y: [-2, 2, -2, 2, 0], boxShadow: `0 0 15px ${selected.color}` }
+                      : revealState === "flipping_front"
+                      ? { rotateY: 90, scale: 1.1, boxShadow: `0 0 25px ${selected.color}` }
+                      : revealState === "revealed"
+                      ? { rotateY: 0, scale: 1, boxShadow: [`0 0 50px ${selected.color}`, `0 0 20px ${selected.color}60`] }
+                      : { boxShadow: [`0 0 20px ${selected.color}60`, `0 0 40px ${selected.color}40`, `0 0 20px ${selected.color}60`] }
+                  }
+                  transition={
+                    revealState === "shaking" ? { duration: 0.3, repeat: Infinity }
+                    : revealState === "flipping_front" ? { duration: 0.3, ease: "easeIn" }
+                    : revealState === "revealed" ? { duration: 0.5, type: "spring", bounce: 0.4 }
+                    : { duration: 2.5, repeat: Infinity }
+                  }
+                  className="w-28 h-28 rounded-2xl overflow-hidden border-2 relative z-10"
                   style={{ borderColor: selected.color }}
                 >
                   <OptimizedImage
                     src={selected.image}
                     alt={selected.name}
                     className="w-full h-full object-cover"
-                    style={{ imageRendering: "pixelated", filter: recruited.includes(selected.id) ? "brightness(1.1) saturate(1.3)" : "brightness(0.5) grayscale(0.5)" }}
+                    style={{ imageRendering: "pixelated", filter: displayAsRecruited ? "brightness(1.1) saturate(1.3)" : "brightness(0.5) grayscale(0.5)" }}
                   />
                 </motion.div>
-                <div className="font-mono font-black text-sm" style={{ color: selected.color }}>{selected.name}</div>
-                <div className="flex items-center gap-2">
+                <div className="font-mono font-black text-sm relative z-10" style={{ color: selected.color }}>{selected.name}</div>
+                <div className="flex items-center gap-2 relative z-10">
                   <span className="text-[9px] font-mono text-muted-foreground/50">{selected.title}</span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold"
                     style={{ background: `${RANK_COLORS[selected.rank]}20`, color: RANK_COLORS[selected.rank], border: `1px solid ${RANK_COLORS[selected.rank]}50` }}>
@@ -261,7 +311,7 @@ export default function AlliesPanel({ onSpendGold }) {
                 <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-wider">Abilities by Level</div>
                 {selected.levels.map((bonus, i) => {
                   const currentLevel = levels[selected.id] || 0;
-                  const isUnlocked = recruited.includes(selected.id) && currentLevel > i;
+                  const isUnlocked = displayAsRecruited && currentLevel > i;
                   return (
                     <div key={i} className="flex items-start gap-2 text-[10px] font-mono"
                       style={{ opacity: isUnlocked ? 1 : 0.35 }}>
@@ -273,10 +323,10 @@ export default function AlliesPanel({ onSpendGold }) {
               </div>
 
               {/* Action button */}
-              {!recruited.includes(selected.id) ? (
+              {!displayAsRecruited ? (
                 <button
-                  onClick={() => { recruit(selected); setSelected(null); }}
-                  disabled={gold < selected.recruitCost}
+                  onClick={() => recruit(selected)}
+                  disabled={gold < selected.recruitCost || revealState !== "idle"}
                   className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all"
                   style={{
                     borderColor: gold >= selected.recruitCost ? "#f0c040" : "#1e1a38",
@@ -284,11 +334,11 @@ export default function AlliesPanel({ onSpendGold }) {
                     background: gold >= selected.recruitCost ? "#f0c04015" : "transparent",
                   }}
                 >
-                  RECRUIT — {selected.recruitCost}G
+                  {revealState !== "idle" ? "SUMMONING..." : `RECRUIT — ${selected.recruitCost}G`}
                 </button>
               ) : (levels[selected.id] || 1) < 5 ? (
                 <button
-                  onClick={() => { upgrade(selected); setSelected(null); }}
+                  onClick={() => upgrade(selected)}
                   disabled={gold < (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0)}
                   className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all"
                   style={{
@@ -303,12 +353,13 @@ export default function AlliesPanel({ onSpendGold }) {
                 <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">MAX LEVEL</div>
               )}
 
-              <button onClick={() => setSelected(null)} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors">
+              <button onClick={closeDetail} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors">
                 CLOSE
               </button>
             </motion.div>
           </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
     </div>
   );

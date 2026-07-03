@@ -22,6 +22,8 @@ import TabGuideModal from "./TabGuideModal";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import { ANIM_CONFIG } from "@/lib/animations";
 
 // Unified stat system: Final = Base (5) + Stat Points + Class Bonus + Equipment
 const STAT_CONFIG = {
@@ -351,7 +353,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             </span>
           )}
         </div>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>🪙 {normalizeGold(gold).toLocaleString()}G</span>
+        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>
+          🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
+        </span>
       </div>
 
       {/* Sub-tab navigation handled by sidebar */}
@@ -380,20 +384,34 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-                <span>HP</span><span style={{ color: hpColor }}>{Math.round(charHp)}/{charMaxHp}</span>
+                <span>HP</span>
+                <span style={{ color: hpColor }}>
+                  <AnimatedNumber value={Math.round(charHp)} />/{charMaxHp}
+                </span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${hpPct}%`, background: hpColor, boxShadow: `0 0 6px ${hpColor}66` }} />
+                <motion.div 
+                  className="h-full rounded-full" 
+                  animate={{ width: `${hpPct}%` }}
+                  transition={ANIM_CONFIG.springBar}
+                  style={{ background: hpColor, boxShadow: `0 0 6px ${hpColor}66` }} 
+                />
               </div>
             </div>
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
                 <span>MANA</span>
-                <span style={{ color: classColor }}>{Math.round(profile?.mana || 0)}/{profile?.mana_max || chosenClass.maxMana}</span>
+                <span style={{ color: classColor }}>
+                  <AnimatedNumber value={Math.round(profile?.mana || 0)} />/{profile?.mana_max || chosenClass.maxMana}
+                </span>
               </div>
               <div className="h-2 rounded-none bg-muted overflow-hidden mt-1" style={{ imageRendering: "pixelated" }}>
-                <div className="h-full"
-                  style={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass.maxMana)) * 100)}%`, background: classColor, boxShadow: `0 0 6px ${classColor}66` }} />
+                <motion.div 
+                  className="h-full"
+                  animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass.maxMana)) * 100)}%` }}
+                  transition={ANIM_CONFIG.springBar}
+                  style={{ background: classColor, boxShadow: `0 0 6px ${classColor}66` }} 
+                />
               </div>
             </div>
           </div>
@@ -556,7 +574,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
               <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> SHOP
             </span>
-            <span className="font-mono text-xs font-bold" style={{ color: "#f0c040" }}>🪙 {normalizeGold(gold).toLocaleString()}G</span>
+            <span className="font-mono text-xs font-bold" style={{ color: "#f0c040" }}>
+              🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
+            </span>
           </div>
 
           {/* ── Daily Featured Deal ── */}

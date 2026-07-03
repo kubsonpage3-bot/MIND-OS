@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { Trophy } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import { ANIM_CONFIG } from "@/lib/animations";
 
 export default function PixelRankRoad({ rankXP = 0 }) {
   const { profile } = useDjangoAuth();
@@ -55,7 +57,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         {/* Next Rank Progress Display */}
         {nextRank ? (
           <div className="font-game text-[8px] text-[var(--habit-dim)]">
-            Next: <span style={{ color: rankColors[nextRank.id] }}>{nextRank.id}</span> | {Math.floor(rankXP)} / {nextRank.xpMin} XP
+            Next: <span style={{ color: rankColors[nextRank.id] }}>{nextRank.id}</span> | <AnimatedNumber value={Math.floor(rankXP)} /> / {nextRank.xpMin} XP
           </div>
         ) : (
           <div className="font-game text-[8px] text-[#ca8a04]">Max Rank Reached!</div>
@@ -67,13 +69,13 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         <div className="mb-5 p-4 bg-[var(--habit-bg)] border border-[var(--habit-border)] rounded-xl relative z-10">
           <div className="flex justify-between items-center mb-2 font-game text-[8px]">
             <span className="text-[var(--habit-dim)]">Progress to {nextRank.label}</span>
-            <span style={{ color: rankColors[nextRank.id] }}>{progressPct.toFixed(1)}%</span>
+            <span style={{ color: rankColors[nextRank.id] }}><AnimatedNumber value={progressPct} formatter={(v) => v.toFixed(1)} />%</span>
           </div>
           <div className="h-4 bg-[var(--habit-bg)] border-2 border-[var(--habit-dim)] p-0.5 relative overflow-hidden" style={{ clipPath: "polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)" }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
+              transition={ANIM_CONFIG.springBar}
               className="h-full relative overflow-hidden"
               style={{
                 background: `linear-gradient(90deg, ${rankColors[currentRank.id]} 0%, ${rankColors[nextRank.id]} 100%)`,
@@ -85,7 +87,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
             </motion.div>
           </div>
           <div className="mt-2 text-[7px] font-game text-[var(--habit-dim)] text-center">
-            {Math.ceil(nextRank.xpMin - rankXP)} XP remaining to advance
+            <AnimatedNumber value={Math.ceil(nextRank.xpMin - rankXP)} /> XP remaining to advance
           </div>
         </div>
       )}

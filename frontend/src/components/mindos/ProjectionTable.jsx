@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { METRIC_CONFIG, calculateIQ } from "@/lib/cognitiveEngine";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import { ANIM_CONFIG } from "@/lib/animations";
+import { motion } from "framer-motion";
 
 const SUBJECT_CATS = [
   { id: "body", label: "BODY", color: "#ff4400", icon: "💪", activities: ["exercise", "running", "cold_shower", "nutrition", "sleep"] },
@@ -200,22 +203,22 @@ export default function ProjectionTable({ profile, logs }) {
                 <div className="flex items-center gap-1.5">
                   <span>{cat.icon}</span>
                   <span className="font-bold" style={{ color: cat.color }}>{cat.label}</span>
-                  <span className="text-muted-foreground/40">{cat.totalHours.toFixed(1)}h total</span>
+                  <span className="text-muted-foreground/40"><AnimatedNumber value={cat.totalHours} formatter={(v) => v.toFixed(1)} />h total</span>
                 </div>
                 <div className="flex items-center gap-3 text-[10px]">
-                  <span className="text-muted-foreground/50">now <span className="font-bold text-foreground/70">{cat.pct.toFixed(1)}%</span></span>
-                  <span className="text-muted-foreground/50">+30d <span className="font-bold" style={{ color: cat.color }}>{cat.pct30d.toFixed(1)}%</span></span>
-                  <span className="text-muted-foreground/50">+90d <span className="font-bold" style={{ color: cat.color }}>{cat.pct90d.toFixed(1)}%</span></span>
+                  <span className="text-muted-foreground/50">now <span className="font-bold text-foreground/70"><AnimatedNumber value={cat.pct} formatter={(v) => v.toFixed(1)} />%</span></span>
+                  <span className="text-muted-foreground/50">+30d <span className="font-bold" style={{ color: cat.color }}><AnimatedNumber value={cat.pct30d} formatter={(v) => v.toFixed(1)} />%</span></span>
+                  <span className="text-muted-foreground/50">+90d <span className="font-bold" style={{ color: cat.color }}><AnimatedNumber value={cat.pct90d} formatter={(v) => v.toFixed(1)} />%</span></span>
                 </div>
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden relative">
                 {/* Now bar */}
-                <div className="h-full rounded-full absolute top-0 left-0 opacity-40"
-                  style={{ width: `${cat.pct90d}%`, background: cat.color }} />
-                <div className="h-full rounded-full absolute top-0 left-0 opacity-60"
-                  style={{ width: `${cat.pct30d}%`, background: cat.color }} />
-                <div className="h-full rounded-full absolute top-0 left-0"
-                  style={{ width: `${cat.pct}%`, background: cat.color, boxShadow: `0 0 6px ${cat.color}` }} />
+                <motion.div className="h-full rounded-full absolute top-0 left-0 opacity-40"
+                  animate={{ width: `${cat.pct90d}%` }} transition={ANIM_CONFIG.springBar} style={{ background: cat.color }} />
+                <motion.div className="h-full rounded-full absolute top-0 left-0 opacity-60"
+                  animate={{ width: `${cat.pct30d}%` }} transition={ANIM_CONFIG.springBar} style={{ background: cat.color }} />
+                <motion.div className="h-full rounded-full absolute top-0 left-0"
+                  animate={{ width: `${cat.pct}%` }} transition={ANIM_CONFIG.springBar} style={{ background: cat.color, boxShadow: `0 0 6px ${cat.color}` }} />
               </div>
               <div className="text-[9px] font-mono text-muted-foreground/30">
                 {cat.weekHours.toFixed(1)}h this week · {cat.dailyRate.toFixed(2)}h/day avg · goal: 500h mastery

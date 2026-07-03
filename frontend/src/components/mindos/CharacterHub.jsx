@@ -3,6 +3,9 @@ import BossPanel from "@/components/mindos/BossPanel";
 import { CLASSES } from "@/constants/rpgData";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { motion } from "framer-motion";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import { ANIM_CONFIG } from "@/lib/animations";
 
 export default function CharacterHub({ rankXP, currentRankId, onBossDamage, externalDamage }) {
   const { profile } = useDjangoAuth();
@@ -43,10 +46,16 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
       <div className="px-5 pb-3">
         <div className="flex items-center justify-between mb-1.5">
           <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "#f74e52" }}>HP</span>
-          <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-dim)" }}>{Math.round(charHp)}/{charMaxHp}</span>
+          <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-dim)" }}>
+            <AnimatedNumber value={Math.round(charHp)} />/{charMaxHp}
+          </span>
         </div>
         <div className="habit-bar-track">
-          <div className="habit-bar-fill-hp" style={{ width: `${hpPct}%` }} />
+          <motion.div 
+            className="habit-bar-fill-hp" 
+            animate={{ width: `${hpPct}%` }} 
+            transition={ANIM_CONFIG.springBar}
+          />
         </div>
       </div>
 
@@ -54,10 +63,17 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
       <div className="px-5 pb-5">
         <div className="flex items-center justify-between mb-1.5">
           <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: classColor }}>MP</span>
-          <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-dim)" }}>{Math.round(charMana)}/{charMaxMana}</span>
+          <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-dim)" }}>
+            <AnimatedNumber value={Math.round(charMana)} />/{charMaxMana}
+          </span>
         </div>
         <div className="habit-bar-track">
-          <div className="habit-bar-fill-mp" style={{ width: `${manaPct}%`, background: classColor, boxShadow: `0 0 8px ${classColor}66` }} />
+          <motion.div 
+            className="habit-bar-fill-mp" 
+            animate={{ width: `${manaPct}%` }} 
+            transition={ANIM_CONFIG.springBar}
+            style={{ background: classColor, boxShadow: `0 0 8px ${classColor}66` }} 
+          />
         </div>
       </div>
 
