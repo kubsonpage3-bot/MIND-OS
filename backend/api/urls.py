@@ -33,6 +33,7 @@ from .views import (
     PartyJoinView,
     PartyLeaveView,
     PartyMembersView,
+    MarkGuideSeenView,
     health_check,
 )
 
@@ -56,6 +57,11 @@ urlpatterns = [
     path("profile/", UserProfileView.as_view(), name="user-profile"),
     path("profile/prestige/", PrestigeView.as_view(), name="profile-prestige"),
     path("profile/reset/", ResetDataView.as_view(), name="profile-reset"),
+    path(
+        "profile/mark-guide-seen/",
+        MarkGuideSeenView.as_view(),
+        name="profile-mark-guide-seen",
+    ),
     path("rival/", RivalView.as_view(), name="rival"),
     # ——— Задачи (CRUD + complete) —————————————————————————————————————
     path("", include(router.urls)),

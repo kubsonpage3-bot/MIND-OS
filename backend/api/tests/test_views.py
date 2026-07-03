@@ -71,3 +71,32 @@ def test_reset_data_view_persistence(api_client, user, profile):
     profile.refresh_from_db()
     assert profile.gold == 0
     assert profile.hp == 100
+
+
+@pytest.mark.django_db
+def test_mark_guide_seen(api_client, user):
+    api_client.force_authenticate(user=user)
+
+    # Check default
+    profile_resp = api_client.get(reverse("user-profile"))
+    assert profile_resp.data["seen_guides"] == {}
+
+    # Mark seen
+    url = reverse("profile-mark-guide-seen")
+    resp = api_client.post(url, {"guide_id": "mutators"})
+    assert resp.status_code == 200
+    assert resp.data["seen_guides"]["mutators"] is True
+
+    # Mark another
+    resp2 = api_client.post(url, {"guide_id": "tasks"})
+    assert resp2.status_code == 200
+    assert resp2.data["seen_guides"]["mutators"] is True
+    assert resp2.data["seen_guides"]["tasks"] is True
+
+    # Ensure duplicate is fine
+    resp3 = api_client.post(url, {"guide_id": "mutators"})
+    assert resp3.status_code == 200
+
+    # Verify via DB
+    user.profile.refresh_from_db()
+    assert user.profile.seen_guides == {"mutators": True, "tasks": True}

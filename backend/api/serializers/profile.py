@@ -73,6 +73,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "active_mutators",
             "unlocked_achievements",
             "rival_data",
+            "seen_guides",
             "rank_info",
         )
         read_only_fields = (
@@ -95,6 +96,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "damage_multiplier",
             "gold_multiplier",
             "xp_multiplier",
+            "seen_guides",
             "rank_info",
         )
 

@@ -1478,3 +1478,32 @@ class PartyMembersView(generics.GenericAPIView):
             return Response({"party": None}, status=status.HTTP_200_OK)
 
         return Response(PartySerializer(party).data, status=status.HTTP_200_OK)
+
+
+class MarkGuideSeenView(generics.GenericAPIView):
+    """
+    POST /api/profile/mark-guide-seen/
+    Body: {"guide_id": "mutators"}
+    Marks a specific guide as seen in the user profile's seen_guides JSONField.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        guide_id = request.data.get("guide_id")
+        if not guide_id:
+            return Response(
+                {"error": "guide_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        profile = request.user.profile
+        # Initialize if none (just in case)
+        if not isinstance(profile.seen_guides, dict):
+            profile.seen_guides = {}
+
+        profile.seen_guides[guide_id] = True
+        profile.save(update_fields=["seen_guides"])
+
+        from api.serializers.profile import UserProfileSerializer
+
+        return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)

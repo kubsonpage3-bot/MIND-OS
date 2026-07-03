@@ -102,6 +102,11 @@ class UserProfile(models.Model):
         default=list, blank=True, verbose_name="Активные мутаторы"
     )
 
+    # Просмотренные гайды (первый визит на вкладку)
+    seen_guides = models.JSONField(
+        default=dict, blank=True, verbose_name="Просмотренные гайды"
+    )
+
     # Данные соперника (RivalTab)
     rival_data = models.JSONField(
         default=dict, blank=True, verbose_name="Данные соперника"
