@@ -1,0 +1,34 @@
+[
+  {
+    "version": "1.4.3",
+    "date": "2026-07-03",
+    "changes": [
+      { "type": "feature", "text": "Implemented Changelog system to track user-facing game updates directly in MIND OS." },
+      { "type": "polish", "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card." }
+    ]
+  },
+  {
+    "version": "1.4.2",
+    "date": "2026-07-03",
+    "changes": [
+      { "type": "fix", "text": "Mastery Radar display decoupled to fix connecting-line polygon bug and clipping issues." },
+      { "type": "feature", "text": "Added off-screen rendering support for ShareCard to generate accurate social media stat cards." }
+    ]
+  },
+  {
+    "version": "1.4.1",
+    "date": "2026-07-02",
+    "changes": [
+      { "type": "fix", "text": "Shop consumables now correctly deduct gold and apply effects synchronously with cache invalidation." },
+      { "type": "polish", "text": "Standardized all panels to use consistent GameCard UI components and styling." }
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "date": "2026-07-01",
+    "changes": [
+      { "type": "feature", "text": "Skill Tree Batch 5 completion: activated final tier nodes for advanced character builds." },
+      { "type": "balance", "text": "Adjusted XP curve scaling for high-level tasks to prevent runaway progression." }
+    ]
+  }
+]

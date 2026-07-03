@@ -11,9 +11,12 @@ import LanguagePanel from "@/components/mindos/LanguagePanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
 import MetricsPanel from "@/components/mindos/MetricsPanel";
 import GuidesPanel from "@/components/mindos/GuidesPanel";
+import ChangelogPanel from "@/components/mindos/ChangelogPanel";
+import changelogData from "@/data/changelog.json";
 
 export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
   const [showDataTab, setShowDataTab] = useState(activeSubTab || "appearance");
+  const [hasNewChangelog, setHasNewChangelog] = useState(false);
 
   // Sync with activeSubTab prop
   useEffect(() => {
@@ -21,6 +24,19 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
       setShowDataTab(activeSubTab);
     }
   }, [activeSubTab]);
+
+  useEffect(() => {
+    const checkChangelog = () => {
+      if (changelogData && changelogData.length > 0) {
+        const latestVersion = changelogData[0].version;
+        const lastSeen = localStorage.getItem("mindos_last_seen_changelog");
+        setHasNewChangelog(lastSeen !== latestVersion);
+      }
+    };
+    checkChangelog();
+    window.addEventListener("changelogViewed", checkChangelog);
+    return () => window.removeEventListener("changelogViewed", checkChangelog);
+  }, []);
 
   const TABS = [
     { id: "metrics", label: "Metrics", icon: Brain },
@@ -31,6 +47,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
     { id: "privacy", label: "Privacy", icon: Shield },
     { id: "language", label: "Language", icon: Globe },
     { id: "guides", label: "Guides", icon: BookOpen },
+    { id: "changelog", label: "Updates", icon: Info },
     { id: "reset", label: "Reset", icon: RotateCcw },
     { id: "about", label: "About", icon: Info },
   ];
@@ -60,7 +77,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
             <button
               key={t.id}
               onClick={() => setShowDataTab(t.id)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all whitespace-nowrap"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all whitespace-nowrap relative"
               style={{
                 fontFamily: "'Nunito'",
                 fontWeight: isActive ? 800 : 600,
@@ -72,6 +89,9 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
             >
               <t.icon className="w-3 h-3" />
               <span className="hidden sm:inline">{t.label}</span>
+              {t.id === "changelog" && hasNewChangelog && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+              )}
             </button>
           );
         })}
@@ -100,6 +120,9 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* GUIDES */}
       {showDataTab === "guides" && <GuidesPanel />}
+
+      {/* CHANGELOG */}
+      {showDataTab === "changelog" && <ChangelogPanel />}
 
       {/* RESET */}
       {showDataTab === "reset" && <ResetPanel />}
