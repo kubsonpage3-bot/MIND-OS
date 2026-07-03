@@ -60,9 +60,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
   return (
     <>
-      <TabGuideModal guideId="tasks" title="Tasks" profile={profile}>
-        Placeholder text for the Tasks guide. We will replace this with final copy later.
-      </TabGuideModal>
+      <TabGuideModal guideId="tasks" profile={profile} />
 
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
       <div 

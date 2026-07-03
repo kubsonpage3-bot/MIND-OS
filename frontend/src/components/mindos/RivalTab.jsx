@@ -380,9 +380,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       {/* 🏆 Party tab 🏆 */}
       {activeTab === "party" && (
         <>
-          <TabGuideModal guideId="party" title="Party" profile={queryClient.getQueryData(["userprofile"]) || {}}>
-            Placeholder text for the Party guide. We will replace this with final copy later.
-          </TabGuideModal>
+          <TabGuideModal guideId="party" profile={queryClient.getQueryData(["userprofile"]) || {}} />
           <PartyTab />
         </>
       )}
@@ -390,9 +388,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       {/* 🗡️ Rival tab (existing Johan content) 🗡️ */}
       {activeTab === "rival" && (
       <>
-      <TabGuideModal guideId="rival" title="Rival" profile={queryClient.getQueryData(["userprofile"]) || {}}>
-        Placeholder text for the Rival guide. We will replace this with final copy later.
-      </TabGuideModal>
+      <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
       <AnimatePresence>
         {sessionToast && (
           <motion.div

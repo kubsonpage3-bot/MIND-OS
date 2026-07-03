@@ -3,27 +3,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
+import { GUIDE_CONTENT } from "@/constants/guideContent";
 
 /**
  * TabGuideModal
  * Displays a dismissible popup to explain tab mechanics on first visit.
  * @param {string} guideId - The unique ID for this guide (e.g. 'tasks', 'rival').
- * @param {string} title - Guide title.
- * @param {ReactNode} children - Guide content.
  * @param {boolean} forceOpen - If true, bypasses the seen check and shows the modal (used in Settings).
  * @param {Function} onCloseCallback - Optional callback for when modal is closed (e.g. from Settings).
  * @param {Object} profile - User profile data containing seen_guides.
  */
 export default function TabGuideModal({
   guideId,
-  title,
-  children,
   forceOpen = false,
   onCloseCallback,
   profile,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  const content = GUIDE_CONTENT[guideId] || {
+    icon: "🤖",
+    title: "Guide",
+    body: "No guide content available.",
+  };
 
   // Mutation to mark guide as seen
   const markSeenMutation = useMutation({
@@ -107,12 +110,12 @@ export default function TabGuideModal({
 
             {/* Title */}
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="text-neon-cyan">ℹ️</span> {title}
+              <span className="text-neon-cyan">{content.icon}</span> {content.title}
             </h2>
 
-            {/* Content */}
-            <div className="text-white/80 space-y-4 text-sm leading-relaxed mb-6">
-              {children}
+            {/* Content - Using whitespace-pre-line to respect newline bullet points */}
+            <div className="text-white/80 space-y-4 text-sm leading-relaxed mb-6 whitespace-pre-line">
+              {content.body}
             </div>
 
             {/* Dismiss Button */}

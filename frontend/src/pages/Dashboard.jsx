@@ -403,9 +403,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
                   <>
-                    <TabGuideModal guideId="dashboard" title="Dashboard" profile={profile}>
-                      Placeholder text for the Dashboard guide. We will replace this with final copy later.
-                    </TabGuideModal>
+                    <TabGuideModal guideId="dashboard" profile={profile} />
                     {/* IQ + Metrics block */}
                     {profile && (
                     <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
@@ -453,9 +451,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Train section */}
               {(activeSection === "train" || activeSection === "training") && (
                 <TabPanel title="🏋️‍♀️ TRAINING">
-                  <TabGuideModal guideId="training" title="Training" profile={profile}>
-                    Placeholder text for the Training guide. We will replace this with final copy later.
-                  </TabGuideModal>
+                  <TabGuideModal guideId="training" profile={profile} />
                   <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
                 </TabPanel>
               )}

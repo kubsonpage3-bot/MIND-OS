@@ -359,9 +359,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* OVERVIEW */}
       {subTab === "overview" && (
         <div className="space-y-4">
-          <TabGuideModal guideId="character" title="Character" profile={profile}>
-            Placeholder text for the Character guide. We will replace this with final copy later.
-          </TabGuideModal>
+          <TabGuideModal guideId="character" profile={profile} />
           {/* Character sprite */}
           <div className="rounded-2xl p-5 flex flex-col items-center gap-3"
             style={{
@@ -514,9 +512,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* SKILL TREE */}
       {subTab === "skill_tree" && (
         <>
-          <TabGuideModal guideId="skill_tree" title="Skill Tree" profile={profile}>
-            Placeholder text for the Skill Tree guide. We will replace this with final copy later.
-          </TabGuideModal>
+          <TabGuideModal guideId="skill_tree" profile={profile} />
           <SkillTreePanel
             skillTree={profile?.unlocked_skills || []}
             onUpdate={handleSkillTreeUpdate}
@@ -529,9 +525,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* ALLIES */}
       {subTab === "allies" && (
         <>
-          <TabGuideModal guideId="allies" title="Allies" profile={profile}>
-            Placeholder text for the Allies guide. We will replace this with final copy later.
-          </TabGuideModal>
+          <TabGuideModal guideId="allies" profile={profile} />
           <AlliesPanel
             alliesData={profile?.recruited_allies || {}}
             onUpdate={handleAlliesUpdate}
@@ -549,9 +543,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* MUTATORS */}
       {subTab === "mutators" && (
         <>
-          <TabGuideModal guideId="mutators" title="Mutators" profile={profile}>
-            Placeholder text for the Mutators guide. We will replace this with final copy later.
-          </TabGuideModal>
+          <TabGuideModal guideId="mutators" profile={profile} />
           <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
         </>
       )}
@@ -559,9 +551,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       {/* SHOP */}
       {subTab === "shop" && (
         <div className="space-y-3">
-          <TabGuideModal guideId="shop" title="Shop" profile={profile}>
-            Placeholder text for the Shop guide. We will replace this with final copy later.
-          </TabGuideModal>
+          <TabGuideModal guideId="shop" profile={profile} />
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
               <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> SHOP
