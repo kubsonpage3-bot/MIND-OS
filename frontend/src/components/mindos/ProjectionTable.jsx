@@ -76,9 +76,9 @@ export default function ProjectionTable({ profile, logs }) {
       const dailyRate = weekHours / 7;
       // Estimate % toward a notional "mastery" of 500 hours
       const MASTERY = 500;
-      const pct = Math.max(3, Math.min(100, (totalHours / MASTERY) * 100));
-      const pct30d = Math.max(3, Math.min(100, ((totalHours + dailyRate * 30) / MASTERY) * 100));
-      const pct90d = Math.max(3, Math.min(100, ((totalHours + dailyRate * 90) / MASTERY) * 100));
+      const pct = Math.min(100, (totalHours / MASTERY) * 100);
+      const pct30d = Math.min(100, ((totalHours + dailyRate * 30) / MASTERY) * 100);
+      const pct90d = Math.min(100, ((totalHours + dailyRate * 90) / MASTERY) * 100);
       return { ...cat, totalHours, weekHours, dailyRate, pct, pct30d, pct90d };
     });
 
