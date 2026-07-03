@@ -36,8 +36,8 @@ export default function ServerWakeupWrapper({ children }) {
         // network error, typical for sleeping server or no connection
       }
       
-      // If we reach 60 seconds of waiting (or ~30 attempts of 2s), we fail to a retry button
-      if (attempt >= 30) {
+      // If we reach 90 seconds of waiting (or ~45 attempts of 2s), we fail to a retry button
+      if (attempt >= 45) {
         if (active) setFailed(true);
         return;
       }
@@ -67,7 +67,7 @@ export default function ServerWakeupWrapper({ children }) {
     setWaitDuration(0);
   };
 
-  let message = "Waking up the server... this can take up to a minute on first load.";
+  let message = "Waking up the server... this can take up to two minutes on first load.";
   if (failed) {
     message = "The server is taking longer than expected. Please check your connection or try again.";
   } else if (waitDuration > 15) {

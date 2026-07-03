@@ -49,11 +49,9 @@ self.addEventListener('fetch', (event) => {
 
   // 1. All requests to the API domain must bypass both SW and Browser HTTP cache
   if (url.includes('/api/') || url.includes('mind-os-d5sk.onrender.com')) {
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' }).catch((err) => {
-        throw err;
-      })
-    );
+    // Simply return to bypass the service worker.
+    // The browser will handle the fetch natively, which prevents the SW 
+    // from throwing unhandled promise rejections if the server is asleep (Render free tier).
     return;
   }
 
