@@ -25,6 +25,7 @@ import RivalTab from "@/components/mindos/RivalTab";
 import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import TabGuideModal from "@/components/mindos/TabGuideModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
+import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
 import CharacterHub from "@/components/mindos/CharacterHub";
@@ -47,6 +48,22 @@ const TABS = [
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "character", label: "Character", icon: User },
   { id: "settings", label: "Settings", icon: Settings },
+];
+
+const TOOLS_TABS = [
+  { id: "history", label: "History" },
+  { id: "pomodoro", label: "Pomodoro" },
+  { id: "calendar", label: "Calendar" },
+];
+
+const CHARACTER_TABS = [
+  { id: "overview", label: "Stats" },
+  { id: "skills", label: "Skills" },
+  { id: "skill_tree", label: "Tree" },
+  { id: "allies", label: "Allies" },
+  { id: "achievements", label: "Achv" },
+  { id: "mutators", label: "Mutators" },
+  { id: "shop", label: "Shop" },
 ];
 
 function TabPanel({ title, children }) {
@@ -465,9 +482,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Character section with sub-tabs */}
               {activeSection === "character" && (
-                <TabPanel title="👤 CHARACTER">
-                  <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
-                </TabPanel>
+                <>
+                  <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={setActiveSubItem} wrap={true} />
+                  <TabPanel title="👤 CHARACTER">
+                    <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
+                  </TabPanel>
+                </>
               )}
 
               {/* Rival section */}
@@ -485,6 +505,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               )}
 
               {/* Tools sections */}
+              {["history", "pomodoro", "calendar"].includes(activeSection) && (
+                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={setActiveSection} wrap={false} />
+              )}
               {activeSection === "history" && (
                 <TabPanel title="📋 HISTORY">
                   <HistoryLog logs={logs} tasks={tasks} />

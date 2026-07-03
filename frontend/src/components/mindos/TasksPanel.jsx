@@ -8,6 +8,7 @@ import CreateTaskModal from "./CreateTaskModal";
 import TabGuideModal from "./TabGuideModal";
 import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "./RewardToast";
+import PillTabBar from "@/components/ui/PillTabBar";
 
 const TASK_TABS = [
   { id: 'tasks',     label: 'Tasks' },
@@ -67,33 +68,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
       <TabGuideModal guideId="tasks" profile={profile} />
 
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
-      <div 
-        className="
-          md:hidden
-          flex gap-2 overflow-x-auto scrollbar-hide
-          px-4 py-3 sticky top-0 z-30
-          bg-black/40 backdrop-blur-md border-b border-white/10
-        "
-        onPointerDownCapture={(e) => e.stopPropagation()}
-      >
-        {TASK_TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setTaskTab(tab.id)}
-            className={`
-              font-pixel text-xl uppercase tracking-widest
-              px-4 py-2 rounded-full whitespace-nowrap
-              transition-all duration-150 active:scale-95
-              ${taskTab === tab.id
-                ? 'bg-violet-600 text-white shadow-[0_0_12px_rgba(139,92,246,0.5)]'
-                : 'bg-white/10 text-white/50 hover:bg-white/20'
-              }
-            `}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} wrap={false} />
 
       {/* Mobile: show only the active tab */}
       <div className="md:hidden">
