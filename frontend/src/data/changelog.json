@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.4.7",
+    "date": "2026-07-04",
+    "changes": [
+      { "type": "polish", "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar." }
+    ]
+  },
+  {
     "version": "1.4.6",
     "date": "2026-07-03",
     "changes": [

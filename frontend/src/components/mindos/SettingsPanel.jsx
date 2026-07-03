@@ -54,11 +54,11 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2 px-1">
+      <div className="flex md:hidden items-center gap-2 px-1">
         {onBack && (
           <button
             onClick={onBack}
-            className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent"
+            className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent"
             style={{ color: "var(--habit-purple)" }}
           >
             <ChevronLeft className="w-5 h-5" />
@@ -69,7 +69,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
+      <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
         {SETTINGS_TABS.map(t => {
           const isActive = showDataTab === t.id;
           return (
