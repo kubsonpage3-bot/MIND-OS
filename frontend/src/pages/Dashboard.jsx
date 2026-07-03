@@ -483,7 +483,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {/* Character section with sub-tabs */}
               {activeSection === "character" && (
                 <>
-                  <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={setActiveSubItem} wrap={true} />
+                  <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
                   <TabPanel title="👤 CHARACTER">
                     <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
                   </TabPanel>
@@ -506,7 +506,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Tools sections */}
               {["history", "pomodoro", "calendar"].includes(activeSection) && (
-                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={setActiveSection} wrap={false} />
+                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={false} />
               )}
               {activeSection === "history" && (
                 <TabPanel title="📋 HISTORY">
