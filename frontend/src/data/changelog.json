@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.4.6",
+    "date": "2026-07-03",
+    "changes": [
+      { "type": "fix", "text": "Fixed site crash on load — the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever." }
+    ]
+  },
+  {
     "version": "1.4.5",
     "date": "2026-07-03",
     "changes": [
