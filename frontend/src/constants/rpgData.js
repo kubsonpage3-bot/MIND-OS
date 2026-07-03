@@ -2,9 +2,23 @@ import { getMediaUrl } from "@/api/djangoClient";
 
 // ─── RPG SYSTEM DATA & LOGIC ─────────────────────────────────────────────────
 
-import architectSprite from "/images/webp/7958b621c_characters2.webp";
+import architectSpriteF from "/images/webp/architect_f.webp";
+import architectSpriteD from "/images/webp/architect_d.webp";
+import architectSpriteC from "/images/webp/architect_c.webp";
+import architectSpriteB from "/images/webp/architect_b.webp";
+import architectSpriteA from "/images/webp/architect_a.webp";
+import architectSpriteS from "/images/webp/architect_s.webp";
+import architectSpriteSS from "/images/webp/architect_ss.webp";
+import architectSpriteSSS from "/images/webp/architect_sss.webp";
 import asceticSprite from "/images/webp/303411c1f_characters3.webp";
-import linguistSprite from "/images/webp/eb9d93154_characters4.webp";
+import linguistSpriteF from "/images/webp/linguist_f.webp";
+import linguistSpriteD from "/images/webp/linguist_d.webp";
+import linguistSpriteC from "/images/webp/linguist_c.webp";
+import linguistSpriteB from "/images/webp/linguist_b.webp";
+import linguistSpriteA from "/images/webp/linguist_a.webp";
+import linguistSpriteS from "/images/webp/linguist_s.webp";
+import linguistSpriteSS from "/images/webp/linguist_ss.webp";
+import linguistSpriteSSS from "/images/webp/linguist_sss.webp";
 import warlordSpriteF from "/images/webp/warlord_f.webp";
 import warlordSpriteD from "/images/webp/warlord_d.webp";
 import warlordSpriteC from "/images/webp/warlord_c.webp";
@@ -16,9 +30,27 @@ import warlordSpriteSSS from "/images/webp/warlord_sss.webp";
 
 // Character sprites per class (used in ClassSelector and PixelCharacter)
 export const CLASS_SPRITES = {
-  architect: architectSprite,
+  architect: {
+    F: architectSpriteF,
+    D: architectSpriteD,
+    C: architectSpriteC,
+    B: architectSpriteB,
+    A: architectSpriteA,
+    S: architectSpriteS,
+    SS: architectSpriteSS,
+    SSS: architectSpriteSSS,
+  },
   ascetic: asceticSprite,
-  linguist: linguistSprite,
+  linguist: {
+    F: linguistSpriteF,
+    D: linguistSpriteD,
+    C: linguistSpriteC,
+    B: linguistSpriteB,
+    A: linguistSpriteA,
+    S: linguistSpriteS,
+    SS: linguistSpriteSS,
+    SSS: linguistSpriteSSS,
+  },
   warlord: {
     F: warlordSpriteF,
     D: warlordSpriteD,
