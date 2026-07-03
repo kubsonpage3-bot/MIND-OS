@@ -24,8 +24,8 @@ export default function ServerWakeupWrapper({ children }) {
       try {
         const response = await fetch(`${API_ORIGIN}/api/health/`, {
           method: 'GET',
-          // Use no-cache to ensure we actually hit the server
-          headers: { 'Cache-Control': 'no-cache' }
+          // Let the browser handle cache bypassing natively to prevent CORS preflight issues
+          cache: 'no-store'
         });
         
         if (response.ok) {
