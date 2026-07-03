@@ -53,46 +53,47 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
   return (
     <div className="space-y-4">
-      {/* Mobile Navigation - matches TasksPanel pattern */}
-      <div 
-        className="
-          md:hidden
-          flex gap-2 overflow-x-auto scrollbar-hide
-          px-4 py-3 sticky top-0 z-30
-          bg-black/40 backdrop-blur-md border-b border-white/10
-          items-center
-        "
-        onPointerDownCapture={(e) => e.stopPropagation()}
-      >
+      {/* Header */}
+      <div className="flex md:hidden items-center gap-2 px-1">
         {onBack && (
           <button
             onClick={onBack}
-            className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full transition-colors bg-white/10 text-white/80 hover:bg-white/20 active:scale-95"
+            className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent"
+            style={{ color: "var(--habit-purple)" }}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
         )}
-        {SETTINGS_TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setShowDataTab(tab.id)}
-            className={`
-              font-pixel text-xl uppercase tracking-widest
-              px-4 py-2 rounded-full whitespace-nowrap flex items-center gap-2 relative
-              transition-all duration-150 active:scale-95
-              ${showDataTab === tab.id
-                ? 'bg-violet-600 text-white shadow-[0_0_12px_rgba(139,92,246,0.5)]'
-                : 'bg-white/10 text-white/50 hover:bg-white/20'
-              }
-            `}
-          >
-            <tab.icon className="w-4 h-4 mb-0.5" />
-            {tab.label}
-            {tab.id === "changelog" && hasNewChangelog && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-            )}
-          </button>
-        ))}
+        <Settings className="w-4 h-4" style={{ color: "var(--habit-purple)" }} />
+        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>SYSTEM SETTINGS</span>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
+        {SETTINGS_TABS.map(t => {
+          const isActive = showDataTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setShowDataTab(t.id)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all whitespace-nowrap relative"
+              style={{
+                fontFamily: "'Nunito'",
+                fontWeight: isActive ? 800 : 600,
+                fontSize: 11,
+                background: isActive ? "var(--habit-purple)" : "transparent",
+                color: isActive ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
+                boxShadow: isActive ? "0 2px 8px var(--habit-purple-glow)" : "none",
+              }}
+            >
+              <t.icon className="w-3 h-3" />
+              <span className="hidden sm:inline">{t.label}</span>
+              {t.id === "changelog" && hasNewChangelog && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* METRICS */}
