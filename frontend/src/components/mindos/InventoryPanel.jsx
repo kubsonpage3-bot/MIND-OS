@@ -36,35 +36,24 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
   const isEquipped = (item) => item.is_equipped;
 
+  const consumeMutation = useMutation({
+    mutationFn: (itemCode) => djangoApi.inventory.consume(itemCode),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["active-effects"] });
+      triggerBurst("#22c55e", 12);
+      showToast(data.detail || "Item used!", "#22c55e");
+    },
+    onError: (error) => {
+      showToast(error.message || "Failed to use item", "#ef4444");
+    }
+  });
+
   const applyConsumable = (item) => {
-    const effect = CONSUMABLE_EFFECTS[item.id];
-    if (!effect) return;
-
-    // Check not already active
-    const current = consumables_active[item.id];
-    if (current?.active) {
-      if (!current.expiresAt || Date.now() < current.expiresAt) {
-        showToast("Already active!", "#f59e0b");
-        return;
-      }
-    }
-
-    // Apply the effect
-    const newGs = effect.apply(gs);
-
-    // Remove ONE copy of this consumable from inventory
-    const idx = (newGs.inventory || []).findIndex(i => i.id === item.id);
-    if (idx !== -1) {
-      const newInv = [...(newGs.inventory || [])];
-      newInv.splice(idx, 1);
-      newGs.inventory = newInv;
-    }
-
-    onSave(newGs);
     setUsedId(item.id);
-    triggerBurst(effect.color, 12);
+    consumeMutation.mutate(item.code);
     setTimeout(() => setUsedId(null), 800);
-    showToast(effect.desc, effect.color);
   };
 
   const showToast = (msg, color) => {
@@ -115,15 +104,16 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
             if (!c?.active) return null;
             const expired = c.expiresAt && Date.now() > c.expiresAt;
             if (expired) return null;
-            const effect = CONSUMABLE_EFFECTS[id];
-            if (!effect) return null;
+            if (expired) return null;
+            const effectColor = "#8b5cf6"; // Default buff color
+            const effectName = c.skill_id ? c.skill_id.replace(/_/g, " ") : "Buff";
             const timeLeft = c.expiresAt ? Math.max(0, Math.ceil((c.expiresAt - Date.now()) / 3600000)) + "h left" : "1 session";
             return (
               <div key={id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] font-mono"
-                style={{ background: `${effect.color}15`, border: `1px solid ${effect.color}40` }}>
+                style={{ background: `${effectColor}15`, border: `1px solid ${effectColor}40` }}>
                 <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 1 }}
-                  style={{ color: effect.color }}>■</motion.span>
-                <span style={{ color: effect.color }}>{effect.desc.split("—")[0].trim()}</span>
+                  style={{ color: effectColor }}>■</motion.span>
+                <span style={{ color: effectColor }}>{effectName}</span>
                 <span className="ml-auto text-muted-foreground/40">{timeLeft}</span>
               </div>
             );
@@ -212,9 +202,8 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
           {consumablesOwned.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground/40 font-mono text-xs">No consumables. Buy from the shop!</div>
           ) : consumablesOwned.map((item, idx) => {
-            const effect = CONSUMABLE_EFFECTS[item.id];
             const tierColor = getTierColor(item.tier);
-            const effectColor = effect?.color || tierColor;
+            const effectColor = tierColor || "#8b5cf6";
             const isUsed = usedId === item.id;
             const alreadyActive = consumables_active[item.id]?.active && (!consumables_active[item.id]?.expiresAt || Date.now() < consumables_active[item.id]?.expiresAt);
             // Count how many of this item in inventory
@@ -260,7 +249,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     )}
                   </div>
                   <div className="text-[10px] font-mono mt-0.5" style={{ color: `${effectColor}bb` }}>
-                    {effect?.desc || item.effect}
+                    {item.effect || item.description || "Temporary Buff"}
                   </div>
                 </div>
 
@@ -268,7 +257,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                   <motion.button
                     onClick={() => applyConsumable(item)}
                     disabled={alreadyActive}
-                    whileTap={!alreadyActive ? { scale: 0.88, y: 2 } : {}}
+                    whileTap={!alreadyActive && !consumeMutation.isPending ? { scale: 0.88, y: 2 } : {}}
                     className="shrink-0 px-3 py-1.5 text-[10px] font-mono font-black rounded-none border transition-all relative overflow-hidden"
                     style={{
                       borderColor: alreadyActive ? "#1e293b" : effectColor,

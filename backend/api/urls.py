@@ -23,6 +23,7 @@ from .views import (
     CraftItemView,
     RecipeListView,
     ToggleEquipView,
+    ConsumeItemView,
     BuySkillView,
     RespecSkillView,
     RecruitAllyView,
@@ -78,6 +79,11 @@ urlpatterns = [
         "inventory/<str:item_code>/equip/",
         ToggleEquipView.as_view(),
         name="inventory-equip",
+    ),
+    path(
+        "inventory/<str:item_code>/consume/",
+        ConsumeItemView.as_view(),
+        name="inventory-consume",
     ),
     # Ã¢â€ â‚¬Ã¢â€ â‚¬ Ã â€˜Ã Â¾Ã ÂµÃ Â²Ã Â°Ã‘Â  Ã‘Â Ã Â¸Ã‘Â Ã‘â€šÃ ÂµÃ Â¼Ã Â° Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬Ã¢â€ â‚¬  # noqa: E501
     path("combat/bosses/", BossListView.as_view(), name="combat-bosses"),

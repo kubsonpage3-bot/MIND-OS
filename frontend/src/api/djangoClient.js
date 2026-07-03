@@ -322,6 +322,7 @@ export const djangoApi = {
 
   inventory: {
     equip: (id) => djangoFetch(`/inventory/${id}/equip/`, { method: 'POST' }),
+    consume: (id) => djangoFetch(`/inventory/${id}/consume/`, { method: 'POST' }),
   },
 
   shop: {

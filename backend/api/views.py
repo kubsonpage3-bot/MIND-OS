@@ -643,6 +643,35 @@ class ToggleEquipView(generics.GenericAPIView):
         )
 
 
+class ConsumeItemView(generics.GenericAPIView):
+    """
+    POST /api/inventory/<item_code>/consume/
+    Consumes an item from the inventory.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, item_code):
+        from api.services.inventory_service import consume_item
+
+        success, message, profile = consume_item(request.user, item_code)
+
+        if not success:
+            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile_fresh = UserProfile.objects.prefetch_related(
+            "inventory_items__item__effects", "active_effects"
+        ).get(user=request.user)
+
+        return Response(
+            {
+                "detail": message,
+                "profile": UserProfileSerializer(profile_fresh).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Престиж
 # ─────────────────────────────────────────────────────────────────────────────
@@ -958,7 +987,9 @@ class TrainingLogView(generics.GenericAPIView):
                     final_xp = int(final_xp * 1.15)
 
             if is_language and "cross_training" in unlocked_skills:
-                profile.humanities_xp += hours * 0.3
+                profile.humanities_xp += (
+                    hours * 0.3 * passive_effects.get("humanities_xp_mult", 1.0)
+                )
                 profile.save(update_fields=["humanities_xp"])
 
             final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))

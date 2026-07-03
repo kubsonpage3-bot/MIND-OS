@@ -213,6 +213,26 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     if is_crit:
         final_damage_dealt *= 2
 
+    # Apply Active Effects specifically for boss damage
+    from api.models import ActiveEffect
+    from django.db.models import Q
+
+    active_effects = ActiveEffect.objects.filter(
+        user=user,
+    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now()))
+
+    boss_dmg_mult = 1.0
+    for effect in active_effects:
+        if effect.data and "bossDamageMultiplier" in effect.data:
+            boss_dmg_mult += effect.data["bossDamageMultiplier"]
+
+    # Check apex_predator passive
+    profile = UserProfile.objects.select_for_update().get(user=user)
+    if profile.unlocked_skills.filter(skill_code="apex_predator").exists():
+        boss_dmg_mult += 0.30
+
+    final_damage_dealt = int(final_damage_dealt * boss_dmg_mult)
+
     active_encounter.hp_current = max(
         0, active_encounter.hp_current - final_damage_dealt
     )
@@ -361,8 +381,16 @@ def get_passive_multipliers(profile, context: dict):
     unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
     recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
 
+    from api.models import ActiveEffect
+    from django.db.models import Q
+
+    active_effects = ActiveEffect.objects.filter(
+        user=profile.user,
+    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now()))
+
     effects = {
         "xp_mult": 1.0,
+        "humanities_xp_mult": 1.0,
         "gold_mult": 1.0,
         "flat_xp": 0,
         "gf_mult": 1.0,
@@ -391,6 +419,26 @@ def get_passive_multipliers(profile, context: dict):
     # SKILLS
     if "sharp_focus" in unlocked_skills and focus_rating >= 8.0:
         effects["xp_mult"] += 0.10
+
+    if "cross_training" in unlocked_skills and is_language:
+        effects["gf_flat_bonus"] += 0.2
+
+    # APPLY ACTIVE EFFECTS (CONSUMABLES)
+    for effect in active_effects:
+        if not effect.data:
+            continue
+
+        # XP Boost
+        if "xpBoost" in effect.data:
+            effects["xp_mult"] += effect.data["xpBoost"]
+
+        # Gold Boost
+        if "gold_boost" in effect.data:
+            effects["gold_mult"] += effect.data["gold_boost"]
+
+        # Humanities XP Boost
+        if "humanitiesXpBoost" in effect.data and is_language:
+            effects["humanities_xp_mult"] += effect.data["humanitiesXpBoost"]
 
     if "iron_conditioning" in unlocked_skills and is_exercise:
         effects["xp_mult"] += 0.15

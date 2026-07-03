@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.utils import timezone
-from api.models import UserProfile, UnlockedSkill
+from api.models import UserProfile, UnlockedSkill, ActiveEffect
 
 
 @transaction.atomic
@@ -27,7 +27,18 @@ def process_daily_login(user):
     if delta == 1:
         profile.streak += 1
     else:
-        profile.streak = 1
+        # Check for streak_shield
+        shield = ActiveEffect.objects.filter(
+            user=user, skill_id="streak_shield"
+        ).first()
+
+        if shield:
+            # Consume the shield
+            shield.delete()
+            # Act as if they didn't miss (increment streak)
+            profile.streak += 1
+        else:
+            profile.streak = 1
 
     profile.last_daily_cron_at = today
 

@@ -757,7 +757,6 @@ def test_mindguard_cooldown_reduction(user, profile):
     from api.models import UnlockedSkill, SkillCooldown
     from api.services.skill_service import activate_skill
     from django.utils import timezone
-    from datetime import timedelta
 
     profile.mana = 100
     profile.save()
