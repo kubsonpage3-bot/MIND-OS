@@ -6,7 +6,8 @@
       { "type": "feature", "text": "Implemented Changelog system to track user-facing game updates directly in MIND OS." },
       { "type": "polish", "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card." },
       { "type": "fix", "text": "Rebuilt ShareCard layout with fixed scaling zones to permanently prevent text clipping and overlap." },
-      { "type": "content", "text": "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style." }
+      { "type": "content", "text": "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style." },
+      { "type": "fix", "text": "Resolved ShareCard text clipping issues for long class titles and removed redundant status labels." }
     ]
   },
   {

@@ -42,22 +42,9 @@ export default function ShareCard({ profile }) {
           </div>
         </div>
 
-        {/* Status Badge */}
-        <div 
-          className="px-10 py-3 rounded-full border-[3px] text-3xl tracking-[0.2em] uppercase mb-4 shadow-2xl" 
-          style={{ 
-            borderColor: currentRank.color, 
-            color: currentRank.color,
-            backgroundColor: `${currentRank.color}15`,
-            textShadow: `0 0 10px ${currentRank.color}80`
-          }}
-        >
-          {currentRank.title || "AWAKENING"}
-        </div>
-
         {/* Class Title */}
         <div 
-          className="text-[96px] font-black uppercase tracking-[0.1em] text-center w-full truncate leading-none pt-4" 
+          className="text-[72px] font-black uppercase tracking-[0.1em] text-center whitespace-nowrap leading-none mt-4" 
           style={{ 
             color: chosenClass?.color || "#9944ff", 
             textShadow: `0 0 40px ${chosenClass?.color || "#9944ff"}` 
