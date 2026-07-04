@@ -15,7 +15,11 @@ export default function SelectClass() {
     mutationFn: async (classId) => {
       return djangoApi.profile.update({ character_class: classId });
     },
-    onSuccess: () => {
+    onSuccess: (data, classId) => {
+      queryClientInstance.setQueryData(["userprofile"], (old) => {
+        if (!old) return old;
+        return { ...old, character_class: classId };
+      });
       queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
       navigate("/");
     },
@@ -46,7 +50,9 @@ export default function SelectClass() {
         )}
 
         <ClassSelector 
-          onChoose={(classId) => mutation.mutate(classId)} 
+          onChoose={async (classId) => {
+            await mutation.mutateAsync(classId);
+          }} 
         />
         
         {mutation.isPending && (

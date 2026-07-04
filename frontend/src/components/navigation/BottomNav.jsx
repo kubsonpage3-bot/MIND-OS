@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
   { id: "tasks", label: "Tasks", icon: Swords },
   { id: "character", label: "Hero", icon: User },
-  { id: "stats", label: "Stats", icon: BarChart2 },
+  { id: "tools", label: "Stats", icon: BarChart2 },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
@@ -21,6 +21,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
     haptic(12);
     if (item.id === "character") onNavigate(item.id, activeSubItem || "overview");
     else if (item.id === "settings") onNavigate(item.id, "appearance");
+    else if (item.id === "tools") onNavigate("history", null);
     else onNavigate(item.id, null);
   };
 
@@ -41,7 +42,9 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
       >
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = activeSection === item.id;
+          const isActive = item.id === "tools" 
+            ? ["history", "pomodoro", "calendar"].includes(activeSection)
+            : activeSection === item.id;
           return (
             <motion.button
               key={item.id}
