@@ -4,6 +4,14 @@ import { ACHIEVEMENTS } from "@/constants/rpgData";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Trophy } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+function replaceBossNames(text, t) {
+  if (!text) return text;
+  return text
+    .replace("Crimson Sovereign", t("bosses.crimson_sovereign", "Crimson Sovereign"))
+    .replace("Void Emperor", t("bosses.void_emperor", "Void Emperor"));
+}
 
 const CAT_LABELS = {
   consistency: { label: "Consistency", icon: "🔥", color: "#f59e0b" },
@@ -25,6 +33,7 @@ const BOSS_MEDALS = [
 ];
 
 function BossMedalCard({ boss, defeated }) {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -48,9 +57,9 @@ function BossMedalCard({ boss, defeated }) {
       </motion.div>
       <div className="text-center">
         <div className="font-mono text-[10px] font-black tracking-wider" style={{ color: defeated ? boss.color : "#4a4060" }}>
-          {boss.name}
+          {t(`bosses.${boss.id}`, boss.name)}
         </div>
-        <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 italic">{defeated ? boss.desc : "???"}</div>
+        <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 italic">{defeated ? replaceBossNames(boss.desc, t) : "???"}</div>
       </div>
       {defeated && (
         <motion.div
@@ -65,6 +74,7 @@ function BossMedalCard({ boss, defeated }) {
 }
 
 function AchievementCard({ ach, isUnlocked }) {
+  const { t } = useTranslation();
   const [showTip, setShowTip] = useState(false);
   return (
     <motion.div
@@ -96,7 +106,7 @@ function AchievementCard({ ach, isUnlocked }) {
           animate={{ opacity: 1, y: 0 }}
           className="absolute z-10 top-full left-1/2 -translate-x-1/2 mt-1 w-36 p-2 rounded-lg border border-border bg-card text-left shadow-xl"
         >
-          <div className="text-[9px] font-mono text-foreground/70 leading-snug">{ach.desc}</div>
+          <div className="text-[9px] font-mono text-foreground/70 leading-snug">{replaceBossNames(ach.desc, t)}</div>
           <div className="text-[9px] font-mono mt-1" style={{ color: ach.color }}>{ach.reward}</div>
         </motion.div>
       )}

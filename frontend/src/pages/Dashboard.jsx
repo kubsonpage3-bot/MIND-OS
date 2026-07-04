@@ -5,6 +5,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
+import { useTranslation } from "react-i18next";
 
 import IQDisplay from "@/components/mindos/IQDisplay";
 import MetricBar from "@/components/mindos/MetricBar";
@@ -84,6 +85,7 @@ function loadRankXP() {
 }
 
 export default function Dashboard({ activeSection = "dashboard", activeSubItem = null, onSectionChange, onSubItemChange }) {
+  const { t } = useTranslation();
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
 
   // Map sections to tab IDs
@@ -426,7 +428,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                     <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
                       {/* Header */}
                       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>🧠 COGNITIVE METRICS</span>
+                        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"🧠 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
                       </div>
                       <div className="px-4 pb-4">
                         {/* IQ + metrics side by side */}
@@ -467,7 +469,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Train section */}
               {(activeSection === "train" || activeSection === "training") && (
-                <TabPanel title="🏋️‍♀️ TRAINING">
+                <TabPanel title={"🏋️‍♀️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
                   <TabGuideModal guideId="training" profile={profile} />
                   <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
                 </TabPanel>
@@ -475,7 +477,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Tasks section with sub-tabs */}
               {activeSection === "tasks" && (
-                <TabPanel title="⚔️ TASKS">
+                <TabPanel title={"⚔️ " + t("sidebar.sections.tasks", "TASKS").toUpperCase()}>
                   <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
                 </TabPanel>
               )}
@@ -484,7 +486,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               {activeSection === "character" && (
                 <>
                   <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
-                  <TabPanel title="👤 CHARACTER">
+                  <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
                     <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
                   </TabPanel>
                 </>
@@ -492,14 +494,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Rival section */}
               {activeSection === "rival" && (
-                <TabPanel title="👥 RIVAL">
+                <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>
                   <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
                 </TabPanel>
               )}
 
               {/* Projections/Stats section */}
               {activeSection === "stats" && (
-                <TabPanel title="📊 PROJECTIONS">
+                <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
                   <ProjectionTable profile={profile} logs={logs} />
                 </TabPanel>
               )}
@@ -509,24 +511,24 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={false} />
               )}
               {activeSection === "history" && (
-                <TabPanel title="📋 HISTORY">
+                <TabPanel title={"📋 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>
                   <HistoryLog logs={logs} tasks={tasks} />
                 </TabPanel>
               )}
               {activeSection === "pomodoro" && (
-                <TabPanel title="⏱️ POMODORO">
+                <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
                   <PomodoroPanel />
                 </TabPanel>
               )}
               {activeSection === "calendar" && (
-                <TabPanel title="📅 CALENDAR">
+                <TabPanel title={"📅 " + t("sidebar.sections.calendar", "CALENDAR").toUpperCase()}>
                   <CalendarPanel />
                 </TabPanel>
               )}
 
               {/* Settings section with sub-tabs */}
               {activeSection === "settings" && (
-                <TabPanel title="⚙️ SETTINGS">
+                <TabPanel title={"⚙️ " + t("sidebar.sections.settings", "SETTINGS").toUpperCase()}>
                   <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
                 </TabPanel>
               )}

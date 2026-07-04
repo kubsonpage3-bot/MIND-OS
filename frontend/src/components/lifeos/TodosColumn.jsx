@@ -2,8 +2,10 @@ import { useState } from "react";
 import { gainXP, gainGold, getDifficulty, maybeDropItem } from "@/lib/lifeOS";
 import { CheckSquare, Square, Trash2, PlusCircle, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import TaskForm from "./TaskForm";
+import { useTranslation } from "react-i18next";
 
 export default function TodosColumn({ gs, update }) {
+  const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
   const [expanded, setExpanded] = useState({});
 
@@ -64,7 +66,7 @@ export default function TodosColumn({ gs, update }) {
   return (
     <div className="rounded-xl border border-purple-800/40 bg-purple-950/30">
       <div className="flex items-center justify-between px-4 py-3 border-b border-purple-800/40">
-        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">📝 To-Dos</h2>
+        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">{t("lifeos_columns.todos", "📝 To-Dos")}</h2>
         <button onClick={() => setAdding(v => !v)} className="text-purple-400 hover:text-purple-200">
           <PlusCircle className="w-4 h-4" />
         </button>
@@ -80,7 +82,7 @@ export default function TodosColumn({ gs, update }) {
         )}
 
         {gs.todos.length === 0 && !adding && (
-          <div className="text-purple-600 text-xs text-center py-6">No to-dos yet. Add one!</div>
+          <div className="text-purple-600 text-xs text-center py-6">{t("lifeos_columns.no_todos", "No to-dos yet. Add one!")}</div>
         )}
 
         {gs.todos.map(todo => {
@@ -116,7 +118,7 @@ export default function TodosColumn({ gs, update }) {
                     )}
                     {hasChecklist && (
                       <span className="text-[10px] text-purple-500">
-                        {todo.checklist.filter(c => c.done).length}/{todo.checklist.length} done
+                        {todo.checklist.filter(c => c.done).length}/{todo.checklist.length} {t("lifeos_columns.done", "done")}
                       </span>
                     )}
                   </div>
@@ -160,6 +162,7 @@ export default function TodosColumn({ gs, update }) {
 }
 
 function SubtaskInput({ onAdd }) {
+  const { t } = useTranslation();
   const [val, setVal] = useState("");
   return (
     <div className="flex gap-1 mt-1">
@@ -167,7 +170,7 @@ function SubtaskInput({ onAdd }) {
         value={val}
         onChange={e => setVal(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter" && val.trim()) { onAdd(val.trim()); setVal(""); } }}
-        placeholder="Add subtask..."
+        placeholder={t("lifeos_columns.add_subtask", "Add subtask...")}
         className="flex-1 bg-purple-900/30 border border-purple-700/40 rounded px-2 py-1 text-xs text-white placeholder-purple-700 focus:outline-none"
       />
       <button onClick={() => { if (val.trim()) { onAdd(val.trim()); setVal(""); } }}

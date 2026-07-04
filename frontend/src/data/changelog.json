@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.4.8",
+    "date": "2026-07-04",
+    "changes": [
+      { "type": "feature", "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language." },
+      { "type": "content", "text": "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian." }
+    ]
+  },
+  {
     "version": "1.4.7",
     "date": "2026-07-04",
     "changes": [

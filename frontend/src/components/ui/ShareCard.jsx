@@ -1,8 +1,10 @@
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { CLASSES } from "@/constants/rpgData";
 import PixelCharacter from "@/components/mindos/PixelCharacter";
+import { useTranslation } from "react-i18next";
 
 export default function ShareCard({ profile }) {
+  const { t } = useTranslation();
   const currentRankIdValue = profile?.rank_info?.current_id || "F";
   const currentRank = getRankDisplayData(currentRankIdValue);
 
@@ -50,7 +52,7 @@ export default function ShareCard({ profile }) {
             textShadow: `0 0 40px ${chosenClass?.color || "#9944ff"}` 
           }}
         >
-          {chosenClass?.name || "THE ASCETIC"}
+          {chosenClass ? t(`classes.${chosenClass.id}`, chosenClass.name) : t("classes.ascetic", "THE ASCETIC")}
         </div>
 
         {/* Streak Title */}
@@ -78,7 +80,7 @@ export default function ShareCard({ profile }) {
             textShadow: `0 0 40px ${currentRank.color}, 0 0 10px #ffffff` 
           }}
         >
-          {currentRank.id} — {currentRank.label}
+          {currentRank.id} — {t(`ranks.${currentRank.id}`, currentRank.label)}
         </div>
       </div>
 

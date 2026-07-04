@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { normalizeGold } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export default function RewardsPanel({ gs, update }) {
+  const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newCost, setNewCost] = useState(30);
@@ -15,29 +17,29 @@ export default function RewardsPanel({ gs, update }) {
   };
 
   const buyReward = (reward) => {
-    if (gs.gold < reward.cost) { flash("Not enough gold!"); return; }
+    if (gs.gold < reward.cost) { flash(t("rewards.not_enough_gold", "Not enough gold!")); return; }
 
     update(s => {
       let ns = { ...s, gold: s.gold - reward.cost };
 
       if (reward.id === "potion") {
         ns = { ...ns, hp: Math.min(ns.maxHp, ns.hp + 15),
-          logs: [{ type: "reward", msg: "🧪 Used Health Potion (+15 HP)", ts: Date.now() }, ...ns.logs].slice(0, 50) };
+          logs: [{ type: "reward", msg: t("rewards.used_potion", "🧪 Used Health Potion (+15 HP)"), ts: Date.now() }, ...ns.logs].slice(0, 50) };
       } else if (reward.id === "skip") {
         // Mark one incomplete daily as done without reward
         const target = ns.dailies.find(d => !d.completedToday);
         if (target) {
           ns = { ...ns,
             dailies: ns.dailies.map(d => d.id === target.id ? { ...d, completedToday: true } : d),
-            logs: [{ type: "reward", msg: `🛡️ Skipped daily: ${target.label}`, ts: Date.now() }, ...ns.logs].slice(0, 50) };
+            logs: [{ type: "reward", msg: `${t("rewards.skipped_daily", "🛡️ Skipped daily:")} ${target.label}`, ts: Date.now() }, ...ns.logs].slice(0, 50) };
         }
       } else {
-        ns = { ...ns, logs: [{ type: "reward", msg: `🎁 Redeemed: ${reward.label}`, ts: Date.now() }, ...ns.logs].slice(0, 50) };
+        ns = { ...ns, logs: [{ type: "reward", msg: `${t("rewards.redeemed", "🎁 Redeemed:")} ${reward.label}`, ts: Date.now() }, ...ns.logs].slice(0, 50) };
       }
 
       return ns;
     });
-    flash(`Redeemed: ${reward.label}!`);
+    flash(`${t("rewards.redeemed_alert", "Redeemed:")} ${reward.label}!`);
   };
 
   const addReward = () => {
@@ -62,9 +64,9 @@ export default function RewardsPanel({ gs, update }) {
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">🎁 Rewards</h2>
+        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">{t("rewards.rewards", "🎁 Rewards")}</h2>
         <div className="flex items-center gap-2">
-          <span className="text-yellow-400 text-sm font-bold">🪙 {normalizeGold(gs.gold)} gold</span>
+          <span className="text-yellow-400 text-sm font-bold">🪙 {normalizeGold(gs.gold)} {t("rewards.gold", "gold")}</span>
           <button onClick={() => setAdding(v => !v)} className="text-purple-400 hover:text-purple-200">
             <Plus className="w-4 h-4" />
           </button>
@@ -78,17 +80,17 @@ export default function RewardsPanel({ gs, update }) {
               className="w-12 bg-purple-900/40 border border-purple-700/40 rounded px-2 py-2 text-center text-sm focus:outline-none"
               placeholder="🎁" />
             <input value={newLabel} onChange={e => setNewLabel(e.target.value)}
-              placeholder="Reward name..."
+              placeholder={t("rewards.reward_name", "Reward name...")}
               className="flex-1 bg-purple-900/40 border border-purple-700/40 rounded px-3 py-2 text-sm text-white placeholder-purple-600 focus:outline-none" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-purple-400">Cost (gold):</span>
+            <span className="text-xs text-purple-400">{t("rewards.cost", "Cost (gold):")}</span>
             <input type="number" value={newCost} onChange={e => setNewCost(Number(e.target.value))} min={1}
               className="w-20 bg-purple-900/40 border border-purple-700/40 rounded px-2 py-1 text-xs text-white focus:outline-none" />
           </div>
           <div className="flex gap-2">
-            <button onClick={addReward} className="flex-1 py-2 rounded bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold">Add Reward</button>
-            <button onClick={() => setAdding(false)} className="px-3 py-2 rounded border border-purple-700/40 text-purple-500 text-xs">Cancel</button>
+            <button onClick={addReward} className="flex-1 py-2 rounded bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold">{t("rewards.add_reward", "Add Reward")}</button>
+            <button onClick={() => setAdding(false)} className="px-3 py-2 rounded border border-purple-700/40 text-purple-500 text-xs">{t("rewards.cancel", "Cancel")}</button>
           </div>
         </div>
       )}
@@ -103,14 +105,14 @@ export default function RewardsPanel({ gs, update }) {
               <span className="text-2xl shrink-0">{reward.icon}</span>
               <div className="flex-1">
                 <div className="text-sm font-medium text-purple-100">{reward.label}</div>
-                <div className="text-xs text-yellow-400 font-bold mt-0.5">🪙 {reward.cost} gold</div>
+                <div className="text-xs text-yellow-400 font-bold mt-0.5">🪙 {reward.cost} {t("rewards.gold", "gold")}</div>
               </div>
               <button
                 onClick={() => buyReward(reward)}
                 disabled={!canAfford}
                 className="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-purple-600 hover:bg-purple-500 disabled:bg-purple-900 disabled:text-purple-700 text-white"
               >
-                Buy
+                {t("rewards.buy", "Buy")}
               </button>
               {!reward.builtIn && (
                 <button onClick={() => deleteReward(reward.id)} className="text-purple-700 hover:text-red-400">

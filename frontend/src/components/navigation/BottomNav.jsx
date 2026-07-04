@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { LayoutDashboard, Swords, User, BarChart2, Settings } from "lucide-react";
 import PixelIcon from "./PixelIcon";
 import { hapticLight } from "@/hooks/useHaptic";
+import { useTranslation } from "react-i18next";
 
 function haptic() {
   hapticLight();
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
 
 
 export default function BottomNav({ activeSection, activeSubItem, onNavigate }) {
+  const { t } = useTranslation();
   const handleTap = (item) => {
     haptic(12);
     if (item.id === "character") onNavigate(item.id, activeSubItem || "overview");
@@ -68,7 +70,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
               />
               <span className="text-[10px] font-medium relative z-10"
                 style={{ color: isActive ? "var(--habit-purple)" : "var(--habit-bottom-inactive-text-dim)" }}>
-                {item.label}
+                {t(`nav.${item.id}`)}
               </span>
             </motion.button>
           );

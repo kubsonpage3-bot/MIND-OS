@@ -8,6 +8,7 @@ import TodosColumn from "@/components/lifeos/TodosColumn";
 import RewardsPanel from "@/components/lifeos/RewardsPanel";
 import ActivityFeed from "@/components/lifeos/ActivityFeed";
 import { Sparkles, Shield, Gift, ScrollText, Swords } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const TABS = [
   { id: "tasks", label: "Tasks", icon: Swords },
@@ -17,6 +18,7 @@ const TABS = [
 ];
 
 export default function LifeOS() {
+  const { t } = useTranslation();
   const [gs, setGs] = useState(() => checkMidnightReset(loadState()));
   const [activeTab, setActiveTab] = useState("tasks");
 
@@ -72,8 +74,8 @@ export default function LifeOS() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Sparkles className="w-5 h-5 text-purple-400" />
-            <span className="font-mono text-sm font-bold tracking-wider text-purple-200">LIFE OS</span>
-            <span className="text-xs text-purple-500/50 hidden sm:inline">RPG Habit Tracker</span>
+            <span className="font-mono text-sm font-bold tracking-wider text-purple-200">{t("lifeos.life_os", "LIFE OS")}</span>
+            <span className="text-xs text-purple-500/50 hidden sm:inline">{t("lifeos.rpg_habit_tracker", "RPG Habit Tracker")}</span>
           </div>
           <div className="flex gap-1">
             {TABS.map(tab => {
@@ -89,7 +91,7 @@ export default function LifeOS() {
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="hidden sm:inline">{t(`lifeos.tabs.${tab.id}`)}</span>
                 </button>
               );
             })}
@@ -122,27 +124,28 @@ export default function LifeOS() {
 
 // Inline Inventory Panel
 function InventoryPanel({ gs, update }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div className="p-4 rounded-xl border border-purple-800/40 bg-purple-950/30">
-        <h3 className="text-purple-300 font-bold text-sm mb-3 uppercase tracking-wider">Equipped</h3>
+        <h3 className="text-purple-300 font-bold text-sm mb-3 uppercase tracking-wider">{t("lifeos.equipped", "Equipped")}</h3>
         <div className="grid grid-cols-3 gap-3">
           {["weapon", "armor", "helmet"].map(slot => {
             const eq = gs.equipment[slot];
             return (
               <div key={slot} className="text-center p-3 rounded-lg border border-purple-800/30 bg-purple-900/20">
                 <div className="text-2xl mb-1">{eq?.icon || "—"}</div>
-                <div className="text-xs text-purple-300">{eq?.label || slot}</div>
-                {eq && <div className="text-[10px] text-purple-500 mt-0.5 capitalize">{slot}</div>}
+                <div className="text-xs text-purple-300">{eq?.label || t(`lifeos.slots.${slot}`, slot)}</div>
+                {eq && <div className="text-[10px] text-purple-500 mt-0.5 capitalize">{t(`lifeos.slots.${slot}`, slot)}</div>}
               </div>
             );
           })}
         </div>
       </div>
       <div className="p-4 rounded-xl border border-purple-800/40 bg-purple-950/30">
-        <h3 className="text-purple-300 font-bold text-sm mb-3 uppercase tracking-wider">Inventory ({gs.inventory.length})</h3>
+        <h3 className="text-purple-300 font-bold text-sm mb-3 uppercase tracking-wider">{t("lifeos.inventory", "Inventory")} ({gs.inventory.length})</h3>
         {gs.inventory.length === 0 ? (
-          <div className="text-purple-500/50 text-xs text-center py-4">Complete tasks to earn item drops!</div>
+          <div className="text-purple-500/50 text-xs text-center py-4">{t("lifeos.complete_tasks", "Complete tasks to earn item drops!")}</div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {gs.inventory.map(item => {
@@ -159,8 +162,8 @@ function InventoryPanel({ gs, update }) {
                 >
                   <div className="text-xl mb-1">{item.icon}</div>
                   <div className="text-[10px] font-bold">{item.label}</div>
-                  <div className="text-[9px] text-purple-500 mt-0.5 capitalize">{item.slot}</div>
-                  {isEquipped && <div className="text-[9px] text-yellow-400 mt-0.5">EQUIPPED</div>}
+                  <div className="text-[9px] text-purple-500 mt-0.5 capitalize">{t(`lifeos.slots.${item.slot}`, item.slot)}</div>
+                  {isEquipped && <div className="text-[9px] text-yellow-400 mt-0.5">{t("lifeos.equipped_badge", "EQUIPPED")}</div>}
                 </button>
               );
             })}

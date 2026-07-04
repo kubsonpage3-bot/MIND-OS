@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function PillTabBar({ tabs, activeTab, onChange, wrap = false, sticky = false }) {
+  const { t } = useTranslation();
   return (
     <div 
       className={`
@@ -24,7 +27,7 @@ export default function PillTabBar({ tabs, activeTab, onChange, wrap = false, st
             }
           `}
         >
-          {tab.label}
+          {t(`sidebar.sections.${tab.id}`)}
         </button>
       ))}
     </div>

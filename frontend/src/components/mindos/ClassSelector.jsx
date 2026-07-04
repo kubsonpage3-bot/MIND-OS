@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { CLASSES, CLASS_SPRITES } from "@/constants/rpgData";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 
 export default function ClassSelector({ onChoose }) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,7 +56,7 @@ export default function ClassSelector({ onChoose }) {
               <div className="flex justify-center mb-1 relative h-20">
                 <motion.img
                   src={typeof CLASS_SPRITES[cls.id] === 'object' ? CLASS_SPRITES[cls.id]['S'] : CLASS_SPRITES[cls.id]}
-                  alt={cls.name}
+                  alt={t(`classes.${cls.id}`, cls.name)}
                   className="h-20 object-contain"
                   style={{
                     imageRendering: "pixelated",
@@ -68,7 +70,7 @@ export default function ClassSelector({ onChoose }) {
                 />
               </div>
 
-              <div className="font-mono text-xs font-bold" style={{ color: cls.color }}>{cls.name}</div>
+              <div className="font-mono text-xs font-bold" style={{ color: cls.color }}>{t(`classes.${cls.id}`, cls.name)}</div>
               <div className="text-[10px] font-mono text-muted-foreground/50 italic leading-relaxed line-clamp-2">"{cls.lore}"</div>
               <div className="flex gap-1.5 flex-wrap mt-1">
                 {Object.entries(cls.stats).slice(0, 4).map(([k, v]) => (

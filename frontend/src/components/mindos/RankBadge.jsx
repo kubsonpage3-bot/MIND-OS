@@ -1,4 +1,5 @@
 import { getRankDisplayData } from "@/lib/rankEngine";
+import { useTranslation } from "react-i18next";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import PixelCharacter from "./PixelCharacter";
 
@@ -17,6 +18,7 @@ function getRankBarColor(rankId) {
 
 export default function RankBadge({ rankXP = 0, compact = false }) {
   const { profile } = useDjangoAuth();
+  const { t } = useTranslation();
   
   const thresholds = profile?.rank_info?.thresholds || [];
   const currentRankId = profile?.rank_info?.current_id || "F";
@@ -75,7 +77,7 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
             className="font-mono font-bold tracking-[0.3em] text-xs mt-1 uppercase"
             style={{ color: rank.color, opacity: 0.85, textShadow: `0 0 10px ${rank.color}`, fontFamily: "'Space Mono', monospace" }}
           >
-            {rank.label}
+            {t(`ranks.${rank.id}`, rank.label)}
           </div>
           <div
             className="font-mono font-bold tracking-[0.2em] text-[9px] mt-2 uppercase"
@@ -100,7 +102,7 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
         </div>
         {nextRank ? (
           <div className="text-[11px] font-mono text-muted-foreground/60 text-center">
-            {Math.ceil(xpToNext)} XP to <span style={{ color: nextRank.color }}>{nextRank.id} {nextRank.label}</span>
+            {Math.ceil(xpToNext)} XP to <span style={{ color: nextRank.color }}>{nextRank.id} {t(`ranks.${nextRank.id}`, nextRank.label)}</span>
           </div>
         ) : (
           <div className="text-[11px] font-mono text-center" style={{ color: rank.color }}>Maximum rank achieved.</div>

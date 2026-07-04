@@ -2,8 +2,10 @@ import { useState } from "react";
 import { gainXP, gainGold, getDifficulty, isDailyDueToday, maybeDropItem } from "@/lib/lifeOS";
 import { CheckSquare, Square, Trash2, PlusCircle, Flame } from "lucide-react";
 import TaskForm from "./TaskForm";
+import { useTranslation } from "react-i18next";
 
 export default function DailiesColumn({ gs, update }) {
+  const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
 
   const complete = (daily) => {
@@ -43,7 +45,7 @@ export default function DailiesColumn({ gs, update }) {
   return (
     <div className="rounded-xl border border-purple-800/40 bg-purple-950/30">
       <div className="flex items-center justify-between px-4 py-3 border-b border-purple-800/40">
-        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">📅 Dailies</h2>
+        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">{t("lifeos_columns.dailies", "📅 Dailies")}</h2>
         <button onClick={() => setAdding(v => !v)} className="text-purple-400 hover:text-purple-200">
           <PlusCircle className="w-4 h-4" />
         </button>
@@ -59,7 +61,7 @@ export default function DailiesColumn({ gs, update }) {
         )}
 
         {gs.dailies.length === 0 && !adding && (
-          <div className="text-purple-600 text-xs text-center py-6">No dailies yet. Add one!</div>
+          <div className="text-purple-600 text-xs text-center py-6">{t("lifeos_columns.no_dailies", "No dailies yet. Add one!")}</div>
         )}
 
         {gs.dailies.map(daily => {

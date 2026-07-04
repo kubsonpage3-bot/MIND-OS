@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { Globe, Ruler, ChevronDown, Check } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
+import { useTranslation } from "react-i18next";
 
 const LANGUAGES = [
   { id: "en", label: "English", flag: "🇬🇧" },
   { id: "de", label: "Deutsch", flag: "🇩🇪", disabled: true },
-  { id: "ru", label: "Russian", flag: "🇷🇺", disabled: true },
+  { id: "ru", label: "Russian", flag: "🇷🇺" },
   { id: "fr", label: "Français", flag: "🇫🇷", disabled: true },
   { id: "es", label: "Español", flag: "🇪🇸", disabled: true },
   { id: "ja", label: "日本語", flag: "🇯🇵", disabled: true },
 ];
 
 export default function LanguagePanel() {
+  const { i18n } = useTranslation();
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}"); } catch { return {}; }
   });
@@ -39,7 +41,6 @@ export default function LanguagePanel() {
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">Interface Language</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Currently English only — more languages coming soon</p>
 
         {/* Custom selector trigger */}
         <button
@@ -93,6 +94,7 @@ export default function LanguagePanel() {
                 onClick={() => {
                   if (!lang.disabled) {
                     updateSetting("language", lang.id);
+                    i18n.changeLanguage(lang.id);
                     setLangSheetOpen(false);
                   }
                 }}

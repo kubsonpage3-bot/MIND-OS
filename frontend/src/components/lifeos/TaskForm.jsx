@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { DIFFICULTIES, DAYS } from "@/lib/lifeOS";
+import { useTranslation } from "react-i18next";
 
 export default function TaskForm({ type, onSave, onCancel }) {
+  const { t } = useTranslation();
   const [label, setLabel] = useState("");
   const [difficulty, setDifficulty] = useState("easy");
   const [habitType, setHabitType] = useState("both");
@@ -28,7 +30,7 @@ export default function TaskForm({ type, onSave, onCancel }) {
         value={label}
         onChange={e => setLabel(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") onCancel(); }}
-        placeholder="Task name..."
+        placeholder={t("task_form.placeholder_name", "Task name...")}
         className="w-full bg-purple-900/40 border border-purple-700/40 rounded px-3 py-2 text-sm text-white placeholder-purple-600 focus:outline-none focus:border-purple-500"
       />
 
@@ -52,7 +54,7 @@ export default function TaskForm({ type, onSave, onCancel }) {
               className={`flex-1 py-1 rounded text-[10px] font-bold capitalize transition-all ${
                 habitType === t ? "bg-purple-600 text-white" : "bg-purple-900/40 text-purple-500"
               }`}>
-              {t === "both" ? "+ / −" : t === "positive" ? "✅ Good" : "❌ Bad"}
+              {t === "both" ? "+ / −" : t === "positive" ? t("task_form.habit_good", "✅ Good") : t("task_form.habit_bad", "❌ Bad")}
             </button>
           ))}
         </div>
@@ -61,7 +63,7 @@ export default function TaskForm({ type, onSave, onCancel }) {
       {/* Active days for dailies */}
       {type === "daily" && (
         <div>
-          <div className="text-[10px] text-purple-500 mb-1">Active days (empty = every day)</div>
+          <div className="text-[10px] text-purple-500 mb-1">{t("task_form.active_days", "Active days (empty = every day)")}</div>
           <div className="flex gap-1 flex-wrap">
             {DAYS.map(day => (
               <button key={day} onClick={() => toggleDay(day)}
@@ -88,11 +90,11 @@ export default function TaskForm({ type, onSave, onCancel }) {
       <div className="flex gap-2">
         <button onClick={handleSave}
           className="flex-1 py-1.5 rounded bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all">
-          Add
+          {t("task_form.add", "Add")}
         </button>
         <button onClick={onCancel}
           className="px-3 py-1.5 rounded border border-purple-700/40 text-purple-500 text-xs hover:text-purple-300 transition-all">
-          Cancel
+          {t("task_form.cancel", "Cancel")}
         </button>
       </div>
     </div>

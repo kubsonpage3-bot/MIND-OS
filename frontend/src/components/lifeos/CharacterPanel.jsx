@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getXPPercent, getHPPercent, CLASSES, CLASS_ICONS, CLASS_BONUSES } from "@/lib/lifeOS";
 import { normalizeGold } from "@/lib/utils";
 import { Heart, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const STAT_LABELS = { str: { label: "STR", desc: "+Gold drops", color: "text-red-400" },
                        int: { label: "INT", desc: "+XP gains",   color: "text-blue-400" },
@@ -9,6 +10,7 @@ const STAT_LABELS = { str: { label: "STR", desc: "+Gold drops", color: "text-red
                        per: { label: "PER", desc: "+Item drops", color: "text-yellow-400" } };
 
 export default function CharacterPanel({ gs, update }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const hpPct = getHPPercent(gs);
   const xpPct = getXPPercent(gs);
@@ -50,7 +52,7 @@ export default function CharacterPanel({ gs, update }) {
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-center gap-2">
             <span className="font-bold text-purple-100 text-sm">{gs.name}</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-purple-700/50 text-purple-300">Lv {gs.level}</span>
+            <span className="text-xs px-2 py-0.5 rounded bg-purple-700/50 text-purple-300">{t("character.lv", "Lv")} {gs.level}</span>
             {gs.charClass && (
               <span className="text-xs px-2 py-0.5 rounded bg-purple-800/40 text-purple-400">
                 {CLASS_ICONS[gs.charClass]} {gs.charClass}
@@ -89,7 +91,7 @@ export default function CharacterPanel({ gs, update }) {
           </div>
           {gs.statPoints > 0 && (
             <div className="text-[10px] px-2 py-0.5 rounded bg-yellow-600/20 border border-yellow-500/40 text-yellow-400 animate-pulse">
-              {gs.statPoints} pts!
+              {gs.statPoints} {t("character.pts", "pts!")}
             </div>
           )}
           <button onClick={() => setExpanded(v => !v)} className="text-purple-500 hover:text-purple-300">
@@ -116,7 +118,7 @@ export default function CharacterPanel({ gs, update }) {
               >
                 <div className={`font-bold text-sm ${sc.color}`}>{gs.stats[sk]}</div>
                 <div className="text-[10px] text-purple-400 font-bold">{sc.label}</div>
-                <div className="text-[9px] text-purple-600">{sc.desc}</div>
+                <div className="text-[9px] text-purple-600">{t(`character.${sk}_desc`, sc.desc)}</div>
                 {gs.statPoints > 0 && <div className="text-[9px] text-yellow-400 mt-0.5">+1 ▲</div>}
               </button>
             ))}
@@ -125,7 +127,7 @@ export default function CharacterPanel({ gs, update }) {
           {/* Class picker (unlocks at lv 10) */}
           {gs.level >= 10 && !gs.charClass && (
             <div>
-              <div className="text-xs text-purple-400 uppercase tracking-wider mb-2">Choose Class (Level 10 Unlocked!)</div>
+              <div className="text-xs text-purple-400 uppercase tracking-wider mb-2">{t("character.choose_class", "Choose Class (Level 10 Unlocked!)")}</div>
               <div className="grid grid-cols-4 gap-2">
                 {CLASSES.map(cls => (
                   <button key={cls} onClick={() => pickClass(cls)}
@@ -141,7 +143,7 @@ export default function CharacterPanel({ gs, update }) {
           {/* Perfect day streak */}
           {gs.perfectDayStreak > 0 && (
             <div className="text-xs text-center text-yellow-400">
-              🌟 Perfect Day Streak: {gs.perfectDayStreak} days
+              {t("character.perfect_day_streak", "🌟 Perfect Day Streak: {{count}} days", { count: gs.perfectDayStreak })}
             </div>
           )}
         </div>

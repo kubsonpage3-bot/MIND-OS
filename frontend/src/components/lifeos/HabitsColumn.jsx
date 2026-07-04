@@ -2,8 +2,10 @@ import { useState } from "react";
 import { gainXP, gainGold, loseHP, getDifficulty, getHabitColor, maybeDropItem } from "@/lib/lifeOS";
 import { Plus, Minus, Trash2, PlusCircle } from "lucide-react";
 import TaskForm from "./TaskForm";
+import { useTranslation } from "react-i18next";
 
 export default function HabitsColumn({ gs, update }) {
+  const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
 
   const clickPositive = (habit) => {
@@ -57,7 +59,7 @@ export default function HabitsColumn({ gs, update }) {
   return (
     <div className="rounded-xl border border-purple-800/40 bg-purple-950/30">
       <div className="flex items-center justify-between px-4 py-3 border-b border-purple-800/40">
-        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">⚡ Habits</h2>
+        <h2 className="text-purple-200 font-bold text-sm uppercase tracking-wider">{t("lifeos_columns.habits", "⚡ Habits")}</h2>
         <button onClick={() => setAdding(v => !v)} className="text-purple-400 hover:text-purple-200">
           <PlusCircle className="w-4 h-4" />
         </button>
@@ -73,7 +75,7 @@ export default function HabitsColumn({ gs, update }) {
         )}
 
         {gs.habits.length === 0 && !adding && (
-          <div className="text-purple-600 text-xs text-center py-6">No habits yet. Add one!</div>
+          <div className="text-purple-600 text-xs text-center py-6">{t("lifeos_columns.no_habits", "No habits yet. Add one!")}</div>
         )}
 
         {gs.habits.map(habit => {

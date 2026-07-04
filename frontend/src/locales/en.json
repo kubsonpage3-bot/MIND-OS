@@ -1,0 +1,164 @@
+{
+  "nav": {
+    "dashboard": "Home",
+    "tasks": "Tasks",
+    "character": "Hero",
+    "tools": "Stats",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "apps": {
+      "mind": "MIND OS",
+      "life": "LIFE OS"
+    },
+    "groups": {
+      "character": "CHARACTER",
+      "system": "SYSTEM"
+    },
+    "sections": {
+      "dashboard": "Dashboard",
+      "train": "Training",
+      "stats": "Projections",
+      "tasks": "Tasks",
+      "character": "Character",
+      "overview": "Overview",
+      "skills": "Skills",
+      "skill_tree": "Skill Tree",
+      "allies": "Allies",
+      "achievements": "Achievements",
+      "mutators": "Mutators",
+      "shop": "Shop",
+      "rival": "Rival",
+      "tools": "Tools",
+      "history": "History",
+      "pomodoro": "Pomodoro",
+      "calendar": "Calendar",
+      "settings": "Settings",
+      "metrics": "Metrics",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "account": "Account",
+      "gameplay": "Gameplay",
+      "privacy": "Privacy",
+      "language": "Language",
+      "guides": "Guides",
+      "changelog": "Updates",
+      "reset": "Reset",
+      "about": "About"
+    },
+    "menu": "MENU"
+  },
+  "lifeos": {
+    "life_os": "LIFE OS",
+    "rpg_habit_tracker": "RPG Habit Tracker",
+    "tabs": {
+      "tasks": "Tasks",
+      "rewards": "Rewards",
+      "inventory": "Inventory",
+      "feed": "Log"
+    },
+    "equipped": "Equipped",
+    "inventory": "Inventory",
+    "complete_tasks": "Complete tasks to earn item drops!",
+    "equipped_badge": "EQUIPPED",
+    "slots": {
+      "weapon": "weapon",
+      "armor": "armor",
+      "helmet": "helmet"
+    }
+  },
+  "task_form": {
+    "create_custom_task": "Create Custom Task",
+    "task_name": "Task Name",
+    "placeholder_name": "Enter task name...",
+    "type": "Type",
+    "category": "Category",
+    "priority": "Priority",
+    "completion_rewards": "Completion Rewards",
+    "xp_reward": "XP Reward",
+    "gold_reward": "Gold Reward",
+    "boss_dmg": "Boss DMG",
+    "session_defaults": "Session Defaults",
+    "default_hours": "Default Hours",
+    "default_focus": "Default Focus (1-10)",
+    "button_desc": "When you press this button it logs the session with these defaults. You can adjust before confirming.",
+    "penalty": "Penalty on Miss / Negative",
+    "hp_damage": "HP Damage",
+    "due_date": "Due Date (optional)",
+    "notes": "Notes (optional)",
+    "notes_placeholder": "Any notes or context...",
+    "preview": "Preview",
+    "on_miss": "on miss",
+    "create_btn": "CREATE TASK",
+    "types": {
+      "habit": "Habit", "habit_desc": "Repeatable ± action",
+      "daily": "Daily", "daily_desc": "Reset every day",
+      "todo": "To-Do", "todo_desc": "One-time task",
+      "button": "Button", "button_desc": "Manual session log"
+    },
+    "priorities": {
+      "low": "Low", "medium": "Medium", "high": "High", "critical": "Critical"
+    },
+    "habit_good": "✅ Good",
+    "habit_bad": "❌ Bad",
+    "active_days": "Active days (empty = every day)",
+    "add": "Add",
+    "cancel": "Cancel"
+  },
+  "lifeos_columns": {
+    "habits": "⚡ Habits",
+    "no_habits": "No habits yet. Add one!",
+    "todos": "📝 To-Dos",
+    "no_todos": "No to-dos yet. Add one!",
+    "done": "done",
+    "add_subtask": "Add subtask...",
+    "dailies": "📅 Dailies",
+    "no_dailies": "No dailies yet. Add one!",
+    "no_activity": "No activity yet. Complete tasks to see your log!",
+    "activity_log": "📜 Activity Log"
+  },
+  "ranks": {
+    "F": "DORMANT",
+    "D": "AWAKENING",
+    "C": "GRINDING",
+    "B": "SHARPENED",
+    "A": "ELITE",
+    "S": "APEX",
+    "SS": "SOVEREIGN",
+    "SSS": "GOD MODE"
+  },
+  "classes": {
+    "architect": "THE ARCHITECT",
+    "ascetic": "THE ASCETIC",
+    "linguist": "THE LINGUIST",
+    "warlord": "THE WARLORD"
+  },
+  "bosses": {
+    "crimson_sovereign": "Crimson Sovereign",
+    "void_emperor": "Void Emperor"
+  },
+  "rewards": {
+    "not_enough_gold": "Not enough gold!",
+    "used_potion": "🧪 Used Health Potion (+15 HP)",
+    "skipped_daily": "🛡️ Skipped daily:",
+    "redeemed": "🎁 Redeemed:",
+    "redeemed_alert": "Redeemed:",
+    "rewards": "🎁 Rewards",
+    "gold": "gold",
+    "reward_name": "Reward name...",
+    "cost": "Cost (gold):",
+    "add_reward": "Add Reward",
+    "cancel": "Cancel",
+    "buy": "Buy"
+  },
+  "character": {
+    "str_desc": "+Gold drops",
+    "int_desc": "+XP gains",
+    "con_desc": "-HP loss",
+    "per_desc": "+Item drops",
+    "lv": "Lv",
+    "pts": "pts!",
+    "choose_class": "Choose Class (Level 10 Unlocked!)",
+    "perfect_day_streak": "🌟 Perfect Day Streak: {{count}} days"
+  }
+}

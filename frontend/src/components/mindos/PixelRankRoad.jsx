@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { Trophy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 
 export default function PixelRankRoad({ rankXP = 0 }) {
   const { profile } = useDjangoAuth();
+  const { t } = useTranslation();
   
   const thresholds = profile?.rank_info?.thresholds || [];
   const currentRankId = profile?.rank_info?.current_id || "F";
@@ -50,17 +52,17 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         <div className="flex items-center gap-2">
           <Trophy className="w-5 h-5 text-[#ffbe5d] animate-bounce" />
           <h3 className="font-game text-[10px] text-[var(--habit-text)] tracking-wider uppercase">
-            Rank Progression
+            {t("rankProgression")}
           </h3>
         </div>
         
         {/* Next Rank Progress Display */}
         {nextRank ? (
           <div className="font-game text-[8px] text-[var(--habit-dim)]">
-            Next: <span style={{ color: rankColors[nextRank.id] }}>{nextRank.id}</span> | <AnimatedNumber value={Math.floor(rankXP)} /> / {nextMin} XP
+            {t("next")}: <span style={{ color: rankColors[nextRank.id] }}>{nextRank.id}</span> | <AnimatedNumber value={Math.floor(rankXP)} /> / {nextMin} XP
           </div>
         ) : (
-          <div className="font-game text-[8px] text-[#ca8a04]">Max Rank Reached!</div>
+          <div className="font-game text-[8px] text-[#ca8a04]">{t("maxRankReached")}</div>
         )}
       </div>
 
@@ -68,7 +70,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
       {nextRank && (
         <div className="mb-5 p-4 bg-[var(--habit-bg)] border border-[var(--habit-border)] rounded-xl relative z-10">
           <div className="flex justify-between items-center mb-2 font-game text-[8px]">
-            <span className="text-[var(--habit-dim)]">Progress to {nextRank.label}</span>
+            <span className="text-[var(--habit-dim)]">{t("progressTo", { rank: t(`ranks.${nextRank.id}`, nextRank.label) })}</span>
             <span style={{ color: rankColors[nextRank.id] }}><AnimatedNumber value={progressPct} formatter={(v) => v.toFixed(1)} />%</span>
           </div>
           <div className="h-4 bg-[var(--habit-bg)] border-2 border-[var(--habit-dim)] p-0.5 relative overflow-hidden" style={{ clipPath: "polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)" }}>
@@ -87,7 +89,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
             </motion.div>
           </div>
           <div className="mt-2 text-[7px] font-game text-[var(--habit-dim)] text-center">
-            <AnimatedNumber value={Math.ceil(nextMin - rankXP)} /> XP remaining to advance
+            <AnimatedNumber value={Math.ceil(nextMin - rankXP)} /> {t("xpRemaining")}
           </div>
         </div>
       )}
@@ -145,7 +147,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
 
                 {/* Label */}
                 <div className="font-game text-[11px] text-[var(--habit-text)] font-bold uppercase tracking-wide truncate">
-                  {rankData.label}
+                  {t(`ranks.${rankData.id}`, rankData.label)}
                 </div>
 
                 {/* Estimate */}

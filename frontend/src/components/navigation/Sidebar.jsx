@@ -6,6 +6,7 @@ import { SETTINGS_TABS } from "@/components/mindos/SettingsPanel";
 import { prefetchTab } from "@/lib/prefetch";
 import { hapticLight } from "@/hooks/useHaptic";
 import { djangoApi } from "@/api/djangoClient";
+import { useTranslation } from "react-i18next";
 
 function haptic() {
   hapticLight();
@@ -65,6 +66,7 @@ function NavContent({
   expandedSection, setExpandedSection,
   onClose, isMobile,
 }) {
+  const { t } = useTranslation();
   const handleSectionNavigate = (section) => {
     haptic(10);
     if (section.subItems?.length > 0) {
@@ -114,7 +116,7 @@ function NavContent({
             fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13,
             color: "var(--habit-sidebar-active-text)", letterSpacing: "0.1em",
           }}>
-            MENU
+            {t("sidebar.menu")}
           </span>
           <motion.button
             onClick={() => { haptic(8); onClose?.(); }}
@@ -149,7 +151,7 @@ function NavContent({
               <Icon size={20} className="shrink-0" />
               {!collapsed && (
                 <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>
-                  {app.label}
+                  {t(`sidebar.apps.${app.id}`)}
                 </span>
               )}
             </motion.button>
@@ -180,7 +182,7 @@ function NavContent({
                   fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800,
                   color: "var(--habit-sidebar-dim)", letterSpacing: "0.2em", textTransform: "uppercase",
                 }}>
-                  {group.label}
+                  {group.label ? t(`sidebar.groups.${group.label.toLowerCase()}`) : ""}
                 </span>
               </div>
             )}
@@ -228,7 +230,7 @@ function NavContent({
                               className="flex-1 text-left truncate"
                               style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13 }}
                             >
-                              {section.label}
+                              {t(`sidebar.sections.${section.id}`)}
                             </span>
                           </>
                         )}
@@ -319,7 +321,7 @@ function NavContent({
                                       transition: "background 0.12s, border 0.12s",
                                     }}
                                   />
-                                  {sub.label}
+                                  {t(`sidebar.sections.${sub.id}`)}
                                 </motion.button>
                               );
                             })}

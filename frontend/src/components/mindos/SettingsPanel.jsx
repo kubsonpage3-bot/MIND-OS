@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Settings, Palette, Bell, User, Gamepad2, Shield, Globe, RotateCcw, Info, ChevronLeft, Brain, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import NotificationsPanel from "@/components/mindos/NotificationsPanel";
 import AccountPanel from "@/components/mindos/AccountPanel";
@@ -28,6 +29,7 @@ export const SETTINGS_TABS = [
   { id: "about", label: "About", icon: Info },
 ];
 export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
+  const { t } = useTranslation();
   const [showDataTab, setShowDataTab] = useState(activeSubTab || "appearance");
   const [hasNewChangelog, setHasNewChangelog] = useState(false);
 
@@ -65,17 +67,17 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
           </button>
         )}
         <Settings className="w-4 h-4" style={{ color: "var(--habit-purple)" }} />
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>SYSTEM SETTINGS</span>
+        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{t("settings.systemSettings", "SYSTEM SETTINGS")}</span>
       </div>
 
       {/* Tabs */}
       <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
-        {SETTINGS_TABS.map(t => {
-          const isActive = showDataTab === t.id;
+        {SETTINGS_TABS.map(tTab => {
+          const isActive = showDataTab === tTab.id;
           return (
             <button
-              key={t.id}
-              onClick={() => setShowDataTab(t.id)}
+              key={tTab.id}
+              onClick={() => setShowDataTab(tTab.id)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all whitespace-nowrap relative"
               style={{
                 fontFamily: "'Nunito'",
@@ -86,9 +88,9 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
                 boxShadow: isActive ? "0 2px 8px var(--habit-purple-glow)" : "none",
               }}
             >
-              <t.icon className="w-3 h-3" />
-              <span className="hidden sm:inline">{t.label}</span>
-              {t.id === "changelog" && hasNewChangelog && (
+              <tTab.icon className="w-3 h-3" />
+              <span className="hidden sm:inline">{t(`sidebar.sections.${tTab.id}`)}</span>
+              {tTab.id === "changelog" && hasNewChangelog && (
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
               )}
             </button>
