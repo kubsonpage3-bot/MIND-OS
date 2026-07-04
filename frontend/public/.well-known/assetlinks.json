@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "dev.pages.mindos.twa",
+        "sha256_cert_fingerprints": ["89:1D:29:47:D0:47:C3:4A:07:BD:6F:07:CA:1E:9B:52:81:A0:01:44:9A:DB:A1:00:FB:E5:94:1D:9D:0B:D1:35"]
+      }
+    }]
