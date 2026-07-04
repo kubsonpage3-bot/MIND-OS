@@ -1,6 +1,8 @@
 # Constants for static data (like bosses)
 def get_prestige_xp_required(count: int) -> int:
-    return 11000 + (count * 1000)
+    if count == 0:
+        return next((r["min"] for r in RANK_THRESHOLDS if r["id"] == "SSS"), 8000)
+    return 11000 + ((count - 1) * 1000)
 
 
 BASE_SELL_RATE = 0.30

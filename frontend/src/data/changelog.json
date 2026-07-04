@@ -9,7 +9,8 @@
       { "type": "feature", "text": "Redesigned the Prestige system with a gradual snowball effect. Each rebirth now requires progressively more XP (+1,000 per level) but grants +15% Max Mana, +15% XP/Gold Multipliers, and an extra Mutator slot." },
       { "type": "feature", "text": "Introduced the post-SSS 'Ascendant' rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style." },
       { "type": "balance", "text": "Prestige rebirths now grant a free Skill Tree reset, refunding all earned Skill Points so you can rebuild your character with the new permanent bonuses." },
-      { "type": "fix", "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory." }
+      { "type": "fix", "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory." },
+      { "type": "balance", "text": "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths." }
     ]
   },
   {
