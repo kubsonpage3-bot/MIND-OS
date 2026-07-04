@@ -1831,3 +1831,79 @@ class PartyLeaderboardView(generics.GenericAPIView):
             )
 
         return Response({"leaderboard": data}, status=status.HTTP_200_OK)
+
+
+class PartyMemberProfileView(generics.GenericAPIView):
+    """GET /api/party/members/<user_id>/profile/"""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        try:
+            requester_membership = request.user.party_membership
+            party = requester_membership.party
+        except Exception:
+            return Response(
+                {"error": "Not in a party"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        from django.contrib.auth.models import User
+        from django.shortcuts import get_object_or_404
+
+        target_user = get_object_or_404(User, id=user_id)
+
+        # Enforce target user is in the same party
+        try:
+            target_membership = target_user.party_membership
+            if target_membership.party_id != party.id:
+                return Response(
+                    {"error": "User not in your party"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+        except Exception:
+            return Response(
+                {"error": "User not in your party"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        profile = target_user.profile
+        stats = target_user.stats
+
+        # Format recruited allies
+        allies = [
+            {"ally_code": a.ally_code, "level": a.level}
+            for a in profile.recruited_allies.all()
+        ]
+
+        total_stats = profile.total_stats
+
+        from api.services.profile_service import get_rank_info
+
+        rank_info = get_rank_info(profile)
+
+        return Response(
+            {
+                "user_id": target_user.id,
+                "username": target_user.username,
+                "date_joined": target_user.date_joined.isoformat(),
+                "party_joined_at": (
+                    target_membership.joined_at.isoformat()
+                    if target_membership
+                    else None
+                ),
+                "avatar": profile.avatar.url if profile.avatar else None,
+                "character_class": profile.character_class,
+                "level": profile.level,
+                "rank": rank_info.get("current_id", "F"),
+                "rank_info": rank_info,
+                "hp": profile.hp,
+                "hp_max": total_stats.get("hp_max", 100),
+                "xp": profile.xp,
+                "xp_to_next_level": profile.xp_to_next_level,
+                "mana": profile.mana,
+                "mana_max": total_stats.get("mana_max", 50),
+                "total_tasks_completed": stats.total_tasks_completed,
+                "max_streak": stats.max_streak,
+                "allies": allies,
+            },
+            status=status.HTTP_200_OK,
+        )

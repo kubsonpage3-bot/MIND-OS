@@ -390,6 +390,7 @@ export const djangoApi = {
 
     party: {
     members: () => djangoFetch('/party/members/'),
+    memberProfile: (userId) => djangoFetch(`/party/members/${userId}/profile/`),
     create: (name) =>
       djangoFetch('/party/create/', {
         method: 'POST',

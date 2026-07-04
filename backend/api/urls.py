@@ -39,6 +39,7 @@ from .views import (
     PartyEventReactView,
     PartyBuffView,
     PartyLeaderboardView,
+    PartyMemberProfileView,
     MarkGuideSeenView,
     FeatureEventView,
     health_check,
@@ -137,5 +138,10 @@ urlpatterns = [
     path("party/buff/", PartyBuffView.as_view(), name="party-buff"),
     path(
         "party/leaderboard/", PartyLeaderboardView.as_view(), name="party-leaderboard"
+    ),
+    path(
+        "party/members/<int:user_id>/profile/",
+        PartyMemberProfileView.as_view(),
+        name="party-member-profile",
     ),
 ]

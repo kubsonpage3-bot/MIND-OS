@@ -5,10 +5,11 @@ import { djangoApi } from '@/api/djangoClient';
 import { getRankDisplayData } from '@/lib/rankEngine';
 import { Copy, Check, Users, LogOut, UserPlus, Swords } from 'lucide-react';
 import { Crown, MessageSquare, Zap } from 'lucide-react';
+import PartyMemberProfileSheet from './PartyMemberProfileSheet';
 
 // ─── Member Card ─────────────────────────────────────────────────────────────
 
-function MemberCard({ member, onBuff }) {
+function MemberCard({ member, onBuff, onClick }) {
   const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
   const hpPct = member.max_hp > 0 ? Math.min((member.hp / member.max_hp) * 100, 100) : 0;
   const [showBuffs, setShowBuffs] = useState(false);
@@ -17,8 +18,9 @@ function MemberCard({ member, onBuff }) {
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-3 rounded-xl flex flex-col gap-2"
+      className={`p-3 rounded-xl flex flex-col gap-2 ${onClick ? 'cursor-pointer' : ''}`}
       style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+      onClick={onClick}
     >
       <div className="flex items-center gap-3">
         {/* Rank badge */}
@@ -52,7 +54,7 @@ function MemberCard({ member, onBuff }) {
             </div>
             {onBuff && (
               <button 
-                onClick={() => setShowBuffs(!showBuffs)}
+                onClick={(e) => { e.stopPropagation(); setShowBuffs(!showBuffs); }}
                 className="p-1 rounded-md transition-all hover:bg-white/10"
               >
                 <Zap className="w-3.5 h-3.5 text-yellow-500" />
@@ -113,13 +115,13 @@ function MemberCard({ member, onBuff }) {
             className="overflow-hidden border-t border-white/5 pt-2 flex gap-2"
           >
              <button 
-                onClick={() => { onBuff('heal_1'); setShowBuffs(false); }}
+                onClick={(e) => { e.stopPropagation(); onBuff('heal_1'); setShowBuffs(false); }}
                 className="flex-1 py-1 text-[10px] font-mono rounded bg-green-500/10 text-green-400 border border-green-500/20"
              >
                + Heal
              </button>
              <button 
-                onClick={() => { onBuff('focus_buff'); setShowBuffs(false); }}
+                onClick={(e) => { e.stopPropagation(); onBuff('focus_buff'); setShowBuffs(false); }}
                 className="flex-1 py-1 text-[10px] font-mono rounded bg-blue-500/10 text-blue-400 border border-blue-500/20"
              >
                + Focus
@@ -460,6 +462,7 @@ function PartyView({ party }) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('members');
   const [leaveError, setLeaveError] = useState('');
+  const [selectedMember, setSelectedMember] = useState(null);
 
   const leaveMutation = useMutation({
     mutationFn: () => djangoApi.party.leave(),
@@ -470,7 +473,6 @@ function PartyView({ party }) {
   const buffMutation = useMutation({
     mutationFn: ({ username, code }) => djangoApi.party.buff(username, code),
     onSuccess: (data) => {
-      // Could show a toast here
       queryClient.invalidateQueries({ queryKey: ['party', 'feed'] });
     }
   });
@@ -572,6 +574,7 @@ function PartyView({ party }) {
                   key={member.username} 
                   member={member} 
                   onBuff={(code) => buffMutation.mutate({ username: member.username, code })}
+                  onClick={() => setSelectedMember(member)}
                 />
               ))}
             </div>
@@ -588,6 +591,13 @@ function PartyView({ party }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PartyMemberProfileSheet 
+        isOpen={!!selectedMember}
+        onClose={() => setSelectedMember(null)}
+        userId={selectedMember?.user_id}
+        memberName={selectedMember?.username}
+      />
     </div>
   );
 }
