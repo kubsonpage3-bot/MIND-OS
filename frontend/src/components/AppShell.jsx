@@ -190,7 +190,7 @@ export default function AppShell({ defaultTab = "mind" }) {
         dragElastic={0.4}
         onDragEnd={handleDragEnd}
         style={{ x, opacity, scale, background: "var(--habit-bg)", transformOrigin: "center center" }}
-        className={`relative z-10 overflow-y-auto overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
+        className={`relative z-10 overflow-y-auto overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >
         {activeApp === "mind" && (
           <>
