@@ -91,8 +91,8 @@ export default function GameplayPanel() {
         <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Gameplay Settings</span>
       </div>
 
-      {/* LanguagePanel embedded for Mobile Only */}
-      <div className="block md:hidden">
+      {/* LanguagePanel embedded */}
+      <div>
         <LanguagePanel />
         <div className="h-px w-full bg-border/30 my-4" />
       </div>

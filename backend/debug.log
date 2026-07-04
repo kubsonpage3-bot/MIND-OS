@@ -1422,3 +1422,16 @@ django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. Y
 WARNING 2026-07-04 16:00:37,064 log 20156 15712 Bad Request: /api/shop/buy/
 WARNING 2026-07-04 16:01:43,463 log 17740 19428 Bad Request: /api/shop/buy/
 WARNING 2026-07-04 16:01:44,183 log 17740 19428 Bad Request: /api/shop/buy/
+WARNING 2026-07-04 17:20:15,720 log 21248 13868 Bad Request: /api/profile/
+WARNING 2026-07-04 17:20:18,041 log 21248 13868 Not Found: /api/calendar/
+WARNING 2026-07-04 17:21:07,224 log 20908 16324 Bad Request: /api/profile/
+WARNING 2026-07-04 17:21:09,513 log 20908 16324 Forbidden: /api/calendar/events/
+WARNING 2026-07-04 17:21:09,514 log 20908 16324 Forbidden: /api/calendar/events/
+WARNING 2026-07-04 17:21:55,946 log 21012 20784 Bad Request: /api/profile/
+WARNING 2026-07-04 17:21:58,221 log 21012 20784 Forbidden: /api/calendar/events/
+WARNING 2026-07-04 17:21:58,222 log 21012 20784 Forbidden: /api/calendar/events/
+WARNING 2026-07-04 17:22:27,817 log 12116 20064 Bad Request: /api/profile/
+WARNING 2026-07-04 17:22:30,059 log 12116 20064 Forbidden: /api/calendar/events/
+WARNING 2026-07-04 17:22:30,060 log 12116 20064 Forbidden: /api/calendar/events/
+WARNING 2026-07-04 17:22:52,269 log 7892 17032 Bad Request: /api/profile/
+WARNING 2026-07-04 17:22:54,643 log 7892 17032 Forbidden: /api/calendar/events/

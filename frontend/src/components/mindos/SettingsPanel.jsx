@@ -22,7 +22,6 @@ export const SETTINGS_TABS = [
   { id: "account", label: "Account", icon: User },
   { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
   { id: "privacy", label: "Privacy", icon: Shield },
-  { id: "language", label: "Language", icon: Globe },
   { id: "guides", label: "Guides", icon: BookOpen },
   { id: "changelog", label: "Updates", icon: Info },
   { id: "reset", label: "Reset", icon: RotateCcw },
@@ -72,7 +71,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* Tabs */}
       <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
-        {SETTINGS_TABS.filter(t => t.id !== "language").map(tTab => {
+        {SETTINGS_TABS.map(tTab => {
           const isActive = showDataTab === tTab.id;
           return (
             <button
@@ -115,13 +114,6 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* PRIVACY */}
       {showDataTab === "privacy" && <PrivacyPanel />}
-
-      {/* LANGUAGE (Desktop Only) */}
-      {showDataTab === "language" && (
-        <div className="hidden md:block">
-          <LanguagePanel />
-        </div>
-      )}
 
       {/* GUIDES */}
       {showDataTab === "guides" && <GuidesPanel />}

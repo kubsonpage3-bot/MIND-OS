@@ -72,8 +72,16 @@ urlpatterns = [
     path("analytics/event/", FeatureEventView.as_view(), name="analytics-event"),
     path("rival/", RivalView.as_view(), name="rival"),
     # ——— Billing (Stripe) —————————————————————————————————————————————
-    path("billing/create-checkout-session/", create_checkout_session_view, name="create-checkout-session"),
-    path("billing/create-portal-session/", create_portal_session_view, name="create-portal-session"),
+    path(
+        "billing/create-checkout-session/",
+        create_checkout_session_view,
+        name="create-checkout-session",
+    ),
+    path(
+        "billing/create-portal-session/",
+        create_portal_session_view,
+        name="create-portal-session",
+    ),
     path("billing/webhook/", stripe_webhook_view, name="stripe-webhook"),
     # ——— Задачи (CRUD + complete) —————————————————————————————————————
     path("", include(router.urls)),

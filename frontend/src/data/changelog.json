@@ -12,7 +12,8 @@
       { "type": "fix", "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory." },
       { "type": "balance", "text": "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths." },
       { "type": "feature", "text": "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation." },
-      { "type": "feature", "text": "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)." }
+      { "type": "feature", "text": "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)." },
+      { "type": "polish", "text": "Unified Language & Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar." }
     ]
   },
   {

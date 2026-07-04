@@ -23,6 +23,11 @@ from django.db import transaction
 from rest_framework import viewsets, generics, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from api.services.billing_service import (
+    create_checkout_session,
+    create_portal_session,
+    handle_stripe_webhook,
+)
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -499,11 +504,6 @@ class BossEncounterView(generics.ListAPIView):
 # Billing & Premium (Stripe)
 # ─────────────────────────────────────────────────────────────────────────────
 
-from api.services.billing_service import (
-    create_checkout_session,
-    create_portal_session,
-    handle_stripe_webhook,
-)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -516,7 +516,11 @@ def create_checkout_session_view(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         logger.error(f"Checkout error: {e}")
-        return Response({"error": "Failed to create checkout session"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": "Failed to create checkout session"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -529,7 +533,11 @@ def create_portal_session_view(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         logger.error(f"Portal error: {e}")
-        return Response({"error": "Failed to create portal session"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": "Failed to create portal session"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -1641,8 +1649,9 @@ class CalendarEventViewSet(viewsets.ModelViewSet):
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        if not hasattr(request.user, 'profile') or not request.user.profile.is_premium:
+        if not hasattr(request.user, "profile") or not request.user.profile.is_premium:
             from rest_framework.exceptions import PermissionDenied
+
             raise PermissionDenied("Premium subscription required to access Calendar.")
 
     def get_queryset(self):
