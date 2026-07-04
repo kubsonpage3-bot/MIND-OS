@@ -595,13 +595,13 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                 <tr style={{ borderBottom: "1px solid var(--habit-border)" }}>
                   <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Hours</td>
                   <td className="px-4 py-2 text-center">
-                    <span style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: pWins ? 700 : 400, color: pWins ? "#1ca830" : "rgba(100,116,139,0.5)" }}>
+                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: pWins ? 700 : 400, color: pWins ? "#1ca830" : "rgba(100,116,139,0.5)" }}>
                       {playerHoursWeek.toFixed(1)}
                     </span>
                     {!pWins && <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: "#ef4444", marginLeft: 2 }}>(-{hourDiff}h)</span>}
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <span style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: !pWins ? 700 : 400, color: !pWins ? "#ef4444" : "rgba(100,116,139,0.5)" }}>
+                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: !pWins ? 700 : 400, color: !pWins ? "#ef4444" : "rgba(100,116,139,0.5)" }}>
                       {johanWeekHours.toFixed(1)}
                     </span>
                     {pWins && <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: "rgba(100,116,139,0.4)", marginLeft: 2 }}>(-{hourDiff}h)</span>}
@@ -615,10 +615,10 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
               return (
                 <tr style={{ borderBottom: "1px solid #f0eef8" }}>
                   <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Avg Focus</td>
-                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
+                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
                     {playerAvgFocus.toFixed(1)}
                   </td>
-                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
+                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
                     {johanAvgFocus.toFixed(1)}
                   </td>
                 </tr>
@@ -631,10 +631,10 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                 <>
                   <tr style={{ borderBottom: johanSubjectsWeek > playerSubjectsWeek ? "none" : "1px solid #f0eef8" }}>
                     <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Subjects</td>
-                    <td className="px-4 py-2 text-center" style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
+                    <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
                       {playerSubjectsWeek}
                     </td>
-                    <td className="px-4 py-2 text-center" style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
+                    <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
                       {johanSubjectsWeek}
                     </td>
                   </tr>
@@ -655,11 +655,11 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
               return (
                 <tr>
                   <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Rank XP</td>
-                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
+                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
                     {playerWeeklyRankXP.toFixed(1)}
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <span style={{ fontFamily: "'Pixeltype'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
+                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
                       {rivalAhead ? trendArrow : ""}{johanWeekRankXP.toFixed(1)}
                     </span>
                     {isClosing && (

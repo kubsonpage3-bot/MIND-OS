@@ -25,7 +25,7 @@ export default function MasteryRadar({
                 textAnchor={textAnchor} 
                 fill={cat?.color || "#fff"} 
                 fontSize={fontSize} 
-                fontFamily="'Pixeltype', monospace" 
+                fontFamily="'PixeloidSans', monospace" 
                 fontWeight="normal" 
                 dy={fontSize * 0.4}
               >

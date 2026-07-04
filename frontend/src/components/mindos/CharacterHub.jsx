@@ -39,7 +39,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
           <PixelCharacter rankId={rankId} rankColor={classColor} size={100} hideLabel={true} />
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{userName || "Hero"}</div>
-        <div style={{ fontFamily: "'Pixeltype'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>
+        <div style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>
         <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "var(--habit-purple)", marginTop: 2, letterSpacing: "0.05em", textTransform: "uppercase" }}>
           &lt; {profile?.streak_title || "The Forsaken"} &gt;
         </div>
@@ -49,7 +49,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
       <div className="px-5 pb-3">
         <div className="flex items-center justify-between mb-1.5">
           <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "#f74e52" }}>HP</span>
-          <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-dim)" }}>
+          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 8, color: "var(--habit-dim)" }}>
             <AnimatedNumber value={Math.round(charHp)} />/{charMaxHp}
           </span>
         </div>
@@ -66,7 +66,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
       <div className="px-5 pb-5">
         <div className="flex items-center justify-between mb-1.5">
           <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: classColor }}>MP</span>
-          <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, color: "var(--habit-dim)" }}>
+          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 8, color: "var(--habit-dim)" }}>
             <AnimatedNumber value={Math.round(charMana)} />/{charMaxMana}
           </span>
         </div>

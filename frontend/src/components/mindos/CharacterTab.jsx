@@ -398,7 +398,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           )}
           <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass?.name}</span>
           {profile?.prestige_count > 0 && (
-            <span style={{ fontFamily: "'Pixeltype'", fontSize: 8, background: "var(--habit-border)", color: "var(--habit-gold)", border: "1px solid var(--habit-border)", padding: "2px 6px", borderRadius: 4 }}>
+            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 8, background: "var(--habit-border)", color: "var(--habit-gold)", border: "1px solid var(--habit-border)", padding: "2px 6px", borderRadius: 4 }}>
               ×{profile?.prestige_count} PRESTIGE
             </span>
           )}

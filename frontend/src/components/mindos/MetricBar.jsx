@@ -55,7 +55,7 @@ export default function MetricBar({ metricKey, current, ceiling, showHoursHint =
             animate={animating ? { scale: [1, 1.6, 1], opacity: [1, 0.7, 1] } : {}}
             transition={{ duration: 0.5 }}
           />
-          <span style={{ fontFamily: "'Pixeltype'", fontSize: 9, color: colors.text }}>
+          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: colors.text }}>
             {config.abbr}
           </span>
           <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "#878190" }} className="hidden sm:inline">
@@ -72,14 +72,14 @@ export default function MetricBar({ metricKey, current, ceiling, showHoursHint =
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 1.4 }}
                 className="absolute right-16 pointer-events-none"
-                style={{ fontFamily: "'Pixeltype'", fontSize: 7, color: "#22c55e", whiteSpace: "nowrap", textShadow: "0 0 8px #22c55e55" }}
+                style={{ fontFamily: "'PixeloidSans'", fontSize: 7, color: "#22c55e", whiteSpace: "nowrap", textShadow: "0 0 8px #22c55e55" }}
               >
                 {delta}
               </motion.span>
             )}
           </AnimatePresence>
           <motion.span
-            style={{ fontFamily: "'Pixeltype'", fontSize: 9, color: colors.text }}
+            style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: colors.text }}
             animate={animating ? { scale: [1, 1.15, 1] } : {}}
             transition={{ duration: 0.4 }}
           >

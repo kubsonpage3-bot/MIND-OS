@@ -5,6 +5,7 @@
     "changes": [
       { "type": "fix", "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font." },
       { "type": "fix", "text": "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header." },
+      { "type": "fix", "text": "Fixed a visual bug where the top status bar (HP/MP) and other small UI elements used fallback fonts instead of the correct pixel fonts." },
       { "type": "fix", "text": "Slightly increased the global game font size to improve readability of small UI labels." },
       { "type": "fix", "text": "Fixed a crash on load related to missing translations." },
       { "type": "fix", "text": "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency." },

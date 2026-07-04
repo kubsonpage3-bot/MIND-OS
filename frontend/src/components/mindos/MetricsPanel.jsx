@@ -69,7 +69,7 @@ export default function MetricsPanel() {
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            style={{ fontFamily: "'Pixeltype'", fontSize: "2rem", color: "var(--habit-purple)", lineHeight: 1 }}
+            style={{ fontFamily: "'PixeloidSans'", fontSize: "2rem", color: "var(--habit-purple)", lineHeight: 1 }}
           >
             {draftIQ.toFixed(1)}
           </motion.div>
@@ -107,7 +107,7 @@ export default function MetricsPanel() {
                   key={val}
                   initial={{ scale: 1.3, color: meta.color }}
                   animate={{ scale: 1 }}
-                  style={{ fontFamily: "'Pixeltype'", fontSize: 14, color: meta.color }}
+                  style={{ fontFamily: "'PixeloidSans'", fontSize: 14, color: meta.color }}
                 >
                   {val.toFixed(1)}
                 </motion.div>

@@ -11,6 +11,15 @@
   size-adjust: 120%;
 }
 
+@font-face {
+  font-family: 'Bildungswirkung';
+  src: url('/fonts/Bildungswirkung.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  /* Adjust size if necessary compared to PixeloidSans */
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

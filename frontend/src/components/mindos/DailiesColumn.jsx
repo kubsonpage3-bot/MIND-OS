@@ -204,7 +204,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
           <motion.div
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             className="px-3 py-2 text-center text-xs"
-            style={{ background: '#1a1a2e', color: '#ff9800', fontFamily: "'Pixeltype'", fontSize: 7, lineHeight: 1.6 }}
+            style={{ background: '#1a1a2e', color: '#ff9800', fontFamily: "'PixeloidSans'", fontSize: 7, lineHeight: 1.6 }}
           >
             {cronMsg}
           </motion.div>
@@ -213,7 +213,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="px-3 py-2 text-center"
-            style={{ background: '#1a0000', color: '#ff4444', fontFamily: "'Pixeltype'", fontSize: 7 }}
+            style={{ background: '#1a0000', color: '#ff4444', fontFamily: "'PixeloidSans'", fontSize: 7 }}
           >
             {deathMsg}
           </motion.div>
