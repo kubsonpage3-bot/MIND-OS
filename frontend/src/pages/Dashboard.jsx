@@ -508,7 +508,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
               {/* Tools sections */}
               {["history", "pomodoro", "calendar"].includes(activeSection) && (
-                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={false} />
+                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
               )}
               {activeSection === "history" && (
                 <TabPanel title={"📋 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>
