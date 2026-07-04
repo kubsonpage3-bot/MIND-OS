@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Brain, Sparkles, Cloud, CloudOff, RefreshCw } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "@/components/navigation/Sidebar";
 import BottomNav, { MOBILE_SECTIONS } from "@/components/navigation/BottomNav";
@@ -34,11 +35,11 @@ export default function AppShell({ defaultTab = "mind" }) {
   const location = useLocation();
 
   const { app: activeApp, section: activeSection, subItem: activeSubItem } = parseNav(location.search);
+  const { t } = useTranslation();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [touchStartX, setTouchStartX] = useState(null);
-  const SWIPE_THRESHOLD = 60;
+  const SWIPE_THRESHOLD = 80;
   const SWIPE_TABS = MOBILE_SECTIONS.map(s => s.navTarget);
   const { profile: djangoProfile } = useDjangoAuth();
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -112,34 +113,32 @@ export default function AppShell({ defaultTab = "mind" }) {
   const rankXP = djangoProfile?.rank_xp || 0;
   const currentRank = djangoProfile?.rank_info?.current_id || "F";
 
-  const handleTouchStart = (e) => {
-    setTouchStartX(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (e) => {
-    if (touchStartX === null) return;
-    const deltaX = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(deltaX) < SWIPE_THRESHOLD) { setTouchStartX(null); return; }
-    
-    // Map current section to its primary swipe tab if it's a sub-tab
-    const getSwipeIndex = (section) => {
-      if (["history", "pomodoro", "calendar", "stats"].includes(section)) {
-        return SWIPE_TABS.indexOf("history");
-      }
-      return SWIPE_TABS.indexOf(section);
-    };
-    
-    const currentIndex = getSwipeIndex(activeSection);
-    
-    // Fallback if section isn't mapped
-    if (currentIndex === -1) { setTouchStartX(null); return; }
-
-    if (deltaX > 0 && currentIndex < SWIPE_TABS.length - 1) {
-      handleNavigate(SWIPE_TABS[currentIndex + 1], null);
-    } else if (deltaX < 0 && currentIndex > 0) {
-      handleNavigate(SWIPE_TABS[currentIndex - 1], null);
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-400, 0, 400], [0.5, 1, 0.5]);
+  const scale = useTransform(x, [-400, 0, 400], [0.9, 1, 0.9]);
+  
+  const getSwipeIndex = (section) => {
+    if (["history", "pomodoro", "calendar", "stats"].includes(section)) {
+      return SWIPE_TABS.indexOf("history");
     }
-    setTouchStartX(null);
+    return SWIPE_TABS.indexOf(section);
+  };
+  
+  const currentIndex = getSwipeIndex(activeSection);
+  const prevSection = currentIndex > 0 ? MOBILE_SECTIONS[currentIndex - 1] : null;
+  const nextSection = currentIndex !== -1 && currentIndex < MOBILE_SECTIONS.length - 1 ? MOBILE_SECTIONS[currentIndex + 1] : null;
+
+  const handleDragEnd = (e, { offset, velocity }) => {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (!isMobile) return;
+
+    const swipe = offset.x + velocity.x * 0.2; // include velocity for momentum
+
+    if (swipe < -SWIPE_THRESHOLD && nextSection) {
+      handleNavigate(nextSection.navTarget, null);
+    } else if (swipe > SWIPE_THRESHOLD && prevSection) {
+      handleNavigate(prevSection.navTarget, null);
+    }
   };
   return (
     <div className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300">
@@ -168,11 +167,30 @@ export default function AppShell({ defaultTab = "mind" }) {
         setMobileOpen={setMobileSidebarOpen}
       />
 
+      {/* Peek layer (mobile only) */}
+      <div className="md:hidden fixed inset-0 z-0 flex items-center justify-between px-8 pointer-events-none" style={{ top: "env(safe-area-inset-top)", bottom: "calc(60px + env(safe-area-inset-bottom))" }}>
+        {prevSection ? (
+          <div className="flex flex-col items-start opacity-50" style={{ color: "var(--habit-text)" }}>
+            <prevSection.icon className="w-10 h-10 mb-2 opacity-50" />
+            <span className="font-mono text-sm uppercase tracking-wider">{t(`nav.${prevSection.id}`)}</span>
+          </div>
+        ) : <div/>}
+        {nextSection ? (
+          <div className="flex flex-col items-end opacity-50" style={{ color: "var(--habit-text)" }}>
+            <nextSection.icon className="w-10 h-10 mb-2 opacity-50" />
+            <span className="font-mono text-sm uppercase tracking-wider">{t(`nav.${nextSection.id}`)}</span>
+          </div>
+        ) : <div/>}
+      </div>
+
       {/* Main content area */}
-      <div
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className={`overflow-y-auto overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
+      <motion.div
+        drag={typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? "x" : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.4}
+        onDragEnd={handleDragEnd}
+        style={{ x, opacity, scale, background: "var(--habit-bg)", transformOrigin: "center center" }}
+        className={`relative z-10 overflow-y-auto overflow-x-hidden transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >
         {activeApp === "mind" && (
           <>

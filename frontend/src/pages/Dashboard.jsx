@@ -416,7 +416,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
             <>
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? 0 : 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15 }}
               >
