@@ -12,6 +12,7 @@
       { "type": "feature", "text": "Added desktop mouse-drag panning to the new Skill Tree for easier navigation." },
       { "type": "fix", "text": "Fixed text overflow in the Skill Tree info-panel on small mobile screens to guarantee purchase buttons are always visible." },
       { "type": "fix", "text": "Fixed stiff scrolling behavior on mobile in the Skill Tree by restoring native touch momentum, separate from desktop mouse panning." },
+      { "type": "fix", "text": "Fixed a bug where the bottom navigation 'Stats' button was not highlighted when viewing the Projections/Mastery Radar." },
       { "type": "fix", "text": "Fixed Skill Tree node misalignment where connector lines didn't precisely hit the center of nodes." },
       { "type": "fix", "text": "Fixed a mobile swipe conflict where panning the new Skill Tree would accidentally trigger tab navigation." },
       { "type": "polish", "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar." },

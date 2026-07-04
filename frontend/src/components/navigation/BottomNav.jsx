@@ -43,7 +43,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = item.id === "tools" 
-            ? ["history", "pomodoro", "calendar"].includes(activeSection)
+            ? ["history", "pomodoro", "calendar", "stats"].includes(activeSection)
             : activeSection === item.id;
           return (
             <motion.button
