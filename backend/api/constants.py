@@ -1,5 +1,7 @@
 # Constants for static data (like bosses)
-PRESTIGE_XP_REQUIRED = 8000
+def get_prestige_xp_required(count: int) -> int:
+    return 11000 + (count * 1000)
+
 
 BASE_SELL_RATE = 0.30
 MARKET_KNOWLEDGE_SELL_RATE = 0.60

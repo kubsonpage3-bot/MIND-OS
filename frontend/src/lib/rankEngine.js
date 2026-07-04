@@ -12,7 +12,20 @@ export const RANKS = [
   { id: "SSS", label: "GOD MODE",  hoursEst: "~200h",  color: "#f59e0b", glow: "rgba(245,158,11,0.2)", desc: "They that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles. — Isa. 40:31", god: true },
 ];
 
-export function getRankDisplayData(rankId) {
+export function getRankDisplayData(rankId, profile = null) {
+  if (rankId === "ASC" || (profile && profile.rank_info?.is_ascendant)) {
+    const level = profile?.rank_info?.ascendant_level || 1;
+    const romanNumeral = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][level] || level;
+    return {
+      id: "ASC",
+      label: `ASCENDANT ${romanNumeral}`,
+      color: "#FFF8DC",
+      glow: "rgba(255, 215, 0, 0.4)",
+      desc: "To him that overcometh will I give to eat of the hidden manna. — Rev. 2:17",
+      god: true,
+      textShadow: "0 0 10px rgba(255, 215, 0, 0.8)"
+    };
+  }
   return RANKS.find(r => r.id === rankId) || RANKS[0];
 }
 

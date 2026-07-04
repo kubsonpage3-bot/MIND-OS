@@ -12,10 +12,10 @@ export default function PixelRankRoad({ rankXP = 0 }) {
   
   const thresholds = profile?.rank_info?.thresholds || [];
   const currentRankId = profile?.rank_info?.current_id || "F";
-  const currentRank = getRankDisplayData(currentRankId);
+  const currentRank = getRankDisplayData(currentRankId, profile);
   
   const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
-  const nextRank = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? getRankDisplayData(thresholds[currentIdx + 1].id) : null;
+  const nextRank = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? getRankDisplayData(thresholds[currentIdx + 1].id, profile) : null;
   const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
   const nextMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
 
@@ -104,7 +104,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           const isUnlocked = index < currentIdx;
           const isLocked = index > currentIdx;
           
-          const rankData = getRankDisplayData(row.id);
+          const rankData = getRankDisplayData(row.id, profile);
 
           return (
             <motion.div

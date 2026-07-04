@@ -33,6 +33,22 @@ def get_rank_info(profile: UserProfile) -> dict:
     Вычисляет пороги рангов с учетом пассивок (endurance_protocol)
     и возвращает текущий ранг и обновленную матрицу порогов.
     """
+    from api.constants import get_prestige_xp_required
+
+    if profile.prestige_count > 0:
+        return {
+            "current_id": "ASC",
+            "is_ascendant": True,
+            "ascendant_level": profile.prestige_count,
+            "thresholds": [
+                {"id": "ASC", "min": 0},
+                {
+                    "id": "ASC_NEXT",
+                    "min": get_prestige_xp_required(profile.prestige_count),
+                },
+            ],
+        }
+
     # Если endurance_protocol разблокирован, пороги уменьшаются на 20%
     has_endurance = profile.unlocked_skills.filter(
         skill_code="endurance_protocol"

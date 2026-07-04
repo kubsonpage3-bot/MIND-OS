@@ -689,23 +689,21 @@ class PrestigeView(generics.GenericAPIView):
 
     def post(self, request):
         from django.db import transaction  # type: ignore
-        from api.constants import PRESTIGE_XP_REQUIRED
+        from api.constants import get_prestige_xp_required
+        from api.services.rpg_service import respec_skill_nodes
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            if profile.rank_xp < PRESTIGE_XP_REQUIRED:
+            required_xp = get_prestige_xp_required(profile.prestige_count)
+            if profile.rank_xp < required_xp:
                 return Response(
-                    {
-                        "detail": (
-                            f"You must reach {PRESTIGE_XP_REQUIRED} " "XP to prestige."
-                        )
-                    },
+                    {"detail": (f"You must reach {required_xp} " "XP to prestige.")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             profile.prestige_count += 1
             profile.damage_multiplier = round(profile.damage_multiplier + 0.1, 4)
-            profile.gold_multiplier = round(profile.gold_multiplier + 0.1, 4)
-            profile.xp_multiplier = round(profile.xp_multiplier + 0.05, 4)
+            profile.gold_multiplier = round(profile.gold_multiplier + 0.15, 4)
+            profile.xp_multiplier = round(profile.xp_multiplier + 0.15, 4)
 
             # Increase IQ ceilings permanently by 15%
             profile.gf_ceiling = round(profile.gf_ceiling * 1.15, 2)
@@ -716,11 +714,16 @@ class PrestigeView(generics.GenericAPIView):
             profile.level = 1
             profile.xp = 0
             profile.xp_to_next_level = 100
-            # Use computed max_hp property (SSOT: 100 + prestige_count * 50)
-            # prestige_count already incremented above, so max_hp reflects the new level
+
+            # Use computed max_hp and max_mana properties
             profile.hp = profile.max_hp
-            profile.mana = 0
+            profile.mana = profile.max_mana
             profile.rank_xp = 0
+
+            profile.save()
+
+            # Free skill tree respec
+            respec_skill_nodes(request.user, free=True)
 
             # Reset training tasks if they exist in the DB (safe check for 'rank' field)
             from api.models import Task

@@ -8,11 +8,11 @@ export default function RankRoadTable({ rankXP = 0 }) {
   
   const thresholds = profile?.rank_info?.thresholds || [];
   const currentRankId = profile?.rank_info?.current_id || "F";
-  const currentRank = getRankDisplayData(currentRankId);
+  const currentRank = getRankDisplayData(currentRankId, profile);
   
   const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
   const nextRankId = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].id : null;
-  const nextRank = nextRankId ? getRankDisplayData(nextRankId) : null;
+  const nextRank = nextRankId ? getRankDisplayData(nextRankId, profile) : null;
   const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
   const nextMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
 
@@ -38,7 +38,7 @@ export default function RankRoadTable({ rankXP = 0 }) {
             {thresholds.map((row) => {
               const isCurrent = row.id === currentRank.id;
               const isNext = nextRank && row.id === nextRank.id;
-              const displayData = getRankDisplayData(row.id);
+              const displayData = getRankDisplayData(row.id, profile);
               // color from RANKS
               const rankColors = {
                 F: "#64748b", D: "#ef4444", C: "#f97316", B: "#eab308",

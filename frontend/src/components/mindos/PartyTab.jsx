@@ -8,7 +8,7 @@ import { Copy, Check, Users, LogOut, UserPlus, Swords } from 'lucide-react';
 // ─── Member Card ─────────────────────────────────────────────────────────────
 
 function MemberCard({ member }) {
-  const rank = getRankDisplayData(member.rank_info?.current_id || 'F');
+  const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
   const hpPct = member.max_hp > 0 ? Math.min((member.hp / member.max_hp) * 100, 100) : 0;
 
   return (

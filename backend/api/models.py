@@ -267,7 +267,7 @@ class UserProfile(models.Model):
             ),
             "xp_multiplier": float(round(self.xp_multiplier + equip["xp_boost"], 4)),
             "hp_max": int(self.max_hp + equip["hp_boost"]),
-            "mana_max": int(self.mana_max + equip["mana_boost"]),
+            "mana_max": int(self.max_mana + equip["mana_boost"]),
         }
 
     def save(self, *args, **kwargs):
@@ -292,6 +292,15 @@ class UserProfile(models.Model):
         BASE_HP = 100
         HP_PER_PRESTIGE = 50
         return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE)
+
+    @property
+    def max_mana(self) -> int:
+        """
+        Computed max mana. Base 100, +15% per prestige.
+        """
+        BASE_MANA = 100
+        multiplier = 1.0 + (0.15 * float(self.prestige_count))
+        return int(BASE_MANA * multiplier)
 
     @property
     def streak_title(self) -> str:

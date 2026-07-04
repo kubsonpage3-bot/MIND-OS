@@ -305,7 +305,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
     if (johanXP >= t.min) johanRankId = t.id;
   }
   const rivalRank = getRankDisplayData(johanRankId);
-  const playerRank = getRankDisplayData(profile?.rank_info?.current_id || "F");
+  const playerRank = getRankDisplayData(profile?.rank_info?.current_id || "F", profile);
 
   const visibleSessions = todaySessions.filter(s => {
     const [h, m] = s.scheduledTime.split(":").map(Number);

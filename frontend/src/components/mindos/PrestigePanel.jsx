@@ -18,11 +18,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const canPrestige = rankXP >= xpRequired;
   
   const prestigeMutation = useMutation({
-    mutationFn: () => djangoApi.profile.update({
-      prestige_count: count + 1,
-      mana: 0,
-      unlocked_skills: []
-    }),
+    mutationFn: () => djangoApi.profile.prestige(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });

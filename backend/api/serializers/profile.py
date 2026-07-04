@@ -1,7 +1,8 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from api.models import UserProfile
 from .auth import UserSerializer
-from api.constants import PRESTIGE_XP_REQUIRED
+from api.constants import get_prestige_xp_required
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -115,7 +116,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return obj.max_hp
 
     def get_prestige_xp_required(self, obj) -> int:
-        return PRESTIGE_XP_REQUIRED
+        return get_prestige_xp_required(obj.prestige_count)
 
     def get_xp_progress_percent(self, obj) -> int:
         if obj.xp_to_next_level == 0:
@@ -170,10 +171,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 active_mutators_data = data["active_mutators"]
                 if isinstance(active_mutators_data, dict):
                     active_list = active_mutators_data.get("active", [])
-                    if len(active_list) > 3:
-                        from rest_framework.exceptions import ValidationError
-
-                        raise ValidationError("Maximum of 3 active mutators allowed.")
+                    max_mutators = 3 + instance.prestige_count
+                    # Must be a list of dicts, but we just check length
+                    if len(active_list) > max_mutators:
+                        raise ValidationError(
+                            f"Maximum of {max_mutators} active mutators allowed."
+                        )
                 instance.active_mutators = active_mutators_data
 
             # Update Rival Data

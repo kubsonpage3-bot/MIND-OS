@@ -59,7 +59,7 @@ def buy_skill_node(user, skill_code: str) -> UserProfile:
 
 
 @transaction.atomic
-def respec_skill_nodes(user) -> UserProfile:
+def respec_skill_nodes(user, free=False) -> UserProfile:
     """
     Сбрасывает все изученные узлы навыков, возвращает очки навыков (SP) и списывает золото.
     """
@@ -69,12 +69,16 @@ def respec_skill_nodes(user) -> UserProfile:
     unlocked_count = unlocked_skills.count()
 
     if unlocked_count == 0:
+        if free:
+            return profile  # Nothing to do, but not an error for prestige
         raise GameLogicError("No skills to respec.")
 
-    respec_cost = max(50, unlocked_count * 80)
-
-    if profile.gold < respec_cost:
-        raise GameLogicError(f"Insufficient Gold. Respec costs {respec_cost}G.")
+    if not free:
+        respec_cost = max(50, unlocked_count * 80)
+        if profile.gold < respec_cost:
+            raise GameLogicError(f"Insufficient Gold. Respec costs {respec_cost}G.")
+    else:
+        respec_cost = 0
 
     total_sp_refund = 0
     total_gf_ceiling_refund = 0

@@ -22,11 +22,11 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
   
   const thresholds = profile?.rank_info?.thresholds || [];
   const currentRankId = profile?.rank_info?.current_id || "F";
-  const rank = getRankDisplayData(currentRankId);
+  const rank = getRankDisplayData(currentRankId, profile);
   
   const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
   const nextRankId = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].id : null;
-  const nextRank = nextRankId ? getRankDisplayData(nextRankId) : null;
+  const nextRank = nextRankId ? getRankDisplayData(nextRankId, profile) : null;
   const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
   const nextMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
 

@@ -43,7 +43,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
 
   const classInfo = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = classInfo?.color || "#7B61FF";
-  const rankInfo = getRankDisplayData(profile?.rank_info?.current_id || "F");
+  const rankInfo = getRankDisplayData(profile?.rank_info?.current_id || "F", profile);
   const rankId = currentRankId || rankInfo.id;
   const rankColor = rankInfo.color || "#7B61FF";
 
