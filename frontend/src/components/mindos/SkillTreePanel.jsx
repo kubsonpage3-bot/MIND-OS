@@ -153,8 +153,11 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   }, []);
 
   const handlePointerDown = (e) => {
+    // Only process mouse events (let touch rely on native scroll)
+    if (e.pointerType !== 'mouse') return;
     // Only left click
     if (e.button !== 0) return;
+    
     setIsDragging(true);
     hasDragged.current = false;
     dragStart.current = {
@@ -166,7 +169,9 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   };
 
   const handlePointerMove = (e) => {
+    if (e.pointerType !== 'mouse') return;
     if (!isDragging) return;
+    
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
     
