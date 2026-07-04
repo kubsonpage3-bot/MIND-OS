@@ -13,37 +13,60 @@ export default function ResetPanel() {
   const resetMutation = useMutation({
     mutationFn: /** @param {string} type */ (type) => djangoApi.profile.reset(type),
     onSuccess: async (data, variables) => {
-      queryClientInstance.clear();
-      
-      // Force-clear the SW cache to prevent stale data
-      if ('caches' in window) {
-        try {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        } catch (e) {
-          console.error("Failed to clear SW cache:", e);
+      // Phase 2 Compliance: Invalidate specific queries based on reset type
+      if (variables === "training") {
+        queryClientInstance.invalidateQueries({ queryKey: ["trainingLogs"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+      } else if (variables === "streak") {
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
+      } else if (variables === "tasks") {
+        queryClientInstance.invalidateQueries({ queryKey: ["tasks"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+      } else if (variables === "allies") {
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
+      } else if (variables === "skills") {
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
+      } else if (variables === "stats") {
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["inventory"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["active_effects"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["combat_encounters"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["trainingLogs"] });
+      } else if (variables === "nuclear") {
+        queryClientInstance.clear();
+        
+        // Force-clear the SW cache to prevent stale data
+        if ('caches' in window) {
+          try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          } catch (e) {
+            console.error("Failed to clear SW cache:", e);
+          }
         }
+
+        // Clear specific legacy offline-engine localStorage state
+        const keysToClear = [
+          "mindos_game_state", 
+          "mindos_tasks", 
+          "mindos_class",
+          "mindos_activity_logs", 
+          "mindos_hidden_activities",
+          "mindos_prestige",
+          "mindos_scrolls",
+          "mindos_mutators",
+          "mindos_allies",
+          "mindos_skill_tree",
+        ];
+        keysToClear.forEach(key => localStorage.removeItem(key));
       }
 
-      // Clear specific legacy offline-engine localStorage state
-      // (Explicit list prevents wiping valid client-only settings like mindos_settings)
-      const keysToClear = [
-        "mindos_game_state", 
-        "mindos_tasks", 
-        "mindos_class",
-        "mindos_activity_logs", 
-        "mindos_hidden_activities",
-        "mindos_prestige",
-        "mindos_scrolls",
-        "mindos_mutators",
-        "mindos_allies",
-        "mindos_skill_tree",
-      ];
-      keysToClear.forEach(key => localStorage.removeItem(key));
-
       if (variables !== "nuclear") {
-        alert("Reset completed. Refreshing...");
-        window.location.reload();
+        alert("Reset completed successfully.");
       }
     },
     onError: (err) => {
@@ -55,59 +78,34 @@ export default function ResetPanel() {
   const resetTrainingActivities = async () => {
     if (!confirm("Reset all activity logs to Rank F? This will delete all your logged sessions and restore all hidden activities. Cognitive stats (Gf/Gc/Ps/Vm) remain. Continue?")) return;
     setResetting(true);
-    try {
-      localStorage.removeItem("mindos_hidden_activities");
-      localStorage.removeItem("mindos_activity_logs");
-      alert("Training activities reset to Rank F. Refreshing...");
-      window.location.reload();
-    } catch (e) {
-      alert("Error resetting: " + e.message);
-      setResetting(false);
-    }
+    localStorage.removeItem("mindos_hidden_activities");
+    localStorage.removeItem("mindos_activity_logs");
+    resetMutation.mutate("training", { onSettled: () => setResetting(false) });
   };
 
   const resetStreak = async () => {
     if (!confirm("Reset your streak counter? This will set it to 0.")) return;
     setResetting(true);
-    try {
-      await djangoApi.profile.update({ streak: 0 });
-      alert("Streak reset.");
-      window.location.reload();
-    } catch (e) {
-      alert("Error: " + e.message);
-      setResetting(false);
-    }
+    resetMutation.mutate("streak", { onSettled: () => setResetting(false) });
   };
 
   const resetTasks = () => {
     if (!confirm("Delete all tasks (habits, dailies, to-dos)? This cannot be undone.")) return;
     setResetting(true);
     localStorage.removeItem("mindos_tasks");
-    resetMutation.mutate("tasks");
+    resetMutation.mutate("tasks", { onSettled: () => setResetting(false) });
   };
 
   const resetAllies = async () => {
     if (!confirm("Reset ally progress? All unlocked allies will be locked again.")) return;
     setResetting(true);
-    try {
-      alert("Allies reset.");
-      window.location.reload();
-    } catch (e) {
-      alert("Error: " + e.message);
-      setResetting(false);
-    }
+    resetMutation.mutate("allies", { onSettled: () => setResetting(false) });
   };
 
   const resetSkillTree = async () => {
     if (!confirm("Reset skill tree unlocks? All SP will be refunded.")) return;
     setResetting(true);
-    try {
-      alert("Skill tree reset.");
-      window.location.reload();
-    } catch (e) {
-      alert("Error: " + e.message);
-      setResetting(false);
-    }
+    resetMutation.mutate("skills", { onSettled: () => setResetting(false) });
   };
 
   const resetStats = () => {
@@ -115,7 +113,7 @@ export default function ResetPanel() {
     setResetting(true);
     localStorage.removeItem("mindos_game_state");
     localStorage.removeItem("mindos_class");
-    resetMutation.mutate("stats");
+    resetMutation.mutate("stats", { onSettled: () => setResetting(false) });
   };
 
   const resetAllData = async () => {

@@ -21,6 +21,7 @@ import logging
 from django.db import transaction
 
 from rest_framework import viewsets, generics, status, filters
+from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.services.billing_service import (
@@ -30,7 +31,7 @@ from api.services.billing_service import (
 )
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-
+from .constants import ALLIES_CONFIG
 
 from .models import UserProfile, Task, Item, InventoryItem, Recipe
 from .serializers import (
@@ -49,7 +50,6 @@ from .models import (
     BossEncounter,
     UserStats,
     UserAchievement,
-    TrainingSession,
 )
 from .serializers import (
     ActiveEffectSerializer,
@@ -1195,12 +1195,8 @@ class RespecSkillView(generics.GenericAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-from rest_framework.views import APIView
-from .constants import ALLIES_CONFIG
-
 class AlliesConfigView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """Returns static ally config with metadata"""
@@ -1216,10 +1212,14 @@ class AlliesConfigView(APIView):
                 "rank": data.get("rank"),
                 "recruitCost": data.get("recruit_cost"),
                 "upgradeCosts": data.get("upgrade_costs"),
-                "levels": [lvl_data.get("desc") for lvl, lvl_data in sorted(data.get("levels", {}).items())]
+                "levels": [
+                    lvl_data.get("desc")
+                    for lvl, lvl_data in sorted(data.get("levels", {}).items())
+                ],
             }
             allies_list.append(ally)
         return Response(allies_list, status=status.HTTP_200_OK)
+
 
 class RecruitAllyView(generics.GenericAPIView):
     """
@@ -1388,6 +1388,37 @@ class ResetDataView(generics.GenericAPIView):
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
 
+                if reset_type == "training":
+                    from api.models import TrainingSession
+
+                    TrainingSession.objects.filter(user_profile=profile).delete()
+                    profile.humanities_xp = 0.0
+                    profile.save(update_fields=["humanities_xp"])
+                    return Response(
+                        {"message": "Training data reset"}, status=status.HTTP_200_OK
+                    )
+
+                if reset_type == "allies":
+                    profile.recruited_allies.all().delete()
+                    return Response(
+                        {"message": "Allies reset"}, status=status.HTTP_200_OK
+                    )
+
+                if reset_type == "skills":
+                    from api.services.rpg_service import respec_skill_nodes
+
+                    respec_skill_nodes(request.user, free=True)
+                    return Response(
+                        {"message": "Skills reset"}, status=status.HTTP_200_OK
+                    )
+
+                if reset_type == "streak":
+                    profile.streak = 0
+                    profile.save(update_fields=["streak"])
+                    return Response(
+                        {"message": "Streak reset"}, status=status.HTTP_200_OK
+                    )
+
                 if reset_type in ["tasks", "nuclear"]:
                     Task.objects.filter(user=request.user).delete()
                     profile.rank_xp = 0
@@ -1425,8 +1456,8 @@ class ResetDataView(generics.GenericAPIView):
 
                     profile.gf_ceiling = 120.0
                     profile.gc_ceiling = 135.0
-                    profile.ps_ceiling = 115.0
-                    profile.vm_ceiling = 125.0
+                    profile.ps_ceiling = 112.0
+                    profile.vm_ceiling = 138.0
 
                     profile.damage_multiplier = 1.0
                     profile.gold_multiplier = 1.0
@@ -1435,7 +1466,10 @@ class ResetDataView(generics.GenericAPIView):
                     ActiveEffect.objects.filter(user=request.user).delete()
                     SkillCooldown.objects.filter(user=request.user).delete()
                     BossEncounter.objects.filter(user=request.user).delete()
+                    from api.models import TrainingSession
+
                     TrainingSession.objects.filter(user_profile=profile).delete()
+                    profile.humanities_xp = 0.0
 
                     # Direct update as requested
                     UserStats.objects.filter(user=request.user).update(
@@ -1453,10 +1487,12 @@ class ResetDataView(generics.GenericAPIView):
                         prayer_rank=0,
                     )
 
-                if reset_type == "nuclear":
-                    InventoryItem.objects.filter(user_profile=profile).delete()
+                if reset_type in ["stats", "nuclear"]:
                     profile.unlocked_skills.all().delete()
                     profile.recruited_allies.all().delete()
+
+                if reset_type == "nuclear":
+                    InventoryItem.objects.filter(user_profile=profile).delete()
                     UserAchievement.objects.filter(user=request.user).delete()
 
                 profile.save()
