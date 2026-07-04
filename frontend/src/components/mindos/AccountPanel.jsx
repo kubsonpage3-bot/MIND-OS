@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X } from "lucide-react";
+import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X, Crown, ExternalLink } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { djangoApi } from "@/api/djangoClient";
 
 export default function AccountPanel() {
   const { profile, logout } = useDjangoAuth();
@@ -35,6 +36,18 @@ export default function AccountPanel() {
     setDeleteStatus("done");
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      const data = await djangoApi.billing.createPortalSession();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to open subscription portal.");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -58,6 +71,27 @@ export default function AccountPanel() {
           className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-sm"
         />
       </div>
+
+      {/* Subscription */}
+      {profile?.is_premium && (
+        <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-3 relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center gap-2">
+            <Crown className="w-3.5 h-3.5 text-amber-500" />
+            <span className="font-mono text-xs font-bold text-amber-500">Premium Subscription</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground/80 font-mono">
+            You are currently subscribed to MIND OS Premium. Thank you for your support!
+          </p>
+          <button
+            onClick={handleManageSubscription}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500/10 text-amber-500 font-mono text-[10px] transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Manage Subscription
+          </button>
+        </div>
+      )}
 
       {/* Account Info */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">

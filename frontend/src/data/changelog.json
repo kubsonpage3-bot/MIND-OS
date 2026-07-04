@@ -11,7 +11,8 @@
       { "type": "balance", "text": "Prestige rebirths now grant a free Skill Tree reset, refunding all earned Skill Points so you can rebuild your character with the new permanent bonuses." },
       { "type": "fix", "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory." },
       { "type": "balance", "text": "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths." },
-      { "type": "feature", "text": "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation." }
+      { "type": "feature", "text": "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation." },
+      { "type": "feature", "text": "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)." }
     ]
   },
   {
@@ -101,6 +102,7 @@
     ]
   },
   {
+
     "version": "1.4.2",
     "date": "2026-07-03",
     "changes": [

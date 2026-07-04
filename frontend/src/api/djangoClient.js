@@ -204,6 +204,18 @@ async function handleUnauthorized(endpoint, options) {
 
 // Django API endpoints
 export const djangoApi = {
+  // ————————————————————————————————————————————————————————————————————————
+  // BILLING
+  // ————————————————————————————————————————————————————————————————————————
+  billing: {
+    createCheckoutSession: async () => {
+      return djangoFetch("/billing/create-checkout-session/", { method: 'POST' });
+    },
+    createPortalSession: async () => {
+      return djangoFetch("/billing/create-portal-session/", { method: 'POST' });
+    }
+  },
+
   auth: {
     login: (username, password) =>
       djangoFetch('/auth/token/', {

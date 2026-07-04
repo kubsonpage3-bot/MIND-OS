@@ -26,6 +26,7 @@ import RivalTab from "@/components/mindos/RivalTab";
 import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import TabGuideModal from "@/components/mindos/TabGuideModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
+import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
@@ -77,6 +78,39 @@ function TabPanel({ title, children }) {
       <div className="p-4">
         {children}
       </div>
+    </div>
+  );
+}
+
+function PremiumGate({ isPremium, children, showNotice = false }) {
+  const [showModal, setShowModal] = useState(false);
+  if (isPremium) return children;
+  
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      <div className="filter blur-md opacity-40 pointer-events-none select-none">
+        {children}
+      </div>
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-black/40 backdrop-blur-[2px]">
+        <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-3">
+          <span className="text-2xl">👑</span>
+        </div>
+        <h3 className="text-lg font-bold font-mono text-white mb-2">Premium Feature</h3>
+        <p className="text-xs font-mono text-muted-foreground mb-4 max-w-xs">
+          Unlock advanced tools, new character classes, and support development.
+        </p>
+        {showNotice && (
+          <p className="text-[10px] font-mono text-amber-500 mb-4 max-w-xs">
+            // TODO: Pomodoro has no backend enforcement yet — UI-only gate, revisit if backend persistence is added
+          </p>
+        )}
+        <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+          Upgrade Now
+        </button>
+      </div>
+      <AnimatePresence>
+        {showModal && <PremiumUpgradeModal onClose={() => setShowModal(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
@@ -516,12 +550,16 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               )}
               {activeSection === "pomodoro" && (
                 <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
-                  <PomodoroPanel />
+                  <PremiumGate isPremium={profile?.is_premium} showNotice={true}>
+                    <PomodoroPanel />
+                  </PremiumGate>
                 </TabPanel>
               )}
               {activeSection === "calendar" && (
                 <TabPanel title={"📅 " + t("sidebar.sections.calendar", "CALENDAR").toUpperCase()}>
-                  <CalendarPanel />
+                  <PremiumGate isPremium={profile?.is_premium}>
+                    <CalendarPanel />
+                  </PremiumGate>
                 </TabPanel>
               )}
 

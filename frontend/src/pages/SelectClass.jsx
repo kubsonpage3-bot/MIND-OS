@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import { djangoApi } from "@/api/djangoClient";
 import { queryClientInstance } from "@/lib/query-client";
@@ -10,6 +10,11 @@ export default function SelectClass() {
   const location = useLocation();
   const isChanging = location.state?.changingClass;
   const [errorMsg, setErrorMsg] = useState(null);
+
+  const { data: profile } = useQuery({
+    queryKey: ["userprofile"],
+    queryFn: () => djangoApi.profile.get()
+  });
 
   const mutation = useMutation({
     mutationFn: async (classId) => {
@@ -50,6 +55,7 @@ export default function SelectClass() {
         )}
 
         <ClassSelector 
+          isPremium={profile?.is_premium}
           onChoose={async (classId) => {
             await mutation.mutateAsync(classId);
           }} 

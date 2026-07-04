@@ -495,6 +495,57 @@ class BossEncounterView(generics.ListAPIView):
         return BossEncounter.objects.filter(user=self.request.user)
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Billing & Premium (Stripe)
+# ─────────────────────────────────────────────────────────────────────────────
+
+from api.services.billing_service import (
+    create_checkout_session,
+    create_portal_session,
+    handle_stripe_webhook,
+)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_checkout_session_view(request):
+    """POST /api/billing/create-checkout-session/"""
+    try:
+        url = create_checkout_session(request.user)
+        return Response({"url": url})
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"Checkout error: {e}")
+        return Response({"error": "Failed to create checkout session"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_portal_session_view(request):
+    """POST /api/billing/create-portal-session/"""
+    try:
+        url = create_portal_session(request.user)
+        return Response({"url": url})
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"Portal error: {e}")
+        return Response({"error": "Failed to create portal session"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def stripe_webhook_view(request):
+    """POST /api/billing/webhook/"""
+    payload = request.body
+    sig_header = request.headers.get("Stripe-Signature", "")
+
+    try:
+        handle_stripe_webhook(payload, sig_header)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"status": "success"})
+
+
 class BossSummonView(generics.GenericAPIView):
     """
     POST /api/combat/summon/
@@ -1587,6 +1638,12 @@ class CalendarEventViewSet(viewsets.ModelViewSet):
 
     serializer_class = CalendarEventSerializer
     permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if not hasattr(request.user, 'profile') or not request.user.profile.is_premium:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Premium subscription required to access Calendar.")
 
     def get_queryset(self):
         return CalendarEvent.objects.filter(user=self.request.user)

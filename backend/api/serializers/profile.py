@@ -157,6 +157,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return [a.achievement_id for a in obj.user.achievements.all()]
 
     def update(self, instance, validated_data):
+        # Premium class check
+        if "character_class" in validated_data:
+            new_class = validated_data["character_class"]
+            # Only ascetic is free. If changing TO a premium class, require premium.
+            # If they already have a premium class and are staying on it, that's fine.
+            # But here they are updating it, so we check if new_class is a premium one.
+            free_classes = ["ascetic", "wanderer"] # Allow wanderer just in case it's still default somewhere
+            if new_class not in free_classes and not instance.is_premium:
+                # If they already have this exact premium class, it's a no-op, let it pass
+                if instance.character_class != new_class:
+                    raise ValidationError({"character_class": "This class requires a Premium subscription."})
+
         # Handle standard fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

@@ -86,6 +86,11 @@ class UserProfile(models.Model):
     # Уровень престижа
     prestige_count = models.PositiveIntegerField(default=0, verbose_name="Престиж")
 
+    # Премиум-подписка (Stripe)
+    is_premium = models.BooleanField(default=False, verbose_name="Премиум статус")
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="Stripe Customer ID")
+    stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="Stripe Subscription ID")
+
     # Track last used for void_clarity active skill passive
     void_clarity_last_used = models.DateTimeField(null=True, blank=True)
     # Престиж-множители (перманентные бонусы)
