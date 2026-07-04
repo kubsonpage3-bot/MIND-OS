@@ -219,7 +219,7 @@ export default function AppShell({ defaultTab = "mind" }) {
           </>
         )}
         {activeApp === "life" && <LifeOS />}
-      </div>
+      </motion.div>
 
       {/* Bottom navigation — mobile only */}
       <BottomNav
