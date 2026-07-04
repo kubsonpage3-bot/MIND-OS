@@ -13,6 +13,13 @@ const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOUR_PX = 64; // px per hour
 const MIN_EVENT_MINS = 15;
 
+function getLocalDateStr(date = new Date()) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 const CATEGORY_COLORS = {
   Math: "#3b82f6", Physics: "#3b82f6", Coding: "#3b82f6",
   English: "#00cc88", Reading: "#22c55e", Philosophy: "#22c55e",
@@ -118,17 +125,17 @@ export default function CalendarPanel() {
   const [events, setEvents] = useState([]);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalDateStr(new Date());
 
   // API Queries
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks"],
-    queryFn: () => djangoFetch("/tasks/").then(r => r.json()).then(data => data.results || data || []),
+    queryFn: () => djangoFetch("/tasks/").then(data => data.results || data || []),
   });
 
   const { data: apiEvents = [] } = useQuery({
     queryKey: ["calendar-events"],
-    queryFn: () => djangoFetch("/calendar/events/").then(r => r.json()).then(data => data.results || data || []),
+    queryFn: () => djangoFetch("/calendar/events/").then(data => data.results || data || []),
   });
 
   // Sync local events state with API data when it loads
@@ -151,7 +158,7 @@ export default function CalendarPanel() {
         title: ev.title, description: ev.description,
         date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
       })
-    }).then(r => r.json()),
+    }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
   });
 
@@ -161,7 +168,7 @@ export default function CalendarPanel() {
         title: ev.title, description: ev.description,
         date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
       })
-    }).then(r => r.json()),
+    }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
   });
 
@@ -183,7 +190,7 @@ export default function CalendarPanel() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [newEvent, setNewEvent] = useState({
     title: "", description: "",
-    date: new Date().toISOString().split("T")[0],
+    date: getLocalDateStr(new Date()),
     startTime: "09:00", endTime: "10:00", color: "#3b82f6",
   });
 
@@ -209,7 +216,7 @@ export default function CalendarPanel() {
       createEventMut.mutate(createdEv);
     }
     setShowForm(false);
-    setNewEvent({ title: "", description: "", date: new Date().toISOString().split("T")[0], startTime: "09:00", endTime: "10:00", color: "#3b82f6" });
+    setNewEvent({ title: "", description: "", date: getLocalDateStr(new Date()), startTime: "09:00", endTime: "10:00", color: "#3b82f6" });
   };
 
   const deleteEvent = (id) => {
@@ -379,7 +386,7 @@ export default function CalendarPanel() {
   const handlers = { onDragStart, onResizeStart, openEdit, deleteEvent, onGridClick };
 
   const weekDays = getWeekDays(currentDate);
-  const currentDateStr = currentDate.toISOString().split("T")[0];
+  const currentDateStr = getLocalDateStr(currentDate);
 
   return (
     <div className="space-y-3 select-none">
@@ -466,7 +473,7 @@ export default function CalendarPanel() {
               <div className="grid sticky top-0 z-20 bg-card border-b border-border" style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }}>
                 <div />
                 {weekDays.map((day, i) => {
-                  const ds = day.toISOString().split("T")[0];
+                  const ds = getLocalDateStr(day);
                   const isToday = ds === todayStr;
                   return (
                     <div key={i} className="text-center py-2 border-l border-border/30">
@@ -491,7 +498,7 @@ export default function CalendarPanel() {
                 </div>
                 {/* Day columns */}
                 {weekDays.map((day, i) => {
-                  const ds = day.toISOString().split("T")[0];
+                  const ds = getLocalDateStr(day);
                   return (
                     <div key={i} className="border-l border-border/30" data-day-col={ds}>
                       <DayColumn dateStr={ds} colDate={ds} getDayEvents={getDayEvents} handlers={handlers} />
