@@ -40,7 +40,7 @@ export default function ShareCard({ profile }) {
           
           {/* Portrait Container */}
           <div className="w-[560px] h-[560px] flex items-center justify-center bg-black/40 rounded-3xl overflow-hidden border-[4px]" style={{ borderColor: `${currentRank.color}20`, boxShadow: `inset 0 0 100px ${currentRank.color}20` }}>
-            <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={560} />
+            <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={560} hideLabel={true} />
           </div>
         </div>
 

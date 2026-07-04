@@ -4,6 +4,9 @@
     "date": "2026-07-04",
     "changes": [
       { "type": "fix", "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font." },
+      { "type": "fix", "text": "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header." },
+      { "type": "fix", "text": "Slightly increased the global game font size to improve readability of small UI labels." },
+      { "type": "fix", "text": "Fixed a crash on load related to missing translations." },
       { "type": "fix", "text": "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency." },
       { "type": "feature", "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language." },
       { "type": "content", "text": "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian." }

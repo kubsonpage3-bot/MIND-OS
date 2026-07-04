@@ -112,7 +112,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
               imageRendering: "pixelated",
             }}>
             {classData.chosen
-              ? <PixelCharacter rankId={rankId} rankColor={classColor} size={60} />
+              ? <PixelCharacter rankId={rankId} rankColor={classColor} size={60} hideLabel={true} />
               : <span style={{ fontSize: 28 }}>⚔️</span>}
           </div>
         </div>

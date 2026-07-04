@@ -432,7 +432,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               border: `2px solid ${currentRank.color}44`,
               boxShadow: `0 4px 20px ${currentRank.color}18`,
             }}>
-            <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} />
+            <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} hideLabel={true} />
             <div className="font-mono text-xs font-black tracking-widest" style={{ color: classColor }}>{chosenClass ? t(`classes.${chosenClass.id}`, chosenClass.name) : ""}</div>
             <div className="font-mono text-sm font-bold px-3 py-1 rounded-lg"
               style={{ color: currentRank.color, background: `${currentRank.color}20`, border: `1px solid ${currentRank.color}50` }}>

@@ -36,7 +36,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
       <div className="flex flex-col items-center py-6 px-4">
         <div className="w-28 h-28 rounded-2xl overflow-hidden flex items-center justify-center mb-3"
           style={{ background: `radial-gradient(circle at center, ${classColor}33 0%, transparent 70%)`, border: `2px solid ${classColor}44` }}>
-          <PixelCharacter rankId={rankId} rankColor={classColor} size={100} />
+          <PixelCharacter rankId={rankId} rankColor={classColor} size={100} hideLabel={true} />
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{userName || "Hero"}</div>
         <div style={{ fontFamily: "'Pixeltype'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>

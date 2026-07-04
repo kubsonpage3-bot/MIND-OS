@@ -7,8 +7,8 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-  /* Reduced from 250% to 100% to fix globally bloated text size */
-  size-adjust: 100%;
+  /* Reduced from 250% to 120% to fix globally bloated text size while keeping small labels readable */
+  size-adjust: 120%;
 }
 
 @tailwind base;

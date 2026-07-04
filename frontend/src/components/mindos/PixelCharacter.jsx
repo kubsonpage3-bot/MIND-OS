@@ -159,7 +159,7 @@ function PixelBackground({ cfg }) {
   );
 }
 
-export default function PixelCharacter({ rankId, rankColor, size = 140 }) {
+export default function PixelCharacter({ rankId, rankColor, size = 140, hideLabel = false }) {
   const cfg = RANK_CONFIG[rankId] || RANK_CONFIG["F"];
   const sprite = RANK_SPRITES[rankId] || RANK_SPRITES["F"];
 
@@ -298,18 +298,20 @@ export default function PixelCharacter({ rankId, rankColor, size = 140 }) {
       </div>
 
       {/* Rank label */}
-      <div
-        className="font-mono text-[8px] sm:text-[9px] tracking-[0.25em] uppercase font-bold px-1.5 py-0.5 rounded truncate w-full text-center"
-        style={{
-          color: cfg.frameColor,
-          textShadow: `0 0 8px ${cfg.frameColor}`,
-          background: `${cfg.frameColor}15`,
-          border: `1px solid ${cfg.frameColor}40`,
-          fontFamily: "'Space Mono', monospace",
-        }}
-      >
-        {rankId} · {cfg.label}
-      </div>
+      {!hideLabel && (
+        <div
+          className="font-mono text-[8px] sm:text-[9px] tracking-[0.25em] uppercase font-bold px-1.5 py-0.5 rounded truncate w-full text-center"
+          style={{
+            color: cfg.frameColor,
+            textShadow: `0 0 8px ${cfg.frameColor}`,
+            background: `${cfg.frameColor}15`,
+            border: `1px solid ${cfg.frameColor}40`,
+            fontFamily: "'Space Mono', monospace",
+          }}
+        >
+          {rankId} · {cfg.label}
+        </div>
+      )}
     </div>
   );
 }
