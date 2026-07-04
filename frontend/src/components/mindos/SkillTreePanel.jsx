@@ -284,7 +284,10 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       <div 
         ref={scrollRef}
         className="flex-1 overflow-auto relative select-none"
-        style={{ scrollbarWidth: "none" }} // Hide scrollbar for immersion
+        style={{ scrollbarWidth: "none", touchAction: "pan-x pan-y" }} // Hide scrollbar for immersion
+        onTouchStart={e => e.stopPropagation()}
+        onTouchMove={e => e.stopPropagation()}
+        onTouchEnd={e => e.stopPropagation()}
       >
         <div 
           className="relative"
@@ -331,9 +334,9 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
 
           {/* Central Core */}
           <div 
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full"
+            className="absolute flex items-center justify-center rounded-full"
             style={{ 
-              left: CENTER_X, top: CENTER_Y, width: 60, height: 60,
+              left: CENTER_X - 30, top: CENTER_Y - 30, width: 60, height: 60,
               background: "radial-gradient(circle, #fff 0%, #f0c040 30%, transparent 70%)",
               boxShadow: "0 0 40px rgba(240,192,64,0.5)",
             }}
@@ -356,10 +359,10 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                   setSelectedNodeId(node.id);
                   playSound("click");
                 }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full transition-all duration-300"
+                className="absolute flex items-center justify-center rounded-full transition-all duration-300"
                 style={{
-                  left: node.x,
-                  top: node.y,
+                  left: node.x - 22,
+                  top: node.y - 22,
                   width: 44,
                   height: 44,
                   border: `2px solid ${isUnlocked ? node.color : prereqMet ? `${node.color}80` : "#2a2a3a"}`,
