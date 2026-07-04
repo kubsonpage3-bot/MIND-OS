@@ -3,7 +3,7 @@ import { Brain, Sparkles, Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "@/components/navigation/Sidebar";
-import BottomNav from "@/components/navigation/BottomNav";
+import BottomNav, { MOBILE_SECTIONS } from "@/components/navigation/BottomNav";
 import CharacterStatusBar from "@/components/navigation/CharacterStatusBar";
 import Dashboard from "@/pages/Dashboard";
 import LifeOS from "@/pages/LifeOS";
@@ -39,7 +39,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
   const SWIPE_THRESHOLD = 60;
-  const SWIPE_TABS = ['dashboard', 'tasks', 'character', 'stats', 'settings'];
+  const SWIPE_TABS = MOBILE_SECTIONS.map(s => s.navTarget);
   const { profile: djangoProfile } = useDjangoAuth();
   const [currentTheme, setCurrentTheme] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}").theme || 'dark'; } catch { return 'dark'; }
@@ -120,7 +120,20 @@ export default function AppShell({ defaultTab = "mind" }) {
     if (touchStartX === null) return;
     const deltaX = touchStartX - e.changedTouches[0].clientX;
     if (Math.abs(deltaX) < SWIPE_THRESHOLD) { setTouchStartX(null); return; }
-    const currentIndex = SWIPE_TABS.indexOf(activeSection);
+    
+    // Map current section to its primary swipe tab if it's a sub-tab
+    const getSwipeIndex = (section) => {
+      if (["history", "pomodoro", "calendar", "stats"].includes(section)) {
+        return SWIPE_TABS.indexOf("history");
+      }
+      return SWIPE_TABS.indexOf(section);
+    };
+    
+    const currentIndex = getSwipeIndex(activeSection);
+    
+    // Fallback if section isn't mapped
+    if (currentIndex === -1) { setTouchStartX(null); return; }
+
     if (deltaX > 0 && currentIndex < SWIPE_TABS.length - 1) {
       handleNavigate(SWIPE_TABS[currentIndex + 1], null);
     } else if (deltaX < 0 && currentIndex > 0) {

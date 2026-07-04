@@ -53,6 +53,7 @@ const TABS = [
 
 const TOOLS_TABS = [
   { id: "history", label: "History" },
+  { id: "stats", label: "Projections" },
   { id: "pomodoro", label: "Pomodoro" },
   { id: "calendar", label: "Calendar" },
 ];
@@ -499,16 +500,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 </TabPanel>
               )}
 
-              {/* Projections/Stats section */}
+              {/* Tools/Stats sections */}
+              {["history", "pomodoro", "calendar", "stats"].includes(activeSection) && (
+                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
+              )}
               {activeSection === "stats" && (
                 <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
                   <ProjectionTable profile={profile} logs={logs} />
                 </TabPanel>
-              )}
-
-              {/* Tools sections */}
-              {["history", "pomodoro", "calendar"].includes(activeSection) && (
-                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
               )}
               {activeSection === "history" && (
                 <TabPanel title={"📋 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>

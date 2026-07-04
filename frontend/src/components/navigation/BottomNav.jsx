@@ -8,12 +8,12 @@ function haptic() {
   hapticLight();
 }
 
-const NAV_ITEMS = [
-  { id: "dashboard", label: "Home", icon: LayoutDashboard },
-  { id: "tasks", label: "Tasks", icon: Swords },
-  { id: "character", label: "Hero", icon: User },
-  { id: "tools", label: "Stats", icon: BarChart2 },
-  { id: "settings", label: "Settings", icon: Settings },
+export const MOBILE_SECTIONS = [
+  { id: "dashboard", navTarget: "dashboard", label: "Home", icon: LayoutDashboard },
+  { id: "tasks", navTarget: "tasks", label: "Tasks", icon: Swords },
+  { id: "character", navTarget: "character", label: "Hero", icon: User },
+  { id: "tools", navTarget: "history", label: "Stats", icon: BarChart2 },
+  { id: "settings", navTarget: "settings", label: "Settings", icon: Settings },
 ];
 
 
@@ -21,10 +21,9 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
   const { t } = useTranslation();
   const handleTap = (item) => {
     haptic(12);
-    if (item.id === "character") onNavigate(item.id, activeSubItem || "overview");
-    else if (item.id === "settings") onNavigate(item.id, "appearance");
-    else if (item.id === "tools") onNavigate("history", null);
-    else onNavigate(item.id, null);
+    if (item.id === "character") onNavigate(item.navTarget, activeSubItem || "overview");
+    else if (item.id === "settings") onNavigate(item.navTarget, "appearance");
+    else onNavigate(item.navTarget, null);
   };
 
   return (
@@ -42,7 +41,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
           overscrollBehavior: "none",
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {MOBILE_SECTIONS.map((item) => {
           const Icon = item.icon;
           const isActive = item.id === "tools" 
             ? ["history", "pomodoro", "calendar", "stats"].includes(activeSection)

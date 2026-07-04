@@ -3,8 +3,10 @@
     "version": "1.4.8",
     "date": "2026-07-04",
     "changes": [
-      { "type": "fix", "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font." },
+      { "type": "fix", "text": "Fixed a bug where the 'Activities' sub-tab under Tasks displayed a raw translation key instead of the correct label." },
+    { "type": "fix", "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font." },
       { "type": "fix", "text": "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header." },
+      { "type": "fix", "text": "Fixed a bug where swiping left/right in the mobile view would incorrectly land on the Projections screen instead of the main Stats (History) screen. Tap and swipe navigation logic is now unified." },
       { "type": "fix", "text": "Fixed an issue on mobile where the Stats tab (History/Pomodoro/Calendar) required horizontal scrolling; it now wraps properly to multiple lines." },
       { "type": "fix", "text": "Increased the font size of the HP/MP/XP, coin, and streak labels in the top status bar for better readability." },
       { "type": "fix", "text": "Fixed a visual bug where the top status bar (HP/MP) and other small UI elements used fallback fonts instead of the correct pixel fonts." },
