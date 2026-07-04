@@ -252,7 +252,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   };
 
   const mutation = useMutation({
-    mutationFn: djangoApi.shop.buy,
+    mutationFn: (buyData) => djangoApi.shop.buy(buyData.item_id),
     onMutate: async (buyData) => {
       await queryClient.cancelQueries({ queryKey: ["userprofile"] });
       /** @type {any} */
