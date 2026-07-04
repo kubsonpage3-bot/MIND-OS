@@ -7,7 +7,8 @@
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-  size-adjust: 250%;
+  /* Reduced from 250% to 100% to fix globally bloated text size */
+  size-adjust: 100%;
 }
 
 @tailwind base;
@@ -196,9 +197,9 @@
     cursor: pointer;
   }
 
-  .font-game { font-family: 'Pixeltype', monospace; }
-  .font-hud  { font-family: 'Pixeltype', monospace; }
-  .font-mono { font-family: 'Pixeltype', monospace; font-size: 0.7em; }
+  .font-game { font-family: 'PixeloidSans', monospace; }
+  .font-hud  { font-family: 'PixeloidSans', monospace; }
+  .font-mono { font-family: 'PixeloidSans', monospace; font-size: 0.8em; }
   .font-inter { font-family: 'Nunito', sans-serif; }
 }
 

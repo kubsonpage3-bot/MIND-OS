@@ -3,6 +3,7 @@
     "version": "1.4.8",
     "date": "2026-07-04",
     "changes": [
+      { "type": "fix", "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font." },
       { "type": "fix", "text": "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency." },
       { "type": "feature", "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language." },
       { "type": "content", "text": "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian." }
