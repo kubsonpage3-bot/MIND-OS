@@ -14,7 +14,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const queryClient = useQueryClient();
 
   const count = profile?.prestige_count || prestige?.count || 0;
-  const xpRequired = profile?.prestige_xp_required || 9000;
+  const xpRequired = profile?.prestige_xp_required || 8000;
   const canPrestige = rankXP >= xpRequired;
   
   const prestigeMutation = useMutation({
