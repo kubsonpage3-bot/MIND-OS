@@ -1721,3 +1721,113 @@ class CalendarEventViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class PartyFeedView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from api.models import PartyEvent
+        from api.serializers.party import PartyEventSerializer
+
+        try:
+            party = request.user.partymembership.party
+        except Exception:
+            return Response(
+                {"error": "Not in a party"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        events = PartyEvent.objects.filter(party=party).order_by("-created_at")
+        page = self.paginate_queryset(events)
+        if page is not None:
+            serializer = PartyEventSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = PartyEventSerializer(
+            events, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+
+class PartyEventReactView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, event_id):
+        from api.services.party_service import toggle_reaction
+
+        emoji = request.data.get("emoji", "").strip()
+        allowed_emojis = ["🔥", "👏", "💪", "🎉"]
+        if emoji not in allowed_emojis:
+            return Response(
+                {"error": "Invalid emoji"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            res = toggle_reaction(request.user, event_id, emoji)
+            return Response(res, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PartyBuffView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.party_service import send_buff
+
+        receiver_username = request.data.get("receiver_username")
+        effect_code = request.data.get("effect_code")
+        if not receiver_username or not effect_code:
+            return Response(
+                {"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            res = send_buff(request.user, receiver_username, effect_code)
+            return Response(res, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PartyLeaderboardView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            party = request.user.partymembership.party
+        except Exception:
+            return Response(
+                {"error": "Not in a party"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Ensure weekly_xp is current for everyone
+        from django.utils import timezone
+
+        today_iso = timezone.now().date().isocalendar()
+        current_iso_week = f"{today_iso[0]}-W{today_iso[1]:02d}"
+
+        memberships = party.memberships.select_related("user__profile").all()
+        for mem in memberships:
+            if mem.weekly_xp_reset_week != current_iso_week:
+                mem.weekly_xp = 0
+                mem.weekly_xp_reset_week = current_iso_week
+                mem.save(update_fields=["weekly_xp", "weekly_xp_reset_week"])
+
+        memberships = memberships.order_by("-weekly_xp")
+
+        # Serialize list
+        data = []
+        for mem in memberships:
+            # Reusing parts of PartyMembershipSerializer, or just a simple dict
+            data.append(
+                {
+                    "username": mem.user.username,
+                    "weekly_xp": mem.weekly_xp,
+                    "level": mem.user.profile.level,
+                    "avatar": mem.user.profile.avatar,
+                }
+            )
+
+        return Response({"leaderboard": data}, status=status.HTTP_200_OK)

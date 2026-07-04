@@ -3,136 +3,344 @@
     "version": "1.4.11",
     "date": "2026-07-05",
     "changes": [
-      { "type": "fix", "text": "Fixed several data sync issues when resetting progress in Settings. Resetting your Skill Tree now properly refunds all Skill Points, and the UI now updates instantly without requiring a page reload." }
+      {
+        "type": "fix",
+        "text": "Fixed several data sync issues when resetting progress in Settings. Resetting your Skill Tree now properly refunds all Skill Points, and the UI now updates instantly without requiring a page reload."
+      },
+      {
+        "type": "feature",
+        "text": "Overhauled the Party System! Added a new Activity Feed to see your party members completing tasks, leveling up, and hitting milestones. You can now react to their activities with emojis."
+      },
+      {
+        "type": "feature",
+        "text": "Added a Weekly Party Leaderboard! Compete with your party members based on XP earned each week. Resets every Monday."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced a Party Streak system! The streak grows as long as EVERY party member completes at least one daily task each day. Don't let your party down!"
+      },
+      {
+        "type": "feature",
+        "text": "Added Party Buffs! You can now send active buffs (like Heal or Focus) to your party members once every 24 hours to help them out."
+      },
+      {
+        "type": "polish",
+        "text": "Redesigned the Party screen with new sub-tabs (Members, Feed, Ranking) to easily navigate the new social features."
+      }
     ]
   },
   {
     "version": "1.4.10",
     "date": "2026-07-04",
     "changes": [
-      { "type": "fix", "text": "Fixed a visual issue in the Allies screen where character portraits didn't correctly match their names and lore descriptions." },
-      { "type": "polish", "text": "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a 'peek' effect." },
-      { "type": "polish", "text": "Moved the Language & Region settings into the Gameplay tab on mobile to declutter the top navigation bar." },
-      { "type": "balance", "text": "Reduced the XP requirement to Prestige from 9,000 XP to 8,000 XP to make the endgame loop slightly faster." },
-      { "type": "feature", "text": "Redesigned the Prestige system with a gradual snowball effect. Each rebirth now requires progressively more XP (+1,000 per level) but grants +15% Max Mana, +15% XP/Gold Multipliers, and an extra Mutator slot." },
-      { "type": "feature", "text": "Introduced the post-SSS 'Ascendant' rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style." },
-      { "type": "balance", "text": "Prestige rebirths now grant a free Skill Tree reset, refunding all earned Skill Points so you can rebuild your character with the new permanent bonuses." },
-      { "type": "fix", "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory." },
-      { "type": "balance", "text": "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths." },
-      { "type": "feature", "text": "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation." },
-      { "type": "feature", "text": "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)." },
-      { "type": "polish", "text": "Unified Language & Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar." }
+      {
+        "type": "fix",
+        "text": "Fixed a visual issue in the Allies screen where character portraits didn't correctly match their names and lore descriptions."
+      },
+      {
+        "type": "polish",
+        "text": "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a 'peek' effect."
+      },
+      {
+        "type": "polish",
+        "text": "Moved the Language & Region settings into the Gameplay tab on mobile to declutter the top navigation bar."
+      },
+      {
+        "type": "balance",
+        "text": "Reduced the XP requirement to Prestige from 9,000 XP to 8,000 XP to make the endgame loop slightly faster."
+      },
+      {
+        "type": "feature",
+        "text": "Redesigned the Prestige system with a gradual snowball effect. Each rebirth now requires progressively more XP (+1,000 per level) but grants +15% Max Mana, +15% XP/Gold Multipliers, and an extra Mutator slot."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced the post-SSS 'Ascendant' rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style."
+      },
+      {
+        "type": "balance",
+        "text": "Prestige rebirths now grant a free Skill Tree reset, refunding all earned Skill Points so you can rebuild your character with the new permanent bonuses."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory."
+      },
+      {
+        "type": "balance",
+        "text": "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths."
+      },
+      {
+        "type": "feature",
+        "text": "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)."
+      },
+      {
+        "type": "polish",
+        "text": "Unified Language & Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar."
+      }
     ]
   },
   {
     "version": "1.4.9",
     "date": "2026-07-04",
     "changes": [
-      { "type": "fix", "text": "Fixed a critical bug where calendar events and tasks failed to appear on the calendar due to a background data parsing error." },
-      { "type": "fix", "text": "Fixed a timezone issue where calendar events were sometimes saved to the adjacent day instead of the selected local date." }
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where calendar events and tasks failed to appear on the calendar due to a background data parsing error."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a timezone issue where calendar events were sometimes saved to the adjacent day instead of the selected local date."
+      }
     ]
   },
   {
     "version": "1.4.8",
     "date": "2026-07-04",
     "changes": [
-      { "type": "fix", "text": "Fixed a bug where the 'Activities' sub-tab under Tasks displayed a raw translation key instead of the correct label." },
-    { "type": "fix", "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font." },
-      { "type": "fix", "text": "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header." },
-      { "type": "fix", "text": "Fixed a bug where swiping left/right in the mobile view would incorrectly land on the Projections screen instead of the main Stats (History) screen. Tap and swipe navigation logic is now unified." },
-      { "type": "fix", "text": "Fixed an issue on mobile where the Stats tab (History/Pomodoro/Calendar) required horizontal scrolling; it now wraps properly to multiple lines." },
-      { "type": "fix", "text": "Increased the font size of the HP/MP/XP, coin, and streak labels in the top status bar for better readability." },
-      { "type": "fix", "text": "Fixed a visual bug where the top status bar (HP/MP) and other small UI elements used fallback fonts instead of the correct pixel fonts." },
-      { "type": "fix", "text": "Slightly increased the global game font size to improve readability of small UI labels." },
-      { "type": "fix", "text": "Fixed a crash on load related to missing translations." },
-      { "type": "fix", "text": "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency." },
-      { "type": "feature", "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language." },
-      { "type": "content", "text": "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian." }
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the 'Activities' sub-tab under Tasks displayed a raw translation key instead of the correct label."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where swiping left/right in the mobile view would incorrectly land on the Projections screen instead of the main Stats (History) screen. Tap and swipe navigation logic is now unified."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue on mobile where the Stats tab (History/Pomodoro/Calendar) required horizontal scrolling; it now wraps properly to multiple lines."
+      },
+      {
+        "type": "fix",
+        "text": "Increased the font size of the HP/MP/XP, coin, and streak labels in the top status bar for better readability."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a visual bug where the top status bar (HP/MP) and other small UI elements used fallback fonts instead of the correct pixel fonts."
+      },
+      {
+        "type": "fix",
+        "text": "Slightly increased the global game font size to improve readability of small UI labels."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a crash on load related to missing translations."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency."
+      },
+      {
+        "type": "feature",
+        "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language."
+      },
+      {
+        "type": "content",
+        "text": "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian."
+      }
     ]
   },
   {
     "version": "1.4.7",
     "date": "2026-07-04",
     "changes": [
-      { "type": "fix", "text": "Removed duplicate sub-navigation bar on the Character tab for mobile users." },
-      { "type": "polish", "text": "Top sub-navigation tabs (Tools, Character) no longer stay pinned to the screen while scrolling on mobile, freeing up screen real estate. Tasks tab retains its pinned behavior." },
-      { "type": "polish", "text": "Unified mobile sub-navigation: Tools and Character tabs now use the same pill-toggle style as Tasks. Character tabs wrap smoothly to multiple rows on small screens for better visibility." },
-      { "type": "feature", "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. 'The Defiant', 'Revenant') based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard." },
-      { "type": "fix", "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the 'AWAKENING' rank title instead of their actual rank." },
-      { "type": "feature", "text": "Redesigned the Skill Tree into an organic node-graph layout with interactive branches and a new detail info-panel." },
-      { "type": "feature", "text": "Added desktop mouse-drag panning to the new Skill Tree for easier navigation." },
-      { "type": "fix", "text": "Fixed text overflow in the Skill Tree info-panel on small mobile screens to guarantee purchase buttons are always visible." },
-      { "type": "fix", "text": "Fixed stiff scrolling behavior on mobile in the Skill Tree by restoring native touch momentum, separate from desktop mouse panning." },
-      { "type": "fix", "text": "Fixed a bug where the bottom navigation 'Stats' button was not highlighted when viewing the Projections/Mastery Radar." },
-      { "type": "fix", "text": "Fixed Skill Tree node misalignment where connector lines didn't precisely hit the center of nodes." },
-      { "type": "fix", "text": "Fixed a mobile swipe conflict where panning the new Skill Tree would accidentally trigger tab navigation." },
-      { "type": "polish", "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar." },
-      { "type": "fix", "text": "Fixed an issue during Class Selection where users had to click the Confirm button twice to enter the dashboard." },
-      { "type": "fix", "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation." },
-      { "type": "fix", "text": "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., 'KubsonM' and 'kubsonm' both work for the same account)." }
+      {
+        "type": "fix",
+        "text": "Removed duplicate sub-navigation bar on the Character tab for mobile users."
+      },
+      {
+        "type": "polish",
+        "text": "Top sub-navigation tabs (Tools, Character) no longer stay pinned to the screen while scrolling on mobile, freeing up screen real estate. Tasks tab retains its pinned behavior."
+      },
+      {
+        "type": "polish",
+        "text": "Unified mobile sub-navigation: Tools and Character tabs now use the same pill-toggle style as Tasks. Character tabs wrap smoothly to multiple rows on small screens for better visibility."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. 'The Defiant', 'Revenant') based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the 'AWAKENING' rank title instead of their actual rank."
+      },
+      {
+        "type": "feature",
+        "text": "Redesigned the Skill Tree into an organic node-graph layout with interactive branches and a new detail info-panel."
+      },
+      {
+        "type": "feature",
+        "text": "Added desktop mouse-drag panning to the new Skill Tree for easier navigation."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed text overflow in the Skill Tree info-panel on small mobile screens to guarantee purchase buttons are always visible."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed stiff scrolling behavior on mobile in the Skill Tree by restoring native touch momentum, separate from desktop mouse panning."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the bottom navigation 'Stats' button was not highlighted when viewing the Projections/Mastery Radar."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Skill Tree node misalignment where connector lines didn't precisely hit the center of nodes."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a mobile swipe conflict where panning the new Skill Tree would accidentally trigger tab navigation."
+      },
+      {
+        "type": "polish",
+        "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue during Class Selection where users had to click the Confirm button twice to enter the dashboard."
+      },
+      {
+        "type": "fix",
+        "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., 'KubsonM' and 'kubsonm' both work for the same account)."
+      }
     ]
   },
   {
     "version": "1.4.6",
     "date": "2026-07-03",
     "changes": [
-      { "type": "fix", "text": "Fixed site crash on load — the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever." }
+      {
+        "type": "fix",
+        "text": "Fixed site crash on load — the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever."
+      }
     ]
   },
   {
     "version": "1.4.5",
     "date": "2026-07-03",
     "changes": [
-      { "type": "feature", "text": "Calendar events are now saved to the cloud — they persist across devices and sessions instead of being lost on browser clear." },
-      { "type": "feature", "text": "Daily tasks with a scheduled time now appear on every day in the Calendar view, automatically recurring." },
-      { "type": "fix", "text": "Fixed duplicate 'Show in Calendar' field appearing twice in the task creation form." },
-      { "type": "fix", "text": "Task creation now correctly saves the scheduled time and calendar visibility settings to the server." }
+      {
+        "type": "feature",
+        "text": "Calendar events are now saved to the cloud — they persist across devices and sessions instead of being lost on browser clear."
+      },
+      {
+        "type": "feature",
+        "text": "Daily tasks with a scheduled time now appear on every day in the Calendar view, automatically recurring."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed duplicate 'Show in Calendar' field appearing twice in the task creation form."
+      },
+      {
+        "type": "fix",
+        "text": "Task creation now correctly saves the scheduled time and calendar visibility settings to the server."
+      }
     ]
   },
   {
     "version": "1.4.4",
     "date": "2026-07-03",
     "changes": [
-      { "type": "fix", "text": "Fixed a visual bug that displayed 'NaN' and missing XP requirements on the Rank Progression screen." }
+      {
+        "type": "fix",
+        "text": "Fixed a visual bug that displayed 'NaN' and missing XP requirements on the Rank Progression screen."
+      }
     ]
   },
   {
     "version": "1.4.3",
     "date": "2026-07-03",
     "changes": [
-      { "type": "feature", "text": "Implemented Changelog system to track user-facing game updates directly in MIND OS." },
-      { "type": "polish", "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card." },
-      { "type": "fix", "text": "Rebuilt ShareCard layout with fixed scaling zones to permanently prevent text clipping and overlap." },
-      { "type": "content", "text": "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style." },
-      { "type": "fix", "text": "Resolved ShareCard text clipping issues for long class titles and removed redundant status labels." },
-      { "type": "feature", "text": "Updated Settings to show direct PayPal donation info and removed deprecated support website links." },
-      { "type": "fix", "text": "Synchronized the Sidebar navigation menu with the Settings tab bar, restoring missing sections and removing dead links." },
-      { "type": "feature", "text": "Migrated the local privacy tracking toggle into a robust, cloud-synced backend setting." }
+      {
+        "type": "feature",
+        "text": "Implemented Changelog system to track user-facing game updates directly in MIND OS."
+      },
+      {
+        "type": "polish",
+        "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card."
+      },
+      {
+        "type": "fix",
+        "text": "Rebuilt ShareCard layout with fixed scaling zones to permanently prevent text clipping and overlap."
+      },
+      {
+        "type": "content",
+        "text": "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style."
+      },
+      {
+        "type": "fix",
+        "text": "Resolved ShareCard text clipping issues for long class titles and removed redundant status labels."
+      },
+      {
+        "type": "feature",
+        "text": "Updated Settings to show direct PayPal donation info and removed deprecated support website links."
+      },
+      {
+        "type": "fix",
+        "text": "Synchronized the Sidebar navigation menu with the Settings tab bar, restoring missing sections and removing dead links."
+      },
+      {
+        "type": "feature",
+        "text": "Migrated the local privacy tracking toggle into a robust, cloud-synced backend setting."
+      }
     ]
   },
   {
-
     "version": "1.4.2",
     "date": "2026-07-03",
     "changes": [
-      { "type": "fix", "text": "Mastery Radar display decoupled to fix connecting-line polygon bug and clipping issues." },
-      { "type": "feature", "text": "Added off-screen rendering support for ShareCard to generate accurate social media stat cards." }
+      {
+        "type": "fix",
+        "text": "Mastery Radar display decoupled to fix connecting-line polygon bug and clipping issues."
+      },
+      {
+        "type": "feature",
+        "text": "Added off-screen rendering support for ShareCard to generate accurate social media stat cards."
+      }
     ]
   },
   {
     "version": "1.4.1",
     "date": "2026-07-02",
     "changes": [
-      { "type": "fix", "text": "Shop consumables now correctly deduct gold and apply effects synchronously with cache invalidation." },
-      { "type": "polish", "text": "Standardized all panels to use consistent GameCard UI components and styling." }
+      {
+        "type": "fix",
+        "text": "Shop consumables now correctly deduct gold and apply effects synchronously with cache invalidation."
+      },
+      {
+        "type": "polish",
+        "text": "Standardized all panels to use consistent GameCard UI components and styling."
+      }
     ]
   },
   {
     "version": "1.4.0",
     "date": "2026-07-01",
     "changes": [
-      { "type": "feature", "text": "Skill Tree Batch 5 completion: activated final tier nodes for advanced character builds." },
-      { "type": "balance", "text": "Adjusted XP curve scaling for high-level tasks to prevent runaway progression." }
+      {
+        "type": "feature",
+        "text": "Skill Tree Batch 5 completion: activated final tier nodes for advanced character builds."
+      },
+      {
+        "type": "balance",
+        "text": "Adjusted XP curve scaling for high-level tasks to prevent runaway progression."
+      }
     ]
   }
 ]

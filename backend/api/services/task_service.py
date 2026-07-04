@@ -224,6 +224,76 @@ def complete_task(user, task_id, is_positive=True):
         rewards["xp"] = final_xp
         rewards["gold"] = final_gold
 
+        try:
+            membership = user.partymembership
+            from django.utils import timezone
+
+            today_iso = timezone.now().date().isocalendar()
+            current_iso_week = f"{today_iso[0]}-W{today_iso[1]:02d}"
+
+            if membership.weekly_xp_reset_week != current_iso_week:
+                membership.weekly_xp = 0
+                membership.weekly_xp_reset_week = current_iso_week
+
+            membership.weekly_xp += final_xp
+
+            # Party streak logic: if this is a daily
+            if task.task_type == task.TaskType.DAILY:
+                today = timezone.now().date()
+                if membership.last_daily_completed_date != today:
+                    membership.last_daily_completed_date = today
+                    party = membership.party
+                    # Only increment party streak if we haven't done it today
+                    if (
+                        party.last_streak_update_date is None
+                        or party.last_streak_update_date < today
+                    ):
+                        # Check if all members have completed a daily today
+                        # Members who joined today have last_daily_completed = yesterday,
+                        # so they need to complete one today to contribute. Wait, if they just joined,
+                        # we want to require them to do it. Yes.
+                        # Wait, what if someone hasn't logged in? Their last_daily_completed_date < today
+                        all_done = not party.memberships.filter(
+                            last_daily_completed_date__lt=today
+                        ).exists()
+                        if all_done:
+                            party.streak += 1
+                            party.last_streak_update_date = today
+                            party.save(
+                                update_fields=["streak", "last_streak_update_date"]
+                            )
+
+                            from api.models import PartyEvent
+
+                            if party.streak in [3, 7, 14, 30, 50, 100, 365]:
+                                PartyEvent.objects.create(
+                                    party=party,
+                                    user=user,
+                                    event_type="milestone",
+                                    content=f"hit a {party.streak}-day streak!",
+                                )
+
+            membership.save(
+                update_fields=[
+                    "weekly_xp",
+                    "weekly_xp_reset_week",
+                    "last_daily_completed_date",
+                ]
+            )
+
+            # Log event
+            if final_xp > 0:
+                from api.models import PartyEvent
+
+                PartyEvent.objects.create(
+                    party=membership.party,
+                    user=user,
+                    event_type="task_completed",
+                    content=task.title,
+                )
+        except Exception:
+            pass
+
         # Handle item drops
         if outcome.get("item_dropped"):
             item_obj = Item.objects.filter(code=outcome["item_dropped"]).first()
@@ -309,6 +379,19 @@ def complete_task(user, task_id, is_positive=True):
     skill_effects = apply_effects_on_task_complete(profile, task)
     if skill_effects["xp_bonus"] > 0:
         leveled_up = gain_xp(profile, skill_effects["xp_bonus"]) or leveled_up
+        if leveled_up:
+            try:
+                membership = user.partymembership
+                from api.models import PartyEvent
+
+                PartyEvent.objects.create(
+                    party=membership.party,
+                    user=user,
+                    event_type="level_up",
+                    content=str(profile.level),
+                )
+            except Exception:
+                pass
         profile.save(
             update_fields=[
                 "xp",

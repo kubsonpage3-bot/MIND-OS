@@ -68,3 +68,44 @@ class PartySerializer(serializers.ModelSerializer):
 
     def get_member_count(self, obj) -> int:
         return obj.memberships.count()
+
+
+class PartyEventReactionSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        from api.models import PartyEventReaction
+
+        model = PartyEventReaction
+        fields = ("id", "username", "emoji", "created_at")
+        read_only_fields = fields
+
+
+class PartyEventSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+    reactions = PartyEventReactionSerializer(many=True, read_only=True)
+    user_reacted = serializers.SerializerMethodField()
+
+    class Meta:
+        from api.models import PartyEvent
+
+        model = PartyEvent
+        fields = (
+            "id",
+            "username",
+            "event_type",
+            "content",
+            "created_at",
+            "reactions",
+            "user_reacted",
+        )
+        read_only_fields = fields
+
+    def get_user_reacted(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            # We can optimize this later with Prefetch or annotation
+            reaction = obj.reactions.filter(user=request.user).first()
+            if reaction:
+                return reaction.emoji
+        return None

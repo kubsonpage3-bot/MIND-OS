@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { LayoutDashboard, Swords, User, BarChart2, Settings } from "lucide-react";
-import PixelIcon from "./PixelIcon";
 import { hapticLight } from "@/hooks/useHaptic";
 import { useTranslation } from "react-i18next";
 

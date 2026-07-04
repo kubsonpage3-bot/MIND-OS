@@ -24,6 +24,29 @@ def process_daily_login(user):
     # New calendar day detected!
     delta = (today - profile.last_daily_cron_at).days
 
+    # Check if party streak broke
+    try:
+        membership = user.partymembership
+        yesterday = today - timezone.timedelta(days=1)
+        if (
+            membership.last_daily_completed_date is None
+            or membership.last_daily_completed_date < yesterday
+        ):
+            party = membership.party
+            if party.streak > 0:
+                party.streak = 0
+                party.save(update_fields=["streak"])
+                from api.models import PartyEvent
+
+                PartyEvent.objects.create(
+                    party=party,
+                    user=user,
+                    event_type="milestone",
+                    content="missed a daily, resetting the party streak.",
+                )
+    except Exception:
+        pass
+
     if delta == 1:
         profile.streak += 1
     else:

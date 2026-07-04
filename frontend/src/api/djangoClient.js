@@ -388,7 +388,7 @@ export const djangoApi = {
       }),
   },
 
-  party: {
+    party: {
     members: () => djangoFetch('/party/members/'),
     create: (name) =>
       djangoFetch('/party/create/', {
@@ -401,5 +401,15 @@ export const djangoApi = {
         body: JSON.stringify({ invite_code }),
       }),
     leave: () => djangoFetch('/party/leave/', { method: 'POST' }),
+    feed: () => djangoFetch('/party/feed/'),
+    react: (eventId, emoji) => djangoFetch(`/party/feed/${eventId}/react/`, {
+        method: 'POST',
+        body: JSON.stringify({ emoji })
+    }),
+    buff: (username, code) => djangoFetch('/party/buff/', {
+        method: 'POST',
+        body: JSON.stringify({ receiver_username: username, effect_code: code })
+    }),
+    leaderboard: () => djangoFetch('/party/leaderboard/')
   },
 };

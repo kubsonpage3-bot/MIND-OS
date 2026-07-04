@@ -1022,6 +1022,8 @@ class Party(models.Model):
         verbose_name="Creator",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    streak = models.PositiveIntegerField(default=0, verbose_name="Party Streak")
+    last_streak_update_date = models.DateField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Party"
@@ -1053,12 +1055,86 @@ class PartyMembership(models.Model):
     )
     joined_at = models.DateTimeField(auto_now_add=True)
 
+    # Party Enhancements v1
+    last_daily_completed_date = models.DateField(null=True, blank=True)
+    weekly_xp = models.PositiveIntegerField(default=0)
+    weekly_xp_reset_week = models.CharField(max_length=7, null=True, blank=True)
+    last_buff_sent_at = models.DateField(null=True, blank=True)
+
     class Meta:
         verbose_name = "Party membership"
         verbose_name_plural = "Party memberships"
 
     def __str__(self) -> str:
         return f"{self.user.username} → {self.party.name}"
+
+
+class PartyEvent(models.Model):
+    """
+    Activity Feed event for a Party.
+    """
+
+    EVENT_TYPES = (
+        ("task", "Task Completed"),
+        ("level_up", "Level Up"),
+        ("ally_unlock", "Ally Unlocked"),
+        ("milestone", "Milestone Reached"),
+    )
+
+    party = models.ForeignKey(
+        Party,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    member = models.ForeignKey(
+        PartyMembership,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feed_events",
+    )
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
+    message = models.CharField(max_length=255)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Party Event"
+        verbose_name_plural = "Party Events"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"[{self.party.name}] {self.event_type} - {self.message}"
+
+
+class PartyEventReaction(models.Model):
+    """
+    Emoji reaction to a PartyEvent.
+    """
+
+    event = models.ForeignKey(
+        PartyEvent,
+        on_delete=models.CASCADE,
+        related_name="reactions",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="party_reactions",
+    )
+    emoji = models.CharField(max_length=10)
+
+    class Meta:
+        verbose_name = "Party Event Reaction"
+        verbose_name_plural = "Party Event Reactions"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event", "user"], name="unique_user_event_reaction"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} reacted {self.emoji} to Event {self.event_id}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -25,7 +25,13 @@ def create_party(user, name: str):
             raise GameLogicError("You are already in a party. Leave it first.")
 
         party = Party.objects.create(name=name, created_by=user)
-        PartyMembership.objects.create(user=user, party=party)
+        from django.utils import timezone
+        import datetime
+
+        yesterday = timezone.now().date() - datetime.timedelta(days=1)
+        PartyMembership.objects.create(
+            user=user, party=party, last_daily_completed_date=yesterday
+        )
         logger.info(
             "Party '%s' created by %s [code=%s]", name, user.username, party.invite_code
         )
@@ -54,7 +60,13 @@ def join_party(user, invite_code: str):
         if member_count >= PARTY_MEMBER_CAP:
             raise GameLogicError(f"Party is full ({PARTY_MEMBER_CAP} members max).")
 
-        PartyMembership.objects.create(user=user, party=party)
+        from django.utils import timezone
+        import datetime
+
+        yesterday = timezone.now().date() - datetime.timedelta(days=1)
+        PartyMembership.objects.create(
+            user=user, party=party, last_daily_completed_date=yesterday
+        )
         logger.info("%s joined party '%s'", user.username, party.name)
         return party
 
@@ -94,3 +106,90 @@ def get_party_with_members(user):
         return membership.party
     except PartyMembership.DoesNotExist:
         return None
+
+
+def toggle_reaction(user, event_id: int, emoji: str):
+    from api.models import PartyEvent, PartyEventReaction
+    from django.core.exceptions import ObjectDoesNotExist
+
+    try:
+        membership = user.partymembership
+        party = membership.party
+    except ObjectDoesNotExist:
+        raise GameLogicError("You are not in a party.")
+
+    try:
+        event = PartyEvent.objects.get(id=event_id, party=party)
+    except PartyEvent.DoesNotExist:
+        raise GameLogicError("Event not found in your party.")
+
+    reaction = PartyEventReaction.objects.filter(
+        event=event, user=user, emoji=emoji
+    ).first()
+    if reaction:
+        reaction.delete()
+        return {"action": "removed", "emoji": emoji}
+    else:
+        # Check if they have another reaction to this event
+        existing = PartyEventReaction.objects.filter(event=event, user=user).first()
+        if existing:
+            existing.emoji = emoji
+            existing.save()
+            return {"action": "updated", "emoji": emoji}
+        else:
+            PartyEventReaction.objects.create(event=event, user=user, emoji=emoji)
+            return {"action": "added", "emoji": emoji}
+
+
+def send_buff(sender, receiver_username: str, effect_code: str):
+    from api.models import PartyMembership, ActiveEffect
+    from django.utils import timezone
+    import datetime
+
+    try:
+        sender_mem = sender.partymembership
+        party = sender_mem.party
+    except Exception:
+        raise GameLogicError("You are not in a party.")
+
+    # Cooldown check: 24h per sender
+    if (
+        sender_mem.last_buff_sent_at
+        and (timezone.now() - sender_mem.last_buff_sent_at).total_seconds() < 86400
+    ):
+        hours_left = int(
+            24 - (timezone.now() - sender_mem.last_buff_sent_at).total_seconds() / 3600
+        )
+        raise GameLogicError(f"You can send another buff in {hours_left}h.")
+
+    try:
+        receiver_mem = PartyMembership.objects.get(
+            user__username=receiver_username, party=party
+        )
+        receiver = receiver_mem.user
+    except PartyMembership.DoesNotExist:
+        raise GameLogicError(f"User {receiver_username} is not in your party.")
+
+    if sender == receiver:
+        raise GameLogicError("You cannot buff yourself.")
+
+    # Send buff: create ActiveEffect for receiver
+    ActiveEffect.objects.create(
+        user=receiver,
+        skill_id=effect_code,
+        expires_at=timezone.now() + datetime.timedelta(hours=24),
+    )
+
+    sender_mem.last_buff_sent_at = timezone.now()
+    sender_mem.save(update_fields=["last_buff_sent_at"])
+
+    from api.models import PartyEvent
+
+    PartyEvent.objects.create(
+        party=party,
+        user=sender,
+        event_type="buff_sent",
+        content=f"sent {effect_code} to {receiver_username}",
+    )
+
+    return {"message": f"Buff sent to {receiver_username}!"}

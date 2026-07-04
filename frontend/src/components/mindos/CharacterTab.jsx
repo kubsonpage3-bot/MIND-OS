@@ -22,7 +22,6 @@ import AlliesPanel from "./AlliesPanel";
 import AchievementsPanel from "./AchievementsPanel";
 import MutatorsPanel from "./MutatorsPanel";
 import TabGuideModal from "./TabGuideModal";
-import TabErrorBoundary from "./TabErrorBoundary";
 import GameCard from "@/components/ui/GameCard";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
