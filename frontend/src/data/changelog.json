@@ -8,6 +8,7 @@
       { "type": "polish", "text": "Unified mobile sub-navigation: Tools and Character tabs now use the same pill-toggle style as Tasks. Character tabs wrap smoothly to multiple rows on small screens for better visibility." },
       { "type": "feature", "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. 'The Defiant', 'Revenant') based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard." },
       { "type": "fix", "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the 'AWAKENING' rank title instead of their actual rank." },
+      { "type": "feature", "text": "Redesigned the Skill Tree into an organic node-graph layout with interactive branches and a new detail info-panel." },
       { "type": "polish", "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar." },
       { "type": "fix", "text": "Fixed an issue during Class Selection where users had to click the Confirm button twice to enter the dashboard." },
       { "type": "fix", "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation." }

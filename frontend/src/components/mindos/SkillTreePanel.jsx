@@ -1,7 +1,6 @@
-import { useState } from "react";
-
+import { useState, useRef, useEffect } from "react";
 import { SKILL_TREE } from "@/constants/rpgData";
-import { Lock, RotateCcw, Save } from "lucide-react";
+import { Lock, RotateCcw, Save, Brain, Dumbbell, Coins, Sparkles, BookOpen, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playSound } from "@/lib/soundEffects.js";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -20,83 +19,117 @@ function loadPresets() {
 }
 function savePresets(presets) { localStorage.setItem("mindos_skill_presets", JSON.stringify(presets)); }
 
-// ─── SVG CONNECTOR LINES ─────────────────────────────────────────────────────
-// Renders an SVG line connecting node index `from` to `to` (left to right in a row of `cols`)
-function BranchConnectors({ branch, unlocked, cols = 3 }) {
-  const nodes = branch.nodes;
-  // Build pairs based on `requires`
-  const pairs = nodes.flatMap((node, i) => {
-    if (!node.requires) return [];
-    const fromIdx = nodes.findIndex(n => n.id === node.requires);
-    if (fromIdx < 0) return [];
-    return [{ from: fromIdx, to: i }];
-  });
+// ─── CATEGORY ICONS ──────────────────────────────────────────────────────────
+const CAT_ICONS = {
+  mind: Brain,
+  body: Dumbbell,
+  wealth: Coins,
+  spirit: Sparkles,
+  knowledge: BookOpen,
+};
 
-  if (pairs.length === 0) return null;
+// ─── GRAPH LAYOUT ENGINE ─────────────────────────────────────────────────────
+const CANVAS_SIZE = 1000;
+const CENTER_X = CANVAS_SIZE / 2;
+const CENTER_Y = CANVAS_SIZE / 2;
 
-  return (
-    <div className="relative pointer-events-none" style={{ height: 0 }}>
-      {pairs.map(({ from, to }, idx) => {
-        const fromRow = Math.floor(from / cols);
-        const fromCol = from % cols;
-        const toRow = Math.floor(to / cols);
-        const toCol = to % cols;
+// Standard branch angles (0 is top, goes clockwise)
+const BRANCH_ANGLES = {
+  mind: -90,
+  body: -18,
+  wealth: 54,
+  spirit: 126,
+  knowledge: 198,
+};
 
-        const isActive = unlocked.includes(nodes[from].id);
-        const isReachable = unlocked.includes(nodes[from].id) && !unlocked.includes(nodes[to].id);
-        const color = isActive ? branch.color : "#2a2a3a";
+// Base radius per tier, and subtle angle wiggle to make it "organic"
+const TIER_LAYOUT = {
+  1: { r: 80, aOffset: 0 },
+  2: { r: 160, aOffset: 12 },
+  3: { r: 240, aOffset: -8 },
+  4: { r: 320, aOffset: 15 },
+  5: { r: 400, aOffset: -10 },
+  6: { r: 480, aOffset: 0 },
+};
 
-        // Same row: horizontal connector
-        if (fromRow === toRow) {
-          return (
-            <motion.div
-              key={idx}
-              className="absolute"
-              style={{
-                top: `calc(${fromRow * 100}% - 20px)`,
-                left: `calc(${(fromCol + 1) / cols * 100}%)`,
-                width: `calc(${1 / cols * 100}%)`,
-                height: 2,
-                background: isActive
-                  ? `linear-gradient(90deg, ${color}, ${color}aa)`
-                  : "#2a2a3a",
-                boxShadow: isActive ? `0 0 6px ${color}80` : "none",
-                transition: "all 0.4s ease",
-              }}
-            />
-          );
-        }
-
-        // Cross-row: vertical
-        return (
-          <motion.div
-            key={idx}
-            className="absolute"
-            style={{
-              top: `calc(${fromRow * 100}% + 20px)`,
-              left: `calc(${(fromCol + 0.5) / cols * 100}% - 1px)`,
-              width: 2,
-              height: `calc(${(toRow - fromRow) * 100}% - 40px)`,
-              background: isActive
-                ? `linear-gradient(180deg, ${color}, ${color}88)`
-                : "#2a2a3a",
-              boxShadow: isActive ? `0 0 6px ${color}60` : "none",
-              transition: "all 0.4s ease",
-            }}
-          />
-        );
-      })}
-    </div>
-  );
+function getCoords(branchKey, tier) {
+  const baseAngle = BRANCH_ANGLES[branchKey];
+  const layout = TIER_LAYOUT[tier];
+  if (!layout) return { x: CENTER_X, y: CENTER_Y };
+  
+  const angleDeg = baseAngle + layout.aOffset;
+  const angleRad = (angleDeg * Math.PI) / 180;
+  
+  return {
+    x: CENTER_X + layout.r * Math.cos(angleRad),
+    y: CENTER_Y + layout.r * Math.sin(angleRad),
+  };
 }
 
+// Build a flat array of all nodes with absolute coordinates
+function buildGraphData() {
+  const nodes = [];
+  const links = [];
+  
+  Object.entries(SKILL_TREE).forEach(([branchKey, branch]) => {
+    branch.nodes.forEach((node) => {
+      const coords = getCoords(branchKey, node.tier);
+      nodes.push({
+        ...node,
+        branchKey,
+        color: branch.color,
+        x: coords.x,
+        y: coords.y,
+        categoryName: branch.label,
+      });
+      
+      if (node.requires) {
+        const parentNode = branch.nodes.find(n => n.id === node.requires);
+        if (parentNode) {
+          const parentCoords = getCoords(branchKey, parentNode.tier);
+          links.push({
+            id: `${node.requires}->${node.id}`,
+            branchKey,
+            color: branch.color,
+            x1: parentCoords.x,
+            y1: parentCoords.y,
+            x2: coords.x,
+            y2: coords.y,
+            sourceId: node.requires,
+            targetId: node.id,
+          });
+        }
+      } else {
+        // Root node connects to center
+        links.push({
+          id: `center->${node.id}`,
+          branchKey,
+          color: branch.color,
+          x1: CENTER_X,
+          y1: CENTER_Y,
+          x2: coords.x,
+          y2: coords.y,
+          sourceId: "center",
+          targetId: node.id,
+        });
+      }
+    });
+  });
+  
+  return { nodes, links };
+}
+
+const GRAPH_DATA = buildGraphData();
+
 export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold }) {
-  const [hoveredNode, setHoveredNode] = useState(null);
   const [showRespec, setShowRespec] = useState(false);
   const [showPresetSave, setShowPresetSave] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [presets, setPresets] = useState(loadPresets);
   const [confirmPreset, setConfirmPreset] = useState(null);
+  
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const scrollRef = useRef(null);
   
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
@@ -104,6 +137,15 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const unlocked = profile?.unlocked_skills || [];
   const sp = profile?.skill_points || 0;
   const currentGold = profile?.gold || gold;
+
+  // Center canvas on mount
+  useEffect(() => {
+    if (scrollRef.current) {
+      const el = scrollRef.current;
+      el.scrollLeft = (CANVAS_SIZE - el.clientWidth) / 2;
+      el.scrollTop = (CANVAS_SIZE - el.clientHeight) / 2;
+    }
+  }, []);
 
   const canUnlock = (node) => {
     if (unlocked.includes(node.id)) return false;
@@ -127,7 +169,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
     }
   });
 
-  const unlock = (node, branchKey) => {
+  const unlock = (node) => {
     if (!canUnlock(node)) return;
     buyMutation.mutate(node.id);
     djangoApi.analytics.logEvent("skill_purchased");
@@ -138,11 +180,12 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const respecMutation = useMutation({
     mutationFn: () => djangoApi.skills.respec(),
     onSuccess: () => {
-      playSound('error'); // standard for reset
+      playSound('error');
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       refreshProfile();
       setShowRespec(false);
+      setSelectedNodeId(null);
     },
     onError: (err) => {
       showRewardToast({ label: `❌ Respec failed: ${err.message || 'Error'}` });
@@ -166,25 +209,22 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   };
 
   const loadPreset = (preset) => {
-    // Calculate how many new nodes need SP
     const newNodes = preset.nodes.filter(id => !unlocked.includes(id));
-    const allNodes = Object.values(SKILL_TREE).flatMap(b => b.nodes);
     const spNeeded = newNodes.reduce((acc, id) => {
-      const node = allNodes.find(n => n.id === id);
+      const node = GRAPH_DATA.nodes.find(n => n.id === id);
       return acc + (node?.sp || 0);
     }, 0);
     const goldNeeded = newNodes.reduce((acc, id) => {
-      const node = allNodes.find(n => n.id === id);
+      const node = GRAPH_DATA.nodes.find(n => n.id === id);
       return acc + (node?.gold || 0);
     }, 0);
+    
     if (spNeeded > sp || goldNeeded > currentGold) {
       playSound('error');
       setConfirmPreset(null);
       return;
     }
     playSound('purchase');
-    // We would need a multi-buy endpoint or sequentially buy them.
-    // For now, sequentially mutate. This is a bit heavy, but it works.
     newNodes.forEach(id => {
       buyMutation.mutate(id);
       djangoApi.analytics.logEvent("skill_purchased");
@@ -192,165 +232,264 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
     setConfirmPreset(null);
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Skill Tree</div>
-        <div className="flex items-center gap-2">
-          <div className="text-xs font-mono font-bold" style={{ color: "#f0c040" }}>{sp} SP</div>
-          <button
-            onClick={() => setShowPresetSave(true)}
-            className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors"
-            style={{ borderColor: "#f0c04040", color: "#f0c040" }}
-            title="Save current build as preset"
-          >
-            <Save className="w-2.5 h-2.5" /> SAVE BUILD
-          </button>
-          <button
-            onClick={() => setShowRespec(true)}
-            disabled={unlocked.length === 0}
-            className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors disabled:opacity-30"
-            style={{ borderColor: "#ef444440", color: "#ef4444" }}
-            title={`Respec all nodes — costs ${respecCost}G`}
-          >
-            <RotateCcw className="w-2.5 h-2.5" /> RESPEC ({respecCost}G)
-          </button>
-        </div>
-      </div>
+  const selectedNode = GRAPH_DATA.nodes.find(n => n.id === selectedNodeId);
 
-      {/* Saved Presets */}
-      {presets.length > 0 && (
-        <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: "rgba(240,192,64,0.15)", background: "rgba(20,18,12,0.8)" }}>
-          <div className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-widest">Saved Builds</div>
-          <div className="flex gap-2 flex-wrap">
+  return (
+    <div className="relative flex flex-col h-[600px] bg-[#0a0a0f] rounded-xl overflow-hidden border border-border/10">
+      
+      {/* Header Overlay */}
+      <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-[#0a0a0f] to-transparent pointer-events-none">
+        <div className="flex items-center justify-between pointer-events-auto">
+          <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Organic Skill Tree</div>
+          <div className="flex items-center gap-2">
+            <div className="text-xs font-mono font-bold" style={{ color: "#f0c040", textShadow: "0 0 10px rgba(240,192,64,0.5)" }}>
+              {sp} SP
+            </div>
+            <button
+              onClick={() => setShowPresetSave(true)}
+              className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors bg-black/50 backdrop-blur"
+              style={{ borderColor: "#f0c04040", color: "#f0c040" }}
+            >
+              <Save className="w-2.5 h-2.5" /> SAVE
+            </button>
+            <button
+              onClick={() => setShowRespec(true)}
+              disabled={unlocked.length === 0}
+              className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors bg-black/50 backdrop-blur disabled:opacity-30"
+              style={{ borderColor: "#ef444440", color: "#ef4444" }}
+            >
+              <RotateCcw className="w-2.5 h-2.5" /> RESPEC
+            </button>
+          </div>
+        </div>
+
+        {/* Presets Row */}
+        {presets.length > 0 && (
+          <div className="mt-2 flex gap-2 pointer-events-auto">
             {presets.map(p => (
               <button
                 key={p.name}
                 onClick={() => loadPreset(p)}
-                className="px-2 py-1 text-[9px] font-mono rounded border transition-colors hover:bg-primary/10"
+                className="px-2 py-1 text-[9px] font-mono rounded border transition-colors bg-black/50 backdrop-blur hover:bg-primary/20"
                 style={{ borderColor: "rgba(240,192,64,0.3)", color: "#f0c040" }}
               >
                 📋 {p.name}
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Branch panels */}
-      {Object.entries(SKILL_TREE).map(([branchKey, branch]) => (
-        <div key={branchKey} className="rounded-xl border p-3 space-y-3"
-          style={{ borderColor: `${branch.color}20`, background: "rgba(14,12,10,0.85)" }}>
-          <div className="font-mono text-[10px] font-bold uppercase tracking-widest flex items-center gap-2" style={{ color: branch.color }}>
-            <span style={{ textShadow: `0 0 8px ${branch.color}80` }}>── {branch.label} ──</span>
-            <span className="text-muted-foreground/30 font-normal">
-              {unlocked.filter(id => branch.nodes.find(n => n.id === id)).length}/{branch.nodes.length}
-            </span>
+      {/* Canvas Area */}
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-auto relative select-none"
+        style={{ scrollbarWidth: "none" }} // Hide scrollbar for immersion
+      >
+        <div 
+          className="relative"
+          style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+        >
+          {/* Background Grid Pattern (optional, subtle) */}
+          <div 
+            className="absolute inset-0 opacity-[0.03]" 
+            style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}
+          />
+
+          {/* SVG Connectors */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            {GRAPH_DATA.links.map(link => {
+              const isSourceUnlocked = link.sourceId === "center" || unlocked.includes(link.sourceId);
+              const isTargetUnlocked = unlocked.includes(link.targetId);
+              const isActive = isTargetUnlocked;
+              const isAvailable = isSourceUnlocked && !isTargetUnlocked;
+              
+              let strokeColor = "#2a2a3a";
+              if (isActive) strokeColor = link.color;
+              else if (isAvailable) strokeColor = `${link.color}55`;
+
+              return (
+                <motion.line
+                  key={link.id}
+                  x1={link.x1}
+                  y1={link.y1}
+                  x2={link.x2}
+                  y2={link.y2}
+                  stroke={strokeColor}
+                  strokeWidth={isActive ? 3 : 1.5}
+                  strokeLinecap="round"
+                  style={{
+                    filter: isActive ? `drop-shadow(0 0 4px ${link.color})` : "none",
+                  }}
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+              );
+            })}
+          </svg>
+
+          {/* Central Core */}
+          <div 
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full"
+            style={{ 
+              left: CENTER_X, top: CENTER_Y, width: 60, height: 60,
+              background: "radial-gradient(circle, #fff 0%, #f0c040 30%, transparent 70%)",
+              boxShadow: "0 0 40px rgba(240,192,64,0.5)",
+            }}
+          >
+            <div className="w-4 h-4 bg-white rounded-full blur-sm" />
           </div>
 
-          {/* Nodes grid with connector lines */}
-          <div className="relative">
-            {/* SVG connectors rendered behind */}
-            <div className="absolute inset-0 z-0">
-              {branch.nodes.flatMap((node, toIdx) => {
-                if (!node.requires) return [];
-                const fromIdx = branch.nodes.findIndex(n => n.id === node.requires);
-                if (fromIdx < 0) return [];
-                const cols = 3;
-                const fromCol = fromIdx % cols;
-                const toCol = toIdx % cols;
-                const fromRow = Math.floor(fromIdx / cols);
-                const toRow = Math.floor(toIdx / cols);
-                const isActive = unlocked.includes(node.requires);
-                const color = isActive ? branch.color : "#2a2a3a";
-                const cellW = 100 / cols;
-                // horizontal: same row
-                if (fromRow === toRow) {
-                  const left = (fromCol + 1) * cellW + "%";
-                  const w = (toCol - fromCol - 1) * cellW + cellW + "%";
-                  const top = `calc(${fromRow * (100 / Math.ceil(branch.nodes.length / cols))}% + 24px)`;
-                  return [(
-                    <div key={`${fromIdx}-${toIdx}`}
-                      className="absolute pointer-events-none transition-all duration-500"
-                      style={{ left, top, width: `calc(${cellW}%)`, height: 2, background: color, boxShadow: isActive ? `0 0 6px ${color}80` : "none" }}
-                    />
-                  )];
-                }
-                // vertical: different rows — center of from col down
-                const leftPct = (fromCol + 0.5) * cellW;
-                return [(
-                  <div key={`${fromIdx}-${toIdx}`}
-                    className="absolute pointer-events-none transition-all duration-500"
-                    style={{ left: `calc(${leftPct}% - 1px)`, top: `calc(${fromRow * 72 + 56}px)`, width: 2, height: `calc(${(toRow - fromRow) * 72 - 16}px)`, background: color, boxShadow: isActive ? `0 0 6px ${color}60` : "none" }}
+          {/* Nodes */}
+          {GRAPH_DATA.nodes.map(node => {
+            const isUnlocked = unlocked.includes(node.id);
+            const prereqMet = !node.requires || unlocked.includes(node.requires);
+            const isSelected = selectedNodeId === node.id;
+            
+            const Icon = CAT_ICONS[node.branchKey] || Sparkles;
+            
+            return (
+              <motion.button
+                key={node.id}
+                onClick={() => {
+                  setSelectedNodeId(node.id);
+                  playSound("click");
+                }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full transition-all duration-300"
+                style={{
+                  left: node.x,
+                  top: node.y,
+                  width: 44,
+                  height: 44,
+                  border: `2px solid ${isUnlocked ? node.color : prereqMet ? `${node.color}80` : "#2a2a3a"}`,
+                  background: isUnlocked ? `${node.color}20` : "#0a0a0f",
+                  boxShadow: isUnlocked 
+                    ? `0 0 15px ${node.color}60, inset 0 0 10px ${node.color}40` 
+                    : isSelected ? `0 0 0 2px #fff` : "none",
+                  zIndex: isSelected ? 30 : 10,
+                  opacity: !prereqMet && !isUnlocked ? 0.4 : 1,
+                }}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                {!isUnlocked && !prereqMet ? (
+                  <Lock className="w-4 h-4 text-muted-foreground/50" />
+                ) : (
+                  <Icon 
+                    className="w-5 h-5" 
+                    style={{ 
+                      color: isUnlocked ? node.color : prereqMet ? `${node.color}90` : "#444",
+                      filter: isUnlocked ? `drop-shadow(0 0 4px ${node.color})` : "none"
+                    }} 
                   />
-                )];
-              })}
-            </div>
+                )}
+                
+                {/* Node Label (always visible but small) */}
+                <div 
+                  className="absolute -bottom-6 w-32 text-center pointer-events-none"
+                  style={{
+                    fontFamily: "'Nunito', sans-serif",
+                    fontSize: "9px",
+                    fontWeight: 800,
+                    color: isUnlocked ? node.color : prereqMet ? "#e8d8b0" : "rgba(200,170,80,0.4)",
+                    textShadow: "0 1px 4px #000, 0 1px 8px #000"
+                  }}
+                >
+                  {node.name}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
 
-            <div className="grid grid-cols-3 gap-2 relative z-10">
-              {branch.nodes.map((node) => {
-                const isUnlocked = unlocked.includes(node.id);
-                const prereqMet = !node.requires || unlocked.includes(node.requires);
-                const affordable = sp >= node.sp && gold >= node.gold;
-                const canBuy = prereqMet && affordable && !isUnlocked;
+      {/* Info Panel (Bottom Docked) */}
+      <AnimatePresence>
+        {selectedNode && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="absolute bottom-0 left-0 right-0 z-40 border-t bg-black/90 backdrop-blur-md p-4"
+            style={{ borderTopColor: `${selectedNode.color}40` }}
+          >
+            <button 
+              onClick={() => setSelectedNodeId(null)}
+              className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-white"
+            >
+              <X size={16} />
+            </button>
+            
+            <div className="flex gap-4 items-start">
+              <div 
+                className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 border-2"
+                style={{
+                  borderColor: selectedNode.color,
+                  background: `${selectedNode.color}20`,
+                  boxShadow: `0 0 15px ${selectedNode.color}40`
+                }}
+              >
+                {(() => {
+                  const SIcon = CAT_ICONS[selectedNode.branchKey] || Sparkles;
+                  return <SIcon className="w-6 h-6" style={{ color: selectedNode.color }} />;
+                })()}
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-mono font-bold text-sm" style={{ color: selectedNode.color }}>
+                    {selectedNode.name}
+                  </h3>
+                  <span className="text-[9px] font-mono px-1.5 rounded bg-white/10 text-white/70">
+                    TIER {selectedNode.tier}
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono text-muted-foreground mt-1 leading-relaxed max-w-sm">
+                  {selectedNode.desc}
+                </div>
+              </div>
 
-                return (
-                  <div
-                    key={node.id}
-                    className="relative"
-                    onMouseEnter={() => setHoveredNode(node.id)}
-                    onMouseLeave={() => setHoveredNode(null)}
-                  >
+              <div className="shrink-0 flex flex-col items-end justify-center min-w-[100px]">
+                {unlocked.includes(selectedNode.id) ? (
+                  <div className="flex items-center gap-1 font-mono font-bold text-[11px]" style={{ color: selectedNode.color }}>
+                    <Check size={14} /> ACTIVE
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-[10px] font-mono font-bold mb-1.5" style={{ color: `${selectedNode.color}aa` }}>
+                      <span className={sp < selectedNode.sp ? "text-red-400" : ""}>{selectedNode.sp} SP</span>
+                      <span className={currentGold < selectedNode.gold ? "text-red-400" : ""}>{selectedNode.gold} G</span>
+                    </div>
                     <button
-                      onClick={() => unlock(node, branchKey)}
-                      disabled={!canBuy}
-                      className="w-full p-2 rounded-lg border text-center transition-all"
-                      style={{
-                        borderColor: isUnlocked
-                          ? branch.color
-                          : canBuy ? `${branch.color}55` : "rgba(240,192,64,0.08)",
-                        background: isUnlocked
-                          ? `${branch.color}18`
-                          : canBuy ? `${branch.color}08` : "rgba(10,8,6,0.6)",
-                        boxShadow: isUnlocked ? `0 0 10px ${branch.color}40, inset 0 0 6px ${branch.color}15` : "none",
-                        opacity: (!prereqMet && !isUnlocked) ? 0.45 : 1,
+                      onClick={() => unlock(selectedNode)}
+                      disabled={!canUnlock(selectedNode) || buyMutation.isPending}
+                      className="px-4 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ 
+                        borderColor: selectedNode.color, 
+                        color: selectedNode.color,
+                        background: `${selectedNode.color}15`
                       }}
                     >
-                      {!isUnlocked && !prereqMet && <Lock className="w-3 h-3 mx-auto mb-1" style={{ color: "rgba(240,192,64,0.3)" }} />}
-                      <div className="text-[9px] font-mono font-bold leading-tight"
-                        style={{ color: isUnlocked ? branch.color : prereqMet ? "#e8d8b0" : "rgba(200,170,80,0.4)" }}>
-                        {node.name}
-                      </div>
-                      {/* Show description for all nodes — dimmed if locked */}
-                      <div className="text-[7px] font-mono mt-0.5 leading-tight"
-                        style={{
-                          color: isUnlocked
-                            ? `${branch.color}cc`
-                            : prereqMet
-                              ? "rgba(200,180,140,0.65)"
-                              : "rgba(150,130,80,0.3)",
-                        }}>
-                        {node.desc}
-                      </div>
-                      {!isUnlocked && prereqMet && (
-                        <div className="text-[8px] font-mono mt-1 font-bold" style={{ color: `${branch.color}99` }}>
-                          {node.sp}SP · {node.gold}G
-                        </div>
-                      )}
-                      {isUnlocked && (
-                        <div className="text-[8px] font-mono mt-0.5 font-bold" style={{ color: branch.color }}>✦ ACTIVE</div>
-                      )}
+                      {buyMutation.isPending ? "UNLOCKING..." : "UNLOCK"}
                     </button>
+                  </>
+                )}
+                
+                {/* Prerequisite warning */}
+                {!unlocked.includes(selectedNode.id) && selectedNode.requires && !unlocked.includes(selectedNode.requires) && (
+                  <div className="text-[8px] font-mono text-red-400 mt-1 uppercase">
+                    Requires Previous Node
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Respec confirmation modal */}
+      {/* Respec Modal */}
       <AnimatePresence>
         {showRespec && (
           <motion.div
@@ -390,7 +529,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
         )}
       </AnimatePresence>
 
-      {/* Save preset modal */}
+      {/* Save Preset Modal */}
       <AnimatePresence>
         {showPresetSave && (
           <motion.div
@@ -433,7 +572,6 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
