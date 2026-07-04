@@ -131,6 +131,11 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const scrollRef = useRef(null);
   
+  // Drag panning state
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+  const hasDragged = useRef(false);
+  
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
@@ -146,6 +151,38 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       el.scrollTop = (CANVAS_SIZE - el.clientHeight) / 2;
     }
   }, []);
+
+  const handlePointerDown = (e) => {
+    // Only left click
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    hasDragged.current = false;
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: scrollRef.current.scrollLeft,
+      scrollTop: scrollRef.current.scrollTop
+    };
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      hasDragged.current = true;
+    }
+    
+    scrollRef.current.scrollLeft = dragStart.current.scrollLeft - dx;
+    scrollRef.current.scrollTop = dragStart.current.scrollTop - dy;
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+    // Don't reset hasDragged here so click events can read it,
+    // it will be reset on the next pointer down.
+  };
 
   const canUnlock = (node) => {
     if (unlocked.includes(node.id)) return false;
@@ -283,11 +320,15 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       {/* Canvas Area */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-auto relative select-none"
+        className={`flex-1 overflow-auto relative select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={{ scrollbarWidth: "none", touchAction: "pan-x pan-y" }} // Hide scrollbar for immersion
         onTouchStart={e => e.stopPropagation()}
         onTouchMove={e => e.stopPropagation()}
         onTouchEnd={e => e.stopPropagation()}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
       >
         <div 
           className="relative"
@@ -355,7 +396,12 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
             return (
               <motion.button
                 key={node.id}
-                onClick={() => {
+                onClick={(e) => {
+                  if (hasDragged.current) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                  }
                   setSelectedNodeId(node.id);
                   playSound("click");
                 }}
@@ -415,7 +461,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute bottom-0 left-0 right-0 z-40 border-t bg-black/90 backdrop-blur-md p-4"
+            className="absolute bottom-0 left-0 right-0 z-40 border-t bg-black/95 backdrop-blur-md p-3 md:p-4"
             style={{ borderTopColor: `${selectedNode.color}40` }}
           >
             <button 
@@ -425,9 +471,9 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               <X size={16} />
             </button>
             
-            <div className="flex gap-4 items-start">
+            <div className="flex gap-2 md:gap-4 items-start w-full">
               <div 
-                className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 border-2"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 border-2"
                 style={{
                   borderColor: selectedNode.color,
                   background: `${selectedNode.color}20`,
@@ -436,54 +482,54 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               >
                 {(() => {
                   const SIcon = CAT_ICONS[selectedNode.branchKey] || Sparkles;
-                  return <SIcon className="w-6 h-6" style={{ color: selectedNode.color }} />;
+                  return <SIcon className="w-5 h-5 md:w-6 md:h-6" style={{ color: selectedNode.color }} />;
                 })()}
               </div>
               
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-mono font-bold text-sm" style={{ color: selectedNode.color }}>
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                  <h3 className="font-mono font-bold text-xs md:text-sm truncate" style={{ color: selectedNode.color }}>
                     {selectedNode.name}
                   </h3>
-                  <span className="text-[9px] font-mono px-1.5 rounded bg-white/10 text-white/70">
+                  <span className="text-[8px] md:text-[9px] font-mono px-1.5 rounded bg-white/10 text-white/70 whitespace-nowrap">
                     TIER {selectedNode.tier}
                   </span>
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground mt-1 leading-relaxed max-w-sm">
+                <div className="text-[9px] md:text-[10px] font-mono text-muted-foreground mt-1 leading-relaxed line-clamp-3 md:line-clamp-none break-words">
                   {selectedNode.desc}
                 </div>
               </div>
 
-              <div className="shrink-0 flex flex-col items-end justify-center min-w-[100px]">
+              <div className="shrink-0 flex flex-col items-end justify-center min-w-[70px] md:min-w-[100px]">
                 {unlocked.includes(selectedNode.id) ? (
-                  <div className="flex items-center gap-1 font-mono font-bold text-[11px]" style={{ color: selectedNode.color }}>
+                  <div className="flex items-center gap-1 font-mono font-bold text-[10px] md:text-[11px]" style={{ color: selectedNode.color }}>
                     <Check size={14} /> ACTIVE
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2 text-[10px] font-mono font-bold mb-1.5" style={{ color: `${selectedNode.color}aa` }}>
+                    <div className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] font-mono font-bold mb-1 md:mb-1.5" style={{ color: `${selectedNode.color}aa` }}>
                       <span className={sp < selectedNode.sp ? "text-red-400" : ""}>{selectedNode.sp} SP</span>
                       <span className={currentGold < selectedNode.gold ? "text-red-400" : ""}>{selectedNode.gold} G</span>
                     </div>
                     <button
                       onClick={() => unlock(selectedNode)}
                       disabled={!canUnlock(selectedNode) || buyMutation.isPending}
-                      className="px-4 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-full px-2 py-1 md:px-4 md:py-1.5 rounded-lg border text-[10px] md:text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{ 
                         borderColor: selectedNode.color, 
                         color: selectedNode.color,
                         background: `${selectedNode.color}15`
                       }}
                     >
-                      {buyMutation.isPending ? "UNLOCKING..." : "UNLOCK"}
+                      {buyMutation.isPending ? "..." : "UNLOCK"}
                     </button>
                   </>
                 )}
                 
                 {/* Prerequisite warning */}
                 {!unlocked.includes(selectedNode.id) && selectedNode.requires && !unlocked.includes(selectedNode.requires) && (
-                  <div className="text-[8px] font-mono text-red-400 mt-1 uppercase">
-                    Requires Previous Node
+                  <div className="text-[7px] md:text-[8px] font-mono text-red-400 mt-1 uppercase whitespace-nowrap">
+                    Req. Prev
                   </div>
                 )}
               </div>
