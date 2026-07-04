@@ -9,6 +9,7 @@ import { ShoppingCart, X, Hexagon, ChevronLeft, Share2 } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
 import html2canvas from "html2canvas";
 import ShareCard from "@/components/ui/ShareCard";
+import { useTranslation } from "react-i18next";
 
 import { motion } from "framer-motion";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
@@ -57,6 +58,7 @@ const SUB_TABS = [
 ];
 
 export default function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const subTab = externalSubTab || "overview";
   const [shopTab, setShopTab] = useState("gear");
