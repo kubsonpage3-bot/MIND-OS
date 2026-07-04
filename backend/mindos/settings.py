@@ -100,6 +100,11 @@ else:
         )
     }
 
+# ── Аутентификация ────────────────────────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    "api.auth_backends.CaseInsensitiveModelBackend",
+]
+
 # ── Валидация паролей ─────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -17,7 +17,8 @@
       { "type": "fix", "text": "Fixed a mobile swipe conflict where panning the new Skill Tree would accidentally trigger tab navigation." },
       { "type": "polish", "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar." },
       { "type": "fix", "text": "Fixed an issue during Class Selection where users had to click the Confirm button twice to enter the dashboard." },
-      { "type": "fix", "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation." }
+      { "type": "fix", "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation." },
+      { "type": "fix", "text": "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., 'KubsonM' and 'kubsonm' both work for the same account)." }
     ]
   },
   {
