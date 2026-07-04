@@ -337,6 +337,7 @@ export const djangoApi = {
   },
 
   allies: {
+    getConfig: () => djangoFetch('/allies/config/', { method: 'GET' }),
     recruit: (allyCode) =>
       djangoFetch('/allies/recruit/', {
         method: 'POST',

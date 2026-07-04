@@ -3,6 +3,7 @@
     "version": "1.4.10",
     "date": "2026-07-04",
     "changes": [
+      { "type": "fix", "text": "Fixed a visual issue in the Allies screen where character portraits didn't correctly match their names and lore descriptions." },
       { "type": "polish", "text": "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a 'peek' effect." },
       { "type": "polish", "text": "Moved the Language & Region settings into the Gameplay tab on mobile to declutter the top navigation bar." },
       { "type": "balance", "text": "Reduced the XP requirement to Prestige from 9,000 XP to 8,000 XP to make the endgame loop slightly faster." },

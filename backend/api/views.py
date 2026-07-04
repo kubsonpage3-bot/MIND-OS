@@ -1195,6 +1195,32 @@ class RespecSkillView(generics.GenericAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+from rest_framework.views import APIView
+from .constants import ALLIES_CONFIG
+
+class AlliesConfigView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """Returns static ally config with metadata"""
+        allies_list = []
+        for code, data in ALLIES_CONFIG.items():
+            ally = {
+                "id": code,
+                "name": data.get("name"),
+                "title": data.get("title"),
+                "lore": data.get("lore"),
+                "image": data.get("image_url"),
+                "color": data.get("color"),
+                "rank": data.get("rank"),
+                "recruitCost": data.get("recruit_cost"),
+                "upgradeCosts": data.get("upgrade_costs"),
+                "levels": [lvl_data.get("desc") for lvl, lvl_data in sorted(data.get("levels", {}).items())]
+            }
+            allies_list.append(ally)
+        return Response(allies_list, status=status.HTTP_200_OK)
+
 class RecruitAllyView(generics.GenericAPIView):
     """
     POST /api/allies/recruit/

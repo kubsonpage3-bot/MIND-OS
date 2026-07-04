@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { normalizeGold } from "@/lib/utils";
-import { ALLIES } from "@/constants/rpgData";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
@@ -148,6 +148,12 @@ export default function AlliesPanel({ onSpendGold }) {
   const [revealState, setRevealState] = useState("idle"); // idle, shaking, flipping_front, revealed
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
+
+  const { data: ALLIES = [] } = useQuery({
+    queryKey: ["allies-config"],
+    queryFn: () => djangoApi.allies.getConfig(),
+    staleTime: Infinity,
+  });
 
   const recruited = profile?.recruited_allies ? Object.keys(profile.recruited_allies) : [];
   const levels = profile?.recruited_allies || {};
