@@ -9,7 +9,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 function PixelBar({ pct, fillColor, glowColor, label, value }) {
   return (
     <div className="flex items-center gap-1.5 md:gap-2">
-      <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 6, color: fillColor, minWidth: 16 }}>{label}</span>
+      <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 9, color: fillColor, minWidth: 16 }}>{label}</span>
       <div className="flex-1 relative" style={{ height: 10, background: "#1a1a2e", border: "2px solid #333", borderRadius: 0 }}>
         <motion.div
           animate={{ width: `${Math.max(0, Math.min(100, pct))}%` }}
@@ -20,7 +20,7 @@ function PixelBar({ pct, fillColor, glowColor, label, value }) {
         </motion.div>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "rgba(0,0,0,0.4)" }} />
       </div>
-      <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 5.5, color: "#878190", minWidth: 36, textAlign: "right" }}>{value}</span>
+      <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 8.5, color: "#878190", minWidth: 36, textAlign: "right" }}>{value}</span>
     </div>
   );
 }
@@ -88,18 +88,18 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
           {/* Info block: Rank, Gold, Streak */}
           <div className="flex flex-col items-end justify-center gap-1 pr-2 pl-1 py-2">
             <div style={{
-              fontFamily: "'Bildungswirkung'", fontSize: 8,
+              fontFamily: "'Bildungswirkung'", fontSize: 10,
               background: `${rankColor}22`, color: rankColor,
               border: `1px solid ${rankColor}55`,
               padding: "2px 5px", borderRadius: 2,
               lineHeight: 1
             }}>{rankId}</div>
             <div className="flex items-center gap-0.5">
-              <span className="text-[10px]">🪙</span>
-              <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 6, color: "#ffbe5d" }}>{normalizeGold(gameState.gold)}</span>
+              <span className="text-[12px]">🪙</span>
+              <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 9, color: "#ffbe5d" }}>{normalizeGold(gameState.gold)}</span>
             </div>
             {streak > 0 && (
-              <div style={{ fontFamily: "'Bildungswirkung'", fontSize: 6, color: "#ff8800" }}>🔥{streak}</div>
+              <div style={{ fontFamily: "'Bildungswirkung'", fontSize: 9, color: "#ff8800" }}>🔥{streak}</div>
             )}
           </div>
 
