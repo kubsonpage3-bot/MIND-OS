@@ -5,6 +5,7 @@ import BottomSheet from "@/components/ui/BottomSheet";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import LanguagePanel from "@/components/mindos/LanguagePanel";
 
 const WEEK_START_OPTIONS = [
   { id: "monday", label: "Monday" },
@@ -88,6 +89,12 @@ export default function GameplayPanel() {
       <div className="flex items-center gap-2 mb-4">
         <Gamepad2 className="w-4 h-4 text-muted-foreground" />
         <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Gameplay Settings</span>
+      </div>
+
+      {/* LanguagePanel embedded for Mobile Only */}
+      <div className="block md:hidden">
+        <LanguagePanel />
+        <div className="h-px w-full bg-border/30 my-4" />
       </div>
 
       {/* Week Start */}

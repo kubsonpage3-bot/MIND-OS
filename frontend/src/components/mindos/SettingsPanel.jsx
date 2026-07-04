@@ -72,7 +72,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* Tabs */}
       <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
-        {SETTINGS_TABS.map(tTab => {
+        {SETTINGS_TABS.filter(t => t.id !== "language").map(tTab => {
           const isActive = showDataTab === tTab.id;
           return (
             <button
@@ -116,8 +116,12 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
       {/* PRIVACY */}
       {showDataTab === "privacy" && <PrivacyPanel />}
 
-      {/* LANGUAGE */}
-      {showDataTab === "language" && <LanguagePanel />}
+      {/* LANGUAGE (Desktop Only) */}
+      {showDataTab === "language" && (
+        <div className="hidden md:block">
+          <LanguagePanel />
+        </div>
+      )}
 
       {/* GUIDES */}
       {showDataTab === "guides" && <GuidesPanel />}
