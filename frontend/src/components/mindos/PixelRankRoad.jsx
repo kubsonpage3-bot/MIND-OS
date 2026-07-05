@@ -107,7 +107,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           const isUnlocked = index < currentIdx;
           const isLocked = index > currentIdx;
           
-          const rankData = getRankDisplayData(row.id, profile);
+          const rankData = getRankDisplayData(row.id, null);
 
           return (
             <motion.div
@@ -171,28 +171,17 @@ export default function PixelRankRoad({ rankXP = 0 }) {
 
       {profile?.prestige_count > 0 && (
         <div className="mt-4 border-t border-yellow-500/30 pt-3 space-y-2">
-          {Array.from({ length: profile.prestige_count }, (_, i) => {
+          {Array.from({ length: profile?.prestige_count ?? 0 }, (_, i) => {
             const level = i + 1;
             const isCurrent = level === profile.prestige_count;
-            const isCompleted = level < profile.prestige_count;
             return (
-              <div
-                key={level}
-                className={`flex items-center justify-between px-3 py-2 rounded-lg border ${
-                  isCurrent
-                    ? 'border-yellow-400 bg-yellow-500/10 text-yellow-400'
-                    : 'border-yellow-500/20 bg-transparent text-yellow-600/50'
-                }`}
-              >
-                <span className="font-pixel text-sm tracking-widest">
-                  {isCompleted ? '✓' : '✦'} ASCENDANT {toRoman(level)}
-                </span>
-                {isCompleted && (
-                  <span className="text-xs text-yellow-600/50">COMPLETED</span>
-                )}
-                {isCurrent && (
-                  <span className="text-xs text-yellow-400">CURRENT</span>
-                )}
+              <div key={level} className={`mt-2 px-4 py-2 rounded-lg border text-sm font-pixel flex justify-between
+                ${isCurrent
+                  ? 'border-yellow-400 text-yellow-400 bg-yellow-500/10'
+                  : 'border-yellow-500/20 text-yellow-600/40'
+                }`}>
+                <span>{isCurrent ? '✦' : '✓'} ASCENDANT {toRoman(level)}</span>
+                <span>{isCurrent ? 'CURRENT' : 'COMPLETED'}</span>
               </div>
             );
           })}

@@ -28,8 +28,12 @@
         "text": "Fixed a bug where the header XP bar displayed 'MAX' instead of the actual required XP values for players in the Ascendant prestige track."
       },
       {
-        "type": "polish",
-        "text": "Improved the Rank Progression UI for Prestige players to dynamically show all completed and current Ascendant levels as a detailed list."
+        "type": "fix",
+        "text": "Fixed a visual issue where rank cards (F to SSS) incorrectly displayed an 'Ascendant' subtitle for prestige players."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed the header XP bar to correctly display total XP vs required XP instead of capping at the prestige limit."
       }
     ]
   },
