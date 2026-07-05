@@ -141,8 +141,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 #   - tauri://localhost          (macOS/Linux)
 #   - http://tauri.localhost     (Windows)
 #   - http://localhost:1420      (Vite dev-сервер при разработке)
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     "tauri://localhost",
     "https://tauri.localhost",
@@ -213,15 +213,14 @@ REST_FRAMEWORK = {
     # Схема для drf-spectacular
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     # ── Throttling — защита от спама/DDoS ────────────────────────────────────
-    # Лимит комментируем для локальной разработки во избежание 429
-    # "DEFAULT_THROTTLE_CLASSES": [
-    #     "rest_framework.throttling.AnonRateThrottle",
-    #     "rest_framework.throttling.UserRateThrottle",
-    # ],
-    # "DEFAULT_THROTTLE_RATES": {
-    #     "anon": "100/min",
-    #     "user": "100/min",
-    # },
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/min",
+        "user": "200/min",
+    },
 }
 
 # ── JWT-настройки (djangorestframework-simplejwt) ─────────────────────────

@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.1.3",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Server now handles 3x more simultaneous players — upgraded from 1 to 3 backend workers."
+      },
+      {
+        "type": "fix",
+        "text": "Added request rate limiting to protect the server from abuse (200 requests/min per user)."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a security misconfiguration that allowed any website to make requests to the API."
+      }
+    ]
+  },
+  {
     "version": "1.1.2",
     "date": "2026-07-05",
     "changes": [
@@ -9,6 +27,7 @@
       }
     ]
   },
+
   {
     "version": "1.1.1",
     "date": "2026-07-05",
