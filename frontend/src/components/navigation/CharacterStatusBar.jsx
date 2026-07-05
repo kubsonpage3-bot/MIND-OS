@@ -6,11 +6,11 @@ import { Menu } from "lucide-react";
 import { normalizeGold } from "@/lib/utils";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
-function PixelBar({ pct, fillColor, glowColor, label, value }) {
+function PixelBar({ pct, fillColor, glowColor, label, value, trackColor = "#1a1a2e" }) {
   return (
     <div className="flex items-center gap-1.5 md:gap-2">
       <span style={{ fontFamily: "'Bildungswirkung'", fontSize: 9, color: fillColor, minWidth: 16 }}>{label}</span>
-      <div className="flex-1 relative" style={{ height: 10, background: "#1a1a2e", border: "2px solid #333", borderRadius: 0 }}>
+      <div className="flex-1 relative" style={{ height: 10, background: trackColor, border: "2px solid #333", borderRadius: 0 }}>
         <motion.div
           animate={{ width: `${Math.max(0, Math.min(100, pct))}%` }}
           transition={{ duration: 0.4, ease: "easeOut" }}
@@ -25,7 +25,7 @@ function PixelBar({ pct, fillColor, glowColor, label, value }) {
   );
 }
 
-export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSidebar }) {
+export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSidebar, theme }) {
   const { profile } = useDjangoAuth();
   const streak = profile?.streak || 0;
 
@@ -65,7 +65,8 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
     <div
       className="sticky top-0 z-40"
       style={{
-        background: "#1a1a2e",
+        background: theme?.bgOverlay || "#1a1a2e",
+        borderTop: `3px solid ${theme?.xpColor || "#7B61FF"}`,
         borderBottom: "2px solid #333",
         boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
       }}
@@ -81,9 +82,9 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
 
         {/* Bars (Middle) */}
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-2 py-2 md:px-3 md:py-2.5">
-          <PixelBar pct={hpPct} fillColor="#f74e52" glowColor="#f74e5288" label="HP" value={`${Math.round(gameState.hp)}/${gameState.maxHp}`} />
-          <PixelBar pct={manaPct} fillColor={classColor} glowColor={classColor + "88"} label="MP" value={`${Math.round(classData.mana)}/${classData.maxMana}`} />
-          <PixelBar pct={xpPct} fillColor="#7B61FF" glowColor="#7B61FF88" label="XP" value={`${Math.round(rankXP || 0)}/${Math.round(nextRankMin)}`} />
+          <PixelBar trackColor={theme?.bgOverlay} pct={hpPct} fillColor={theme?.hpColor || "#f74e52"} glowColor={(theme?.hpColor || "#f74e52") + "88"} label="HP" value={`${Math.round(gameState.hp)}/${gameState.maxHp}`} />
+          <PixelBar trackColor={theme?.bgOverlay} pct={manaPct} fillColor={theme?.mpColor || classColor} glowColor={(theme?.mpColor || classColor) + "88"} label="MP" value={`${Math.round(classData.mana)}/${classData.maxMana}`} />
+          <PixelBar trackColor={theme?.bgOverlay} pct={xpPct} fillColor={theme?.xpColor || "#7B61FF"} glowColor={(theme?.xpColor || "#7B61FF") + "88"} label="XP" value={`${Math.round(rankXP || 0)}/${Math.round(nextRankMin)}`} />
         </div>
 
         {/* Right section: Gold/Rank/Streak + Portrait */}

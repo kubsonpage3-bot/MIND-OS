@@ -5,6 +5,18 @@
     "changes": [
       {
         "type": "feature",
+        "text": "Status bar and decor now dynamically adapt to your active UI theme colors."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the Party Weekly Ranking board was empty instead of displaying members."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Party Member Profiles displaying incorrect 'Joined' dates, missing portraits, and 'MAX' Rank XP."
+      },
+      {
+        "type": "feature",
         "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
       },
       {

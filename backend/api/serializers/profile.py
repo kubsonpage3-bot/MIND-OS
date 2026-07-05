@@ -79,6 +79,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "rank_info",
             "streak_title",
             "analytics_enabled",
+            "is_premium",
         )
         read_only_fields = (
             "id",
@@ -102,6 +103,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "xp_multiplier",
             "seen_guides",
             "rank_info",
+            "is_premium",
         )
 
     def get_max_hp(self, obj) -> int:

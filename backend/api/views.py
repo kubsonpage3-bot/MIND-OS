@@ -1826,7 +1826,9 @@ class PartyLeaderboardView(generics.GenericAPIView):
                     "username": mem.user.username,
                     "weekly_xp": mem.weekly_xp,
                     "level": mem.user.profile.level,
-                    "avatar": mem.user.profile.avatar,
+                    "avatar": (
+                        mem.user.profile.avatar.url if mem.user.profile.avatar else None
+                    ),
                 }
             )
 

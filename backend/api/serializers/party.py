@@ -19,6 +19,8 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
 
     username = serializers.CharField(source="user.username", read_only=True)
     user_id = serializers.IntegerField(source="user.id", read_only=True)
+    joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
+    character_image = serializers.ImageField(source="avatar", read_only=True)
     max_hp = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
 
@@ -27,6 +29,8 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
         fields = (
             "user_id",
             "username",
+            "joined",
+            "character_image",
             "level",
             "rank_xp",
             "streak",
@@ -45,8 +49,16 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
         from api.services.profile_service import get_rank_info
 
         info = get_rank_info(obj)
-        # Only expose the rank ID — not the full thresholds list
-        return {"current_id": info.get("current_id", "F")}
+        current_id = info.get("current_id", "F")
+        thresholds = info.get("thresholds", [])
+
+        next_t = None
+        for i, t in enumerate(thresholds):
+            if t["id"] == current_id and i + 1 < len(thresholds):
+                next_t = thresholds[i + 1]["min"]
+                break
+
+        return {"current_id": current_id, "next_threshold": next_t}
 
 
 class PartySerializer(serializers.ModelSerializer):

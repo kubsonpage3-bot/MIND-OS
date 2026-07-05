@@ -59,10 +59,10 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
               const rank = getRankDisplayData(profile.rank_info?.current_id || 'F', profile);
               return (
                 <div 
-                  className="mt-1 px-3 py-1 rounded font-mono font-bold text-xs border"
+                  className="mt-1 px-3 py-1 rounded font-mono font-bold text-xs border inline-block"
                   style={{ background: `${rank.color}20`, color: rank.color, borderColor: `${rank.color}50` }}
                 >
-                  Rank {rank.id}
+                  {rank.id}
                 </div>
               );
             })()}
@@ -73,7 +73,7 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
               <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">Joined</div>
               <div className="font-mono text-xs font-bold text-[var(--habit-text)]">
-                {profile.joined_party_at ? new Date(profile.joined_party_at).toLocaleDateString() : 'N/A'}
+                {profile.date_joined ? new Date(profile.date_joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
               </div>
             </div>
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
@@ -121,13 +121,13 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono">
                 <span className="text-[#a855f7]">Rank XP</span>
-                <span className="text-[var(--habit-dim)]">{Math.floor(profile.xp)} / {profile.rank_info?.next_threshold || 'MAX'}</span>
+                <span className="text-[var(--habit-dim)]">{Math.floor(profile.rank_xp)} / {profile.rank_info?.next_threshold}</span>
               </div>
               <div className="h-1.5 rounded-full bg-[var(--habit-border)] overflow-hidden">
                 <div 
                   className="h-full rounded-full transition-all duration-700 bg-[#a855f7]"
                   style={{ 
-                    width: `${profile.rank_info?.next_threshold ? Math.min((profile.xp / profile.rank_info.next_threshold) * 100, 100) : 100}%`,
+                    width: `${profile.rank_info?.next_threshold ? Math.min((profile.rank_xp / profile.rank_info.next_threshold) * 100, 100) : 100}%`,
                     boxShadow: '0 0 4px #a855f766' 
                   }}
                 />

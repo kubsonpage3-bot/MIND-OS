@@ -23,16 +23,15 @@ function MemberCard({ member, onBuff, onClick }) {
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
-        {/* Rank badge */}
-        <div
-          className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-mono font-black text-sm"
-          style={{
-            background: `${rank.color}22`,
-            border: `2px solid ${rank.color}66`,
-            color: rank.color,
-          }}
-        >
-          {rank.id}
+        {/* Portrait */}
+        <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border" style={{ background: 'var(--habit-bg)', borderColor: 'var(--habit-border)' }}>
+          {member.character_image ? (
+            <img src={member.character_image} alt={member.username} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+          ) : (
+            <span className="font-mono font-black text-sm uppercase" style={{ color: 'var(--habit-dim)' }}>
+              {member.username?.charAt(0) || '?'}
+            </span>
+          )}
         </div>
 
         {/* Info */}
@@ -51,6 +50,13 @@ function MemberCard({ member, onBuff, onClick }) {
               >
                 Lv.{member.level}
               </span>
+              {/* Rank badge */}
+              <span 
+                className="px-1.5 py-0.5 rounded text-[10px] font-bold border" 
+                style={{ background: `${rank.color}22`, color: rank.color, borderColor: `${rank.color}66` }}
+              >
+                {rank.id}
+              </span>
             </div>
             {onBuff && (
               <button 
@@ -68,6 +74,9 @@ function MemberCard({ member, onBuff, onClick }) {
             </span>
             <span className="text-[10px] font-mono" style={{ color: '#f59e0b' }}>
               🔥 {member.streak}d
+            </span>
+            <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+              {member.joined ? new Date(member.joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
             </span>
           </div>
 
@@ -97,7 +106,7 @@ function MemberCard({ member, onBuff, onClick }) {
         {/* Rank XP */}
         <div className="shrink-0 text-right">
           <div className="text-[10px] font-mono" style={{ color: rank.color }}>
-            {member.rank_xp.toFixed(0)}
+            {Math.floor(member.rank_xp)} / {member.rank_info?.next_threshold}
           </div>
           <div className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
             Rank XP

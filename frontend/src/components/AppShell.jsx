@@ -11,6 +11,7 @@ import LifeOS from "@/pages/LifeOS";
 import { applyTheme } from "@/lib/themes";
 import { applyAppearanceSettings } from "@/lib/applyAppearance";
 import RewardToast from "@/components/mindos/RewardToast";
+import { THEMES } from "@/lib/themes";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 // Removed getRankFromXP
@@ -195,7 +196,7 @@ export default function AppShell({ defaultTab = "mind" }) {
         {activeApp === "mind" && (
           <>
             <div className="relative">
-              <CharacterStatusBar rankXP={rankXP} currentRankId={currentRank} onToggleSidebar={() => setMobileSidebarOpen(true)} />
+              <CharacterStatusBar rankXP={rankXP} currentRankId={currentRank} onToggleSidebar={() => setMobileSidebarOpen(true)} theme={THEMES[currentTheme]} />
               <button
                 onClick={handleManualSync}
                 className="absolute top-2 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full transition-all"

@@ -3,13 +3,12 @@ import stripe
 import logging
 from api.models import UserProfile
 from django.contrib.auth.models import User
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "sk_test_123")
-PREMIUM_PRICE_ID = os.getenv(
-    "STRIPE_PREMIUM_PRICE_ID", "price_1TpUpODrZUajevZJMEXftH1n"
-)
+stripe.api_key = settings.STRIPE_SECRET_KEY
+PREMIUM_PRICE_ID = settings.STRIPE_PREMIUM_PRICE_ID
 # URL configuration for frontend redirects
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
@@ -66,7 +65,7 @@ def handle_stripe_webhook(payload: bytes, sig_header: str) -> None:
     """
     Handles incoming Stripe webhooks.
     """
-    endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_test_123")
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
