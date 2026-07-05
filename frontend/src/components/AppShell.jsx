@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Brain, Sparkles, Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -117,7 +117,8 @@ export default function AppShell({ defaultTab = "mind" }) {
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-400, 0, 400], [0.5, 1, 0.5]);
   const scale = useTransform(x, [-400, 0, 400], [0.9, 1, 0.9]);
-  
+  const dragBlocked = useRef(false);
+
   const getSwipeIndex = (section) => {
     if (["history", "pomodoro", "calendar", "stats"].includes(section)) {
       return SWIPE_TABS.indexOf("history");
@@ -129,11 +130,21 @@ export default function AppShell({ defaultTab = "mind" }) {
   const prevSection = currentIndex > 0 ? MOBILE_SECTIONS[currentIndex - 1] : null;
   const nextSection = currentIndex !== -1 && currentIndex < MOBILE_SECTIONS.length - 1 ? MOBILE_SECTIONS[currentIndex + 1] : null;
 
+  // Detect if touch starts inside a horizontally scrollable element — if so, block drag
+  const handleDragStart = useCallback((e) => {
+    const target = e.target;
+    const scrollable = target.closest('[data-no-swipe], .overflow-x-auto, [style*="overflow-x: auto"], [style*="overflow-x:auto"]');
+    dragBlocked.current = !!scrollable;
+  }, []);
+
   const handleDragEnd = (e, { offset, velocity }) => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    if (!isMobile) return;
+    if (!isMobile || dragBlocked.current) {
+      dragBlocked.current = false;
+      return;
+    }
 
-    const swipe = offset.x + velocity.x * 0.2; // include velocity for momentum
+    const swipe = offset.x + velocity.x * 0.2;
 
     if (swipe < -SWIPE_THRESHOLD && nextSection) {
       handleNavigate(nextSection.navTarget, null);
@@ -189,8 +200,9 @@ export default function AppShell({ defaultTab = "mind" }) {
         drag={typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? "x" : false}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.4}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        style={{ x, opacity, scale, background: "var(--habit-bg)", transformOrigin: "center center" }}
+        style={{ x, opacity, scale, background: "var(--habit-bg)", transformOrigin: "center center", touchAction: "pan-y" }}
         className={`relative z-10 overflow-y-auto overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >
         {activeApp === "mind" && (

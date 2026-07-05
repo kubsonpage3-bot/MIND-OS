@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.4.15",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Rank progression cards now have 3D hover effect with per-rank glow shadows and shine overlays."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed swipe navigation from Stats tab to Settings on mobile — the horizontal rank table was blocking the gesture."
+      }
+    ]
+  },
+  {
     "version": "1.4.14",
     "date": "2026-07-05",
     "changes": [
