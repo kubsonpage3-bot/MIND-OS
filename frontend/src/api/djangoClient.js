@@ -92,7 +92,7 @@ export async function djangoFetch(endpoint, options = {}) {
         const errorData = await response.json().catch(() => ({}));
         throw {
           status: response.status,
-          message: errorData.detail || errorData.message || 'Request failed',
+          message: errorData.detail || errorData.message || errorData.error || 'Request failed',
           data: errorData,
         };
       }
