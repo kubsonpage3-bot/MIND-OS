@@ -6,6 +6,9 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 
+const toRoman = (n) =>
+  ['', 'I','II','III','IV','V','VI','VII','VIII','IX','X'][n] ?? `${n}`;
+
 export default function PixelRankRoad({ rankXP = 0 }) {
   const { profile } = useDjangoAuth();
   const { t } = useTranslation();
@@ -165,6 +168,14 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           );
         })}
       </div>
+
+      {profile?.prestige_count > 0 && (
+        <div className="mt-4 border-t border-yellow-500/30 pt-3 text-center">
+          <span className="text-yellow-400 font-pixel text-sm tracking-widest">
+            ✦ ASCENDANT {toRoman(profile.prestige_count)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,12 +12,16 @@
         "text": "Fixed a visual issue on desktop where side panels (like Party Member Profiles) were hidden behind the main navigation sidebar."
       },
       {
+        "type": "polish",
+        "text": "Improved the layout of Recruited Allies in the Party Member Profile to ensure level badges no longer overlap character names."
+      },
+      {
         "type": "fix",
         "text": "Fixed a bug in the Party Member Profile where missing avatars would display as a broken image instead of a clean initial."
       },
       {
-        "type": "polish",
-        "text": "Improved the layout of Recruited Allies in the Party Member Profile to ensure level badges no longer overlap character names."
+        "type": "fix",
+        "text": "Fixed an issue where rank progression (F to SSS) disappeared and game crashes occurred after a player reached Ascendant prestige."
       }
     ]
   },

@@ -33,38 +33,31 @@ def get_rank_info(profile: UserProfile) -> dict:
     Вычисляет пороги рангов с учетом пассивок (endurance_protocol)
     и возвращает текущий ранг и обновленную матрицу порогов.
     """
-    from api.constants import get_prestige_xp_required
 
-    if profile.prestige_count > 0:
-        return {
-            "current_id": "ASC",
-            "is_ascendant": True,
-            "ascendant_level": profile.prestige_count,
-            "thresholds": [
-                {"id": "ASC", "min": 0},
-                {
-                    "id": "ASC_NEXT",
-                    "min": get_prestige_xp_required(profile.prestige_count),
-                },
-            ],
-        }
-
-    # Если endurance_protocol разблокирован, пороги уменьшаются на 20%
     has_endurance = profile.unlocked_skills.filter(
         skill_code="endurance_protocol"
     ).exists()
     multiplier = 0.8 if has_endurance else 1.0
 
-    thresholds = []
-    for r in RANK_THRESHOLDS:
-        thresholds.append({"id": r["id"], "min": int(r["min"] * multiplier)})
+    thresholds = [
+        {"id": r["id"], "min": int(r["min"] * multiplier)} for r in RANK_THRESHOLDS
+    ]
 
     current_id = thresholds[0]["id"]
     for t in thresholds:
         if profile.rank_xp >= t["min"]:
             current_id = t["id"]
 
-    return {"current_id": current_id, "thresholds": thresholds}
+    result = {
+        "current_id": current_id,
+        "thresholds": thresholds,
+    }
+
+    if profile.prestige_count > 0:
+        result["is_ascendant"] = True
+        result["ascendant_level"] = profile.prestige_count
+
+    return result
 
 
 def get_humanities_rank_info(profile: UserProfile) -> dict:

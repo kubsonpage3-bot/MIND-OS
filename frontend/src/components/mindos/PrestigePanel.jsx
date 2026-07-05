@@ -22,6 +22,8 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['rank-progression'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
       refreshProfile();
       onPrestige({ count: count + 1 });
       setAnimating(false);
