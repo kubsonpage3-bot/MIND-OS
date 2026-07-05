@@ -10,7 +10,7 @@ const avifDir = path.join(targetDir, 'avif');
 // Get maximum display width for an image
 function getTargetWidth(filename) {
   if (filename.includes('grafik')) return 800; // Rival graph
-  if (filename.includes('Screenshot')) return 180; // Bosses (max width 90px * 2)
+  if (filename.includes('Screenshot') || filename.includes('scroll_')) return 180; // Bosses (max width 90px * 2)
   if (filename.includes('allyes')) return 256; // Allies (max width 128px * 2)
   if (filename.includes('characters')) return 280; // Class sprites (max width 140px * 2)
   if (filename.includes('pomodor')) return 400; // Pomodoro timer background (max width 200px * 2)

@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.16",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Replaced boss scroll icons for SS-rank, S-rank, and C-rank bosses with custom high-quality 16-bit retro pixel art versions."
+      }
+    ]
+  },
+  {
     "version": "1.4.15",
     "date": "2026-07-05",
     "changes": [
