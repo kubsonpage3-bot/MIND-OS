@@ -145,7 +145,53 @@ def compute_rival_data(user_profile):
 
     johan_xp = calc_johan_xp(player_rank_xp, day_num)
 
-    from api.models import UnlockedSkill, ActiveEffect
+    from api.models import UnlockedSkill, ActiveEffect, TrainingSession, RecruitedAlly
+    from django.db.models import Sum
+    from datetime import timedelta
+
+    # --- Johan Ally Mechanics ---
+    JOHAN_UNLOCK_CONDITION = player_rank_xp >= 500
+    if JOHAN_UNLOCK_CONDITION and not user_profile.johan_recruited:
+        RecruitedAlly.objects.get_or_create(
+            user_profile=user_profile, ally_code="johan"
+        )
+        user_profile.johan_recruited = True
+        user_profile.save(update_fields=["johan_recruited"])
+        # Flag for frontend to invalidate
+        stored["johan_just_recruited"] = True
+
+    # --- Real Weekly History ---
+    weekly_history = []
+    end_date = datetime.now(timezone.utc)
+
+    for i in range(6, -1, -1):
+        dt = end_date - timedelta(days=i)
+        d_str = dt.strftime("%Y-%m-%d")
+        d_num = int(dt.timestamp() * 1000) // 86400000
+
+        # Player real stats for this day
+        daily_sessions = TrainingSession.objects.filter(
+            user_profile=user_profile, created_at__date=dt.date()
+        ).aggregate(total_hours=Sum("hours"), total_xp=Sum("xp_earned"))
+        p_hours = round(daily_sessions["total_hours"] or 0, 1)
+        p_xp = daily_sessions["total_xp"] or 0
+
+        # Johan simulated stats for this day
+        j_pattern = get_day_pattern(d_str)
+        j_sessions = generate_daily_sessions(d_str, j_pattern)
+        j_hours = sum(s["hours"] for s in j_sessions)
+
+        # We estimate historical rank_xp for Johan's calculation (just use current minus some logic, or just current)
+        # For simplicity, we use current player_rank_xp to base Johan's past performance
+        j_xp = calc_johan_xp(player_rank_xp, d_num)
+
+        weekly_history.append(
+            {
+                "date": d_str,
+                "player": {"hours": p_hours, "rank_xp_gained": p_xp},
+                "johan": {"hours": round(j_hours, 1), "rank_xp_gained": round(j_xp, 1)},
+            }
+        )
 
     transcendence_active = ActiveEffect.objects.filter(
         user=user_profile.user, skill_id="transcendence"
@@ -163,8 +209,9 @@ def compute_rival_data(user_profile):
         "streak": johan_streak,
         "todaySessions": sessions,
         "currentPattern": pattern["type"],
-        "weeklyHistory": [],
+        "weeklyHistory": weekly_history,
         "lastUpdated": today,
+        "johan_just_recruited": stored.get("johan_just_recruited", False),
     }
 
     user_profile.rival_data = new_data

@@ -81,6 +81,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "analytics_enabled",
             "is_premium",
             "timezone",
+            "johan_recruited",
         )
         read_only_fields = (
             "id",

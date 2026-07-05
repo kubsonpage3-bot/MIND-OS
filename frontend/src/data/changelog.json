@@ -6,6 +6,18 @@
       {
         "type": "content",
         "text": "The Architect class is now completely free and available to all players without a Premium subscription."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where Party Members were not correctly ranked by weekly XP on the Party Leaderboard."
+      },
+      {
+        "type": "feature",
+        "text": "Johan can now be recruited as an Ally once you reach 500 Rank XP, granting a 10% Weekly XP bonus."
+      },
+      {
+        "type": "content",
+        "text": "The Rival Tab now displays an accurate 7-day historical chart based on your real training session data."
       }
     ]
   },

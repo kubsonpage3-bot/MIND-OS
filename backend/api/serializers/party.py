@@ -26,6 +26,10 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     max_streak = serializers.SerializerMethodField()
     total_tasks_completed = serializers.SerializerMethodField()
 
+    weekly_xp = serializers.IntegerField(
+        source="user.party_membership.weekly_xp", read_only=True
+    )
+
     class Meta:
         model = UserProfile
         fields = (
@@ -43,6 +47,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "rank_info",
             "total_tasks_completed",
             "max_streak",
+            "weekly_xp",
         )
         read_only_fields = fields
 

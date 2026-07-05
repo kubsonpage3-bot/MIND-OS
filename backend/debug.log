@@ -1713,3 +1713,11 @@ ValueError: The 'avatar' attribute has no file associated with it.
 WARNING 2026-07-05 01:28:44,896 log 21824 18280 Not Found: /api/party/members/999999/profile/
 WARNING 2026-07-05 01:29:16,104 log 20972 15380 Forbidden: /api/party/members/532/profile/
 WARNING 2026-07-05 01:29:17,919 log 20972 15380 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-05 19:32:29,432 log 18948 23720 Bad Request: /api/analytics/event/
+WARNING 2026-07-05 19:32:36,080 log 18948 23720 Bad Request: /api/auth/register/
+WARNING 2026-07-05 19:32:40,067 log 18948 23720 Bad Request: /api/profile/
+WARNING 2026-07-05 19:32:42,386 log 18948 23720 Forbidden: /api/calendar/events/
+WARNING 2026-07-05 19:33:15,959 log 18948 23720 Forbidden: /api/party/members/582/profile/
+WARNING 2026-07-05 19:33:17,807 log 18948 23720 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-05 20:05:36,242 log 23596 1888 Bad Request: /api/profile/
+WARNING 2026-07-05 20:05:38,654 log 23596 1888 Forbidden: /api/calendar/events/

@@ -212,6 +212,13 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   const rivalData = rivalDataQuery || profile?.rival_data;
 
+  // Invalidate queries if Johan was just recruited by the backend
+  useEffect(() => {
+    if (rivalData?.johan_just_recruited) {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["allies"] });
+    }
+  }, [rivalData?.johan_just_recruited, queryClient]);
   const rivalDataMutation = useMutation({
     mutationFn: (newData) => djangoApi.profile.update({ rival_data: newData }),
     onSuccess: () => {
@@ -389,6 +396,21 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       {activeTab === "rival" && (
       <>
       <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
+
+      {/* Johan Recruitment Banner */}
+      {profile?.johan_recruited && (
+        <div className="mb-4 p-4 rounded-xl text-center border-2" style={{
+          background: "linear-gradient(135deg, rgba(255,51,51,0.1), rgba(0,0,0,0.5))",
+          borderColor: "#ff3333",
+          boxShadow: "0 4px 16px rgba(255,51,51,0.2)"
+        }}>
+          <h3 className="font-mono font-black text-lg" style={{ color: "#ff3333" }}>JOHAN HAS JOINED YOU</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Check the Allies section in your Character tab!
+          </p>
+        </div>
+      )}
+
       <AnimatePresence>
         {sessionToast && (
           <motion.div
