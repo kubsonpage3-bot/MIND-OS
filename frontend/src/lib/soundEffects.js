@@ -1,7 +1,7 @@
 // Sound effects for MIND OS
 // Uses Web Audio API for synthesized sounds (no external files needed)
 
-const audioContext = typeof window !== 'undefined' ? new (window.AudioContext || window['webkitAudioContext'])() : null;
+let audioContext = null;
 
 function playTone(frequency, duration, type = 'sine', volume = 0.1) {
   if (!audioContext) return;
@@ -134,16 +134,23 @@ export function playSound(name) {
 // Also export the object for direct access if needed
 export { playSoundEffects };
 
-// Preload audio context on user interaction
+// Initialize audio context on first user interaction (using capturing phase to handle early play calls)
 if (typeof window !== 'undefined') {
-  const resumeAudio = () => {
+  const initAudio = () => {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window['webkitAudioContext'])();
+    }
     if (audioContext && audioContext.state === 'suspended') {
       audioContext.resume();
     }
-    window.removeEventListener('click', resumeAudio);
-    window.removeEventListener('keydown', resumeAudio);
+    cleanup();
   };
-  
-  window.addEventListener('click', resumeAudio);
-  window.addEventListener('keydown', resumeAudio);
+
+  const cleanup = () => {
+    window.removeEventListener('click', initAudio, true);
+    window.removeEventListener('keydown', initAudio, true);
+  };
+
+  window.addEventListener('click', initAudio, true);
+  window.addEventListener('keydown', initAudio, true);
 }

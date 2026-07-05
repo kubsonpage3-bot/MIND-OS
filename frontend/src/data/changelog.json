@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.1.5",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Prevented background audio initialization from generating console warnings and blocked autoplay errors on page load."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Google Analytics cookie errors by setting the cookie domain to mindos.pages.dev."
+      }
+    ]
+  },
+  {
     "version": "1.1.4",
     "date": "2026-07-05",
     "changes": [
