@@ -226,7 +226,6 @@ def complete_task(user, task_id, is_positive=True):
 
         try:
             membership = user.partymembership
-            from django.utils import timezone
 
             today_iso = timezone.now().date().isocalendar()
             current_iso_week = f"{today_iso[0]}-W{today_iso[1]:02d}"
