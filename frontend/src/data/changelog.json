@@ -5,11 +5,15 @@
     "changes": [
       {
         "type": "feature",
+        "text": "Class Recalibration is now locked behind the Premium subscription to reflect the premium-only classes."
+      },
+      {
+        "type": "feature",
         "text": "Status bar and decor now dynamically adapt to your active UI theme colors."
       },
       {
         "type": "fix",
-        "text": "Fixed a bug where the Party Weekly Ranking board was empty instead of displaying members."
+        "text": "Fixed a bug where the Party Weekly Ranking board was empty instead of displaying the top 10 players."
       },
       {
         "type": "fix",

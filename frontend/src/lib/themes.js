@@ -103,4 +103,13 @@ export function applyTheme(themeName) {
   } else {
     root.classList.remove("dark");
   }
+
+  // Update OS Status Bar Color
+  let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (!metaThemeColor) {
+    metaThemeColor = document.createElement('meta');
+    metaThemeColor.name = "theme-color";
+    document.head.appendChild(metaThemeColor);
+  }
+  metaThemeColor.content = theme.bgOverlay || "#121215";
 }

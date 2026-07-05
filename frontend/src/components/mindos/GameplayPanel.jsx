@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown, UserCog } from "lucide-react";
+import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown, UserCog, Lock } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
+import { AnimatePresence } from "framer-motion";
+import PremiumUpgradeModal from "./PremiumUpgradeModal";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -63,6 +65,7 @@ export default function GameplayPanel() {
   });
 
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [gameplay, setGameplay] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("mindos_gameplay_settings") || "{}");
@@ -220,9 +223,16 @@ export default function GameplayPanel() {
         </div>
         <p className="text-[10px] text-muted-foreground/70">Select a new baseline neural architecture. Your current rank and progress will be preserved.</p>
         <button
-          onClick={() => navigate("/select-class", { state: { changingClass: true } })}
-          className="w-full py-2.5 px-4 text-xs font-mono rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all text-center tracking-widest"
+          onClick={() => {
+            if (!profile?.is_premium) {
+              setShowPremiumModal(true);
+            } else {
+              navigate("/select-class", { state: { changingClass: true } });
+            }
+          }}
+          className="w-full py-2.5 px-4 text-xs font-mono rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2 tracking-widest"
         >
+          {!profile?.is_premium && <Lock className="w-3.5 h-3.5 text-amber-400" />}
           RECALIBRATE CLASS
         </button>
       </div>
@@ -316,6 +326,11 @@ export default function GameplayPanel() {
           })}
         </div>
       </div>
+      <AnimatePresence>
+        {showPremiumModal && (
+          <PremiumUpgradeModal onClose={() => setShowPremiumModal(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
