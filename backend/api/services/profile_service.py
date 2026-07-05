@@ -32,11 +32,11 @@ def get_rank_info(profile: UserProfile) -> dict:
     """
     Вычисляет пороги рангов с учетом пассивок (endurance_protocol)
     и возвращает текущий ранг и обновленную матрицу порогов.
+    Uses Python-level filtering so it works from the prefetch cache (0 extra DB queries).
     """
-
-    has_endurance = profile.unlocked_skills.filter(
-        skill_code="endurance_protocol"
-    ).exists()
+    has_endurance = any(
+        s.skill_code == "endurance_protocol" for s in profile.unlocked_skills.all()
+    )
     multiplier = 0.8 if has_endurance else 1.0
 
     thresholds = [
@@ -64,8 +64,11 @@ def get_humanities_rank_info(profile: UserProfile) -> dict:
     """
     Вычисляет пороги рангов Humanities с учетом пассивок (master_of_arts)
     и возвращает текущий ранг и обновленную матрицу порогов.
+    Uses Python-level filtering so it works from the prefetch cache (0 extra DB queries).
     """
-    has_master = profile.unlocked_skills.filter(skill_code="master_of_arts").exists()
+    has_master = any(
+        s.skill_code == "master_of_arts" for s in profile.unlocked_skills.all()
+    )
     multiplier = 0.85 if has_master else 1.0
 
     thresholds = []

@@ -349,6 +349,11 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserStats.objects.create(user=instance)  # type: ignore
 
 
+# NOTE: save_user_profile signal intentionally removed — it caused a phantom
+# profile.save() on every User.save() (e.g., JWT token rotation), adding an
+# unnecessary DB write per request cycle.
+
+
 class UserStats(models.Model):
     """
     Cumulative statistics for achievements and tracking.
@@ -667,6 +672,9 @@ class ActiveEffect(models.Model):
         verbose_name = "Активный эффект"
         verbose_name_plural = "Активные эффекты"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "skill_id"]),
+        ]
 
     def __str__(self):
         return f"{self.effect_id} → {self.user.username}"
@@ -752,6 +760,9 @@ class BossEncounter(models.Model):
         verbose_name = "Битва с боссом"
         verbose_name_plural = "Битвы с боссами"
         ordering = ["-started_at"]
+        indexes = [
+            models.Index(fields=["user", "is_defeated"]),
+        ]
 
     def __str__(self):
         return f"{self.user.username} vs {self.boss.name} (HP: {self.hp_current}/{self.boss.hp_max})"  # noqa: E501
@@ -862,6 +873,9 @@ class InventoryItem(models.Model):
 
     class Meta:
         unique_together = ("user_profile", "item")
+        indexes = [
+            models.Index(fields=["user_profile", "is_equipped"]),
+        ]
 
     def __str__(self):
         return f"{self.user_profile.user.username} - {self.item.name} x{self.quantity}"  # type: ignore
@@ -987,6 +1001,9 @@ class TrainingSession(models.Model):
         verbose_name = "Тренировочная сессия"
         verbose_name_plural = "Тренировочные сессии"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user_profile", "created_at"]),
+        ]
 
     def __str__(self):
         return (

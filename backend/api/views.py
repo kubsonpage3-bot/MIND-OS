@@ -130,17 +130,27 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        """Возвращаем профиль текущего авторизованного пользователя с предзагрузкой инвентаря."""  # noqa: E501
+        """Возвращаем профиль текущего авторизованного пользователя с предзагрузкой инвентаря."""
+        from django.utils import timezone
         from api.services.daily_service import process_daily_login
 
-        # Trigger lazy daily login check (wrapped in atomic inside service)
-        process_daily_login(self.request.user)
+        # FIX 8: fast-path — avoid the heavy select_for_update() atomic block
+        # if the user already has a daily-login recorded for today.
+        today = timezone.now().date()
+        already_checked_today = UserProfile.objects.filter(
+            user=self.request.user, last_login_date=today
+        ).exists()
+        if not already_checked_today:
+            process_daily_login(self.request.user)
 
-        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
-        if not created:
-            profile = UserProfile.objects.prefetch_related(
-                "inventory_items__item__effects"
-            ).get(user=self.request.user)
+        # FIX 4: full prefetch — covers inventory, skills, allies, achievements
+        # so serializer method fields cost 0 extra DB queries.
+        profile, created = UserProfile.objects.prefetch_related(
+            "inventory_items__item__effects",
+            "unlocked_skills",
+            "recruited_allies",
+            "user__achievements",
+        ).get_or_create(user=self.request.user)
         return profile
 
 
@@ -849,12 +859,18 @@ class TrainingLogView(generics.GenericAPIView):
             calculate_cognitive_gains,
         )
         from api.serializers.profile import UserProfileSerializer
+        from api.serializers.training import TrainingLogSerializer
+
+        # FIX 7: validate and sanitize all training inputs before any game logic
+        input_serializer = TrainingLogSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        validated = input_serializer.validated_data
 
         data = request.data
-        hours = float(data.get("hours", 0))
-        focus_rating = float(data.get("focus_rating", 5))
-        flat_xp_bonus = int(data.get("flat_xp_bonus", 0))
-        activity = data.get("activity", "")
+        hours = validated["hours"]
+        focus_rating = validated["focus_rating"]
+        flat_xp_bonus = validated["flat_xp_bonus"]
+        activity = validated["activity"]
 
         # Look up custom task if applicable
         task = None
@@ -1674,9 +1690,18 @@ class FeatureEventView(generics.GenericAPIView):
     Если пользователь авторизован, проверяет analytics_enabled.
     """
 
-    permission_classes = (
+    from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+
+    class FeatureEventAnonThrottle(AnonRateThrottle):
+        rate = "20/min"
+
+    class FeatureEventUserThrottle(UserRateThrottle):
+        rate = "60/min"
+
+    permission_classes = (  # type: ignore
         []
     )  # Allow both authenticated and unauthenticated to hit it, we handle logic inside
+    throttle_classes = [FeatureEventAnonThrottle, FeatureEventUserThrottle]
 
     def post(self, request, *args, **kwargs):
         event_name = request.data.get("event_name")
