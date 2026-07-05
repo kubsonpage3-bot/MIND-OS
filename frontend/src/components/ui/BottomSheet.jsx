@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
@@ -17,7 +18,12 @@ export default function BottomSheet({ isOpen, onClose, title, children }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -26,7 +32,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] bg-black/85 backdrop-blur-sm"
+            className="fixed inset-0 z-[50] bg-black/85 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -36,7 +42,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-[9999] bg-card border-t border-border rounded-t-3xl max-h-[95vh] overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 z-[51] bg-card border-t border-border rounded-t-3xl max-h-[95vh] overflow-hidden"
             style={{
               background: "linear-gradient(180deg, rgba(22,20,18,0.98) 0%, rgba(15,13,11,0.99) 100%)",
               boxShadow: "0 -8px 32px rgba(0,0,0,0.6)",
@@ -62,6 +68,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }) {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

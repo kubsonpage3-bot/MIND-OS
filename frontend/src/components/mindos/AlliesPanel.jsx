@@ -12,6 +12,55 @@ import GameCard from "@/components/ui/GameCard";
 const RANK_COLORS = { E: "#888", D: "#22c55e", C: "#3b82f6", B: "#a855f7", A: "#f0c040", S: "#ff3355" };
 const RANK_GLOW = { E: "#88888840", D: "#22c55e40", C: "#3b82f640", B: "#a855f740", A: "#f0c04040", S: "#ff335540" };
 
+export function AllyPortrait({ ally, isRecruited = true, hovered = false }) {
+  const rankColor = RANK_COLORS[ally.rank] || "#888";
+  const rankGlow = RANK_GLOW[ally.rank] || "#88888840";
+  return (
+    <div className="relative shrink-0">
+      <motion.div
+        animate={isRecruited ? {
+          boxShadow: hovered
+            ? [`0 0 12px ${ally.color}`, `0 0 24px ${ally.color}80`, `0 0 12px ${ally.color}`]
+            : [`0 0 6px ${ally.color}60`, `0 0 14px ${ally.color}40`, `0 0 6px ${ally.color}60`],
+        } : {
+          boxShadow: "0 0 0 transparent",
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="w-16 h-16 rounded-xl overflow-hidden border-2"
+        style={{ borderColor: isRecruited ? ally.color : "var(--habit-border)" }}
+      >
+        <OptimizedImage
+          src={ally.image}
+          alt={ally.name}
+          className="w-full h-full object-contain"
+          style={{
+            filter: isRecruited
+              ? `brightness(1.1) saturate(1.2) drop-shadow(0 0 4px ${ally.color})`
+              : "brightness(0.4) grayscale(0.6)",
+            transition: "filter 0.5s ease",
+            imageRendering: "pixelated",
+          }}
+        />
+      </motion.div>
+      {/* Rank badge */}
+      <div
+        className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center font-mono font-black text-[9px] border"
+        style={{ background: rankColor, borderColor: rankGlow, color: "#000", boxShadow: `0 0 6px ${rankColor}` }}
+      >
+        {ally.rank}
+      </div>
+      {isRecruited && (
+        <motion.div
+          className="absolute -top-1 -left-1 w-3 h-3 rounded-full"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          style={{ background: "#00ff88", boxShadow: "0 0 4px #00ff88" }}
+        />
+      )}
+    </div>
+  );
+}
+
 function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
   const [hovered, setHovered] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
@@ -50,48 +99,7 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
     >
       <div className="flex items-center gap-3 p-3">
         {/* Animated portrait */}
-        <div className="relative shrink-0">
-          <motion.div
-            animate={isRecruited ? {
-              boxShadow: hovered
-                ? [`0 0 12px ${ally.color}`, `0 0 24px ${ally.color}80`, `0 0 12px ${ally.color}`]
-                : [`0 0 6px ${ally.color}60`, `0 0 14px ${ally.color}40`, `0 0 6px ${ally.color}60`],
-            } : {
-              boxShadow: "0 0 0 transparent",
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-16 h-16 rounded-xl overflow-hidden border-2"
-            style={{ borderColor: isRecruited ? ally.color : "var(--habit-border)" }}
-          >
-            <OptimizedImage
-              src={ally.image}
-              alt={ally.name}
-              className="w-full h-full object-contain"
-              style={{
-                filter: isRecruited
-                  ? `brightness(1.1) saturate(1.2) drop-shadow(0 0 4px ${ally.color})`
-                  : "brightness(0.4) grayscale(0.6)",
-                transition: "filter 0.5s ease",
-                imageRendering: "pixelated",
-              }}
-            />
-          </motion.div>
-          {/* Rank badge */}
-          <div
-            className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center font-mono font-black text-[9px] border"
-            style={{ background: rankColor, borderColor: rankGlow, color: "#000", boxShadow: `0 0 6px ${rankColor}` }}
-          >
-            {ally.rank}
-          </div>
-          {isRecruited && (
-            <motion.div
-              className="absolute -top-1 -left-1 w-3 h-3 rounded-full"
-              animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              style={{ background: "#00ff88", boxShadow: "0 0 4px #00ff88" }}
-            />
-          )}
-        </div>
+        <AllyPortrait ally={ally} isRecruited={isRecruited} hovered={hovered} />
 
         {/* Info */}
         <div className="flex-1 min-w-0">

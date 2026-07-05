@@ -4,6 +4,7 @@ import { djangoApi } from '@/api/djangoClient';
 import BottomSheet from '@/components/ui/BottomSheet';
 import OptimizedImage from './OptimizedImage';
 import { getRankDisplayData } from '@/lib/rankEngine';
+import { AllyPortrait } from './AlliesPanel';
 
 export default function PartyMemberProfileSheet({ isOpen, onClose, userId, memberName }) {
   const { data: profile, isLoading, isError } = useQuery({
@@ -28,14 +29,22 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
         <div className="space-y-6 pb-6">
           {/* Top section: Avatar & Basic Info */}
           <div className="flex flex-col items-center gap-2">
-            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-[var(--habit-border)] bg-[var(--habit-panel)] relative">
-              <OptimizedImage
-                src={profile.avatar || "/assets/ui/default_avatar.webp"}
-                alt={profile.username}
-                className="w-full h-full object-cover"
-                style={{ imageRendering: "pixelated" }}
-              />
-              <div className="absolute -bottom-2 -right-2 bg-[var(--habit-purple)] text-white text-[10px] font-black font-mono px-2 py-0.5 rounded-lg border border-[var(--habit-purple-glow)]">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[var(--habit-border)] bg-[var(--habit-panel)] flex items-center justify-center shadow-lg">
+                {profile.avatar && profile.avatar !== "/assets/ui/default_avatar.webp" ? (
+                  <OptimizedImage
+                    src={profile.avatar}
+                    alt={profile.username}
+                    className="w-full h-full object-cover"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                ) : (
+                  <span className="text-3xl font-mono font-black text-[var(--habit-text)] opacity-80 uppercase">
+                    {profile.username?.charAt(0) || '?'}
+                  </span>
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 bg-[var(--habit-purple)] text-white text-[10px] font-black font-mono px-2 py-0.5 rounded-lg border border-[var(--habit-purple-glow)] z-10 shadow-sm">
                 Lv.{profile.level}
               </div>
             </div>
@@ -151,13 +160,8 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
                         borderColor: allyMeta.color || 'var(--habit-border)'
                       }}
                     >
-                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-black/50" style={{ boxShadow: `0 0 8px ${allyMeta.color}40` }}>
-                        <OptimizedImage
-                          src={allyMeta.image}
-                          alt={allyMeta.name}
-                          className="w-full h-full object-contain"
-                          style={{ imageRendering: "pixelated", filter: `brightness(1.1) drop-shadow(0 0 2px ${allyMeta.color})` }}
-                        />
+                      <div className="scale-75 origin-top mb-[-12px] mt-1">
+                        <AllyPortrait ally={allyMeta} isRecruited={true} />
                       </div>
                       <div className="text-center w-full">
                         <div className="font-mono text-[10px] font-bold truncate" style={{ color: allyMeta.color }}>

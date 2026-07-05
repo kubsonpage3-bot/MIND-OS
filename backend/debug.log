@@ -1435,3 +1435,281 @@ WARNING 2026-07-04 17:22:30,059 log 12116 20064 Forbidden: /api/calendar/events/
 WARNING 2026-07-04 17:22:30,060 log 12116 20064 Forbidden: /api/calendar/events/
 WARNING 2026-07-04 17:22:52,269 log 7892 17032 Bad Request: /api/profile/
 WARNING 2026-07-04 17:22:54,643 log 7892 17032 Forbidden: /api/calendar/events/
+WARNING 2026-07-05 01:24:36,258 log 5100 13652 Forbidden: /api/party/members/501/profile/
+WARNING 2026-07-05 01:24:38,137 log 5100 13652 Forbidden: /api/party/members/502/profile/
+WARNING 2026-07-05 01:24:38,991 log 5100 13652 Forbidden: /api/party/members/504/profile/
+WARNING 2026-07-05 01:24:39,843 log 5100 13652 Forbidden: /api/party/members/999999/profile/
+ERROR 2026-07-05 01:25:35,537 log 7640 23404 Internal Server Error: /api/party/members/507/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 1869, in get
+    total_stats = profile.total_stats()
+                  ^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+WARNING 2026-07-05 01:25:37,628 log 7640 23404 Forbidden: /api/party/members/508/profile/
+ERROR 2026-07-05 01:25:38,585 log 7640 23404 Internal Server Error: /api/party/members/510/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 1869, in get
+    total_stats = profile.total_stats()
+                  ^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+WARNING 2026-07-05 01:25:39,569 log 7640 23404 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-05 01:26:12,149 log 15328 22512 Internal Server Error: /api/party/members/513/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 1879, in get
+    "rank": profile.rank,
+            ^^^^^^^^^^^^
+AttributeError: 'UserProfile' object has no attribute 'rank'
+WARNING 2026-07-05 01:26:14,205 log 15328 22512 Forbidden: /api/party/members/514/profile/
+ERROR 2026-07-05 01:26:15,148 log 15328 22512 Internal Server Error: /api/party/members/516/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 1879, in get
+    "rank": profile.rank,
+            ^^^^^^^^^^^^
+AttributeError: 'UserProfile' object has no attribute 'rank'
+WARNING 2026-07-05 01:26:16,250 log 15328 22512 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-05 01:27:46,936 log 18944 10028 Internal Server Error: /api/party/members/519/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 1879, in get
+    "rank": profile.rank,
+            ^^^^^^^^^^^^
+AttributeError: 'UserProfile' object has no attribute 'rank'
+WARNING 2026-07-05 01:27:48,924 log 18944 10028 Forbidden: /api/party/members/520/profile/
+ERROR 2026-07-05 01:27:49,887 log 18944 10028 Internal Server Error: /api/party/members/522/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\api\views.py", line 1879, in get
+    "rank": profile.rank,
+            ^^^^^^^^^^^^
+AttributeError: 'UserProfile' object has no attribute 'rank'
+WARNING 2026-07-05 01:27:50,928 log 18944 10028 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-05 01:28:40,901 log 21824 18280 Internal Server Error: /api/party/members/525/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\response.py", line 74, in rendered_content
+    ret = renderer.render(self.data, accepted_media_type, context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\renderers.py", line 100, in render
+    ret = json.dumps(
+          ^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\utils\json.py", line 25, in dumps
+    return json.dumps(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\utils\encoders.py", line 66, in default
+    return tuple(item for item in obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\utils\encoders.py", line 66, in <genexpr>
+    return tuple(item for item in obj)
+                ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\files\base.py", line 78, in __iter__
+    for chunk in self.chunks():
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\files\base.py", line 55, in chunks
+    self.seek(0)
+    ^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\files\utils.py", line 45, in <lambda>
+    seek = property(lambda self: self.file.seek)
+                                 ^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\db\models\fields\files.py", line 49, in _get_file
+    self._require_file()
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\db\models\fields\files.py", line 44, in _require_file
+    raise ValueError(
+ValueError: The 'avatar' attribute has no file associated with it.
+WARNING 2026-07-05 01:28:42,921 log 21824 18280 Forbidden: /api/party/members/526/profile/
+ERROR 2026-07-05 01:28:43,920 log 21824 18280 Internal Server Error: /api/party/members/528/profile/
+Traceback (most recent call last):
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\response.py", line 74, in rendered_content
+    ret = renderer.render(self.data, accepted_media_type, context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\renderers.py", line 100, in render
+    ret = json.dumps(
+          ^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\utils\json.py", line 25, in dumps
+    return json.dumps(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\utils\encoders.py", line 66, in default
+    return tuple(item for item in obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\rest_framework\utils\encoders.py", line 66, in <genexpr>
+    return tuple(item for item in obj)
+                ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\files\base.py", line 78, in __iter__
+    for chunk in self.chunks():
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\files\base.py", line 55, in chunks
+    self.seek(0)
+    ^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\core\files\utils.py", line 45, in <lambda>
+    seek = property(lambda self: self.file.seek)
+                                 ^^^^^^^^^
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\db\models\fields\files.py", line 49, in _get_file
+    self._require_file()
+  File "C:\coder\mind-os-growth\backend\.venv\Lib\site-packages\django\db\models\fields\files.py", line 44, in _require_file
+    raise ValueError(
+ValueError: The 'avatar' attribute has no file associated with it.
+WARNING 2026-07-05 01:28:44,896 log 21824 18280 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-05 01:29:16,104 log 20972 15380 Forbidden: /api/party/members/532/profile/
+WARNING 2026-07-05 01:29:17,919 log 20972 15380 Not Found: /api/party/members/999999/profile/
