@@ -31,9 +31,9 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
           <div className="flex flex-col items-center gap-2">
             <div className="relative">
               <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[var(--habit-border)] bg-[var(--habit-panel)] flex items-center justify-center shadow-lg">
-                {profile.avatar && profile.avatar !== "/assets/ui/default_avatar.webp" ? (
+                {profile.character_image && profile.character_image !== "/assets/ui/default_avatar.webp" ? (
                   <OptimizedImage
-                    src={profile.avatar}
+                    src={profile.character_image}
                     alt={profile.username}
                     className="w-full h-full object-cover"
                     style={{ imageRendering: "pixelated" }}
@@ -59,10 +59,11 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
               const rank = getRankDisplayData(profile.rank_info?.current_id || 'F', profile);
               return (
                 <div 
-                  className="mt-1 px-3 py-1 rounded font-mono font-bold text-xs border inline-block"
-                  style={{ background: `${rank.color}20`, color: rank.color, borderColor: `${rank.color}50` }}
+                  className="mt-1 px-3 py-1 rounded font-mono font-bold text-xs border inline-block text-center shadow-sm"
+                  style={{ background: rank.glow || `${rank.color}20`, color: rank.color, borderColor: `${rank.color}40` }}
                 >
-                  {rank.id}
+                  <div className="text-sm">{rank.id} {rank.god ? "👑" : ""}</div>
+                  <div className="text-[8px] uppercase tracking-widest opacity-80">{rank.label}</div>
                 </div>
               );
             })()}
@@ -73,7 +74,7 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
               <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">Joined</div>
               <div className="font-mono text-xs font-bold text-[var(--habit-text)]">
-                {profile.date_joined ? new Date(profile.date_joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
+                {profile.joined ? new Date(profile.joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'}
               </div>
             </div>
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
@@ -121,13 +122,13 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono">
                 <span className="text-[#a855f7]">Rank XP</span>
-                <span className="text-[var(--habit-dim)]">{Math.floor(profile.rank_xp)} / {profile.rank_info?.next_threshold}</span>
+                <span className="text-[var(--habit-dim)]">{Math.floor(profile.rank_xp)} / {profile.rank_info?.next_threshold || profile.prestige_xp_required || 8000}</span>
               </div>
               <div className="h-1.5 rounded-full bg-[var(--habit-border)] overflow-hidden">
                 <div 
                   className="h-full rounded-full transition-all duration-700 bg-[#a855f7]"
                   style={{ 
-                    width: `${profile.rank_info?.next_threshold ? Math.min((profile.rank_xp / profile.rank_info.next_threshold) * 100, 100) : 100}%`,
+                    width: `${Math.min((profile.rank_xp / (profile.rank_info?.next_threshold || profile.prestige_xp_required || 8000)) * 100, 100)}%`,
                     boxShadow: '0 0 4px #a855f766' 
                   }}
                 />

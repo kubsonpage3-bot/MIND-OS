@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { djangoApi } from '@/api/djangoClient';
+import { djangoApi, getMediaUrl } from '@/api/djangoClient';
 import { getRankDisplayData } from '@/lib/rankEngine';
 import { Copy, Check, Users, LogOut, UserPlus, Swords } from 'lucide-react';
 import { Crown, MessageSquare, Zap } from 'lucide-react';
@@ -26,7 +26,7 @@ function MemberCard({ member, onBuff, onClick }) {
         {/* Portrait */}
         <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border" style={{ background: 'var(--habit-bg)', borderColor: 'var(--habit-border)' }}>
           {member.character_image ? (
-            <img src={member.character_image} alt={member.username} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+            <img src={getMediaUrl(member.character_image)} alt={member.username} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
           ) : (
             <span className="font-mono font-black text-sm uppercase" style={{ color: 'var(--habit-dim)' }}>
               {member.username?.charAt(0) || '?'}
@@ -55,7 +55,7 @@ function MemberCard({ member, onBuff, onClick }) {
                 className="px-1.5 py-0.5 rounded text-[10px] font-bold border" 
                 style={{ background: `${rank.color}22`, color: rank.color, borderColor: `${rank.color}66` }}
               >
-                {rank.id}
+                {rank.id === 'ASC' ? rank.label : rank.id}
               </span>
             </div>
             {onBuff && (

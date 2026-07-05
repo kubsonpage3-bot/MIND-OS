@@ -1731,7 +1731,7 @@ class PartyFeedView(generics.GenericAPIView):
         from api.serializers.party import PartyEventSerializer
 
         try:
-            party = request.user.partymembership.party
+            party = request.user.party_membership.party
         except Exception:
             return Response(
                 {"error": "Not in a party"}, status=status.HTTP_400_BAD_REQUEST
@@ -1796,7 +1796,7 @@ class PartyLeaderboardView(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            party = request.user.partymembership.party
+            party = request.user.party_membership.party
         except Exception:
             return Response(
                 {"error": "Not in a party"}, status=status.HTTP_400_BAD_REQUEST
@@ -1827,7 +1827,9 @@ class PartyLeaderboardView(generics.GenericAPIView):
                     "weekly_xp": mem.weekly_xp,
                     "level": mem.user.profile.level,
                     "avatar": (
-                        mem.user.profile.avatar.url if mem.user.profile.avatar else None
+                        mem.user.profile.avatar.url
+                        if mem.user.profile.avatar and mem.user.profile.avatar.name
+                        else None
                     ),
                 }
             )
@@ -1892,7 +1894,11 @@ class PartyMemberProfileView(generics.GenericAPIView):
                     if target_membership
                     else None
                 ),
-                "avatar": profile.avatar.url if profile.avatar else None,
+                "avatar": (
+                    profile.avatar.url
+                    if profile.avatar and profile.avatar.name
+                    else None
+                ),
                 "character_class": profile.character_class,
                 "level": profile.level,
                 "rank": rank_info.get("current_id", "F"),

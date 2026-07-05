@@ -105,6 +105,9 @@ class UserProfile(models.Model):
         default=0, verbose_name="Опыт ранга (Rank XP)"
     )
     streak = models.PositiveIntegerField(default=0, verbose_name="Стрик (дней подряд)")
+    last_login_date = models.DateField(
+        null=True, blank=True, verbose_name="Последний логин (Дата)"
+    )
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )
@@ -126,6 +129,9 @@ class UserProfile(models.Model):
     rival_data = models.JSONField(
         default=dict, blank=True, verbose_name="Данные соперника"
     )
+
+    # Временная зона пользователя (для сброса дейликов)
+    timezone = models.CharField(max_length=50, default="UTC", verbose_name="Timezone")
 
     # ── Базовые характеристики (RPG Stats) ───────────────────────────────
     base_pwr = models.PositiveIntegerField(default=5, verbose_name="Power (PWR)")

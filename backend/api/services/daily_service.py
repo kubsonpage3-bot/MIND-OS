@@ -12,21 +12,21 @@ def process_daily_login(user):
     profile = UserProfile.objects.select_for_update().get(user=user)
     today = timezone.now().date()
 
-    if profile.last_daily_cron_at is None:
-        profile.last_daily_cron_at = today
+    if profile.last_login_date is None:
+        profile.last_login_date = today
         profile.streak = 1
-        profile.save(update_fields=["last_daily_cron_at", "streak"])
+        profile.save(update_fields=["last_login_date", "streak"])
         return profile
 
-    if profile.last_daily_cron_at >= today:
+    if profile.last_login_date >= today:
         return profile
 
     # New calendar day detected!
-    delta = (today - profile.last_daily_cron_at).days
+    delta = (today - profile.last_login_date).days
 
     # Check if party streak broke
     try:
-        membership = user.partymembership
+        membership = user.party_membership
         yesterday = today - timezone.timedelta(days=1)
         if (
             membership.last_daily_completed_date is None
@@ -40,9 +40,9 @@ def process_daily_login(user):
 
                 PartyEvent.objects.create(
                     party=party,
-                    user=user,
+                    member=membership,
                     event_type="milestone",
-                    content="missed a daily, resetting the party streak.",
+                    message="missed a daily, resetting the party streak.",
                 )
     except Exception:
         pass
@@ -63,7 +63,7 @@ def process_daily_login(user):
         else:
             profile.streak = 1
 
-    profile.last_daily_cron_at = today
+    profile.last_login_date = today
 
     # fortunes_favor (Gain 100G daily)
     if UnlockedSkill.objects.filter(
@@ -80,5 +80,5 @@ def process_daily_login(user):
     ):
         profile.gold += 200
 
-    profile.save(update_fields=["last_daily_cron_at", "streak", "gold"])
+    profile.save(update_fields=["last_login_date", "streak", "gold"])
     return profile

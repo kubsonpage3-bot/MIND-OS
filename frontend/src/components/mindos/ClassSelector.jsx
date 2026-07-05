@@ -40,7 +40,7 @@ export default function ClassSelector({ onChoose, isPremium }) {
           const isSelected = selectedClass?.id === cls.id;
           const isActive = isHovered || isSelected;
 
-            const FREE_CLASSES = ["ascetic", "wanderer"];
+            const FREE_CLASSES = ["wanderer"];
             const isLocked = !isPremium && !FREE_CLASSES.includes(cls.id);
 
             return (

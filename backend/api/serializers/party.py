@@ -23,6 +23,8 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     character_image = serializers.ImageField(source="avatar", read_only=True)
     max_hp = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
+    max_streak = serializers.SerializerMethodField()
+    total_tasks_completed = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -39,11 +41,22 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "hp",
             "max_hp",
             "rank_info",
+            "total_tasks_completed",
+            "max_streak",
         )
         read_only_fields = fields
 
     def get_max_hp(self, obj) -> int:
         return obj.max_hp
+
+    def get_max_streak(self, obj) -> int:
+        # Since UserProfile doesn't store max_streak, we just return current streak or 0
+        return obj.streak
+
+    def get_total_tasks_completed(self, obj) -> int:
+        from api.models import Task
+
+        return Task.objects.filter(user=obj.user, is_completed=True).count()
 
     def get_rank_info(self, obj) -> dict:
         from api.services.profile_service import get_rank_info
@@ -58,7 +71,12 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
                 next_t = thresholds[i + 1]["min"]
                 break
 
-        return {"current_id": current_id, "next_threshold": next_t}
+        return {
+            "current_id": current_id,
+            "next_threshold": next_t,
+            "is_ascendant": info.get("is_ascendant", False),
+            "ascendant_level": info.get("ascendant_level", 1),
+        }
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -96,7 +114,8 @@ class PartyEventReactionSerializer(serializers.ModelSerializer):
 
 
 class PartyEventSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username", read_only=True)
+    username = serializers.CharField(source="member.user.username", read_only=True)
+    content = serializers.CharField(source="message", read_only=True)
     reactions = PartyEventReactionSerializer(many=True, read_only=True)
     user_reacted = serializers.SerializerMethodField()
 

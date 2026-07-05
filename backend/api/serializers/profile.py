@@ -80,6 +80,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "streak_title",
             "analytics_enabled",
             "is_premium",
+            "timezone",
         )
         read_only_fields = (
             "id",

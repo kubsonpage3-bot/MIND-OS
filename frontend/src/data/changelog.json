@@ -1,5 +1,29 @@
 [
   {
+    "version": "1.4.14",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Redesigned the Premium subscription block in Account Settings. Premium users now see a full gold card with their active features and a Manage Subscription button. Free users see a purple upgrade card with locked features and a direct Upgrade button."
+      },
+      {
+        "type": "fix",
+        "text": "Subscription portal errors now show a proper in-app notification with the real error message instead of a generic browser alert."
+      }
+    ]
+  },
+  {
+    "version": "1.4.13",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Timezone settings! You can now select your local timezone in Gameplay Settings to ensure daily tasks reset exactly at your local midnight."
+      }
+    ]
+  },
+  {
     "version": "1.4.12",
     "date": "2026-07-05",
     "changes": [

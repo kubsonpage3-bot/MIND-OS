@@ -187,9 +187,9 @@ def send_buff(sender, receiver_username: str, effect_code: str):
 
     PartyEvent.objects.create(
         party=party,
-        user=sender,
+        member=sender_mem,
         event_type="buff_sent",
-        content=f"sent {effect_code} to {receiver_username}",
+        message=f"sent {effect_code} to {receiver_username}",
     )
 
     return {"message": f"Buff sent to {receiver_username}!"}

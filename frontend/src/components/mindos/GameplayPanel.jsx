@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown, UserCog, Lock } from "lucide-react";
+import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown, UserCog, Lock, Globe } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { AnimatePresence } from "framer-motion";
 import PremiumUpgradeModal from "./PremiumUpgradeModal";
@@ -49,6 +49,22 @@ const TIME_OPTIONS = [
   "18:00","19:00","20:00","21:00","22:00","23:00",
 ];
 
+const TIMEZONES = [
+  { id: "UTC", label: "UTC" },
+  { id: "America/New_York", label: "Eastern Time (US)" },
+  { id: "America/Chicago", label: "Central Time (US)" },
+  { id: "America/Denver", label: "Mountain Time (US)" },
+  { id: "America/Los_Angeles", label: "Pacific Time (US)" },
+  { id: "Europe/London", label: "London (UK)" },
+  { id: "Europe/Berlin", label: "Central European Time" },
+  { id: "Europe/Moscow", label: "Moscow (Russia)" },
+  { id: "Asia/Dubai", label: "Dubai (UAE)" },
+  { id: "Asia/Kolkata", label: "India Standard Time" },
+  { id: "Asia/Shanghai", label: "China Standard Time" },
+  { id: "Asia/Tokyo", label: "Tokyo (Japan)" },
+  { id: "Australia/Sydney", label: "Sydney (Australia)" },
+];
+
 export default function GameplayPanel() {
   const queryClient = useQueryClient();
   const { profile } = useDjangoAuth();
@@ -64,7 +80,15 @@ export default function GameplayPanel() {
     }
   });
 
+  const tzMutation = useMutation({
+    mutationFn: (tz) => djangoApi.profile.update({ timezone: tz }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    }
+  });
+
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showTzPicker, setShowTzPicker] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [gameplay, setGameplay] = useState(() => {
     try {
@@ -157,6 +181,46 @@ export default function GameplayPanel() {
         </BottomSheet>
       </div>
 
+      {/* Timezone Setting */}
+      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+        <div className="flex items-center gap-2">
+          <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="font-mono text-xs font-bold">Local Timezone</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground/70">Used for accurate daily resets on the server</p>
+        <button
+          onClick={() => setShowTzPicker(true)}
+          className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
+        >
+          <span>
+            {profile?.timezone 
+              ? TIMEZONES.find(t => t.id === profile.timezone)?.label || profile.timezone 
+              : "UTC"}
+          </span>
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        </button>
+        <BottomSheet isOpen={showTzPicker} onClose={() => setShowTzPicker(false)} title="Select Timezone">
+          <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 pb-6">
+            {TIMEZONES.map(t => (
+              <button
+                key={t.id}
+                onClick={() => { 
+                  tzMutation.mutate(t.id);
+                  setShowTzPicker(false); 
+                }}
+                className={`py-3 px-4 text-sm font-mono rounded-lg border transition-all text-left ${
+                  (profile?.timezone || "UTC") === t.id
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border/40 text-muted-foreground hover:border-border"
+                }`}
+              >
+                {t.label} <span className="text-[10px] opacity-50 ml-2">({t.id})</span>
+              </button>
+            ))}
+          </div>
+        </BottomSheet>
+      </div>
+
       {/* Pomodoro Preset */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
@@ -224,15 +288,10 @@ export default function GameplayPanel() {
         <p className="text-[10px] text-muted-foreground/70">Select a new baseline neural architecture. Your current rank and progress will be preserved.</p>
         <button
           onClick={() => {
-            if (!profile?.is_premium) {
-              setShowPremiumModal(true);
-            } else {
-              navigate("/select-class", { state: { changingClass: true } });
-            }
+            navigate("/select-class", { state: { changingClass: true } });
           }}
           className="w-full py-2.5 px-4 text-xs font-mono rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2 tracking-widest"
         >
-          {!profile?.is_premium && <Lock className="w-3.5 h-3.5 text-amber-400" />}
           RECALIBRATE CLASS
         </button>
       </div>

@@ -268,9 +268,9 @@ def complete_task(user, task_id, is_positive=True):
                             if party.streak in [3, 7, 14, 30, 50, 100, 365]:
                                 PartyEvent.objects.create(
                                     party=party,
-                                    user=user,
+                                    member=membership,
                                     event_type="milestone",
-                                    content=f"hit a {party.streak}-day streak!",
+                                    message=f"hit a {party.streak}-day streak!",
                                 )
 
             membership.save(
@@ -287,9 +287,9 @@ def complete_task(user, task_id, is_positive=True):
 
                 PartyEvent.objects.create(
                     party=membership.party,
-                    user=user,
+                    member=membership,
                     event_type="task_completed",
-                    content=task.title,
+                    message=task.title,
                 )
         except Exception:
             pass
@@ -386,9 +386,9 @@ def complete_task(user, task_id, is_positive=True):
 
                 PartyEvent.objects.create(
                     party=membership.party,
-                    user=user,
+                    member=membership,
                     event_type="level_up",
-                    content=str(profile.level),
+                    message=str(profile.level),
                 )
             except Exception:
                 pass
@@ -575,15 +575,18 @@ def process_missed_tasks(user):
     сбрасывает их флаг выполнения и возвращает обновленный профиль.
     """
     profile = UserProfile.objects.select_for_update().get(user=user)
-    today = timezone.now().date()
+    import pytz
 
-    # Если крон еще не запускался или сегодня новый день
+    user_tz = pytz.timezone(profile.timezone or "UTC")
+    local_today = timezone.now().astimezone(user_tz).date()
+
+    # Если крон еще не запускался или сегодня новый день по локальному времени
     if profile.last_daily_cron_at is None:
-        profile.last_daily_cron_at = today
+        profile.last_daily_cron_at = local_today
         profile.save()
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
-    if profile.last_daily_cron_at >= today:
+    if profile.last_daily_cron_at >= local_today:
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
@@ -651,7 +654,7 @@ def process_missed_tasks(user):
     if daily_regen > 0:
         profile.hp = min(profile.max_hp, profile.hp + daily_regen)
 
-    profile.last_daily_cron_at = today
+    profile.last_daily_cron_at = local_today
     profile.save(update_fields=["hp", "last_daily_cron_at"])
 
     died = check_death(profile)

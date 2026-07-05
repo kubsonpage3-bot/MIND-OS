@@ -45,7 +45,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const [cronMsg, setCronMsg] = useState(null);
   const [deathMsg, setDeathMsg] = useState(null);
 
-  // Запускаем cron при монтировании
+  // Запускаем cron при монтировании и при возвращении в приложение (смена вкладки)
   useEffect(() => {
     const runCron = async () => {
       try {
@@ -76,6 +76,20 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
     };
     
     runCron();
+
+    // Запускаем при возвращении на вкладку (если прошел час с последнего запуска или настал новый день)
+    let lastRun = Date.now();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        if (now - lastRun > 1000 * 60 * 60) { // 1 час
+          lastRun = now;
+          runCron();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
 
