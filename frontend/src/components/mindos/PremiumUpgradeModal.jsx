@@ -59,7 +59,7 @@ export default function PremiumUpgradeModal({ onClose }) {
               <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-sm font-mono text-left">
                 <strong className="text-white block mb-0.5">All Character Classes</strong>
-                <span className="text-muted-foreground">Unlock Architect, Linguist, and Warlord paths.</span>
+                <span className="text-muted-foreground">Unlock Linguist and Warlord paths.</span>
               </div>
             </div>
             

@@ -128,7 +128,7 @@ export default function AccountPanel() {
             {/* Feature list */}
             <div className="space-y-2">
               {[
-                "4 character classes (Architect, Linguist, Warlord, Ascetic)",
+                "All character classes (Linguist, Warlord, etc.)",
                 "Class change at any time via Class Recalibration",
                 "Integrated Calendar & Pomodoro tools",
                 "Priority support",

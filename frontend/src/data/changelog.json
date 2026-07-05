@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.1.6",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "content",
+        "text": "The Architect class is now completely free and available to all players without a Premium subscription."
+      }
+    ]
+  },
+  {
     "version": "1.1.5",
     "date": "2026-07-05",
     "changes": [

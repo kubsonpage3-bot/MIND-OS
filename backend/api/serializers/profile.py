@@ -169,6 +169,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             free_classes = [
                 "ascetic",
                 "wanderer",
+                "architect",
             ]  # Allow wanderer just in case it's still default somewhere
             if new_class not in free_classes and not instance.is_premium:
                 # If they already have this exact premium class, it's a no-op, let it pass
