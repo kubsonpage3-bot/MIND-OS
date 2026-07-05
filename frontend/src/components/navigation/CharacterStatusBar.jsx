@@ -50,11 +50,14 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
   const thresholds = profile?.rank_info?.thresholds || [];
   const currentIdx = thresholds.findIndex(t => t.id === rankInfo.id);
   const currentRankMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
-  const nextRankMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
+  let nextRankMin = currentIdx >= 0 && currentIdx < thresholds.length - 1 ? thresholds[currentIdx + 1].min : null;
+  if (nextRankMin === null) {
+    nextRankMin = profile?.prestige_xp_required || 8000;
+  }
 
   const xpInRank = Math.max(0, (rankXP || 0) - currentRankMin);
-  const xpRange = nextRankMin !== null ? Math.max(1, nextRankMin - currentRankMin) : 1;
-  const xpPct = nextRankMin !== null ? Math.min(100, (xpInRank / xpRange) * 100) : 100;
+  const xpRange = Math.max(1, nextRankMin - currentRankMin);
+  const xpPct = Math.min(100, (xpInRank / xpRange) * 100);
   const hpPct = Math.max(0, (gameState.hp / gameState.maxHp) * 100);
   const manaPct = Math.min(100, (classData.mana / classData.maxMana) * 100);
 
@@ -80,7 +83,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-2 py-2 md:px-3 md:py-2.5">
           <PixelBar pct={hpPct} fillColor="#f74e52" glowColor="#f74e5288" label="HP" value={`${Math.round(gameState.hp)}/${gameState.maxHp}`} />
           <PixelBar pct={manaPct} fillColor={classColor} glowColor={classColor + "88"} label="MP" value={`${Math.round(classData.mana)}/${classData.maxMana}`} />
-          <PixelBar pct={xpPct} fillColor="#7B61FF" glowColor="#7B61FF88" label="XP" value={nextRankMin !== null ? `${Math.round(xpInRank)}/${Math.round(xpRange)}` : 'MAX'} />
+          <PixelBar pct={xpPct} fillColor="#7B61FF" glowColor="#7B61FF88" label="XP" value={`${Math.round(xpInRank)}/${Math.round(xpRange)}`} />
         </div>
 
         {/* Right section: Gold/Rank/Streak + Portrait */}

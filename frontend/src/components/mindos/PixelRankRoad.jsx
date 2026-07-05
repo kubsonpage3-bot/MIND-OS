@@ -170,10 +170,32 @@ export default function PixelRankRoad({ rankXP = 0 }) {
       </div>
 
       {profile?.prestige_count > 0 && (
-        <div className="mt-4 border-t border-yellow-500/30 pt-3 text-center">
-          <span className="text-yellow-400 font-pixel text-sm tracking-widest">
-            ✦ ASCENDANT {toRoman(profile.prestige_count)}
-          </span>
+        <div className="mt-4 border-t border-yellow-500/30 pt-3 space-y-2">
+          {Array.from({ length: profile.prestige_count }, (_, i) => {
+            const level = i + 1;
+            const isCurrent = level === profile.prestige_count;
+            const isCompleted = level < profile.prestige_count;
+            return (
+              <div
+                key={level}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg border ${
+                  isCurrent
+                    ? 'border-yellow-400 bg-yellow-500/10 text-yellow-400'
+                    : 'border-yellow-500/20 bg-transparent text-yellow-600/50'
+                }`}
+              >
+                <span className="font-pixel text-sm tracking-widest">
+                  {isCompleted ? '✓' : '✦'} ASCENDANT {toRoman(level)}
+                </span>
+                {isCompleted && (
+                  <span className="text-xs text-yellow-600/50">COMPLETED</span>
+                )}
+                {isCurrent && (
+                  <span className="text-xs text-yellow-400">CURRENT</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

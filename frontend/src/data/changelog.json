@@ -22,6 +22,14 @@
       {
         "type": "fix",
         "text": "Fixed an issue where rank progression (F to SSS) disappeared and game crashes occurred after a player reached Ascendant prestige."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the header XP bar displayed 'MAX' instead of the actual required XP values for players in the Ascendant prestige track."
+      },
+      {
+        "type": "polish",
+        "text": "Improved the Rank Progression UI for Prestige players to dynamically show all completed and current Ascendant levels as a detailed list."
       }
     ]
   },
