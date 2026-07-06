@@ -2,8 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Crown, Zap, Shield, Sparkles } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
+import { useIsTWA } from "@/hooks/useIsTWA";
 
 export default function PremiumUpgradeModal({ onClose }) {
+  const { isTWA, isLoading: isTWALoading } = useIsTWA();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -86,23 +88,31 @@ export default function PremiumUpgradeModal({ onClose }) {
             </div>
           )}
 
-          <button
-            onClick={handleUpgrade}
-            disabled={isLoading}
-            className="w-full relative group overflow-hidden rounded-xl font-mono font-bold text-black disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-amber-600 transition-transform duration-300 group-hover:scale-105" />
-            <div className="relative py-4 px-6 flex items-center justify-center gap-2">
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Crown className="w-4 h-4" />
-                  <span>UPGRADE NOW</span>
-                </>
-              )}
+          {isTWALoading ? (
+            <div className="w-full h-[56px] rounded-xl bg-white/5 animate-pulse border border-white/10" />
+          ) : isTWA ? (
+            <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-sm cursor-default">
+              wanna buy premium ? here can you do this mindos.pages.dev
             </div>
-          </button>
+          ) : (
+            <button
+              onClick={handleUpgrade}
+              disabled={isLoading}
+              className="w-full relative group overflow-hidden rounded-xl font-mono font-bold text-black disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-amber-600 transition-transform duration-300 group-hover:scale-105" />
+              <div className="relative py-4 px-6 flex items-center justify-center gap-2">
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Crown className="w-4 h-4" />
+                    <span>UPGRADE NOW</span>
+                  </>
+                )}
+              </div>
+            </button>
+          )}
           
           <div className="mt-4 text-center">
             <button onClick={onClose} className="text-xs font-mono text-muted-foreground hover:text-white transition-colors">

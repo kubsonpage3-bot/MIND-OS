@@ -27,6 +27,7 @@ import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import TabGuideModal from "@/components/mindos/TabGuideModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
 import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
+import { useIsTWA } from "@/hooks/useIsTWA";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
@@ -83,6 +84,7 @@ function TabPanel({ title, children }) {
 }
 
 function PremiumGate({ isPremium, children, showNotice = false }) {
+  const { isTWA, isLoading: isTWALoading } = useIsTWA();
   const [showModal, setShowModal] = useState(false);
   if (isPremium) return children;
   
@@ -104,9 +106,17 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
             // TODO: Pomodoro has no backend enforcement yet — UI-only gate, revisit if backend persistence is added
           </p>
         )}
-        <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-          Upgrade Now
-        </button>
+        {isTWALoading ? (
+          <div className="w-[120px] h-[36px] rounded bg-white/5 animate-pulse" />
+        ) : isTWA ? (
+          <div className="w-full max-w-[240px] p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-xs cursor-default">
+            wanna buy premium ? here can you do this mindos.pages.dev
+          </div>
+        ) : (
+          <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+            Upgrade Now
+          </button>
+        )}
       </div>
       <AnimatePresence>
         {showModal && <PremiumUpgradeModal onClose={() => setShowModal(false)} />}

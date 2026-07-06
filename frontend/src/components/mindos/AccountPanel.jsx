@@ -4,6 +4,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 import { useToast } from "@/components/ui/use-toast";
+import { useIsTWA } from "@/hooks/useIsTWA";
 
 export default function AccountPanel() {
   const { profile, logout } = useDjangoAuth();
@@ -14,6 +15,7 @@ export default function AccountPanel() {
   const [deleteStatus, setDeleteStatus] = useState(null); // null | "pending" | "done"
   const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const { isTWA, isLoading: isTWALoading } = useIsTWA();
 
   const user = profile?.user || null;
   const isPremium = !!profile?.is_premium;
@@ -203,26 +205,36 @@ export default function AccountPanel() {
 
             {/* Upgrade button */}
             <div className="space-y-1.5">
-              <button
-                onClick={handleUpgrade}
-                disabled={isCheckoutLoading}
-                className="w-full relative group overflow-hidden rounded-xl font-mono font-black text-sm text-black disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 transition-all duration-300 group-hover:brightness-110" />
-                <div className="relative py-3 px-4 flex items-center justify-center gap-2">
-                  {isCheckoutLoading ? (
-                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>✦ Upgrade — Premium</span>
-                    </>
-                  )}
+              {isTWALoading ? (
+                <div className="w-full h-[46px] rounded-xl bg-white/5 animate-pulse border border-white/10" />
+              ) : isTWA ? (
+                <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-[10px] cursor-default">
+                  wanna buy premium ? here can you do this mindos.pages.dev
                 </div>
-              </button>
-              <p className="text-center text-[9px] font-mono text-muted-foreground/50">
-                Secure checkout via Stripe · Cancel anytime
-              </p>
+              ) : (
+                <>
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={isCheckoutLoading}
+                    className="w-full relative group overflow-hidden rounded-xl font-mono font-black text-sm text-black disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 transition-all duration-300 group-hover:brightness-110" />
+                    <div className="relative py-3 px-4 flex items-center justify-center gap-2">
+                      {isCheckoutLoading ? (
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>✦ Upgrade — Premium</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                  <p className="text-center text-[9px] font-mono text-muted-foreground/50">
+                    Secure checkout via Stripe · Cancel anytime
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
