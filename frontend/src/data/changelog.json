@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.5",
+    "date": "2026-07-06",
+    "changes": [
+      { "type": "fix", "text": "Restored the correct pixel art portraits for Kira, Neko, Void, Luna, and Sakura after they were accidentally replaced by screenshots." }
+    ]
+  },
+  {
     "version": "1.2.4",
     "date": "2026-07-06",
     "changes": [
