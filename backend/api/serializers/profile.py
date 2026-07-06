@@ -180,6 +180,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
                         }
                     )
 
+            # Recalibration check: if changing from a real class to any other class
+            if instance.character_class and instance.character_class.lower() not in [
+                "",
+                "wanderer",
+            ]:
+                if instance.character_class != new_class and not instance.is_premium:
+                    raise ValidationError(
+                        {
+                            "character_class": "Class Recalibration requires a Premium subscription."
+                        }
+                    )
+
         # Track which fields are updated to avoid race conditions (e.g. overwriting gold deduction)
         update_fields = set(validated_data.keys())
 

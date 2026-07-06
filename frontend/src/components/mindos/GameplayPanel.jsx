@@ -288,11 +288,15 @@ export default function GameplayPanel() {
         <p className="text-[10px] text-muted-foreground/70">Select a new baseline neural architecture. Your current rank and progress will be preserved.</p>
         <button
           onClick={() => {
-            navigate("/select-class", { state: { changingClass: true } });
+            if (!profile?.is_premium) {
+              setShowPremiumModal(true);
+            } else {
+              navigate("/select-class", { state: { changingClass: true } });
+            }
           }}
           className="w-full py-2.5 px-4 text-xs font-mono rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2 tracking-widest"
         >
-          RECALIBRATE CLASS
+          {profile?.is_premium ? "RECALIBRATE CLASS" : <><Lock className="w-3.5 h-3.5" /> RECALIBRATE (PREMIUM)</>}
         </button>
       </div>
 

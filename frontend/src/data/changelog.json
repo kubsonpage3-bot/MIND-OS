@@ -4,6 +4,8 @@
     "date": "2026-07-06",
     "changes": [
       { "type": "fix", "text": "Disabled Stripe payments within the Android app to comply with Google Play Store billing policies." },
+      { "type": "fix", "text": "Fixed a bug where the Ascetic class was incorrectly locked for free users in the UI." },
+      { "type": "fix", "text": "Fixed a loophole where free users could change their class without Premium via the Recalibrate feature." },
       { "type": "content", "text": "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images." }
     ]
   },
