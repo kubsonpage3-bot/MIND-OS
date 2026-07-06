@@ -142,11 +142,12 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       if (res?.task) {
         const dt = res.task;
         const patchedTask = {
-          id: dt.id, type: dt.task_type || 'daily', name: dt.title || 'Task', category: 'Coding',
-          difficulty: dt.difficulty || 'medium', notes: dt.notes || '', done: dt.is_completed || false,
+          ...task,
+          id: dt.id, type: dt.task_type || task.type || 'daily', name: dt.title || task.name || 'Task', category: dt.category || task.category || 'Coding',
+          difficulty: dt.difficulty || task.difficulty || 'medium', notes: dt.notes !== undefined ? dt.notes : (task.notes || ''), done: dt.is_completed || false,
           is_completed: dt.is_completed || false, completedToday: dt.is_completed || false,
-          last_completed_at: dt.last_completed_at || null, rpgValue: dt.value || 0, value: dt.value || 0,
-          streak: dt.streak || 0, posStreak: dt.pos_streak || 0, negStreak: dt.neg_streak || 0, createdAt: dt.created_at,
+          last_completed_at: dt.last_completed_at || task.last_completed_at || null, rpgValue: dt.value || task.rpgValue || 0, value: dt.value || task.value || 0,
+          streak: dt.streak || task.streak || 0, posStreak: dt.pos_streak || task.posStreak || 0, negStreak: dt.neg_streak || task.negStreak || 0, createdAt: dt.created_at || task.createdAt,
         };
         queryClient.setQueryData(["tasks"], (/** @type {any} */ old) => {
           if (!old) return old;
