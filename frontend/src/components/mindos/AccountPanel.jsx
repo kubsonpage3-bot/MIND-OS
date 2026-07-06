@@ -156,21 +156,29 @@ export default function AccountPanel() {
 
             {/* Manage button */}
             <div className="space-y-1.5">
-              <button
-                onClick={handleManageSubscription}
-                disabled={isPortalLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-mono text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPortalLoading ? (
-                  <div className="w-3.5 h-3.5 border-2 border-amber-500/40 border-t-amber-400 rounded-full animate-spin" />
-                ) : (
-                  <RefreshCw className="w-3.5 h-3.5" />
-                )}
-                {isPortalLoading ? "Opening portal…" : "⚙ Manage Subscription"}
-              </button>
-              <p className="text-center text-[9px] font-mono text-muted-foreground/50">
-                Cancel, upgrade, or view billing history
-              </p>
+              {isMobileApp() ? (
+                <div className="w-full p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-[10px]">
+                  Manage billing at <strong>mindos.pages.dev</strong>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={isPortalLoading}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-mono text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isPortalLoading ? (
+                      <div className="w-3.5 h-3.5 border-2 border-amber-500/40 border-t-amber-400 rounded-full animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    {isPortalLoading ? "Opening portal…" : "⚙ Manage Subscription"}
+                  </button>
+                  <p className="text-center text-[9px] font-mono text-muted-foreground/50">
+                    Cancel, upgrade, or view billing history
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
