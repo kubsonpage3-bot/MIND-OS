@@ -272,8 +272,16 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     },
   });
 
+  const completeGuideMutation = useMutation({
+    mutationFn: (/** @type {string} */ guideId) => djangoApi.profile.completeGuide(guideId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      refreshProfile();
+    },
+  });
+
   const logTraining = useMutation({
-    mutationFn: (data) => djangoApi.training.log(data),
+    mutationFn: (/** @type {{ hours: number, focus_rating: number, mutator_multiplier: number, flat_xp_bonus: number, activity: string, efficiency: number }} */ data) => djangoApi.training.log(data),
     /**
      * @param {any} res
      * @param {any} variables
@@ -293,6 +301,17 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         setRankUpNotif(newRankId);
         playSound('rank_up');
         hapticHeavy();
+      }
+
+      const combatResult = res?.combat_result;
+      if (combatResult && combatResult.damage_dealt > 0) {
+        handleBossDamage(
+          combatResult.damage_dealt, 
+          res?.gamification_result?.is_crit || false, 
+          combatResult.boss_defeated, 
+          combatResult, 
+          combatResult.rewards || null
+        );
       }
     },
     onError: (err) => {

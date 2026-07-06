@@ -51,7 +51,7 @@ export default function MutatorsPanel({ onSpendGold }) {
   });
 
   const buyMutatorMutation = useMutation({
-    mutationFn: (id) => djangoApi.mutators.buy(id),
+    mutationFn: (/** @type {string} */ id) => djangoApi.mutators.buy(id),
     onSuccess: (data, mutatorId) => {
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
@@ -146,6 +146,7 @@ export default function MutatorsPanel({ onSpendGold }) {
                   borderColor={active_ ? "#f0c040" : purchased_ ? "hsl(var(--primary)/0.4)" : undefined}
                   glowColor="#f0c040"
                   className={purchased_ && !active_ ? "bg-primary/5" : ""}
+                  onClick={() => {}}
                 >
                   <div className="flex items-start gap-2.5">
                     {/* Pixel art icon */}

@@ -28,13 +28,34 @@ class TrainingLogSerializer(serializers.Serializer):
     Prevents XP farming via extreme hour/focus values.
     """
 
-    hours = serializers.FloatField(min_value=0.083, max_value=24.0)
-    focus_rating = serializers.FloatField(min_value=1.0, max_value=10.0)
-    efficiency = serializers.FloatField(min_value=0.0, max_value=1.0, default=1.0)
-    activity = serializers.CharField(
-        max_length=100, required=False, allow_blank=True, default="other"
+    hours = serializers.FloatField(
+        min_value=0.1,
+        max_value=16.0,  # max 16 hours per session — realistic limit
     )
-    flat_xp_bonus = serializers.IntegerField(min_value=0, max_value=500, default=0)
+    focus_rating = serializers.IntegerField(
+        min_value=1,
+        max_value=10,
+    )
+    efficiency = serializers.FloatField(
+        min_value=0.0,
+        max_value=1.0,
+        required=False,
+        default=1.0,
+    )
+    activity = serializers.CharField(
+        max_length=100,
+        required=False,
+        allow_blank=True,
+    )
+    notes = serializers.CharField(
+        max_length=1000,
+        required=False,
+        allow_blank=True,
+    )
+    flat_xp_bonus = serializers.IntegerField(
+        required=False,
+        default=0,
+    )
 
     def validate_activity(self, value: str) -> str:
         cleaned = value.strip().lower()

@@ -54,9 +54,12 @@ def consume_item(user, item_code: str):
             "data": {"effect_type": "focus_stim", "uses_left": 1},
             "duration_hours": None,
         },
-        "xp_booster": {"data": {"effect_type": "xp_booster"}, "duration_hours": 24},
+        "xp_booster": {
+            "data": {"effect_type": "xp_booster", "xpBoost": 0.5},
+            "duration_hours": 24,
+        },
         "daily_xp_surge": {
-            "data": {"effect_type": "xp_booster"},
+            "data": {"effect_type": "xp_booster", "xpBoost": 0.5},
             "duration_hours": 2,
         },  # Using same logic
         "streak_shield": {
@@ -64,7 +67,11 @@ def consume_item(user, item_code: str):
             "duration_hours": None,
         },
         "boss_damage_plus": {
-            "data": {"effect_type": "boss_damage_plus", "uses_left": 1},
+            "data": {
+                "effect_type": "boss_damage_plus",
+                "uses_left": 1,
+                "bossDamageMultiplier": 0.5,
+            },
             "duration_hours": None,
         },
     }

@@ -8,10 +8,11 @@ import { GUIDE_CONTENT } from "@/constants/guideContent";
 /**
  * TabGuideModal
  * Displays a dismissible popup to explain tab mechanics on first visit.
- * @param {string} guideId - The unique ID for this guide (e.g. 'tasks', 'rival').
- * @param {boolean} forceOpen - If true, bypasses the seen check and shows the modal (used in Settings).
- * @param {Function} onCloseCallback - Optional callback for when modal is closed (e.g. from Settings).
- * @param {Object} profile - User profile data containing seen_guides.
+ * @param {Object} props
+ * @param {string} props.guideId - The unique ID for this guide (e.g. 'tasks', 'rival').
+ * @param {boolean} [props.forceOpen] - If true, bypasses the seen check and shows the modal (used in Settings).
+ * @param {Function} [props.onCloseCallback] - Optional callback for when modal is closed (e.g. from Settings).
+ * @param {Object} props.profile - User profile data containing seen_guides.
  */
 export default function TabGuideModal({
   guideId,

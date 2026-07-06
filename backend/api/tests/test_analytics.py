@@ -15,14 +15,9 @@ class TestFeatureAnalytics:
         self.url = "/api/analytics/event/"
 
     def test_anonymous_event(self):
-        # Unauthenticated users can log events, user field should be null
+        # Unauthenticated users can no longer log events
         response = self.client.post(self.url, {"event_name": "opened_app"})
-        assert response.status_code == 201
-
-        event = FeatureEvent.objects.first()
-        assert event is not None
-        assert event.user is None
-        assert event.event_name == "opened_app"
+        assert response.status_code == 401
 
     def test_authenticated_event_analytics_enabled(self):
         # By default, analytics_enabled is True
@@ -51,5 +46,6 @@ class TestFeatureAnalytics:
         assert FeatureEvent.objects.count() == 0
 
     def test_missing_event_name_returns_400(self):
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {})
         assert response.status_code == 400

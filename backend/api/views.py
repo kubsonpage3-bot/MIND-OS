@@ -20,7 +20,7 @@ from django.utils.decorators import method_decorator
 import logging
 from django.db import transaction
 
-from rest_framework import viewsets, generics, status, filters
+from rest_framework import viewsets, generics, status, filters, serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -83,7 +83,16 @@ def health_check(request):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+from rest_framework_simplejwt.views import TokenObtainPairView  # noqa: E402
+from api.throttles import LoginRateThrottle, RegisterRateThrottle  # noqa: E402
+
+
+class LoginView(TokenObtainPairView):
+    throttle_classes = [LoginRateThrottle]
+
+
 class RegisterView(generics.CreateAPIView):
+    throttle_classes = [RegisterRateThrottle]
     """
     POST /api/auth/register/
     Регистрация нового пользователя. Доступна без токена.
@@ -804,7 +813,7 @@ class PrestigeView(generics.GenericAPIView):
                 )
 
             # Unequip all inventory items
-            profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)
+            profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)  # type: ignore
             profile.save()
 
         return Response(
@@ -959,7 +968,7 @@ class TrainingLogView(generics.GenericAPIView):
             gc_flat_bonus = passive_effects.get("gc_flat_bonus", 0.0)
 
             unlocked_skills = set(
-                profile.unlocked_skills.values_list("skill_code", flat=True)
+                profile.unlocked_skills.values_list("skill_code", flat=True)  # type: ignore
             )
             if "flow_state" in unlocked_skills:
                 profile.last_training_at = timezone.now().date()
@@ -1020,7 +1029,7 @@ class TrainingLogView(generics.GenericAPIView):
 
             if task:
                 # [CRITICAL SAFETY CONDITIONS] Check against ZeroDivisionError
-                def_hours = float(task.default_hours) if task.default_hours else 1.0
+                def_hours = task.default_hours if task.default_hours else 1.0
                 if def_hours <= 0:
                     def_hours = 1.0
                 def_focus = float(task.default_focus) if task.default_focus else 7.0
@@ -1107,6 +1116,8 @@ class TrainingLogView(generics.GenericAPIView):
                 vm_gain=vm_gain,
             )
 
+            profile.save()
+
             # Boss Damage Logic
             damage_dealt = outcome.get(
                 "damage_dealt", 10
@@ -1120,12 +1131,6 @@ class TrainingLogView(generics.GenericAPIView):
             is_crit = outcome.get("is_crit", False)
 
             combat_result = apply_boss_damage(request.user, final_damage_dealt, is_crit)
-
-            if combat_result and combat_result.get("boss_defeated"):
-                profile.save()
-                profile.refresh_from_db()
-            else:
-                profile.save()
 
             # Consume one-time buffs used in this session
             from api.models import ActiveEffect
@@ -1163,6 +1168,21 @@ class TrainingLogView(generics.GenericAPIView):
         )
 
 
+class BuySkillSerializer(serializers.Serializer):
+    skill_code = serializers.CharField(
+        max_length=50,
+        required=True,
+    )
+
+    # Validate format — only alphanumeric and underscores
+    def validate_skill_code(self, value):
+        import re
+
+        if not re.match(r"^[a-zA-Z0-9_]+$", value):
+            raise serializers.ValidationError("Invalid skill_code format.")
+        return value
+
+
 class BuySkillView(generics.GenericAPIView):
     """
     POST /api/skills/buy/
@@ -1175,12 +1195,9 @@ class BuySkillView(generics.GenericAPIView):
     def post(self, request):
         from api.services.rpg_service import buy_skill_node
 
-        skill_code = request.data.get("skill_code")
-        if not skill_code:
-            return Response(
-                {"detail": "skill_code is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = BuySkillSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        skill_code = serializer.validated_data["skill_code"]
         try:
             profile = buy_skill_node(request.user, skill_code)
             # Prefetch for serializer
@@ -1244,11 +1261,25 @@ class AlliesConfigView(APIView):
                 "upgradeCosts": data.get("upgrade_costs"),
                 "levels": [
                     lvl_data.get("desc")
-                    for lvl, lvl_data in sorted(data.get("levels", {}).items())
+                    for lvl, lvl_data in sorted(data.get("levels", {}).items())  # type: ignore
                 ],
             }
             allies_list.append(ally)
         return Response(allies_list, status=status.HTTP_200_OK)
+
+
+class RecruitAllySerializer(serializers.Serializer):
+    ally_code = serializers.CharField(
+        max_length=50,
+        required=True,
+    )
+
+    def validate_ally_code(self, value):
+        import re
+
+        if not re.match(r"^[a-zA-Z0-9_]+$", value):
+            raise serializers.ValidationError("Invalid ally_code format.")
+        return value
 
 
 class RecruitAllyView(generics.GenericAPIView):
@@ -1263,11 +1294,9 @@ class RecruitAllyView(generics.GenericAPIView):
     def post(self, request):
         from api.services.rpg_service import recruit_ally
 
-        ally_code = request.data.get("ally_code")
-        if not ally_code:
-            return Response(
-                {"detail": "ally_code is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer = RecruitAllySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        ally_code = serializer.validated_data["ally_code"]
         try:
             ally_rec = recruit_ally(request.user, ally_code)
             profile = UserProfile.objects.prefetch_related(
@@ -1429,7 +1458,7 @@ class ResetDataView(generics.GenericAPIView):
                     )
 
                 if reset_type == "allies":
-                    profile.recruited_allies.all().delete()
+                    profile.recruited_allies.all().delete()  # type: ignore
                     return Response(
                         {"message": "Allies reset"}, status=status.HTTP_200_OK
                     )
@@ -1465,7 +1494,6 @@ class ResetDataView(generics.GenericAPIView):
                     profile.prestige_count = 0
                     profile.hp = profile.max_hp
                     profile.character_class = ""
-                    profile.initialized = False
                     profile.skill_points = 0
                     profile.unspent_stat_points = 0
                     profile.streak = 0
@@ -1518,8 +1546,8 @@ class ResetDataView(generics.GenericAPIView):
                     )
 
                 if reset_type in ["stats", "nuclear"]:
-                    profile.unlocked_skills.all().delete()
-                    profile.recruited_allies.all().delete()
+                    profile.unlocked_skills.all().delete()  # type: ignore
+                    profile.recruited_allies.all().delete()  # type: ignore
 
                 if reset_type == "nuclear":
                     InventoryItem.objects.filter(user_profile=profile).delete()
@@ -1712,9 +1740,8 @@ class FeatureEventView(generics.GenericAPIView):
     class FeatureEventUserThrottle(UserRateThrottle):
         rate = "60/min"
 
-    permission_classes = (  # type: ignore
-        []
-    )  # Allow both authenticated and unauthenticated to hit it, we handle logic inside
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle]
     throttle_classes = [FeatureEventAnonThrottle, FeatureEventUserThrottle]
 
     def post(self, request, *args, **kwargs):
@@ -1897,7 +1924,7 @@ class PartyMemberProfileView(generics.GenericAPIView):
 
         # Enforce target user is in the same party
         try:
-            target_membership = target_user.party_membership
+            target_membership = target_user.party_membership  # type: ignore
             if target_membership.party_id != party.id:
                 return Response(
                     {"error": "User not in your party"},
@@ -1908,8 +1935,8 @@ class PartyMemberProfileView(generics.GenericAPIView):
                 {"error": "User not in your party"}, status=status.HTTP_403_FORBIDDEN
             )
 
-        profile = target_user.profile
-        stats = target_user.stats
+        profile = target_user.profile  # type: ignore
+        stats = target_user.stats  # type: ignore
 
         # Format recruited allies
         allies = [

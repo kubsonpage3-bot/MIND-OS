@@ -180,6 +180,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
                         }
                     )
 
+        # Track which fields are updated to avoid race conditions (e.g. overwriting gold deduction)
+        update_fields = set(validated_data.keys())
+
         # Handle standard fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -201,10 +204,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
                             f"Maximum of {max_mutators} active mutators allowed."
                         )
                 instance.active_mutators = active_mutators_data
+                update_fields.add("active_mutators")
 
             # Update Rival Data
             if "rival_data" in data:
                 instance.rival_data = data["rival_data"]
+                update_fields.add("rival_data")
 
             # Update Achievements
             if "unlocked_achievements" in data:
@@ -244,5 +249,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
                             obj.level = level
                             obj.save()
 
-        instance.save()
+        if update_fields:
+            instance.save(update_fields=list(update_fields))
+
         return instance

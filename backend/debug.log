@@ -1721,3 +1721,19 @@ WARNING 2026-07-05 19:33:15,959 log 18948 23720 Forbidden: /api/party/members/58
 WARNING 2026-07-05 19:33:17,807 log 18948 23720 Not Found: /api/party/members/999999/profile/
 WARNING 2026-07-05 20:05:36,242 log 23596 1888 Bad Request: /api/profile/
 WARNING 2026-07-05 20:05:38,654 log 23596 1888 Forbidden: /api/calendar/events/
+WARNING 2026-07-06 12:52:02,507 log 7772 22076 Bad Request: /api/profile/
+WARNING 2026-07-06 12:52:04,871 log 7772 22076 Forbidden: /api/calendar/events/
+WARNING 2026-07-06 12:52:19,651 log 23544 2428 Unauthorized: /api/analytics/event/
+WARNING 2026-07-06 12:52:22,253 log 23544 2428 Bad Request: /api/analytics/event/
+WARNING 2026-07-06 12:52:37,466 log 7772 22076 Forbidden: /api/party/members/1109/profile/
+WARNING 2026-07-06 12:52:39,469 log 7772 22076 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-06 12:54:24,967 log 22180 18008 Unauthorized: /api/analytics/event/
+WARNING 2026-07-06 12:54:27,525 log 22180 18008 Bad Request: /api/analytics/event/
+WARNING 2026-07-06 12:54:51,910 log 10444 16080 Bad Request: /api/auth/register/
+WARNING 2026-07-06 12:55:54,571 log 16020 21032 Unauthorized: /api/analytics/event/
+WARNING 2026-07-06 12:55:57,075 log 16020 21032 Bad Request: /api/analytics/event/
+WARNING 2026-07-06 12:56:02,247 log 16020 21032 Bad Request: /api/auth/register/
+WARNING 2026-07-06 12:56:06,413 log 16020 21032 Bad Request: /api/profile/
+WARNING 2026-07-06 12:56:08,748 log 16020 21032 Forbidden: /api/calendar/events/
+WARNING 2026-07-06 12:56:40,767 log 16020 21032 Forbidden: /api/party/members/1209/profile/
+WARNING 2026-07-06 12:56:42,648 log 16020 21032 Not Found: /api/party/members/999999/profile/

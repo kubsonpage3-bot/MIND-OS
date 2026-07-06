@@ -670,7 +670,7 @@ def test_unbreakable_daily_regen(user, profile):
     from datetime import timedelta
 
     profile.hp = 10
-    profile.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    profile.last_login_date = timezone.now().date() - timedelta(days=1)
     profile.save()
 
     UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")
@@ -811,20 +811,20 @@ def test_daily_login_streak(user, profile):
     from django.utils import timezone
 
     # 1. Initial login (streak becomes 1)
-    profile.last_daily_cron_at = None
+    profile.last_login_date = None
     profile.save()
     p = process_daily_login(user)
     assert p.streak == 1
-    assert p.last_daily_cron_at == timezone.now().date()
+    assert p.last_login_date == timezone.now().date()
 
     # 2. Consecutive day (streak becomes 2)
-    p.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    p.last_login_date = timezone.now().date() - timedelta(days=1)
     p.save()
     p = process_daily_login(user)
     assert p.streak == 2
 
     # 3. Gap > 1 day (streak resets to 1)
-    p.last_daily_cron_at = timezone.now().date() - timedelta(days=3)
+    p.last_login_date = timezone.now().date() - timedelta(days=3)
     p.save()
     p = process_daily_login(user)
     assert p.streak == 1
@@ -842,9 +842,10 @@ def test_daily_login_streak(user, profile):
     UnlockedSkill.objects.create(user_profile=p, skill_code="compound_returns")
 
     # 5a. Simulate day change to reach streak 6
-    p.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
-    p.streak = 5
-    p.save()
+    UserProfile.objects.filter(id=p.id).update(
+        last_login_date=timezone.now().date() - timedelta(days=1), streak=5
+    )
+    p.refresh_from_db()
 
     gold_before = p.gold
     p = process_daily_login(user)
@@ -854,7 +855,7 @@ def test_daily_login_streak(user, profile):
     )  # Only fortunes_favor fires, NOT compound_returns
 
     # 5b. Simulate day change to reach streak 7 (compound_returns should fire)
-    p.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
+    p.last_login_date = timezone.now().date() - timedelta(days=1)
     p.save()
 
     gold_before = p.gold
@@ -865,7 +866,7 @@ def test_daily_login_streak(user, profile):
     )  # fortunes_favor (100) + compound_returns (200)
 
     # 5c. Simulate streak gap > 1 (streak resets to 1), confirm no compound_returns fires
-    p.last_daily_cron_at = timezone.now().date() - timedelta(days=2)
+    p.last_login_date = timezone.now().date() - timedelta(days=2)
     p.save()
 
     gold_before = p.gold

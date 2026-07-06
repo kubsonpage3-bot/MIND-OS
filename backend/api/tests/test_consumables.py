@@ -82,7 +82,7 @@ class ConsumablesTests(TestCase):
         self.assertEqual(profile.hp, 100)  # Assuming max_hp is 100
 
     def test_xp_booster(self):
-        print(f"\n[test_xp_booster] Checking XP booster application")
+        print("\n[test_xp_booster] Checking XP booster application")
         success, msg, profile = consume_item(self.user, "xp_booster")
         self.assertTrue(success)
 
@@ -105,17 +105,17 @@ class ConsumablesTests(TestCase):
     def test_streak_shield(self):
         # Set initial streak state
         self.profile.streak = 5
-        self.profile.last_daily_cron_at = timezone.now().date() - timedelta(
+        self.profile.last_login_date = timezone.now().date() - timedelta(
             days=2
         )  # Missed a day
         self.profile.save()
         print(
-            f"\n[test_streak_shield] Before daily cron: streak={self.profile.streak}, last_cron={self.profile.last_daily_cron_at}"
+            f"\n[test_streak_shield] Before daily cron: streak={self.profile.streak}, last_cron={self.profile.last_login_date}"
         )
 
         # Consume shield
         consume_item(self.user, "streak_shield")
-        print(f"[test_streak_shield] Streak shield consumed. Running daily cron...")
+        print("[test_streak_shield] Streak shield consumed. Running daily cron...")
 
         # Trigger daily login
         process_daily_login(self.user)
@@ -137,25 +137,13 @@ class ConsumablesTests(TestCase):
         )
 
     def test_memory_patch(self):
-        print(f"\n[test_memory_patch] Consuming memory patch...")
+        print("\n[test_memory_patch] Consuming memory patch...")
+        gc_before = self.profile.gc
         consume_item(self.user, "memory_patch")
-
-        # Test language task gets bonus
-        effects_lang = get_passive_multipliers(self.profile, {"is_language": True})
-        print(
-            f"[test_memory_patch] Humanities XP Mult (is_language=True): {effects_lang.get('humanities_xp_mult')}"
-        )
-        self.assertEqual(effects_lang.get("humanities_xp_mult"), 1.5)
-        self.assertEqual(
-            effects_lang.get("xp_mult"), 1.0
-        )  # Ensure it doesn't boost generic XP
-
-        # Non-language task does not get bonus
-        effects_math = get_passive_multipliers(self.profile, {"is_science": True})
-        print(
-            f"[test_memory_patch] Humanities XP Mult (is_science=True): {effects_math.get('humanities_xp_mult')}"
-        )
-        self.assertEqual(effects_math.get("humanities_xp_mult"), 1.0)
+        self.profile.refresh_from_db()
+        gc_after = self.profile.gc
+        print(f"[test_memory_patch] Gc before: {gc_before}, after: {gc_after}")
+        self.assertAlmostEqual(gc_after, gc_before + 0.2, places=2)
 
     def test_boss_damage_plus(self):
         consume_item(self.user, "boss_damage_plus")

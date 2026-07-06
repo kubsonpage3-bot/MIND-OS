@@ -47,7 +47,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   const activeTodos = todos.filter(t => !t.is_completed);
 
   const createTaskMutation = useMutation({
-    mutationFn: (taskData) => djangoApi.tasks.create(taskData),
+    mutationFn: (/** @type {any} */ taskData) => djangoApi.tasks.create(taskData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowForm(false);
@@ -73,7 +73,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     mutationFn: (todoId) => djangoApi.tasks.toggle(todoId),
     onMutate: async (todoId) => {
       // Opt-update UI immediately (getQueryData -> filter -> setQueryData)
-      const previousTodos = queryClient.getQueryData(['tasks']);
+      const previousTodos = /** @type {any} */ (queryClient.getQueryData(['tasks']));
       if (previousTodos) {
         if (Array.isArray(previousTodos)) {
           queryClient.setQueryData(['tasks'], previousTodos.filter(t => t.id !== todoId));
@@ -83,7 +83,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       }
       return { previousTodos };
     },
-    onSuccess: (data) => {
+    onSuccess: (/** @type {any} */ data) => {
       const isCompleting = data.completed;
       const sign = isCompleting ? '+' : '-';
       const icon = isCompleting ? '✅' : '↩️';

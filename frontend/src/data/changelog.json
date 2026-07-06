@@ -10,6 +10,10 @@
       {
         "type": "fix",
         "text": "Fixed a bug where bosses remained on the dashboard after being defeated by task completion or training."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where training activities did not correctly show visual boss damage on the dashboard or award boss loot."
       }
     ]
   },
