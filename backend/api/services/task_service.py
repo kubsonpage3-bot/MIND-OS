@@ -225,7 +225,7 @@ def complete_task(user, task_id, is_positive=True):
         rewards["gold"] = final_gold
 
         try:
-            membership = user.partymembership
+            membership = user.party_membership
 
             today_iso = timezone.now().date().isocalendar()
             current_iso_week = f"{today_iso[0]}-W{today_iso[1]:02d}"
@@ -380,7 +380,7 @@ def complete_task(user, task_id, is_positive=True):
         leveled_up = gain_xp(profile, skill_effects["xp_bonus"]) or leveled_up
         if leveled_up:
             try:
-                membership = user.partymembership
+                membership = user.party_membership
                 from api.models import PartyEvent
 
                 PartyEvent.objects.create(

@@ -113,7 +113,7 @@ def toggle_reaction(user, event_id: int, emoji: str):
     from django.core.exceptions import ObjectDoesNotExist
 
     try:
-        membership = user.partymembership
+        membership = user.party_membership
         party = membership.party
     except ObjectDoesNotExist:
         raise GameLogicError("You are not in a party.")
@@ -147,7 +147,7 @@ def send_buff(sender, receiver_username: str, effect_code: str):
     import datetime
 
     try:
-        sender_mem = sender.partymembership
+        sender_mem = sender.party_membership
         party = sender_mem.party
     except Exception:
         raise GameLogicError("You are not in a party.")
