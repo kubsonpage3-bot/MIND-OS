@@ -2,14 +2,19 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Crown, Zap, Shield, Sparkles } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
-import { useIsTWA } from "@/hooks/useIsTWA";
+import { isMobileApp } from "@/utils/platformUtils";
 
 export default function PremiumUpgradeModal({ onClose }) {
-  const { isTWA, isLoading: isTWALoading } = useIsTWA();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
   const handleUpgrade = async () => {
+    // Safety guard — should never reach here on mobile
+    if (isMobileApp()) {
+      window.open('https://mindos.pages.dev', '_blank');
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMsg(null);
     try {
@@ -64,7 +69,7 @@ export default function PremiumUpgradeModal({ onClose }) {
                 <span className="text-muted-foreground">Unlock Linguist and Warlord paths.</span>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
               <Zap className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-sm font-mono text-left">
@@ -88,11 +93,23 @@ export default function PremiumUpgradeModal({ onClose }) {
             </div>
           )}
 
-          {isTWALoading ? (
-            <div className="w-full h-[56px] rounded-xl bg-white/5 animate-pulse border border-white/10" />
-          ) : isTWA ? (
-            <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-sm cursor-default">
-              wanna buy premium ? here can you do this mindos.pages.dev
+          {isMobileApp() ? (
+            <div className="text-center space-y-3">
+              <p className="text-white/60 text-sm">
+                Premium is available on the web version
+              </p>
+              
+              <div
+                className="block w-full py-3 rounded-xl
+                           bg-amber-500/20 border border-amber-500/40
+                           text-amber-400 font-ui font-bold
+                           text-center text-sm tracking-wide"
+              >
+                🌐 Get Premium at mindos.pages.dev
+              </div>
+              <p className="text-white/30 text-xs">
+                Log in with the same account to sync your progress
+              </p>
             </div>
           ) : (
             <button
@@ -113,7 +130,7 @@ export default function PremiumUpgradeModal({ onClose }) {
               </div>
             </button>
           )}
-          
+
           <div className="mt-4 text-center">
             <button onClick={onClose} className="text-xs font-mono text-muted-foreground hover:text-white transition-colors">
               Maybe later

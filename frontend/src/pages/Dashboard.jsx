@@ -27,7 +27,7 @@ import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import TabGuideModal from "@/components/mindos/TabGuideModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
 import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
-import { useIsTWA } from "@/hooks/useIsTWA";
+import { isMobileApp } from "@/utils/platformUtils";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
@@ -84,10 +84,9 @@ function TabPanel({ title, children }) {
 }
 
 function PremiumGate({ isPremium, children, showNotice = false }) {
-  const { isTWA, isLoading: isTWALoading } = useIsTWA();
   const [showModal, setShowModal] = useState(false);
   if (isPremium) return children;
-  
+
   return (
     <div className="relative overflow-hidden rounded-xl">
       <div className="filter blur-md opacity-40 pointer-events-none select-none">
@@ -106,11 +105,19 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
             // TODO: Pomodoro has no backend enforcement yet — UI-only gate, revisit if backend persistence is added
           </p>
         )}
-        {isTWALoading ? (
-          <div className="w-[120px] h-[36px] rounded bg-white/5 animate-pulse" />
-        ) : isTWA ? (
-          <div className="w-full max-w-[240px] p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-xs cursor-default">
-            wanna buy premium ? here can you do this mindos.pages.dev
+        {isMobileApp() ? (
+          <div className="text-center space-y-2">
+            <p className="text-white/50 text-sm">
+              Available with Premium
+            </p>
+            
+            <div
+              className="block px-6 py-2 rounded-lg
+                         border border-amber-500/40
+                         text-amber-400 text-sm font-ui"
+            >
+              🌐 mindos.pages.dev
+            </div>
           </div>
         ) : (
           <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
@@ -213,21 +220,21 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   // Sync rankXPData with backend rank_xp and detect rank demotion
   useEffect(() => {
     if (!djangoProfile || djangoProfile.rank_xp === undefined) return;
-    
+
     setRankXPData(prev => {
       const newRankId = djangoProfile.rank_info?.current_id || "F";
       const oldRankId = prev.currentRank || "F";
-      
+
       const RANK_ORDER = ["F", "D", "C", "B", "A", "S", "SS", "SSS"];
       const prevIdx = RANK_ORDER.indexOf(oldRankId);
       const newIdx = RANK_ORDER.indexOf(newRankId);
-      
+
       const updated = {
         ...prev,
         rankXP: djangoProfile.rank_xp,
         currentRank: newRankId,
       };
-      
+
       if (newIdx < prevIdx && prevIdx !== -1) {
         updated.rankHistory = [...prev.rankHistory, {
           date: new Date().toISOString(),
@@ -236,7 +243,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           reason: "Death Penalty"
         }];
       }
-      
+
       return updated;
     });
   }, [djangoProfile?.rank_xp]);
@@ -304,7 +311,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
       queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
       refreshProfile();
-      
+
       const oldRankId = djangoProfile?.rank_info?.current_id || "F";
       const newRankId = res.profile?.rank_info?.current_id || "F";
       if (newRankId !== oldRankId && (res.profile?.rank_xp || 0) > (djangoProfile?.rank_xp || 0)) {
@@ -316,10 +323,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       const combatResult = res?.combat_result;
       if (combatResult && combatResult.damage_dealt > 0) {
         handleBossDamage(
-          combatResult.damage_dealt, 
-          res?.gamification_result?.is_crit || false, 
-          combatResult.boss_defeated, 
-          combatResult, 
+          combatResult.damage_dealt,
+          res?.gamification_result?.is_crit || false,
+          combatResult.boss_defeated,
+          combatResult,
           combatResult.rewards || null
         );
       }
@@ -391,7 +398,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       onSuccess: (res) => {
         // We now have the updated Profile in `res.profile`
         // We do NOT simulate IQ in localStorage. We let React Query take over.
-        
+
         // Milestone badge notifications
         Object.entries(METRIC_CONFIG).forEach(([mk, mc]) => {
           const before = Math.floor(profile[mk]);
@@ -428,7 +435,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
         onFeedback(feedbackText, res.gold_earned);
         if (res.combat && res.combat.damage_dealt > 0) {
-            handleBossDamage(res.combat.damage_dealt, false, res.combat.boss_defeated, res.combat, res.rewards);
+          handleBossDamage(res.combat.damage_dealt, false, res.combat.boss_defeated, res.combat, res.rewards);
         }
         refetchTrainingLogs();
       },
@@ -484,121 +491,121 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15 }}
               >
-              {/* Dashboard — Habitica-style layout */}
+                {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
                   <>
                     <TabGuideModal guideId="dashboard" profile={profile} />
                     {/* IQ + Metrics block */}
                     {profile && (
-                    <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
-                      {/* Header */}
-                      <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"🧠 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
-                      </div>
-                      <div className="px-4 pb-4">
-                        {/* IQ + metrics side by side */}
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="shrink-0">
-                            <IQDisplay gf={profile.gf} gc={profile.gc} ps={profile.ps} vm={profile.vm} gfCeiling={profile.gf_ceiling} gcCeiling={profile.gc_ceiling} psCeiling={profile.ps_ceiling} vmCeiling={profile.vm_ceiling} />
+                      <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+                        {/* Header */}
+                        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+                          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"🧠 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
+                        </div>
+                        <div className="px-4 pb-4">
+                          {/* IQ + metrics side by side */}
+                          <div className="flex flex-col md:flex-row gap-4">
+                            <div className="shrink-0">
+                              <IQDisplay gf={profile.gf} gc={profile.gc} ps={profile.ps} vm={profile.vm} gfCeiling={profile.gf_ceiling} gcCeiling={profile.gc_ceiling} psCeiling={profile.ps_ceiling} vmCeiling={profile.vm_ceiling} />
+                            </div>
+                            <div className="flex-1 space-y-3 py-2">
+                              {["gf", "gc", "ps", "vm"].map(mk => (
+                                <MetricBar key={mk} metricKey={mk} current={profile[mk]} ceiling={profile[`${mk}_ceiling`]} />
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex-1 space-y-3 py-2">
-                            {["gf", "gc", "ps", "vm"].map(mk => (
-                              <MetricBar key={mk} metricKey={mk} current={profile[mk]} ceiling={profile[`${mk}_ceiling`]} />
-                            ))}
+                          {/* Stats row */}
+                          <div className="mt-3">
+                            <StatsPanel profile={profile} logs={logs} />
                           </div>
                         </div>
-                        {/* Stats row */}
-                        <div className="mt-3">
-                          <StatsPanel profile={profile} logs={logs} />
-                        </div>
                       </div>
+                    )}
+
+
+
+                    {/* Character Hub: portrait + HP/MP + Boss */}
+                    <CharacterHub
+                      rankXP={rankXPData.rankXP}
+                      currentRankId={rankXPData.currentRank}
+                      onBossDamage={handleBossDamage}
+                      externalDamage={externalDamage}
+                    />
+
+                    {/* Pixel Rank Road Map */}
+                    <div className="mt-4">
+                      <PixelRankRoad rankXP={rankXPData.rankXP} />
                     </div>
-                  )}
+                  </>
+                )}
 
-
-
-                  {/* Character Hub: portrait + HP/MP + Boss */}
-                  <CharacterHub
-                    rankXP={rankXPData.rankXP}
-                    currentRankId={rankXPData.currentRank}
-                    onBossDamage={handleBossDamage}
-                    externalDamage={externalDamage}
-                  />
-
-                  {/* Pixel Rank Road Map */}
-                  <div className="mt-4">
-                    <PixelRankRoad rankXP={rankXPData.rankXP} />
-                  </div>
-                </>
-              )}
-
-              {/* Train section */}
-              {(activeSection === "train" || activeSection === "training") && (
-                <TabPanel title={"🏋️‍♀️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
-                  <TabGuideModal guideId="training" profile={profile} />
-                  <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
-                </TabPanel>
-              )}
-
-              {/* Tasks section with sub-tabs */}
-              {activeSection === "tasks" && (
-                <TabPanel title={"⚔️ " + t("sidebar.sections.tasks", "TASKS").toUpperCase()}>
-                  <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
-                </TabPanel>
-              )}
-
-              {/* Character section with sub-tabs */}
-              {activeSection === "character" && (
-                <>
-                  <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
-                  <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
-                    <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
+                {/* Train section */}
+                {(activeSection === "train" || activeSection === "training") && (
+                  <TabPanel title={"🏋️‍♀️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
+                    <TabGuideModal guideId="training" profile={profile} />
+                    <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
                   </TabPanel>
-                </>
-              )}
+                )}
 
-              {/* Rival section */}
-              {activeSection === "rival" && (
-                <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>
-                  <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
-                </TabPanel>
-              )}
+                {/* Tasks section with sub-tabs */}
+                {activeSection === "tasks" && (
+                  <TabPanel title={"⚔️ " + t("sidebar.sections.tasks", "TASKS").toUpperCase()}>
+                    <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
+                  </TabPanel>
+                )}
 
-              {/* Tools/Stats sections */}
-              {["history", "pomodoro", "calendar", "stats"].includes(activeSection) && (
-                <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
-              )}
-              {activeSection === "stats" && (
-                <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
-                  <ProjectionTable profile={profile} logs={logs} />
-                </TabPanel>
-              )}
-              {activeSection === "history" && (
-                <TabPanel title={"📋 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>
-                  <HistoryLog logs={logs} tasks={tasks} />
-                </TabPanel>
-              )}
-              {activeSection === "pomodoro" && (
-                <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
-                  <PremiumGate isPremium={profile?.is_premium} showNotice={true}>
-                    <PomodoroPanel />
-                  </PremiumGate>
-                </TabPanel>
-              )}
-              {activeSection === "calendar" && (
-                <TabPanel title={"📅 " + t("sidebar.sections.calendar", "CALENDAR").toUpperCase()}>
-                  <PremiumGate isPremium={profile?.is_premium}>
-                    <CalendarPanel />
-                  </PremiumGate>
-                </TabPanel>
-              )}
+                {/* Character section with sub-tabs */}
+                {activeSection === "character" && (
+                  <>
+                    <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
+                    <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
+                      <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
+                    </TabPanel>
+                  </>
+                )}
 
-              {/* Settings section with sub-tabs */}
-              {activeSection === "settings" && (
-                <TabPanel title={"⚙️ " + t("sidebar.sections.settings", "SETTINGS").toUpperCase()}>
-                  <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
-                </TabPanel>
-              )}
+                {/* Rival section */}
+                {activeSection === "rival" && (
+                  <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>
+                    <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
+                  </TabPanel>
+                )}
+
+                {/* Tools/Stats sections */}
+                {["history", "pomodoro", "calendar", "stats"].includes(activeSection) && (
+                  <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
+                )}
+                {activeSection === "stats" && (
+                  <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
+                    <ProjectionTable profile={profile} logs={logs} />
+                  </TabPanel>
+                )}
+                {activeSection === "history" && (
+                  <TabPanel title={"📋 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>
+                    <HistoryLog logs={logs} tasks={tasks} />
+                  </TabPanel>
+                )}
+                {activeSection === "pomodoro" && (
+                  <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
+                    <PremiumGate isPremium={profile?.is_premium} showNotice={true}>
+                      <PomodoroPanel />
+                    </PremiumGate>
+                  </TabPanel>
+                )}
+                {activeSection === "calendar" && (
+                  <TabPanel title={"📅 " + t("sidebar.sections.calendar", "CALENDAR").toUpperCase()}>
+                    <PremiumGate isPremium={profile?.is_premium}>
+                      <CalendarPanel />
+                    </PremiumGate>
+                  </TabPanel>
+                )}
+
+                {/* Settings section with sub-tabs */}
+                {activeSection === "settings" && (
+                  <TabPanel title={"⚙️ " + t("sidebar.sections.settings", "SETTINGS").toUpperCase()}>
+                    <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
+                  </TabPanel>
+                )}
               </motion.div>
             </>
           </TabErrorBoundary>
@@ -609,11 +616,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       <FlyingReward rewards={flyingRewards} />
 
       {/* Boss Defeat Modal */}
-      <BossDefeatModal 
-        isOpen={defeatedBossState?.isOpen || false} 
-        onClose={() => setDefeatedBossState(null)} 
-        combatResult={defeatedBossState?.combatResult} 
-        rewards={defeatedBossState?.rewards} 
+      <BossDefeatModal
+        isOpen={defeatedBossState?.isOpen || false}
+        onClose={() => setDefeatedBossState(null)}
+        combatResult={defeatedBossState?.combatResult}
+        rewards={defeatedBossState?.rewards}
       />
     </div>
   );

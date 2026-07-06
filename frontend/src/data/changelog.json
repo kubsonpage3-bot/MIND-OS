@@ -3,6 +3,7 @@
     "version": "1.2.4",
     "date": "2026-07-06",
     "changes": [
+      { "type": "fix", "text": "Disabled Stripe payments within the Android app to comply with Google Play Store billing policies." },
       { "type": "content", "text": "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images." }
     ]
   },

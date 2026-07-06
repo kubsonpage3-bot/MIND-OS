@@ -12,6 +12,7 @@ import SelectClass from "./pages/SelectClass";
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import AnalyticsMigrationGate from '@/components/AnalyticsMigrationGate';
+import ConsentBanner from '@/components/mindos/ConsentBanner';
 
 function useSystemTheme() {
   useEffect(() => {
@@ -75,15 +76,18 @@ export default function App() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    );
-  }
-
-  return <ProtectedRoutes />;
+  return (
+    <>
+      <ConsentBanner />
+      {!isAuthenticated ? (
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      ) : (
+        <ProtectedRoutes />
+      )}
+    </>
+  );
 }

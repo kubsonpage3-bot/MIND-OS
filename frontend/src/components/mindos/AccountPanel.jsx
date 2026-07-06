@@ -4,7 +4,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 import { useToast } from "@/components/ui/use-toast";
-import { useIsTWA } from "@/hooks/useIsTWA";
+import { isMobileApp } from "@/utils/platformUtils";
 
 export default function AccountPanel() {
   const { profile, logout } = useDjangoAuth();
@@ -15,7 +15,6 @@ export default function AccountPanel() {
   const [deleteStatus, setDeleteStatus] = useState(null); // null | "pending" | "done"
   const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
-  const { isTWA, isLoading: isTWALoading } = useIsTWA();
 
   const user = profile?.user || null;
   const isPremium = !!profile?.is_premium;
@@ -23,7 +22,7 @@ export default function AccountPanel() {
   useEffect(() => {
     try {
       setCharacterName(localStorage.getItem("mindos_character_name") || "");
-    } catch {}
+    } catch { }
   }, []);
 
   const updateCharacterName = (name) => {
@@ -43,6 +42,11 @@ export default function AccountPanel() {
   };
 
   const handleManageSubscription = async () => {
+    if (isMobileApp()) {
+      window.open('https://mindos.pages.dev', '_blank');
+      return;
+    }
+    
     setIsPortalLoading(true);
     try {
       const data = await djangoApi.billing.createPortalSession();
@@ -61,6 +65,11 @@ export default function AccountPanel() {
   };
 
   const handleUpgrade = async () => {
+    if (isMobileApp()) {
+      window.open('https://mindos.pages.dev', '_blank');
+      return;
+    }
+
     setIsCheckoutLoading(true);
     try {
       const data = await djangoApi.billing.createCheckoutSession();
@@ -205,11 +214,9 @@ export default function AccountPanel() {
 
             {/* Upgrade button */}
             <div className="space-y-1.5">
-              {isTWALoading ? (
-                <div className="w-full h-[46px] rounded-xl bg-white/5 animate-pulse border border-white/10" />
-              ) : isTWA ? (
-                <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-[10px] cursor-default">
-                  wanna buy premium ? here can you do this mindos.pages.dev
+              {isMobileApp() ? (
+                <div className="w-full p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-center text-[10px]">
+                  Want Premium? Visit <strong>mindos.pages.dev</strong> on your browser to upgrade.
                 </div>
               ) : (
                 <>

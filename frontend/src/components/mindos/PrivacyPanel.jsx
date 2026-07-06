@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, Eye, UserX, BarChart3, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
@@ -15,6 +15,38 @@ export default function PrivacyPanel() {
       queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
     },
   });
+
+  const [consent, setConsent] = useState(() => {
+    return localStorage.getItem("mindos_consent_analytics") || "denied";
+  });
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      setConsent(e.detail);
+    };
+    window.addEventListener("mindos_consent_updated", handleUpdate);
+    return () => window.removeEventListener("mindos_consent_updated", handleUpdate);
+  }, []);
+
+  useEffect(() => {
+    const localChoice = localStorage.getItem("mindos_consent_analytics");
+    if (profile && localChoice) {
+      const serverConsent = profile.analytics_enabled ? "granted" : "denied";
+      if (localChoice !== serverConsent) {
+        localStorage.setItem("mindos_consent_analytics", serverConsent);
+        setConsent(serverConsent);
+        if (typeof window.gtag === "function") {
+          window.gtag("consent", "update", {
+            "analytics_storage": serverConsent,
+            "ad_storage": serverConsent,
+            "ad_user_data": serverConsent,
+            "ad_personalization": serverConsent
+          });
+        }
+      }
+    }
+  }, [profile?.analytics_enabled]);
+
   const [privacy, setPrivacy] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("mindos_privacy") || "{}");
@@ -92,19 +124,31 @@ export default function PrivacyPanel() {
           <span className="text-xs font-mono text-muted-foreground">Enable analytics</span>
           <button
             onClick={() => {
-              if (!profile) return;
-              updateProfile.mutate({ 
-                data: { analytics_enabled: !profile.analytics_enabled }
-              });
+              const nextConsent = consent === "granted" ? "denied" : "granted";
+              localStorage.setItem("mindos_consent_analytics", nextConsent);
+              setConsent(nextConsent);
+              if (typeof window.gtag === "function") {
+                window.gtag("consent", "update", {
+                  "analytics_storage": nextConsent,
+                  "ad_storage": nextConsent,
+                  "ad_user_data": nextConsent,
+                  "ad_personalization": nextConsent
+                });
+              }
+              if (profile) {
+                updateProfile.mutate({ 
+                  data: { analytics_enabled: nextConsent === "granted" }
+                });
+              }
             }}
-            disabled={updateProfile.isPending || !profile}
+            disabled={updateProfile.isPending}
             className={`px-3 py-1.5 flex items-center justify-center min-w-[50px] text-xs font-mono rounded border transition-all ${
-              profile?.analytics_enabled
+              consent === "granted"
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
                 : "border-border/40 text-muted-foreground"
             } ${updateProfile.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {updateProfile.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (profile?.analytics_enabled ? "ON" : "OFF")}
+            {updateProfile.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (consent === "granted" ? "ON" : "OFF")}
           </button>
         </div>
       </div>
