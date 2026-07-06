@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.2.3",
+    "date": "2026-07-06",
+    "changes": [
+      { "type": "feature", "text": "Upgraded offline caching to ensure the game works reliably even without an internet connection." },
+      { "type": "feature", "text": "Added support for Android TWA deployment with dynamic maskable icons." }
+    ]
+  },
+  {
+    "version": "1.2.2",
+    "date": "2026-07-06",
+    "changes": [
+      { "type": "feature", "text": "Implemented Google Consent Mode v2 support to comply with GDPR and privacy rules." },
+      { "type": "feature", "text": "Added a premium slide-up Consent Banner for first-time visitors to accept or decline analytics." },
+      { "type": "fix", "text": "Integrated privacy consent choices directly into the System Settings Privacy Panel." }
+    ]
+  },
+  {
     "version": "1.2.1",
     "date": "2026-07-06",
     "changes": [
