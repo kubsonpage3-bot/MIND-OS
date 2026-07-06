@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.1.8",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Reverted Johan to a pure rival and removed him from the Allies system."
+      }
+    ]
+  },
+  {
     "version": "1.1.7",
     "date": "2026-07-06",
     "changes": [

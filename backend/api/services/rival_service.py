@@ -145,20 +145,9 @@ def compute_rival_data(user_profile):
 
     johan_xp = calc_johan_xp(player_rank_xp, day_num)
 
-    from api.models import UnlockedSkill, ActiveEffect, TrainingSession, RecruitedAlly
+    from api.models import UnlockedSkill, ActiveEffect, TrainingSession
     from django.db.models import Sum
     from datetime import timedelta
-
-    # --- Johan Ally Mechanics ---
-    JOHAN_UNLOCK_CONDITION = player_rank_xp >= 500
-    if JOHAN_UNLOCK_CONDITION and not user_profile.johan_recruited:
-        RecruitedAlly.objects.get_or_create(
-            user_profile=user_profile, ally_code="johan"
-        )
-        user_profile.johan_recruited = True
-        user_profile.save(update_fields=["johan_recruited"])
-        # Flag for frontend to invalidate
-        stored["johan_just_recruited"] = True
 
     # --- Real Weekly History ---
     weekly_history = []
@@ -211,7 +200,6 @@ def compute_rival_data(user_profile):
         "currentPattern": pattern["type"],
         "weeklyHistory": weekly_history,
         "lastUpdated": today,
-        "johan_just_recruited": stored.get("johan_just_recruited", False),
     }
 
     user_profile.rival_data = new_data

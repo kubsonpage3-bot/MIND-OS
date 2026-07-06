@@ -129,7 +129,6 @@ class UserProfile(models.Model):
     rival_data = models.JSONField(
         default=dict, blank=True, verbose_name="Данные соперника"
     )
-    johan_recruited = models.BooleanField(default=False, verbose_name="Johan Recruited")
 
     # Временная зона пользователя (для сброса дейликов)
     timezone = models.CharField(max_length=50, default="UTC", verbose_name="Timezone")

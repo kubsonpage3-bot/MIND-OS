@@ -601,9 +601,6 @@ def process_missed_tasks(user):
     transcendence_active = ActiveEffect.objects.filter(
         user=user, skill_id="transcendence"
     ).exists()
-
-    from django.utils import timezone
-
     elixir_active = ActiveEffect.objects.filter(
         user=user, skill_id="elixir", expires_at__gt=timezone.now()
     ).exists()

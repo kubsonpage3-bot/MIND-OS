@@ -642,15 +642,4 @@ ALLIES_CONFIG = {
             },
         },
     },
-    "johan": {
-        "name": "JOHAN",
-        "title": "The Rival",
-        "lore": "Once your rival, now your shadow. He pushes you forward.",
-        "image_url": "/images/webp/4d3be463a_allyes3.webp",
-        "color": "#ff3333",
-        "rank": "A",
-        "recruit_cost": 0,
-        "upgrade_costs": [5000],
-        "levels": {1: {"weekly_xp_bonus": 10, "desc": "+10% Weekly XP"}},
-    },
 }
