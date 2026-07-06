@@ -56,8 +56,14 @@ def process_daily_login(user):
         ).first()
 
         if shield:
-            # Consume the shield
-            shield.delete()
+            if shield.data and "uses_left" in shield.data:
+                shield.data["uses_left"] -= 1
+                if shield.data["uses_left"] <= 0:
+                    shield.delete()
+                else:
+                    shield.save()
+            else:
+                shield.delete()
             # Act as if they didn't miss (increment streak)
             profile.streak += 1
         else:

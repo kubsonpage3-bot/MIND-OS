@@ -1127,6 +1127,20 @@ class TrainingLogView(generics.GenericAPIView):
             else:
                 profile.save()
 
+            # Consume one-time buffs used in this session
+            from api.models import ActiveEffect
+
+            session_buffs = ActiveEffect.objects.filter(
+                user=request.user, skill_id__in=["focus_stim", "boss_damage_plus"]
+            )
+            for buff in session_buffs:
+                if buff.data and "uses_left" in buff.data:
+                    buff.data["uses_left"] -= 1
+                    if buff.data["uses_left"] <= 0:
+                        buff.delete()
+                    else:
+                        buff.save()
+
         # Needs prefetching for the response
         profile = UserProfile.objects.prefetch_related(
             "inventory_items__item__effects"

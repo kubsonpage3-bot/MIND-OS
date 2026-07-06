@@ -602,6 +602,12 @@ def process_missed_tasks(user):
         user=user, skill_id="transcendence"
     ).exists()
 
+    from django.utils import timezone
+
+    elixir_active = ActiveEffect.objects.filter(
+        user=user, skill_id="elixir", expires_at__gt=timezone.now()
+    ).exists()
+
     for task in dailies:
         # Проверяем, был ли дейлик выполнен вчера
         # Если last_completed_at равен дате последнего крона (или позже, но до сегодня)
@@ -621,7 +627,7 @@ def process_missed_tasks(user):
         else:
             # Missed daily
             dmg = calculate_fail_damage(task, profile)
-            if iron_fast_active:
+            if iron_fast_active or elixir_active:
                 dmg = 0
             outcome = calculate_task_outcome(
                 user, "daily", base_hp_lost=dmg, is_positive=False

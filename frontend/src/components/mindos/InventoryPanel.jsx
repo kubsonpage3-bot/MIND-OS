@@ -41,7 +41,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-      queryClient.invalidateQueries({ queryKey: ["active-effects"] });
+      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
       triggerBurst("#22c55e", 12);
       showToast(data.detail || "Item used!", "#22c55e");
     },

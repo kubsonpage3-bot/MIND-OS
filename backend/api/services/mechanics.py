@@ -106,7 +106,7 @@ def calculate_task_outcome(
     stats = profile.total_stats
 
     pwr = stats.get("pwr", 0)
-    foc = stats.get("foc", 0)
+    foc = stats.get("foc", 0) * passive_effects.get("foc_mult", 1.0)
     spd = stats.get("spd", 0)
     lck = stats.get("lck", 0)
     def_stat = stats.get("def", 0)
@@ -398,6 +398,7 @@ def get_passive_multipliers(profile, context: dict):
         "ps_mult": 1.0,
         "vm_mult": 1.0,
         "boss_dmg_mult": 1.0,
+        "foc_mult": 1.0,
         "crit_chance_bonus": 0.0,
         "drop_chance_bonus": 0.0,
         "mana_regen_mult": 1.0,
@@ -428,11 +429,23 @@ def get_passive_multipliers(profile, context: dict):
         if not effect.data:
             continue
 
-        # XP Boost
-        if "xpBoost" in effect.data:
-            effects["xp_mult"] += effect.data["xpBoost"]
+        eff_type = effect.data.get("effect_type", "")
 
-        # Gold Boost
+        # Focus Stim
+        if eff_type == "focus_stim":
+            effects["foc_mult"] += 0.3
+
+        # XP Booster
+        if eff_type == "xp_booster" or "xpBoost" in effect.data:
+            val = effect.data.get("xpBoost", 0.5)
+            effects["xp_mult"] += val
+
+        # Boss Damage Plus
+        if eff_type == "boss_damage_plus" or "bossDamageMultiplier" in effect.data:
+            val = effect.data.get("bossDamageMultiplier", 1.0)
+            effects["boss_dmg_mult"] += val
+
+        # Legacy Gold Boost
         if "gold_boost" in effect.data:
             effects["gold_mult"] += effect.data["gold_boost"]
 

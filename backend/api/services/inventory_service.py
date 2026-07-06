@@ -27,32 +27,63 @@ def consume_item(user, item_code: str):
 
     # Apply Immediate Effects (Healing)
     if item.hp_boost > 0:
-        profile.hp = min(profile.max_hp, profile.hp + item.hp_boost)
+        if item.code == "elixir":
+            profile.hp = profile.max_hp
+            # 10 min immunity
+            ActiveEffect.objects.update_or_create(
+                user=profile.user,
+                effect_id=f"{profile.user.id}_elixir_immunity",
+                defaults={
+                    "skill_id": "elixir",
+                    "data": {"effect_type": "elixir_immunity"},
+                    "expires_at": timezone.now() + timedelta(minutes=10),
+                },
+            )
+        else:
+            profile.hp = min(profile.max_hp, profile.hp + item.hp_boost)
 
-    # Apply Duration Effects (Buffs)
-    # The effect_id is unique per user and item to prevent stacking multiple of the exact same buff
-    # and instead override/refresh the duration.
+    # Apply Memory Patch (Instant Gc boost)
+    if item.code == "memory_patch":
+        profile.gc = min(profile.gc_ceiling, profile.gc + 0.2)
+        # Profile fields need saving
+        pass
+
+    # Apply Duration / Usage Effects (Buffs)
     buff_mapping = {
-        "focus_stim": {"data": {"gold_boost": 0.5}, "duration_hours": 1},
-        "xp_booster": {"data": {"xpBoost": 0.5}, "duration_hours": 1},
-        "daily_xp_surge": {"data": {"xpBoost": 1.0}, "duration_hours": 2},
-        "streak_shield": {"data": {"protectStreak": True}, "duration_hours": 24},
-        "boss_damage_plus": {
-            "data": {"bossDamageMultiplier": 0.5},
-            "duration_hours": 1,
+        "focus_stim": {
+            "data": {"effect_type": "focus_stim", "uses_left": 1},
+            "duration_hours": None,
         },
-        "memory_patch": {"data": {"humanitiesXpBoost": 0.5}, "duration_hours": 1},
+        "xp_booster": {"data": {"effect_type": "xp_booster"}, "duration_hours": 24},
+        "daily_xp_surge": {
+            "data": {"effect_type": "xp_booster"},
+            "duration_hours": 2,
+        },  # Using same logic
+        "streak_shield": {
+            "data": {"effect_type": "streak_shield", "uses_left": 1},
+            "duration_hours": None,
+        },
+        "boss_damage_plus": {
+            "data": {"effect_type": "boss_damage_plus", "uses_left": 1},
+            "duration_hours": None,
+        },
     }
 
     if item.code in buff_mapping:
         buff = buff_mapping[item.code]
+        expires_at = (
+            timezone.now() + timedelta(hours=buff["duration_hours"])
+            if buff["duration_hours"]
+            else None
+        )
+
         ActiveEffect.objects.update_or_create(
             user=profile.user,
             effect_id=f"{profile.user.id}_{item.code}_effect",
             defaults={
                 "skill_id": item.code,
                 "data": buff["data"],
-                "expires_at": timezone.now() + timedelta(hours=buff["duration_hours"]),
+                "expires_at": expires_at,
             },
         )
 
@@ -63,6 +94,6 @@ def consume_item(user, item_code: str):
     else:
         inv_item.save(update_fields=["quantity"])
 
-    profile.save(update_fields=["hp"])
+    profile.save(update_fields=["hp", "gc"])
 
     return True, f"Used {item.name}", profile
