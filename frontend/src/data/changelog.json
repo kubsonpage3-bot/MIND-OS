@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.2.1",
+    "date": "2026-07-06",
+    "changes": [
+      { "type": "feature", "text": "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. '2m ago')." },
+      { "type": "feature", "text": "Party Ranking shows animated XP bars, medals for top 3, and highlights your own row." },
+      { "type": "fix", "text": "Training 'Create Task' tab now only creates Button-type activities — no more duplicate Habit/Daily forms." },
+      { "type": "feature", "text": "Rival comparison replaced table with animated dual bar charts for Hours, Focus, Subjects, and Rank XP." },
+      { "type": "feature", "text": "Rival card now pulses red when Johan is ahead of you." }
+    ]
+  },
+  {
     "version": "1.2.0",
     "date": "2026-07-06",
     "changes": [

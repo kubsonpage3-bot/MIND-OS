@@ -148,7 +148,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
     <div className="space-y-4">
       {/* Sub-tabs */}
       <div className="flex gap-1 p-1 rounded-2xl" style={{ background: "var(--habit-bg)" }}>
-        {[{ id: "log", label: "Log Session" }, { id: "create", label: "Create Task" }].map(t => (
+        {[{ id: "log", label: "Log Session" }, { id: "create", label: "+ Activity" }].map(t => (
           <button key={t.id} onClick={() => setTrainTab(t.id)}
             className="flex-1 py-2 rounded-xl transition-all"
             style={{
@@ -164,7 +164,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
         ))}
       </div>
 
-      {trainTab === "create" && <CreateTaskForm onCreated={() => setTrainTab("log")} />}
+      {trainTab === "create" && <CreateTaskForm onCreated={() => setTrainTab("log")} hideTypeSelector={true} />}
 
       {trainTab === "log" && <>
       {/* Smart recommendation */}

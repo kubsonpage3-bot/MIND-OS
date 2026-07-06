@@ -6,7 +6,7 @@
   "orientation": "portrait",
   "scope": "/",
   "short_name": "MIND OS",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "theme_color": "#4d2c64",
   "icons": [
     {
@@ -38,6 +38,12 @@
       "src": "/android/launchericon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/android/launchericon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "id": "MINDOS",
@@ -47,5 +53,12 @@
     "games",
     "health",
     "productivity"
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=dev.pages.mindos.twa",
+      "id": "dev.pages.mindos.twa"
+    }
   ]
 }

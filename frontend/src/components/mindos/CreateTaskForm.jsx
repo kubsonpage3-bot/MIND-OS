@@ -22,12 +22,12 @@ const PRIORITIES = [
   { id: "critical", label: "Critical", color: "#a855f7" },
 ];
 
-export default function CreateTaskForm({ onCreated }) {
+export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     name: "",
-    type: "daily",
+    type: hideTypeSelector ? "button" : "daily",
     category: "Math",
     priority: "medium",
     notes: "",
@@ -67,7 +67,7 @@ export default function CreateTaskForm({ onCreated }) {
       djangoApi.analytics.logEvent("task_created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onCreated?.();
-      setForm({ name: "", type: "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
+      setForm({ name: "", type: hideTypeSelector ? "button" : "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
     } catch (e) {
       console.error("Failed to create custom task on backend:", e);
     }
@@ -92,7 +92,17 @@ export default function CreateTaskForm({ onCreated }) {
 
   return (
     <div className="space-y-5">
-      <div className="text-xs font-mono text-muted-foreground/50 uppercase tracking-wider">{t("task_form.create_custom_task", "Create Custom Task")}</div>
+      {hideTypeSelector ? (
+        <div className="flex items-center gap-2 p-2.5 rounded-xl" style={{ background: 'var(--habit-purple-light)', border: '1px solid var(--habit-purple)' }}>
+          <span className="text-sm">🔘</span>
+          <div>
+            <div className="text-[11px] font-mono font-bold" style={{ color: 'var(--habit-purple)' }}>Training Activity Button</div>
+            <div className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>Appears in the Activities grid — tap to log a session instantly</div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-xs font-mono text-muted-foreground/50 uppercase tracking-wider">{t("task_form.create_custom_task", "Create Custom Task")}</div>
+      )}
 
       {/* Name */}
       <div className="space-y-1.5">
@@ -105,23 +115,25 @@ export default function CreateTaskForm({ onCreated }) {
         />
       </div>
 
-      {/* Type */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.type", "Type")}</div>
-        <div className="grid grid-cols-2 gap-2">
-          {TASK_TYPES.map(tType => (
-            <button key={tType.id} onClick={() => set("type", tType.id)}
-              className="p-2.5 rounded-lg border text-center transition-all"
-              style={{
-                borderColor: form.type === tType.id ? "var(--habit-purple)" : "var(--habit-border)",
-                background: form.type === tType.id ? "var(--habit-purple-light)" : "transparent",
-              }}>
-              <div className="text-xs font-mono font-bold" style={{ color: form.type === tType.id ? "var(--habit-purple)" : "var(--habit-dim)" }}>{t(`task_form.types.${tType.id}`, tType.label)}</div>
-              <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5">{t(`task_form.types.${tType.id}_desc`, tType.desc)}</div>
-            </button>
-          ))}
+      {/* Type — hidden when hideTypeSelector */}
+      {!hideTypeSelector && (
+        <div className="space-y-1.5">
+          <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.type", "Type")}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {TASK_TYPES.map(tType => (
+              <button key={tType.id} onClick={() => set("type", tType.id)}
+                className="p-2.5 rounded-lg border text-center transition-all"
+                style={{
+                  borderColor: form.type === tType.id ? "var(--habit-purple)" : "var(--habit-border)",
+                  background: form.type === tType.id ? "var(--habit-purple-light)" : "transparent",
+                }}>
+                <div className="text-xs font-mono font-bold" style={{ color: form.type === tType.id ? "var(--habit-purple)" : "var(--habit-dim)" }}>{t(`task_form.types.${tType.id}`, tType.label)}</div>
+                <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5">{t(`task_form.types.${tType.id}_desc`, tType.desc)}</div>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Category */}
       <div className="space-y-1.5">
@@ -181,16 +193,16 @@ export default function CreateTaskForm({ onCreated }) {
         </div>
       )}
 
-      {/* HP damage on miss (habits/dailies) */}
-      {form.type !== "todo" && form.type !== "button" && (
+      {/* HP damage on miss (habits/dailies) — hidden when button-only */}
+      {!hideTypeSelector && form.type !== "todo" && form.type !== "button" && (
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 space-y-2">
           <div className="text-[10px] font-mono text-red-400/60 uppercase tracking-wider">{t("task_form.penalty", "Penalty on Miss / Negative")}</div>
           <NumStepper label={t("task_form.hp_damage", "HP Damage")} value={form.hpDamageOnMiss} onChange={v => set("hpDamageOnMiss", v)} min={0} step={5} color="#ef4444" />
         </div>
       )}
 
-      {/* Due date for todos */}
-      {form.type === "todo" && (
+      {/* Due date for todos — hidden when button-only */}
+      {!hideTypeSelector && form.type === "todo" && (
         <div className="space-y-1.5">
           <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.due_date", "Due Date (optional)")}</div>
           <Input type="date" value={form.dueDate} onChange={e => set("dueDate", e.target.value)} className="font-mono text-sm bg-muted/20 border-border/60" />

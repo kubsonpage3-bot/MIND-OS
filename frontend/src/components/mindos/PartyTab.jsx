@@ -6,6 +6,7 @@ import { getRankDisplayData } from '@/lib/rankEngine';
 import { Copy, Check, Users, LogOut, UserPlus, Swords } from 'lucide-react';
 import { Crown, MessageSquare, Zap } from 'lucide-react';
 import PartyMemberProfileSheet from './PartyMemberProfileSheet';
+import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 
 // ─── Member Card ─────────────────────────────────────────────────────────────
 
@@ -336,74 +337,113 @@ function PartyFeedView({ party }) {
 
   const reactMutation = useMutation({
     mutationFn: ({ eventId, emoji }) => djangoApi.party.react(eventId, emoji),
-    // Optimistic UI could be added here, but invalidate is safer
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['party', 'feed'] })
   });
 
   if (isLoading) {
-    return <div className="py-8 text-center text-[11px] font-mono text-white/50">Loading feed…</div>;
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: 'var(--habit-panel)' }} />
+        ))}
+      </div>
+    );
   }
 
   const events = data?.results || data || [];
 
+  const EVENT_CONFIG = {
+    task_completed: { icon: '✅', label: 'completed', color: '#00cc88' },
+    level_up:       { icon: '🆙', label: 'leveled up to', color: '#f59e0b' },
+    buff_sent:      { icon: '💪', label: 'sent a buff:', color: '#7B61FF' },
+    milestone:      { icon: '🏆', label: 'hit a milestone:', color: '#ffd700' },
+    default:        { icon: '⚡', label: 'did something:', color: 'var(--habit-dim)' },
+  };
+
+  function relativeTime(dateStr) {
+    const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <AnimatePresence>
-        {events.map(event => (
-          <motion.div
-            key={event.id}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-3 rounded-xl space-y-2"
-            style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-xs" style={{ color: 'var(--habit-text)' }}>
-                  {event.username}
-                </span>
-                <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-                  {event.event_type === 'task_completed' ? 'completed task:' :
-                   event.event_type === 'level_up' ? 'leveled up to:' :
-                   event.event_type === 'buff_sent' ? 'sent buff:' :
-                   event.event_type === 'milestone' ? 'milestone:' : 'did something:'}
-                </span>
-                <span className="text-[10px] font-mono text-white/90">
-                  {event.content}
-                </span>
+        {events.map(event => {
+          const cfg = EVENT_CONFIG[event.event_type] || EVENT_CONFIG.default;
+          const isReacted = event.user_reacted;
+          return (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl overflow-hidden"
+              style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+            >
+              {/* Colored top accent bar */}
+              <div className="h-0.5 w-full" style={{ background: cfg.color }} />
+              <div className="p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-base shrink-0">{cfg.icon}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono font-bold text-xs" style={{ color: 'var(--habit-text)' }}>
+                          {event.username}
+                        </span>
+                        <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+                          {cfg.label}
+                        </span>
+                        <span className="text-[10px] font-mono font-semibold truncate max-w-[120px]" style={{ color: cfg.color }}>
+                          {event.content}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-mono shrink-0" style={{ color: 'var(--habit-dim)' }}>
+                    {relativeTime(event.created_at)}
+                  </span>
+                </div>
+                {/* Reactions */}
+                <div className="flex gap-1.5">
+                  {['🔥', '👏', '💪', '🎉'].map(emoji => {
+                    const count = event.reactions?.filter(r => r.emoji === emoji).length || 0;
+                    const myReact = event.user_reacted === emoji;
+                    return (
+                      <button
+                        key={emoji}
+                        onClick={() => reactMutation.mutate({ eventId: event.id, emoji })}
+                        className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md transition-all"
+                        style={{
+                          background: myReact ? `${cfg.color}33` : 'var(--habit-border)',
+                          border: `1px solid ${myReact ? cfg.color : 'transparent'}`,
+                          transform: myReact ? 'scale(1.08)' : 'scale(1)',
+                        }}
+                      >
+                        <span className="text-xs">{emoji}</span>
+                        {count > 0 && <span className="text-[9px] font-mono font-bold" style={{ color: myReact ? cfg.color : 'var(--habit-dim)' }}>{count}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-            {/* Reactions */}
-            <div className="flex gap-2">
-              {['🔥', '👏', '💪', '🎉'].map(emoji => {
-                const count = event.reactions?.filter(r => r.emoji === emoji).length || 0;
-                const isReacted = event.user_reacted === emoji;
-                
-                // Show emoji if count > 0 OR if we want to show all as action buttons.
-                // We'll show all as action buttons for now.
-                return (
-                  <button
-                    key={emoji}
-                    onClick={() => reactMutation.mutate({ eventId: event.id, emoji })}
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md transition-all"
-                    style={{
-                      background: isReacted ? 'var(--habit-purple)' : 'var(--habit-border)',
-                      opacity: isReacted ? 1 : (count > 0 ? 0.8 : 0.4),
-                      transform: isReacted ? 'scale(1.05)' : 'scale(1)'
-                    }}
-                  >
-                    <span className="text-xs">{emoji}</span>
-                    {count > 0 && <span className="text-[9px] font-mono font-bold">{count}</span>}
-                  </button>
-                );
-              })}
+            </motion.div>
+          );
+        })}
+        {events.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-10 flex flex-col items-center gap-3"
+          >
+            <span className="text-4xl">🌑</span>
+            <div className="text-center">
+              <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>No activity yet</div>
+              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>Complete a task to appear in the party feed</div>
             </div>
           </motion.div>
-        ))}
-        {events.length === 0 && (
-          <div className="py-8 text-center text-[11px] font-mono text-white/50">
-            No recent activity.
-          </div>
         )}
       </AnimatePresence>
     </div>
@@ -411,7 +451,10 @@ function PartyFeedView({ party }) {
 }
 
 // ─── Leaderboard View ──────────────────────────────────────────────────────────
-function PartyLeaderboardView({ party }) {
+function PartyLeaderboardView() {
+  const { profile } = useDjangoAuth();
+  const currentUsername = profile?.username;
+
   const { data, isLoading } = useQuery({
     queryKey: ['party', 'leaderboard'],
     queryFn: () => djangoApi.party.leaderboard(),
@@ -419,47 +462,107 @@ function PartyLeaderboardView({ party }) {
   });
 
   if (isLoading) {
-    return <div className="py-8 text-center text-[11px] font-mono text-white/50">Loading leaderboard…</div>;
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: 'var(--habit-panel)' }} />
+        ))}
+      </div>
+    );
   }
 
   const leaderboard = data?.leaderboard || [];
+  const totalXP = leaderboard.reduce((s, m) => s + (m.weekly_xp || 0), 1);
+
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const MEDAL_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32'];
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between px-2 mb-2">
+      <div className="flex items-center justify-between px-1 mb-3">
         <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">Weekly XP Rank</span>
         <span className="text-[10px] font-mono text-white/30">Resets Monday</span>
       </div>
       <AnimatePresence>
-        {leaderboard.map((mem, i) => (
-          <motion.div
-            key={mem.username}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="p-3 rounded-xl flex items-center justify-between"
-            style={{ 
-              background: i === 0 ? 'rgba(255, 215, 0, 0.1)' : i === 1 ? 'rgba(192, 192, 192, 0.1)' : 'var(--habit-panel)', 
-              border: i === 0 ? '1px solid rgba(255, 215, 0, 0.3)' : '1px solid var(--habit-border)' 
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="font-mono font-black text-sm w-4 text-center" style={{ color: i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'var(--habit-dim)' }}>
-                #{i + 1}
-              </span>
-              <div className="flex flex-col">
-                <span className="font-mono font-bold text-sm" style={{ color: 'var(--habit-text)' }}>{mem.username}</span>
-                <span className="text-[9px] font-mono text-white/40">Lv.{mem.level}</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="font-mono font-bold text-sm" style={{ color: i === 0 ? '#ffd700' : 'var(--habit-text)' }}>
-                {mem.weekly_xp}
-              </div>
-              <div className="text-[9px] font-mono text-white/40">XP</div>
+        {leaderboard.length === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-10 flex flex-col items-center gap-3">
+            <span className="text-4xl">📊</span>
+            <div className="text-center">
+              <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>No XP this week yet</div>
+              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>Complete tasks to climb the ranks</div>
             </div>
           </motion.div>
-        ))}
+        )}
+        {leaderboard.map((mem, i) => {
+          const isMe = mem.username === currentUsername;
+          const pct = Math.min(100, ((mem.weekly_xp || 0) / totalXP) * 100);
+          const medal = MEDALS[i];
+          const medalColor = MEDAL_COLORS[i] || 'var(--habit-dim)';
+          return (
+            <motion.div
+              key={mem.username}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="p-3 rounded-xl space-y-2"
+              style={{
+                background: isMe
+                  ? 'rgba(123, 97, 255, 0.12)'
+                  : i === 0 ? 'rgba(255, 215, 0, 0.07)'
+                  : 'var(--habit-panel)',
+                border: isMe
+                  ? '1px solid rgba(123, 97, 255, 0.5)'
+                  : i === 0 ? '1px solid rgba(255, 215, 0, 0.25)'
+                  : '1px solid var(--habit-border)',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                {/* Medal / rank number */}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: i < 3 ? `${medalColor}22` : 'var(--habit-border)' }}>
+                  {medal
+                    ? <span className="text-base">{medal}</span>
+                    : <span className="font-mono font-black text-xs" style={{ color: 'var(--habit-dim)' }}>#{i + 1}</span>
+                  }
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-sm truncate" style={{ color: isMe ? 'var(--habit-purple)' : 'var(--habit-text)' }}>
+                      {mem.username}
+                    </span>
+                    {isMe && (
+                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ background: 'var(--habit-purple)', color: 'white' }}>YOU</span>
+                    )}
+                    <span className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>Lv.{mem.level}</span>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.8, delay: i * 0.05, ease: 'easeOut' }}
+                      className="h-full rounded-full"
+                      style={{
+                        background: isMe ? 'var(--habit-purple)' : i === 0 ? '#ffd700' : '#00cc88',
+                        boxShadow: isMe ? '0 0 6px var(--habit-purple)' : 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* XP value */}
+                <div className="text-right shrink-0">
+                  <div className="font-mono font-black text-sm" style={{ color: i === 0 ? '#ffd700' : isMe ? 'var(--habit-purple)' : 'var(--habit-text)' }}>
+                    {(mem.weekly_xp || 0).toLocaleString()}
+                  </div>
+                  <div className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>XP THIS WEEK</div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
     </div>
   );
@@ -596,7 +699,7 @@ function PartyView({ party }) {
         )}
         {activeTab === 'leaderboard' && (
           <motion.div key="leaderboard" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
-            <PartyLeaderboardView party={party} />
+            <PartyLeaderboardView />
           </motion.div>
         )}
       </AnimatePresence>

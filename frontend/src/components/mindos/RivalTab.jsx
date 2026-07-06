@@ -407,33 +407,18 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {rivalAhead && pctDiff > 0.05 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="px-4 py-2.5 rounded-xl"
-            style={{
-              fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13,
-              border: "2px solid #ef4444",
-              color: "#ef4444",
-              background: "rgba(239,68,68,0.08)",
-              animation: "pulse 2s infinite",
-            }}
-          >
-            ⚡ {RIVAL_NAME} overtook you by {diff.toFixed(1)} XP today.
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <motion.div
         className="rounded-xl border p-4 space-y-3"
         animate={{
           borderColor: cardBorderColor,
-          boxShadow: cardShadow,
+          boxShadow: rivalAhead && pctDiff > 0.05
+            ? ['0 0 8px #ef444444', '0 0 22px #ef444488', '0 0 8px #ef444444']
+            : cardShadow,
         }}
-        transition={{ duration: 0.3 }}
+        transition={rivalAhead && pctDiff > 0.05
+          ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
+          : { duration: 0.3 }
+        }
         style={{ background: "#060c14" }}
       >
         <div className="flex items-center justify-between pt-2 border-t border-border/30">
@@ -488,14 +473,35 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex justify-between text-[10px] font-mono text-muted-foreground/60">
-            <span>RIVAL RANK XP</span>
-            <span style={{ color: "#00e5ff" }}>{johanXP.toFixed(1)} XP</span>
+        {/* Dual rank XP bars */}
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] font-mono" style={{ color: 'rgba(0,229,255,0.6)' }}>
+              <span>{RIVAL_NAME} RANK XP</span>
+              <span>{johanXP.toFixed(1)} XP</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                animate={{ width: `${Math.min((johanXP / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
+                transition={{ duration: 0.7 }}
+                style={{ background: "#00e5ff", boxShadow: "0 0 6px #00e5ff66" }}
+              />
+            </div>
           </div>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${Math.min((johanXP / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%`, background: "#00e5ff", boxShadow: "0 0 6px #00e5ff66" }} />
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] font-mono" style={{ color: playerRank.color }}>
+              <span>YOU RANK XP</span>
+              <span>{(playerRankXP || 0).toFixed(1)} XP</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                animate={{ width: `${Math.min(((playerRankXP || 0) / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
+                transition={{ duration: 0.7, delay: 0.1 }}
+                style={{ background: playerRank.color, boxShadow: `0 0 6px ${playerRank.color}66` }}
+              />
+            </div>
           </div>
         </div>
 
@@ -583,98 +589,89 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         <div className="px-4 py-2.5" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: "1px solid var(--habit-border)" }}>
           Weekly Comparison
         </div>
-        <table className="w-full">
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--habit-border)" }}>
-              <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: "var(--habit-dim)" }}></td>
-              <td className="px-4 py-2 text-center" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, color: "var(--habit-text)" }}>YOU</td>
-              <td className="px-4 py-2 text-center" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, color: "#00e5ff" }}>{RIVAL_NAME}</td>
-            </tr>
-          </thead>
-          <tbody>
-            {(() => {
-              const pWins = playerHoursWeek >= johanWeekHours;
-              const hourDiff = Math.abs(playerHoursWeek - johanWeekHours).toFixed(1);
-              return (
-                <tr style={{ borderBottom: "1px solid var(--habit-border)" }}>
-                  <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Hours</td>
-                  <td className="px-4 py-2 text-center">
-                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: pWins ? 700 : 400, color: pWins ? "#1ca830" : "rgba(100,116,139,0.5)" }}>
-                      {playerHoursWeek.toFixed(1)}
+        <div className="p-4 space-y-3">
+          {[
+            {
+              label: 'Hours',
+              you: playerHoursWeek,
+              rival: johanWeekHours,
+              fmt: v => `${v.toFixed(1)}h`,
+              youColor: '#7B61FF',
+              rivalColor: '#00e5ff',
+            },
+            {
+              label: 'Avg Focus',
+              you: playerAvgFocus,
+              rival: johanAvgFocus,
+              fmt: v => v.toFixed(1),
+              youColor: '#7B61FF',
+              rivalColor: '#00e5ff',
+            },
+            {
+              label: 'Subjects',
+              you: playerSubjectsWeek,
+              rival: johanSubjectsWeek,
+              fmt: v => `${v}`,
+              youColor: '#7B61FF',
+              rivalColor: '#00e5ff',
+            },
+            {
+              label: 'Rank XP',
+              you: playerWeeklyRankXP,
+              rival: johanWeekRankXP,
+              fmt: v => v.toFixed(1),
+              youColor: '#7B61FF',
+              rivalColor: '#00e5ff',
+            },
+          ].map(({ label, you, rival, fmt, youColor, rivalColor }) => {
+            const maxVal = Math.max(you, rival, 0.01);
+            const youPct = (you / maxVal) * 100;
+            const rivalPct = (rival / maxVal) * 100;
+            const youWin = you >= rival;
+            return (
+              <div key={label}>
+                <div className="flex justify-between items-center mb-1">
+                  <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }}>{label}</span>
+                  <div className="flex items-center gap-3">
+                    <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: youWin ? '#00cc88' : '#ef4444' }}>
+                      You: {fmt(you)}
                     </span>
-                    {!pWins && <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: "#ef4444", marginLeft: 2 }}>(-{hourDiff}h)</span>}
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: !pWins ? 700 : 400, color: !pWins ? "#ef4444" : "rgba(100,116,139,0.5)" }}>
-                      {johanWeekHours.toFixed(1)}
+                    <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: !youWin ? '#00cc88' : 'rgba(100,116,139,0.6)' }}>
+                      {RIVAL_NAME}: {fmt(rival)}
                     </span>
-                    {pWins && <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: "rgba(100,116,139,0.4)", marginLeft: 2 }}>(-{hourDiff}h)</span>}
-                  </td>
-                </tr>
-              );
-            })()}
-
-            {(() => {
-              const pWins = playerAvgFocus >= johanAvgFocus;
-              return (
-                <tr style={{ borderBottom: "1px solid #f0eef8" }}>
-                  <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Avg Focus</td>
-                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
-                    {playerAvgFocus.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
-                    {johanAvgFocus.toFixed(1)}
-                  </td>
-                </tr>
-              );
-            })()}
-
-            {(() => {
-              const pWins = playerSubjectsWeek >= johanSubjectsWeek;
-              return (
-                <>
-                  <tr style={{ borderBottom: johanSubjectsWeek > playerSubjectsWeek ? "none" : "1px solid #f0eef8" }}>
-                    <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Subjects</td>
-                    <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
-                      {playerSubjectsWeek}
-                    </td>
-                    <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
-                      {johanSubjectsWeek}
-                    </td>
-                  </tr>
-                  {johanSubjectsWeek > playerSubjectsWeek && (
-                    <tr style={{ borderBottom: "1px solid #f0eef8" }}>
-                      <td colSpan={3} className="px-4 pb-2">
-                        <span style={{ fontFamily: "'Nunito'", fontSize: 10, color: "#f59e0b", fontWeight: 700 }}>⚠ Diversify your subjects</span>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              );
-            })()}
-
-            {(() => {
-              const pWins = playerWeeklyRankXP >= johanWeekRankXP;
-              const trendArrow = rivalAhead ? "↑ " : "↓ ";
-              return (
-                <tr>
-                  <td className="px-4 py-2" style={{ fontFamily: "'Nunito'", fontSize: 12, color: "#878190" }}>Rank XP</td>
-                  <td className="px-4 py-2 text-center" style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: pWins ? "#1ca830" : "#f74e52" }}>
-                    {playerWeeklyRankXP.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 9, fontWeight: 700, color: !pWins ? "#1ca830" : "#f74e52" }}>
-                      {rivalAhead ? trendArrow : ""}{johanWeekRankXP.toFixed(1)}
-                    </span>
-                    {isClosing && (
-                      <div style={{ fontFamily: "'Nunito'", fontSize: 9, color: "#ef4444", fontWeight: 700, marginTop: 1 }}>CLOSING</div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })()}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+                {/* YOU bar */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: youColor, width: 24 }}>YOU</span>
+                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${youPct}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        style={{ background: youColor, boxShadow: youWin ? `0 0 6px ${youColor}88` : 'none' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: rivalColor, width: 24 }}>J</span>
+                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${rivalPct}%` }}
+                        transition={{ duration: 0.8, delay: 0.1, ease: 'easeOut' }}
+                        style={{ background: rivalColor, boxShadow: !youWin ? `0 0 6px ${rivalColor}88` : 'none' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>

@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -11,6 +12,16 @@ export default defineConfig({
   logLevel: 'error', // Suppress warnings, only show errors
   plugins: [
     react(),
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectRegister: null,
+      manifest: false,
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}']
+      }
+    }),
   ],
   resolve: {
     alias: {
