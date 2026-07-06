@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.4",
+    "date": "2026-07-06",
+    "changes": [
+      { "type": "content", "text": "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images." }
+    ]
+  },
+  {
     "version": "1.2.3",
     "date": "2026-07-06",
     "changes": [
