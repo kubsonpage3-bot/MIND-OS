@@ -1,9 +1,19 @@
-import { Info, Book, MessageSquare, ExternalLink, Shield, Zap } from "lucide-react";
+import { Info, Book, MessageSquare, ExternalLink, Shield, Zap, FileText } from "lucide-react";
 import { motion } from "framer-motion";
-const APP_VERSION = "1.0.0";
-const BUILD_DATE = "2026-06-23";
+
+const APP_VERSION = "1.1.9";
+const BUILD_DATE = "2026-07-06";
+
+function getPlatform() {
+  if (window.matchMedia("(display-mode: standalone)").matches) return "PWA (Installed)";
+  if (navigator.userAgent.includes("Android")) return "Android";
+  if (navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad")) return "iOS";
+  return "Web Browser";
+}
 
 export default function AboutPanel() {
+  const platform = getPlatform();
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -21,7 +31,7 @@ export default function AboutPanel() {
         <div className="space-y-1 text-[10px] font-mono text-muted-foreground">
           <div>Version: <span className="text-foreground">{APP_VERSION}</span></div>
           <div>Build: <span className="text-foreground">{BUILD_DATE}</span></div>
-          <div>Platform: <span className="text-foreground">Tauri (Desktop)</span></div>
+          <div>Platform: <span className="text-foreground">{platform}</span></div>
         </div>
       </div>
 
@@ -44,11 +54,11 @@ export default function AboutPanel() {
         <ul className="text-[10px] font-mono text-muted-foreground/70 space-y-1">
           <li>• Cognitive metric tracking (GF, GC, PS, VM)</li>
           <li>• Task management (Habits, Dailies, To-Dos)</li>
-          <li>• Boss battles & rank progression</li>
-          <li>• Character customization & skill trees</li>
-          <li>• Ally system & achievements</li>
+          <li>• Boss battles &amp; rank progression</li>
+          <li>• Character customization &amp; skill trees</li>
+          <li>• Ally system &amp; achievements</li>
           <li>• Cloud sync across devices</li>
-          <li>• Pomodoro timer & calendar</li>
+          <li>• Pomodoro timer &amp; calendar</li>
         </ul>
       </div>
 
@@ -66,18 +76,20 @@ export default function AboutPanel() {
         </a>
 
         <a
-          href="#"
+          href="mailto:kubsonpage3@gmail.com"
           className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
             <MessageSquare className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-xs font-mono text-foreground">Feedback & Bug Report</span>
+            <span className="text-xs font-mono text-foreground">Feedback &amp; Bug Report</span>
           </div>
           <ExternalLink className="w-3 h-3 text-muted-foreground" />
         </a>
 
         <a
-          href="#"
+          href="https://mindos.pages.dev/privacy-policy.html"
+          target="_blank"
+          rel="noopener noreferrer"
           className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
@@ -86,12 +98,26 @@ export default function AboutPanel() {
           </div>
           <ExternalLink className="w-3 h-3 text-muted-foreground" />
         </a>
+
+        <a
+          href="https://mindos.pages.dev/terms.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3">
+            <FileText className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <span className="text-xs font-mono text-foreground">Terms of Service</span>
+          </div>
+          <ExternalLink className="w-3 h-3 text-muted-foreground" />
+        </a>
       </div>
 
-      {/* Support / Premium (Text Only) */}
+      {/* Support */}
       <div className="p-4 rounded-xl border border-border bg-card">
         <p className="text-[10px] font-mono text-muted-foreground/60 leading-relaxed text-center">
-          Want to support the developer? You can send a donation via PayPal to: kubsonpage3@gmail.com
+          Want to support the developer?<br />
+          You can send a donation via PayPal to: kubsonpage3@gmail.com
         </p>
       </div>
 

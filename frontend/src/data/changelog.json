@@ -1,6 +1,18 @@
 [
   {
+    "version": "1.2.0",
+    "date": "2026-07-06",
+    "changes": [
+      { "type": "feature", "text": "Added Privacy Policy page (mindos.pages.dev/privacy-policy.html) required for Google Play Store." },
+      { "type": "feature", "text": "Added Terms of Service page (mindos.pages.dev/terms.html)." },
+      { "type": "fix", "text": "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing 'Tauri Desktop'." },
+      { "type": "fix", "text": "Privacy Policy and Terms of Service links in Settings now open the real pages in a new tab." }
+    ]
+  },
+
+  {
     "version": "1.1.9",
+
     "date": "2026-07-06",
     "changes": [
       {
