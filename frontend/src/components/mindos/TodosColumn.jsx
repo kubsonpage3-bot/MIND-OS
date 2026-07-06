@@ -107,7 +107,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
-      queryClient.invalidateQueries({ queryKey: ['boss-battle'] });
+      queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
       if (itemDropped || !isCompleting) {
           queryClient.invalidateQueries({ queryKey: ['inventory'] });
       }

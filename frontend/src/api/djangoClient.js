@@ -379,6 +379,10 @@ export const djangoApi = {
       }),
   },
 
+  mutators: {
+    buy: (id) => djangoFetch(`/mutators/${id}/buy/`, { method: 'POST' }),
+  },
+
   training: {
     getLog: () => djangoFetch('/training/log/'),
     log: (data) =>

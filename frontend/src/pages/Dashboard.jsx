@@ -284,6 +284,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       }
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
       refreshProfile();
       
       const oldRankId = djangoProfile?.rank_info?.current_id || "F";
@@ -398,7 +399,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
         onFeedback(feedbackText, res.gold_earned);
         if (res.combat && res.combat.damage_dealt > 0) {
-            handleBossDamage(res.combat.damage_dealt, res.combat.is_critical, res.combat.boss_defeated, res.combat, res.rewards);
+            handleBossDamage(res.combat.damage_dealt, false, res.combat.boss_defeated, res.combat, res.rewards);
         }
         refetchTrainingLogs();
       },

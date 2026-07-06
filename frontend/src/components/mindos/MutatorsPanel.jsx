@@ -50,6 +50,29 @@ export default function MutatorsPanel({ onSpendGold }) {
     }
   });
 
+  const buyMutatorMutation = useMutation({
+    mutationFn: (id) => djangoApi.mutators.buy(id),
+    onSuccess: (data, mutatorId) => {
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+      refreshProfile();
+      
+      // Auto-activate after purchase if we have space
+      if (active.length < MAX_ACTIVE) {
+        const mutator = MUTATORS.find(m => m.id === mutatorId);
+        const now = Date.now();
+        const newActive = [...active, { id: mutator.id, activatedAt: now, duration: mutator.durationDays }];
+        const newPurchased = [...purchased, mutator.id];
+        const newData = { ...mutators, active: newActive, purchased: newPurchased };
+        mutatorsMutation.mutate(newData);
+        djangoApi.analytics.logEvent("mutator_activated");
+      }
+    },
+    onError: (err) => {
+      showRewardToast({ label: `❌ Purchase failed: ${err.message}` });
+    }
+  });
+
   const activate = (mutator) => {
     if (mutator.id === "ironman" && !isActive(mutator.id)) { setConfirmIronman(true); return; }
     if (!isPurchased(mutator.id) && mutator.cost > 0 && gold < mutator.cost) return;
@@ -61,6 +84,11 @@ export default function MutatorsPanel({ onSpendGold }) {
       if (hasConflict) return;
     }
 
+    if (!isPurchased(mutator.id) && mutator.cost > 0) {
+      buyMutatorMutation.mutate(mutator.id);
+      return;
+    }
+
     const now = Date.now();
     let newActive;
     if (isActive(mutator.id)) {
@@ -69,23 +97,14 @@ export default function MutatorsPanel({ onSpendGold }) {
     } else {
       newActive = [...active, { id: mutator.id, activatedAt: now, duration: mutator.durationDays }];
     }
-    const newPurchased = isPurchased(mutator.id) ? purchased : [...purchased, mutator.id];
-    const newData = { ...mutators, active: newActive, purchased: newPurchased };
+    const newData = { ...mutators, active: newActive };
     
     mutatorsMutation.mutate(newData);
     djangoApi.analytics.logEvent("mutator_activated");
-    
-    if (!isPurchased(mutator.id) && mutator.cost > 0) onSpendGold(mutator.cost);
   };
 
   const confirmIronmanActivate = () => {
-    const newActive = [...active, { id: "ironman", activatedAt: Date.now(), duration: null }];
-    const newPurchased = [...purchased, "ironman"];
-    const newData = { ...mutators, active: newActive, purchased: newPurchased };
-    
-    mutatorsMutation.mutate(newData);
-    djangoApi.analytics.logEvent("mutator_activated");
-    onSpendGold(3000);
+    buyMutatorMutation.mutate("ironman");
     setConfirmIronman(false);
   };
 

@@ -178,6 +178,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
     }
   });
 

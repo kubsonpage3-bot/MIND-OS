@@ -1954,3 +1954,84 @@ class PartyMemberProfileView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+MUTATOR_COSTS = {
+    "bloodwork": 600,
+    "monks_path": 700,
+    "iron_routine": 800,
+    "lexicon": 600,
+    "night_owl": 500,
+    "early_riser": 500,
+    "tunnel_vision": 900,
+    "loan_shark": 400,
+    "compound": 1000,
+    "miser": 700,
+    "tithe": 800,
+    "ascetic_loop": 900,
+    "double_nothing": 1200,
+    "momentum": 800,
+    "diversity_lock": 500,
+    "silence": 400,
+    "ironman": 3000,
+    "glass_cannon": 600,
+    "zero_hour": 1000,
+    "catalyst": 1500,
+    "echo": 1200,
+    "mirror": 1100,
+    "resonance": 1400,
+    "gambler": 800,
+    "phantom_load": 700,
+    "cursed_clock": 900,
+    "deja_vu": 1000,
+    "volatile": 1300,
+    "weight_of_history": 1500,
+}
+
+
+class BuyMutatorView(generics.GenericAPIView):
+    """
+    POST /api/mutators/<str:mutator_id>/buy/
+    Buys a mutator and deducts gold.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, mutator_id, *args, **kwargs):
+        from django.db import transaction
+        from api.models import UserProfile
+
+        if mutator_id not in MUTATOR_COSTS:
+            return Response(
+                {"error": "Invalid mutator ID"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        cost = MUTATOR_COSTS[mutator_id]
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+            if profile.gold < cost:
+                return Response(
+                    {"error": "Not enough gold"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            active_mutators = profile.active_mutators or {}
+            purchased = active_mutators.get("purchased", [])
+
+            if mutator_id in purchased:
+                return Response(
+                    {"error": "Mutator already purchased"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            profile.gold = max(0, profile.gold - cost)
+            purchased.append(mutator_id)
+            active_mutators["purchased"] = purchased
+            profile.active_mutators = active_mutators
+            profile.save(update_fields=["gold", "active_mutators"])
+
+            from api.serializers.profile import UserProfileSerializer
+
+            serializer = UserProfileSerializer(profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)

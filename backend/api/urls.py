@@ -47,6 +47,7 @@ from .views import (
     create_checkout_session_view,
     create_portal_session_view,
     stripe_webhook_view,
+    BuyMutatorView,
 )
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
@@ -121,6 +122,9 @@ urlpatterns = [
     path("skills/respec/", RespecSkillView.as_view(), name="skill-respec"),
     path("allies/recruit/", RecruitAllyView.as_view(), name="ally-recruit"),
     path("allies/config/", AlliesConfigView.as_view(), name="allies-config"),
+    path(
+        "mutators/<str:mutator_id>/buy/", BuyMutatorView.as_view(), name="mutator-buy"
+    ),
     # ─── Крафт ──────────────────────────────────────────────────────────────────
     path("crafting/recipes/", RecipeListView.as_view(), name="crafting-recipes"),
     path("crafting/craft/", CraftItemView.as_view(), name="crafting-craft"),

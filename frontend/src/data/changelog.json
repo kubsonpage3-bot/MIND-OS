@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.1.9",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a bug where purchasing mutators did not deduct gold."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where bosses remained on the dashboard after being defeated by task completion or training."
+      }
+    ]
+  },
+  {
     "version": "1.1.8",
     "date": "2026-07-06",
     "changes": [
