@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 import { playSound } from "@/lib/soundEffects";
 import { useQueryClient } from "@tanstack/react-query";
+import { ACHIEVEMENTS } from "@/constants/rpgData";
 
 export default function AchievementTracker() {
   const queryClient = useQueryClient();
@@ -16,7 +17,13 @@ export default function AchievementTracker() {
 
       achievements.forEach(ach => {
         const achId = typeof ach === 'string' ? ach : ach.code;
-        const achName = typeof ach === 'string' ? ach : (ach.name || achId);
+        let achName = typeof ach === 'string' ? ach : (ach.name || achId);
+
+        // Map to real name without underscores if we only have an ID
+        if (typeof ach === 'string' || achName === achId) {
+          const found = ACHIEVEMENTS.find(a => a.id === achId);
+          achName = found ? found.name : achId.replace(/_/g, ' ').toUpperCase();
+        }
 
         if (!prevUnlocked.current.has(achId)) {
           prevUnlocked.current.add(achId);
