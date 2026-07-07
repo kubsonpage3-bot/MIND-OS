@@ -60,6 +60,16 @@
     ]
   },
   {
+    "version": "1.4.12",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
     "version": "1.2.8",
     "date": "2026-07-07",
     "changes": [
