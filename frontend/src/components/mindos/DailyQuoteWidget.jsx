@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import { QUOTES } from '../../constants/quotes';
 
 export default function DailyQuoteWidget() {
@@ -19,34 +19,62 @@ export default function DailyQuoteWidget() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm relative"
+      className="mb-4 rounded-none border-x-0 border-y border-l-4 md:border md:border-l-4 md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] shadow-sm relative"
+      style={{
+        borderTopColor: "var(--habit-border)",
+        borderRightColor: "var(--habit-border)",
+        borderBottomColor: "var(--habit-border)",
+        borderLeftColor: "var(--xp-color)"
+      }}
     >
-      <div className="p-5 md:p-6 flex flex-row items-center gap-4">
+      {/* Background radial gradient emanating from the left */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at 10% 50%, var(--xp-color) 0%, transparent 60%)",
+          opacity: 0.08
+        }}
+      />
+      
+      <div className="p-6 md:p-8 flex flex-row items-center gap-5 md:gap-6 relative z-10">
         {/* Icon */}
         <div className="shrink-0 flex items-center justify-center">
-          <BookOpen size={36} style={{ color: "var(--xp-color)" }} className="opacity-80" />
+          <ScrollText 
+            size={38} 
+            style={{ 
+              color: "var(--xp-color)", 
+              filter: "drop-shadow(0 0 6px rgba(var(--xp-color-rgb, 123, 97, 255), 0.4))" 
+            }} 
+            className="opacity-90" 
+          />
         </div>
         
         {/* Quote & Reference */}
         <div className="flex flex-col relative z-10">
           <span 
-            className="italic text-base mb-1 relative leading-snug" 
+            className="italic text-base md:text-lg mb-2 relative leading-relaxed" 
             style={{ color: "var(--habit-text)", fontFamily: "'Nunito', sans-serif" }}
           >
             "{quote.text}"
           </span>
           <span 
-            className="text-xs font-semibold uppercase tracking-wider mt-1" 
-            style={{ color: "var(--habit-text)", opacity: 0.5 }}
+            className="text-xs font-bold uppercase tracking-[0.15em] mt-1 flex items-center gap-1.5" 
+            style={{ color: "var(--habit-text)", opacity: 0.6 }}
           >
-            — {quote.ref}
+            <span style={{ color: "var(--xp-color)", opacity: 0.8 }}>—</span> {quote.ref}
           </span>
         </div>
         
         {/* Decorative huge quotation mark */}
         <div 
-          className="absolute right-4 top-0 text-7xl select-none"
-          style={{ color: "var(--xp-color)", opacity: 0.1, fontFamily: "serif" }}
+          className="absolute -right-2 -top-4 select-none pointer-events-none"
+          style={{ 
+            color: "var(--xp-color)", 
+            opacity: 0.15, 
+            fontFamily: "serif",
+            fontSize: "120px",
+            lineHeight: 1
+          }}
         >
           ❝
         </div>
