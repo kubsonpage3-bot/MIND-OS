@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CLASSES } from "@/constants/rpgData";
 import { djangoApi } from "@/api/djangoClient";
@@ -24,6 +25,7 @@ function formatCountdown(ms) {
 }
 
 export default function SkillPanel({ classId }) {
+  const { t } = useTranslation();
   const now = useNow();
   const queryClient = useQueryClient();
   const { profile } = useDjangoAuth();

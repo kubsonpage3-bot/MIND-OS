@@ -147,6 +147,7 @@ function MemberCard({ member, onBuff, onClick }) {
 // ─── Invite Code Display ──────────────────────────────────────────────────────
 
 function InviteCodeDisplay({ code }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -190,6 +191,7 @@ function InviteCodeDisplay({ code }) {
 // ─── No-Party State ───────────────────────────────────────────────────────────
 
 function NoPartyView({ onCreated, onJoined }) {
+  const { t } = useTranslation();
   const [createName, setCreateName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
@@ -321,6 +323,7 @@ function NoPartyView({ onCreated, onJoined }) {
 
 // ─── Feed View ────────────────────────────────────────────────────────────────
 function PartyFeedView({ party }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['party', 'feed'],
@@ -445,6 +448,7 @@ function PartyFeedView({ party }) {
 
 // ─── Leaderboard View ──────────────────────────────────────────────────────────
 function PartyLeaderboardView() {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const currentUsername = profile?.username;
 

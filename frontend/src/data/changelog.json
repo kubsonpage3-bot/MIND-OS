@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.26",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical crash (ReferenceError: t is not defined) that prevented the Character tab from loading, and fully translated the remaining UI text (Party, Mutators, Prestige, Rankings)."
+      }
+    ]
+  },
+  {
     "version": "1.4.25",
     "date": "2026-07-07",
     "changes": [

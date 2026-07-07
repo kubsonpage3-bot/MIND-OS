@@ -688,5 +688,91 @@
     "stats_title": "Progress & Stats",
     "stats_desc": "Resets cognitive stats, rank, gold, and class. This cannot be undone.",
     "nuclear_desc": "Permanently deletes ALL data including tasks, logs, stats, and inventory. This cannot be undone."
+  },
+  "errorBoundary": {
+    "renderError": "Something went wrong rendering this tab.",
+    "retry": "Retry"
+  },
+  "partyTab": {
+    "completeTaskFeed": "Complete a task to start the feed!",
+    "completeToClimb": "Complete tasks and habits to climb the ranks!",
+    "copyInvite": "Copy invite code",
+    "createParty": "Create Party",
+    "creatingBtn": "Creating...",
+    "error": "Error loading party.",
+    "header": "PARTY",
+    "inviteCode": "Invite Code",
+    "inviteCodeLabel": "INVITE CODE",
+    "inviteDesc": "Share this with friends to invite them.",
+    "joiningBtn": "Joining...",
+    "joinParty": "Join Party",
+    "joinBtn": "Join",
+    "loading": "Loading party...",
+    "noActivity": "No activity yet.",
+    "noXpYet": "No XP earned yet this week.",
+    "partyNamePlaceholder": "Name your party...",
+    "resetsMonday": "Resets Monday",
+    "weeklyRank": "WEEKLY RANK",
+    "xpThisWeek": "XP THIS WEEK"
+  },
+  "pomodoroPanel": {
+    "apply": "Apply",
+    "settings": "Settings"
+  },
+  "premium": {
+    "accessWidgets": "Access Widgets",
+    "advancedTools": "Advanced Tools",
+    "allClasses": "All Classes",
+    "error": "Error",
+    "getPremiumLink": "Get Premium",
+    "helpServers": "Help Support Servers",
+    "maybeLater": "Maybe Later",
+    "mindOs": "MIND OS Premium",
+    "supportDev": "Support Development",
+    "syncDesc": "Sync across devices",
+    "unlockPaths": "Unlock new paths",
+    "unlockPotential": "Unlock your potential",
+    "upgradeNow": "Upgrade Now",
+    "webOnly": "Web Only"
+  },
+  "prestige": {
+    "cancel": "Cancel",
+    "confirmRebirth": "Type REBIRTH to confirm",
+    "initiate": "Initiate Prestige",
+    "prestige": "Prestige",
+    "reborn": "REBORN",
+    "xpToUnlock": "XP to unlock"
+  },
+  "rankBadge": {
+    "maxRank": "MAX RANK",
+    "rankXp": "Rank XP"
+  },
+  "rankRoad": {
+    "estimatedFocus": "ESTIMATED FOCUS REQUIRED",
+    "hoursEst": "HOURS EST.",
+    "next": "NEXT",
+    "percentTo": "% to",
+    "progressTo": "Progress to",
+    "rank": "RANK",
+    "rankTitle": "RANK ROAD",
+    "title": "Rank Progression",
+    "xpNeeded": "XP Needed",
+    "you": "YOU"
+  },
+  "rankUpFlash": {
+    "rankUp": "RANK UP!"
+  },
+  "reminder": {
+    "dailyReminder": "Daily Reminder",
+    "enableBtn": "Enable",
+    "reminderTime": "Reminder Time",
+    "setFor": "Set for"
+  },
+  "skillPanel": {
+    "activeSkills": "ACTIVE SKILLS",
+    "mana": "MANA"
+  },
+  "streakControl": {
+    "dayStreak": "Day Streak"
   }
 }

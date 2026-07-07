@@ -688,5 +688,91 @@
     "stats_title": "Прогресс и статы",
     "stats_desc": "Сбрасывает когнитивные статы, ранг, золото и класс. Это невозможно отменить.",
     "nuclear_desc": "Безвозвратно удаляет ВСЕ данные, включая задачи, логи, статы и инвентарь. Это невозможно отменить."
+  },
+  "errorBoundary": {
+    "renderError": "Что-то пошло не так при загрузке этой вкладки.",
+    "retry": "Повторить"
+  },
+  "partyTab": {
+    "completeTaskFeed": "Выполните задачу, чтобы начать ленту!",
+    "completeToClimb": "Выполняйте задачи и привычки, чтобы подниматься в рейтинге!",
+    "copyInvite": "Копировать код приглашения",
+    "createParty": "Создать группу",
+    "creatingBtn": "Создание...",
+    "error": "Ошибка загрузки группы.",
+    "header": "ГРУППА",
+    "inviteCode": "Код приглашения",
+    "inviteCodeLabel": "КОД ПРИГЛАШЕНИЯ",
+    "inviteDesc": "Поделитесь этим с друзьями для приглашения.",
+    "joiningBtn": "Вступление...",
+    "joinParty": "Присоединиться к группе",
+    "joinBtn": "Войти",
+    "loading": "Загрузка группы...",
+    "noActivity": "Пока нет активности.",
+    "noXpYet": "На этой неделе опыт еще не заработан.",
+    "partyNamePlaceholder": "Назовите вашу группу...",
+    "resetsMonday": "Сбрасывается в понедельник",
+    "weeklyRank": "НЕДЕЛЬНЫЙ РЕЙТИНГ",
+    "xpThisWeek": "ОПЫТ ЗА НЕДЕЛЮ"
+  },
+  "pomodoroPanel": {
+    "apply": "Применить",
+    "settings": "Настройки"
+  },
+  "premium": {
+    "accessWidgets": "Доступ к виджетам",
+    "advancedTools": "Продвинутые инструменты",
+    "allClasses": "Все классы",
+    "error": "Ошибка",
+    "getPremiumLink": "Получить Premium",
+    "helpServers": "Помощь серверам",
+    "maybeLater": "Может позже",
+    "mindOs": "MIND OS Premium",
+    "supportDev": "Поддержать разработку",
+    "syncDesc": "Синхронизация между устройствами",
+    "unlockPaths": "Разблокировать новые пути",
+    "unlockPotential": "Раскрыть свой потенциал",
+    "upgradeNow": "Обновить сейчас",
+    "webOnly": "Только в браузере"
+  },
+  "prestige": {
+    "cancel": "Отмена",
+    "confirmRebirth": "Введите REBIRTH для подтверждения",
+    "initiate": "Начать престиж",
+    "prestige": "Престиж",
+    "reborn": "ПЕРЕРОЖДЕНИЕ",
+    "xpToUnlock": "Опыт для разблокировки"
+  },
+  "rankBadge": {
+    "maxRank": "МАКС. РАНГ",
+    "rankXp": "Опыт ранга"
+  },
+  "rankRoad": {
+    "estimatedFocus": "ОЖИДАЕМЫЙ ФОКУС",
+    "hoursEst": "ЧАСОВ ОЖИД.",
+    "next": "СЛЕДУЮЩИЙ",
+    "percentTo": "% до",
+    "progressTo": "Прогресс до",
+    "rank": "РАНГ",
+    "rankTitle": "ПУТЬ РАНГА",
+    "title": "Прогрессия ранга",
+    "xpNeeded": "Опыта нужно",
+    "you": "ВЫ"
+  },
+  "rankUpFlash": {
+    "rankUp": "ПОВЫШЕНИЕ РАНГА!"
+  },
+  "reminder": {
+    "dailyReminder": "Ежедневное напоминание",
+    "enableBtn": "Включить",
+    "reminderTime": "Время напоминания",
+    "setFor": "Установлено на"
+  },
+  "skillPanel": {
+    "activeSkills": "АКТИВНЫЕ НАВЫКИ",
+    "mana": "МАНА"
+  },
+  "streakControl": {
+    "dayStreak": "Дней подряд"
   }
 }

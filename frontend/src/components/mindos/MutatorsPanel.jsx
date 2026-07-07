@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { MUTATORS } from "@/constants/rpgData";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
@@ -18,6 +19,7 @@ const CAT_LABELS = {
 const MAX_ACTIVE = 3;
 
 export default function MutatorsPanel({ onSpendGold }) {
+  const { t } = useTranslation();
   const [confirmIronman, setConfirmIronman] = useState(false);
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
