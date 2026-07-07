@@ -351,5 +351,24 @@
     "verify_account": "Проверить, что вы вошли с правильным аккаунтом",
     "contact_admin": "Связаться с администратором для получения доступа",
     "try_relogin": "Попробовать выйти из системы и войти снова"
+  },
+  "scrolls": {
+    "title": "Свитки призыва",
+    "subtitle": "Призови босса · победи за 14 дней · получи лут",
+    "rank": "РАНГ {{rank}}",
+    "requires_rank": "Требуется ранг {{rank}}",
+    "active_dashboard": "● АКТИВЕН НА ГЛАВНОЙ",
+    "btn_active": "БОСС АКТИВЕН",
+    "btn_summoning": "ПРИЗЫВ...",
+    "btn_summon": "{{price}}G — ПРИЗВАТЬ",
+    "need_rank": "Нужен ранг {{rank}}",
+    "defeated": "ПОБЕЖДЕН ✓",
+    "modal_summoning": "Призыв",
+    "modal_time_limit_part1": "У вас есть ",
+    "modal_time_limit_part2": "14 дней",
+    "modal_time_limit_part3": ", чтобы победить этого босса.",
+    "modal_consequence": "Провал — свиток исчезнет. Победа — уникальный лут.",
+    "btn_cancel": "ОТМЕНА",
+    "btn_modal_summon": "ПРИЗВАТЬ — {{price}}G"
   }
 }

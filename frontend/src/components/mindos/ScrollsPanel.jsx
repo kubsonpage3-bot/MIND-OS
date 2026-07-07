@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
@@ -73,6 +74,7 @@ function getTimeLeft(activatedAt, daysLimit) {
 }
 
 export default function ScrollsPanel({ gold, onSpendGold }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [confirmScroll, setConfirmScroll] = useState(null);
 
@@ -154,8 +156,8 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="font-mono text-sm font-bold text-foreground tracking-wide">Summoning Scrolls</div>
-          <div className="font-mono text-xs text-muted-foreground/50 mt-0.5">Summon a boss · defeat within 14 days · claim unique loot</div>
+          <div className="font-mono text-sm font-bold text-foreground tracking-wide">{t('scrolls.title')}</div>
+          <div className="font-mono text-xs text-muted-foreground/50 mt-0.5">{t('scrolls.subtitle')}</div>
         </div>
         <div className="font-mono text-sm font-bold" style={{ color: "#f0c040" }}>🪙 {normalizeGold(gold).toLocaleString()}G</div>
       </div>
@@ -173,10 +175,10 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
             {/* Rank header */}
             <div className="flex items-center gap-3">
               <div className="font-mono text-xs font-black tracking-widest px-3 py-1 rounded-full" style={{ background: `${color}20`, color, border: `1px solid ${color}50` }}>
-                RANK {rank}
+                {t('scrolls.rank', { rank })}
               </div>
               <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${color}40, transparent)` }} />
-              {!rankUnlocked && <span className="text-[10px] font-mono text-muted-foreground/40">Requires Rank {rank}</span>}
+              {!rankUnlocked && <span className="text-[10px] font-mono text-muted-foreground/40">{t('scrolls.requires_rank', { rank })}</span>}
             </div>
 
             <div className="grid grid-cols-1 gap-3">
@@ -266,7 +268,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                             +{normalizeGold(scroll.reward.gold).toLocaleString()}G · +{scroll.reward.sp}SP · +{scroll.reward.mp}MP
                           </div>
                           {isActive && (
-                            <span className="text-[11px] font-mono text-red-400 font-bold shrink-0">● ACTIVE IN DASHBOARD</span>
+                            <span className="text-[11px] font-mono text-red-400 font-bold shrink-0">{t('scrolls.active_dashboard')}</span>
                           )}
                           {!isActive && !isDefeated && rankUnlocked && (
                             <button
@@ -281,14 +283,14 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                                 opacity: activeEncounter ? 0.4 : 1,
                               }}
                             >
-                              {activeEncounter ? "BOSS ACTIVE" : summonMutation.isPending && confirmScroll?.id === scroll.id ? "SUMMONING..." : `${scroll.price}G — SUMMON`}
+                              {activeEncounter ? t('scrolls.btn_active') : summonMutation.isPending && confirmScroll?.id === scroll.id ? t('scrolls.btn_summoning') : t('scrolls.btn_summon', { price: scroll.price })}
                             </button>
                           )}
                           {!rankUnlocked && !isActive && !isDefeated && (
-                            <span className="text-[10px] font-mono text-muted-foreground/30 shrink-0">Need Rank {rank}</span>
+                            <span className="text-[10px] font-mono text-muted-foreground/30 shrink-0">{t('scrolls.need_rank', { rank })}</span>
                           )}
                           {isDefeated && (
-                            <span className="text-[11px] font-mono text-green-400 font-bold shrink-0">DEFEATED ✓</span>
+                            <span className="text-[11px] font-mono text-green-400 font-bold shrink-0">{t('scrolls.defeated')}</span>
                           )}
                         </div>
                       </div>
@@ -332,14 +334,14 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                 />
               </motion.div>
               <div>
-                <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest mb-1">Summoning</div>
+                <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest mb-1">{t('scrolls.modal_summoning')}</div>
                 <div className="font-mono text-lg font-black" style={{ color: confirmScroll.color }}>{confirmScroll.boss}</div>
                 <div className="font-mono text-xs text-muted-foreground/60 mt-1">{confirmScroll.scrollName}</div>
                 <div className="font-mono text-xs italic mt-1" style={{ color: `${confirmScroll.color}99` }}>{confirmScroll.quote}</div>
               </div>
               <div className="text-sm font-mono text-muted-foreground/70 leading-relaxed">
-                You have <span className="text-white font-bold">14 days</span> to defeat this boss.<br />
-                Fail — scroll is lost. Win — receive unique loot.
+                {t('scrolls.modal_time_limit_part1')}<span className="text-white font-bold">{t('scrolls.modal_time_limit_part2')}</span>{t('scrolls.modal_time_limit_part3')}<br />
+                {t('scrolls.modal_consequence')}
               </div>
               <div className="rounded-xl border border-border bg-muted/20 p-3 text-left space-y-1.5">
                 <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {confirmScroll.uniqueItem.label}</div>
@@ -351,14 +353,14 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                   onClick={() => setConfirmScroll(null)}
                   className="flex-1 py-2.5 rounded-xl font-mono text-sm border border-border text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  CANCEL
+                  {t('scrolls.btn_cancel')}
                 </button>
                 <button
                   onClick={confirmBuy}
                   className="flex-1 py-2.5 rounded-xl font-mono text-sm font-black transition-all"
                   style={{ background: confirmScroll.color, color: "#000", boxShadow: `0 0 16px ${confirmScroll.color}60` }}
                 >
-                  SUMMON — {confirmScroll.price}G
+                  {t('scrolls.btn_modal_summon', { price: confirmScroll.price })}
                 </button>
               </div>
             </motion.div>

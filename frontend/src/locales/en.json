@@ -351,5 +351,24 @@
     "verify_account": "Verify you are logged in with the correct account",
     "contact_admin": "Contact the app administrator for access",
     "try_relogin": "Try logging out and back in again"
+  },
+  "scrolls": {
+    "title": "Summoning Scrolls",
+    "subtitle": "Summon a boss · defeat within 14 days · claim unique loot",
+    "rank": "RANK {{rank}}",
+    "requires_rank": "Requires Rank {{rank}}",
+    "active_dashboard": "● ACTIVE IN DASHBOARD",
+    "btn_active": "BOSS ACTIVE",
+    "btn_summoning": "SUMMONING...",
+    "btn_summon": "{{price}}G — SUMMON",
+    "need_rank": "Need Rank {{rank}}",
+    "defeated": "DEFEATED ✓",
+    "modal_summoning": "Summoning",
+    "modal_time_limit_part1": "You have ",
+    "modal_time_limit_part2": "14 days",
+    "modal_time_limit_part3": " to defeat this boss.",
+    "modal_consequence": "Fail — scroll is lost. Win — receive unique loot.",
+    "btn_cancel": "CANCEL",
+    "btn_modal_summon": "SUMMON — {{price}}G"
   }
 }
