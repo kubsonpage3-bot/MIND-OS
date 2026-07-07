@@ -32,6 +32,7 @@ import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
 import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
+import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
 import BossPanel from "@/components/mindos/BossPanel";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
@@ -523,7 +524,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                       </div>
                     )}
 
-
+                    <DailyQuoteWidget />
 
                     {/* Active Party Widget */}
                     <ActivePartyWidget />
