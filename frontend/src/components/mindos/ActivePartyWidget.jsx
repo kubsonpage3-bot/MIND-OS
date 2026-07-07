@@ -85,7 +85,7 @@ export default function ActivePartyWidget() {
                   onClick={() => setSelectedAlly(ally)}
                   className={`border ${rankClass} rounded-xl p-3 flex flex-col items-center gap-1 cursor-pointer hover:bg-white/5 transition-colors`}
                 >
-                  <OptimizedImage src={ally.image} className="w-16 h-16 rounded-lg object-cover bg-black/50" style={{ imageRendering: 'pixelated' }} />
+                  <OptimizedImage src={ally.image} className="w-16 h-16 rounded-lg object-contain" style={{ imageRendering: 'pixelated' }} />
                   <span className="text-xs font-bold text-white text-center truncate w-full">{ally.name}</span>
                   <span className="text-[10px] text-green-400 text-center truncate w-full">+{currentBuff}</span>
                 </div>
