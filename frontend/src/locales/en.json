@@ -92,13 +92,20 @@
     "on_miss": "on miss",
     "create_btn": "CREATE TASK",
     "types": {
-      "habit": "Habit", "habit_desc": "Repeatable ± action",
-      "daily": "Daily", "daily_desc": "Reset every day",
-      "todo": "To-Do", "todo_desc": "One-time task",
-      "button": "Button", "button_desc": "Manual session log"
+      "habit": "Habit",
+      "habit_desc": "Repeatable ± action",
+      "daily": "Daily",
+      "daily_desc": "Reset every day",
+      "todo": "To-Do",
+      "todo_desc": "One-time task",
+      "button": "Button",
+      "button_desc": "Manual session log"
     },
     "priorities": {
-      "low": "Low", "medium": "Medium", "high": "High", "critical": "Critical"
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
     },
     "habit_good": "✅ Good",
     "habit_bad": "❌ Bad",
@@ -176,5 +183,23 @@
     "lck_effect_short": "Gold mult & Drops",
     "pwr_effect_short": "Base XP",
     "pts_label": "pts"
+  },
+  "training": {
+    "flow_state": "Flow State",
+    "focus_good": "Good Focus",
+    "focus_avg": "Average Focus",
+    "focus_bad": "Bad Focus",
+    "log_session": "Log Session",
+    "add_activity": "Add Activity",
+    "activities": "ACTIVITIES",
+    "restore_all": "Restore {{count}}",
+    "done": "Done",
+    "edit": "Edit",
+    "questions": "questions",
+    "hours": "hours",
+    "focus_quality": "FOCUS QUALITY",
+    "gold_on_completion": "gold on completion",
+    "gold_booster": "Gold Booster x{{mult}}",
+    "efficiency": "eff."
   }
 }

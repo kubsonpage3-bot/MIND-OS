@@ -92,13 +92,20 @@
     "on_miss": "при пропуске",
     "create_btn": "СОЗДАТЬ ЗАДАЧУ",
     "types": {
-      "habit": "Привычка", "habit_desc": "Повторяемое ± действие",
-      "daily": "Ежедневная", "daily_desc": "Сброс каждый день",
-      "todo": "Задача", "todo_desc": "Разовая задача",
-      "button": "Кнопка", "button_desc": "Ручной лог сессии"
+      "habit": "Привычка",
+      "habit_desc": "Повторяемое ± действие",
+      "daily": "Ежедневная",
+      "daily_desc": "Сброс каждый день",
+      "todo": "Задача",
+      "todo_desc": "Разовая задача",
+      "button": "Кнопка",
+      "button_desc": "Ручной лог сессии"
     },
     "priorities": {
-      "low": "Низкий", "medium": "Средний", "high": "Высокий", "critical": "Критический"
+      "low": "Низкий",
+      "medium": "Средний",
+      "high": "Высокий",
+      "critical": "Критический"
     },
     "habit_good": "✅ Хорошо",
     "habit_bad": "❌ Плохо",
@@ -193,22 +200,21 @@
     "lck_effect_short": "множитель золота"
   },
   "training": {
+    "flow_state": "Состояние потока",
+    "focus_good": "Хороший фокус",
+    "focus_avg": "Средний фокус",
+    "focus_bad": "Плохой фокус",
     "log_session": "Записать сессию",
-    "add_activity": "+ Активность",
-    "activities": "Активности",
-    "restore_all": "Восстановить все ({{count}})",
-    "edit": "Изменить",
+    "add_activity": "Добавить активность",
+    "activities": "АКТИВНОСТИ",
+    "restore_all": "Восстановить {{count}}",
     "done": "Готово",
-    "focus_quality": "Качество фокуса",
-    "flow_state": "Поток",
-    "focus_good": "Хорошо",
-    "focus_avg": "Средне",
-    "focus_bad": "Отвлечён",
-    "hours": "часов",
+    "edit": "Изменить",
     "questions": "вопросов",
-    "log_btn": "Записать {{amount}} · ×{{eff}} эфф.",
-    "gold_on_completion": "за выполнение",
-    "gold_booster": "×{{mult}} бустер!",
+    "hours": "часов",
+    "focus_quality": "КАЧЕСТВО ФОКУСА",
+    "gold_on_completion": "золота по завершении",
+    "gold_booster": "Бонус золота x{{mult}}",
     "efficiency": "эфф."
   },
   "shop_tabs": {
