@@ -421,5 +421,15 @@
     "tab_achv": "Achv",
     "tab_mutators": "Mutators",
     "tab_shop": "Shop"
+  },
+  "skill_panel": {
+    "ready": "READY",
+    "too_fast": "⚡ TOO FAST! WAIT COOLDOWN",
+    "skill_failed": "⚡ {{msg}}",
+    "activated": "{{name}} activated!",
+    "title": "Active Skills",
+    "mana": "MANA",
+    "not_enough_mana": "✗ NOT ENOUGH MANA",
+    "use_skill": "► USE SKILL"
   }
 }

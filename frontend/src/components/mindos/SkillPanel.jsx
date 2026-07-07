@@ -4,6 +4,8 @@ import { CLASSES } from "@/constants/rpgData";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { i18n } from "@/lib/i18n";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 
 function useNow() {
@@ -16,7 +18,7 @@ function useNow() {
 }
 
 function formatCountdown(ms) {
-  if (ms <= 0) return "READY";
+  if (ms <= 0) return i18n.t('skill_panel.ready');
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   const s = Math.floor((ms % 60000) / 1000);
@@ -25,6 +27,7 @@ function formatCountdown(ms) {
 
 export default function SkillPanel({ classId }) {
   const now = useNow();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { profile } = useDjangoAuth();
   const cls = CLASSES[classId];
@@ -108,12 +111,12 @@ export default function SkillPanel({ classId }) {
       // Show toast error (handles 429 throttling and other issues)
       const errorObj = /** @type {any} */ (err);
       const errorMsg = errorObj?.message || "Skill activation failed";
-      setToast(errorObj?.status === 429 ? "⚡ TOO FAST! WAIT COOLDOWN" : `⚡ ${errorMsg}`);
+      setToast(errorObj?.status === 429 ? t('skill_panel.too_fast') : t('skill_panel.skill_failed', { msg: errorMsg }));
       setTimeout(() => setToast(null), 3000);
     },
     onSuccess: (data) => {
       const dataObj = /** @type {any} */ (data);
-      setToast(dataObj?.detail || `${cls?.skills.find(s => s.id === glowing)?.name || 'Skill'} activated!`);
+      setToast(dataObj?.detail || t('skill_panel.activated', { name: cls?.skills.find(s => s.id === glowing)?.name || 'Skill' }));
       setTimeout(() => setToast(null), 3000);
     },
     onSettled: () => {
@@ -142,7 +145,7 @@ export default function SkillPanel({ classId }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Active Skills</div>
+      <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">{t('skill_panel.title')}</div>
 
       <AnimatePresence>
         {toast && (
@@ -163,7 +166,7 @@ export default function SkillPanel({ classId }) {
       {/* Mana bar */}
       <div className="space-y-1">
         <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-          <span>MANA</span>
+          <span>{t('skill_panel.mana')}</span>
           <span style={{ color: cls.color }}>{profile?.mana || 0}/{profile?.mana_max || cls.maxMana}</span>
         </div>
         <div className="h-2 rounded-none bg-muted overflow-hidden" style={{ imageRendering: "pixelated" }}>
@@ -262,7 +265,7 @@ export default function SkillPanel({ classId }) {
                 />
               )}
               <span className="relative z-10">
-                {state.onCooldown ? `⧗ ${formatCountdown(state.remaining)}` : !state.hasMana ? "✗ NOT ENOUGH MANA" : "► USE SKILL"}
+                {state.onCooldown ? `⧗ ${formatCountdown(state.remaining)}` : !state.hasMana ? t('skill_panel.not_enough_mana') : t('skill_panel.use_skill')}
               </span>
             </motion.button>
           </motion.div>

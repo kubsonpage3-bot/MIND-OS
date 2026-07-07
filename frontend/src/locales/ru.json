@@ -421,5 +421,15 @@
     "tab_achv": "Достиж.",
     "tab_mutators": "Мутаторы",
     "tab_shop": "Магазин"
+  },
+  "skill_panel": {
+    "ready": "ГОТОВО",
+    "too_fast": "⚡ СЛИШКОМ БЫСТРО! ЖДИТЕ ОТКАТА",
+    "skill_failed": "⚡ {{msg}}",
+    "activated": "{{name}} активирован!",
+    "title": "Активные навыки",
+    "mana": "МАНА",
+    "not_enough_mana": "✗ НЕДОСТАТОЧНО МАНЫ",
+    "use_skill": "► ИСПОЛЬЗОВАТЬ"
   }
 }
