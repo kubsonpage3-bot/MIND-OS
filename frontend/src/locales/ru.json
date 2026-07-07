@@ -397,5 +397,29 @@
     "preset_title": "СОХРАНИТЬ ПРЕСЕТ",
     "preset_desc": "Сохраняет {{count}} открытых узлов. Максимум 3 пресета.",
     "preset_placeholder": "напр. Боевой билд, Неделя учебы"
+  },
+  "achievements": {
+    "unlocked": "🏆 ОТКРЫТО: {{name}}",
+    "you_died": "💀 ВЫ УМЕРЛИ! Ранг понижен. Здоровье восстановлено."
+  },
+  "dashboard": {
+    "premium_title": "Премиум-функция",
+    "premium_desc": "Разблокируйте продвинутые инструменты, новые классы и поддержите разработку.",
+    "premium_available": "Доступно с Premium",
+    "btn_upgrade": "Улучшить",
+    "session_expired": "Сессия истекла",
+    "session_expired_desc": "Возможно, ваша сессия истекла. Пожалуйста, войдите снова, если это повторится.",
+    "milestone_unlocked": "достиг {{value}} — этап пройден!",
+    "tab_history": "История",
+    "tab_projections": "Прогнозы",
+    "tab_pomodoro": "Помодоро",
+    "tab_calendar": "Календарь",
+    "tab_stats": "Статы",
+    "tab_skills": "Навыки",
+    "tab_tree": "Дерево",
+    "tab_allies": "Союзники",
+    "tab_achv": "Достиж.",
+    "tab_mutators": "Мутаторы",
+    "tab_shop": "Магазин"
   }
 }

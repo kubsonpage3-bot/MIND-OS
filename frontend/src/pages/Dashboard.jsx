@@ -44,32 +44,32 @@ import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
 
 const TABS = [
-  { id: "train", label: "Train", icon: Activity },
-  { id: "tasks", label: "Tasks", icon: Swords },
-  { id: "rival", label: "Rival", icon: Users },
-  { id: "stats", label: "Projections", icon: BarChart2 },
-  { id: "history", label: "History", icon: History },
-  { id: "pomodoro", label: "Pomodoro", icon: Timer },
-  { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "character", label: "Character", icon: User },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "train", label: "sidebar.sections.train", icon: Activity },
+  { id: "tasks", label: "sidebar.sections.tasks", icon: Swords },
+  { id: "rival", label: "sidebar.sections.rival", icon: Users },
+  { id: "stats", label: "sidebar.sections.stats", icon: BarChart2 },
+  { id: "history", label: "sidebar.sections.history", icon: History },
+  { id: "pomodoro", label: "sidebar.sections.pomodoro", icon: Timer },
+  { id: "calendar", label: "sidebar.sections.calendar", icon: Calendar },
+  { id: "character", label: "sidebar.sections.character", icon: User },
+  { id: "settings", label: "sidebar.sections.settings", icon: Settings },
 ];
 
 const TOOLS_TABS = [
-  { id: "history", label: "History" },
-  { id: "stats", label: "Projections" },
-  { id: "pomodoro", label: "Pomodoro" },
-  { id: "calendar", label: "Calendar" },
+  { id: "history", label: "dashboard.tab_history" },
+  { id: "stats", label: "dashboard.tab_projections" },
+  { id: "pomodoro", label: "dashboard.tab_pomodoro" },
+  { id: "calendar", label: "dashboard.tab_calendar" },
 ];
 
 const CHARACTER_TABS = [
-  { id: "overview", label: "Stats" },
-  { id: "skills", label: "Skills" },
-  { id: "skill_tree", label: "Tree" },
-  { id: "allies", label: "Allies" },
-  { id: "achievements", label: "Achv" },
-  { id: "mutators", label: "Mutators" },
-  { id: "shop", label: "Shop" },
+  { id: "overview", label: "dashboard.tab_stats" },
+  { id: "skills", label: "dashboard.tab_skills" },
+  { id: "skill_tree", label: "dashboard.tab_tree" },
+  { id: "allies", label: "dashboard.tab_allies" },
+  { id: "achievements", label: "dashboard.tab_achv" },
+  { id: "mutators", label: "dashboard.tab_mutators" },
+  { id: "shop", label: "dashboard.tab_shop" },
 ];
 
 function TabPanel({ title, children }) {
@@ -86,6 +86,7 @@ function TabPanel({ title, children }) {
 }
 
 function PremiumGate({ isPremium, children, showNotice = false }) {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   if (isPremium) return children;
 
@@ -98,9 +99,9 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
         <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-3">
           <span className="text-2xl">👑</span>
         </div>
-        <h3 className="text-lg font-bold font-mono text-white mb-2">Premium Feature</h3>
+        <h3 className="text-lg font-bold font-mono text-white mb-2">{t('dashboard.premium_title')}</h3>
         <p className="text-xs font-mono text-muted-foreground mb-4 max-w-xs">
-          Unlock advanced tools, new character classes, and support development.
+          {t('dashboard.premium_desc')}
         </p>
         {showNotice && (
           <p className="text-[10px] font-mono text-amber-500 mb-4 max-w-xs">
@@ -110,7 +111,7 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
         {isMobileApp() ? (
           <div className="text-center space-y-2">
             <p className="text-white/50 text-sm">
-              Available with Premium
+              {t('dashboard.premium_available')}
             </p>
             
             <div
@@ -123,7 +124,7 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
           </div>
         ) : (
           <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-            Upgrade Now
+            {t('dashboard.btn_upgrade')}
           </button>
         )}
       </div>
@@ -337,8 +338,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       console.error("Training logging failed:", err);
       toast({
         variant: "destructive",
-        title: "Session Expired",
-        description: "Your session may have expired. Please log in again if this persists.",
+        title: t('dashboard.session_expired'),
+        description: t('dashboard.session_expired_desc'),
       });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     }
@@ -478,7 +479,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
             >
               <span className="text-lg">🏆</span>
               <span className={`font-bold text-${badgeNotif.metric.color}`}>{badgeNotif.metric.abbr}</span>
-              <span className="text-foreground">reached {badgeNotif.value} — milestone unlocked!</span>
+              <span className="text-foreground">{t('dashboard.milestone_unlocked', { value: badgeNotif.value })}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -559,7 +560,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 {/* Character section with sub-tabs */}
                 {activeSection === "character" && (
                   <>
-                    <PillTabBar tabs={CHARACTER_TABS} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
+                    <PillTabBar tabs={CHARACTER_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
                     <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
                       <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
                     </TabPanel>
@@ -575,7 +576,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
                 {/* Tools/Stats sections */}
                 {["history", "pomodoro", "calendar", "stats"].includes(activeSection) && (
-                  <PillTabBar tabs={TOOLS_TABS} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
+                  <PillTabBar tabs={TOOLS_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
                 )}
                 {activeSection === "stats" && (
                   <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>

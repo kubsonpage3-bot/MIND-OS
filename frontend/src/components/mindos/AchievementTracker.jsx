@@ -3,6 +3,7 @@ import { showRewardToast } from "@/components/mindos/RewardToast";
 import { playSound } from "@/lib/soundEffects";
 import { useQueryClient } from "@tanstack/react-query";
 import { ACHIEVEMENTS } from "@/constants/rpgData";
+import { i18n } from "@/lib/i18n";
 
 export default function AchievementTracker() {
   const queryClient = useQueryClient();
@@ -28,7 +29,7 @@ export default function AchievementTracker() {
         if (!prevUnlocked.current.has(achId)) {
           prevUnlocked.current.add(achId);
           newFound = true;
-          showRewardToast({ label: `🏆 UNLOCKED: ${achName}` });
+          showRewardToast({ label: i18n.t('achievements.unlocked', { name: achName }) });
           playSound('success');
         }
       });
@@ -40,7 +41,7 @@ export default function AchievementTracker() {
     };
 
     const handleDeath = () => {
-      showRewardToast({ label: "💀 YOU DIED! Rank demoted. HP restored.", type: 'error' });
+      showRewardToast({ label: i18n.t('achievements.you_died'), type: 'error' });
       playSound('death');
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });

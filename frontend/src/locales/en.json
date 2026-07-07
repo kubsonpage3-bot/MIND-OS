@@ -397,5 +397,29 @@
     "preset_title": "SAVE BUILD PRESET",
     "preset_desc": "Saves your current {{count}} unlocked nodes. Max 3 presets.",
     "preset_placeholder": "e.g. Study Week, Combat Build"
+  },
+  "achievements": {
+    "unlocked": "🏆 UNLOCKED: {{name}}",
+    "you_died": "💀 YOU DIED! Rank demoted. HP restored."
+  },
+  "dashboard": {
+    "premium_title": "Premium Feature",
+    "premium_desc": "Unlock advanced tools, new character classes, and support development.",
+    "premium_available": "Available with Premium",
+    "btn_upgrade": "Upgrade Now",
+    "session_expired": "Session Expired",
+    "session_expired_desc": "Your session may have expired. Please log in again if this persists.",
+    "milestone_unlocked": "reached {{value}} — milestone unlocked!",
+    "tab_history": "History",
+    "tab_projections": "Projections",
+    "tab_pomodoro": "Pomodoro",
+    "tab_calendar": "Calendar",
+    "tab_stats": "Stats",
+    "tab_skills": "Skills",
+    "tab_tree": "Tree",
+    "tab_allies": "Allies",
+    "tab_achv": "Achv",
+    "tab_mutators": "Mutators",
+    "tab_shop": "Shop"
   }
 }
