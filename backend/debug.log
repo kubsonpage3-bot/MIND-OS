@@ -1737,3 +1737,20 @@ WARNING 2026-07-06 12:56:06,413 log 16020 21032 Bad Request: /api/profile/
 WARNING 2026-07-06 12:56:08,748 log 16020 21032 Forbidden: /api/calendar/events/
 WARNING 2026-07-06 12:56:40,767 log 16020 21032 Forbidden: /api/party/members/1209/profile/
 WARNING 2026-07-06 12:56:42,648 log 16020 21032 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-07 14:37:59,957 log 22156 26152 Unauthorized: /api/analytics/event/
+WARNING 2026-07-07 14:38:02,478 log 22156 26152 Bad Request: /api/analytics/event/
+WARNING 2026-07-07 14:38:07,897 log 22156 26152 Bad Request: /api/auth/register/
+WARNING 2026-07-07 14:38:12,547 log 22156 26152 Bad Request: /api/profile/
+WARNING 2026-07-07 14:38:14,889 log 22156 26152 Forbidden: /api/calendar/events/
+WARNING 2026-07-07 14:38:46,996 log 22156 26152 Forbidden: /api/party/members/1377/profile/
+WARNING 2026-07-07 14:38:48,913 log 22156 26152 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-07 14:44:47,031 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:44:48,107 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:44:48,826 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:44:51,108 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:45:01,987 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:45:02,820 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:45:04,907 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:45:06,418 task_service 24812 23172 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:45:07,858 task_service 15808 25876 complete_task failed: name 'ObjectDoesNotExist' is not defined
+ERROR 2026-07-07 14:45:35,708 task_service 23408 25256 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]

@@ -23,6 +23,7 @@ from django.db import transaction
 from rest_framework import viewsets, generics, status, filters, serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.services.billing_service import (
     create_checkout_session,
@@ -260,10 +261,23 @@ class TaskViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_200_OK,
             )
-        except Exception as e:
+        except ValidationError as e:
             return Response(
-                {"detail": str(e.detail[0] if hasattr(e, "detail") else e)},
+                {
+                    "detail": str(
+                        e.detail[0] if isinstance(e.detail, list) else e.detail
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Task completion failed: {e}")
+            return Response(
+                {"detail": "Task completion failed. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     @action(
@@ -342,10 +356,23 @@ class TaskViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_200_OK,
             )
-        except Exception as e:
+        except ValidationError as e:
             return Response(
-                {"detail": str(e.detail[0] if hasattr(e, "detail") else e)},
+                {
+                    "detail": str(
+                        e.detail[0] if isinstance(e.detail, list) else e.detail
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Task toggle failed: {e}")
+            return Response(
+                {"detail": "Task completion failed. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

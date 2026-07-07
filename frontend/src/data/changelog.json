@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.14",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Completely resolved the 'Transaction error' that occurred when completing tasks. Your progress will now save reliably."
+      }
+    ]
+  },
+  {
     "version": "1.4.13",
     "date": "2026-07-07",
     "changes": [

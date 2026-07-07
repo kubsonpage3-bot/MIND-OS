@@ -7,16 +7,28 @@ from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
 
 
-@transaction.atomic
 def complete_task(user, task_id, is_positive=True):
+    try:
+        with transaction.atomic():
+            return _complete_task_logic(user, task_id, is_positive)
+    except Task.DoesNotExist:
+        from rest_framework.exceptions import ValidationError
+
+        raise ValidationError("Task not found.")
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"complete_task failed: {e}")
+        raise
+
+
+def _complete_task_logic(user, task_id, is_positive=True):
     """
     Выполнение задачи и начисление наград.
     Использует transaction.atomic и select_for_update для предотвращения состояния гонки.  # noqa: E501
     """
-    try:
-        task = Task.objects.select_for_update().get(id=task_id, user=user)
-    except Task.DoesNotExist:
-        raise ValidationError("Task not found.")
+    task = Task.objects.select_for_update().get(id=task_id, user=user)
 
     # Блокируем профиль для обновления в рамках транзакции
     profile = UserProfile.objects.select_for_update().get(user=user)
@@ -293,8 +305,10 @@ def complete_task(user, task_id, is_positive=True):
         except Exception as e:
             from django.core.exceptions import ObjectDoesNotExist
 
-            if not isinstance(e, ObjectDoesNotExist):
-                print(f"Error updating party membership: {e}")
+            if isinstance(e, ObjectDoesNotExist):
+                pass
+            else:
+                raise
 
         # Handle item drops
         if outcome.get("item_dropped"):
@@ -396,11 +410,8 @@ def complete_task(user, task_id, is_positive=True):
                         )
                 except Exception as e:
                     print(f"Failed to create level_up event: {e}")
-            except Exception as e:
-                from django.core.exceptions import ObjectDoesNotExist
-
-                if not isinstance(e, ObjectDoesNotExist):
-                    print(f"Error checking membership for level up: {e}")
+            except ObjectDoesNotExist:
+                pass
         profile.save(
             update_fields=[
                 "xp",
