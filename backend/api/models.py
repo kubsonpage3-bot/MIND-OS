@@ -1086,7 +1086,7 @@ class PartyMembership(models.Model):
     # Party Enhancements v1
     last_daily_completed_date = models.DateField(null=True, blank=True)
     weekly_xp = models.PositiveIntegerField(default=0)
-    weekly_xp_reset_week = models.CharField(max_length=7, null=True, blank=True)
+    weekly_xp_reset_week = models.CharField(max_length=10, null=True, blank=True)
     last_buff_sent_at = models.DateField(null=True, blank=True)
 
     class Meta:

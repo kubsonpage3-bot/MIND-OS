@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.16",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where completing habits, dailies, and to-dos always failed with a 500 error. Root cause: a database field was too short to store the current week identifier."
+      }
+    ]
+  },
+  {
     "version": "1.4.15",
     "date": "2026-07-07",
     "changes": [
