@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.2.8",
+    "date": "2026-07-07",
+    "changes": [
+      { "type": "feature", "text": "Added the Active Party Widget to the Dashboard! Your top 3 active allies are now prominently displayed with their rank-colored borders and current active buffs." },
+      { "type": "feature", "text": "You can now Equip and Remove your allies directly from the Shop → Allies tab to customize your Active Party." }
+    ]
+  },
+  {
     "version": "1.2.7",
     "date": "2026-07-07",
     "changes": [

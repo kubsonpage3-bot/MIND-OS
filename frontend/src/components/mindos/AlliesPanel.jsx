@@ -61,7 +61,7 @@ export function AllyPortrait({ ally, isRecruited = true, hovered = false }) {
   );
 }
 
-function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
+function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade, isActive, isFull, onActivate, onDeactivate }) {
   const [hovered, setHovered] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [justRecruited, setJustRecruited] = useState(false);
@@ -128,6 +128,24 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade }) {
                 <span className="text-[9px] font-mono text-muted-foreground/40 ml-1">Lv{level}</span>
               </div>
               <div className="text-[9px] font-mono mt-0.5 truncate" style={{ color: ally.color }}>▸ {ally.levels[level - 1]}</div>
+              <div className="mt-2" onClick={e => e.stopPropagation()}>
+                {isActive ? (
+                  <button onClick={onDeactivate}
+                    className="text-xs px-3 py-1 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400">
+                    ✓ Recruited — Dismiss
+                  </button>
+                ) : isFull ? (
+                  <button disabled
+                    className="text-xs px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/30 cursor-not-allowed">
+                    Party Full
+                  </button>
+                ) : (
+                  <button onClick={onActivate}
+                    className="text-xs px-3 py-1 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-400">
+                    + Recruit to Party
+                  </button>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -178,6 +196,29 @@ export default function AlliesPanel({ onSpendGold }) {
       showRewardToast({ label: `❌ Recruit failed: ${err.message}` });
     }
   });
+
+  const updateAlliesMutation = useMutation({
+    mutationFn: (newAllies) => djangoApi.profile.update({ active_allies: newAllies }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      refreshProfile();
+    }
+  });
+
+  const activateAlly = (allyId) => {
+    const current = profile?.active_allies || [];
+    if (current.length >= 3) return;
+    if (!current.includes(allyId)) {
+      updateAlliesMutation.mutate([...current, allyId]);
+    }
+  };
+
+  const deactivateAlly = (allyId) => {
+    const current = profile?.active_allies || [];
+    if (current.includes(allyId)) {
+      updateAlliesMutation.mutate(current.filter(id => id !== allyId));
+    }
+  };
 
   const recruit = async (ally) => {
     if (gold < ally.recruitCost) return;
@@ -245,6 +286,10 @@ export default function AlliesPanel({ onSpendGold }) {
                 gold={gold}
                 onRecruit={recruit}
                 onUpgrade={upgrade}
+                isActive={profile?.active_allies?.includes(ally.id)}
+                isFull={(profile?.active_allies?.length || 0) >= 3}
+                onActivate={(e) => activateAlly(ally.id)}
+                onDeactivate={(e) => deactivateAlly(ally.id)}
               />
             </div>
           );

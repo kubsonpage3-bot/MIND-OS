@@ -73,6 +73,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "recruited_allies",
             "max_hp",
             "active_mutators",
+            "active_allies",
             "unlocked_achievements",
             "rival_data",
             "seen_guides",
@@ -217,6 +218,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
                         )
                 instance.active_mutators = active_mutators_data
                 update_fields.add("active_mutators")
+
+            # Update Active Allies
+            if "active_allies" in data:
+                active_allies_data = data["active_allies"]
+                if isinstance(active_allies_data, list):
+                    if len(active_allies_data) > 3:
+                        raise ValidationError("Maximum of 3 active allies allowed.")
+                    instance.active_allies = active_allies_data
+                    update_fields.add("active_allies")
 
             # Update Rival Data
             if "rival_data" in data:

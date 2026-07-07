@@ -120,6 +120,11 @@ class UserProfile(models.Model):
         default=list, blank=True, verbose_name="Активные мутаторы"
     )
 
+    # Активные союзники (список ID союзников, макс 3)
+    active_allies = models.JSONField(
+        default=list, blank=True, verbose_name="Активные союзники"
+    )
+
     # Просмотренные гайды (первый визит на вкладку)
     seen_guides = models.JSONField(
         default=dict, blank=True, verbose_name="Просмотренные гайды"

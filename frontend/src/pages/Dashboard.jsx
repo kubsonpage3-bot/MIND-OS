@@ -31,7 +31,8 @@ import { isMobileApp } from "@/utils/platformUtils";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy } from "@/hooks/useHaptic";
 
-import CharacterHub from "@/components/mindos/CharacterHub";
+import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
+import BossPanel from "@/components/mindos/BossPanel";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 
@@ -524,13 +525,13 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
 
 
-                    {/* Character Hub: portrait + HP/MP + Boss */}
-                    <CharacterHub
-                      rankXP={rankXPData.rankXP}
-                      currentRankId={rankXPData.currentRank}
-                      onBossDamage={handleBossDamage}
-                      externalDamage={externalDamage}
-                    />
+                    {/* Active Party Widget */}
+                    <ActivePartyWidget />
+
+                    {/* Boss Panel */}
+                    <div className="mt-4 px-2 pb-3 bg-[var(--habit-panel)] border border-[var(--habit-border)] rounded-2xl shadow-sm pt-3">
+                      <BossPanel currentScore={rankXPData.rankXP || 0} onBossDamage={handleBossDamage} externalDamage={externalDamage} />
+                    </div>
 
                     {/* Pixel Rank Road Map */}
                     <div className="mt-4">
