@@ -444,7 +444,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                 className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, letterSpacing: "0.02em", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
-                Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} {t('training.efficiency', 'эфф.')}
+                Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} {t('training.efficiency', 'eff.')}
               </button>
             </div>
           </motion.div>

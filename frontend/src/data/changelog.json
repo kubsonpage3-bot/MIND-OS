@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.19",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed an issue where some UI sections like Settings and Metrics incorrectly displayed raw translation keys (e.g., 'metrics.live_preview') instead of proper English text after switching languages."
+      }
+    ]
+  },
+  {
     "version": "1.4.18",
     "date": "2026-07-07",
     "changes": [

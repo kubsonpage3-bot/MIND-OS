@@ -118,14 +118,14 @@ export function calcFailDamage(taskValue, defStat = 5) {
  * Типы баффов с описанием эффектов.
  */
 export const BUFF_TYPES = {
-  xp_boost:      { id: "xp_boost",      name: "XP BOOST",       icon: "⚡", desc: "Бонусный XP за все задачи" },
-  gold_rush:     { id: "gold_rush",      name: "GOLD RUSH",      icon: "💰", desc: "Бонусное золото за все задачи" },
-  double_xp:     { id: "double_xp",     name: "DOUBLE XP",      icon: "x2", desc: "x2 XP в течение сессии" },
-  iron_shield:   { id: "iron_shield",   name: "IRON SHIELD",    icon: "🛡", desc: "Снижение урона от провалов" },
-  no_daily_dmg:  { id: "no_daily_dmg",  name: "IRON FAST",      icon: "⛩", desc: "Нет урона от пропущенных дейликов" },
-  mana_regen:    { id: "mana_regen",    name: "MANA REGEN",     icon: "🔵", desc: "Регенерация маны" },
-  streak_lock:   { id: "streak_lock",   name: "TRANSCENDENCE",  icon: "🔒", desc: "Стрик не ломается" },
-  cognitive_amp: { id: "cognitive_amp", name: "COGNITIVE AMP",  icon: "🧠", desc: "Усиление прироста когнитивных метрик" },
+  xp_boost:      { id: "xp_boost",      name: "XP BOOST",       icon: "⚡", desc: "Bonus XP for all tasks" },
+  gold_rush:     { id: "gold_rush",      name: "GOLD RUSH",      icon: "💰", desc: "Bonus gold for all tasks" },
+  double_xp:     { id: "double_xp",     name: "DOUBLE XP",      icon: "x2", desc: "x2 XP during the session" },
+  iron_shield:   { id: "iron_shield",   name: "IRON SHIELD",    icon: "🛡", desc: "Reduced damage from failures" },
+  no_daily_dmg:  { id: "no_daily_dmg",  name: "IRON FAST",      icon: "⛩", desc: "No damage from missed dailies" },
+  mana_regen:    { id: "mana_regen",    name: "MANA REGEN",     icon: "🔵", desc: "Mana regeneration" },
+  streak_lock:   { id: "streak_lock",   name: "TRANSCENDENCE",  icon: "🔒", desc: "Streak is protected" },
+  cognitive_amp: { id: "cognitive_amp", name: "COGNITIVE AMP",  icon: "🧠", desc: "Boosted cognitive metrics growth" },
 };
 
 /**
@@ -320,12 +320,12 @@ export function createCharacterState(overrides = {}) {
 
     // ─── Статы (зависят от класса) ─────────────────────────────────────────
     stats: {
-      pwr: overrides.stats?.pwr ?? 5,  // Power   — урон боссу
-      def: overrides.stats?.def ?? 5,  // Defense — снижает входящий урон
-      foc: overrides.stats?.foc ?? 5,  // Focus   — ускоряет рост когнитивных метрик
-      mem: overrides.stats?.mem ?? 5,  // Memory  — усиливает Gc и Vm
-      spd: overrides.stats?.spd ?? 5,  // Speed   — ускоряет восполнение маны
-      lck: overrides.stats?.lck ?? 5,  // Luck    — шанс крита и нахождения предметов
+      pwr: overrides.stats?.pwr ?? 5,  // Power   - Boss damage
+      def: overrides.stats?.def ?? 5,  // Defense - Reduces incoming damage
+      foc: overrides.stats?.foc ?? 5,  // Focus   - Speeds up cognitive metrics growth
+      mem: overrides.stats?.mem ?? 5,  // Memory  - Boosts Gc and Vm
+      spd: overrides.stats?.spd ?? 5,  // Speed   - Speeds up mana regeneration
+      lck: overrides.stats?.lck ?? 5,  // Luck    - Crit chance & item drops
     },
 
     // ─── Когнитивные метрики ───────────────────────────────────────────────

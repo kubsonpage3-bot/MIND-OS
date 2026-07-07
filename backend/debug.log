@@ -1762,3 +1762,11 @@ ERROR 2026-07-07 15:10:27,051 task_service 10132 23560 complete_task failed: val
 ERROR 2026-07-07 15:10:27,441 task_service 10132 23560 complete_task failed: value too long for type character varying(7)
 
 ERROR 2026-07-07 16:16:07,992 task_service 23788 3376 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-07 16:19:00,056 log 25720 24524 Unauthorized: /api/analytics/event/
+WARNING 2026-07-07 16:19:02,771 log 25720 24524 Bad Request: /api/analytics/event/
+WARNING 2026-07-07 16:19:09,148 log 25720 24524 Bad Request: /api/auth/register/
+WARNING 2026-07-07 16:19:14,275 log 25720 24524 Bad Request: /api/profile/
+WARNING 2026-07-07 16:19:16,844 log 25720 24524 Forbidden: /api/calendar/events/
+WARNING 2026-07-07 16:19:51,731 log 25720 24524 Forbidden: /api/party/members/1592/profile/
+WARNING 2026-07-07 16:19:53,796 log 25720 24524 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-07 16:19:58,488 task_service 25720 24524 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]

@@ -12,7 +12,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "optimize:assets": "node ../scripts/optimize_assets.js"
+    "optimize:assets": "node ../scripts/optimize_assets.js",
+    "i18n:check": "node scripts/check-i18n-keys.js"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
