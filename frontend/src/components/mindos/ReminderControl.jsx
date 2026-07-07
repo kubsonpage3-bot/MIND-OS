@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Bell, BellOff } from "lucide-react";
 
 const DEFAULT_REMINDER_HOUR = 14; // 2 PM default

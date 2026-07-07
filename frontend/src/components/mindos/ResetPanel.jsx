@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { RotateCcw, Trash2, Archive, Brain, Users, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";

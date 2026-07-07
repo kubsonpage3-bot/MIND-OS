@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 export default function RankUpFlash({ newRankId, onDone }) {
   const { t } = useTranslation();

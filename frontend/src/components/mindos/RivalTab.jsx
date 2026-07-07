@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import OptimizedImage from "./OptimizedImage";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { ACTIVITIES } from "@/lib/cognitiveEngine";
