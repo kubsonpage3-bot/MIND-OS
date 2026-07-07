@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.28",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed achievement rewards text (under the achievement name) displaying raw localization keys by ensuring they are run through the translation engine."
+      }
+    ]
+  },
+  {
     "version": "1.4.27",
     "date": "2026-07-07",
     "changes": [

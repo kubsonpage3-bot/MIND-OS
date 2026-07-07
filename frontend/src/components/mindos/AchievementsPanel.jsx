@@ -54,7 +54,7 @@ export default function AchievementsPanel({ profile, logs, alliesData, prestigeD
                     {isUnlocked ? t(ach.name) : "???"}
                   </div>
                   {isUnlocked && (
-                    <div className="text-[8px] font-mono text-muted-foreground/40 mt-0.5 leading-tight">{ach.reward}</div>
+                    <div className="text-[8px] font-mono text-muted-foreground/40 mt-0.5 leading-tight">{t(ach.reward)}</div>
                   )}
                 </div>
               );
