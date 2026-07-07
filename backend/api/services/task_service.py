@@ -241,7 +241,7 @@ def _complete_task_logic(user, task_id, is_positive=True):
             membership = user.party_membership
 
             today_iso = timezone.now().date().isocalendar()
-            current_iso_week = f"{today_iso[0]}-W{today_iso[1]:02d}"
+            current_iso_week = f"{str(today_iso[0])[-2:]}W{today_iso[1]:02d}"
 
             if membership.weekly_xp_reset_week != current_iso_week:
                 membership.weekly_xp = 0

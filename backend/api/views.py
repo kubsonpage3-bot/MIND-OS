@@ -1899,7 +1899,7 @@ class PartyLeaderboardView(generics.GenericAPIView):
         from django.utils import timezone
 
         today_iso = timezone.now().date().isocalendar()
-        current_iso_week = f"{today_iso[0]}-W{today_iso[1]:02d}"
+        current_iso_week = f"{str(today_iso[0])[-2:]}W{today_iso[1]:02d}"
 
         memberships = party.memberships.select_related("user__profile").all()
         for mem in memberships:

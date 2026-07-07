@@ -1761,3 +1761,4 @@ ERROR 2026-07-07 15:10:27,051 task_service 10132 23560 complete_task failed: val
 
 ERROR 2026-07-07 15:10:27,441 task_service 10132 23560 complete_task failed: value too long for type character varying(7)
 
+ERROR 2026-07-07 16:16:07,992 task_service 23788 3376 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
