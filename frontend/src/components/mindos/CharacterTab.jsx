@@ -32,12 +32,12 @@ import { ANIM_CONFIG } from "@/lib/animations";
 
 // Unified stat system: Final = Base (5) + Stat Points + Class Bonus + Equipment
 const STAT_CONFIG = {
-  pwr: { label: "PWR", desc: "Power — +2% boss damage per point above 5", color: "#ef4444" },
-  def: { label: "DEF", desc: "Defense — -1% HP damage taken per point (max -50%)", color: "#3b82f6" },
-  foc: { label: "FOC", desc: "Focus Amp — +1% focus efficiency per point above 5", color: "#22c55e" },
-  mem: { label: "MEM", desc: "Memory — +1.5% fatigue resistance per point above 5", color: "#a855f7" },
-  spd: { label: "SPD", desc: "Speed — extra task completions", color: "#f59e0b" },
-  lck: { label: "LCK", desc: "Luck — Gold drop bonus", color: "#eab308" },
+  pwr: { label: "PWR", color: "#ef4444" },
+  def: { label: "DEF", color: "#3b82f6" },
+  foc: { label: "FOC", color: "#22c55e" },
+  mem: { label: "MEM", color: "#a855f7" },
+  spd: { label: "SPD", color: "#f59e0b" },
+  lck: { label: "LCK", color: "#eab308" },
 };
 
 const SLOT_KEYS = ["headware", "neural_link", "core", "arms", "legs", "offhand", "ring1", "ring2"];

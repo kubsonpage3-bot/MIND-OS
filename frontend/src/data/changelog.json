@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.22",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed stat tooltips showing incorrect formula labels (e.g. percentages instead of flat rates) for PWR, DEF, and MEM."
+      }
+    ]
+  },
+  {
     "version": "1.4.21",
     "date": "2026-07-07",
     "changes": [

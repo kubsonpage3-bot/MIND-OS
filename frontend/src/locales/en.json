@@ -192,12 +192,12 @@
     "select_slot": "Select Slot",
     "no_items_slot": "No items in this slot.",
     "achievements_header": "ACHIEVEMENTS & MILESTONES ({{unlocked}}/{{total}})",
-    "pwr_effect": "Damage vs Boss: +{{val}}%",
-    "def_effect": "Reduced Penalty: -{{val}}%",
-    "foc_effect": "Faster Growth: +{{val}}%",
-    "mem_effect": "Gc & Vm Boost: +{{val}}%",
-    "spd_effect": "Mana Regen: +{{val}}%",
-    "lck_effect": "Crit Chance & Drops: +{{val}}%"
+    "pwr_effect": "Base XP & Boss Damage: +{{val}}",
+    "def_effect": "Damage Reduction",
+    "foc_effect": "Critical Focus Chance: +{{val}}%",
+    "mem_effect": "Cost Reduction (Mana/Fatigue)",
+    "spd_effect": "Base Gold: +{{val}}",
+    "lck_effect": "Gold Multiplier & Drops: +{{val}}%"
   },
   "training": {
     "flow_state": "Flow State",
