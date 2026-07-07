@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Zap, Trash2, RotateCcw } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import EfficiencyMeter from "./EfficiencyMeter";
 import SubjectRankBadge from "./SubjectRankBadge";
 import CreateTaskForm from "./CreateTaskForm";
@@ -15,6 +16,7 @@ function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activi
 
 export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [trainTab, setTrainTab] = useState("log"); // "log" | "create"
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [hours, setHours] = useState(1);
@@ -143,23 +145,29 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
   };
 
   const focusColors = ["", "#ef4444", "#ef4444", "#ef4444", "#f59e0b", "#f59e0b", "#f59e0b", "#22c55e", "#22c55e", "#3b82f6", "#a855f7"];
+  const getFocusLabel = (rating) => {
+    if (rating >= 9) return t('training.flow_state');
+    if (rating >= 7) return t('training.focus_good');
+    if (rating >= 4) return t('training.focus_avg');
+    return t('training.focus_bad');
+  };
 
   return (
     <div className="space-y-4">
       {/* Sub-tabs */}
       <div className="flex gap-1 p-1 rounded-2xl" style={{ background: "var(--habit-bg)" }}>
-        {[{ id: "log", label: "Log Session" }, { id: "create", label: "+ Activity" }].map(t => (
-          <button key={t.id} onClick={() => setTrainTab(t.id)}
+        {[{ id: "log", label: t('training.log_session') }, { id: "create", label: t('training.add_activity') }].map(tab => (
+          <button key={tab.id} onClick={() => setTrainTab(tab.id)}
             className="flex-1 py-2 rounded-xl transition-all"
             style={{
               fontFamily: "'Nunito'",
-              fontWeight: trainTab === t.id ? 800 : 600,
+              fontWeight: trainTab === tab.id ? 800 : 600,
               fontSize: 13,
-              background: trainTab === t.id ? "var(--habit-purple)" : "transparent",
-              color: trainTab === t.id ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
-              boxShadow: trainTab === t.id ? "0 2px 8px var(--habit-purple-glow)" : "none",
+              background: trainTab === tab.id ? "var(--habit-purple)" : "transparent",
+              color: trainTab === tab.id ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
+              boxShadow: trainTab === tab.id ? "0 2px 8px var(--habit-purple-glow)" : "none",
             }}>
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -191,12 +199,12 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
       {/* Activity grid header */}
       <div className="flex items-center justify-between">
-        <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">Activities</span>
+        <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">{t('training.activities')}</span>
         <div className="flex items-center gap-1.5">
           {hiddenActivities.length > 0 && (
             <button onClick={restoreActivities}
               className="flex items-center gap-1 px-2 py-1 text-sm font-pixel text-muted-foreground/60 hover:text-foreground border border-border/40 rounded transition-colors">
-              <RotateCcw className="w-2.5 h-2.5" /> Restore all ({hiddenActivities.length})
+              <RotateCcw className="w-2.5 h-2.5" /> {t('training.restore_all', { count: hiddenActivities.length })}
             </button>
           )}
           <button
@@ -207,7 +215,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                 : "border-border/40 text-muted-foreground/60 hover:text-foreground"
             }`}
           >
-            <Trash2 className="w-2.5 h-2.5" /> {deleteMode ? "Done" : "Edit"}
+            <Trash2 className="w-2.5 h-2.5" /> {deleteMode ? t('training.done') : t('training.edit')}
           </button>
         </div>
       </div>
@@ -305,7 +313,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                 </button>
                 <div className="text-center w-16 tabular-nums tracking-tight">
                   <div className="font-pixel text-4xl text-foreground">{questions}</div>
-                  <div className="text-xs text-muted-foreground">questions</div>
+                  <div className="text-xs text-muted-foreground">{t('training.questions')}</div>
                 </div>
                 <button onClick={() => setQuestions(Math.min(20, questions + 1))}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent">
@@ -320,7 +328,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                 </button>
                 <div className="text-center w-16 tabular-nums tracking-tight">
                   <div className="font-pixel text-4xl text-foreground">{hours}</div>
-                  <div className="text-xs text-muted-foreground">hours</div>
+                  <div className="text-xs text-muted-foreground">{t('training.hours')}</div>
                 </div>
                 <button onClick={() => setHours(hours + 0.5)}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent">
@@ -332,10 +340,10 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
             {/* Focus rating */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">Focus Quality</span>
+                <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">{t('training.focus_quality')}</span>
                 <span className="font-pixel text-2xl" style={{ color: focusColors[focusRating] }}>
                   {focusRating}/10
-                  {focusRating >= 9 ? " — Flow State" : focusRating >= 7 ? " — Good" : focusRating >= 4 ? " — Average" : " — Distracted"}
+                  {" — "}{getFocusLabel(focusRating)}
                 </span>
               </div>
               <div className="flex gap-1.5">
@@ -409,7 +417,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
               return (
                 <div className="text-2xl font-pixel text-center" style={{ color: "var(--habit-gold)" }}>
-                  +{total}G on completion{mult > 1 && <span className="text-green-400 ml-1">(×{mult} booster!)</span>}
+                  +{total}G {t('training.gold_on_completion')}{mult > 1 && <span className="text-green-400 ml-1">({t('training.gold_booster', { mult })})</span>}
                 </div>
               );
             })()}
@@ -436,7 +444,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
                 className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, letterSpacing: "0.02em", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
-                Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} efficiency
+                Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} {t('training.efficiency', 'эфф.')}
               </button>
             </div>
           </motion.div>

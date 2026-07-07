@@ -40,19 +40,11 @@ const STAT_CONFIG = {
   lck: { label: "LCK", desc: "Luck — Gold drop bonus", color: "#eab308" },
 };
 
-const SLOT_LABELS = {
-  headware: "HEADWARE", neural_link: "NEURAL LINK", core: "CORE",
-  arms: "ARMS", legs: "LEGS", offhand: "OFFHAND", ring1: "RING I", ring2: "RING II",
-};
+const SLOT_KEYS = ["headware", "neural_link", "core", "arms", "legs", "offhand", "ring1", "ring2"];
 
 const TIER_ORDER = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
 
-const SUB_TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "skills", label: "Skills" },
-  { id: "achievements", label: "Achievements" },
-  { id: "shop", label: "Shop" },
-];
+const SUB_TAB_IDS = ["overview", "skills", "achievements", "shop"];
 
 export default function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
   const { t } = useTranslation();
@@ -493,10 +485,10 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           {/* Unified Stats Panel */}
           <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Character Stats</span>
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('character.character_stats')}</span>
               {(profile?.unspent_stat_points || 0) > 0 && (
                 <span className="font-mono text-xs text-primary flex items-center gap-1">
-                  <FantasyIcon size={12}><Hexagon /></FantasyIcon> {profile?.unspent_stat_points} pts
+                  <FantasyIcon size={12}><Hexagon /></FantasyIcon> {profile?.unspent_stat_points} {t('character.pts_label')}
                 </span>
               )}
             </div>
@@ -505,11 +497,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <div className="space-y-2">
               {/* Header */}
               <div className="grid grid-cols-6 gap-2 text-[8px] font-mono text-muted-foreground/50 uppercase tracking-wider pb-2 border-b border-border/40">
-                <div className="text-left col-span-2">Stat / Effect</div>
-                <div className="text-center">Class</div>
-                <div className="text-center">Equip</div>
-                <div className="text-center">Base</div>
-                <div className="text-right">Total</div>
+                <div className="text-left col-span-2">{t('character.stat_effect')}</div>
+                <div className="text-center">{t('character.col_class')}</div>
+                <div className="text-center">{t('character.col_equip')}</div>
+                <div className="text-center">{t('character.col_base')}</div>
+                <div className="text-right">{t('character.col_total')}</div>
               </div>
               
               {/* Stat rows */}
@@ -522,15 +514,15 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 if (key === "pwr") {
                   effectLabel = `+${(totalValue * 0.5).toFixed(1)} Base XP`;
                 } else if (key === "def") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% HP dmg taken`;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.def_effect_short', 'урон HP')} `;
                 } else if (key === "foc") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% Crit chance`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.foc_effect_short', 'шанс крит')}`;
                 } else if (key === "mem") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% Mana cost`;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.mem_effect_short', 'стоимость маны')}`;
                 } else if (key === "spd") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} Base Gold`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.spd_effect_short', 'баз. золото')}`;
                 } else if (key === "lck") {
-                  effectLabel = `+${totalValue}% Gold mult & Drops`;
+                  effectLabel = `+${totalValue}% ${t('character.lck_effect_short', 'множитель золота')}`;
                 }
                 return (
                   <div key={key} className="grid grid-cols-6 gap-2 items-center text-[9px] font-mono">
@@ -564,16 +556,17 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             
             {/* Formula explanation */}
             <div className="text-[8px] font-mono text-muted-foreground/40 pt-2 border-t border-border/40">
-              Total = Class + Equip + Base
+              {t('character.formula')}
             </div>
           </div>
 
           {/* Equipment slots */}
           <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
-            <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Equipment</span>
+            <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('character.equipment')}</span>
             <div className="grid grid-cols-4 gap-2">
-              {Object.entries(SLOT_LABELS).map(([slot, label]) => {
+              {SLOT_KEYS.map((slot) => {
                 const eq = equipped[slot];
+                const label = t(`slots.${slot}`, slot.toUpperCase());
                 return (
                   <div key={slot} onClick={() => setActiveSlot(slot)}
                     className="aspect-square rounded-xl border border-border bg-muted/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all p-1.5">
@@ -621,7 +614,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           <TabGuideModal guideId="shop" profile={profile} />
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
-              <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> SHOP
+              <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> {t('character.shop_title')}
             </span>
             <span className="font-mono text-xs font-bold" style={{ color: "#f0c040" }}>
               🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
@@ -660,8 +653,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                   style={{ background: "linear-gradient(90deg,transparent,rgba(240,192,64,0.08),transparent)", width: "40%" }}
                 />
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] font-bold tracking-widest" style={{ color: "#f0c040" }}>⭐ DAILY DEAL</span>
-                  <span className="font-mono text-[8px] text-muted-foreground/40">Resets at midnight</span>
+                  <span className="font-mono text-[9px] font-bold tracking-widest" style={{ color: "#f0c040" }}>{t('character.daily_deal')}</span>
+                  <span className="font-mono text-[8px] text-muted-foreground/40">{t('character.resets_midnight')}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded border flex items-center justify-center shrink-0 overflow-hidden"
@@ -680,7 +673,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                         <span className="text-[8px] font-mono px-1 rounded" style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e" }}>-{discountPct}%</span>
                       )}
                       {isBonusDay && (
-                        <span className="text-[8px] font-mono px-1 rounded" style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7" }}>EXCLUSIVE</span>
+                        <span className="text-[8px] font-mono px-1 rounded" style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7" }}>{t('character.exclusive')}</span>
                       )}
                     </div>
                   </div>
@@ -690,24 +683,24 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                     className="px-3 py-1.5 text-[10px] font-mono font-bold rounded border transition-all shrink-0 disabled:opacity-30"
                     style={{ borderColor: canBuyDeal ? "#f0c040" : "#2a2010", color: canBuyDeal ? "#f0c040" : "#4a3810", background: canBuyDeal ? "rgba(240,192,64,0.12)" : "transparent" }}
                   >
-                    {isBought ? "✦ BOUGHT" : `${dealItem.cost}G`}
+                    {isBought ? t('character.bought') : `${dealItem.cost}G`}
                   </button>
                 </div>
               </div>
             );
           })()}
           <div className="flex gap-1 flex-wrap">
-            {["gear", "consumables", "scrolls", "inventory", "allies", "mutators"].map(t => (
-              <button key={t} onClick={() => setShopTab(t)}
+            {["gear", "consumables", "scrolls", "inventory", "allies", "mutators"].map(tab => (
+              <button key={tab} onClick={() => setShopTab(tab)}
                 className="px-3 py-1 text-[10px] font-mono uppercase rounded transition-all"
                 style={{
                   borderWidth: 1,
                   borderStyle: "solid",
-                  borderColor: shopTab === t ? "var(--habit-purple)" : "var(--habit-border)",
-                  color: shopTab === t ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
-                  background: shopTab === t ? "var(--habit-purple-light)" : "transparent",
+                  borderColor: shopTab === tab ? "var(--habit-purple)" : "var(--habit-border)",
+                  color: shopTab === tab ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
+                  background: shopTab === tab ? "var(--habit-purple-light)" : "transparent",
                 }}
-              >{t}</button>
+              >{t(`shop_tabs.${tab}`, tab)}</button>
             ))}
           </div>
           {shopTab === "scrolls" && (
@@ -811,7 +804,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                         />
                       )}
                       <span className="relative z-10">
-                        {(!item.consumable && owned) ? "■ OWNED" : isBought ? "✦ BOUGHT" : `${item.cost}G`}
+                        {(!item.consumable && owned) ? t('character.owned') : isBought ? t('character.bought') : `${item.cost}G`}
                       </span>
                     </motion.button>
                   </GameCard>
@@ -830,11 +823,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
         >
           <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-3" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs font-bold">{SLOT_LABELS[activeSlot]} — SELECT</span>
+              <span className="font-mono text-xs font-bold">{t(`slots.${activeSlot}`, activeSlot?.toUpperCase())} — {t('character.select_slot')}</span>
               <button onClick={() => setActiveSlot(null)}><X className="w-4 h-4 text-muted-foreground" /></button>
             </div>
             {inventory.filter(i => i.slot === activeSlot).length === 0 ? (
-              <div className="text-xs text-muted-foreground/50 font-mono text-center py-4">No items for this slot.</div>
+              <div className="text-xs text-muted-foreground/50 font-mono text-center py-4">{t('character.no_items_slot')}</div>
             ) : inventory.filter(i => i.slot === activeSlot).map((item, idx) => (
               <button key={idx} onClick={() => equipItem(item)}
                 className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent transition-colors text-left">

@@ -3,13 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { calculateIQ } from "@/lib/cognitiveEngine";
 import { Brain, Zap, BookOpen, Eye, Info } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { useTranslation } from "react-i18next";
 
-const METRIC_META = {
-  gf: { icon: Brain,   color: "#3b82f6", bg: "rgba(59, 130, 246, 0.08)", border: "rgba(59, 130, 246, 0.25)", label: "Fluid Intelligence",         abbr: "Gf", hint: "Abstract reasoning, pattern recognition, problem solving" },
-  gc: { icon: BookOpen,color: "#22c55e", bg: "rgba(34, 197, 94, 0.08)", border: "rgba(34, 197, 94, 0.25)", label: "Crystallized Intelligence",  abbr: "Gc", hint: "Knowledge base, vocabulary, accumulated learning" },
-  ps: { icon: Zap,     color: "#f59e0b", bg: "rgba(245, 158, 11, 0.08)", border: "rgba(245, 158, 11, 0.25)", label: "Processing Speed",           abbr: "Ps", hint: "Mental processing rate, reaction time, cognitive efficiency" },
-  vm: { icon: Eye,     color: "#a855f7", bg: "rgba(168, 85, 247, 0.08)", border: "rgba(168, 85, 247, 0.25)", label: "Verbal Memory",              abbr: "Vm", hint: "Working memory, recall, verbal retention" },
-};
+function buildMetricMeta(t) {
+  return {
+    gf: { icon: Brain,   color: "#3b82f6", bg: "rgba(59, 130, 246, 0.08)", border: "rgba(59, 130, 246, 0.25)", label: t('metrics.gf_label'),         abbr: "Gf", hint: t('metrics.gf_hint') },
+    gc: { icon: BookOpen,color: "#22c55e", bg: "rgba(34, 197, 94, 0.08)", border: "rgba(34, 197, 94, 0.25)", label: t('metrics.gc_label'),  abbr: "Gc", hint: t('metrics.gc_hint') },
+    ps: { icon: Zap,     color: "#f59e0b", bg: "rgba(245, 158, 11, 0.08)", border: "rgba(245, 158, 11, 0.25)", label: t('metrics.ps_label'),           abbr: "Ps", hint: t('metrics.ps_hint') },
+    vm: { icon: Eye,     color: "#a855f7", bg: "rgba(168, 85, 247, 0.08)", border: "rgba(168, 85, 247, 0.25)", label: t('metrics.vm_label'),              abbr: "Vm", hint: t('metrics.vm_hint') },
+  };
+}
 
 function Slider({ value, min, max, step = 0.1, color, onChange }) {
   return (
@@ -40,14 +43,16 @@ function Slider({ value, min, max, step = 0.1, color, onChange }) {
 
 export default function MetricsPanel() {
   const { profile } = useDjangoAuth();
+  const { t } = useTranslation();
   const [activeHint, setActiveHint] = useState(null);
 
   if (!profile) return (
     <div className="text-center py-12 text-sm text-[var(--habit-dim)]">
-      No profile found. Complete the setup first.
+      {t('metrics.no_profile')}
     </div>
   );
 
+  const METRIC_META = buildMetricMeta(t);
   const draftIQ = calculateIQ(profile.gf, profile.gc, profile.ps, profile.vm);
 
   return (
@@ -63,7 +68,7 @@ export default function MetricsPanel() {
           background: "radial-gradient(ellipse at 50% 0%, var(--habit-purple-light) 0%, transparent 70%)"
         }} />
         <div className="relative z-10">
-          <div className="text-xs font-mono mb-1 text-[var(--habit-dim)] tracking-widest">LIVE PREVIEW</div>
+          <div className="text-xs font-mono mb-1 text-[var(--habit-dim)] tracking-widest">{t('metrics.live_preview')}</div>
           <motion.div
             key={Math.round(draftIQ)}
             initial={{ scale: 0.85, opacity: 0 }}
@@ -73,7 +78,7 @@ export default function MetricsPanel() {
           >
             {draftIQ.toFixed(1)}
           </motion.div>
-          <div className="text-xs mt-1 text-[var(--habit-dim)] font-bold">IQ SCORE</div>
+          <div className="text-xs mt-1 text-[var(--habit-dim)] font-bold">{t('metrics.iq_score')}</div>
         </div>
       </motion.div>
 
@@ -134,7 +139,7 @@ export default function MetricsPanel() {
             {/* Values display */}
             <div className="space-y-1 mt-3">
               <div className="flex justify-between text-[10px] text-[var(--habit-dim)] mb-1">
-                <span>Value</span>
+                <span>{t('metrics.value_label')}</span>
                 <span>{val} / {ceil}</span>
               </div>
               

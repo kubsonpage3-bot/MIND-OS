@@ -1,18 +1,9 @@
 import { useState, useMemo } from "react";
 import { ACHIEVEMENTS } from "@/constants/rpgData";
-
-const CAT_LABELS = {
-  consistency: "Consistency",
-  combat: "Combat",
-  knowledge: "Knowledge",
-  wealth: "Wealth",
-  spirit: "Spirit",
-  skill: "Skill",
-  allies: "Allies",
-  prestige: "Prestige",
-};
+import { useTranslation } from "react-i18next";
 
 export default function AchievementsPanel({ profile, logs, alliesData, prestigeData, onClaimReward }) {
+  const { t } = useTranslation();
   const [selectedCat, setSelectedCat] = useState("ALL");
   const [claiming, setClaiming] = useState(null);
 
@@ -36,13 +27,16 @@ export default function AchievementsPanel({ profile, logs, alliesData, prestigeD
   return (
     <div className="space-y-4">
       <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
-        Achievements — {unlocked.length}/{ACHIEVEMENTS.length} unlocked
+        {t('character.achievements_header', {
+          unlocked: unlocked.length,
+          total: ACHIEVEMENTS.length
+        })}
       </div>
 
       {Object.entries(byCategory).map(([cat, achs]) => (
         <div key={cat} className="space-y-2">
           <div className="text-[10px] font-mono text-muted-foreground/40 uppercase tracking-wider pl-1">
-            {CAT_LABELS[cat] || cat}
+            {t(`achievements_cats.${cat}`, cat)}
           </div>
           <div className="grid grid-cols-3 gap-2">
             {achs.map(ach => {
