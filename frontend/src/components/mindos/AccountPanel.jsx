@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 import { useToast } from "@/components/ui/use-toast";
 import { isMobileApp } from "@/utils/platformUtils";
+import { useTranslation } from "react-i18next";
 
 export default function AccountPanel() {
   const { profile, logout } = useDjangoAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [characterName, setCharacterName] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
@@ -92,21 +94,21 @@ export default function AccountPanel() {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <User className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Account Settings</span>
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('settings.accountSettings')}</span>
       </div>
 
       {/* Character Profile */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <User className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Character Profile</span>
+          <span className="font-mono text-xs font-bold">{t('settings.characterProfile')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Your in-game character name</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.characterProfileDesc')}</p>
         <input
           type="text"
           value={characterName}
           onChange={(e) => updateCharacterName(e.target.value)}
-          placeholder="Enter character name"
+          placeholder={t('settings.enterCharacterName')}
           className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-sm"
         />
       </div>
@@ -128,11 +130,11 @@ export default function AccountPanel() {
                 </div>
                 <div>
                   <div className="font-mono font-black text-sm text-amber-400 tracking-tight">MIND OS PREMIUM</div>
-                  <div className="text-[9px] font-mono text-amber-400/60 uppercase tracking-widest">Full Access</div>
+                  <div className="text-[9px] font-mono text-amber-400/60 uppercase tracking-widest">{t('settings.premiumFullAccess')}</div>
                 </div>
               </div>
               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm">
-                ● ACTIVE
+                {t('settings.premiumActive')}
               </span>
             </div>
 
@@ -172,10 +174,10 @@ export default function AccountPanel() {
                     ) : (
                       <RefreshCw className="w-3.5 h-3.5" />
                     )}
-                    {isPortalLoading ? "Opening portal…" : "⚙ Manage Subscription"}
+                    {isPortalLoading ? t('settings.openingPortal') : t('settings.manageSubscription')}
                   </button>
                   <p className="text-center text-[9px] font-mono text-muted-foreground/50">
-                    Cancel, upgrade, or view billing history
+                    {t('settings.cancelUpgradeBilling')}
                   </p>
                 </>
               )}
@@ -197,7 +199,7 @@ export default function AccountPanel() {
               </div>
               <div>
                 <div className="font-mono font-black text-sm text-white tracking-tight">Upgrade to <span className="text-amber-400">Premium</span></div>
-                <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Unlock the full game</div>
+                <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">{t('settings.upgradeSubtitle')}</div>
               </div>
             </div>
 
@@ -246,7 +248,7 @@ export default function AccountPanel() {
                     </div>
                   </button>
                   <p className="text-center text-[9px] font-mono text-muted-foreground/50">
-                    Secure checkout via Stripe · Cancel anytime
+                    {t('settings.secureCheckout')}
                   </p>
                 </>
               )}
@@ -259,30 +261,30 @@ export default function AccountPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Account Information</span>
+          <span className="font-mono text-xs font-bold">{t('settings.accountInfo')}</span>
         </div>
         {user ? (
           <>
             <div className="space-y-2">
               <div className="text-xs font-mono">
-                <span className="text-muted-foreground">Email:</span>{" "}
+                <span className="text-muted-foreground">{t('settings.email')}:</span>{" "}
                 <span className="text-foreground">{user.email}</span>
               </div>
               <div className="text-xs font-mono">
-                <span className="text-muted-foreground">User ID:</span>{" "}
+                <span className="text-muted-foreground">{t('settings.userId')}:</span>{" "}
                 <span className="text-foreground font-mono text-[10px]">{user.id}</span>
               </div>
               <div className="text-xs font-mono">
-                <span className="text-muted-foreground">Role:</span>{" "}
+                <span className="text-muted-foreground">{t('settings.role')}:</span>{" "}
                 <span className="text-foreground capitalize">{user.role}</span>
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground/70">
-              To change password or account details, use the profile settings.
+              {t('settings.changePasswordDesc')}
             </p>
           </>
         ) : (
-          <div className="text-xs text-muted-foreground font-mono">Loading...</div>
+          <div className="text-xs text-muted-foreground font-mono">{t('settings.loading')}</div>
         )}
       </div>
 
@@ -290,13 +292,13 @@ export default function AccountPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Security</span>
+          <span className="font-mono text-xs font-bold">{t('settings.security')}</span>
         </div>
         <button
           onClick={handleLogout}
           className="w-full py-2 rounded-lg border border-border text-muted-foreground font-mono text-xs hover:bg-accent transition-colors flex items-center justify-center gap-2"
         >
-          <LogOut className="w-3 h-3" /> Logout
+          <LogOut className="w-3 h-3" /> {t('settings.logout')}
         </button>
       </div>
 
@@ -304,16 +306,16 @@ export default function AccountPanel() {
       <div className="p-4 rounded-xl border border-red-700/30 bg-red-700/5 space-y-3">
         <div className="flex items-center gap-2">
           <Trash2 className="w-3.5 h-3.5 text-red-400" />
-          <span className="font-mono text-xs font-bold text-red-400">Delete Account</span>
+          <span className="font-mono text-xs font-bold text-red-400">{t('settings.deleteAccount')}</span>
         </div>
         <p className="text-[10px] text-muted-foreground/70">
-          Permanently delete your account and all associated data. This action cannot be undone.
+          {t('settings.deleteAccountDesc')}
         </p>
         <button
           onClick={() => { setShowDeleteModal(true); setDeleteInput(""); setDeleteStatus(null); }}
           className="w-full py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 font-mono text-xs font-bold hover:bg-red-500/30 transition-colors"
         >
-          DELETE ACCOUNT
+          {t('settings.deleteAccountBtn')}
         </button>
       </div>
 
@@ -337,13 +339,13 @@ export default function AccountPanel() {
               {deleteStatus === "done" ? (
                 <div className="text-center space-y-3 py-2">
                   <div className="text-2xl">✅</div>
-                  <div className="font-mono text-xs text-green-400">Deletion request logged.</div>
-                  <p className="text-[10px] text-muted-foreground/70">Our team will process your request within 48 hours. You'll receive a confirmation email.</p>
+                  <div className="font-mono text-xs text-green-400">{t('settings.deletionLogged')}</div>
+                  <p className="text-[10px] text-muted-foreground/70">{t('settings.deletionPending')}</p>
                   <button
                     onClick={() => setShowDeleteModal(false)}
                     className="w-full py-2 rounded-lg border border-border font-mono text-xs text-muted-foreground hover:bg-accent transition-colors"
                   >
-                    Close
+                    {t('settings.close')}
                   </button>
                 </div>
               ) : (
@@ -351,20 +353,20 @@ export default function AccountPanel() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-red-400" />
-                      <span className="font-mono text-xs font-bold text-red-400">Confirm Deletion</span>
+                      <span className="font-mono text-xs font-bold text-red-400">{t('settings.confirmDeletion')}</span>
                     </div>
                     <button onClick={() => setShowDeleteModal(false)}>
                       <X className="w-4 h-4 text-muted-foreground" />
                     </button>
                   </div>
                   <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-                    This will permanently delete your account and all game progress. Type <span className="text-red-400 font-bold font-mono">DELETE</span> to confirm.
+                    {t('settings.confirmDeletionDesc')}
                   </p>
                   <input
                     type="text"
                     value={deleteInput}
                     onChange={e => setDeleteInput(e.target.value)}
-                    placeholder="Type DELETE"
+                    placeholder={t('settings.typeDelete')}
                     className="w-full px-3 py-2.5 rounded-lg border border-red-500/30 bg-black/40 text-foreground font-mono text-sm focus:outline-none focus:border-red-500/60"
                     autoFocus
                   />
@@ -378,7 +380,7 @@ export default function AccountPanel() {
                       color: "#ef4444",
                     }}
                   >
-                    {deleteStatus === "pending" ? "Processing..." : "CONFIRM DELETE"}
+                    {deleteStatus === "pending" ? t('settings.processing') : t('settings.confirmDelete')}
                   </button>
                 </>
               )}

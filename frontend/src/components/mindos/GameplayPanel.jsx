@@ -8,6 +8,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import LanguagePanel from "@/components/mindos/LanguagePanel";
+import { useTranslation } from "react-i18next";
 
 const WEEK_START_OPTIONS = [
   { id: "monday", label: "Monday" },
@@ -69,6 +70,7 @@ export default function GameplayPanel() {
   const queryClient = useQueryClient();
   const { profile } = useDjangoAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const difficultyMutation = useMutation({
     /**
@@ -115,7 +117,7 @@ export default function GameplayPanel() {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <Gamepad2 className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Gameplay Settings</span>
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('settings.gameplaySettings')}</span>
       </div>
 
       {/* LanguagePanel embedded */}
@@ -128,9 +130,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Week Start Day</span>
+          <span className="font-mono text-xs font-bold">{t('settings.weekStartDay')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Determines when Weekly XP resets and boss cycles</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.weekStartDayDesc')}</p>
         <div className="flex gap-1">
           {WEEK_START_OPTIONS.map(opt => (
             <button
@@ -142,7 +144,7 @@ export default function GameplayPanel() {
                   : "border-border/40 text-muted-foreground hover:border-border"
               }`}
             >
-              {opt.label}
+              {t(`settings.weekday_${opt.id}`, opt.label)}
             </button>
           ))}
         </div>
@@ -152,9 +154,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Timer className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Custom Day Start</span>
+          <span className="font-mono text-xs font-bold">{t('settings.customDayStart')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Time when daily tasks reset (default: midnight)</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.customDayStartDesc')}</p>
         <button
           onClick={() => setShowTimePicker(true)}
           className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
@@ -162,7 +164,7 @@ export default function GameplayPanel() {
           <span>{gameplay.dayStart || "00:00"}</span>
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </button>
-        <BottomSheet isOpen={showTimePicker} onClose={() => setShowTimePicker(false)} title="Custom Day Start">
+        <BottomSheet isOpen={showTimePicker} onClose={() => setShowTimePicker(false)} title={t('settings.customDayStart')}>
           <div className="grid grid-cols-3 gap-2">
             {TIME_OPTIONS.map(t => (
               <button
@@ -185,9 +187,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Local Timezone</span>
+          <span className="font-mono text-xs font-bold">{t('settings.timezone')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Used for accurate daily resets on the server</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.timezoneDesc')}</p>
         <button
           onClick={() => setShowTzPicker(true)}
           className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
@@ -199,7 +201,7 @@ export default function GameplayPanel() {
           </span>
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </button>
-        <BottomSheet isOpen={showTzPicker} onClose={() => setShowTzPicker(false)} title="Select Timezone">
+        <BottomSheet isOpen={showTzPicker} onClose={() => setShowTzPicker(false)} title={t('settings.selectTimezone')}>
           <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 pb-6">
             {TIMEZONES.map(t => (
               <button
@@ -225,9 +227,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Timer className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Pomodoro Duration</span>
+          <span className="font-mono text-xs font-bold">{t('settings.pomodoroDuration')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Default work/break intervals</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.pomodoroDurationDesc')}</p>
         <div className="space-y-2">
           {POMODORO_PRESETS.map(preset => (
             <button
@@ -249,9 +251,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3 relative overflow-hidden" style={{ borderColor: "rgba(240,192,64,0.3)", background: "linear-gradient(to bottom, rgba(15,10,20,0.5), rgba(10,5,15,0.8))" }}>
         <div className="flex items-center gap-2">
           <Swords className="w-4 h-4" style={{ color: "#f0c040" }} />
-          <span className="font-mono text-sm font-bold tracking-widest text-white shadow-sm">BOSS DIFFICULTY</span>
+          <span className="font-mono text-xs font-bold">{t('settings.bossDifficulty')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70 font-mono italic">Affects boss HP and reward multipliers</p>
+        <p className="text-[10px] text-muted-foreground/70 font-mono italic">{t('settings.bossDifficultyDesc')}</p>
         <div className="grid grid-cols-2 gap-3">
           {BOSS_DIFFICULTIES.map(diff => {
             const backendDiff = profile?.boss_difficulty || "NORMAL";
@@ -271,7 +273,7 @@ export default function GameplayPanel() {
                 <div className="font-bold tracking-wider mb-1" style={{ color: isActive ? "#f87171" : "inherit" }}>{diff.label.toUpperCase()}</div>
                 <div className="flex flex-col gap-0.5 text-[9px] opacity-80">
                   <span>{diff.hp} HP</span>
-                  <span style={{ color: isActive ? "#fcd34d" : "inherit" }}>×{diff.reward.toFixed(1)} REWARDS</span>
+                  <span style={{ color: isActive ? "#fcd34d" : "inherit" }}>×{diff.reward.toFixed(1)} {t('settings.rewards')}</span>
                 </div>
               </button>
             );
@@ -283,9 +285,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <UserCog className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Change Class</span>
+          <span className="font-mono text-xs font-bold">{t('settings.changeClass')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Select a new baseline neural architecture. Your current rank and progress will be preserved.</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.changeClassDesc')}</p>
         <button
           onClick={() => {
             if (!profile?.is_premium) {
@@ -296,7 +298,7 @@ export default function GameplayPanel() {
           }}
           className="w-full py-2.5 px-4 text-xs font-mono rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2 tracking-widest"
         >
-          {profile?.is_premium ? "RECALIBRATE CLASS" : <><Lock className="w-3.5 h-3.5" /> RECALIBRATE (PREMIUM)</>}
+          {profile?.is_premium ? t('settings.recalibrateClass') : <><Lock className="w-3.5 h-3.5" /> {t('settings.recalibratePremium')}</>}
         </button>
       </div>
 
@@ -304,11 +306,11 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Streak Freeze</span>
+          <span className="font-mono text-xs font-bold">{t('settings.streakFreeze')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Allow skipping days without losing streak</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.streakFreezeDesc')}</p>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-muted-foreground">Enable streak freeze</span>
+          <span className="text-xs font-mono text-muted-foreground">{t('settings.enableStreakFreeze')}</span>
           <button
             onClick={() => updateSetting("streakFreeze", !gameplay.streakFreeze)}
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
@@ -317,12 +319,12 @@ export default function GameplayPanel() {
                 : "border-border/40 text-muted-foreground"
             }`}
           >
-            {gameplay.streakFreeze ? "ON" : "OFF"}
+            {gameplay.streakFreeze ? t('settings.on') : t('settings.off')}
           </button>
         </div>
         {gameplay.streakFreeze && (
           <div className="text-[10px] text-muted-foreground/70 font-mono mt-2">
-            Freezes available: {gameplay.freezeUses || 3}/month
+            {t('settings.freezesAvailable')}: {gameplay.freezeUses || 3}/{t('settings.perMonth')}
           </div>
         )}
       </div>
@@ -331,9 +333,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Auto-archive To-Dos</span>
+          <span className="font-mono text-xs font-bold">{t('settings.autoArchiveTodos')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Automatically archive completed to-dos after N days</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.autoArchiveTodosDesc')}</p>
         <div className="flex gap-1">
           {[0, 1, 3, 7, 14, 30].map(days => (
             <button
@@ -345,7 +347,7 @@ export default function GameplayPanel() {
                   : "border-border/40 text-muted-foreground hover:border-border"
               }`}
             >
-              {days === 0 ? "Never" : `${days}d`}
+              {days === 0 ? t('settings.never') : `${days}${t('settings.days_abbr')}`}
             </button>
           ))}
         </div>
@@ -355,9 +357,9 @@ export default function GameplayPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Brain className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Domain Weights</span>
+          <span className="font-mono text-xs font-bold">{t('settings.domainWeights')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Which stats each category trains</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.domainWeightsDesc')}</p>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {Object.entries(DOMAIN_WEIGHTS).map(([domain, defaultStats]) => {
             const currentStats = gameplay.domainWeights?.[domain] || defaultStats;

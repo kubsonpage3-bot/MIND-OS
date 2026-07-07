@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Palette, Type, Volume2, VolumeX, Waves, Smartphone } from "lucide-react";
 import { THEMES, applyTheme } from "@/lib/themes";
 import { ACCENT_PALETTES, applyAppearanceSettings } from "@/lib/applyAppearance";
+import { useTranslation } from "react-i18next";
 
 export default function AppearancePanel() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}"); } catch { return {}; }
   });
@@ -16,7 +18,6 @@ export default function AppearancePanel() {
     if (key === "theme") applyTheme(value);
   };
 
-  // Apply on mount
   useEffect(() => {
     applyAppearanceSettings(settings);
     if (settings.theme) applyTheme(settings.theme);
@@ -26,16 +27,16 @@ export default function AppearancePanel() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Palette className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Appearance Settings</span>
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('settings.appearanceSettings')}</span>
       </div>
 
       {/* Theme */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Palette className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Theme (Background)</span>
+          <span className="font-mono text-xs font-bold">{t('settings.themeTitle')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Changes the background wallpaper</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.themeDesc')}</p>
         <div className="grid grid-cols-2 gap-2">
           {Object.entries(THEMES).map(([key, theme]) => {
             const isActive = settings.theme === key;
@@ -50,7 +51,6 @@ export default function AppearancePanel() {
                 }`}
                 style={{ minHeight: 80 }}
               >
-                {/* Wallpaper thumbnail background */}
                 {theme.wallpaper ? (
                   <div
                     className="absolute inset-0"
@@ -68,9 +68,7 @@ export default function AppearancePanel() {
                     }}
                   />
                 )}
-                {/* Dark overlay for readability */}
                 <div className="absolute inset-0 bg-black/45" />
-                {/* Content */}
                 <div className="relative z-10 p-2 flex flex-col gap-1 h-full">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-mono font-bold text-white drop-shadow">{theme.label}</span>
@@ -81,7 +79,6 @@ export default function AppearancePanel() {
                   {theme.description && (
                     <span className="text-[9px] text-white/70 font-mono">{theme.description}</span>
                   )}
-                  {/* Color swatches */}
                   <div className="flex gap-0.5 mt-auto">
                     {(theme.preview || []).map((color, i) => (
                       <div
@@ -102,12 +99,11 @@ export default function AppearancePanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Waves className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Accent Palette</span>
+          <span className="font-mono text-xs font-bold">{t('settings.accentPalette')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Changes UI accent colors, bars, and borders — applied instantly</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.accentPaletteDesc')}</p>
         <div className="space-y-2">
           {ACCENT_PALETTES.map(palette => {
-            // Convert HSL string to hex-like display colors
             const previewColors = Object.values(palette.colors).slice(0, 5);
             return (
               <button
@@ -137,9 +133,9 @@ export default function AppearancePanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Type className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">UI Scale</span>
+          <span className="font-mono text-xs font-bold">{t('settings.uiScale')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Scales the entire interface</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.uiScaleDesc')}</p>
         <div className="flex gap-1.5 flex-wrap">
           {[0.75, 0.85, 1.0, 1.15, 1.25].map(zoom => (
             <button
@@ -161,9 +157,9 @@ export default function AppearancePanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Type className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Font Size</span>
+          <span className="font-mono text-xs font-bold">{t('settings.fontSize')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Adjusts base text size (Small=13px, Medium=15px, Large=17px)</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.fontSizeDesc')}</p>
         <div className="flex gap-1">
           {["small", "medium", "large"].map(size => (
             <button
@@ -175,7 +171,7 @@ export default function AppearancePanel() {
                   : "border-border/40 text-muted-foreground hover:border-border"
               }`}
             >
-              {size.charAt(0).toUpperCase() + size.slice(1)}
+              {t(`settings.fontSize_${size}`)}
             </button>
           ))}
         </div>
@@ -186,7 +182,7 @@ export default function AppearancePanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Waves className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Reduce Motion</span>
+            <span className="font-mono text-xs font-bold">{t('settings.reduceMotion')}</span>
           </div>
           <button
             onClick={() => updateSetting("reduceMotion", !settings.reduceMotion)}
@@ -196,10 +192,10 @@ export default function AppearancePanel() {
                 : "border-border/40 text-muted-foreground"
             }`}
           >
-            {settings.reduceMotion ? "ON" : "OFF"}
+            {settings.reduceMotion ? t('settings.on') : t('settings.off')}
           </button>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Disables animations for motion sensitivity</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.reduceMotionDesc')}</p>
       </div>
 
       {/* Sound */}
@@ -207,7 +203,7 @@ export default function AppearancePanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Volume2 className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Sound Effects</span>
+            <span className="font-mono text-xs font-bold">{t('settings.soundEffects')}</span>
           </div>
           <button
             onClick={() => updateSetting("soundEnabled", settings.soundEnabled === false ? true : false)}
@@ -218,12 +214,12 @@ export default function AppearancePanel() {
             }`}
           >
             {settings.soundEnabled !== false ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            {settings.soundEnabled !== false ? "ON" : "OFF"}
+            {settings.soundEnabled !== false ? t('settings.on') : t('settings.off')}
           </button>
         </div>
         {settings.soundEnabled !== false && (
           <div className="space-y-2">
-            <div className="text-[10px] font-mono text-muted-foreground">Volume: {settings.soundVolume || 50}%</div>
+            <div className="text-[10px] font-mono text-muted-foreground">{t('settings.volume')}: {settings.soundVolume || 50}%</div>
             <input
               type="range" min="0" max="100"
               value={settings.soundVolume || 50}
@@ -239,7 +235,7 @@ export default function AppearancePanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Haptic Feedback</span>
+            <span className="font-mono text-xs font-bold">{t('settings.hapticFeedback')}</span>
           </div>
           <button
             onClick={() => updateSetting("hapticsEnabled", !settings.hapticsEnabled)}
@@ -249,10 +245,10 @@ export default function AppearancePanel() {
                 : "border-border/40 text-muted-foreground"
             }`}
           >
-            {settings.hapticsEnabled ? "ON" : "OFF"}
+            {settings.hapticsEnabled ? t('settings.on') : t('settings.off')}
           </button>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Vibration feedback on mobile</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.hapticFeedbackDesc')}</p>
       </div>
     </div>
   );
