@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.7",
+    "date": "2026-07-07",
+    "changes": [
+      { "type": "polish", "text": "Reorganized Character screen tabs to reduce clutter: Allies and Mutators are now housed inside the Shop, and Skill Tree is seamlessly integrated into the Skills page." }
+    ]
+  },
+  {
     "version": "1.2.6",
     "date": "2026-07-06",
     "changes": [

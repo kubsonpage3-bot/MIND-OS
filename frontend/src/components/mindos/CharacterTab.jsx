@@ -49,10 +49,7 @@ const TIER_ORDER = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
 const SUB_TABS = [
   { id: "overview", label: "Overview" },
   { id: "skills", label: "Skills" },
-  { id: "skill_tree", label: "Skill Tree" },
-  { id: "allies", label: "Allies" },
   { id: "achievements", label: "Achievements" },
-  { id: "mutators", label: "Mutators" },
   { id: "shop", label: "Shop" },
 ];
 
@@ -584,12 +581,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* SKILLS */}
       {subTab === "skills" && (
-        <SkillPanel classId={classData.chosen} />
-      )}
-
-      {/* SKILL TREE */}
-      {subTab === "skill_tree" && (
-        <>
+        <div className="space-y-4">
+          <SkillPanel classId={classData.chosen} />
           <TabGuideModal guideId="skill_tree" profile={profile} />
           <SkillTreePanel
             skillTree={profile?.unlocked_skills || []}
@@ -597,33 +590,12 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             gold={gold}
             onSpendGold={spendGold}
           />
-        </>
-      )}
-
-      {/* ALLIES */}
-      {subTab === "allies" && (
-        <>
-          <TabGuideModal guideId="allies" profile={profile} />
-          <AlliesPanel
-            alliesData={profile?.recruited_allies || {}}
-            onUpdate={handleAlliesUpdate}
-            gold={gold}
-            onSpendGold={spendGold}
-          />
-        </>
+        </div>
       )}
 
       {/* ACHIEVEMENTS */}
       {subTab === "achievements" && (
         <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} />
-      )}
-
-      {/* MUTATORS */}
-      {subTab === "mutators" && (
-        <>
-          <TabGuideModal guideId="mutators" profile={profile} />
-          <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
-        </>
       )}
 
       {/* SHOP */}
@@ -708,7 +680,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             );
           })()}
           <div className="flex gap-1 flex-wrap">
-            {["gear", "consumables", "scrolls", "inventory"].map(t => (
+            {["gear", "consumables", "scrolls", "inventory", "allies", "mutators"].map(t => (
               <button key={t} onClick={() => setShopTab(t)}
                 className="px-3 py-1 text-[10px] font-mono uppercase rounded transition-all"
                 style={{
@@ -727,8 +699,25 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           {shopTab === "inventory" && (
             <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => {}} onToggleEquip={equipItem} />
           )}
+          {shopTab === "allies" && (
+            <>
+              <TabGuideModal guideId="allies" profile={profile} />
+              <AlliesPanel
+                alliesData={profile?.recruited_allies || {}}
+                onUpdate={handleAlliesUpdate}
+                gold={gold}
+                onSpendGold={spendGold}
+              />
+            </>
+          )}
+          {shopTab === "mutators" && (
+            <>
+              <TabGuideModal guideId="mutators" profile={profile} />
+              <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
+            </>
+          )}
           <div className="space-y-2 max-h-80 overflow-y-auto">
-            {(shopTab === "scrolls" || shopTab === "inventory") ? null : (shopTab === "gear" ? gearItems : consumables)
+            {(shopTab === "scrolls" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
               .sort((a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier))
               .map((item, idx) => {
                 const canAfford = gold >= item.cost;
