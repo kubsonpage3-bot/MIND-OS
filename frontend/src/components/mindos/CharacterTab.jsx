@@ -438,7 +438,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               boxShadow: `0 4px 20px ${currentRank.color}18`,
             }}>
             <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} hideLabel={true} />
-            <div className="font-mono text-xs font-black tracking-widest" style={{ color: classColor }}>{chosenClass ? t(`classes.${chosenClass.id}`, chosenClass.name) : ""}</div>
+            <div className="font-mono text-xs font-black tracking-widest" style={{ color: classColor }}>{chosenClass ? String(t(`classes.${chosenClass.id}`, chosenClass.name)) : ""}</div>
             <div className="font-mono text-sm font-bold px-3 py-1 rounded-lg"
               style={{ color: currentRank.color, background: `${currentRank.color}20`, border: `1px solid ${currentRank.color}50` }}>
               {currentRank.id} — {t(`ranks.${currentRank.id}`, currentRank.label)}
@@ -605,7 +605,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* ACHIEVEMENTS */}
       {subTab === "achievements" && (
-        <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} />
+        <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} onClaimReward={() => {}} />
       )}
 
       {/* SHOP */}
@@ -823,7 +823,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
         >
           <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-3" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs font-bold">{t(`slots.${activeSlot}`, activeSlot?.toUpperCase())} — {t('character.select_slot')}</span>
+              <span className="font-mono text-xs font-bold">{String(t(`slots.${activeSlot}`, activeSlot?.toUpperCase()))} — {t('character.select_slot')}</span>
               <button onClick={() => setActiveSlot(null)}><X className="w-4 h-4 text-muted-foreground" /></button>
             </div>
             {inventory.filter(i => i.slot === activeSlot).length === 0 ? (
@@ -855,7 +855,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
         }}
       >
         <div id="share-card-container">
-          <ShareCard profile={profile} logs={logs} />
+          <ShareCard profile={profile} />
         </div>
       </div>
     </div>
