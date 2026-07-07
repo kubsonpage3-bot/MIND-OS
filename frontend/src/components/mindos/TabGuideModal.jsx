@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { djangoApi } from "@/api/djangoClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { GUIDE_CONTENT } from "@/constants/guideContent";
 
 /**
@@ -29,31 +28,11 @@ export default function TabGuideModal({
     body: "No guide content available.",
   };
 
-  // Mutation to mark guide as seen
-  const markSeenMutation = useMutation({
-    mutationFn: async () => {
-      const resp = await djangoApi.profile.markGuideSeen(guideId);
-      return resp; // djangoFetch returns the data directly, not an axios resp object with .data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-    },
-    onError: (err) => {
-      console.error(`Failed to mark guide '${guideId}' as seen:`, err);
-    },
-  });
-
   useEffect(() => {
     if (forceOpen) {
       setIsOpen(true);
-    } else if (profile && profile.seen_guides) {
-      // If we haven't seen it, show it. If seen_guides is completely undefined, 
-      // we assume it's loading. Once it's an object (even `{}`), we can check.
-      if (!profile.seen_guides[guideId]) {
-        setIsOpen(true);
-      }
     }
-  }, [guideId, forceOpen, profile]);
+  }, [forceOpen]);
 
   // Handle escape key
   useEffect(() => {
@@ -68,9 +47,6 @@ export default function TabGuideModal({
 
   const handleDismiss = () => {
     setIsOpen(false);
-    if (!forceOpen && profile && profile.seen_guides && !profile.seen_guides[guideId]) {
-      markSeenMutation.mutate();
-    }
     if (onCloseCallback) {
       onCloseCallback();
     }

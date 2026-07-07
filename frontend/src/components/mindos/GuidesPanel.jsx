@@ -18,11 +18,28 @@ const ALL_GUIDES = [
 export default function GuidesPanel() {
   const [activeGuide, setActiveGuide] = useState(null);
 
+  const handleReplayMainTutorial = () => {
+    window.dispatchEvent(new Event("replayMainTutorial"));
+  };
+
   return (
     <div className="space-y-6">
       <div className="mb-4 text-sm text-white/60">
         Replay any of the introductory guides for the various sections of MIND OS.
       </div>
+
+      <button 
+        onClick={handleReplayMainTutorial}
+        className="w-full p-4 mb-2 rounded-xl border border-neon-cyan/30 bg-neon-cyan/5 hover:bg-neon-cyan/10 transition-colors text-left flex items-center justify-between group cursor-pointer"
+      >
+        <span className="font-mono text-sm text-white/90 font-bold tracking-wider flex items-center gap-2">
+          <span>🎓</span>
+          <span className="uppercase text-neon-cyan">Replay Main Tutorial</span>
+        </span>
+        <span className="text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs font-bold">
+          START
+        </span>
+      </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {ALL_GUIDES.map((g) => {

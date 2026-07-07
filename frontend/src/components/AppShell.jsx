@@ -11,6 +11,7 @@ import LifeOS from "@/pages/LifeOS";
 import { applyTheme } from "@/lib/themes";
 import { applyAppearanceSettings } from "@/lib/applyAppearance";
 import RewardToast from "@/components/mindos/RewardToast";
+import BalatroTutorialToast from "@/components/mindos/BalatroTutorialToast";
 import { THEMES } from "@/lib/themes";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -49,6 +50,13 @@ export default function AppShell({ defaultTab = "mind" }) {
   const [syncStatus, setSyncStatus] = useState("idle");
   const [lastSync, setLastSync] = useState(null);
   const [hpFlash, setHpFlash] = useState(false);
+  const [forceTutorialOpen, setForceTutorialOpen] = useState(false);
+
+  useEffect(() => {
+    const handleReplay = () => setForceTutorialOpen(true);
+    window.addEventListener("replayMainTutorial", handleReplay);
+    return () => window.removeEventListener("replayMainTutorial", handleReplay);
+  }, []);
 
   // Navigation helpers — push to history so Android back button works
   const setNav = useCallback((app, section, subItem) => {
@@ -242,6 +250,11 @@ export default function AppShell({ defaultTab = "mind" }) {
       />
 
       <RewardToast />
+      <BalatroTutorialToast 
+        profile={djangoProfile} 
+        forceOpen={forceTutorialOpen} 
+        onCloseCallback={() => setForceTutorialOpen(false)} 
+      />
     </div>
   );
 }
