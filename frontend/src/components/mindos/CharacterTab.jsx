@@ -57,7 +57,13 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const subTab = externalSubTab || "overview";
-  const [shopTab, setShopTab] = useState("gear");
+  const [shopTab, setShopTab] = useState(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      return p.get("shopTab") || "gear";
+    }
+    return "gear";
+  });
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
   const [isSharing, setIsSharing] = useState(false);

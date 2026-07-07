@@ -42,17 +42,8 @@ export default function ActivePartyWidget() {
   const allEmpty = slots.every(slot => slot === null);
 
   const handleEmptyClick = () => {
-    // Navigate to Character -> Shop -> Allies
-    // The previous implementation used character subtab logic
-    // We should use onSectionChange if this is in dashboard, but simpler:
-    // Actually, in Dashboard.jsx, changing tabs is handled via props or local state usually.
-    // The prompt says "navigate to Character -> Shop -> Allies".
-    // I'll emit a custom event or let AppShell handle the route if it's hash-based.
-    // Given MIND OS usually uses a specific state structure, I'll use window.location.hash
-    // or just rely on the parent or App routing.
-    window.location.hash = "#character";
-    // We can't easily pass the subTab through hash unless the app supports it, 
-    // but standard navigation is what we have here.
+    // Navigate to Character -> Shop -> Allies using the AppShell routing
+    navigate("/?app=mind&section=character&sub=shop&shopTab=allies");
   };
 
   return (
