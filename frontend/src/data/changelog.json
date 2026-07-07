@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.21",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a build error in the achievement tracker and properly bundled image compression tools to ensure reliable deployment."
+      }
+    ]
+  },
+  {
     "version": "1.4.20",
     "date": "2026-07-07",
     "changes": [
