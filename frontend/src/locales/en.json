@@ -370,5 +370,15 @@
     "modal_consequence": "Fail — scroll is lost. Win — receive unique loot.",
     "btn_cancel": "CANCEL",
     "btn_modal_summon": "SUMMON — {{price}}G"
+  },
+  "setup": {
+    "cognitive_baseline": "Cognitive Baseline",
+    "title": "Initialize MIND OS",
+    "description": "Enter your current scores and genetic ceiling estimates. These set your starting point — you can update them later.",
+    "current": "Current",
+    "ceiling": "Ceiling",
+    "initializing": "Initializing...",
+    "initialize_system": "Initialize System →",
+    "failed_init": "Failed to initialize system. Please try again."
   }
 }

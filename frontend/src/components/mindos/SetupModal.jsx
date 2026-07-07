@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { djangoApi } from "@/api/djangoClient";
@@ -19,6 +20,7 @@ const FIELDS = [
 ];
 
 export default function SetupModal({ onSave }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState(DEFAULTS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -69,7 +71,7 @@ export default function SetupModal({ onSave }) {
       navigate("/");
     } catch (err) {
       console.error("System initialization failed:", err);
-      setError(err.message || "Failed to initialize system. Please try again.");
+      setError(err.message || t('setup.failed_init'));
     } finally {
       setIsSubmitting(false);
     }
@@ -85,12 +87,11 @@ export default function SetupModal({ onSave }) {
         <form onSubmit={handleSubmit}>
           <div className="text-center mb-6">
             <div className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-2">
-              Cognitive Baseline
+              {t('setup.cognitive_baseline')}
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Initialize MIND OS</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('setup.title')}</h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Enter your current scores and genetic ceiling estimates.
-              These set your starting point — you can update them later.
+              {t('setup.description')}
             </p>
           </div>
 
@@ -111,7 +112,7 @@ export default function SetupModal({ onSave }) {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground/60 font-mono uppercase">Current</label>
+                    <label className="text-xs text-muted-foreground/60 font-mono uppercase">{t('setup.current')}</label>
                     <input
                       type="number"
                       value={values[key]}
@@ -122,7 +123,7 @@ export default function SetupModal({ onSave }) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground/60 font-mono uppercase">Ceiling</label>
+                    <label className="text-xs text-muted-foreground/60 font-mono uppercase">{t('setup.ceiling')}</label>
                     <input
                       type="number"
                       value={values[`${key}_ceiling`]}
@@ -145,10 +146,10 @@ export default function SetupModal({ onSave }) {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Initializing...</span>
+                <span>{t('setup.initializing')}</span>
               </>
             ) : (
-              <span>Initialize System →</span>
+              <span>{t('setup.initialize_system')}</span>
             )}
           </button>
         </form>
