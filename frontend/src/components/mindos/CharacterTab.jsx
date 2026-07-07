@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { getTierColor } from "@/lib/gameState";
 import { CLASSES } from "@/constants/rpgData";
@@ -64,6 +65,15 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     }
     return "gear";
   });
+
+  const location = useLocation();
+  useEffect(() => {
+    const p = new URLSearchParams(location.search);
+    const tab = p.get("shopTab");
+    if (tab) {
+      setShopTab(tab);
+    }
+  }, [location.search]);
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
   const [isSharing, setIsSharing] = useState(false);

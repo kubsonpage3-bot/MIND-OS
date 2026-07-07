@@ -27,7 +27,18 @@ export default function ActivePartyWidget() {
     staleTime: Infinity,
   });
 
-  const activeAllyIds = profile?.active_allies || [];
+  let activeAllyIds = profile?.active_allies || [];
+  if (typeof activeAllyIds === 'string') {
+    try {
+      activeAllyIds = JSON.parse(activeAllyIds);
+    } catch(e) {
+      // If it's a plain string like "neko", put it in an array
+      activeAllyIds = [activeAllyIds];
+    }
+  }
+  if (!Array.isArray(activeAllyIds)) {
+    activeAllyIds = [];
+  }
   const recruitedLevels = profile?.recruited_allies || {};
   
   // Create 3 slots
