@@ -512,17 +512,17 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 const totalValue = breakdown.total;
                 let effectLabel = "";
                 if (key === "pwr") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} Base XP`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.pwr_effect_short')}`;
                 } else if (key === "def") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.def_effect_short', 'урон HP')} `;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.def_effect_short')} `;
                 } else if (key === "foc") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.foc_effect_short', 'шанс крит')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.foc_effect_short')}`;
                 } else if (key === "mem") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.mem_effect_short', 'стоимость маны')}`;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.mem_effect_short')}`;
                 } else if (key === "spd") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.spd_effect_short', 'баз. золото')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.spd_effect_short')}`;
                 } else if (key === "lck") {
-                  effectLabel = `+${totalValue}% ${t('character.lck_effect_short', 'множитель золота')}`;
+                  effectLabel = `+${totalValue}% ${t('character.lck_effect_short')}`;
                 }
                 return (
                   <div key={key} className="grid grid-cols-6 gap-2 items-center text-[9px] font-mono">

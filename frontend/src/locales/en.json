@@ -160,6 +160,21 @@
     "lv": "Lv",
     "pts": "pts!",
     "choose_class": "Choose Class (Level 10 Unlocked!)",
-    "perfect_day_streak": "🌟 Perfect Day Streak: {{count}} days"
+    "perfect_day_streak": "🌟 Perfect Day Streak: {{count}} days",
+    "character_stats": "CHARACTER STATS",
+    "stat_effect": "STAT/EFFECT",
+    "col_class": "CLASS",
+    "col_equip": "EQUIP",
+    "col_base": "BASE",
+    "col_total": "TOTAL",
+    "formula": "TOTAL = BASE + CLASS + EQUIP. Upgrading costs gold.",
+    "equipment": "EQUIPMENT",
+    "def_effect_short": "HP dmg taken",
+    "foc_effect_short": "Crit chance",
+    "mem_effect_short": "Mana cost",
+    "spd_effect_short": "Base Gold",
+    "lck_effect_short": "Gold mult & Drops",
+    "pwr_effect_short": "Base XP",
+    "pts_label": "pts"
   }
 }
