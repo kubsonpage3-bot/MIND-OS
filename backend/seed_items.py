@@ -187,6 +187,7 @@ items_data = [
         "id": "focus_stim",
         "slot": "consumable",
         "name": "Focus Stim",
+        "description": "Grants +30% Focus multiplier for your next Focus Session.",
         "tier": "Common",
         "cost": 30,
     },
@@ -194,6 +195,7 @@ items_data = [
         "id": "memory_patch",
         "slot": "consumable",
         "name": "Memory Patch",
+        "description": "Instantly boosts your Growth Coefficient (Gc) by +0.2.",
         "tier": "Common",
         "cost": 35,
     },
@@ -201,6 +203,7 @@ items_data = [
         "id": "xp_booster",
         "slot": "consumable",
         "name": "XP Booster",
+        "description": "Grants +50% XP from all sources for 24 hours.",
         "tier": "Uncommon",
         "cost": 80,
     },
@@ -208,6 +211,7 @@ items_data = [
         "id": "streak_shield",
         "slot": "consumable",
         "name": "Streak Shield",
+        "description": "Automatically protects your daily streak from breaking once if you miss a day.",
         "tier": "Rare",
         "cost": 200,
     },
@@ -215,6 +219,7 @@ items_data = [
         "id": "boss_damage_plus",
         "slot": "consumable",
         "name": "Boss Damage+",
+        "description": "Deals +50% damage to the boss in your next Focus Session.",
         "tier": "Uncommon",
         "cost": 60,
     },
@@ -223,6 +228,7 @@ items_data = [
         "id": "small_heal",
         "slot": "consumable",
         "name": "Small Health Potion",
+        "description": "Restores 20 HP instantly.",
         "tier": "Common",
         "cost": 25,
         "hp_boost": 20,
@@ -231,6 +237,7 @@ items_data = [
         "id": "medium_heal",
         "slot": "consumable",
         "name": "Health Potion",
+        "description": "Restores 50 HP instantly.",
         "tier": "Uncommon",
         "cost": 60,
         "hp_boost": 50,
@@ -239,6 +246,7 @@ items_data = [
         "id": "large_heal",
         "slot": "consumable",
         "name": "Mega Health Potion",
+        "description": "Restores 100 HP instantly.",
         "tier": "Rare",
         "cost": 150,
         "hp_boost": 100,
@@ -247,6 +255,7 @@ items_data = [
         "id": "elixir",
         "slot": "consumable",
         "name": "Elixir of Life",
+        "description": "Restores HP to 100% and grants 10 minutes of complete damage immunity.",
         "tier": "Epic",
         "cost": 500,
         "hp_boost": 9999,
@@ -436,7 +445,7 @@ for data in items_data:
         code=data["id"],
         defaults={
             "name": data["name"],
-            "description": data["name"],
+            "description": data.get("description", data["name"]),
             "item_type": item_type,
             "slot_type": slot_type,
             "icon_url": icon_path,
@@ -448,6 +457,7 @@ for data in items_data:
 
     if not created:
         item.name = data["name"]
+        item.description = data.get("description", data["name"])
         item.item_type = item_type
         item.slot_type = slot_type
         item.icon_url = icon_path

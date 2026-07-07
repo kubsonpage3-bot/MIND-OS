@@ -249,7 +249,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     )}
                   </div>
                   <div className="text-[10px] font-mono mt-0.5" style={{ color: `${effectColor}bb` }}>
-                    {item.effect || item.description || "Temporary Buff"}
+                    {item.description || item.effect || "Temporary Buff"}
                   </div>
                 </div>
 

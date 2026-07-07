@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.17",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Added exact gameplay descriptions for all consumables in the Shop and Inventory, detailing exactly what they do (e.g. amount of HP restored, duration of buffs)."
+      }
+    ]
+  },
+  {
     "version": "1.4.16",
     "date": "2026-07-07",
     "changes": [
