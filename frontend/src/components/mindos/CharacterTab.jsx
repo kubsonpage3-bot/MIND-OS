@@ -32,12 +32,12 @@ import { ANIM_CONFIG } from "@/lib/animations";
 
 // Unified stat system: Final = Base (5) + Stat Points + Class Bonus + Equipment
 const STAT_CONFIG = {
-  pwr: { label: "PWR", color: "#ef4444" },
-  def: { label: "DEF", color: "#3b82f6" },
-  foc: { label: "FOC", color: "#22c55e" },
-  mem: { label: "MEM", color: "#a855f7" },
-  spd: { label: "SPD", color: "#f59e0b" },
-  lck: { label: "LCK", color: "#eab308" },
+  pwr: { label: "PWR", desc: "Power — +2% boss damage per point above 5", color: "#ef4444" },
+  def: { label: "DEF", desc: "Defense — -1% HP damage taken per point (max -50%)", color: "#3b82f6" },
+  foc: { label: "FOC", desc: "Focus Amp — +1% focus efficiency per point above 5", color: "#22c55e" },
+  mem: { label: "MEM", desc: "Memory — +1.5% fatigue resistance per point above 5", color: "#a855f7" },
+  spd: { label: "SPD", desc: "Speed — extra task completions", color: "#f59e0b" },
+  lck: { label: "LCK", desc: "Luck — Gold drop bonus", color: "#eab308" },
 };
 
 const SLOT_KEYS = ["headware", "neural_link", "core", "arms", "legs", "offhand", "ring1", "ring2"];
@@ -77,10 +77,10 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       djangoApi.analytics.logEvent("share_card_generated");
       // Brief delay to ensure any layout shifts settle
       await new Promise(r => setTimeout(r, 100));
-      
+
       const container = document.getElementById("share-card-container");
       if (!container) return;
-      
+
       const canvas = await html2canvas(container, {
         backgroundColor: null,
         scale: 2,
@@ -143,14 +143,14 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   // It is only mutated as a side-effect of shop/ally/skill mutations,
   // which each call invalidateQueries(['userprofile']) in their onSuccess.
   // We NEVER write gold directly from local state — that caused the reset resurrection bug.
-  const spendGold = () => {}; // no-op: child panels use their own mutations
+  const spendGold = () => { }; // no-op: child panels use their own mutations
 
 
   // Use prop if provided, fallback to profile data
   const rankXP = rankXPProp !== undefined ? rankXPProp : (profile?.rank_xp || 0);
 
   // Class data
-  const classData = { 
+  const classData = {
     chosen: profile?.character_class !== "Wanderer" ? profile?.character_class : null,
     mana: profile?.mana || 0,
     maxMana: profile?.mana_max || 100
@@ -164,7 +164,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     const found = shopItems.find(i => i.id === ri.id);
     return found ? { ...found, ...ri } : ri;
   }) : [];
-  
+
   const rawEquipped = profile?.equipped || [];
   const equipped = {};
   if (Array.isArray(rawEquipped)) {
@@ -179,7 +179,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   // Equipped stats breakdown
   const equipStats = profile?.equip_stats || { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
   const classStats = profile?.class_stats || { pwr: 0, def: 0, foc: 0, mem: 0, spd: 0, lck: 0 };
-  
+
   // Use backend stats as SSOT
   const statBreakdown = {};
   Object.keys(STAT_CONFIG).forEach(key => {
@@ -187,7 +187,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     const total = profile?.total_stats?.[key] || backendBase;
     const equipBonus = equipStats[key] || 0;
     const classBonus = classStats[key] || 0;
-    
+
     // We infer non-equip bonus (base + invested) from the backend base
     statBreakdown[key] = {
       base: backendBase,
@@ -208,7 +208,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   const handleChooseClass = async (classId) => {
     const cls = CLASSES[classId];
-    
+
     try {
       await djangoApi.profile.update({
         character_class: classId,
@@ -265,12 +265,12 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       if (prevProfile) {
         const item = shopItems.find(i => i.id === buyData.item_id);
         const healAmount = item && item.consumable ? (item.healAmount || 0) : 0;
-        const newHp = healAmount 
+        const newHp = healAmount
           ? Math.min(prevProfile.hp_max, prevProfile.hp + healAmount)
           : prevProfile.hp;
-        
-        const newInventory = healAmount 
-          ? prevProfile.inventory 
+
+        const newInventory = healAmount
+          ? prevProfile.inventory
           : [...(prevProfile.inventory || []), { id: buyData.item_id }];
 
         queryClient.setQueryData(["userprofile"], {
@@ -301,7 +301,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const buyItem = (item) => {
     if (gold < item.cost) return;
     playSound('purchase');
-    
+
     mutation.mutate({
       item_id: item.id,
       cost: item.cost,
@@ -312,7 +312,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   const equipItem = (item) => {
     playSound('success');
-    
+
     // Optimistically update
     /** @type {any} */
     const prevProfile = queryClient.getQueryData(["userprofile"]);
@@ -326,12 +326,12 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       });
       queryClient.setQueryData(["userprofile"], { ...prevProfile, inventory: newInventory });
     }
-    
+
     djangoApi.inventory.equip(item.id).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     }).catch(err => {
-        console.error("Failed to equip item", err);
-        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      console.error("Failed to equip item", err);
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     });
     setActiveSlot(null);
   };
@@ -341,7 +341,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     const eqId = rawEquipped[slot]?.id || rawEquipped[slot];
     if (eqId) {
       djangoApi.inventory.equip(eqId).then(() => {
-          queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       });
     }
     setActiveSlot(null);
@@ -350,10 +350,10 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   const upgradeStat = async (stat) => {
     if ((profile?.unspent_stat_points || 0) <= 0) return;
     playSound('level_up');
-    
+
     const nextVal = (profile?.[`base_${stat}`] || 5) + 1;
     const nextPoints = (profile?.unspent_stat_points || 0) - 1;
-    
+
     // Optimistic Update
     /** @type {any} */
     const prevProfile = queryClient.getQueryData(["userprofile"]);
@@ -409,7 +409,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           )}
         </div>
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleShare}
             disabled={isSharing}
             className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent/50 disabled:opacity-50"
@@ -456,11 +456,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 </span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                <motion.div 
-                  className="h-full rounded-full" 
+                <motion.div
+                  className="h-full rounded-full"
                   animate={{ width: `${hpPct}%` }}
                   transition={ANIM_CONFIG.springBar}
-                  style={{ background: hpColor, boxShadow: `0 0 6px ${hpColor}66` }} 
+                  style={{ background: hpColor, boxShadow: `0 0 6px ${hpColor}66` }}
                 />
               </div>
             </div>
@@ -472,11 +472,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 </span>
               </div>
               <div className="h-2 rounded-none bg-muted overflow-hidden mt-1" style={{ imageRendering: "pixelated" }}>
-                <motion.div 
+                <motion.div
                   className="h-full"
                   animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass.maxMana)) * 100)}%` }}
                   transition={ANIM_CONFIG.springBar}
-                  style={{ background: classColor, boxShadow: `0 0 6px ${classColor}66` }} 
+                  style={{ background: classColor, boxShadow: `0 0 6px ${classColor}66` }}
                 />
               </div>
             </div>
@@ -492,7 +492,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 </span>
               )}
             </div>
-            
+
             {/* Stats table with breakdown */}
             <div className="space-y-2">
               {/* Header */}
@@ -503,7 +503,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 <div className="text-center">{t('character.col_base')}</div>
                 <div className="text-right">{t('character.col_total')}</div>
               </div>
-              
+
               {/* Stat rows */}
               {Object.entries(statBreakdown).map(([key, breakdown]) => {
                 const cfg = STAT_CONFIG[key];
@@ -541,11 +541,11 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                         {breakdown.points > 0 ? `+${breakdown.points}` : breakdown.points}
                       </span>
                       {canUpgrade && (
-                       <button onClick={() => upgradeStat(key)}
-                         className="w-4 h-4 pixel-btn border-2 border-primary/40 text-primary hover:bg-primary/30 font-bold leading-none flex items-center justify-center"
-                         style={{ background: "rgba(240,192,64,0.15)", boxShadow: "0 1px 0 rgba(0,0,0,0.4)" }}>
-                         +
-                       </button>
+                        <button onClick={() => upgradeStat(key)}
+                          className="w-4 h-4 pixel-btn border-2 border-primary/40 text-primary hover:bg-primary/30 font-bold leading-none flex items-center justify-center"
+                          style={{ background: "rgba(240,192,64,0.15)", boxShadow: "0 1px 0 rgba(0,0,0,0.4)" }}>
+                          +
+                        </button>
                       )}
                     </div>
                     <div className="text-right font-bold text-foreground">{breakdown.total}</div>
@@ -553,7 +553,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 );
               })}
             </div>
-            
+
             {/* Formula explanation */}
             <div className="text-[8px] font-mono text-muted-foreground/40 pt-2 border-t border-border/40">
               {t('character.formula')}
@@ -605,7 +605,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* ACHIEVEMENTS */}
       {subTab === "achievements" && (
-        <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} onClaimReward={() => {}} />
+        <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} onClaimReward={() => { }} />
       )}
 
       {/* SHOP */}
@@ -663,7 +663,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-mono font-bold" style={{ color: dealTierColor }}>{dealItem.label}</div>
-                    <div className="text-[9px] font-mono text-muted-foreground/60">{dealItem.effect || ('stats' in dealItem && dealItem.stats ? Object.entries(dealItem.stats).map(([k,v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : "")}</div>
+                    <div className="text-[9px] font-mono text-muted-foreground/60">{dealItem.effect || ('stats' in dealItem && dealItem.stats ? Object.entries(dealItem.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : "")}</div>
                     <div className="flex items-center gap-2 mt-0.5">
                       {!isBonusDay && (
                         <span className="text-[9px] font-mono line-through text-muted-foreground/40">{featuredItem.cost}G</span>
@@ -707,7 +707,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
             <ScrollsPanel gold={gold} onSpendGold={spendGold} />
           )}
           {shopTab === "inventory" && (
-            <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => {}} onToggleEquip={equipItem} />
+            <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => { }} onToggleEquip={equipItem} />
           )}
           {shopTab === "allies" && (
             <>
@@ -778,9 +778,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                         <span className="text-[9px] font-mono text-muted-foreground/40 tracking-widest">{item.tier}</span>
                       </div>
                       <div className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">
-                        {item.stats && Object.keys(item.stats).length > 0 
-                          ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") 
-                          : (item.consumable ? t(`consumable_effects.${item.id}`) : (item.description || item.effect))}
+                        {item.stats ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : (item.description || item.effect)}
                       </div>
                     </div>
 
@@ -818,8 +816,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
       {/* Equip modal */}
       {activeSlot && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" 
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
           style={{ touchAction: 'none', overscrollBehavior: 'none' }}
           onClick={() => setActiveSlot(null)}
         >
@@ -847,13 +845,13 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       )}
 
       {/* Off-screen container for generating Shareable Image */}
-      <div 
-        style={{ 
-          position: "absolute", 
-          left: -9999, 
-          top: -9999, 
-          width: 1080, 
-          height: 1080 
+      <div
+        style={{
+          position: "absolute",
+          left: -9999,
+          top: -9999,
+          width: 1080,
+          height: 1080
         }}
       >
         <div id="share-card-container">

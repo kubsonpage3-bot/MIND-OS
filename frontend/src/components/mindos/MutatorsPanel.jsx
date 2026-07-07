@@ -152,14 +152,14 @@ export default function MutatorsPanel({ onSpendGold }) {
                     {/* Pixel art icon */}
                     <div className={`shrink-0 w-9 h-9 rounded-lg border overflow-hidden flex items-center justify-center ${active_ ? "border-[#f0c04060] bg-[#f0c04010]" : "border-border bg-muted/30"}`}
                       style={{ imageRendering: "pixelated" }}>
-                      <img src={mut.icon} alt={mut.name} className="w-full h-full object-contain"
+                      <img src={mut.icon} alt={t(mut.name)} className="w-full h-full object-contain"
                         style={{ imageRendering: "pixelated" }} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`font-mono text-[11px] font-black tracking-wide ${active_ ? "text-[#f0c040]" : purchased_ ? "text-primary" : "text-foreground"}`}>
-                          {mut.name}
+                          {t(mut.name)}
                         </span>
                         {active_ && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded"
                           style={{ background: "#f0c04025", color: "#f0c040", border: "1px solid #f0c04040" }}>ACTIVE</span>}
@@ -167,12 +167,12 @@ export default function MutatorsPanel({ onSpendGold }) {
                         {mut.toggle && <span className="text-[8px] font-mono text-muted-foreground/40">[toggle]</span>}
                         {mut.durationDays && <span className="text-[8px] font-mono text-muted-foreground/40">{mut.durationDays}d</span>}
                       </div>
-                      <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 leading-relaxed">{mut.desc}</div>
+                      <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 leading-relaxed">{t(mut.desc)}</div>
 
                       {/* Synergy line */}
                       {mut.synergy && (
                         <div className={`mt-1 text-[8px] font-mono italic ${synActive ? "text-[#f0c040]" : "text-muted-foreground/60"}`}>
-                          {synActive ? `⚡ Synergy: ${MUTATORS.find(m => m.id === mut.synergy)?.name} — ACTIVE ✦` : `Synergy: ${MUTATORS.find(m => m.id === mut.synergy)?.name}`}
+                          {synActive ? `⚡ Synergy: ${t(MUTATORS.find(m => m.id === mut.synergy)?.name)} — ACTIVE ✦` : `Synergy: ${t(MUTATORS.find(m => m.id === mut.synergy)?.name)}`}
                         </div>
                       )}
                     </div>

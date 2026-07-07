@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { djangoApi } from '@/api/djangoClient';
 import BottomSheet from '@/components/ui/BottomSheet';
 import OptimizedImage from './OptimizedImage';

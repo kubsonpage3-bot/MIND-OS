@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,6 +7,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 
 export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -67,7 +69,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
               className="font-mono font-black text-4xl text-center"
               style={{ color: "#f0c040", textShadow: "0 0 40px #f0c040" }}
             >
-              🦅 REBORN
+              {t('prestige.reborn')}
             </motion.div>
           </motion.div>
         )}
@@ -78,7 +80,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
           boxShadow: canPrestige ? "0 0 16px #f0c04030" : "none" }}>
         <div className="flex items-center justify-between">
           <div className="font-mono text-xs font-bold" style={{ color: canPrestige ? "#f0c040" : "#4a4060" }}>
-            ✦ PRESTIGE
+            {t('prestige.prestige')}
           </div>
           {count > 0 && (
             <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold"
@@ -90,7 +92,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
 
         {!canPrestige ? (
           <div className="text-[10px] font-mono text-muted-foreground/40 leading-relaxed">
-            Reach {xpRequired} XP to unlock Prestige. Current: {rankXP.toFixed(0)} / {xpRequired} XP
+            Reach {xpRequired} {t('prestige.xpToUnlock')} {rankXP.toFixed(0)} / {xpRequired} XP
             <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / xpRequired) * 100)}%`, background: "#f0c040" }} />
             </div>
@@ -101,7 +103,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
             className="w-full py-2 text-xs font-mono font-black rounded-lg transition-all"
             style={{ background: "#f0c04020", color: "#f0c040", border: "2px solid #f0c040", boxShadow: "0 0 12px #f0c04040" }}
           >
-            INITIATE PRESTIGE →
+            {t('prestige.initiate')}
           </button>
         )}
       </div>
@@ -154,15 +156,13 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
                 className="w-full bg-muted/20 border border-border rounded-lg px-3 py-2 text-sm font-mono text-center text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-yellow-500/60"
               />
               <div className="flex gap-2">
-                <button onClick={() => { setOpen(false); setInput(""); }} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">CANCEL</button>
+                <button onClick={() => { setOpen(false); setInput(""); }} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">{t('prestige.cancel')}</button>
                 <button
                   onClick={confirm}
                   disabled={input !== "REBIRTH"}
                   className="flex-1 py-2 text-xs font-mono rounded-lg font-black transition-all"
                   style={{ background: input === "REBIRTH" ? "#dc2626" : "#1e1a38", color: input === "REBIRTH" ? "#fff" : "#4a4060" }}
-                >
-                  CONFIRM REBIRTH
-                </button>
+                >{t('prestige.confirmRebirth')}</button>
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -9,6 +10,7 @@ function getTodayStr() {
 }
 
 export default function StreakControl() {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const queryClient = useQueryClient();
   const [showConfirm, setShowConfirm] = useState(false);
@@ -66,7 +68,7 @@ export default function StreakControl() {
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
           <span className="text-ps font-bold">+{currentStreak}</span>
-          <span>day streak</span>
+          <span>{t('streakControl.dayStreak')}</span>
         </div>
         <button
           onClick={handleLog}

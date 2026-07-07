@@ -10,7 +10,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import PartyTab from "./PartyTab";
 import TabGuideModal from "./TabGuideModal";
 
-const RIVAL_NAME = "JOHAN";
+const RIVAL_NAME = "{t('rivalTab.johan')}";
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function getDayNumber() {
@@ -161,7 +161,7 @@ function GhostAvatar({ pulse = false, overtook, playerOvertook }) {
       )}
       <OptimizedImage
         src="/images/webp/6aa09434f_grafik.webp"
-        alt="JOHAN"
+        alt="{t('rivalTab.johan')}"
         style={{
           width: 72, height: 72, objectFit: "cover", borderRadius: "50%",
           imageRendering: "pixelated",
@@ -193,6 +193,7 @@ function TypingDots() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function RivalTab({ playerRankXP, playerStreak, logs }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("rival");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sessionToast, setSessionToast] = useState(null);
@@ -290,7 +291,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
     return { playerHoursWeek, playerAvgFocus, playerSubjectsWeek, playerWeeklyRankXP };
   }, [logs]);
 
-  if (isRivalLoading || !rivalData) return <div className="py-8 text-center text-muted-foreground/40 text-xs font-mono">Loading rival data...</div>;
+  if (isRivalLoading || !rivalData) return <div className="py-8 text-center text-muted-foreground/40 text-xs font-mono">{t('rivalTab.loading')}</div>;
 
   const { totalXP: johanXP, streak: johanStreak, todaySessions = [], weeklyHistory = [] } = rivalData;
 
@@ -460,14 +461,10 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                 🔥 {johanStreak} days
               </span>
               {rivalData.currentPattern === "surge" && (
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid #ef444444" }}>
-                  SURGE
-                </span>
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid #ef444444" }}>{t('rivalTab.surge')}</span>
               )}
               {rivalData.currentPattern === "weak" && (
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid #94a3b844" }}>
-                  LIGHT
-                </span>
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid #94a3b844" }}>{t('rivalTab.light')}</span>
               )}
             </div>
           </div>
@@ -477,7 +474,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         <div className="space-y-2">
           <div className="space-y-1">
             <div className="flex justify-between text-[9px] font-mono" style={{ color: 'rgba(0,229,255,0.6)' }}>
-              <span>{RIVAL_NAME} RANK XP</span>
+              <span>{RIVAL_NAME} {t('rivalTab.rankXp')}</span>
               <span>{johanXP.toFixed(1)} XP</span>
             </div>
             <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -491,7 +488,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
           </div>
           <div className="space-y-1">
             <div className="flex justify-between text-[9px] font-mono" style={{ color: playerRank.color }}>
-              <span>YOU RANK XP</span>
+              <span>{t('rivalTab.youRankXp')}</span>
               <span>{(playerRankXP || 0).toFixed(1)} XP</span>
             </div>
             <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -511,9 +508,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
             : `✓ You lead by ${diff.toFixed(1)} XP — maintain your edge`}
           {isClosing && (
             <span className="ml-2 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold"
-              style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid #ef444440" }}>
-              CLOSING
-            </span>
+              style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid #ef444440" }}>{t('rivalTab.closing')}</span>
           )}
         </div>
       </motion.div>
@@ -568,27 +563,23 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         })}
 
         {visibleSessions.length === 0 && futureSessions.length === 0 && (
-          <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)", fontStyle: "italic", padding: "4px" }}>
-            No sessions logged yet today.
-          </div>
+          <div style={{ fontFamily: "'Nunito'", fontSize: 12, color: "var(--habit-dim)", fontStyle: "italic", padding: "4px" }}>{t('rivalTab.noSessionsToday')}</div>
         )}
 
         <div style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)", paddingTop: 4 }}>
-          Today: {rivalTodayHours.toFixed(1)}h logged
+          {t('rivalTab.todayLabel')} {rivalTodayHours.toFixed(1)}{t('rivalTab.hLogged')}
         </div>
 
         {playerTodayHours === 0 && new Date().getHours() >= 15 && rivalTodayHours > 0 && (
           <div className="px-3 py-2 rounded-xl"
             style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 12, border: "1.5px solid #f59e0b", color: "#f59e0b", background: "rgba(245,158,11,0.06)" }}>
-            {RIVAL_NAME} has already logged {rivalTodayHours.toFixed(1)}h today. You have: 0h.
+            {RIVAL_NAME} {t('rivalTab.hasAlreadyLogged')} {rivalTodayHours.toFixed(1)}{t('rivalTab.youHaveZero')}
           </div>
         )}
       </div>
 
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
-        <div className="px-4 py-2.5" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: "1px solid var(--habit-border)" }}>
-          Weekly Comparison
-        </div>
+        <div className="px-4 py-2.5" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: "1px solid var(--habit-border)" }}>{t('rivalTab.weeklyComparison')}</div>
         <div className="p-4 space-y-3">
           {[
             {
@@ -634,7 +625,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                   <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }}>{label}</span>
                   <div className="flex items-center gap-3">
                     <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: youWin ? '#00cc88' : '#ef4444' }}>
-                      You: {fmt(you)}
+                      {t('rivalTab.youLabel')} {fmt(you)}
                     </span>
                     <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: !youWin ? '#00cc88' : 'rgba(100,116,139,0.6)' }}>
                       {RIVAL_NAME}: {fmt(rival)}
@@ -644,7 +635,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                 {/* YOU bar */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: youColor, width: 24 }}>YOU</span>
+                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: youColor, width: 24 }}>{t('rivalTab.youGraph')}</span>
                     <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
                       <motion.div
                         className="h-full rounded-full"
@@ -656,7 +647,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: rivalColor, width: 24 }}>J</span>
+                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: rivalColor, width: 24 }}>{t('rivalTab.j')}</span>
                     <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
                       <motion.div
                         className="h-full rounded-full"
@@ -681,7 +672,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
           style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
           {historyOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-          Last 7 Days
+          {t('rivalTab.last7Days')}
         </button>
         {historyOpen && (
           <div className="px-4 pb-4 space-y-1.5">

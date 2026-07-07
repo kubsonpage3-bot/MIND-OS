@@ -1,0 +1,469 @@
+{
+  "rpgData": {
+    "classes": {
+      "architect": {
+        "name": "THE ARCHITECT",
+        "lore": "Builds systems. Thinks in structures. Never improvises."
+      },
+      "ascetic": {
+        "name": "THE ASCETIC",
+        "lore": "Forges the will through suffering. Pain is the teacher."
+      },
+      "linguist": {
+        "name": "THE LINGUIST",
+        "lore": "Languages are keys. Every key opens a different mind."
+      },
+      "warlord": {
+        "name": "THE WARLORD",
+        "lore": "The body is the weapon. Discipline is the ammunition."
+      }
+    },
+    "skills": {
+      "blueprint": {
+        "name": "BLUEPRINT",
+        "desc": "Next 3 tasks logged give +50% Rank XP until midnight."
+      },
+      "system_overload": {
+        "name": "SYSTEM OVERLOAD",
+        "desc": "Deal 3× damage to current boss on next task completion."
+      },
+      "infinite_loop": {
+        "name": "INFINITE LOOP",
+        "desc": "All sessions in next 2 hours count double for cognitive metrics."
+      },
+      "iron_fast": {
+        "name": "IRON FAST",
+        "desc": "For 24h: each task restores 5 HP. Missed dailies deal 0 HP damage."
+      },
+      "contemplate": {
+        "name": "CONTEMPLATE",
+        "desc": "Instantly gain +3 to all Gf/Gc/Ps/Vm as if a 1h perfect session."
+      },
+      "transcendence": {
+        "name": "TRANSCENDENCE",
+        "desc": "For 48h: streak cannot break. Rival XP frozen."
+      },
+      "babel_mode": {
+        "name": "BABEL MODE",
+        "desc": "Next language session counts across all three language subjects."
+      },
+      "polyglot_surge": {
+        "name": "POLYGLOT SURGE",
+        "desc": "Push all language subject ranks forward by 2 virtual hours each."
+      },
+      "memetic_transfer": {
+        "name": "MEMETIC TRANSFER",
+        "desc": "For 24h: Gc and Vm gains also mirror as Gf gains at 50% rate."
+      },
+      "battle_fury": {
+        "name": "BATTLE FURY",
+        "desc": "For 1h: +50% physical damage, -20% mana regen."
+      },
+      "war_cry": {
+        "name": "WAR CRY",
+        "desc": "Reduce boss HP by 10% and stun boss for 1h."
+      },
+      "tactical_retreat": {
+        "name": "TACTICAL RETREAT",
+        "desc": "Reset boss encounter, gain 25% max mana back."
+      }
+    },
+    "skillTree": {
+      "sharp_focus": {
+        "name": "Sharp Focus",
+        "desc": "Sessions with Focus 8+ give +10% bonus Rank XP"
+      },
+      "deep_concentration": {
+        "name": "Deep Concentration",
+        "desc": "Focus minimum counts as 7.0"
+      },
+      "flow_state": {
+        "name": "Flow State",
+        "desc": "First session each day gives 1.5× Rank XP"
+      },
+      "neural_expansion": {
+        "name": "Neural Expansion",
+        "desc": "Gf ceiling +5 permanently"
+      },
+      "cognitive_supremacy": {
+        "name": "Cognitive Supremacy",
+        "desc": "All cognitive metric gains +20%"
+      },
+      "godmind": {
+        "name": "GODMIND",
+        "desc": "IQ score contributes 0.5× to Rank XP per session"
+      },
+      "iron_conditioning": {
+        "name": "Iron Conditioning",
+        "desc": "Exercise and Running give +15% Rank XP"
+      },
+      "endurance_protocol": {
+        "name": "Endurance Protocol",
+        "desc": "Running rank thresholds reduced by 20%"
+      },
+      "combat_reflexes": {
+        "name": "Combat Reflexes",
+        "desc": "Critical hit chance +10% globally"
+      },
+      "pain_threshold": {
+        "name": "Pain Threshold",
+        "desc": "Missed daily HP loss reduced by 25%"
+      },
+      "unbreakable": {
+        "name": "Unbreakable",
+        "desc": "HP regenerates +3 per day passively"
+      },
+      "apex_predator": {
+        "name": "APEX PREDATOR",
+        "desc": "Boss damage +30% permanently"
+      },
+      "resource_awareness": {
+        "name": "Resource Awareness",
+        "desc": "Task completions give +10% Gold"
+      },
+      "compound_returns": {
+        "name": "Compound Returns",
+        "desc": "7-day perfect streak gives bonus 200G"
+      },
+      "loot_magnetism": {
+        "name": "Fortune's Pull",
+        "desc": "Item drop chance from tasks +3%"
+      },
+      "market_knowledge": {
+        "name": "Market Knowledge",
+        "desc": "Selling items gives 60% of buy price"
+      },
+      "fortunes_favor": {
+        "name": "Fortune's Favor",
+        "desc": "Daily login bonus Gold doubled"
+      },
+      "golden_mind": {
+        "name": "GOLDEN MIND",
+        "desc": "Sessions over 2h give a guaranteed loot drop"
+      },
+      "inner_stillness": {
+        "name": "Inner Stillness",
+        "desc": "Prayer/Meditation sessions give +20% Rank XP"
+      },
+      "resilience": {
+        "name": "Resilience",
+        "desc": "Mana regeneration +25%"
+      },
+      "mindguard": {
+        "name": "Mindguard",
+        "desc": "Active skill cooldowns reduced by 15%"
+      },
+      "aura_of_focus": {
+        "name": "Aura of Focus",
+        "desc": "Allies gain +10% to their stat bonuses"
+      },
+      "transcendent_will": {
+        "name": "Transcendent Will",
+        "desc": "Rival advancement speed reduced by 10% permanently"
+      },
+      "void_clarity": {
+        "name": "VOID CLARITY",
+        "desc": "Once per week: use any active skill at 0 mana cost"
+      },
+      "polymath": {
+        "name": "Polymath",
+        "desc": "Logging 3+ subjects in one day gives +20 bonus XP"
+      },
+      "cross_training": {
+        "name": "Cross-Training",
+        "desc": "Language sessions give 30% of hours to Humanities ranks"
+      },
+      "encyclopedia": {
+        "name": "Encyclopedia",
+        "desc": "Gc gains increased by 20% from all sources"
+      },
+      "master_of_arts": {
+        "name": "Master of Arts",
+        "desc": "Humanities rank thresholds reduced by 15%"
+      },
+      "living_library": {
+        "name": "Living Library",
+        "desc": "Reading/Philosophy sessions advance you faster vs rival"
+      },
+      "omniscience": {
+        "name": "OMNISCIENCE",
+        "desc": "All 5 metrics gain +0.3 flat on each achievement unlock"
+      }
+    },
+    "achievements": {
+      "first_step": {
+        "name": "First Step",
+        "desc": "Log your first session",
+        "reward": "+50G"
+      },
+      "seven_suns": {
+        "name": "Seven Suns",
+        "desc": "Reach a 7-day streak",
+        "reward": "+150G"
+      },
+      "iron_will": {
+        "name": "Iron Will",
+        "desc": "Reach a 30-day streak",
+        "reward": "+500G + Title"
+      },
+      "unbroken": {
+        "name": "Unbroken",
+        "desc": "Reach a 100-day streak",
+        "reward": "+2000G + Title"
+      },
+      "eternal": {
+        "name": "Eternal",
+        "desc": "Reach a 365-day streak",
+        "reward": "+10000G + Title"
+      },
+      "first_blood": {
+        "name": "First Blood",
+        "desc": "Deal 100 total boss damage",
+        "reward": "+30G"
+      },
+      "boss_slayer": {
+        "name": "Boss Slayer",
+        "desc": "Defeat your first boss",
+        "reward": "+200G + Title"
+      },
+      "dragon_hunter": {
+        "name": "Dragon Hunter",
+        "desc": "Defeat the Crimson Sovereign",
+        "reward": "+1000G + Title"
+      },
+      "emperors_bane": {
+        "name": "Emperor's Bane",
+        "desc": "Defeat the Void Emperor",
+        "reward": "+5000G + Title"
+      },
+      "void_walker": {
+        "name": "Void Walker",
+        "desc": "Complete all 5 bosses",
+        "reward": "+10000G + Title"
+      },
+      "first_session": {
+        "name": "First Session",
+        "desc": "Log your first TRAIN session",
+        "reward": "+30G"
+      },
+      "scholar": {
+        "name": "Scholar",
+        "desc": "Log 50 total sessions",
+        "reward": "+300G"
+      },
+      "polymath_ach": {
+        "name": "Polymath",
+        "desc": "Log in 10 different subjects",
+        "reward": "+500G"
+      },
+      "master": {
+        "name": "Master",
+        "desc": "Reach B rank in any subject",
+        "reward": "+1000G"
+      },
+      "grandmaster": {
+        "name": "Grandmaster",
+        "desc": "Reach SSS rank in any subject",
+        "reward": "+5000G + Title"
+      },
+      "first_coin": {
+        "name": "First Coin",
+        "desc": "Earn your first Gold",
+        "reward": "+10G"
+      },
+      "merchant": {
+        "name": "Merchant",
+        "desc": "Accumulate 1000G total earned",
+        "reward": "+100G"
+      },
+      "wealthy": {
+        "name": "Wealthy",
+        "desc": "Accumulate 10000G total earned",
+        "reward": "+500G"
+      },
+      "tycoon": {
+        "name": "Tycoon",
+        "desc": "Accumulate 100000G total earned",
+        "reward": "+2000G + Title"
+      },
+      "first_prayer": {
+        "name": "First Prayer",
+        "desc": "Log your first Prayer session",
+        "reward": "+50G"
+      },
+      "devotion": {
+        "name": "Devotion",
+        "desc": "Log 20 Prayer sessions",
+        "reward": "+300G"
+      },
+      "sanctified": {
+        "name": "Sanctified",
+        "desc": "Reach S rank in Prayer",
+        "reward": "+1000G + Title"
+      },
+      "first_crit": {
+        "name": "First Crit",
+        "desc": "Land your first critical hit",
+        "reward": "+20G"
+      },
+      "precision": {
+        "name": "Precision",
+        "desc": "Land 50 critical hits",
+        "reward": "+300G"
+      },
+      "sharpshooter": {
+        "name": "Sharpshooter",
+        "desc": "Land 500 critical hits",
+        "reward": "+2000G + Title"
+      },
+      "first_ally": {
+        "name": "First Ally",
+        "desc": "Recruit your first ally",
+        "reward": "+100G"
+      },
+      "commander": {
+        "name": "Commander",
+        "desc": "Recruit 3 allies",
+        "reward": "+500G"
+      },
+      "warlords_court": {
+        "name": "Warlord's Court",
+        "desc": "Recruit all 5 allies",
+        "reward": "+2000G + Title"
+      },
+      "loyal_bonds": {
+        "name": "Loyal Bonds",
+        "desc": "Upgrade any ally to Lv5",
+        "reward": "+1000G"
+      },
+      "reborn": {
+        "name": "Reborn",
+        "desc": "Complete your first prestige",
+        "reward": "Title: Reborn"
+      },
+      "phoenix": {
+        "name": "Phoenix",
+        "desc": "Complete 3 prestiges",
+        "reward": "Title: Phoenix"
+      }
+    },
+    "mutators": {
+      "bloodwork": {
+        "name": "BLOODWORK",
+        "desc": "Science sessions give +20% Rank XP. Other subjects give -5%."
+      },
+      "monks_path": {
+        "name": "MONK'S PATH",
+        "desc": "Prayer/Meditation +40% Rank XP. Streak log gives +2 XP instead of +1."
+      },
+      "iron_routine": {
+        "name": "IRON ROUTINE",
+        "desc": "Exercise/Running +25% Rank XP. Miss a daily → lose bonus for 24h."
+      },
+      "lexicon": {
+        "name": "LEXICON",
+        "desc": "Language sessions +20% Rank XP. +0.01 Gc per session."
+      },
+      "night_owl": {
+        "name": "NIGHT OWL",
+        "desc": "Sessions after 21:00 give +30% Rank XP. Before 09:00: -10%."
+      },
+      "early_riser": {
+        "name": "EARLY RISER",
+        "desc": "Sessions before 09:00 give +30% Rank XP. After 21:00: -10%."
+      },
+      "tunnel_vision": {
+        "name": "TUNNEL VISION",
+        "desc": "Log ONLY one subject/day: +50% Rank XP. Log 2+: bonus lost."
+      },
+      "loan_shark": {
+        "name": "LOAN SHARK",
+        "desc": "+40% Gold from tasks. Every midnight: lose 30G."
+      },
+      "compound": {
+        "name": "COMPOUND",
+        "desc": "Every 100G you own generates +1G/day passively."
+      },
+      "miser": {
+        "name": "MISER",
+        "desc": "Cannot spend Gold on shop items. Each 24h without spending: +5 Rank XP."
+      },
+      "tithe": {
+        "name": "TITHE",
+        "desc": "Each task: pay 3G or lose 5 HP. But +15% Rank XP from all tasks."
+      },
+      "ascetic_loop": {
+        "name": "ASCETIC LOOP",
+        "desc": "Streak gives Rank XP: streak×0.2 per day. Break streak: lose all bonus XP."
+      },
+      "double_nothing": {
+        "name": "DOUBLE OR NOTHING",
+        "desc": "Streak milestone rewards doubled. Miss 2 days in a row: streak resets to 0."
+      },
+      "momentum": {
+        "name": "MOMENTUM",
+        "desc": "Each day with 1h+ logged: +2% Rank XP, stacks to +20%. Miss: resets."
+      },
+      "diversity_lock": {
+        "name": "DIVERSITY LOCK",
+        "desc": "Cannot log same subject two sessions in a row. Reward: +20% Rank XP for 30d."
+      },
+      "silence": {
+        "name": "SILENCE",
+        "desc": "All skills disabled 48h. After: all cooldowns → 0."
+      },
+      "ironman": {
+        "name": "IRONMAN",
+        "desc": "HP hits 0 → forced prestige. In return: all Rank XP +15% forever."
+      },
+      "glass_cannon": {
+        "name": "GLASS CANNON",
+        "desc": "Rank XP +25%. HP loss from misses +60%."
+      },
+      "zero_hour": {
+        "name": "ZERO HOUR",
+        "desc": "No Gold earned for 7 days. After: get back 3× everything you would've earned."
+      },
+      "catalyst": {
+        "name": "CATALYST",
+        "desc": "Each OTHER active mutator gives +8% Rank XP. Alone: useless."
+      },
+      "echo": {
+        "name": "ECHO",
+        "desc": "Last subject logged gives double metric gains on NEXT session (diff subject)."
+      },
+      "mirror": {
+        "name": "MIRROR",
+        "desc": "Same domain task as last session: +15% boss damage."
+      },
+      "resonance": {
+        "name": "RESONANCE",
+        "desc": "If 2+ active mutators share a category: +10% to ALL their effects."
+      },
+      "gambler": {
+        "name": "GAMBLER",
+        "desc": "Each task: 20% chance double rewards, 20% chance 0 rewards, 60% normal."
+      },
+      "phantom_load": {
+        "name": "PHANTOM LOAD",
+        "desc": "Yesterday's hours count as +30% today for Rank XP calculation."
+      },
+      "cursed_clock": {
+        "name": "CURSED CLOCK",
+        "desc": "Every idle hour (8:00–22:00): lose 2G. But +1 Rank XP per logged hour."
+      },
+      "deja_vu": {
+        "name": "DÉJÀ VU",
+        "desc": "Same subject 3 days in a row: 3rd session +50% Rank XP. 4th day: normal."
+      },
+      "volatile": {
+        "name": "VOLATILE",
+        "desc": "First task each day: +100% rewards. Last (5+ tasks): +50%. Between: -10%."
+      },
+      "weight_of_history": {
+        "name": "WEIGHT OF HISTORY",
+        "desc": "Lifetime hours / 100 = permanent bonus % Rank XP. At 500h: +5%. At 1000h: +10%."
+      }
+    }
+  }
+}

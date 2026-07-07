@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Crown, Zap, Shield, Sparkles } from "lucide-react";
@@ -5,6 +6,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { isMobileApp } from "@/utils/platformUtils";
 
 export default function PremiumUpgradeModal({ onClose }) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -26,7 +28,7 @@ export default function PremiumUpgradeModal({ onClose }) {
       }
     } catch (err) {
       console.error(err);
-      setErrorMsg(err.message || "Failed to initialize checkout. Please try again.");
+      setErrorMsg(err.message || t('premium.error'));
       setIsLoading(false);
     }
   };
@@ -56,8 +58,8 @@ export default function PremiumUpgradeModal({ onClose }) {
               <Crown className="w-8 h-8 text-black" />
             </div>
             <div>
-              <h2 className="text-2xl font-black font-mono tracking-tight text-white">MIND OS <span className="text-amber-400">PREMIUM</span></h2>
-              <p className="text-sm font-mono text-muted-foreground mt-1">Unlock your full potential.</p>
+              <h2 className="text-2xl font-black font-mono tracking-tight text-white">{t('premium.mindOs')} <span className="text-amber-400">{t('premium.premium')}</span></h2>
+              <p className="text-sm font-mono text-muted-foreground mt-1">{t('premium.unlockPotential')}</p>
             </div>
           </div>
 
@@ -65,24 +67,24 @@ export default function PremiumUpgradeModal({ onClose }) {
             <div className="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
               <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-sm font-mono text-left">
-                <strong className="text-white block mb-0.5">All Character Classes</strong>
-                <span className="text-muted-foreground">Unlock Linguist and Warlord paths.</span>
+                <strong className="text-white block mb-0.5">{t('premium.allClasses')}</strong>
+                <span className="text-muted-foreground">{t('premium.unlockPaths')}</span>
               </div>
             </div>
 
             <div className="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
               <Zap className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-sm font-mono text-left">
-                <strong className="text-white block mb-0.5">Advanced Tools</strong>
-                <span className="text-muted-foreground">Access the integrated Pomodoro and Calendar widgets.</span>
+                <strong className="text-white block mb-0.5">{t('premium.advancedTools')}</strong>
+                <span className="text-muted-foreground">{t('premium.accessWidgets')}</span>
               </div>
             </div>
 
             <div className="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
               <Shield className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-sm font-mono text-left">
-                <strong className="text-white block mb-0.5">Support Development</strong>
-                <span className="text-muted-foreground">Help keep the servers running and fuel future updates.</span>
+                <strong className="text-white block mb-0.5">{t('premium.supportDev')}</strong>
+                <span className="text-muted-foreground">{t('premium.helpServers')}</span>
               </div>
             </div>
           </div>
@@ -96,7 +98,7 @@ export default function PremiumUpgradeModal({ onClose }) {
           {isMobileApp() ? (
             <div className="text-center space-y-3">
               <p className="text-white/60 text-sm">
-                Premium is available on the web version
+                {t('premium.webOnly')}
               </p>
               
               <div
@@ -105,10 +107,10 @@ export default function PremiumUpgradeModal({ onClose }) {
                            text-amber-400 font-ui font-bold
                            text-center text-sm tracking-wide"
               >
-                🌐 Get Premium at mindos.pages.dev
+                {t('premium.getPremiumLink')}
               </div>
               <p className="text-white/30 text-xs">
-                Log in with the same account to sync your progress
+                {t('premium.syncDesc')}
               </p>
             </div>
           ) : (
@@ -124,7 +126,7 @@ export default function PremiumUpgradeModal({ onClose }) {
                 ) : (
                   <>
                     <Crown className="w-4 h-4" />
-                    <span>UPGRADE NOW</span>
+                    <span>{t('premium.upgradeNow')}</span>
                   </>
                 )}
               </div>
@@ -133,7 +135,7 @@ export default function PremiumUpgradeModal({ onClose }) {
 
           <div className="mt-4 text-center">
             <button onClick={onClose} className="text-xs font-mono text-muted-foreground hover:text-white transition-colors">
-              Maybe later
+              {t('premium.maybeLater')}
             </button>
           </div>
         </div>

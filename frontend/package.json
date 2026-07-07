@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "predev": "node ../scripts/compress-images.js",
+    "predev": "node ../scripts/compress-images.mjs",
     "build": "vite build",
-    "prebuild": "node ../scripts/compress-images.js || true",
+    "prebuild": "node ../scripts/compress-images.mjs || true",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
@@ -75,6 +75,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@babel/parser": "^8.0.0",
+    "@babel/traverse": "^8.0.0",
     "@eslint/js": "^9.19.0",
     "@tauri-apps/cli": "^2.11.3",
     "@types/node": "^22.13.5",

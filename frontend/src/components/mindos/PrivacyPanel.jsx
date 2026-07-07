@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Shield, Eye, UserX, BarChart3, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -7,6 +8,7 @@ import { djangoApi } from '@/api/djangoClient';
 import { queryClientInstance } from '@/lib/query-client';
 
 export default function PrivacyPanel() {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   
   const updateProfile = useMutation({
@@ -66,18 +68,18 @@ export default function PrivacyPanel() {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <Shield className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Privacy Settings</span>
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('privacy.title')}</span>
       </div>
 
       {/* Rival Visibility */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Rival Visibility</span>
+          <span className="font-mono text-xs font-bold">{t('privacy.rivalVisibility')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Allow your rival to see your progress</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('privacy.rivalDesc')}</p>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-muted-foreground">Visible to rival</span>
+          <span className="text-xs font-mono text-muted-foreground">{t('privacy.visibleLabel')}</span>
           <button
             onClick={() => updateSetting("rivalVisible", !privacy.rivalVisible)}
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
@@ -95,11 +97,11 @@ export default function PrivacyPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <UserX className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Anonymous Mode</span>
+          <span className="font-mono text-xs font-bold">{t('privacy.anonMode')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Hide your name from public leaderboards</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('privacy.anonDesc')}</p>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-muted-foreground">Anonymous mode</span>
+          <span className="text-xs font-mono text-muted-foreground">{t('privacy.anonLabel')}</span>
           <button
             onClick={() => updateSetting("anonymous", !privacy.anonymous)}
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
@@ -117,11 +119,11 @@ export default function PrivacyPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Analytics</span>
+          <span className="font-mono text-xs font-bold">{t('privacy.analytics')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Allow anonymous usage analytics</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('privacy.analyticsDesc')}</p>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-muted-foreground">Enable analytics</span>
+          <span className="text-xs font-mono text-muted-foreground">{t('privacy.analyticsLabel')}</span>
           <button
             onClick={() => {
               const nextConsent = consent === "granted" ? "denied" : "granted";
@@ -160,14 +162,14 @@ export default function PrivacyPanel() {
         className="p-4 rounded-xl border border-border bg-card"
       >
         <div className="space-y-2 text-[10px] font-mono text-muted-foreground/70">
-          <p>Data collected:</p>
+          <p>{t('privacy.dataCollected')}</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Task completion history</li>
-            <li>Cognitive metric progress</li>
-            <li>Session duration and focus ratings</li>
-            <li>Device type (for sync optimization)</li>
+            <li>{t('privacy.dataTaskHistory')}</li>
+            <li>{t('privacy.dataMetricProgress')}</li>
+            <li>{t('privacy.dataSessionInfo')}</li>
+            <li>{t('privacy.dataDeviceType')}</li>
           </ul>
-          <p className="mt-3">Data is stored securely and never shared with third parties.</p>
+          <p className="mt-3">{t('privacy.dataSecureInfo')}</p>
         </div>
       </motion.div>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import OptimizedImage from "./OptimizedImage";
 import { Play, Pause, RotateCcw, Settings, X, Zap, Coffee, Moon } from "lucide-react";
@@ -116,6 +117,7 @@ function OrbitRing({ color, radius, duration, reverse }) {
 }
 
 export default function PomodoroPanel() {
+  const { t } = useTranslation();
   const [preset, setPreset] = useState(PRESETS[0]);
   const [showSettings, setShowSettings] = useState(false);
   const [customSettings, setCustomSettings] = useState({ ...PRESETS[0] });
@@ -206,7 +208,7 @@ export default function PomodoroPanel() {
               className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4"
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-sm font-bold tracking-wider">POMODORO SETTINGS</span>
+                <span className="font-mono text-sm font-bold tracking-wider">{t('pomodoroPanel.settings')}</span>
                 <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-foreground">
                   <X className="w-5 h-5" />
                 </button>
@@ -252,9 +254,7 @@ export default function PomodoroPanel() {
                   setShowSettings(false);
                 }}
                 className="w-full font-mono"
-              >
-                APPLY
-              </Button>
+              >{t('pomodoroPanel.apply')}</Button>
             </motion.div>
           </motion.div>
         )}

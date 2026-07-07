@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,15 +53,15 @@ function MemberCard({ member, onBuff, onClick }) {
                 Lv.{member.level}
               </span>
               {/* Rank badge */}
-              <span 
-                className="px-1.5 py-0.5 rounded text-[10px] font-bold border" 
+              <span
+                className="px-1.5 py-0.5 rounded text-[10px] font-bold border"
                 style={{ background: `${rank.color}22`, color: rank.color, borderColor: `${rank.color}66` }}
               >
                 {rank.id === 'ASC' ? rank.label : rank.id}
               </span>
             </div>
             {onBuff && (
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setShowBuffs(!showBuffs); }}
                 className="p-1 rounded-md transition-all hover:bg-white/10"
               >
@@ -114,28 +115,28 @@ function MemberCard({ member, onBuff, onClick }) {
           </div>
         </div>
       </div>
-      
+
       {/* Buff menu */}
       <AnimatePresence>
         {showBuffs && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }} 
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden border-t border-white/5 pt-2 flex gap-2"
           >
-             <button 
-                onClick={(e) => { e.stopPropagation(); onBuff('heal_1'); setShowBuffs(false); }}
-                className="flex-1 py-1 text-[10px] font-mono rounded bg-green-500/10 text-green-400 border border-green-500/20"
-             >
-               + Heal
-             </button>
-             <button 
-                onClick={(e) => { e.stopPropagation(); onBuff('focus_buff'); setShowBuffs(false); }}
-                className="flex-1 py-1 text-[10px] font-mono rounded bg-blue-500/10 text-blue-400 border border-blue-500/20"
-             >
-               + Focus
-             </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onBuff('heal_1'); setShowBuffs(false); }}
+              className="flex-1 py-1 text-[10px] font-mono rounded bg-green-500/10 text-green-400 border border-green-500/20"
+            >
+              + Heal
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onBuff('focus_buff'); setShowBuffs(false); }}
+              className="flex-1 py-1 text-[10px] font-mono rounded bg-blue-500/10 text-blue-400 border border-blue-500/20"
+            >
+              + Focus
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -161,18 +162,14 @@ function InviteCodeDisplay({ code }) {
       style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
     >
       <div>
-        <div className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: 'var(--habit-dim)' }}>
-          Party Invite Code
-        </div>
+        <div className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.inviteCodeLabel')}</div>
         <div
           className="font-mono font-black text-2xl tracking-[0.3em]"
           style={{ color: 'var(--habit-purple)', letterSpacing: '0.3em' }}
         >
           {code}
         </div>
-        <div className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--habit-dim)' }}>
-          Share this with friends to join your party
-        </div>
+        <div className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.inviteDesc')}</div>
       </div>
       <button
         onClick={handleCopy}
@@ -182,7 +179,7 @@ function InviteCodeDisplay({ code }) {
           border: `1px solid ${copied ? '#00cc88' : 'var(--habit-border)'}`,
           color: copied ? '#00cc88' : 'var(--habit-dim)',
         }}
-        title="Copy invite code"
+        title={t('partyTab.copyInvite')}
       >
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
       </button>
@@ -248,13 +245,11 @@ function NoPartyView({ onCreated, onJoined }) {
       >
         <div className="flex items-center gap-2 mb-1">
           <Swords className="w-3.5 h-3.5" style={{ color: 'var(--habit-purple)' }} />
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>
-            Create Party
-          </span>
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>{t('partyTab.createParty')}</span>
         </div>
         <input
           style={inputStyle}
-          placeholder="Party name…"
+          placeholder={t('partyTab.partyNamePlaceholder')}
           value={createName}
           onChange={(e) => { setCreateName(e.target.value); setError(''); }}
           maxLength={64}
@@ -270,7 +265,7 @@ function NoPartyView({ onCreated, onJoined }) {
             boxShadow: createName.trim() ? '0 2px 12px var(--habit-purple-glow)' : 'none',
           }}
         >
-          {createMutation.isPending ? 'Creating…' : 'Create Party'}
+          {createMutation.isPending ? t('partyTab.creatingBtn') : t('partyTab.createParty')}
         </button>
       </div>
 
@@ -280,13 +275,11 @@ function NoPartyView({ onCreated, onJoined }) {
       >
         <div className="flex items-center gap-2 mb-1">
           <UserPlus className="w-3.5 h-3.5" style={{ color: '#00e5ff' }} />
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>
-            Join Party
-          </span>
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>{t('partyTab.joinParty')}</span>
         </div>
         <input
           style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700 }}
-          placeholder="INVITE CODE"
+          placeholder={t('partyTab.inviteCode')}
           value={joinCode}
           onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setError(''); }}
           maxLength={6}
@@ -302,7 +295,7 @@ function NoPartyView({ onCreated, onJoined }) {
             border: '1px solid #00e5ff44',
           }}
         >
-          {joinMutation.isPending ? 'Joining…' : 'Join with Code'}
+          {joinMutation.isPending ? t('partyTab.joiningBtn') : t('partyTab.joinBtn')}
         </button>
       </div>
 
@@ -354,10 +347,10 @@ function PartyFeedView({ party }) {
 
   const EVENT_CONFIG = {
     task_completed: { icon: '✅', label: 'completed', color: '#00cc88' },
-    level_up:       { icon: '🆙', label: 'leveled up to', color: '#f59e0b' },
-    buff_sent:      { icon: '💪', label: 'sent a buff:', color: '#7B61FF' },
-    milestone:      { icon: '🏆', label: 'hit a milestone:', color: '#ffd700' },
-    default:        { icon: '⚡', label: 'did something:', color: 'var(--habit-dim)' },
+    level_up: { icon: '🆙', label: 'leveled up to', color: '#f59e0b' },
+    buff_sent: { icon: '💪', label: 'sent a buff:', color: '#7B61FF' },
+    milestone: { icon: '🏆', label: 'hit a milestone:', color: '#ffd700' },
+    default: { icon: '⚡', label: 'did something:', color: 'var(--habit-dim)' },
   };
 
   function relativeTime(dateStr) {
@@ -440,8 +433,8 @@ function PartyFeedView({ party }) {
           >
             <span className="text-4xl">🌑</span>
             <div className="text-center">
-              <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>No activity yet</div>
-              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>Complete a task to appear in the party feed</div>
+              <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.noActivity')}</div>
+              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>{t('partyTab.completeTaskFeed')}</div>
             </div>
           </motion.div>
         )}
@@ -480,16 +473,16 @@ function PartyLeaderboardView() {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between px-1 mb-3">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">Weekly XP Rank</span>
-        <span className="text-[10px] font-mono text-white/30">Resets Monday</span>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">{t('partyTab.weeklyRank')}</span>
+        <span className="text-[10px] font-mono text-white/30">{t('partyTab.resetsMonday')}</span>
       </div>
       <AnimatePresence>
         {leaderboard.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-10 flex flex-col items-center gap-3">
             <span className="text-4xl">📊</span>
             <div className="text-center">
-              <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>No XP this week yet</div>
-              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>Complete tasks to climb the ranks</div>
+              <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.noXpYet')}</div>
+              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>{t('partyTab.completeToClimb')}</div>
             </div>
           </motion.div>
         )}
@@ -509,11 +502,11 @@ function PartyLeaderboardView() {
                 background: isMe
                   ? 'rgba(123, 97, 255, 0.12)'
                   : i === 0 ? 'rgba(255, 215, 0, 0.07)'
-                  : 'var(--habit-panel)',
+                    : 'var(--habit-panel)',
                 border: isMe
                   ? '1px solid rgba(123, 97, 255, 0.5)'
                   : i === 0 ? '1px solid rgba(255, 215, 0, 0.25)'
-                  : '1px solid var(--habit-border)',
+                    : '1px solid var(--habit-border)',
               }}
             >
               <div className="flex items-center gap-3">
@@ -557,7 +550,7 @@ function PartyLeaderboardView() {
                   <div className="font-mono font-black text-sm" style={{ color: i === 0 ? '#ffd700' : isMe ? 'var(--habit-purple)' : 'var(--habit-text)' }}>
                     {(mem.weekly_xp || 0).toLocaleString()}
                   </div>
-                  <div className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>XP THIS WEEK</div>
+                  <div className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.xpThisWeek')}</div>
                 </div>
               </div>
             </motion.div>
@@ -614,12 +607,12 @@ function PartyView({ party }) {
             {party.member_count}/8
           </span>
           {party.streak > 0 && (
-             <span
-               className="text-[10px] font-mono px-1.5 py-0.5 rounded flex items-center gap-1"
-               style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid #f59e0b40' }}
-             >
-               🔥 {party.streak}d
-             </span>
+            <span
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded flex items-center gap-1"
+              style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid #f59e0b40' }}
+            >
+              🔥 {party.streak}d
+            </span>
           )}
         </div>
         <button
@@ -682,9 +675,9 @@ function PartyView({ party }) {
             <InviteCodeDisplay code={party.invite_code} />
             <div className="mt-4 space-y-2">
               {(party.members || []).map((member) => (
-                <MemberCard 
-                  key={member.username} 
-                  member={member} 
+                <MemberCard
+                  key={member.username}
+                  member={member}
                   onBuff={(code) => buffMutation.mutate({ username: member.username, code })}
                   onClick={() => setSelectedMember(member)}
                 />
@@ -704,7 +697,7 @@ function PartyView({ party }) {
         )}
       </AnimatePresence>
 
-      <PartyMemberProfileSheet 
+      <PartyMemberProfileSheet
         isOpen={!!selectedMember}
         onClose={() => setSelectedMember(null)}
         userId={selectedMember?.user_id}
@@ -715,6 +708,7 @@ function PartyView({ party }) {
 }
 
 export default function PartyTab() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['party', 'members'],
     queryFn: () => djangoApi.party.members(),
@@ -725,17 +719,13 @@ export default function PartyTab() {
 
   if (isLoading) {
     return (
-      <div className="py-8 text-center text-[11px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-        Loading party…
-      </div>
+      <div className="py-8 text-center text-[11px] font-mono" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.loading')}</div>
     );
   }
 
   if (isError) {
     return (
-      <div className="py-8 text-center text-[11px] font-mono" style={{ color: '#ef4444' }}>
-        Failed to load party data.
-      </div>
+      <div className="py-8 text-center text-[11px] font-mono" style={{ color: '#ef4444' }}>{t('partyTab.error')}</div>
     );
   }
 
@@ -749,9 +739,7 @@ export default function PartyTab() {
         <span
           className="text-[11px] font-mono font-bold uppercase tracking-widest"
           style={{ color: 'var(--habit-dim)' }}
-        >
-          PARTY — Study Together
-        </span>
+        >{t('partyTab.header')}</span>
       </div>
 
       <AnimatePresence mode="wait">

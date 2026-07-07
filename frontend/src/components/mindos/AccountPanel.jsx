@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X, Crown, ExternalLink, Star, Lock, Calendar, RefreshCw, Sparkles } from "lucide-react";
+import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X, Crown, Star, Lock, Calendar, RefreshCw, Sparkles } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";

@@ -24,7 +24,7 @@ export default function AchievementTracker() {
         // Map to real name without underscores if we only have an ID
         if (typeof ach === 'string' || achName === achId) {
           const found = ACHIEVEMENTS.find(a => a.id === achId);
-          achName = found ? found.name : achId.replace(/_/g, ' ').toUpperCase();
+          achName = found ? i18n.t(found.name) : achId.replace(/_/g, ' ').toUpperCase();
         }
 
         if (!prevUnlocked.current.has(achId)) {

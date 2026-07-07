@@ -51,7 +51,7 @@ export default function AchievementsPanel({ profile, logs, alliesData, prestigeD
                    }}>
                   <div className="text-lg">{isUnlocked ? ach.icon : "🔒"}</div>
                   <div className="text-[9px] font-mono font-bold mt-1" style={{ color: isUnlocked ? ach.color : "#4a4060" }}>
-                    {isUnlocked ? ach.name : "???"}
+                    {isUnlocked ? t(ach.name) : "???"}
                   </div>
                   {isUnlocked && (
                     <div className="text-[8px] font-mono text-muted-foreground/40 mt-0.5 leading-tight">{ach.reward}</div>

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 export default function RankUpFlash({ newRankId, onDone }) {
+  const { t } = useTranslation();
   const rankObj = newRankId
     ? [
         { id: "F", color: "#64748b", label: "DORMANT" },
@@ -51,7 +52,7 @@ export default function RankUpFlash({ newRankId, onDone }) {
               boxShadow: `0 0 60px ${rankObj.color}, 0 0 120px ${rankObj.color}40`,
             }}
           >
-            <div className="font-mono text-sm tracking-widest text-muted-foreground mb-2">RANK UP</div>
+            <div className="font-mono text-sm tracking-widest text-muted-foreground mb-2">{t('rankUpFlash.rankUp')}</div>
             <div
               className="font-mono font-black tracking-widest"
               style={{ fontSize: "4rem", color: rankObj.color, textShadow: `0 0 40px ${rankObj.color}` }}

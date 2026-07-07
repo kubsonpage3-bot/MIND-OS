@@ -452,7 +452,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                     textShadow: "0 1px 4px #000, 0 1px 8px #000"
                   }}
                 >
-                  {node.name}
+                  {t(node.name)}
                 </div>
               </motion.button>
             );
@@ -496,14 +496,14 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
                   <h3 className="font-mono font-bold text-xs md:text-sm truncate" style={{ color: selectedNode.color }}>
-                    {selectedNode.name}
+                    {t(selectedNode.name)}
                   </h3>
                   <span className="text-[8px] md:text-[9px] font-mono px-1.5 rounded bg-white/10 text-white/70 whitespace-nowrap">
                     TIER {selectedNode.tier}
                   </span>
                 </div>
                 <div className="text-[9px] md:text-[10px] font-mono text-muted-foreground mt-1 leading-relaxed line-clamp-3 md:line-clamp-none break-words">
-                  {selectedNode.desc}
+                  {t(selectedNode.desc)}
                 </div>
               </div>
 

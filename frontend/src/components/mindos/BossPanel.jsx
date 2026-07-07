@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import OptimizedImage from "./OptimizedImage";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function BossPanel({ externalDamage, currentScore, onBossDamage }) {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const [damageFloat, setDamageFloat] = useState(null);
   const [isCritical, setIsCritical] = useState(false);
@@ -78,8 +80,8 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             📜
           </div>
           <div>
-            <div className="font-mono text-sm font-black text-muted-foreground/70 tracking-wider">NO ACTIVE BOSS</div>
-            <div className="font-mono text-xs text-muted-foreground/40 mt-1">Visit Scrolls tab to summon</div>
+            <div className="font-mono text-sm font-black text-muted-foreground/70 tracking-wider">{t("boss_panel.no_active")}</div>
+            <div className="font-mono text-xs text-muted-foreground/40 mt-1">{t("boss_panel.visit_scrolls")}</div>
           </div>
         </div>
       </div>
@@ -112,7 +114,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
         className="w-full flex items-center justify-between px-5 py-3 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
       >
         <span className="flex items-center gap-2">
-          {open ? "▾" : "▸"} SCROLL BOSS — <span className="text-red-400">ACTIVE</span>
+          {open ? "▾" : "▸"} {t("boss_panel.scroll_boss")} — <span className="text-red-400">{t("boss_panel.active")}</span>
           {hasDamageBuff && (
             <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[9px] font-bold border border-cyan-500/50 flex items-center gap-1">
               <span>⚡ BUFF ACTIVE</span>

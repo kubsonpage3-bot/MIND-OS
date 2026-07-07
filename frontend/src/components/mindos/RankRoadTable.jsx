@@ -22,16 +22,16 @@ export default function RankRoadTable({ rankXP = 0 }) {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-      <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider">▸ RANK ROAD</div>
+      <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('rankRoad.title')}</div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-xs font-mono">
           <thead>
             <tr className="text-muted-foreground/50 border-b border-border">
-              <th className="text-left py-2 pr-3">RANK</th>
-              <th className="text-left py-2 pr-3">TITLE</th>
-              <th className="text-right py-2 pr-3">XP NEEDED</th>
-              <th className="text-right py-2 hidden sm:table-cell">HOURS EST.</th>
+              <th className="text-left py-2 pr-3">{t('rankRoad.rank')}</th>
+              <th className="text-left py-2 pr-3">{t('rankRoad.rankTitle')}</th>
+              <th className="text-right py-2 pr-3">{t('rankRoad.xpNeeded')}</th>
+              <th className="text-right py-2 hidden sm:table-cell">{t('rankRoad.hoursEst')}</th>
             </tr>
           </thead>
           <tbody>
@@ -57,8 +57,8 @@ export default function RankRoadTable({ rankXP = 0 }) {
                   </td>
                   <td className="py-2 pr-3">
                     <span className={isCurrent ? "text-foreground" : "text-muted-foreground/70"}>{t(`ranks.${displayData.id}`, displayData.label)}</span>
-                    {isCurrent && <span className="ml-2 text-[10px] text-primary">← YOU</span>}
-                    {isNext && <span className="ml-2 text-[10px] text-yellow-400">← NEXT</span>}
+                    {isCurrent && <span className="ml-2 text-[10px] text-primary">← {t('rankRoad.you')}</span>}
+                    {isNext && <span className="ml-2 text-[10px] text-yellow-400">← {t('rankRoad.next')}</span>}
                   </td>
                   <td className="py-2 pr-3 text-right text-muted-foreground/80">{row.min}</td>
                   <td className="py-2 text-right text-muted-foreground/60 hidden sm:table-cell">~{Math.round(row.min/10)}h</td>
@@ -69,12 +69,12 @@ export default function RankRoadTable({ rankXP = 0 }) {
         </table>
       </div>
 
-      <div className="text-[10px] font-mono text-muted-foreground/40 italic">* Estimated at focus 8.0 average</div>
+      <div className="text-[10px] font-mono text-muted-foreground/40 italic">{t('rankRoad.estimatedFocus')}</div>
 
       {nextRank && (
         <div className="space-y-1.5">
           <div className="flex justify-between items-center mb-1 text-xs font-mono text-muted-foreground uppercase tracking-widest">
-            <span>Progress to <span style={{ color: nextRank.color }}>{nextRank.id} {t(`ranks.${nextRank.id}`, nextRank.label)}</span></span>
+            <span>{t('rankRoad.progressTo')}<span style={{ color: nextRank.color }}>{nextRank.id} {t(`ranks.${nextRank.id}`, nextRank.label)}</span></span>
             <span>{progressPct.toFixed(1)}%</span>
           </div>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -84,7 +84,7 @@ export default function RankRoadTable({ rankXP = 0 }) {
             />
           </div>
           <div className="text-[10px] text-right font-mono text-muted-foreground/60 mt-1">
-            {Math.floor(rankXP)} / {nextMin} XP — {progressPct.toFixed(0)}% to {nextRank.id} {t(`ranks.${nextRank.id}`, nextRank.label)}
+            {Math.floor(rankXP)} / {nextMin} XP — {progressPct.toFixed(0)}{t('rankRoad.percentTo')} {nextRank.id} {t(`ranks.${nextRank.id}`, nextRank.label)}
           </div>
         </div>
       )}

@@ -91,7 +91,7 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
       {/* XP bar */}
       <div className="w-full space-y-1.5 px-2">
         <div className="flex justify-between text-xs font-mono text-muted-foreground">
-          <span>RANK XP: <span className="text-foreground font-bold">{Math.floor(rankXP)}</span> / <span>{nextRank ? nextMin : currentMin}</span></span>
+          <span>{t('rankBadge.rankXp')}<span className="text-foreground font-bold">{Math.floor(rankXP)}</span> / <span>{nextRank ? nextMin : currentMin}</span></span>
           <span className="text-foreground">{progressPct.toFixed(0)}%</span>
         </div>
         <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -105,7 +105,7 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
             {Math.ceil(xpToNext)} XP to <span style={{ color: nextRank.color }}>{nextRank.id} {t(`ranks.${nextRank.id}`, nextRank.label)}</span>
           </div>
         ) : (
-          <div className="text-[11px] font-mono text-center" style={{ color: rank.color }}>Maximum rank achieved.</div>
+          <div className="text-[11px] font-mono text-center" style={{ color: rank.color }}>{t('rankBadge.maxRank')}</div>
         )}
       </div>
 

@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClientInstance } from "@/lib/query-client";
 
 export default function ResetPanel() {
+  const { t } = useTranslation();
   const { refreshProfile } = useDjangoAuth();
   const [resetting, setResetting] = useState(false);
 
@@ -38,7 +39,7 @@ export default function ResetPanel() {
         queryClientInstance.invalidateQueries({ queryKey: ["trainingLogs"] });
       } else if (variables === "nuclear") {
         queryClientInstance.clear();
-        
+
         // Force-clear the SW cache to prevent stale data
         if ('caches' in window) {
           try {
@@ -51,10 +52,10 @@ export default function ResetPanel() {
 
         // Clear specific legacy offline-engine localStorage state
         const keysToClear = [
-          "mindos_game_state", 
-          "mindos_tasks", 
+          "mindos_game_state",
+          "mindos_tasks",
           "mindos_class",
-          "mindos_activity_logs", 
+          "mindos_activity_logs",
           "mindos_hidden_activities",
           "mindos_prestige",
           "mindos_scrolls",
@@ -121,7 +122,7 @@ export default function ResetPanel() {
     const confirmation = prompt("Type 'RESET' to confirm:");
     if (confirmation !== "RESET") return;
     setResetting(true);
-    
+
     // Clear all localStorage mindos_ keys
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith("mindos_")) localStorage.removeItem(key);
@@ -142,7 +143,7 @@ export default function ResetPanel() {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <RotateCcw className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Reset Options</span>
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t("reset_panel.title")}</span>
       </div>
 
       {/* Soft Resets */}
@@ -155,9 +156,9 @@ export default function ResetPanel() {
         >
           <div className="flex items-center gap-2">
             <Activity className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Reset Training Activities</span>
+            <span className="font-mono text-xs font-bold">{t("reset_panel.training_title")}</span>
           </div>
-          <p className="text-[10px] text-muted-foreground/70">Deletes all logged sessions (resets subject ranks to F) and restores any hidden activities. Cognitive stats (Gf/Gc/Ps/Vm) are unchanged.</p>
+          <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.training_desc")}</p>
           <button
             onClick={resetTrainingActivities}
             disabled={resetting}
@@ -174,9 +175,9 @@ export default function ResetPanel() {
         >
           <div className="flex items-center gap-2">
             <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Reset Streak</span>
+            <span className="font-mono text-xs font-bold">{t("reset_panel.streak_title")}</span>
           </div>
-          <p className="text-[10px] text-muted-foreground/70">Reset streak counter without penalty</p>
+          <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.streak_desc")}</p>
           <button
             onClick={resetStreak}
             disabled={resetting}
@@ -194,9 +195,9 @@ export default function ResetPanel() {
         >
           <div className="flex items-center gap-2">
             <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Reset Tasks</span>
+            <span className="font-mono text-xs font-bold">{t("reset_panel.tasks_title")}</span>
           </div>
-          <p className="text-[10px] text-muted-foreground/70">Delete all habits, dailies, and to-dos</p>
+          <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.tasks_desc")}</p>
           <button
             onClick={resetTasks}
             disabled={resetting}
@@ -217,9 +218,9 @@ export default function ResetPanel() {
         >
           <div className="flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Reset Allies</span>
+            <span className="font-mono text-xs font-bold">{t("reset_panel.allies_title")}</span>
           </div>
-          <p className="text-[10px] text-muted-foreground/70">Lock all allies again</p>
+          <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.allies_desc")}</p>
           <button
             onClick={resetAllies}
             disabled={resetting}
@@ -237,9 +238,9 @@ export default function ResetPanel() {
         >
           <div className="flex items-center gap-2">
             <Brain className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-mono text-xs font-bold">Reset Skill Tree</span>
+            <span className="font-mono text-xs font-bold">{t("reset_panel.skilltree_title")}</span>
           </div>
-          <p className="text-[10px] text-muted-foreground/70">Refund all SP points</p>
+          <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.skilltree_desc")}</p>
           <button
             onClick={resetSkillTree}
             disabled={resetting}
@@ -259,9 +260,9 @@ export default function ResetPanel() {
       >
         <div className="flex items-center gap-2">
           <RotateCcw className="w-3.5 h-3.5 text-red-400" />
-          <span className="font-mono text-xs font-bold text-red-400">Reset Stats & Progress</span>
+          <span className="font-mono text-xs font-bold text-red-400">{t("reset_panel.stats_title")}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Reset cognitive stats, rank, gold, class, skills, allies (keeps tasks)</p>
+        <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.stats_desc")}</p>
         <button
           onClick={resetStats}
           disabled={resetting}
@@ -281,7 +282,7 @@ export default function ResetPanel() {
           <Trash2 className="w-3.5 h-3.5 text-red-500" />
           <span className="font-mono text-xs font-bold text-red-500">⚠ Nuclear Reset</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Delete EVERYTHING. Cannot be undone.</p>
+        <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.nuclear_desc")}</p>
         <button
           onClick={resetAllData}
           disabled={resetting}

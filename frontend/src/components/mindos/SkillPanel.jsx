@@ -113,7 +113,7 @@ export default function SkillPanel({ classId }) {
     },
     onSuccess: (data) => {
       const dataObj = /** @type {any} */ (data);
-      setToast(dataObj?.detail || `${cls?.skills.find(s => s.id === glowing)?.name || 'Skill'} activated!`);
+      setToast(dataObj?.detail || `${t(cls?.skills.find(s => s.id === glowing)?.name) || 'Skill'} activated!`);
       setTimeout(() => setToast(null), 3000);
     },
     onSettled: () => {
@@ -142,7 +142,7 @@ export default function SkillPanel({ classId }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Active Skills</div>
+      <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">{t('skillPanel.activeSkills')}</div>
 
       <AnimatePresence>
         {toast && (
@@ -163,7 +163,7 @@ export default function SkillPanel({ classId }) {
       {/* Mana bar */}
       <div className="space-y-1">
         <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-          <span>MANA</span>
+          <span>{t('skillPanel.mana')}</span>
           <span style={{ color: cls.color }}>{profile?.mana || 0}/{profile?.mana_max || cls.maxMana}</span>
         </div>
         <div className="h-2 rounded-none bg-muted overflow-hidden" style={{ imageRendering: "pixelated" }}>
@@ -226,9 +226,9 @@ export default function SkillPanel({ classId }) {
                       className="text-[8px]"
                     >■</motion.span>
                   )}
-                  {skill.name}
+                  {t(skill.name)}
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{skill.desc}</div>
+                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{t(skill.desc)}</div>
               </div>
               <div className="shrink-0 text-right">
                 <div className="text-[10px] font-mono font-bold" style={{ color: state.hasMana ? cls.color : "#ef4444" }}>

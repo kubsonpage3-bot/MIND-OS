@@ -31,6 +31,7 @@ function wasNotifiedToday() {
 }
 
 export default function ReminderControl() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState(loadReminderSettings);
   const [permission, setPermission] = useState("default");
   const [showToast, setShowToast] = useState(false);
@@ -112,7 +113,7 @@ export default function ReminderControl() {
             ) : (
               <BellOff className="w-4 h-4 text-muted-foreground" />
             )}
-            <span className="text-xs font-mono font-bold">DAILY REMINDER</span>
+            <span className="text-xs font-mono font-bold">{t('reminder.dailyReminder')}</span>
           </div>
           <button
             onClick={toggleEnabled}
@@ -127,9 +128,7 @@ export default function ReminderControl() {
         </div>
 
         <div className="flex items-center justify-between">
-          <label className="text-[10px] font-mono text-muted-foreground">
-            REMINDER TIME
-          </label>
+          <label className="text-[10px] font-mono text-muted-foreground">{t('reminder.reminderTime')}</label>
           <select
             value={settings.hour}
             onChange={(e) => updateHour(parseInt(e.target.value))}
@@ -154,9 +153,7 @@ export default function ReminderControl() {
           <button
             onClick={requestPermission}
             className="w-full py-1.5 text-[10px] font-mono rounded border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
-          >
-            ENABLE BROWSER NOTIFICATIONS
-          </button>
+          >{t('reminder.enableBtn')}</button>
         )}
 
         {permission === "granted" && settings.enabled && (
@@ -171,7 +168,7 @@ export default function ReminderControl() {
         <div className="fixed bottom-4 right-4 z-50 px-4 py-3 rounded-xl border border-primary/40 bg-card shadow-xl animate-in slide-in-from-bottom-4 fade-in duration-300">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 text-primary" />
-            <span className="text-xs font-mono">Reminder set for {String(settings.hour).padStart(2, "0")}:00</span>
+            <span className="text-xs font-mono">{t('reminder.setFor')} {String(settings.hour).padStart(2, "0")}:00</span>
           </div>
         </div>
       )}

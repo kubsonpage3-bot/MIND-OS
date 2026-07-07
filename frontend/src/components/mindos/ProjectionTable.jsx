@@ -39,6 +39,7 @@ function daysTo90Pct(current, ceiling, dailyRate) {
 }
 
 export default function ProjectionTable({ profile, logs }) {
+  const { t } = useTranslation();
   const { dailyRates, projections, avgHoursPerDay, avgFocus, subjectStats } = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -58,9 +59,9 @@ export default function ProjectionTable({ profile, logs }) {
       proj[mk] = {
         current,
         ceiling,
-        p7:   projectMetric(current, ceiling, rate, 7),
-        p30:  projectMetric(current, ceiling, rate, 30),
-        p90:  projectMetric(current, ceiling, rate, 90),
+        p7: projectMetric(current, ceiling, rate, 7),
+        p30: projectMetric(current, ceiling, rate, 30),
+        p90: projectMetric(current, ceiling, rate, 90),
         p365: projectMetric(current, ceiling, rate, 365),
         days90pct: daysTo90Pct(current, ceiling, rate),
       };
@@ -89,31 +90,29 @@ export default function ProjectionTable({ profile, logs }) {
   }, [profile, logs]);
 
   const currentIQ = calculateIQ(profile.gf, profile.gc, profile.ps, profile.vm);
-  const iq7   = calculateIQ(projections.gf?.p7,   projections.gc?.p7,   projections.ps?.p7,   projections.vm?.p7);
-  const iq30  = calculateIQ(projections.gf?.p30,  projections.gc?.p30,  projections.ps?.p30,  projections.vm?.p30);
-  const iq90  = calculateIQ(projections.gf?.p90,  projections.gc?.p90,  projections.ps?.p90,  projections.vm?.p90);
+  const iq7 = calculateIQ(projections.gf?.p7, projections.gc?.p7, projections.ps?.p7, projections.vm?.p7);
+  const iq30 = calculateIQ(projections.gf?.p30, projections.gc?.p30, projections.ps?.p30, projections.vm?.p30);
+  const iq90 = calculateIQ(projections.gf?.p90, projections.gc?.p90, projections.ps?.p90, projections.vm?.p90);
   const iq365 = calculateIQ(projections.gf?.p365, projections.gc?.p365, projections.ps?.p365, projections.vm?.p365);
 
   const colorMap = { gf: "text-gf", gc: "text-gc", ps: "text-ps", vm: "text-vm" };
 
   return (
     <div className="space-y-6">
-      <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-        At your current 7-day average pace:
-      </div>
+      <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">{t('projection.avgPace')}</div>
 
       {/* Cognitive metrics table */}
       <div className="overflow-x-auto">
         <table className="w-full text-xs font-mono">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left py-2 pr-4 text-muted-foreground/60 font-medium">Metric</th>
-              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">Now</th>
-              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">+30d</th>
-              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">+90d</th>
-              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">+1yr</th>
-              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">Ceiling</th>
-              <th className="text-right py-2 pl-3 text-muted-foreground/60 font-medium">90% ETA</th>
+              <th className="text-left py-2 pr-4 text-muted-foreground/60 font-medium">{t('projection.metric')}</th>
+              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">{t('projection.now')}</th>
+              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">{t('projection.plus30d')}</th>
+              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">{t('projection.plus90d')}</th>
+              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">{t('projection.plus1y')}</th>
+              <th className="text-right py-2 px-3 text-muted-foreground/60 font-medium">{t('projection.ceiling')}</th>
+              <th className="text-right py-2 pl-3 text-muted-foreground/60 font-medium">{t('projection.eta')}</th>
             </tr>
           </thead>
           <tbody>
@@ -136,7 +135,7 @@ export default function ProjectionTable({ profile, logs }) {
               );
             })}
             <tr className="bg-muted/10">
-              <td className="py-2.5 pr-4 font-bold text-foreground/90">IQ</td>
+              <td className="py-2.5 pr-4 font-bold text-foreground/90">{t('projection.iq')}</td>
               <td className="text-right py-2.5 px-3 text-foreground/80">{currentIQ.toFixed(1)}</td>
               <td className="text-right py-2.5 px-3 text-foreground font-semibold">{iq30.toFixed(1)}</td>
               <td className="text-right py-2.5 px-3 text-foreground font-semibold">{iq90.toFixed(1)}</td>
@@ -152,19 +151,19 @@ export default function ProjectionTable({ profile, logs }) {
       <div className="border-t border-border pt-5 space-y-4">
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📊 MASTERY RADAR</div>
         <div className="h-[250px] w-full">
-          <MasteryRadar 
-            subjectStats={subjectStats} 
-            outerRadius="65%" 
-            fontSize={10} 
-            dotRadius={5} 
-            showIcons={false} 
+          <MasteryRadar
+            subjectStats={subjectStats}
+            outerRadius="65%"
+            fontSize={10}
+            dotRadius={5}
+            showIcons={false}
           />
         </div>
       </div>
 
       {/* Subject categories */}
       <div className="border-t border-border pt-5 space-y-4">
-        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Subject Mastery Progress</div>
+        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">{t('projection.subjectMastery')}</div>
         <div className="space-y-3">
           {subjectStats.map(cat => (
             <div key={cat.id} className="space-y-1.5">
@@ -172,10 +171,10 @@ export default function ProjectionTable({ profile, logs }) {
                 <div className="flex items-center gap-1.5">
                   <span>{cat.icon}</span>
                   <span className="font-bold" style={{ color: cat.color }}>{cat.label}</span>
-                  <span className="text-muted-foreground/40"><AnimatedNumber value={cat.totalHours} formatter={(v) => v.toFixed(1)} />h total</span>
+                  <span className="text-muted-foreground/40"><AnimatedNumber value={cat.totalHours} formatter={(v) => v.toFixed(1)} />{t('projection.hTotal')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-[10px]">
-                  <span className="text-muted-foreground/50">now <span className="font-bold text-foreground/70"><AnimatedNumber value={cat.pct} formatter={(v) => v.toFixed(1)} />%</span></span>
+                  <span className="text-muted-foreground/50">{t('projection.nowSmall')}<span className="font-bold text-foreground/70"><AnimatedNumber value={cat.pct} formatter={(v) => v.toFixed(1)} />%</span></span>
                   <span className="text-muted-foreground/50">+30d <span className="font-bold" style={{ color: cat.color }}><AnimatedNumber value={cat.pct30d} formatter={(v) => v.toFixed(1)} />%</span></span>
                   <span className="text-muted-foreground/50">+90d <span className="font-bold" style={{ color: cat.color }}><AnimatedNumber value={cat.pct90d} formatter={(v) => v.toFixed(1)} />%</span></span>
                 </div>
@@ -199,14 +198,14 @@ export default function ProjectionTable({ profile, logs }) {
 
       {/* Motivational */}
       <div className="p-3 rounded-lg border border-border/40 bg-muted/20 text-xs font-mono text-muted-foreground/70 leading-relaxed">
-        <span className="text-foreground/50">To reach </span>
-        <span className="font-bold" style={{ color: "#f59e0b" }}>SSS GOD MODE</span>
-        <span className="text-foreground/50"> in 30 days: need </span>
-        <span className="text-foreground">7h/day</span>
-        <span className="text-foreground/50"> at focus </span>
+        <span className="text-foreground/50">{t('projection.toReach')}</span>
+        <span className="font-bold" style={{ color: "#f59e0b" }}>{t('projection.godMode')}</span>
+        <span className="text-foreground/50">{t('projection.in30Days')}</span>
+        <span className="text-foreground">{t('projection.7hDay')}</span>
+        <span className="text-foreground/50">{t('projection.atFocus')}</span>
         <span className="text-foreground">9+</span>
-        <span className="text-foreground/50"> with a </span>
-        <span className="text-foreground">30-day streak</span>
+        <span className="text-foreground/50">{t('projection.withA')}</span>
+        <span className="text-foreground">{t('projection.streak30')}</span>
         <span className="text-foreground/50">.</span>
       </div>
     </div>
