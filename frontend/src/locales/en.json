@@ -192,12 +192,12 @@
     "select_slot": "Select Slot",
     "no_items_slot": "No items in this slot.",
     "achievements_header": "ACHIEVEMENTS & MILESTONES ({{unlocked}}/{{total}})",
-    "pwr_effect": "Damage vs Boss: +{{val}}%",
-    "def_effect": "Reduced Penalty: -{{val}}%",
-    "foc_effect": "Faster Growth: +{{val}}%",
-    "mem_effect": "Gc & Vm Boost: +{{val}}%",
-    "spd_effect": "Mana Regen: +{{val}}%",
-    "lck_effect": "Crit Chance & Drops: +{{val}}%"
+    "pwr_effect": "Base XP & Boss Damage: +{{val}}",
+    "def_effect": "Damage Reduction",
+    "foc_effect": "Critical Focus Chance: +{{val}}%",
+    "mem_effect": "Cost Reduction (Mana/Fatigue)",
+    "spd_effect": "Base Gold: +{{val}}",
+    "lck_effect": "Gold Multiplier & Drops: +{{val}}%"
   },
   "training": {
     "flow_state": "Flow State",
@@ -603,5 +603,16 @@
     "medal_desc_algorithm": "Master of The Algorithm",
     "medal_desc_parasite": "Vanquisher of Parasites",
     "medal_desc_recursive": "Conqueror of Infinity"
+  },
+  "consumable_effects": {
+    "small_heal": "+20 HP",
+    "medium_heal": "+50 HP",
+    "large_heal": "+100 HP",
+    "elixir": "100% HP · 10min Immunity",
+    "boss_damage_plus": "+50% Boss DMG",
+    "xp_booster": "+50% XP (24h)",
+    "focus_stim": "+30% Focus",
+    "memory_patch": "+0.2 Gc",
+    "streak_shield": "Streak Protect (1x)"
   }
 }
