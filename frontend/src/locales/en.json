@@ -431,5 +431,15 @@
     "mana": "MANA",
     "not_enough_mana": "✗ NOT ENOUGH MANA",
     "use_skill": "► USE SKILL"
+  },
+  "achievements_page": {
+    "title": "ACHIEVEMENTS",
+    "total_progress": "TOTAL PROGRESS",
+    "boss_medals": "Boss Medals",
+    "medal_desc_void": "Slayer of The Void",
+    "medal_desc_static": "Overcomer of Static",
+    "medal_desc_algorithm": "Master of The Algorithm",
+    "medal_desc_parasite": "Vanquisher of Parasites",
+    "medal_desc_recursive": "Conqueror of Infinity"
   }
 }

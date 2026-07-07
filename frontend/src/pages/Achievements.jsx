@@ -59,7 +59,7 @@ function BossMedalCard({ boss, defeated }) {
         <div className="font-mono text-[10px] font-black tracking-wider" style={{ color: defeated ? boss.color : "#4a4060" }}>
           {t(`bosses.${boss.id}`, boss.name)}
         </div>
-        <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 italic">{defeated ? replaceBossNames(boss.desc, t) : "???"}</div>
+        <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 italic">{defeated ? replaceBossNames(t(`achievements_page.medal_desc_${boss.id}`, boss.desc), t) : "???"}</div>
       </div>
       {defeated && (
         <motion.div
@@ -115,6 +115,7 @@ function AchievementCard({ ach, isUnlocked }) {
 }
 
 export default function Achievements() {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   
   const unlockedList = profile?.unlocked_achievements || [];
@@ -129,7 +130,7 @@ export default function Achievements() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <Trophy className="w-4 h-4 text-yellow-400" />
-          <span className="font-mono text-sm font-bold tracking-wider">ACHIEVEMENTS</span>
+          <span className="font-mono text-sm font-bold tracking-wider">{t('achievements_page.title')}</span>
           <span className="ml-auto text-xs font-mono text-muted-foreground/50">{totalUnlocked}/{ACHIEVEMENTS.length}</span>
         </div>
       </header>
@@ -138,7 +139,7 @@ export default function Achievements() {
         {/* Progress bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-            <span>TOTAL PROGRESS</span>
+            <span>{t('achievements_page.total_progress')}</span>
             <span>{Math.round((totalUnlocked / ACHIEVEMENTS.length) * 100)}%</span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -155,7 +156,7 @@ export default function Achievements() {
         {/* Boss medals */}
         <div className="space-y-3">
           <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest flex items-center gap-2">
-            <span>⚔️</span> Boss Medals
+            <span>⚔️</span> {t('achievements_page.boss_medals')}
           </div>
           <div className="grid grid-cols-5 gap-2">
             {BOSS_MEDALS.map(boss => (
@@ -174,7 +175,7 @@ export default function Achievements() {
               <div className="flex items-center gap-2">
                 <span className="text-base">{info.icon}</span>
                 <span className="font-mono text-xs font-bold uppercase tracking-wider" style={{ color: info.color }}>
-                  {info.label}
+                  {t(`achievements_cats.${cat}`, info.label)}
                 </span>
                 <span className="text-[10px] font-mono text-muted-foreground/30 ml-auto">{catUnlocked}/{catAchs.length}</span>
               </div>

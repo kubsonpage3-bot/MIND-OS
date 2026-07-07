@@ -431,5 +431,15 @@
     "mana": "МАНА",
     "not_enough_mana": "✗ НЕДОСТАТОЧНО МАНЫ",
     "use_skill": "► ИСПОЛЬЗОВАТЬ"
+  },
+  "achievements_page": {
+    "title": "ДОСТИЖЕНИЯ",
+    "total_progress": "ОБЩИЙ ПРОГРЕСС",
+    "boss_medals": "Медали Боссов",
+    "medal_desc_void": "Победитель Пустоты",
+    "medal_desc_static": "Преодолевший Шум",
+    "medal_desc_algorithm": "Мастер Алгоритма",
+    "medal_desc_parasite": "Укротитель Паразитов",
+    "medal_desc_recursive": "Покоритель Бесконечности"
   }
 }
