@@ -380,5 +380,22 @@
     "initializing": "Initializing...",
     "initialize_system": "Initialize System →",
     "failed_init": "Failed to initialize system. Please try again."
+  },
+  "skill_tree": {
+    "title": "Organic Skill Tree",
+    "btn_save": "SAVE",
+    "btn_respec": "RESPEC",
+    "status_active": "ACTIVE",
+    "btn_unlock": "UNLOCK",
+    "req_prev": "Req. Prev",
+    "respec_title": "RESPEC SKILL TREE",
+    "respec_desc": "All {{count}} nodes will be reset. SP refunded.",
+    "cost": "Cost:",
+    "not_enough_gold": "Not enough gold!",
+    "btn_cancel": "CANCEL",
+    "btn_confirm": "CONFIRM",
+    "preset_title": "SAVE BUILD PRESET",
+    "preset_desc": "Saves your current {{count}} unlocked nodes. Max 3 presets.",
+    "preset_placeholder": "e.g. Study Week, Combat Build"
   }
 }

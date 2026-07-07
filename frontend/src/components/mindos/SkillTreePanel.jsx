@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { SKILL_TREE } from "@/constants/rpgData";
 import { Lock, RotateCcw, Save, Brain, Dumbbell, Coins, Sparkles, BookOpen, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -122,6 +123,7 @@ function buildGraphData() {
 const GRAPH_DATA = buildGraphData();
 
 export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold }) {
+  const { t } = useTranslation();
   const [showRespec, setShowRespec] = useState(false);
   const [showPresetSave, setShowPresetSave] = useState(false);
   const [presetName, setPresetName] = useState("");
@@ -282,7 +284,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       {/* Header Overlay */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-[#0a0a0f] to-transparent pointer-events-none">
         <div className="flex items-center justify-between pointer-events-auto">
-          <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Organic Skill Tree</div>
+          <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">{t('skill_tree.title')}</div>
           <div className="flex items-center gap-2">
             <div className="text-xs font-mono font-bold" style={{ color: "#f0c040", textShadow: "0 0 10px rgba(240,192,64,0.5)" }}>
               {sp} SP
@@ -292,7 +294,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors bg-black/50 backdrop-blur"
               style={{ borderColor: "#f0c04040", color: "#f0c040" }}
             >
-              <Save className="w-2.5 h-2.5" /> SAVE
+              <Save className="w-2.5 h-2.5" /> {t('skill_tree.btn_save')}
             </button>
             <button
               onClick={() => setShowRespec(true)}
@@ -300,7 +302,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors bg-black/50 backdrop-blur disabled:opacity-30"
               style={{ borderColor: "#ef444440", color: "#ef4444" }}
             >
-              <RotateCcw className="w-2.5 h-2.5" /> RESPEC
+              <RotateCcw className="w-2.5 h-2.5" /> {t('skill_tree.btn_respec')}
             </button>
           </div>
         </div>
@@ -508,7 +510,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               <div className="shrink-0 flex flex-col items-end justify-center min-w-[70px] md:min-w-[100px]">
                 {unlocked.includes(selectedNode.id) ? (
                   <div className="flex items-center gap-1 font-mono font-bold text-[10px] md:text-[11px]" style={{ color: selectedNode.color }}>
-                    <Check size={14} /> ACTIVE
+                    <Check size={14} /> {t('skill_tree.status_active')}
                   </div>
                 ) : (
                   <>
@@ -526,7 +528,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                         background: `${selectedNode.color}15`
                       }}
                     >
-                      {buyMutation.isPending ? "..." : "UNLOCK"}
+                      {buyMutation.isPending ? "..." : t('skill_tree.btn_unlock')}
                     </button>
                   </>
                 )}
@@ -534,7 +536,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                 {/* Prerequisite warning */}
                 {!unlocked.includes(selectedNode.id) && selectedNode.requires && !unlocked.includes(selectedNode.requires) && (
                   <div className="text-[7px] md:text-[8px] font-mono text-red-400 mt-1 uppercase whitespace-nowrap">
-                    Req. Prev
+                    {t('skill_tree.req_prev')}
                   </div>
                 )}
               </div>
@@ -558,16 +560,16 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               onClick={e => e.stopPropagation()}
             >
               <div className="text-2xl">⚠️</div>
-              <div className="font-mono text-sm font-bold text-red-400">RESPEC SKILL TREE</div>
+              <div className="font-mono text-sm font-bold text-red-400">{t('skill_tree.respec_title')}</div>
               <div className="text-xs font-mono text-muted-foreground">
-                All {unlocked.length} nodes will be reset. SP refunded.<br />
-                Cost: <span className="text-yellow-400 font-bold">{respecCost}G</span>
-                {gold < respecCost && <span className="text-red-400 block mt-1">Not enough gold!</span>}
+                {t('skill_tree.respec_desc', { count: unlocked.length })}<br />
+                {t('skill_tree.cost')} <span className="text-yellow-400 font-bold">{respecCost}G</span>
+                {gold < respecCost && <span className="text-red-400 block mt-1">{t('skill_tree.not_enough_gold')}</span>}
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setShowRespec(false)}
                   className="flex-1 py-2 rounded-lg border text-xs font-mono text-muted-foreground border-border/50 hover:bg-accent/20">
-                  CANCEL
+                  {t('skill_tree.btn_cancel')}
                 </button>
                 <button
                   onClick={doRespec}
@@ -575,7 +577,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                   className="flex-1 py-2 rounded-lg border text-xs font-mono font-bold disabled:opacity-30 transition-colors"
                   style={{ borderColor: "#ef444460", color: "#ef4444", background: "rgba(239,68,68,0.1)" }}
                 >
-                  CONFIRM
+                  {t('skill_tree.btn_confirm')}
                 </button>
               </div>
             </motion.div>
@@ -597,21 +599,21 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               style={{ background: "rgba(14,10,8,0.98)", borderColor: "rgba(240,192,64,0.3)" }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="font-mono text-sm font-bold" style={{ color: "#f0c040" }}>SAVE BUILD PRESET</div>
+              <div className="font-mono text-sm font-bold" style={{ color: "#f0c040" }}>{t('skill_tree.preset_title')}</div>
               <div className="text-[10px] font-mono text-muted-foreground/60">
-                Saves your current {unlocked.length} unlocked nodes. Max 3 presets.
+                {t('skill_tree.preset_desc', { count: unlocked.length })}
               </div>
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
-                placeholder="e.g. Study Week, Combat Build"
+                placeholder={t('skill_tree.preset_placeholder')}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-muted/20 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50"
                 onKeyDown={e => e.key === "Enter" && savePreset()}
               />
               <div className="flex gap-2">
                 <button onClick={() => setShowPresetSave(false)}
                   className="flex-1 py-2 rounded-lg border text-xs font-mono text-muted-foreground border-border/50 hover:bg-accent/20">
-                  CANCEL
+                  {t('skill_tree.btn_cancel')}
                 </button>
                 <button
                   onClick={savePreset}
@@ -619,7 +621,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                   className="flex-1 py-2 rounded-lg border text-xs font-mono font-bold disabled:opacity-30"
                   style={{ borderColor: "#f0c04060", color: "#f0c040", background: "rgba(240,192,64,0.1)" }}
                 >
-                  SAVE
+                  {t('skill_tree.btn_save')}
                 </button>
               </div>
             </motion.div>
