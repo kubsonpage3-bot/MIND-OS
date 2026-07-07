@@ -346,11 +346,11 @@
   },
   "errors": {
     "access_restricted": "Access Restricted",
-    "not_registered_msg": "You are not registered to use this application. Please contact the app administrator to request access.",
-    "if_error_msg": "If you believe this is an error, you can:",
+    "not_registered_msg": "Your account is not registered or lacks permissions to access MIND OS.",
+    "if_error_msg": "If you believe this is an error:",
     "verify_account": "Verify you are logged in with the correct account",
-    "contact_admin": "Contact the app administrator for access",
-    "try_relogin": "Try logging out and back in again"
+    "contact_admin": "Contact the administrator for access",
+    "try_relogin": "Try logging out and logging back in"
   },
   "scrolls": {
     "title": "Summoning Scrolls",
@@ -369,7 +369,169 @@
     "modal_time_limit_part3": " to defeat this boss.",
     "modal_consequence": "Fail — scroll is lost. Win — receive unique loot.",
     "btn_cancel": "CANCEL",
-    "btn_modal_summon": "SUMMON — {{price}}G"
+    "btn_modal_summon": "SUMMON — {{price}}G",
+    "items": {
+      "misted_wanderer": {
+        "name": "Misted Wanderer",
+        "scrollName": "Scroll of the Misted Wanderer",
+        "quote": "\"You cannot find what you cannot see.\"",
+        "boss": "Misted Wanderer",
+        "uniqueItem_label": "Wanderer's Hood",
+        "uniqueItem_effect": "+2% gold from Habits"
+      },
+      "nameless_bones": {
+        "name": "Nameless Bones",
+        "scrollName": "Scroll of the Nameless Bones",
+        "quote": "\"Even dust remembers what it was.\"",
+        "boss": "Nameless Skeleton",
+        "uniqueItem_label": "Bone Bracelet",
+        "uniqueItem_effect": "+2% XP from Dailies"
+      },
+      "herald_jackal": {
+        "name": "Jackal's Howl",
+        "scrollName": "Scroll of the Jackal's Howl",
+        "quote": "\"I herald only one thing — your end.\"",
+        "boss": "Herald Jackal",
+        "uniqueItem_label": "Herald's Fang",
+        "uniqueItem_effect": "+3% XP from Exercise tasks"
+      },
+      "ink_warden": {
+        "name": "Ink Mark",
+        "scrollName": "Scroll of the Ink Mark",
+        "quote": "\"Every word written is a chain forged.\"",
+        "boss": "Ink Warden",
+        "uniqueItem_label": "Warden's Quill",
+        "uniqueItem_effect": "+3% XP from Study tasks"
+      },
+      "abyssal_bellringer": {
+        "name": "Echoing Bell",
+        "scrollName": "Scroll of the Echoing Bell",
+        "quote": "\"The toll rings for you alone.\"",
+        "boss": "Abyssal Bellringer",
+        "uniqueItem_label": "Echo Bell",
+        "uniqueItem_effect": "+4% Focus stat gain"
+      },
+      "frost_executioner": {
+        "name": "Bloodfrost",
+        "scrollName": "Scroll of Bloodfrost",
+        "quote": "\"Cold doesn't kill. Hesitation does.\"",
+        "boss": "Frost Executioner",
+        "uniqueItem_label": "Frostbite Blade",
+        "uniqueItem_effect": "+4% damage to bosses"
+      },
+      "weaving_shade": {
+        "name": "Spinning Silk",
+        "scrollName": "Scroll of Spinning Silk",
+        "quote": "\"Every thread is a trap I've already set.\"",
+        "boss": "Weaving Shade",
+        "uniqueItem_label": "Silk-Woven Mantle",
+        "uniqueItem_effect": "−5% HP loss on missed daily"
+      },
+      "ember_smith": {
+        "name": "Forge Wrath",
+        "scrollName": "Scroll of Forge Wrath",
+        "quote": "\"I forge weapons. You are merely the ore.\"",
+        "boss": "Ember Smith",
+        "uniqueItem_label": "Ember Gauntlet",
+        "uniqueItem_effect": "+5% gold from To-Dos"
+      },
+      "sanctuary_weeper": {
+        "name": "Sanctuary's Tear",
+        "scrollName": "Scroll of the Sanctuary's Tear",
+        "quote": "\"I weep not for you, but for what I must do.\"",
+        "boss": "Sanctuary Weeper",
+        "uniqueItem_label": "Glass Tear",
+        "uniqueItem_effect": "+5 HP on a perfect day"
+      },
+      "shallow_leviathan": {
+        "name": "Black Tide",
+        "scrollName": "Scroll of the Black Tide",
+        "quote": "\"The ocean does not drown — it invites.\"",
+        "boss": "Shallow Leviathan",
+        "uniqueItem_label": "Leviathan Scale",
+        "uniqueItem_effect": "+5% MP regen"
+      },
+      "faceless_king": {
+        "name": "Ashen Name",
+        "scrollName": "Scroll of the Ashen Name",
+        "quote": "\"I have no face because I am everyone's fear.\"",
+        "boss": "Faceless King",
+        "uniqueItem_label": "Crown of Ash",
+        "uniqueItem_effect": "+8% XP from all tasks"
+      },
+      "ore_golem": {
+        "name": "Mine's Groan",
+        "scrollName": "Scroll of the Mine's Groan",
+        "quote": "\"The mountain does not fall. It buries.\"",
+        "boss": "Ore Golem",
+        "uniqueItem_label": "Golem's Grip",
+        "uniqueItem_effect": "+8% gold from Habits"
+      },
+      "wounded_moon": {
+        "name": "Lunar Scar",
+        "scrollName": "Scroll of the Lunar Scar",
+        "quote": "\"Even a wound becomes a crown if you survive it.\"",
+        "boss": "Wounded Moon",
+        "uniqueItem_label": "Scar Shard",
+        "uniqueItem_effect": "+8% damage to bosses"
+      },
+      "choir_forgotten": {
+        "name": "Forgotten Choir",
+        "scrollName": "Scroll of the Forgotten Choir",
+        "quote": "\"We sing the names of those erased by time.\"",
+        "boss": "Choir of the Forgotten",
+        "uniqueItem_label": "Forgotten Score",
+        "uniqueItem_effect": "+10% to one domain's stat ceiling"
+      },
+      "bottomless_miser": {
+        "name": "Abyssal Greed",
+        "scrollName": "Scroll of Abyssal Greed",
+        "quote": "\"There is never enough. Not gold. Not time. Not you.\"",
+        "boss": "Bottomless Miser",
+        "uniqueItem_label": "Abyssal Purse",
+        "uniqueItem_effect": "+12% gold from all sources"
+      },
+      "winter_thorn": {
+        "name": "Winter's Thorn",
+        "scrollName": "Scroll of Winter's Thorn",
+        "quote": "\"Beauty and ruin wear the same face.\"",
+        "boss": "Winter Thorn",
+        "uniqueItem_label": "Winter Plate",
+        "uniqueItem_effect": "immune to 1 missed daily/week"
+      },
+      "king_ashen_throne": {
+        "name": "Ashen Throne",
+        "scrollName": "Scroll of the Ashen Throne",
+        "quote": "\"Every throne is built on someone's grave. Yours will be no different.\"",
+        "boss": "King of the Ashen Throne",
+        "uniqueItem_label": "Throne Seal",
+        "uniqueItem_effect": "+15% Power Score"
+      },
+      "eclipse_warden": {
+        "name": "Eclipse Eye",
+        "scrollName": "Scroll of the Eclipse Eye",
+        "quote": "\"I do not block the light. I consume it.\"",
+        "boss": "Eclipse Warden",
+        "uniqueItem_label": "Eclipse Eye",
+        "uniqueItem_effect": "unlocks an extra ally slot"
+      },
+      "nameless_god": {
+        "name": "Nameless God",
+        "scrollName": "Scroll of the Nameless God",
+        "quote": "\"I was worshipped before language existed. I will remain after it ends.\"",
+        "boss": "Nameless Machine-God",
+        "uniqueItem_label": "Mask of the Nameless",
+        "uniqueItem_effect": "+25% boss rewards, permanently"
+      },
+      "final_dusk": {
+        "name": "Final Dusk",
+        "scrollName": "Scroll of the Final Dusk",
+        "quote": "\"This is not the end of the world. It is the end of yours.\"",
+        "boss": "The Final Dusk",
+        "uniqueItem_label": "Blade of the Final Dusk",
+        "uniqueItem_effect": "doubles damage against all bosses"
+      }
+    }
   },
   "setup": {
     "cognitive_baseline": "Cognitive Baseline",

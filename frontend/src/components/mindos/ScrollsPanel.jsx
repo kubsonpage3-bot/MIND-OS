@@ -248,17 +248,17 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                       <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
                         <div>
                           <div className="font-mono text-xs font-black tracking-wide" style={{ color: isActive ? color : isDefeated ? "#22c55e" : "#e2e0ff" }}>
-                            {scroll.scrollName}
+                            {t(`scrolls.items.${scroll.id}.scrollName`, scroll.scrollName)}
                           </div>
-                          <div className="font-mono text-[11px] text-muted-foreground/60 mt-0.5">{scroll.boss}</div>
-                          <div className="font-mono text-[10px] italic mt-1" style={{ color: `${color}99` }}>{scroll.quote}</div>
+                          <div className="font-mono text-[11px] text-muted-foreground/60 mt-0.5">{t(`scrolls.items.${scroll.id}.boss`, scroll.boss)}</div>
+                          <div className="font-mono text-[10px] italic mt-1" style={{ color: `${color}99` }}>{t(`scrolls.items.${scroll.id}.quote`, scroll.quote)}</div>
                         </div>
 
                         {/* Reward info */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="text-[10px] font-mono text-muted-foreground/50">
-                            <span style={{ color: `${color}cc` }}>★ {scroll.uniqueItem.label}</span>
-                            <span className="text-muted-foreground/30"> · {scroll.uniqueItem.effect}</span>
+                            <span style={{ color: `${color}cc` }}>★ {t(`scrolls.items.${scroll.id}.uniqueItem_label`, scroll.uniqueItem.label)}</span>
+                            <span className="text-muted-foreground/30"> · {t(`scrolls.items.${scroll.id}.uniqueItem_effect`, scroll.uniqueItem.effect)}</span>
                           </div>
                         </div>
 
@@ -335,17 +335,17 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
               </motion.div>
               <div>
                 <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest mb-1">{t('scrolls.modal_summoning')}</div>
-                <div className="font-mono text-lg font-black" style={{ color: confirmScroll.color }}>{confirmScroll.boss}</div>
-                <div className="font-mono text-xs text-muted-foreground/60 mt-1">{confirmScroll.scrollName}</div>
-                <div className="font-mono text-xs italic mt-1" style={{ color: `${confirmScroll.color}99` }}>{confirmScroll.quote}</div>
+                <div className="font-mono text-lg font-black" style={{ color: confirmScroll.color }}>{t(`scrolls.items.${confirmScroll.id}.boss`, confirmScroll.boss)}</div>
+                <div className="font-mono text-xs text-muted-foreground/60 mt-1">{t(`scrolls.items.${confirmScroll.id}.scrollName`, confirmScroll.scrollName)}</div>
+                <div className="font-mono text-xs italic mt-1" style={{ color: `${confirmScroll.color}99` }}>{t(`scrolls.items.${confirmScroll.id}.quote`, confirmScroll.quote)}</div>
               </div>
               <div className="text-sm font-mono text-muted-foreground/70 leading-relaxed">
                 {t('scrolls.modal_time_limit_part1')}<span className="text-white font-bold">{t('scrolls.modal_time_limit_part2')}</span>{t('scrolls.modal_time_limit_part3')}<br />
                 {t('scrolls.modal_consequence')}
               </div>
               <div className="rounded-xl border border-border bg-muted/20 p-3 text-left space-y-1.5">
-                <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {confirmScroll.uniqueItem.label}</div>
-                <div className="font-mono text-[11px] text-muted-foreground/60">{confirmScroll.uniqueItem.effect}</div>
+                <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {t(`scrolls.items.${confirmScroll.id}.uniqueItem_label`, confirmScroll.uniqueItem.label)}</div>
+                <div className="font-mono text-[11px] text-muted-foreground/60">{t(`scrolls.items.${confirmScroll.id}.uniqueItem_effect`, confirmScroll.uniqueItem.effect)}</div>
                 <div className="font-mono text-[11px] text-yellow-400">+{normalizeGold(confirmScroll.reward.gold).toLocaleString()}G · +{confirmScroll.reward.sp}SP · +{confirmScroll.reward.mp}MP</div>
               </div>
               <div className="flex gap-3">
