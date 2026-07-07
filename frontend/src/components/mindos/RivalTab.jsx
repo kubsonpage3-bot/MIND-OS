@@ -161,7 +161,7 @@ function GhostAvatar({ pulse = false, overtook, playerOvertook }) {
         />
       )}
       <OptimizedImage
-        src="/images/webp/6aa09434f_grafik.webp"
+        src="/images/webp/johan_rival.webp"
         alt="Johan"
         style={{
           width: 72, height: 72, objectFit: "cover", borderRadius: "50%",

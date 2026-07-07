@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.30",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Updated Johan (Rival) portrait with a brand new, high-quality 16-bit chibi pixel art design."
+      }
+    ]
+  },
+  {
     "version": "1.4.29",
     "date": "2026-07-07",
     "changes": [
