@@ -734,7 +734,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           )}
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {(shopTab === "scrolls" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
-              .sort((a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier))
+              .sort((a, b) => a.cost - b.cost)
               .map((item, idx) => {
                 const canAfford = gold >= item.cost;
                 const owned = inventory.some(i => i.id === item.id);

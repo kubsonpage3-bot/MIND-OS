@@ -264,6 +264,13 @@ export default function AlliesPanel({ onSpendGold }) {
   const activeAllies = ALLIES.filter(a => recruited.includes(a.id));
   const teamBonuses = activeAllies.map(a => ({ ally: a, bonus: a.levels[(levels[a.id] || 1) - 1] }));
 
+  const ALLY_RANK_ORDER = { "S": 1, "A": 2, "B": 3, "C": 4, "D": 5, "E": 6, "F": 7 };
+  const sortedAllies = [...ALLIES].sort((a, b) => {
+    const rankA = ALLY_RANK_ORDER[a.rank] || 99;
+    const rankB = ALLY_RANK_ORDER[b.rank] || 99;
+    return rankA - rankB;
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -274,7 +281,7 @@ export default function AlliesPanel({ onSpendGold }) {
       </div>
 
       <div className="grid grid-cols-1 gap-2">
-        {ALLIES.map(ally => {
+        {sortedAllies.map(ally => {
           const isRecruited = recruited.includes(ally.id);
           const level = levels[ally.id] || 0;
           return (
