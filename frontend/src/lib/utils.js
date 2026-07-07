@@ -5,6 +5,10 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * @param {any} value
+ * @returns {number}
+ */
 export function normalizeGold(value) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) return 0;

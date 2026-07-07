@@ -12,7 +12,7 @@ const CAT_LABELS = {
   prestige: "Prestige",
 };
 
-export default function AchievementsPanel({ profile, onClaimReward }) {
+export default function AchievementsPanel({ profile, logs, alliesData, prestigeData, onClaimReward }) {
   const [selectedCat, setSelectedCat] = useState("ALL");
   const [claiming, setClaiming] = useState(null);
 

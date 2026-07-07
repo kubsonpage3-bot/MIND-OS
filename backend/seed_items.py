@@ -456,24 +456,25 @@ for data in items_data:
     )
 
     if not created:
-        item.name = data["name"]
-        item.description = data.get("description", data["name"])
-        item.item_type = item_type
-        item.slot_type = slot_type
-        item.icon_url = icon_path
-        item.cost = data["cost"]
-        item.hp_boost = data.get("hp_boost", 0)
-        item.is_purchasable = is_purchasable
+        item.name = str(data["name"])
+        item.description = str(data.get("description", data["name"]))
+        item.item_type = str(item_type)
+        item.slot_type = str(slot_type) if slot_type else None
+        item.icon_url = str(icon_path)
+        item.cost = int(data["cost"])  # type: ignore
+        item.hp_boost = int(data.get("hp_boost", 0))  # type: ignore
+        item.is_purchasable = bool(is_purchasable)
         item.save()
 
     # 2. Store ItemEffect entries for stats
     # Clear existing effects first to avoid duplicates or stale stats
-    item.effects.all().delete()
+    item.effects.all().delete()  # type: ignore
 
     stats = data.get("stats", {})
-    for stat_name, stat_val in stats.items():
-        ItemEffect.objects.create(
-            item=item, effect_name=stat_name, effect_value=float(stat_val)
-        )
+    if isinstance(stats, dict):
+        for stat_name, stat_val in stats.items():
+            ItemEffect.objects.create(
+                item=item, effect_name=stat_name, effect_value=float(stat_val)
+            )
 
 print(f"Seeding complete! {len(items_data)} items processed.")

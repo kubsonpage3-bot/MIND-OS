@@ -13,7 +13,7 @@ export default function GameCard({
   isEdgeToEdgeMobile = false,
   borderColor,
   glowColor,
-  onClick,
+  onClick = undefined,
   style = {},
   animate,
   transition,

@@ -74,19 +74,19 @@ def test_daily_revert_then_complete_again(user, profile):
     # Step 1: complete the daily
     complete_task(user, daily.id, True)
     daily.refresh_from_db()
-    assert daily.is_completed is True
+    assert daily.is_completed
     assert daily.last_completed_at is not None
 
     # Step 2: revert (misclick)
     complete_task(user, daily.id, False)
     daily.refresh_from_db()
-    assert daily.is_completed is False
+    assert not daily.is_completed
     assert daily.last_completed_at is None  # timestamp MUST be cleared
 
     # Step 3: complete again — must NOT raise "already completed today"
     result = complete_task(user, daily.id, True)
     daily.refresh_from_db()
-    assert daily.is_completed is True
+    assert daily.is_completed
     assert result.get("detail") == "Task completed!"
 
 

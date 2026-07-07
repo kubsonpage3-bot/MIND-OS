@@ -264,8 +264,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   };
 
   const mutation = useMutation({
-    mutationFn: (buyData) => djangoApi.shop.buy(buyData.item_id),
-    onMutate: async (buyData) => {
+    mutationFn: (/** @type {any} */ buyData) => djangoApi.shop.buy(buyData.item_id),
+    onMutate: async (/** @type {any} */ buyData) => {
       await queryClient.cancelQueries({ queryKey: ["userprofile"] });
       /** @type {any} */
       const prevProfile = queryClient.getQueryData(["userprofile"]);
@@ -363,6 +363,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     const nextPoints = (profile?.unspent_stat_points || 0) - 1;
     
     // Optimistic Update
+    /** @type {any} */
     const prevProfile = queryClient.getQueryData(["userprofile"]);
     if (prevProfile) {
       queryClient.setQueryData(["userprofile"], {
@@ -391,7 +392,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
 
   // If no class chosen, show selector
   if (!classData.chosen) {
-    return <ClassSelector onChoose={handleChooseClass} />;
+    return <ClassSelector onChoose={handleChooseClass} isPremium={profile?.is_premium || false} />;
   }
 
   return (
@@ -718,18 +719,13 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           {shopTab === "allies" && (
             <>
               <TabGuideModal guideId="allies" profile={profile} />
-              <AlliesPanel
-                alliesData={profile?.recruited_allies || {}}
-                onUpdate={handleAlliesUpdate}
-                gold={gold}
-                onSpendGold={spendGold}
-              />
+              <AlliesPanel onSpendGold={spendGold} />
             </>
           )}
           {shopTab === "mutators" && (
             <>
               <TabGuideModal guideId="mutators" profile={profile} />
-              <MutatorsPanel mutators={profile?.active_mutators || []} onUpdate={handleMutatorsUpdate} gold={gold} onSpendGold={spendGold} />
+              <MutatorsPanel onSpendGold={spendGold} />
             </>
           )}
           <div className="space-y-2 max-h-80 overflow-y-auto">

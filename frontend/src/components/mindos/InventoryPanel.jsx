@@ -18,10 +18,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
   const sellMutation = useMutation({
     mutationFn: (itemId) => djangoApi.shop.sell(itemId, 1),
-    onSuccess: (data) => {
+    onSuccess: (/** @type {any} */ data) => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-      showToast(data.detail || "Item sold", "#fbbf24");
+      showToast(data?.detail || "Item sold", "#fbbf24");
     },
     onError: (error) => {
       showToast(error.message || "Failed to sell", "#ef4444");
@@ -38,12 +38,12 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
   const consumeMutation = useMutation({
     mutationFn: (itemCode) => djangoApi.inventory.consume(itemCode),
-    onSuccess: (data) => {
+    onSuccess: (/** @type {any} */ data) => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["active_effects"] });
       triggerBurst("#22c55e", 12);
-      showToast(data.detail || "Item used!", "#22c55e");
+      showToast(data?.detail || "Item used!", "#22c55e");
     },
     onError: (error) => {
       showToast(error.message || "Failed to use item", "#ef4444");
