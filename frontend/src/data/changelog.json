@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.20",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Added crisp, localized gear-style stat lines for all consumables (e.g. '+50 HP', '+30% Focus') in the Shop and Inventory for better readability."
+      }
+    ]
+  },
+  {
     "version": "1.4.19",
     "date": "2026-07-07",
     "changes": [

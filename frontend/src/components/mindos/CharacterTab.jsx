@@ -778,7 +778,9 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                         <span className="text-[9px] font-mono text-muted-foreground/40 tracking-widest">{item.tier}</span>
                       </div>
                       <div className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">
-                        {item.stats ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : (item.description || item.effect)}
+                        {item.stats && Object.keys(item.stats).length > 0 
+                          ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") 
+                          : (item.consumable ? t(`consumable_effects.${item.id}`) : (item.description || item.effect))}
                       </div>
                     </div>
 

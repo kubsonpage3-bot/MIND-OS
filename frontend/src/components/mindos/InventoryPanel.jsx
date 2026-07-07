@@ -6,6 +6,7 @@ import { Package, Zap, Coins } from "lucide-react";
 import { getMediaUrl, djangoApi } from "@/api/djangoClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/ui/GameCard";
+import { useTranslation } from "react-i18next";
 // Consumable effects are handled server-side via the shop buy endpoint.
 // Do NOT track consumable state in localStorage — use the backend profile as SSOT.
 
@@ -15,6 +16,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [usedId, setUsedId] = useState(null);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const sellMutation = useMutation({
     mutationFn: (itemId) => djangoApi.shop.sell(itemId, 1),
@@ -249,7 +251,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     )}
                   </div>
                   <div className="text-[10px] font-mono mt-0.5" style={{ color: `${effectColor}bb` }}>
-                    {item.description || item.effect || "Temporary Buff"}
+                    {t(`consumable_effects.${item.id}`, item.description || item.effect || "Temporary Buff")}
                   </div>
                 </div>
 

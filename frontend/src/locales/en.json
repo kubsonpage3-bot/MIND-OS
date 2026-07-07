@@ -243,11 +243,11 @@
     "gf_label": "Fluid Intelligence (Gf)",
     "gc_label": "Crystallized Intelligence (Gc)",
     "ps_label": "Processing Speed (Ps)",
-    "vm_label": "Visual-Spatial Memory (Vm)",
-    "gf_hint": "Problem solving & logic",
-    "gc_hint": "Acquired knowledge",
-    "ps_hint": "Reaction & speed",
-    "vm_hint": "Spatial orientation"
+    "vm_label": "Verbal Memory (Vm)",
+    "gf_hint": "Abstract thinking, pattern recognition, problem-solving",
+    "gc_hint": "Knowledge base, vocabulary, accumulated learning",
+    "ps_hint": "Mental processing speed, reaction time, cognitive efficiency",
+    "vm_hint": "Working memory & verbal retention"
   },
   "slots": {
     "headware": "Headware",
@@ -603,5 +603,16 @@
     "medal_desc_algorithm": "Master of The Algorithm",
     "medal_desc_parasite": "Vanquisher of Parasites",
     "medal_desc_recursive": "Conqueror of Infinity"
+  },
+  "consumable_effects": {
+    "small_heal": "+20 HP",
+    "medium_heal": "+50 HP",
+    "large_heal": "+100 HP",
+    "elixir": "100% HP · 10min Immunity",
+    "boss_damage_plus": "+50% Boss DMG",
+    "xp_booster": "+50% XP (24h)",
+    "focus_stim": "+30% Focus",
+    "memory_patch": "+0.2 Gc",
+    "streak_shield": "Streak Protect (1x)"
   }
 }

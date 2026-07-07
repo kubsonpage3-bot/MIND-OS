@@ -603,5 +603,16 @@
     "medal_desc_algorithm": "Мастер Алгоритма",
     "medal_desc_parasite": "Укротитель Паразитов",
     "medal_desc_recursive": "Покоритель Бесконечности"
+  },
+  "consumable_effects": {
+    "small_heal": "+20 HP",
+    "medium_heal": "+50 HP",
+    "large_heal": "+100 HP",
+    "elixir": "100% HP · 10мин Неуязвимость",
+    "boss_damage_plus": "+50% Урон Боссу",
+    "xp_booster": "+50% XP (24ч)",
+    "focus_stim": "+30% Фокус",
+    "memory_patch": "+0.2 Gc",
+    "streak_shield": "Защита Стрика (1х)"
   }
 }
