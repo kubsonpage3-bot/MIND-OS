@@ -236,22 +236,15 @@ def complete_task(user, task_id, is_positive=True):
 
             membership.weekly_xp += final_xp
 
-            # Party streak logic: if this is a daily
             if task.task_type == task.TaskType.DAILY:
                 today = timezone.now().date()
                 if membership.last_daily_completed_date != today:
                     membership.last_daily_completed_date = today
                     party = membership.party
-                    # Only increment party streak if we haven't done it today
                     if (
                         party.last_streak_update_date is None
                         or party.last_streak_update_date < today
                     ):
-                        # Check if all members have completed a daily today
-                        # Members who joined today have last_daily_completed = yesterday,
-                        # so they need to complete one today to contribute. Wait, if they just joined,
-                        # we want to require them to do it. Yes.
-                        # Wait, what if someone hasn't logged in? Their last_daily_completed_date < today
                         all_done = not party.memberships.filter(
                             last_daily_completed_date__lt=today
                         ).exists()
@@ -261,16 +254,19 @@ def complete_task(user, task_id, is_positive=True):
                             party.save(
                                 update_fields=["streak", "last_streak_update_date"]
                             )
-
-                            from api.models import PartyEvent
-
                             if party.streak in [3, 7, 14, 30, 50, 100, 365]:
-                                PartyEvent.objects.create(
-                                    party=party,
-                                    member=membership,
-                                    event_type="milestone",
-                                    message=f"hit a {party.streak}-day streak!",
-                                )
+                                try:
+                                    with transaction.atomic():
+                                        from api.models import PartyEvent
+
+                                        PartyEvent.objects.create(
+                                            party=party,
+                                            member=membership,
+                                            event_type="milestone",
+                                            message=f"hit a {party.streak}-day streak!",
+                                        )
+                                except Exception as e:
+                                    print(f"Failed to create milestone event: {e}")
 
             membership.save(
                 update_fields=[
@@ -282,16 +278,23 @@ def complete_task(user, task_id, is_positive=True):
 
             # Log event
             if final_xp > 0:
-                from api.models import PartyEvent
+                try:
+                    with transaction.atomic():
+                        from api.models import PartyEvent
 
-                PartyEvent.objects.create(
-                    party=membership.party,
-                    member=membership,
-                    event_type="task_completed",
-                    message=task.title,
-                )
-        except Exception:
-            pass
+                        PartyEvent.objects.create(
+                            party=membership.party,
+                            member=membership,
+                            event_type="task_completed",
+                            message=task.title[:250],
+                        )
+                except Exception as e:
+                    print(f"Failed to create task_completed event: {e}")
+        except Exception as e:
+            from django.core.exceptions import ObjectDoesNotExist
+
+            if not isinstance(e, ObjectDoesNotExist):
+                print(f"Error updating party membership: {e}")
 
         # Handle item drops
         if outcome.get("item_dropped"):
@@ -381,16 +384,23 @@ def complete_task(user, task_id, is_positive=True):
         if leveled_up:
             try:
                 membership = user.party_membership
-                from api.models import PartyEvent
+                try:
+                    with transaction.atomic():
+                        from api.models import PartyEvent
 
-                PartyEvent.objects.create(
-                    party=membership.party,
-                    member=membership,
-                    event_type="level_up",
-                    message=str(profile.level),
-                )
-            except Exception:
-                pass
+                        PartyEvent.objects.create(
+                            party=membership.party,
+                            member=membership,
+                            event_type="level_up",
+                            message=str(profile.level),
+                        )
+                except Exception as e:
+                    print(f"Failed to create level_up event: {e}")
+            except Exception as e:
+                from django.core.exceptions import ObjectDoesNotExist
+
+                if not isinstance(e, ObjectDoesNotExist):
+                    print(f"Error checking membership for level up: {e}")
         profile.save(
             update_fields=[
                 "xp",
@@ -412,10 +422,7 @@ def complete_task(user, task_id, is_positive=True):
 
     if is_positive:
         # Update UserStats
-        try:
-            stats = user.stats
-        except UserStats.DoesNotExist:
-            stats = UserStats.objects.create(user=user)
+        stats, _ = UserStats.objects.get_or_create(user=user)
 
         stats.total_tasks_completed += 1
 

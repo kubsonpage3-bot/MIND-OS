@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.13",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where completing multiple habits or dailies too quickly would cause a 'Transaction error' (400 Bad Request) and fail to save your progress."
+      }
+    ]
+  },
+  {
     "version": "1.4.12",
     "date": "2026-07-07",
     "changes": [

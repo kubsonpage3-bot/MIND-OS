@@ -267,10 +267,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     # Update UserStats
     from api.models import UserStats
 
-    try:
-        stats = user.stats
-    except UserStats.DoesNotExist:
-        stats = UserStats.objects.create(user=user)
+    stats, _ = UserStats.objects.get_or_create(user=user)
 
     stats.total_boss_damage += final_damage_dealt
     if is_crit:

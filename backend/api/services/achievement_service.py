@@ -86,10 +86,7 @@ def check_and_grant_achievements(user):
     Evaluates all achievements for a user based on their stats.
     Returns a list of newly unlocked achievement IDs.
     """
-    try:
-        stats = user.stats
-    except UserStats.DoesNotExist:
-        stats = UserStats.objects.create(user=user)
+    stats, _ = UserStats.objects.get_or_create(user=user)
 
     already_unlocked = set(
         UserAchievement.objects.filter(user=user).values_list(
@@ -111,10 +108,13 @@ def check_and_grant_achievements(user):
             passed = False
 
         if passed:
-            UserAchievement.objects.create(user=user, achievement_id=ach_id)
-            new_achievements.append(ach_id)
-            total_gold_reward += data.get("gold", 0)
-            total_sp_reward += data.get("sp", 0)
+            _, created = UserAchievement.objects.get_or_create(
+                user=user, achievement_id=ach_id
+            )
+            if created:
+                new_achievements.append(ach_id)
+                total_gold_reward += data.get("gold", 0)
+                total_sp_reward += data.get("sp", 0)
 
     if new_achievements and hasattr(user, "profile"):
         # We need to use F expressions or direct additions securely
