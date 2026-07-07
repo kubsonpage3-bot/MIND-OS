@@ -67,7 +67,7 @@ export default function ActivePartyWidget() {
       
       <div className="px-4 pb-4">
         {allEmpty ? (
-          <p className="text-white/40 text-sm text-center py-2">
+          <p className="text-sm text-center py-2" style={{ color: "var(--habit-dim)" }}>
             Recruit allies in Shop → Allies to strengthen your party
           </p>
         ) : null}
@@ -83,24 +83,25 @@ export default function ActivePartyWidget() {
                 <div 
                   key={`slot-${index}`}
                   onClick={() => setSelectedAlly(ally)}
-                  className={`border ${rankClass} rounded-xl p-3 flex flex-col items-center gap-1 cursor-pointer hover:bg-white/5 transition-colors`}
+                  className={`border ${rankClass} rounded-xl p-3 flex flex-col items-center gap-1 cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5`}
                 >
                   <OptimizedImage src={ally.image} className="w-16 h-16 rounded-lg object-contain" style={{ imageRendering: 'pixelated' }} />
-                  <span className="text-xs font-bold text-white text-center truncate w-full">{ally.name}</span>
-                  <span className="text-[10px] text-green-400 text-center truncate w-full">+{currentBuff}</span>
+                  <span className="text-xs font-bold text-center truncate w-full" style={{ color: "var(--habit-text)" }}>{ally.name}</span>
+                  <span className="text-[10px] text-center truncate w-full font-bold" style={{ color: "var(--habit-green)" }}>+{currentBuff}</span>
                 </div>
               );
             } else {
               return (
                 <div 
                   key={`slot-${index}`}
-                  className="border border-dashed border-white/20 rounded-xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-white/40 transition-colors"
+                  className="border border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors"
+                  style={{ borderColor: "var(--habit-border)" }}
                   onClick={handleEmptyClick}
                 >
-                  <div className="w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center">
-                    <span className="text-2xl text-white/30">+</span>
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ background: "var(--habit-purple-light)" }}>
+                    <span className="text-2xl" style={{ color: "var(--habit-purple)", opacity: 0.5 }}>+</span>
                   </div>
-                  <span className="text-xs text-white/40 mt-1">Add Ally</span>
+                  <span className="text-xs mt-1" style={{ color: "var(--habit-dim)" }}>Add Ally</span>
                 </div>
               );
             }
@@ -153,7 +154,8 @@ export default function ActivePartyWidget() {
                   setSelectedAlly(null);
                   handleEmptyClick();
                 }}
-                className="w-full py-2 font-mono font-bold text-xs rounded-xl border border-white/20 hover:bg-white/10 transition-colors mt-2"
+                className="w-full py-2 font-mono font-bold text-xs rounded-xl border hover:bg-black/5 dark:hover:bg-white/5 transition-colors mt-2"
+                style={{ borderColor: "var(--habit-border)", color: "var(--habit-text)" }}
               >
                 VIEW IN ALLIES
               </button>

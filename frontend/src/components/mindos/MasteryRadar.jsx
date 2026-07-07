@@ -13,7 +13,7 @@ export default function MasteryRadar({
   return (
     <ResponsiveContainer width="100%" height="100%">
       <RadarChart cx="50%" cy="50%" outerRadius={outerRadius} data={subjectStats}>
-        <PolarGrid stroke="rgba(255,255,255,0.15)" />
+        <PolarGrid stroke="var(--habit-border)" />
         <PolarAngleAxis 
           dataKey="label" 
           tick={({ payload, x, y, textAnchor }) => {
@@ -23,7 +23,7 @@ export default function MasteryRadar({
                 x={x} 
                 y={y} 
                 textAnchor={textAnchor} 
-                fill={cat?.color || "#fff"} 
+                fill={cat?.color || "var(--habit-text)"} 
                 fontSize={fontSize} 
                 fontFamily="'PixeloidSans', monospace" 
                 fontWeight="normal" 
@@ -43,7 +43,7 @@ export default function MasteryRadar({
           isAnimationActive={false}
           dot={(props) => {
             const { cx, cy, payload } = props;
-            const color = payload.color || "#fff";
+            const color = payload.color || "var(--habit-text)";
             return (
               <circle 
                 key={`dot-${payload.id || payload.label}`}

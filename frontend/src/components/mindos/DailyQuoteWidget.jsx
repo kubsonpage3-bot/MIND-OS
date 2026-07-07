@@ -24,14 +24,14 @@ export default function DailyQuoteWidget() {
         borderTopColor: "var(--habit-border)",
         borderRightColor: "var(--habit-border)",
         borderBottomColor: "var(--habit-border)",
-        borderLeftColor: "var(--xp-color)"
+        borderLeftColor: "var(--habit-purple)"
       }}
     >
       {/* Background radial gradient emanating from the left */}
       <div 
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at 10% 50%, var(--xp-color) 0%, transparent 60%)",
+          background: "radial-gradient(circle at 10% 50%, var(--habit-purple) 0%, transparent 60%)",
           opacity: 0.08
         }}
       />
@@ -42,8 +42,8 @@ export default function DailyQuoteWidget() {
           <ScrollText 
             size={38} 
             style={{ 
-              color: "var(--xp-color)", 
-              filter: "drop-shadow(0 0 6px rgba(var(--xp-color-rgb, 123, 97, 255), 0.4))" 
+              color: "var(--habit-purple)", 
+              filter: "drop-shadow(0 0 6px rgba(var(--habit-purple-rgb, 123, 97, 255), 0.4))" 
             }} 
             className="opacity-90" 
           />
@@ -59,9 +59,9 @@ export default function DailyQuoteWidget() {
           </span>
           <span 
             className="text-xs font-bold uppercase tracking-[0.15em] mt-1 flex items-center gap-1.5" 
-            style={{ color: "var(--habit-text)", opacity: 0.6 }}
+            style={{ color: "var(--habit-text)", opacity: 0.8 }}
           >
-            <span style={{ color: "var(--xp-color)", opacity: 0.8 }}>—</span> {quote.ref}
+            <span style={{ color: "var(--habit-purple)", opacity: 0.8 }}>—</span> {quote.ref}
           </span>
         </div>
         
@@ -69,7 +69,7 @@ export default function DailyQuoteWidget() {
         <div 
           className="absolute -right-2 -top-4 select-none pointer-events-none"
           style={{ 
-            color: "var(--xp-color)", 
+            color: "var(--habit-purple)", 
             opacity: 0.15, 
             fontFamily: "serif",
             fontSize: "120px",
