@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 from api.models import Task, UserProfile, Item, InventoryItem
 from api.services.skill_service import apply_effects_on_task_complete
@@ -302,13 +303,8 @@ def _complete_task_logic(user, task_id, is_positive=True):
                         )
                 except Exception as e:
                     print(f"Failed to create task_completed event: {e}")
-        except Exception as e:
-            from django.core.exceptions import ObjectDoesNotExist
-
-            if isinstance(e, ObjectDoesNotExist):
-                pass
-            else:
-                raise
+        except ObjectDoesNotExist:
+            pass
 
         # Handle item drops
         if outcome.get("item_dropped"):

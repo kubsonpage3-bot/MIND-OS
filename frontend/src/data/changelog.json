@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.15",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a 500 error that occurred when completing habits without being in a party."
+      }
+    ]
+  },
+  {
     "version": "1.4.14",
     "date": "2026-07-07",
     "changes": [
