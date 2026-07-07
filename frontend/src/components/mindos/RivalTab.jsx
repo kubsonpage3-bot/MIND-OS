@@ -11,7 +11,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import PartyTab from "./PartyTab";
 import TabGuideModal from "./TabGuideModal";
 
-const RIVAL_NAME = "{t('rivalTab.johan')}";
+const RIVAL_JOHAN_KEY = 'rivalTab.johan';
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function getDayNumber() {
@@ -33,38 +33,38 @@ function getDayPattern(dateStr) {
   return { type: "normal" };
 }
 
-// ─── TAUNT POOLS ────────────────────────────────────────────────────────────
+// ─── TAUNT POOLS (static — Johan name injected at call site) ────────────────
 const AHEAD_TAUNTS = [
   "The gap closes when you stop.",
-  `${RIVAL_NAME} doesn't take rest days.`,
+  "Johan doesn't take rest days.",
   "Every hour you skip, they don't.",
   "Shadows don't sleep.",
-  `${RIVAL_NAME} logged another session. Did you?`,
+  "Johan logged another session. Did you?",
   "You were ahead. Past tense.",
   "Consistency is the only variable that compounds.",
-  `${RIVAL_NAME} is 3 subjects ahead this week.`,
+  "Johan is 3 subjects ahead this week.",
 ];
 
 const WINNING_MESSAGES = [
   "You lead by {X} XP. Don't stop now.",
-  `${RIVAL_NAME} is recalibrating.`,
+  "Johan is recalibrating.",
   "Good. Now stay ahead.",
-  `${RIVAL_NAME} sees the gap. They won't accept it.`,
+  "Johan sees the gap. They won't accept it.",
   "Lead means nothing without consistency.",
-  `${RIVAL_NAME} is planning a surge. Stay alert.`,
+  "Johan is planning a surge. Stay alert.",
 ];
 
 const DEFAULT_TAUNTS = [
   "Shadow Protocol Active — Monitoring your progress.",
   "The race doesn't pause.",
-  `${RIVAL_NAME} is always logging somewhere.`,
+  "Johan is always logging somewhere.",
   "Your next session determines the gap.",
 ];
 
 // ─── DYNAMIC MESSAGE SYSTEM ───────────────────────────────────────────────────
 function calcJohanMessage(
   playerRankXP, johanXP, playerTodayHours, johanTodayHours,
-  playerStreak, johanStreak, logs, dayNumber
+  playerStreak, johanStreak, logs, dayNumber, rivalName
 ) {
   const nowH = new Date().getHours();
   const diff = Math.abs(johanXP - playerRankXP);
@@ -77,7 +77,7 @@ function calcJohanMessage(
 
   if (playerTodayHours === 0 && nowH >= 15 && johanTodayHours > 0) {
     return {
-      text: `${RIVAL_NAME} logged ${johanTodayHours.toFixed(1)}h already today. You have: 0h.`,
+      text: `${rivalName} logged ${johanTodayHours.toFixed(1)}h already today. You have: 0h.`,
       color: "#f59e0b",
       category: "slacking",
     };
@@ -86,7 +86,7 @@ function calcJohanMessage(
   if (pctAhead > 0.05) {
     const taunt = hashSelect(AHEAD_TAUNTS, hourSeed);
     return {
-      text: `⚡ ${RIVAL_NAME} overtook you by ${diff.toFixed(1)} XP today. ${taunt}`,
+      text: `⚡ ${rivalName} overtook you by ${diff.toFixed(1)} XP today. ${taunt}`,
       color: "#ef4444",
       category: "ahead",
       pulse: true,
@@ -95,7 +95,7 @@ function calcJohanMessage(
 
   if (recentLog) {
     return {
-      text: `${RIVAL_NAME} noticed your session. Adjusting pace.`,
+      text: `${rivalName} noticed your session. Adjusting pace.`,
       color: "#00e5ff",
       category: "noticed",
     };
@@ -103,7 +103,7 @@ function calcJohanMessage(
 
   if (playerStreak > johanStreak) {
     return {
-      text: `Your streak is longer. ${RIVAL_NAME} is watching.`,
+      text: `Your streak is longer. ${rivalName} is watching.`,
       color: "#00cc88",
       category: "streakLead",
     };
@@ -111,7 +111,7 @@ function calcJohanMessage(
 
   if (hasPerfectFocus) {
     return {
-      text: `${RIVAL_NAME}: '...that focus score.'`,
+      text: `${rivalName}: '...that focus score.'`,
       color: "#00e5ff",
       category: "perfectFocus",
     };
@@ -162,7 +162,7 @@ function GhostAvatar({ pulse = false, overtook, playerOvertook }) {
       )}
       <OptimizedImage
         src="/images/webp/6aa09434f_grafik.webp"
-        alt="{t('rivalTab.johan')}"
+        alt="Johan"
         style={{
           width: 72, height: 72, objectFit: "cover", borderRadius: "50%",
           imageRendering: "pixelated",
@@ -195,6 +195,7 @@ function TypingDots() {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   const { t } = useTranslation();
+  const RIVAL_NAME = t(RIVAL_JOHAN_KEY);
   const [activeTab, setActiveTab] = useState("rival");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sessionToast, setSessionToast] = useState(null);
@@ -213,7 +214,6 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   });
 
   const rivalData = rivalDataQuery || profile?.rival_data;
-
 
   const rivalDataMutation = useMutation({
     mutationFn: (newData) => djangoApi.profile.update({ rival_data: newData }),
@@ -234,7 +234,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       const justVisible = (rivalData.todaySessions || []).filter(s => {
         const [h, m] = s.scheduledTime.split(":").map(Number);
         const sessionMin = h * 60 + m;
-        return sessionMin <= nowMin && sessionMin > nowMin - 1; 
+        return sessionMin <= nowMin && sessionMin > nowMin - 1;
       });
       if (justVisible.length > 0) {
         setCardFlash("cyan");
@@ -245,7 +245,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       }
     }, 30000);
     return () => clearInterval(checkSessionAppear);
-  }, [rivalData]);
+  }, [rivalData, RIVAL_NAME]);
 
   // Detect overtake events
   useEffect(() => {
@@ -274,8 +274,8 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         setTimeout(() => setIsTyping(false), 2000);
       }
     };
-    const t = setInterval(checkMidnight, 5000);
-    return () => clearInterval(t);
+    const timer = setInterval(checkMidnight, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
@@ -304,8 +304,8 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   const thresholds = profile?.rank_info?.thresholds || [];
   let johanRankId = "F";
-  for (const t of thresholds) {
-    if (johanXP >= t.min) johanRankId = t.id;
+  for (const thr of thresholds) {
+    if (johanXP >= thr.min) johanRankId = thr.id;
   }
   const rivalRank = getRankDisplayData(johanRankId);
   const playerRank = getRankDisplayData(profile?.rank_info?.current_id || "F", profile);
@@ -325,7 +325,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   const msgObj = calcJohanMessage(
     playerRankXP, johanXP, playerTodayHours, rivalTodayHours,
-    playerStreak, johanStreak, logs, getDayNumber()
+    playerStreak, johanStreak, logs, getDayNumber(), RIVAL_NAME
   );
 
   const johanWeekHours = weeklyHistory.reduce((s, d) => s + (d.hours || 0), 0);
@@ -357,12 +357,12 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
         {[
           { id: "rival", label: "RIVAL" },
           { id: "party", label: "PARTY" },
-        ].map((t) => {
-          const isActive = activeTab === t.id;
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
           return (
             <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className="flex-1 px-3 py-1.5 rounded-xl transition-all"
               style={{
                 fontFamily: "'Nunito'",
@@ -374,7 +374,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                 letterSpacing: "0.08em",
               }}
             >
-              {t.label}
+              {tab.label}
             </button>
           );
         })}
@@ -392,8 +392,6 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       {activeTab === "rival" && (
       <>
       <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
-
-
 
       <AnimatePresence>
         {sessionToast && (

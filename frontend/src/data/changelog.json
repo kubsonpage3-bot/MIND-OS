@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.25",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed all untranslated text shown as raw keys (e.g. 'privacy.rivalVisibility', 'rivalTab.youLabel') in Privacy, Rival, Projections, and Reset screens — all text now displays correctly in English and Russian."
+      }
+    ]
+  },
+  {
     "version": "1.4.24",
     "date": "2026-07-07",
     "changes": [
