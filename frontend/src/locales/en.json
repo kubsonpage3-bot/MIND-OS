@@ -343,5 +343,13 @@
     "secureCheckout": "Secure Checkout",
     "premiumActive": "Premium Active",
     "premiumFullAccess": "Full Access Granted"
+  },
+  "errors": {
+    "access_restricted": "Access Restricted",
+    "not_registered_msg": "You are not registered to use this application. Please contact the app administrator to request access.",
+    "if_error_msg": "If you believe this is an error, you can:",
+    "verify_account": "Verify you are logged in with the correct account",
+    "contact_admin": "Contact the app administrator for access",
+    "try_relogin": "Try logging out and back in again"
   }
 }
