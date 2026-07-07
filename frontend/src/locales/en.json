@@ -774,5 +774,478 @@
   },
   "streakControl": {
     "dayStreak": "Day Streak"
+  },
+  "boss_panel": {
+    "no_active": "NO ACTIVE BOSS",
+    "visit_scrolls": "Visit SCROLLS tab to summon one",
+    "scroll_boss": "Scroll Boss",
+    "active": "ACTIVE"
+  },
+  "rpgData": {
+    "classes": {
+      "architect": {
+        "name": "Architect",
+        "lore": "Masters of systematic design and deep work."
+      },
+      "ascetic": {
+        "name": "Ascetic",
+        "lore": "Those who find power in minimalism and focus."
+      },
+      "linguist": {
+        "name": "Linguist",
+        "lore": "Scholars who weave words into reality."
+      },
+      "warlord": {
+        "name": "Warlord",
+        "lore": "Relentless conquerors of goals and tasks."
+      }
+    },
+    "skills": {
+      "blueprint": {
+        "name": "Blueprint",
+        "desc": "Create a foundational plan."
+      },
+      "system_overload": {
+        "name": "System Overload",
+        "desc": "Push past normal limits."
+      },
+      "infinite_loop": {
+        "name": "Infinite Loop",
+        "desc": "Automate a perfect cycle."
+      },
+      "iron_fast": {
+        "name": "Iron Fast",
+        "desc": "Abstain from distraction."
+      },
+      "contemplate": {
+        "name": "Contemplate",
+        "desc": "Deep focus meditation."
+      },
+      "transcendence": {
+        "name": "Transcendence",
+        "desc": "Rise above worldly desires."
+      },
+      "babel_mode": {
+        "name": "Babel Mode",
+        "desc": "Understand complex patterns."
+      },
+      "polyglot_surge": {
+        "name": "Polyglot Surge",
+        "desc": "Rapid skill acquisition."
+      },
+      "memetic_transfer": {
+        "name": "Memetic Transfer",
+        "desc": "Share knowledge efficiently."
+      },
+      "battle_fury": {
+        "name": "Battle Fury",
+        "desc": "Aggressive task completion."
+      },
+      "war_cry": {
+        "name": "War Cry",
+        "desc": "Boost motivation instantly."
+      },
+      "tactical_retreat": {
+        "name": "Tactical Retreat",
+        "desc": "Strategic rest and recovery."
+      }
+    },
+    "skillTree": {
+      "sharp_focus": {
+        "name": "Sharp Focus",
+        "desc": "Increase base concentration."
+      },
+      "deep_concentration": {
+        "name": "Deep Concentration",
+        "desc": "Lengthen focus sessions."
+      },
+      "flow_state": {
+        "name": "Flow State",
+        "desc": "Enter the zone faster."
+      },
+      "neural_expansion": {
+        "name": "Neural Expansion",
+        "desc": "Learn complex subjects easily."
+      },
+      "cognitive_supremacy": {
+        "name": "Cognitive Supremacy",
+        "desc": "Mastery over the mind."
+      },
+      "godmind": {
+        "name": "Godmind",
+        "desc": "Absolute mental clarity."
+      },
+      "iron_conditioning": {
+        "name": "Iron Conditioning",
+        "desc": "Increase base endurance."
+      },
+      "endurance_protocol": {
+        "name": "Endurance Protocol",
+        "desc": "Reduce fatigue from work."
+      },
+      "combat_reflexes": {
+        "name": "Combat Reflexes",
+        "desc": "Quickly tackle new tasks."
+      },
+      "pain_threshold": {
+        "name": "Pain Threshold",
+        "desc": "Resist burnout."
+      },
+      "unbreakable": {
+        "name": "Unbreakable",
+        "desc": "Become immune to distraction."
+      },
+      "apex_predator": {
+        "name": "Apex Predator",
+        "desc": "Dominate all challenges."
+      },
+      "resource_awareness": {
+        "name": "Resource Awareness",
+        "desc": "Better manage your time."
+      },
+      "compound_returns": {
+        "name": "Compound Returns",
+        "desc": "Small habits yield big results."
+      },
+      "loot_magnetism": {
+        "name": "Loot Magnetism",
+        "desc": "Find opportunities everywhere."
+      },
+      "market_knowledge": {
+        "name": "Market Knowledge",
+        "desc": "Understand the value of work."
+      },
+      "fortunes_favor": {
+        "name": "Fortunes Favor",
+        "desc": "Luck favors the prepared."
+      },
+      "golden_mind": {
+        "name": "Golden Mind",
+        "desc": "Turn ideas into wealth."
+      },
+      "inner_stillness": {
+        "name": "Inner Stillness",
+        "desc": "Calm the restless mind."
+      },
+      "resilience": {
+        "name": "Resilience",
+        "desc": "Bounce back from failure."
+      },
+      "mindguard": {
+        "name": "Mindguard",
+        "desc": "Protect your focus."
+      },
+      "aura_of_focus": {
+        "name": "Aura of Focus",
+        "desc": "Inspire focus in others."
+      },
+      "transcendent_will": {
+        "name": "Transcendent Will",
+        "desc": "Overcome any obstacle."
+      },
+      "void_clarity": {
+        "name": "Void Clarity",
+        "desc": "See the truth in emptiness."
+      },
+      "polymath": {
+        "name": "Polymath",
+        "desc": "Broaden your skill base."
+      },
+      "cross_training": {
+        "name": "Cross Training",
+        "desc": "Apply skills to new areas."
+      },
+      "encyclopedia": {
+        "name": "Encyclopedia",
+        "desc": "Retain vast knowledge."
+      },
+      "master_of_arts": {
+        "name": "Master of Arts",
+        "desc": "Excel in creative endeavors."
+      },
+      "living_library": {
+        "name": "Living Library",
+        "desc": "Become a source of wisdom."
+      },
+      "omniscience": {
+        "name": "Omniscience",
+        "desc": "Know all there is to know."
+      }
+    },
+    "achievements": {
+      "first_step": {
+        "name": "First Step",
+        "desc": "Complete your first session.",
+        "reward": "+10 Gold"
+      },
+      "seven_suns": {
+        "name": "Seven Suns",
+        "desc": "Achieve a 7-day streak.",
+        "reward": "+50 Gold"
+      },
+      "iron_will": {
+        "name": "Iron Will",
+        "desc": "Achieve a 30-day streak.",
+        "reward": "+200 Gold"
+      },
+      "unbroken": {
+        "name": "Unbroken",
+        "desc": "Achieve a 100-day streak.",
+        "reward": "+1000 Gold"
+      },
+      "eternal": {
+        "name": "Eternal",
+        "desc": "Achieve a 365-day streak.",
+        "reward": "+5000 Gold"
+      },
+      "first_blood": {
+        "name": "First Blood",
+        "desc": "Deal 100 damage to bosses.",
+        "reward": "+15 Gold"
+      },
+      "boss_slayer": {
+        "name": "Boss Slayer",
+        "desc": "Defeat your first boss.",
+        "reward": "+100 Gold"
+      },
+      "dragon_hunter": {
+        "name": "Dragon Hunter",
+        "desc": "Defeat 4 bosses.",
+        "reward": "+400 Gold"
+      },
+      "emperors_bane": {
+        "name": "Emperors Bane",
+        "desc": "Defeat 5 bosses.",
+        "reward": "+500 Gold"
+      },
+      "void_walker": {
+        "name": "Void Walker",
+        "desc": "Walk the path of the void.",
+        "reward": "+1000 Gold"
+      },
+      "first_session": {
+        "name": "First Session",
+        "desc": "Complete a study session.",
+        "reward": "+10 Gold"
+      },
+      "scholar": {
+        "name": "Scholar",
+        "desc": "Complete 50 sessions.",
+        "reward": "+200 Gold"
+      },
+      "polymath_ach": {
+        "name": "Polymath",
+        "desc": "Study 10 unique subjects.",
+        "reward": "+300 Gold"
+      },
+      "master": {
+        "name": "Master",
+        "desc": "Reach rank 4 in a subject.",
+        "reward": "+250 Gold"
+      },
+      "grandmaster": {
+        "name": "Grandmaster",
+        "desc": "Reach rank 8 in a subject.",
+        "reward": "+1000 Gold"
+      },
+      "first_coin": {
+        "name": "First Coin",
+        "desc": "Earn your first gold.",
+        "reward": "A sense of pride"
+      },
+      "merchant": {
+        "name": "Merchant",
+        "desc": "Earn 1000 gold total.",
+        "reward": "+100 Gold"
+      },
+      "wealthy": {
+        "name": "Wealthy",
+        "desc": "Earn 10000 gold total.",
+        "reward": "+500 Gold"
+      },
+      "tycoon": {
+        "name": "Tycoon",
+        "desc": "Earn 100000 gold total.",
+        "reward": "+2000 Gold"
+      },
+      "first_prayer": {
+        "name": "First Prayer",
+        "desc": "Complete a prayer session.",
+        "reward": "+15 Gold"
+      },
+      "devotion": {
+        "name": "Devotion",
+        "desc": "Complete 20 prayer sessions.",
+        "reward": "+150 Gold"
+      },
+      "sanctified": {
+        "name": "Sanctified",
+        "desc": "Reach prayer rank 7.",
+        "reward": "+500 Gold"
+      },
+      "first_crit": {
+        "name": "First Crit",
+        "desc": "Land a critical hit.",
+        "reward": "+20 Gold"
+      },
+      "precision": {
+        "name": "Precision",
+        "desc": "Land 50 critical hits.",
+        "reward": "+150 Gold"
+      },
+      "sharpshooter": {
+        "name": "Sharpshooter",
+        "desc": "Land 500 critical hits.",
+        "reward": "+800 Gold"
+      },
+      "first_ally": {
+        "name": "First Ally",
+        "desc": "Recruit your first ally.",
+        "reward": "+50 Gold"
+      },
+      "commander": {
+        "name": "Commander",
+        "desc": "Recruit 3 allies.",
+        "reward": "+200 Gold"
+      },
+      "warlords_court": {
+        "name": "Warlords Court",
+        "desc": "Recruit 5 allies.",
+        "reward": "+500 Gold"
+      },
+      "loyal_bonds": {
+        "name": "Loyal Bonds",
+        "desc": "Reach ally max level 5.",
+        "reward": "+400 Gold"
+      },
+      "reborn": {
+        "name": "Reborn",
+        "desc": "Prestige for the first time.",
+        "reward": "+1 Prestige Point"
+      },
+      "phoenix": {
+        "name": "Phoenix",
+        "desc": "Prestige 3 times.",
+        "reward": "+3 Prestige Points"
+      }
+    },
+    "mutators": {
+      "bloodwork": {
+        "name": "Bloodwork",
+        "desc": "Increases effectiveness of physical tasks."
+      },
+      "monks_path": {
+        "name": "Monks Path",
+        "desc": "Enhances spiritual and mental focus."
+      },
+      "iron_routine": {
+        "name": "Iron Routine",
+        "desc": "Builds unbreakable daily habits."
+      },
+      "lexicon": {
+        "name": "Lexicon",
+        "desc": "Boosts knowledge acquisition."
+      },
+      "night_owl": {
+        "name": "Night Owl",
+        "desc": "Increases productivity at night."
+      },
+      "early_riser": {
+        "name": "Early Riser",
+        "desc": "Increases productivity in the morning."
+      },
+      "tunnel_vision": {
+        "name": "Tunnel Vision",
+        "desc": "Hyper-focus on a single task."
+      },
+      "loan_shark": {
+        "name": "Loan Shark",
+        "desc": "Borrow future gold for a steep price."
+      },
+      "compound": {
+        "name": "Compound",
+        "desc": "Interest on your banked gold."
+      },
+      "miser": {
+        "name": "Miser",
+        "desc": "Reduces costs but slows progression."
+      },
+      "tithe": {
+        "name": "Tithe",
+        "desc": "Sacrifice gold for spiritual power."
+      },
+      "ascetic_loop": {
+        "name": "Ascetic Loop",
+        "desc": "Endless repetition builds strength."
+      },
+      "double_nothing": {
+        "name": "Double or Nothing",
+        "desc": "50% chance for double rewards or nothing."
+      },
+      "momentum": {
+        "name": "Momentum",
+        "desc": "Consecutive tasks yield more rewards."
+      },
+      "diversity_lock": {
+        "name": "Diversity Lock",
+        "desc": "Forces varied task selection."
+      },
+      "silence": {
+        "name": "Silence",
+        "desc": "No notifications or feedback."
+      },
+      "ironman": {
+        "name": "Ironman",
+        "desc": "Permadeath for your streak."
+      },
+      "glass_cannon": {
+        "name": "Glass Cannon",
+        "desc": "Massive rewards, massive penalties."
+      },
+      "zero_hour": {
+        "name": "Zero Hour",
+        "desc": "Work under intense time pressure."
+      },
+      "catalyst": {
+        "name": "Catalyst",
+        "desc": "Triggers powerful synergy effects."
+      },
+      "echo": {
+        "name": "Echo",
+        "desc": "Repeats the last positive effect."
+      },
+      "mirror": {
+        "name": "Mirror",
+        "desc": "Reflects negative events."
+      },
+      "resonance": {
+        "name": "Resonance",
+        "desc": "Amplifies all active mutators."
+      },
+      "gambler": {
+        "name": "Gambler",
+        "desc": "Randomized rewards."
+      },
+      "phantom_load": {
+        "name": "Phantom Load",
+        "desc": "Ghost tasks grant bonus XP."
+      },
+      "cursed_clock": {
+        "name": "Cursed Clock",
+        "desc": "Time moves faster, but so do deadlines."
+      },
+      "deja_vu": {
+        "name": "Deja Vu",
+        "desc": "Repeat past tasks for current rewards."
+      },
+      "volatile": {
+        "name": "Volatile",
+        "desc": "Unpredictable positive and negative shifts."
+      },
+      "weight_of_history": {
+        "name": "Weight of History",
+        "desc": "Past failures increase current difficulty."
+      }
+    }
   }
 }

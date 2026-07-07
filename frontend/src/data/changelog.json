@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.27",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed missing UI text displaying as raw code (e.g. rpgData.classes...) in the Skills, Achievements, Mutators, and Boss panels by adding complete English and Russian translations."
+      }
+    ]
+  },
+  {
     "version": "1.4.26",
     "date": "2026-07-07",
     "changes": [
