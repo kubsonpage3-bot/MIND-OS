@@ -3,7 +3,7 @@ import { showRewardToast } from "@/components/mindos/RewardToast";
 import { playSound } from "@/lib/soundEffects";
 import { useQueryClient } from "@tanstack/react-query";
 import { ACHIEVEMENTS } from "@/constants/rpgData";
-import { i18n } from "@/lib/i18n";
+
 
 export default function AchievementTracker() {
   const queryClient = useQueryClient();
