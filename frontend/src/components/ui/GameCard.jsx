@@ -15,8 +15,8 @@ export default function GameCard({
   glowColor,
   onClick = undefined,
   style = {},
-  animate,
-  transition,
+  animate = undefined,
+  transition = undefined,
   ...props
 }) {
   const defaultBorder = "var(--habit-border)";

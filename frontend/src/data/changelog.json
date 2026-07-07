@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.4.29",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed an issue where the character's class name and lore were displaying as raw system codes instead of readable text in the Hero tab."
+      }
+    ]
+  },
+  {
     "version": "1.4.28",
     "date": "2026-07-07",
     "changes": [

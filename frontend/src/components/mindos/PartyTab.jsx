@@ -203,7 +203,7 @@ function NoPartyView({ onCreated, onJoined }) {
       queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
       onCreated?.();
     },
-    onError: (err) => setError(err?.data?.error || err?.message || 'Failed to create party.'),
+    onError: (/** @type {any} */ err) => setError(err?.data?.error || err?.message || 'Failed to create party.'),
   });
 
   const joinMutation = useMutation({
@@ -212,7 +212,7 @@ function NoPartyView({ onCreated, onJoined }) {
       queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
       onJoined?.();
     },
-    onError: (err) => setError(err?.data?.error || err?.message || 'Failed to join party.'),
+    onError: (/** @type {any} */ err) => setError(err?.data?.error || err?.message || 'Failed to join party.'),
   });
 
   const inputStyle = {
@@ -332,7 +332,7 @@ function PartyFeedView({ party }) {
   });
 
   const reactMutation = useMutation({
-    mutationFn: ({ eventId, emoji }) => djangoApi.party.react(eventId, emoji),
+    mutationFn: (/** @type {{eventId: number, emoji: string}} */ { eventId, emoji }) => djangoApi.party.react(eventId, emoji),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['party', 'feed'] })
   });
 
@@ -576,11 +576,11 @@ function PartyView({ party }) {
   const leaveMutation = useMutation({
     mutationFn: () => djangoApi.party.leave(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['party', 'members'] }),
-    onError: (err) => setLeaveError(err?.data?.error || err?.message || 'Failed to leave party.'),
+    onError: (/** @type {any} */ err) => setLeaveError(err?.data?.error || err?.message || 'Failed to leave party.'),
   });
 
   const buffMutation = useMutation({
-    mutationFn: ({ username, code }) => djangoApi.party.buff(username, code),
+    mutationFn: (/** @type {{username: string, code: string}} */ { username, code }) => djangoApi.party.buff(username, code),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['party', 'feed'] });
     }
@@ -753,7 +753,7 @@ export default function PartyTab() {
           </motion.div>
         ) : (
           <motion.div key="no-party" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <NoPartyView />
+            <NoPartyView onCreated={undefined} onJoined={undefined} />
           </motion.div>
         )}
       </AnimatePresence>
