@@ -1,85 +1,172 @@
 [
   {
+    "version": "1.4.12",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "1.4.12",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
     "version": "1.2.8",
     "date": "2026-07-07",
     "changes": [
-      { "type": "feature", "text": "Added the Active Party Widget to the Dashboard! Your top 3 active allies are now prominently displayed with their rank-colored borders and current active buffs." },
-      { "type": "feature", "text": "You can now Equip and Remove your allies directly from the Shop → Allies tab to customize your Active Party." }
+      {
+        "type": "feature",
+        "text": "Added the Active Party Widget to the Dashboard! Your top 3 active allies are now prominently displayed with their rank-colored borders and current active buffs."
+      },
+      {
+        "type": "feature",
+        "text": "You can now Equip and Remove your allies directly from the Shop → Allies tab to customize your Active Party."
+      }
     ]
   },
   {
     "version": "1.2.7",
     "date": "2026-07-07",
     "changes": [
-      { "type": "polish", "text": "Reorganized Character screen tabs to reduce clutter: Allies and Mutators are now housed inside the Shop, and Skill Tree is seamlessly integrated into the Skills page." }
+      {
+        "type": "polish",
+        "text": "Reorganized Character screen tabs to reduce clutter: Allies and Mutators are now housed inside the Shop, and Skill Tree is seamlessly integrated into the Skills page."
+      }
     ]
   },
   {
     "version": "1.2.6",
     "date": "2026-07-06",
     "changes": [
-      { "type": "fix", "text": "Fixed a visual issue where unlocked achievements displayed their raw ID (e.g. FIRST_BLOOD) instead of their actual name in the notification toast." }
+      {
+        "type": "fix",
+        "text": "Fixed a visual issue where unlocked achievements displayed their raw ID (e.g. FIRST_BLOOD) instead of their actual name in the notification toast."
+      }
     ]
   },
   {
     "version": "1.2.5",
     "date": "2026-07-06",
     "changes": [
-      { "type": "fix", "text": "Restored the correct pixel art portraits for Kira, Neko, Void, Luna, and Sakura after they were accidentally replaced by screenshots." }
+      {
+        "type": "fix",
+        "text": "Restored the correct pixel art portraits for Kira, Neko, Void, Luna, and Sakura after they were accidentally replaced by screenshots."
+      }
     ]
   },
   {
     "version": "1.2.4",
     "date": "2026-07-06",
     "changes": [
-      { "type": "fix", "text": "Disabled Stripe payments within the Android app to comply with Google Play Store billing policies." },
-      { "type": "fix", "text": "Fixed a bug where the Ascetic class was incorrectly locked for free users in the UI." },
-      { "type": "fix", "text": "Fixed a loophole where free users could change their class without Premium via the Recalibrate feature." },
-      { "type": "content", "text": "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images." }
+      {
+        "type": "fix",
+        "text": "Disabled Stripe payments within the Android app to comply with Google Play Store billing policies."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the Ascetic class was incorrectly locked for free users in the UI."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a loophole where free users could change their class without Premium via the Recalibrate feature."
+      },
+      {
+        "type": "content",
+        "text": "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images."
+      }
     ]
   },
   {
     "version": "1.2.3",
     "date": "2026-07-06",
     "changes": [
-      { "type": "feature", "text": "Upgraded offline caching to ensure the game works reliably even without an internet connection." },
-      { "type": "feature", "text": "Added support for Android TWA deployment with dynamic maskable icons." }
+      {
+        "type": "feature",
+        "text": "Upgraded offline caching to ensure the game works reliably even without an internet connection."
+      },
+      {
+        "type": "feature",
+        "text": "Added support for Android TWA deployment with dynamic maskable icons."
+      }
     ]
   },
   {
     "version": "1.2.2",
     "date": "2026-07-06",
     "changes": [
-      { "type": "feature", "text": "Implemented Google Consent Mode v2 support to comply with GDPR and privacy rules." },
-      { "type": "feature", "text": "Added a premium slide-up Consent Banner for first-time visitors to accept or decline analytics." },
-      { "type": "fix", "text": "Integrated privacy consent choices directly into the System Settings Privacy Panel." }
+      {
+        "type": "feature",
+        "text": "Implemented Google Consent Mode v2 support to comply with GDPR and privacy rules."
+      },
+      {
+        "type": "feature",
+        "text": "Added a premium slide-up Consent Banner for first-time visitors to accept or decline analytics."
+      },
+      {
+        "type": "fix",
+        "text": "Integrated privacy consent choices directly into the System Settings Privacy Panel."
+      }
     ]
   },
   {
     "version": "1.2.1",
     "date": "2026-07-06",
     "changes": [
-      { "type": "feature", "text": "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. '2m ago')." },
-      { "type": "feature", "text": "Party Ranking shows animated XP bars, medals for top 3, and highlights your own row." },
-      { "type": "fix", "text": "Training 'Create Task' tab now only creates Button-type activities — no more duplicate Habit/Daily forms." },
-      { "type": "feature", "text": "Rival comparison replaced table with animated dual bar charts for Hours, Focus, Subjects, and Rank XP." },
-      { "type": "feature", "text": "Rival card now pulses red when Johan is ahead of you." }
+      {
+        "type": "feature",
+        "text": "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. '2m ago')."
+      },
+      {
+        "type": "feature",
+        "text": "Party Ranking shows animated XP bars, medals for top 3, and highlights your own row."
+      },
+      {
+        "type": "fix",
+        "text": "Training 'Create Task' tab now only creates Button-type activities — no more duplicate Habit/Daily forms."
+      },
+      {
+        "type": "feature",
+        "text": "Rival comparison replaced table with animated dual bar charts for Hours, Focus, Subjects, and Rank XP."
+      },
+      {
+        "type": "feature",
+        "text": "Rival card now pulses red when Johan is ahead of you."
+      }
     ]
   },
   {
     "version": "1.2.0",
     "date": "2026-07-06",
     "changes": [
-      { "type": "feature", "text": "Added Privacy Policy page (mindos.pages.dev/privacy-policy.html) required for Google Play Store." },
-      { "type": "feature", "text": "Added Terms of Service page (mindos.pages.dev/terms.html)." },
-      { "type": "fix", "text": "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing 'Tauri Desktop'." },
-      { "type": "fix", "text": "Privacy Policy and Terms of Service links in Settings now open the real pages in a new tab." }
+      {
+        "type": "feature",
+        "text": "Added Privacy Policy page (mindos.pages.dev/privacy-policy.html) required for Google Play Store."
+      },
+      {
+        "type": "feature",
+        "text": "Added Terms of Service page (mindos.pages.dev/terms.html)."
+      },
+      {
+        "type": "fix",
+        "text": "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing 'Tauri Desktop'."
+      },
+      {
+        "type": "fix",
+        "text": "Privacy Policy and Terms of Service links in Settings now open the real pages in a new tab."
+      }
     ]
   },
-
   {
     "version": "1.1.9",
-
     "date": "2026-07-06",
     "changes": [
       {
@@ -180,7 +267,6 @@
   },
   {
     "version": "1.1.3",
-
     "date": "2026-07-05",
     "changes": [
       {
@@ -207,7 +293,6 @@
       }
     ]
   },
-
   {
     "version": "1.1.1",
     "date": "2026-07-05",

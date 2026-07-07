@@ -1,13 +1,13 @@
 {
-  "background_color": "#ae0fef",
+  "background_color": "#0a0814",
   "dir": "ltr",
   "display": "standalone",
-  "name": "MIND OS GROWTH",
+  "name": "MIND OS — RPG Habit Tracker",
   "orientation": "portrait",
   "scope": "/",
   "short_name": "MIND OS",
   "start_url": "/?source=pwa",
-  "theme_color": "#4d2c64",
+  "theme_color": "#7c3aed",
   "icons": [
     {
       "src": "/android/launchericon-48x48.png",
@@ -47,7 +47,7 @@
     }
   ],
   "id": "MINDOS",
-  "description": "MIND OS is a gamified productivity system that combines cognitive training with RPG mechanics. Track habits, complete daily tasks, defeat bosses, and level up your character while improving your real-life cognitive abilities.",
+  "description": "Turn your habits into boss fights. Dark fantasy RPG productivity tracker.",
   "lang": "en",
   "categories": [
     "games",

@@ -173,10 +173,10 @@ class UserProfile(models.Model):
     ps = models.FloatField(default=100.0, verbose_name="Processing Speed (Ps)")
     vm = models.FloatField(default=100.0, verbose_name="Verbal Memory (Vm)")
 
-    gf_ceiling = models.FloatField(default=120.0, verbose_name="Gf Ceiling")
-    gc_ceiling = models.FloatField(default=135.0, verbose_name="Gc Ceiling")
-    ps_ceiling = models.FloatField(default=112.0, verbose_name="Ps Ceiling")
-    vm_ceiling = models.FloatField(default=138.0, verbose_name="Vm Ceiling")
+    gf_ceiling = models.FloatField(default=105.0, verbose_name="Gf Ceiling")
+    gc_ceiling = models.FloatField(default=105.0, verbose_name="Gc Ceiling")
+    ps_ceiling = models.FloatField(default=105.0, verbose_name="Ps Ceiling")
+    vm_ceiling = models.FloatField(default=105.0, verbose_name="Vm Ceiling")
 
     # Временны́е метки
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
