@@ -12,7 +12,7 @@
   { "id": "miser", "cost": 700, "cat": "economy", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": true },
   { "id": "tithe", "cost": 800, "cat": "economy", "durationDays": null, "synergy": "compound", "conflicts": [], "permanent_lock": false, "disabled": false },
   
-  { "id": "ascetic_loop", "cost": 900, "cat": "streak", "durationDays": null, "synergy": "monks_path", "conflicts": [], "permanent_lock": false, "disabled": true },
+  { "id": "ascetic_loop", "cost": 900, "cat": "streak", "durationDays": null, "synergy": "monks_path", "conflicts": [], "permanent_lock": false, "disabled": false },
   { "id": "double_nothing", "cost": 1200, "cat": "streak", "durationDays": null, "synergy": null, "conflicts": ["gambler"], "permanent_lock": false, "disabled": false },
   { "id": "momentum", "cost": 800, "cat": "streak", "durationDays": null, "synergy": "phantom_load", "conflicts": [], "permanent_lock": false, "disabled": false },
   
