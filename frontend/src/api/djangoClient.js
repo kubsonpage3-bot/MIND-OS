@@ -406,6 +406,10 @@ export const djangoApi = {
 
   mutators: {
     buy: (id) => djangoFetch(`/mutators/${id}/buy/`, { method: 'POST' }),
+    toggle: (id, data) => djangoFetch(`/mutators/${id}/toggle/`, { 
+      method: 'POST',
+      body: JSON.stringify(data || {})
+    }),
   },
 
   training: {

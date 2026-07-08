@@ -144,6 +144,26 @@ class UserProfile(models.Model):
         default=dict, blank=True, verbose_name="Данные соперника"
     )
 
+    # Поля для мутаторов (Group 3)
+    tasks_completed_today = models.PositiveIntegerField(
+        default=0, verbose_name="Выполнено задач сегодня (momentum)"
+    )
+    last_completed_category = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="Категория последней задачи (tunnel_vision)",
+    )
+    same_category_streak = models.PositiveIntegerField(
+        default=0, verbose_name="Стрик одной категории (tunnel_vision)"
+    )
+    total_overdue_tasks = models.PositiveIntegerField(
+        default=0, verbose_name="Всего просрочено/провалено (weight_of_history)"
+    )
+    last_deja_vu_use = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последнее использование deja_vu"
+    )
+
     # Временная зона пользователя (для сброса дейликов)
     timezone = models.CharField(max_length=50, default="UTC", verbose_name="Timezone")
 

@@ -40,8 +40,8 @@ export default function MutatorsPanel({ onSpendGold }) {
     return isActive(mut.id) && isActive(mut.synergy);
   };
 
-  const mutatorsMutation = useMutation({
-    mutationFn: (newData) => djangoApi.profile.update({ active_mutators: newData }),
+  const toggleMutatorMutation = useMutation({
+    mutationFn: ({ id, duration }) => djangoApi.mutators.toggle(id, { duration }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
@@ -62,11 +62,7 @@ export default function MutatorsPanel({ onSpendGold }) {
       // Auto-activate after purchase if we have space
       if (active.length < MAX_ACTIVE) {
         const mutator = MUTATORS.find(m => m.id === mutatorId);
-        const now = Date.now();
-        const newActive = [...active, { id: mutator.id, activatedAt: now, duration: mutator.durationDays }];
-        const newPurchased = [...purchased, mutator.id];
-        const newData = { ...mutators, active: newActive, purchased: newPurchased };
-        mutatorsMutation.mutate(newData);
+        toggleMutatorMutation.mutate({ id: mutatorId, duration: mutator.durationDays });
         djangoApi.analytics.logEvent("mutator_activated");
       }
     },
@@ -91,17 +87,9 @@ export default function MutatorsPanel({ onSpendGold }) {
       return;
     }
 
-    const now = Date.now();
-    let newActive;
-    if (isActive(mutator.id)) {
-      if (mutator.permanent_lock) return; // ironman cannot toggle off
-      newActive = active.filter(m => m.id !== mutator.id);
-    } else {
-      newActive = [...active, { id: mutator.id, activatedAt: now, duration: mutator.durationDays }];
-    }
-    const newData = { ...mutators, active: newActive };
-    
-    mutatorsMutation.mutate(newData);
+    if (isActive(mutator.id) && mutator.permanent_lock) return; // ironman cannot toggle off
+
+    toggleMutatorMutation.mutate({ id: mutator.id, duration: mutator.durationDays });
     djangoApi.analytics.logEvent("mutator_activated");
   };
 

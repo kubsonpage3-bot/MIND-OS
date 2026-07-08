@@ -1,0 +1,36 @@
+[
+  { "id": "bloodwork", "cost": 600, "cat": "amplifier", "durationDays": null, "synergy": "tunnel_vision", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "monks_path", "cost": 700, "cat": "amplifier", "durationDays": null, "synergy": "ascetic_loop", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "iron_routine", "cost": 800, "cat": "amplifier", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "lexicon", "cost": 600, "cat": "amplifier", "durationDays": null, "synergy": "echo", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "night_owl", "cost": 500, "cat": "amplifier", "durationDays": null, "synergy": null, "conflicts": ["early_riser"], "permanent_lock": false, "disabled": false },
+  { "id": "early_riser", "cost": 500, "cat": "amplifier", "durationDays": null, "synergy": null, "conflicts": ["night_owl"], "permanent_lock": false, "disabled": false },
+  { "id": "tunnel_vision", "cost": 900, "cat": "amplifier", "durationDays": null, "synergy": "bloodwork", "conflicts": ["diversity_lock"], "permanent_lock": false, "disabled": false },
+  
+  { "id": "loan_shark", "cost": 400, "cat": "economy", "durationDays": null, "synergy": "compound", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "compound", "cost": 1000, "cat": "economy", "durationDays": null, "synergy": "loan_shark", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "miser", "cost": 700, "cat": "economy", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": true },
+  { "id": "tithe", "cost": 800, "cat": "economy", "durationDays": null, "synergy": "compound", "conflicts": [], "permanent_lock": false, "disabled": false },
+  
+  { "id": "ascetic_loop", "cost": 900, "cat": "streak", "durationDays": null, "synergy": "monks_path", "conflicts": [], "permanent_lock": false, "disabled": true },
+  { "id": "double_nothing", "cost": 1200, "cat": "streak", "durationDays": null, "synergy": null, "conflicts": ["gambler"], "permanent_lock": false, "disabled": false },
+  { "id": "momentum", "cost": 800, "cat": "streak", "durationDays": null, "synergy": "phantom_load", "conflicts": [], "permanent_lock": false, "disabled": false },
+  
+  { "id": "diversity_lock", "cost": 500, "cat": "challenge", "durationDays": 30, "synergy": null, "conflicts": ["tunnel_vision"], "permanent_lock": false, "disabled": false },
+  { "id": "silence", "cost": 400, "cat": "challenge", "durationDays": 2, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "ironman", "cost": 3000, "cat": "challenge", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": true, "disabled": false },
+  { "id": "glass_cannon", "cost": 600, "cat": "challenge", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "zero_hour", "cost": 1000, "cat": "challenge", "durationDays": 7, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  
+  { "id": "catalyst", "cost": 1500, "cat": "synergy", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "echo", "cost": 1200, "cat": "synergy", "durationDays": null, "synergy": "lexicon", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "mirror", "cost": 1100, "cat": "synergy", "durationDays": null, "synergy": "tunnel_vision", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "resonance", "cost": 1400, "cat": "synergy", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  
+  { "id": "gambler", "cost": 800, "cat": "wild", "durationDays": null, "synergy": "catalyst", "conflicts": ["double_nothing"], "permanent_lock": false, "disabled": false },
+  { "id": "phantom_load", "cost": 700, "cat": "wild", "durationDays": null, "synergy": "momentum", "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "cursed_clock", "cost": 900, "cat": "wild", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "deja_vu", "cost": 1000, "cat": "wild", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "volatile", "cost": 1300, "cat": "wild", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
+  { "id": "weight_of_history", "cost": 1500, "cat": "wild", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false }
+]

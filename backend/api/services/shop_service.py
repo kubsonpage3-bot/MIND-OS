@@ -15,11 +15,16 @@ def buy_item(user, item_id: str):
     except Item.DoesNotExist:
         return False, f"Item with code '{item_id}' not found in database", profile
 
-    if profile.gold < item.cost:
+    from api.services.mechanics import apply_active_mutators
+
+    mutator_effects = apply_active_mutators(profile, {}, trigger_side_effects=False)
+    actual_cost = int(item.cost * mutator_effects.get("shop_cost_mult", 1.0))
+
+    if profile.gold < actual_cost:
         return False, "Not enough gold", profile
 
     # Списываем золото
-    profile.gold -= item.cost
+    profile.gold -= actual_cost
 
     # Добавляем в инвентарь
     inv_item, created = InventoryItem.objects.get_or_create(

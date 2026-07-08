@@ -45,11 +45,14 @@ class Command(BaseCommand):
                     f"DRY RUN: Found {count} inactive guest account(s) to delete."
                 )
             )
-            self.stdout.write("Last login dates for these accounts:")
-            for user in users_to_delete:
-                dt = user.last_login or user.date_joined
+            # Find the oldest and newest last_login in the batch to give context without PII
+            dates = [u.last_login or u.date_joined for u in users_to_delete]
+            if dates:
                 self.stdout.write(
-                    f"- User ID: {user.id}, Date: {dt.strftime('%Y-%m-%d %H:%M:%S')}"
+                    f"Oldest inactive account date: {min(dates).strftime('%Y-%m-%d %H:%M:%S')}"
+                )
+                self.stdout.write(
+                    f"Newest inactive account date: {max(dates).strftime('%Y-%m-%d %H:%M:%S')}"
                 )
 
             self.stdout.write(

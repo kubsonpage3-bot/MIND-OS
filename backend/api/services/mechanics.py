@@ -161,6 +161,7 @@ def calculate_task_outcome(
     base_hp_lost=0,
     is_positive=True,
     passive_effects=None,
+    mutator_effects=None,
 ):
     """
     Calculates the final outcome of a task based on the user's total RPG stats.
@@ -242,6 +243,16 @@ def calculate_task_outcome(
         hp_loss_reduction = max(0.0, hp_loss_reduction)
 
         final_hp_lost = base_hp_lost * def_multiplier * hp_loss_reduction
+
+        if mutator_effects:
+            final_hp_lost *= mutator_effects.get("damage_taken_mult", 1.0)
+
+            # Mirror mutator: 30% chance to negate damage and convert to XP
+            if mutator_effects.get("trigger_mirror") and final_hp_lost > 0:
+                if random.random() < 0.30:
+                    result["xp_earned"] += int(final_hp_lost)
+                    final_hp_lost = 0
+
         result["hp_lost"] = int(final_hp_lost)
 
         # For reverting completed tasks, calculate exact xp_lost and gold_lost
@@ -395,7 +406,7 @@ def revert_boss_damage(user, encounter_id, damage_to_heal):
         pass
 
 
-def apply_active_mutators(profile, context: dict):
+def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = True):
     """
     Applies active mutators on the profile and handles immediate drawbacks like Tithe.
     Returns a dictionary with multipliers and flags.
@@ -416,11 +427,89 @@ def apply_active_mutators(profile, context: dict):
     effects = {
         "xp_mult": 1.0,
         "gold_mult": 1.0,
+        "final_xp_mult": 1.0,
+        "final_gold_mult": 1.0,
+        "damage_taken_mult": 1.0,
         "flat_xp": 0,
         "gc_flat": 0.0,
+        "shop_cost_mult": 1.0,
         "is_dead": False,
+        "trigger_volatile": False,
+        "trigger_echo": False,
+        "trigger_mirror": False,
+        "silent_mode": False,
     }
 
+    import random
+    from django.utils import timezone
+    import zoneinfo
+
+    # Use the user's configured timezone or fallback to UTC
+    user_tz_str = profile.timezone if profile.timezone else "UTC"
+    try:
+        user_tz = zoneinfo.ZoneInfo(user_tz_str)
+    except Exception:
+        user_tz = zoneinfo.ZoneInfo("UTC")
+
+    current_hour = timezone.now().astimezone(user_tz).hour
+
+    # Group 1: Trivial Math Multipliers
+    if "monks_path" in active_ids and (
+        is_science or is_language or context.get("is_prayer")
+    ):
+        effects["xp_mult"] += 0.15
+
+    if "iron_routine" in active_ids and context.get("is_exercise"):
+        effects["xp_mult"] += 0.15
+
+    if "night_owl" in active_ids:
+        if current_hour >= 20 or current_hour < 4:
+            effects["xp_mult"] += 0.20
+
+    if "early_riser" in active_ids:
+        if 5 <= current_hour < 11:
+            effects["xp_mult"] += 0.20
+
+    if "glass_cannon" in active_ids:
+        effects["xp_mult"] += 0.50
+        effects["gold_mult"] += 0.50
+        effects["damage_taken_mult"] *= 2.0
+
+    if "miser" in active_ids:
+        effects["shop_cost_mult"] -= 0.20
+        effects["xp_mult"] -= 0.20
+
+    if "compound" in active_ids:
+        bonus = (profile.gold // 1000) * 0.01
+        effects["gold_mult"] += min(0.20, bonus)
+
+    # Group 2: Moderate (Task Completion Hooks)
+    if "double_nothing" in active_ids:
+        mult = 2.0 if random.random() < 0.5 else 0.0
+        effects["final_xp_mult"] *= mult
+        effects["final_gold_mult"] *= mult
+
+    if "gambler" in active_ids:
+        mult = random.uniform(0.5, 2.5)
+        effects["final_xp_mult"] *= mult
+        effects["final_gold_mult"] *= mult
+
+    if "ascetic_loop" in active_ids and context.get("task_type") in ["daily", "habit"]:
+        effects["xp_mult"] += 0.25
+
+    if "zero_hour" in active_ids and context.get("completed_near_deadline"):
+        effects["xp_mult"] += 0.30
+
+    if "volatile" in active_ids:
+        effects["trigger_volatile"] = True
+
+    if "echo" in active_ids:
+        effects["trigger_echo"] = True
+
+    if "mirror" in active_ids:
+        effects["trigger_mirror"] = True
+
+    # Existing logic
     if "loan_shark" in active_ids:
         effects["gold_mult"] += 0.40
 
@@ -440,12 +529,55 @@ def apply_active_mutators(profile, context: dict):
 
     if "tithe" in active_ids:
         effects["xp_mult"] += 0.15
-        if profile.gold >= 3:
-            profile.gold -= 3
-        else:
-            profile.hp = max(0, profile.hp - 5)
-            if check_death(profile):
-                effects["is_dead"] = True
+        if trigger_side_effects:
+            if profile.gold >= 3:
+                profile.gold -= 3
+            else:
+                profile.hp = max(0, profile.hp - 5)
+                if check_death(profile):
+                    effects["is_dead"] = True
+
+    # Group 3: Stateful
+    if "weight_of_history" in active_ids:
+        effects["damage_taken_mult"] += min(1.0, profile.total_overdue_tasks * 0.02)
+
+    if "tunnel_vision" in active_ids:
+        effects["final_xp_mult"] += min(0.50, profile.same_category_streak * 0.10)
+
+    if "diversity_lock" in active_ids:
+        task_category = context.get("task_category", "")
+        if task_category and profile.last_completed_category == task_category:
+            effects["final_xp_mult"] = 0.0
+
+    if "momentum" in active_ids:
+        effects["final_xp_mult"] += min(0.50, profile.tasks_completed_today * 0.05)
+
+    if "phantom_load" in active_ids and context.get("task_age_days", 0) > 30:
+        effects["xp_mult"] += 0.50
+
+    if "silence" in active_ids:
+        effects["silent_mode"] = True
+
+    # Two-pass calculation: Amplifiers
+    amp = 1.0
+    if "catalyst" in active_ids:
+        amp += 0.25
+    if "resonance" in active_ids:
+        amp += min(0.45, len(active_ids) * 0.15)
+
+    if amp > 1.0:
+        if effects["xp_mult"] > 1.0:
+            effects["xp_mult"] = 1.0 + (effects["xp_mult"] - 1.0) * amp
+        if effects["gold_mult"] > 1.0:
+            effects["gold_mult"] = 1.0 + (effects["gold_mult"] - 1.0) * amp
+        if effects["final_xp_mult"] > 1.0:
+            effects["final_xp_mult"] = 1.0 + (effects["final_xp_mult"] - 1.0) * amp
+        if effects["final_gold_mult"] > 1.0:
+            effects["final_gold_mult"] = 1.0 + (effects["final_gold_mult"] - 1.0) * amp
+        if effects["flat_xp"] > 0:
+            effects["flat_xp"] = int(effects["flat_xp"] * amp)
+        if effects["gc_flat"] > 0:
+            effects["gc_flat"] *= amp
 
     return effects
 

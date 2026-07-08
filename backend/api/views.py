@@ -85,11 +85,11 @@ def health_check(request):
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView  # noqa: E402
-from api.throttles import (  # noqa: E402
+from api.throttles import (
     LoginRateThrottle,
     RegisterRateThrottle,
     GuestLoginRateThrottle,
-)
+)  # noqa: E402
 
 
 class LoginView(TokenObtainPairView):
@@ -124,9 +124,9 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-from rest_framework_simplejwt.tokens import RefreshToken  # noqa: E402
-from django.contrib.auth.models import User  # noqa: E402
-from django.contrib.auth.hashers import make_password, check_password  # noqa: E402
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class GuestLoginView(APIView):
@@ -2165,39 +2165,6 @@ class PartyMemberProfileView(generics.GenericAPIView):
         )
 
 
-MUTATOR_COSTS = {
-    "bloodwork": 600,
-    "monks_path": 700,
-    "iron_routine": 800,
-    "lexicon": 600,
-    "night_owl": 500,
-    "early_riser": 500,
-    "tunnel_vision": 900,
-    "loan_shark": 400,
-    "compound": 1000,
-    "miser": 700,
-    "tithe": 800,
-    "ascetic_loop": 900,
-    "double_nothing": 1200,
-    "momentum": 800,
-    "diversity_lock": 500,
-    "silence": 400,
-    "ironman": 3000,
-    "glass_cannon": 600,
-    "zero_hour": 1000,
-    "catalyst": 1500,
-    "echo": 1200,
-    "mirror": 1100,
-    "resonance": 1400,
-    "gambler": 800,
-    "phantom_load": 700,
-    "cursed_clock": 900,
-    "deja_vu": 1000,
-    "volatile": 1300,
-    "weight_of_history": 1500,
-}
-
-
 class BuyMutatorView(generics.GenericAPIView):
     """
     POST /api/mutators/<str:mutator_id>/buy/
@@ -2209,13 +2176,14 @@ class BuyMutatorView(generics.GenericAPIView):
     def post(self, request, mutator_id, *args, **kwargs):
         from django.db import transaction
         from api.models import UserProfile
+        from api.constants.mutators import MUTATORS_CONFIG
 
-        if mutator_id not in MUTATOR_COSTS:
+        if mutator_id not in MUTATORS_CONFIG:
             return Response(
                 {"error": "Invalid mutator ID"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        cost = MUTATOR_COSTS[mutator_id]
+        cost = MUTATORS_CONFIG[mutator_id].get("cost", 0)
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -2244,3 +2212,146 @@ class BuyMutatorView(generics.GenericAPIView):
 
             serializer = UserProfileSerializer(profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ToggleMutatorView(generics.GenericAPIView):
+    """
+    POST /api/mutators/<str:mutator_id>/toggle/
+    Activates or deactivates a mutator for the user.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, mutator_id, *args, **kwargs):
+        from django.db import transaction
+        from api.models import UserProfile
+        from api.constants.mutators import MUTATORS_CONFIG
+        import time
+
+        with transaction.atomic():
+            if mutator_id not in MUTATORS_CONFIG:
+                return Response(
+                    {"error": "Invalid mutator ID"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            active_mutators = profile.active_mutators or {}
+            purchased = active_mutators.get("purchased", [])
+            active_list = active_mutators.get("active", [])
+
+            if mutator_id not in purchased:
+                return Response(
+                    {"error": "You do not own this mutator."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Find if it's already active
+            existing = next(
+                (
+                    m
+                    for m in active_list
+                    if (m.get("id") if isinstance(m, dict) else m) == mutator_id
+                ),
+                None,
+            )
+
+            if existing:
+                # Deactivate
+                active_list = [
+                    m
+                    for m in active_list
+                    if (m.get("id") if isinstance(m, dict) else m) != mutator_id
+                ]
+            else:
+                if len(active_list) >= 3:
+                    return Response(
+                        {"error": "Maximum of 3 active mutators allowed."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                duration = MUTATORS_CONFIG[mutator_id].get("durationDays", None)
+                active_list.append(
+                    {
+                        "id": mutator_id,
+                        "activatedAt": int(time.time() * 1000),
+                        "duration": duration,
+                    }
+                )
+
+            active_mutators["active"] = active_list
+            profile.active_mutators = active_mutators
+            profile.save(update_fields=["active_mutators"])
+
+            from api.serializers.profile import UserProfileSerializer
+
+            serializer = UserProfileSerializer(profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DejaVuView(generics.GenericAPIView):
+    """
+    POST /api/tasks/<id>/deja-vu/
+    Re-completes a task if Deja Vu mutator is active, with a 7-day cooldown.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, task_id):
+        user = request.user
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        active_mutators = profile.active_mutators or {}
+        active_list = (
+            active_mutators.get("active", [])
+            if isinstance(active_mutators, dict)
+            else []
+        )
+        active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+
+        if "deja_vu" not in active_ids:
+            return Response(
+                {"error": "Deja Vu mutator is not active."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if profile.last_deja_vu_use:
+            from django.utils import timezone
+            import datetime
+
+            time_since_use = timezone.now() - profile.last_deja_vu_use
+            if time_since_use < datetime.timedelta(days=7):
+                return Response(
+                    {"error": "Deja Vu is on cooldown (7 days)."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+            task = Task.objects.get(id=task_id, user=user)
+        except Task.DoesNotExist:
+            return Response(
+                {"error": "Task not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not task.is_completed and task.task_type == Task.TaskType.TODO:
+            return Response(
+                {"error": "Task must be completed to use Deja Vu."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from api.services.task_service import _complete_task_logic
+        from django.utils import timezone
+
+        try:
+            with transaction.atomic():
+                result = _complete_task_logic(
+                    user, task.id, is_positive=True, is_deja_vu=True
+                )
+                profile.last_deja_vu_use = timezone.now()
+                profile.save(update_fields=["last_deja_vu_use"])
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(result, status=status.HTTP_200_OK)

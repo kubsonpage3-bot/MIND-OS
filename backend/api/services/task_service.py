@@ -1,4 +1,5 @@
 from django.utils import timezone
+import random
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
@@ -24,7 +25,7 @@ def complete_task(user, task_id, is_positive=True):
         raise
 
 
-def _complete_task_logic(user, task_id, is_positive=True):
+def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     """
     Выполнение задачи и начисление наград.
     Использует transaction.atomic и select_for_update для предотвращения состояния гонки.  # noqa: E501
@@ -44,7 +45,7 @@ def _complete_task_logic(user, task_id, is_positive=True):
     ).exists()
     if task.task_type == Task.TaskType.TODO:
         if is_positive:
-            if task.is_completed:
+            if task.is_completed and not is_deja_vu:
                 raise ValidationError("Task already completed.")
             task.is_completed = True
             task.last_completed_at = timezone.now()
@@ -73,7 +74,7 @@ def _complete_task_logic(user, task_id, is_positive=True):
         )
 
         if is_positive:
-            if already_done_today:
+            if already_done_today and not is_deja_vu:
                 raise ValidationError("Daily task already completed today.")
             task.last_completed_at = timezone.now()
             task.is_completed = True
@@ -129,10 +130,34 @@ def _complete_task_logic(user, task_id, is_positive=True):
             damage_mult = 1.0 + (task.neg_streak * 0.1)
             damage = int(base_damage * damage_mult)
 
+            context = {
+                "is_science": False,
+                "is_language": False,
+                "is_exercise": False,
+                "is_prayer": False,
+                "task_type": "habit",
+                "hours": 0,
+            }
+            from api.services.mechanics import apply_active_mutators
+
+            mutator_effects = apply_active_mutators(
+                profile, context, trigger_side_effects=False
+            )
+
             outcome = calculate_task_outcome(
-                user, "habit", base_hp_lost=damage, is_positive=False
+                user,
+                "habit",
+                base_hp_lost=damage,
+                is_positive=False,
+                mutator_effects=mutator_effects,
             )
             final_damage = outcome["hp_lost"]
+
+            xp_gained = outcome.get("xp_earned", 0)
+            leveled_up = False
+            if xp_gained > 0:
+                leveled_up = gain_xp(profile, xp_gained)
+                profile.rank_xp += xp_gained
 
             died = False
             if profile.hp - final_damage <= 0:
@@ -140,7 +165,26 @@ def _complete_task_logic(user, task_id, is_positive=True):
                 profile.hp = 0
             else:
                 profile.hp -= final_damage
-            profile.save(update_fields=["hp"])
+
+            profile.total_overdue_tasks += 1
+
+            active_mutators = profile.active_mutators or {}
+            active_list = (
+                active_mutators.get("active", [])
+                if isinstance(active_mutators, dict)
+                else []
+            )
+            active_ids = [
+                m.get("id") if isinstance(m, dict) else m for m in active_list
+            ]
+
+            if "ironman" in active_ids:
+                profile.hp = max(1, int(profile.hp * 0.75))
+                profile.gold = max(0, int(profile.gold * 0.90))
+
+            profile.save(
+                update_fields=["hp", "gold", "rank_xp", "level", "total_overdue_tasks"]
+            )
 
             died = check_death(profile)
 
@@ -150,11 +194,12 @@ def _complete_task_logic(user, task_id, is_positive=True):
                 "penalty": {"hp": -final_damage},
                 "profile": profile,
                 "task": task,
-                "leveled_up": False,
-                "rewards": {"xp": 0, "gold": 0},
+                "leveled_up": leveled_up,
+                "rewards": {"xp": xp_gained, "gold": 0},
                 "skill_effects": [],
                 "died": died,
                 "is_dead": died,
+                "silent_mode": mutator_effects.get("silent_mode", False),
                 "gamification_result": outcome,
             }
 
@@ -177,13 +222,44 @@ def _complete_task_logic(user, task_id, is_positive=True):
     is_exercise = task_category in {"Exercise", "Running"}
     is_prayer = task_category in {"Prayer", "Mindfulness", "Prayer/Meditation"}
 
+    completed_near_deadline = False
+    if task.task_type == Task.TaskType.DAILY:
+        # A daily task deadline is midnight (end of the day). We check if it's completed within 2 hours of midnight.
+        now = timezone.now()
+        end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        time_left = (end_of_day - now).total_seconds()
+        if time_left <= 7200:  # 2 hours
+            completed_near_deadline = True
+    elif task.task_type == Task.TaskType.TODO and task.due_date:
+        now = timezone.now()
+        if hasattr(task.due_date, "tzinfo") and task.due_date.tzinfo is not None:
+            time_left = (task.due_date - now).total_seconds()
+        else:
+            # naive
+            time_left = (task.due_date - now.replace(tzinfo=None)).total_seconds()
+        if 0 <= time_left <= 7200:
+            completed_near_deadline = True
+
+    task_age_days = (
+        (timezone.now() - task.created_at).days
+        if getattr(task, "created_at", None)
+        else 0
+    )
+
     context = {
         "is_science": is_science,
         "is_language": is_language,
         "is_exercise": is_exercise,
         "is_prayer": is_prayer,
-        "task_type": "daily" if task.task_type == Task.TaskType.DAILY else "",
-        "hours": 0,
+        "task_type": (
+            "daily"
+            if task.task_type == Task.TaskType.DAILY
+            else ("habit" if task.task_type == Task.TaskType.HABIT else "todo")
+        ),
+        "hours": getattr(task, "estimated_hours", 0) or 0,
+        "completed_near_deadline": completed_near_deadline,
+        "task_category": task_category,
+        "task_age_days": task_age_days,
     }
 
     mutator_effects = apply_active_mutators(profile, context)
@@ -216,6 +292,14 @@ def _complete_task_logic(user, task_id, is_positive=True):
     base_xp = int((rewards.get("xp", 0) + flat_xp_bonus) * xp_mult)
     base_gold = int(rewards.get("gold", 0) * gold_mult)
 
+    final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
+    final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
+
+    if final_xp_mult != 1.0:
+        base_xp = int(base_xp * final_xp_mult)
+    if final_gold_mult != 1.0:
+        base_gold = int(base_gold * final_gold_mult)
+
     if is_positive:
         outcome = calculate_task_outcome(
             user,
@@ -224,16 +308,51 @@ def _complete_task_logic(user, task_id, is_positive=True):
             base_gold,
             is_positive=True,
             passive_effects=passive_effects,
+            mutator_effects=mutator_effects,
         )
         gamification_result = outcome
 
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
         final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+        if mutator_effects.get("trigger_echo") and random.random() < 0.10:
+            final_xp *= 2
+            final_gold *= 2
+
+        if mutator_effects.get("trigger_volatile"):
+            stat_list = [
+                "base_pwr",
+                "base_foc",
+                "base_spd",
+                "base_lck",
+                "base_def",
+                "base_mem",
+            ]
+            stat_choice = random.choice(stat_list)
+            current_val = getattr(profile, stat_choice)
+            if random.random() < 0.5:
+                setattr(profile, stat_choice, current_val + 1)
+            else:
+                setattr(profile, stat_choice, max(0, current_val - 1))
+            profile.save(update_fields=[stat_choice])
+
         leveled_up = gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
         profile.gold = max(0, profile.gold + final_gold)
         profile.mana = min(profile.mana_max, profile.mana + mana_gained)
+
+        # Group 3 Mutator stats
+        profile.tasks_completed_today += 1
+        if task_category:
+            if profile.last_completed_category == task_category:
+                profile.same_category_streak += 1
+            else:
+                profile.same_category_streak = 1
+                profile.last_completed_category = task_category
+        else:
+            profile.same_category_streak = 0
+            profile.last_completed_category = ""
+
         rewards["xp"] = final_xp
         rewards["gold"] = final_gold
 
@@ -368,7 +487,12 @@ def _complete_task_logic(user, task_id, is_positive=True):
             task.last_reward_data = {}
         else:
             outcome = calculate_task_outcome(
-                user, task.task_type, base_xp, base_gold, is_positive=False
+                user,
+                task.task_type,
+                base_xp,
+                base_gold,
+                is_positive=False,
+                mutator_effects=mutator_effects,
             )
             gamification_result = outcome
 
@@ -561,6 +685,7 @@ def _complete_task_logic(user, task_id, is_positive=True):
         "newly_unlocked_achievements": unlocked_achievements,
         "is_dead": mutator_died,
         "died": mutator_died,
+        "silent_mode": mutator_effects.get("silent_mode", False),
     }
 
 
@@ -607,6 +732,7 @@ def process_missed_tasks(user):
     if profile.last_daily_cron_at >= local_today:
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
+    profile.tasks_completed_today = 0
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
     total_dmg = 0
     log = []
@@ -646,11 +772,45 @@ def process_missed_tasks(user):
             log.append({"type": "daily_done", "id": task.id, "title": task.title})
         else:
             # Missed daily
+            profile.total_overdue_tasks += 1
+
+            active_mutators = profile.active_mutators or {}
+            active_list = (
+                active_mutators.get("active", [])
+                if isinstance(active_mutators, dict)
+                else []
+            )
+            active_ids = [
+                m.get("id") if isinstance(m, dict) else m for m in active_list
+            ]
+
+            if "ironman" in active_ids:
+                profile.hp = max(1, int(profile.hp * 0.75))
+                profile.gold = max(0, int(profile.gold * 0.90))
+
             dmg = calculate_fail_damage(task, profile)
             if iron_fast_active or elixir_active:
                 dmg = 0
+            context = {
+                "is_science": False,
+                "is_language": False,
+                "is_exercise": False,
+                "is_prayer": False,
+                "task_type": "daily",
+                "hours": 0,
+            }
+            from api.services.mechanics import apply_active_mutators
+
+            mutator_effects = apply_active_mutators(
+                profile, context, trigger_side_effects=False
+            )
+
             outcome = calculate_task_outcome(
-                user, "daily", base_hp_lost=dmg, is_positive=False
+                user,
+                "daily",
+                base_hp_lost=dmg,
+                is_positive=False,
+                mutator_effects=mutator_effects,
             )
             final_dmg = outcome["hp_lost"]
             total_dmg += final_dmg
@@ -672,6 +832,13 @@ def process_missed_tasks(user):
                     task.last_reward_data["shield_used"] = False
 
             task.value = calc_new_value(task.value, "fail", "daily")
+
+            # Mirror might give XP on failed dailies
+            xp_gained = outcome.get("xp_earned", 0)
+            if xp_gained > 0:
+                gain_xp(profile, xp_gained)
+                profile.rank_xp += xp_gained
+
             log.append(
                 {
                     "type": "daily_missed",
@@ -691,7 +858,17 @@ def process_missed_tasks(user):
         profile.hp = min(profile.max_hp, profile.hp + daily_regen)
 
     profile.last_daily_cron_at = local_today
-    profile.save(update_fields=["hp", "last_daily_cron_at"])
+    profile.save(
+        update_fields=[
+            "hp",
+            "gold",
+            "last_daily_cron_at",
+            "rank_xp",
+            "level",
+            "tasks_completed_today",
+            "total_overdue_tasks",
+        ]
+    )
 
     died = check_death(profile)
 

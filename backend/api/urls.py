@@ -50,6 +50,8 @@ from .views import (
     create_portal_session_view,
     stripe_webhook_view,
     BuyMutatorView,
+    ToggleMutatorView,
+    DejaVuView,
 )
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
@@ -131,6 +133,12 @@ urlpatterns = [
     path(
         "mutators/<str:mutator_id>/buy/", BuyMutatorView.as_view(), name="mutator-buy"
     ),
+    path(
+        "mutators/<str:mutator_id>/toggle/",
+        ToggleMutatorView.as_view(),
+        name="mutator-toggle",
+    ),
+    path("tasks/<int:task_id>/deja-vu/", DejaVuView.as_view(), name="deja-vu"),
     # ─── Крафт ──────────────────────────────────────────────────────────────────
     path("crafting/recipes/", RecipeListView.as_view(), name="crafting-recipes"),
     path("crafting/craft/", CraftItemView.as_view(), name="crafting-craft"),

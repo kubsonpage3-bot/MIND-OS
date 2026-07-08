@@ -45,6 +45,17 @@ export const DjangoAuthProvider = ({ children }) => {
   useEffect(() => {
     if (profile) {
       setUser({ username: profile.username || 'Hero' });
+      
+      // Auto-detect and sync timezone if it differs from the backend
+      const clientTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (profile.timezone !== clientTz) {
+        djangoApi.profile.update({ timezone: clientTz })
+          .then(() => {
+            // Optimistically update the cache to avoid re-triggering this effect
+            queryClientInstance.setQueryData(['userprofile'], old => ({ ...old, timezone: clientTz }));
+          })
+          .catch(e => console.warn('Failed to auto-update timezone', e));
+      }
     }
   }, [profile]);
 

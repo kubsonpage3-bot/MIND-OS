@@ -1,4 +1,5 @@
 import { getMediaUrl } from "@/api/djangoClient";
+import sharedMutators from "../../../shared/data/mutators.json";
 
 // ─── RPG SYSTEM DATA & LOGIC ─────────────────────────────────────────────────
 
@@ -325,42 +326,40 @@ const M_ICONS = {
   muscle: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='1' y='7' width='3' height='2' fill='%23888'/><rect x='12' y='7' width='3' height='2' fill='%23888'/><rect x='3' y='6' width='3' height='4' fill='%23aaa'/><rect x='10' y='6' width='3' height='4' fill='%23aaa'/><rect x='5' y='5' width='6' height='6' fill='%23ef4444'/><rect x='6' y='4' width='4' height='8' fill='%23ff6666'/><rect x='7' y='3' width='2' height='10' fill='%23ff4444'/></svg>`,
 };
 
-export const MUTATORS = [
-  // ── AMPLIFIERS ──
-  { id: "bloodwork", name: "rpgData.mutators.bloodwork.name", icon: getMediaUrl("/static/items/bloodwork.webp"), cost: 600, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.bloodwork.desc", synergy: "tunnel_vision" },
-  { id: "monks_path", name: "rpgData.mutators.monks_path.name", icon: getMediaUrl("/static/items/monks_path.webp"), cost: 700, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.monks_path.desc", synergy: "ascetic_loop" },
-  { id: "iron_routine", name: "rpgData.mutators.iron_routine.name", icon: getMediaUrl("/static/items/iron_routine.webp"), cost: 800, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.iron_routine.desc", synergy: null },
-  { id: "lexicon", name: "rpgData.mutators.lexicon.name", icon: getMediaUrl("/static/items/lexicon.webp"), cost: 600, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.lexicon.desc", synergy: "echo" },
-  { id: "night_owl", name: "rpgData.mutators.night_owl.name", icon: getMediaUrl("/static/items/night_owl.webp"), cost: 500, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.night_owl.desc", synergy: null, conflicts: ["early_riser"] },
-  { id: "early_riser", name: "rpgData.mutators.early_riser.name", icon: getMediaUrl("/static/items/early_riser.webp"), cost: 500, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.early_riser.desc", synergy: null, conflicts: ["night_owl"] },
-  { id: "tunnel_vision", name: "rpgData.mutators.tunnel_vision.name", icon: getMediaUrl("/static/items/tunnel_vision.webp"), cost: 900, cat: "amplifier", toggle: false, durationDays: null, desc: "rpgData.mutators.tunnel_vision.desc", synergy: "bloodwork", disabled: true },
-  // ── ECONOMY ──
-  { id: "loan_shark", name: "rpgData.mutators.loan_shark.name", icon: getMediaUrl("/static/items/loan_shark.webp"), cost: 400, cat: "economy", toggle: false, durationDays: null, desc: "rpgData.mutators.loan_shark.desc", synergy: "compound" },
-  { id: "compound", name: "rpgData.mutators.compound.name", icon: getMediaUrl("/static/items/compound.webp"), cost: 1000, cat: "economy", toggle: false, durationDays: null, desc: "rpgData.mutators.compound.desc", synergy: "loan_shark" },
-  { id: "miser", name: "rpgData.mutators.miser.name", icon: getMediaUrl("/static/items/miser.webp"), cost: 700, cat: "economy", toggle: true, durationDays: null, desc: "rpgData.mutators.miser.desc", synergy: null, disabled: true },
-  { id: "tithe", name: "rpgData.mutators.tithe.name", icon: getMediaUrl("/static/items/tithe.webp"), cost: 800, cat: "economy", toggle: false, durationDays: null, desc: "rpgData.mutators.tithe.desc", synergy: "compound" },
-  // ── STREAK ──
-    
-  { id: "ascetic_loop", name: "rpgData.mutators.ascetic_loop.name", icon: getMediaUrl("/static/items/ascetic_loop.webp"), cost: 900, cat: "streak", toggle: false, durationDays: null, desc: "rpgData.mutators.ascetic_loop.desc", synergy: "monks_path", disabled: true },
-  { id: "double_nothing", name: "rpgData.mutators.double_nothing.name", icon: getMediaUrl("/static/items/double_nothing.webp"), cost: 1200, cat: "streak", toggle: true, durationDays: null, desc: "rpgData.mutators.double_nothing.desc", synergy: null },
-  { id: "momentum", name: "rpgData.mutators.momentum.name", icon: getMediaUrl("/static/items/momentum.webp"), cost: 800, cat: "streak", toggle: false, durationDays: null, desc: "rpgData.mutators.momentum.desc", synergy: "phantom_load" },
-  // ── CHALLENGE ──
-  { id: "diversity_lock", name: "rpgData.mutators.diversity_lock.name", icon: getMediaUrl("/static/items/diversity_lock.webp"), cost: 500, cat: "challenge", toggle: false, durationDays: 30, desc: "rpgData.mutators.diversity_lock.desc", synergy: null },
-  { id: "silence", name: "rpgData.mutators.silence.name", icon: getMediaUrl("/static/items/silence.webp"), cost: 400, cat: "challenge", toggle: false, durationDays: 2, desc: "rpgData.mutators.silence.desc", synergy: null },
-  { id: "ironman", name: "rpgData.mutators.ironman.name", icon: getMediaUrl("/static/items/ironman.webp"), cost: 3000, cat: "challenge", toggle: false, durationDays: null, permanent_lock: true, desc: "rpgData.mutators.ironman.desc", synergy: null, disabled: true },
-  { id: "glass_cannon", name: "rpgData.mutators.glass_cannon.name", icon: getMediaUrl("/static/items/glass_cannon.webp"), cost: 600, cat: "challenge", toggle: true, durationDays: null, desc: "rpgData.mutators.glass_cannon.desc", synergy: null },
-  { id: "zero_hour", name: "rpgData.mutators.zero_hour.name", icon: getMediaUrl("/static/items/zero_hour.webp"), cost: 1000, cat: "challenge", toggle: false, durationDays: 7, desc: "rpgData.mutators.zero_hour.desc", synergy: null },
-  // ── SYNERGY BUILDERS ──
-  { id: "catalyst", name: "rpgData.mutators.catalyst.name", icon: getMediaUrl("/static/items/catalyst.webp"), cost: 1500, cat: "synergy", toggle: false, durationDays: null, desc: "rpgData.mutators.catalyst.desc", synergy: null },
-  { id: "echo", name: "rpgData.mutators.echo.name", icon: getMediaUrl("/static/items/echo.webp"), cost: 1200, cat: "synergy", toggle: false, durationDays: null, desc: "rpgData.mutators.echo.desc", synergy: "lexicon" },
-  { id: "mirror", name: "rpgData.mutators.mirror.name", icon: getMediaUrl("/static/items/mirror.webp"), cost: 1100, cat: "synergy", toggle: false, durationDays: null, desc: "rpgData.mutators.mirror.desc", synergy: "tunnel_vision" },
-  { id: "resonance", name: "rpgData.mutators.resonance.name", icon: getMediaUrl("/static/items/resonance.webp"), cost: 1400, cat: "synergy", toggle: false, durationDays: null, desc: "rpgData.mutators.resonance.desc", synergy: null },
-  // ── WILD ──
-  { id: "gambler", name: "rpgData.mutators.gambler.name", icon: getMediaUrl("/static/items/gambler.webp"), cost: 800, cat: "wild", toggle: false, durationDays: null, desc: "rpgData.mutators.gambler.desc", synergy: "catalyst" },
-  { id: "phantom_load", name: "rpgData.mutators.phantom_load.name", icon: getMediaUrl("/static/items/phantom_load.webp"), cost: 700, cat: "wild", toggle: false, durationDays: null, desc: "rpgData.mutators.phantom_load.desc", synergy: "momentum" },
-  { id: "cursed_clock", name: "rpgData.mutators.cursed_clock.name", icon: getMediaUrl("/static/items/cursed_clock.webp"), cost: 900, cat: "wild", toggle: false, durationDays: null, desc: "rpgData.mutators.cursed_clock.desc", synergy: null },
-  { id: "deja_vu", name: "rpgData.mutators.deja_vu.name", icon: getMediaUrl("/static/items/deja_vu.webp"), cost: 1000, cat: "wild", toggle: false, durationDays: null, desc: "rpgData.mutators.deja_vu.desc", synergy: null },
-  { id: "volatile", name: "rpgData.mutators.volatile.name", icon: getMediaUrl("/static/items/volatile.webp"), cost: 1300, cat: "wild", toggle: false, durationDays: null, desc: "rpgData.mutators.volatile.desc", synergy: null },
-  { id: "weight_of_history", name: "rpgData.mutators.weight_of_history.name", icon: getMediaUrl("/static/items/weight_of_history.webp"), cost: 1500, cat: "wild", toggle: false, durationDays: null, desc: "rpgData.mutators.weight_of_history.desc", synergy: null },
-];
+const FRONTEND_MUTATOR_ASSETS = {
+  bloodwork: { name: "rpgData.mutators.bloodwork.name", desc: "rpgData.mutators.bloodwork.desc", icon: getMediaUrl("/static/items/bloodwork.webp") },
+  monks_path: { name: "rpgData.mutators.monks_path.name", desc: "rpgData.mutators.monks_path.desc", icon: getMediaUrl("/static/items/monks_path.webp") },
+  iron_routine: { name: "rpgData.mutators.iron_routine.name", desc: "rpgData.mutators.iron_routine.desc", icon: getMediaUrl("/static/items/iron_routine.webp") },
+  lexicon: { name: "rpgData.mutators.lexicon.name", desc: "rpgData.mutators.lexicon.desc", icon: getMediaUrl("/static/items/lexicon.webp") },
+  night_owl: { name: "rpgData.mutators.night_owl.name", desc: "rpgData.mutators.night_owl.desc", icon: getMediaUrl("/static/items/night_owl.webp") },
+  early_riser: { name: "rpgData.mutators.early_riser.name", desc: "rpgData.mutators.early_riser.desc", icon: getMediaUrl("/static/items/early_riser.webp") },
+  tunnel_vision: { name: "rpgData.mutators.tunnel_vision.name", desc: "rpgData.mutators.tunnel_vision.desc", icon: getMediaUrl("/static/items/tunnel_vision.webp") },
+  loan_shark: { name: "rpgData.mutators.loan_shark.name", desc: "rpgData.mutators.loan_shark.desc", icon: getMediaUrl("/static/items/loan_shark.webp") },
+  compound: { name: "rpgData.mutators.compound.name", desc: "rpgData.mutators.compound.desc", icon: getMediaUrl("/static/items/compound.webp") },
+  miser: { name: "rpgData.mutators.miser.name", desc: "rpgData.mutators.miser.desc", icon: getMediaUrl("/static/items/miser.webp") },
+  tithe: { name: "rpgData.mutators.tithe.name", desc: "rpgData.mutators.tithe.desc", icon: getMediaUrl("/static/items/tithe.webp") },
+  ascetic_loop: { name: "rpgData.mutators.ascetic_loop.name", desc: "rpgData.mutators.ascetic_loop.desc", icon: getMediaUrl("/static/items/ascetic_loop.webp") },
+  double_nothing: { name: "rpgData.mutators.double_nothing.name", desc: "rpgData.mutators.double_nothing.desc", icon: getMediaUrl("/static/items/double_nothing.webp") },
+  momentum: { name: "rpgData.mutators.momentum.name", desc: "rpgData.mutators.momentum.desc", icon: getMediaUrl("/static/items/momentum.webp") },
+  diversity_lock: { name: "rpgData.mutators.diversity_lock.name", desc: "rpgData.mutators.diversity_lock.desc", icon: getMediaUrl("/static/items/diversity_lock.webp") },
+  silence: { name: "rpgData.mutators.silence.name", desc: "rpgData.mutators.silence.desc", icon: getMediaUrl("/static/items/silence.webp") },
+  ironman: { name: "rpgData.mutators.ironman.name", desc: "rpgData.mutators.ironman.desc", icon: getMediaUrl("/static/items/ironman.webp") },
+  glass_cannon: { name: "rpgData.mutators.glass_cannon.name", desc: "rpgData.mutators.glass_cannon.desc", icon: getMediaUrl("/static/items/glass_cannon.webp") },
+  zero_hour: { name: "rpgData.mutators.zero_hour.name", desc: "rpgData.mutators.zero_hour.desc", icon: getMediaUrl("/static/items/zero_hour.webp") },
+  catalyst: { name: "rpgData.mutators.catalyst.name", desc: "rpgData.mutators.catalyst.desc", icon: getMediaUrl("/static/items/catalyst.webp") },
+  echo: { name: "rpgData.mutators.echo.name", desc: "rpgData.mutators.echo.desc", icon: getMediaUrl("/static/items/echo.webp") },
+  mirror: { name: "rpgData.mutators.mirror.name", desc: "rpgData.mutators.mirror.desc", icon: getMediaUrl("/static/items/mirror.webp") },
+  resonance: { name: "rpgData.mutators.resonance.name", desc: "rpgData.mutators.resonance.desc", icon: getMediaUrl("/static/items/resonance.webp") },
+  gambler: { name: "rpgData.mutators.gambler.name", desc: "rpgData.mutators.gambler.desc", icon: getMediaUrl("/static/items/gambler.webp") },
+  phantom_load: { name: "rpgData.mutators.phantom_load.name", desc: "rpgData.mutators.phantom_load.desc", icon: getMediaUrl("/static/items/phantom_load.webp") },
+  cursed_clock: { name: "rpgData.mutators.cursed_clock.name", desc: "rpgData.mutators.cursed_clock.desc", icon: getMediaUrl("/static/items/cursed_clock.webp") },
+  deja_vu: { name: "rpgData.mutators.deja_vu.name", desc: "rpgData.mutators.deja_vu.desc", icon: getMediaUrl("/static/items/deja_vu.webp") },
+  volatile: { name: "rpgData.mutators.volatile.name", desc: "rpgData.mutators.volatile.desc", icon: getMediaUrl("/static/items/volatile.webp") },
+  weight_of_history: { name: "rpgData.mutators.weight_of_history.name", desc: "rpgData.mutators.weight_of_history.desc", icon: getMediaUrl("/static/items/weight_of_history.webp") },
+};
+
+export const MUTATORS = sharedMutators.map(m => ({
+  ...m,
+  ...(FRONTEND_MUTATOR_ASSETS[m.id] || {})
+}));
 
