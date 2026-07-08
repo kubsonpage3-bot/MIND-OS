@@ -1694,10 +1694,10 @@ class ResetDataView(generics.GenericAPIView):
                     profile.ps = 100.0
                     profile.vm = 100.0
 
-                    profile.gf_ceiling = 120.0
-                    profile.gc_ceiling = 135.0
-                    profile.ps_ceiling = 112.0
-                    profile.vm_ceiling = 138.0
+                    profile.gf_ceiling = 105.0
+                    profile.gc_ceiling = 105.0
+                    profile.ps_ceiling = 105.0
+                    profile.vm_ceiling = 105.0
 
                     profile.damage_multiplier = 1.0
                     profile.gold_multiplier = 1.0
