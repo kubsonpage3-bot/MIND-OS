@@ -8,9 +8,6 @@ MIND OS — модели базы данных.
   Task — задачи пользователя (привычки, дейлики, туду)
 """
 
-import secrets
-import string
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -38,22 +35,11 @@ class UserProfile(models.Model):
         verbose_name="Пользователь",
     )
 
-    # Privacy & Analytics
-    analytics_enabled = models.BooleanField(
-        default=True,
-        verbose_name="Аналитика включена",
-    )
-
-    # Гостевой аккаунт (без email/пароля, привязан к устройству)
-    is_guest = models.BooleanField(
-        default=False,
-        verbose_name="Гость",
-    )
-
     # ── Характеристики персонажа ──────────────────────────────────────────
 
     # Здоровье (Hit Points): текущее и максимальное
     hp = models.PositiveIntegerField(default=100, verbose_name="HP (текущее)")
+    hp_max = models.PositiveIntegerField(default=100, verbose_name="HP (максимум)")
 
     # Мана: текущая и максимальная
     mana = models.PositiveIntegerField(default=50, verbose_name="Мана (текущая)")
@@ -92,17 +78,6 @@ class UserProfile(models.Model):
     # Уровень престижа
     prestige_count = models.PositiveIntegerField(default=0, verbose_name="Престиж")
 
-    # Премиум-подписка (Stripe)
-    is_premium = models.BooleanField(default=False, verbose_name="Премиум статус")
-    stripe_customer_id = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="Stripe Customer ID"
-    )
-    stripe_subscription_id = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="Stripe Subscription ID"
-    )
-
-    # Track last used for void_clarity active skill passive
-    void_clarity_last_used = models.DateTimeField(null=True, blank=True)
     # Престиж-множители (перманентные бонусы)
     damage_multiplier = models.FloatField(default=1.0, verbose_name="Множитель урона")
     gold_multiplier = models.FloatField(default=1.0, verbose_name="Множитель золота")
@@ -110,62 +85,12 @@ class UserProfile(models.Model):
     rank_xp = models.PositiveIntegerField(
         default=0, verbose_name="Опыт ранга (Rank XP)"
     )
-    streak = models.PositiveIntegerField(default=0, verbose_name="Стрик (дней подряд)")
-    last_login_date = models.DateField(
-        null=True, blank=True, verbose_name="Последний логин (Дата)"
-    )
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )
     last_training_at = models.DateField(
         null=True, blank=True, verbose_name="Последняя тренировка"
     )
-
-    # Активные мутаторы (список ID мутаторов)
-    active_mutators = models.JSONField(
-        default=list, blank=True, verbose_name="Активные мутаторы"
-    )
-
-    # Активные союзники (список ID союзников, макс 3)
-    active_allies = models.JSONField(
-        default=list, blank=True, verbose_name="Активные союзники"
-    )
-
-    # Просмотренные гайды (первый визит на вкладку)
-    seen_guides = models.JSONField(
-        default=dict, blank=True, verbose_name="Просмотренные гайды"
-    )
-    last_weekly_reset = models.CharField(
-        max_length=10, null=True, blank=True, verbose_name="Неделя последнего сброса"
-    )
-
-    # Данные соперника (RivalTab)
-    rival_data = models.JSONField(
-        default=dict, blank=True, verbose_name="Данные соперника"
-    )
-
-    # Поля для мутаторов (Group 3)
-    tasks_completed_today = models.PositiveIntegerField(
-        default=0, verbose_name="Выполнено задач сегодня (momentum)"
-    )
-    last_completed_category = models.CharField(
-        max_length=50,
-        blank=True,
-        default="",
-        verbose_name="Категория последней задачи (tunnel_vision)",
-    )
-    same_category_streak = models.PositiveIntegerField(
-        default=0, verbose_name="Стрик одной категории (tunnel_vision)"
-    )
-    total_overdue_tasks = models.PositiveIntegerField(
-        default=0, verbose_name="Всего просрочено/провалено (weight_of_history)"
-    )
-    last_deja_vu_use = models.DateTimeField(
-        null=True, blank=True, verbose_name="Последнее использование deja_vu"
-    )
-
-    # Временная зона пользователя (для сброса дейликов)
-    timezone = models.CharField(max_length=50, default="UTC", verbose_name="Timezone")
 
     # ── Базовые характеристики (RPG Stats) ───────────────────────────────
     base_pwr = models.PositiveIntegerField(default=5, verbose_name="Power (PWR)")
@@ -180,7 +105,6 @@ class UserProfile(models.Model):
     skill_points = models.PositiveIntegerField(
         default=0, verbose_name="Очки навыков (SP)"
     )
-    humanities_xp = models.FloatField(default=0.0, verbose_name="Humanities XP")
 
     # Настройки сложности боссов
     class BossDifficulty(models.TextChoices):
@@ -202,10 +126,10 @@ class UserProfile(models.Model):
     ps = models.FloatField(default=100.0, verbose_name="Processing Speed (Ps)")
     vm = models.FloatField(default=100.0, verbose_name="Verbal Memory (Vm)")
 
-    gf_ceiling = models.FloatField(default=105.0, verbose_name="Gf Ceiling")
-    gc_ceiling = models.FloatField(default=105.0, verbose_name="Gc Ceiling")
-    ps_ceiling = models.FloatField(default=105.0, verbose_name="Ps Ceiling")
-    vm_ceiling = models.FloatField(default=105.0, verbose_name="Vm Ceiling")
+    gf_ceiling = models.FloatField(default=120.0, verbose_name="Gf Ceiling")
+    gc_ceiling = models.FloatField(default=135.0, verbose_name="Gc Ceiling")
+    ps_ceiling = models.FloatField(default=112.0, verbose_name="Ps Ceiling")
+    vm_ceiling = models.FloatField(default=138.0, verbose_name="Vm Ceiling")
 
     # Временны́е метки
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
@@ -272,11 +196,6 @@ class UserProfile(models.Model):
                 if effect.effect_name in totals:
                     totals[effect.effect_name] += int(effect.effect_value)
 
-            if inv.stat_bonuses:
-                for stat_key, stat_value in inv.stat_bonuses.items():
-                    if stat_key in totals:
-                        totals[stat_key] += int(stat_value)
-
         return totals
 
     @cached_property
@@ -315,8 +234,8 @@ class UserProfile(models.Model):
                 round(self.gold_multiplier + equip["gold_boost"], 4)
             ),
             "xp_multiplier": float(round(self.xp_multiplier + equip["xp_boost"], 4)),
-            "hp_max": int(self.max_hp + equip["hp_boost"]),
-            "mana_max": int(self.max_mana + equip["mana_boost"]),
+            "hp_max": int(self.hp_max + equip["hp_boost"]),
+            "mana_max": int(self.mana_max + equip["mana_boost"]),
         }
 
     def save(self, *args, **kwargs):
@@ -331,70 +250,6 @@ class UserProfile(models.Model):
             self.vm = 100.0  # type: ignore
         super().save(*args, **kwargs)
 
-    @property
-    def max_hp(self) -> int:
-        """
-        Computed max HP — derived from prestige level, never stored directly.
-        Formula: 100 + (prestige_count × 50)
-        This is the SSOT for HP maximum.
-        """
-        BASE_HP = 100
-        HP_PER_PRESTIGE = 50
-        bonus = 0
-
-        if self.active_allies and "luna" in self.active_allies:
-            try:
-                luna = next(
-                    (a for a in self.recruited_allies.all() if a.ally_code == "luna"),
-                    None,
-                )
-                if luna and luna.level >= 5:
-                    bonus += 20
-            except Exception:
-                pass
-
-        return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE) + bonus
-
-    @property
-    def max_mana(self) -> int:
-        """
-        Computed max mana. Base 100, +15% per prestige.
-        """
-        BASE_MANA = 100
-        multiplier = 1.0 + (0.15 * float(self.prestige_count))
-        bonus = 0
-
-        if self.active_allies and "yuki" in self.active_allies:
-            try:
-                yuki = next(
-                    (a for a in self.recruited_allies.all() if a.ally_code == "yuki"),
-                    None,
-                )
-                if yuki and yuki.level >= 2:
-                    bonus += 20
-            except Exception:
-                pass
-
-        return int(BASE_MANA * multiplier) + bonus
-
-    @property
-    def streak_title(self) -> str:
-        """
-        Computed title based on the user's current streak.
-        Provides gamified feedback for long-term consistency.
-        """
-        s = self.streak
-        if s < 7:
-            return "The Forsaken"
-        elif s < 30:
-            return "The Defiant"
-        elif s < 90:
-            return "Iron-Willed"
-        elif s < 365:
-            return "Revenant"
-        else:
-            return "Abyssal Sovereign"
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Сигнал: автоматически создаём UserProfile при создании User
@@ -407,11 +262,6 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)  # type: ignore
         UserStats.objects.create(user=instance)  # type: ignore
-
-
-# NOTE: save_user_profile signal intentionally removed — it caused a phantom
-# profile.save() on every User.save() (e.g., JWT token rotation), adding an
-# unnecessary DB write per request cycle.
 
 
 class UserStats(models.Model):
@@ -431,7 +281,6 @@ class UserStats(models.Model):
     allies_recruited = models.PositiveIntegerField(default=0)
     ally_max_level = models.PositiveIntegerField(default=0)
     unique_subjects = models.JSONField(default=list, blank=True)
-    unique_subjects_today = models.JSONField(default=list, blank=True)
     highest_subject_rank = models.PositiveIntegerField(default=0)
     prayer_rank = models.PositiveIntegerField(default=0)
 
@@ -545,17 +394,6 @@ class Task(models.Model):
         verbose_name="Категория",
     )
 
-    # Календарь
-    scheduled_time = models.TimeField(
-        null=True,
-        blank=True,
-        verbose_name="Время (календарь)",
-    )
-    show_in_calendar = models.BooleanField(
-        default=False,
-        verbose_name="Показывать в календаре",
-    )
-
     # Настройки кастомного сессионного лога (для типа BUTTON)
     default_hours = models.FloatField(
         default=1.0,
@@ -612,16 +450,6 @@ class Task(models.Model):
         default=dict,
         blank=True,
         verbose_name="Данные последней награды",
-    )
-
-    # Сохранённые суммы XP и Gold при выполнении (для обратной отмены)
-    xp_awarded = models.IntegerField(
-        default=0,
-        verbose_name="XP выдано (для отмены)",
-    )
-    gold_awarded = models.IntegerField(
-        default=0,
-        verbose_name="Gold выдано (для отмены)",
     )
 
     # Счётчик выполнений (особенно полезен для привычек)
@@ -732,9 +560,6 @@ class ActiveEffect(models.Model):
         verbose_name = "Активный эффект"
         verbose_name_plural = "Активные эффекты"
         ordering = ["-created_at"]
-        indexes = [
-            models.Index(fields=["user", "skill_id"]),
-        ]
 
     def __str__(self):
         return f"{self.effect_id} → {self.user.username}"
@@ -820,9 +645,6 @@ class BossEncounter(models.Model):
         verbose_name = "Битва с боссом"
         verbose_name_plural = "Битвы с боссами"
         ordering = ["-started_at"]
-        indexes = [
-            models.Index(fields=["user", "is_defeated"]),
-        ]
 
     def __str__(self):
         return f"{self.user.username} vs {self.boss.name} (HP: {self.hp_current}/{self.boss.hp_max})"  # noqa: E501
@@ -868,35 +690,6 @@ class Item(models.Model):
     hp_boost = models.IntegerField(default=0, verbose_name="Бонус к HP (Flat)")
     mana_boost = models.IntegerField(default=0, verbose_name="Бонус к Мане (Flat)")
 
-    is_purchasable = models.BooleanField(
-        default=True,
-        verbose_name="Доступен в магазине",
-    )
-    source = models.CharField(
-        max_length=20,
-        choices=[
-            ("shop", "Shop"),
-            ("boss_drop", "Boss Drop"),
-            ("quest_reward", "Quest Reward"),
-        ],
-        default="shop",
-    )
-    boss_rank = models.CharField(
-        max_length=5,
-        choices=[
-            ("F", "F"),
-            ("D", "D"),
-            ("C", "C"),
-            ("B", "B"),
-            ("A", "A"),
-            ("S", "S"),
-            ("SS", "SS"),
-            ("SSS", "SSS"),
-        ],
-        null=True,
-        blank=True,
-    )
-
     def __str__(self):
         return f"{self.name} ({self.code})"
 
@@ -925,17 +718,9 @@ class InventoryItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, verbose_name="Количество")
     is_equipped = models.BooleanField(default=False, verbose_name="Экипировано")
-    stat_bonuses = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name="Уникальные характеристики",
-    )
 
     class Meta:
         unique_together = ("user_profile", "item")
-        indexes = [
-            models.Index(fields=["user_profile", "is_equipped"]),
-        ]
 
     def __str__(self):
         return f"{self.user_profile.user.username} - {self.item.name} x{self.quantity}"  # type: ignore
@@ -1061,221 +846,8 @@ class TrainingSession(models.Model):
         verbose_name = "Тренировочная сессия"
         verbose_name_plural = "Тренировочные сессии"
         ordering = ["-created_at"]
-        indexes = [
-            models.Index(fields=["user_profile", "created_at"]),
-        ]
 
     def __str__(self):
         return (
             f"{self.user_profile.user.username} - {self.activity_key} ({self.hours}h)"
         )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Party System (v1)
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-def _generate_invite_code() -> str:
-    """Generate a 6-character alphanumeric invite code."""
-    alphabet = string.ascii_uppercase + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(6))
-
-
-class Party(models.Model):
-    """
-    A group of users who can view each other's public progress.
-    v1: read-only visibility, no shared boss, no chat.
-    """
-
-    objects = models.Manager()
-
-    name = models.CharField(max_length=64, verbose_name="Party name")
-    invite_code = models.CharField(
-        max_length=6,
-        unique=True,
-        default=_generate_invite_code,
-        verbose_name="Invite code",
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="created_parties",
-        verbose_name="Creator",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    streak = models.PositiveIntegerField(default=0, verbose_name="Party Streak")
-    last_streak_update_date = models.DateField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Party"
-        verbose_name_plural = "Parties"
-
-    def __str__(self) -> str:
-        return f"{self.name} [{self.invite_code}]"
-
-
-class PartyMembership(models.Model):
-    """
-    Links a User to a Party. OneToOneField on user enforces
-    the v1 constraint: one user can only be in ONE party at a time.
-    """
-
-    objects = models.Manager()
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="party_membership",
-        verbose_name="Member",
-    )
-    party = models.ForeignKey(
-        Party,
-        on_delete=models.CASCADE,
-        related_name="memberships",
-        verbose_name="Party",
-    )
-    joined_at = models.DateTimeField(auto_now_add=True)
-
-    # Party Enhancements v1
-    last_daily_completed_date = models.DateField(null=True, blank=True)
-    weekly_xp = models.PositiveIntegerField(default=0)
-    weekly_xp_reset_week = models.CharField(max_length=10, null=True, blank=True)
-    last_buff_sent_at = models.DateField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Party membership"
-        verbose_name_plural = "Party memberships"
-
-    def __str__(self) -> str:
-        return f"{self.user.username} → {self.party.name}"
-
-
-class PartyEvent(models.Model):
-    """
-    Activity Feed event for a Party.
-    """
-
-    EVENT_TYPES = (
-        ("task", "Task Completed"),
-        ("level_up", "Level Up"),
-        ("ally_unlock", "Ally Unlocked"),
-        ("milestone", "Milestone Reached"),
-    )
-
-    party = models.ForeignKey(
-        Party,
-        on_delete=models.CASCADE,
-        related_name="events",
-    )
-    member = models.ForeignKey(
-        PartyMembership,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="feed_events",
-    )
-    event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
-    message = models.CharField(max_length=255)
-    metadata = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Party Event"
-        verbose_name_plural = "Party Events"
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"[{self.party.name}] {self.event_type} - {self.message}"
-
-
-class PartyEventReaction(models.Model):
-    """
-    Emoji reaction to a PartyEvent.
-    """
-
-    event = models.ForeignKey(
-        PartyEvent,
-        on_delete=models.CASCADE,
-        related_name="reactions",
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="party_reactions",
-    )
-    emoji = models.CharField(max_length=10)
-
-    class Meta:
-        verbose_name = "Party Event Reaction"
-        verbose_name_plural = "Party Event Reactions"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["event", "user"], name="unique_user_event_reaction"
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.user.username} reacted {self.emoji} to Event {self.event_id}"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Calendar Events (Ручные события в календаре)
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class CalendarEvent(models.Model):
-    """
-    Ручное событие в календаре (ранее хранилось в localStorage).
-    """
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="calendar_events",
-        verbose_name="Пользователь",
-    )
-    title = models.CharField(max_length=255, verbose_name="Название")
-    description = models.TextField(blank=True, default="", verbose_name="Описание")
-    date = models.DateField(verbose_name="Дата")
-    start_time = models.TimeField(verbose_name="Время начала")
-    end_time = models.TimeField(verbose_name="Время окончания")
-    color = models.CharField(max_length=15, default="#3b82f6", verbose_name="Цвет")
-
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-
-    class Meta:
-        verbose_name = "Событие календаря"
-        verbose_name_plural = "События календаря"
-        ordering = ["date", "start_time"]
-
-    def __str__(self):
-        return f"{self.title} ({self.date} {self.start_time}-{self.end_time})"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Analytics
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class FeatureEvent(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="feature_events",
-        verbose_name="Пользователь",
-    )
-    event_name = models.CharField(max_length=128, verbose_name="Имя события")
-    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Время события")
-
-    class Meta:
-        verbose_name = "Событие аналитики"
-        verbose_name_plural = "События аналитики"
-        ordering = ["-timestamp"]
-
-    def __str__(self):
-        return f"FeatureEvent: {self.event_name} @ {self.timestamp}"
