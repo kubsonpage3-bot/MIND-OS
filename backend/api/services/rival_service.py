@@ -146,7 +146,7 @@ def compute_rival_data(user_profile):
     johan_xp = calc_johan_xp(player_rank_xp, day_num)
 
     from api.models import UnlockedSkill, ActiveEffect, TrainingSession
-    from django.db.models import Sum
+    from django.db.models import Sum, Avg, Count
     from datetime import timedelta
 
     # --- Real Weekly History ---
@@ -193,6 +193,28 @@ def compute_rival_data(user_profile):
     ).exists():
         johan_xp = max(1.0, round(johan_xp * 0.9, 1))
 
+    # --- Compute Player's 7-Day Stats for Johan's Rubber-banding ---
+    week_ago = end_date - timedelta(days=7)
+    player_weekly_stats = TrainingSession.objects.filter(
+        user_profile=user_profile, created_at__gte=week_ago
+    ).aggregate(
+        avg_focus=Avg("focus_rating"),
+        total_subjects=Count("activity_key", distinct=True),
+    )
+
+    p_avg_focus = player_weekly_stats["avg_focus"] or 5.0
+    p_subjects = player_weekly_stats["total_subjects"] or 0
+
+    johan_avg_focus = (
+        round((p_avg_focus + (math.sin(day_num * 0.4) * 0.5 - 0.1)) * 10) / 10.0
+    )
+    johan_subjects_week = max(1, p_subjects + (day_num % 3) - 1)
+
+    johan_week_hours = sum(d["johan"]["hours"] for d in weekly_history)
+    johan_week_rank_xp = (
+        round(sum(d["johan"]["rank_xp_gained"] for d in weekly_history) * 10) / 10.0
+    )
+
     new_data = {
         "totalXP": johan_xp,
         "streak": johan_streak,
@@ -200,6 +222,10 @@ def compute_rival_data(user_profile):
         "currentPattern": pattern["type"],
         "weeklyHistory": weekly_history,
         "lastUpdated": today,
+        "johanWeekHours": johan_week_hours,
+        "johanWeekRankXP": johan_week_rank_xp,
+        "johanAvgFocus": johan_avg_focus,
+        "johanSubjectsWeek": johan_subjects_week,
     }
 
     user_profile.rival_data = new_data

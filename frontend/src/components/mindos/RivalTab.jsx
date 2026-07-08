@@ -198,6 +198,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   const RIVAL_NAME = t(RIVAL_JOHAN_KEY);
   const [activeTab, setActiveTab] = useState("rival");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyView, setHistoryView] = useState("johan");
   const [sessionToast, setSessionToast] = useState(null);
   const [cardFlash, setCardFlash] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -328,14 +329,14 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
     playerStreak, johanStreak, logs, getDayNumber(), RIVAL_NAME
   );
 
-  const johanWeekHours = weeklyHistory.reduce((s, d) => s + (d.hours || 0), 0);
-  const johanAvgFocus = Math.round(
-    (playerAvgFocus + (Math.sin(getDayNumber() * 0.4) * 0.5 - 0.1)) * 10
-  ) / 10;
-  const johanSubjectsWeek = Math.max(1, playerSubjectsWeek + (getDayNumber() % 3) - 1);
-  const johanWeekRankXP = Math.round(weeklyHistory.reduce((s, d) => s + (d.xp || 0), 0) * 10) / 10;
+  const johanWeekHours = rivalData.johanWeekHours || 0;
+  const johanAvgFocus = rivalData.johanAvgFocus || 0;
+  const johanSubjectsWeek = rivalData.johanSubjectsWeek || 1;
+  const johanWeekRankXP = rivalData.johanWeekRankXP || 0;
 
-  const maxBarH = Math.max(...weeklyHistory.map(d => d.hours || 0), 1);
+  const maxBarH = Math.max(...weeklyHistory.map(d => {
+    return historyView === "johan" ? (d.johan?.hours || 0) : (d.player?.hours || 0);
+  }), 1);
 
   const cardBorderColor = cardFlash === "red" ? "#ef4444"
     : cardFlash === "green" ? "#00cc88"
@@ -665,18 +666,37 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
       </div>
 
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
-        <button
-          onClick={() => setHistoryOpen(!historyOpen)}
-          className="w-full flex items-center gap-2 px-4 py-2.5 transition-colors"
-          style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase" }}
-        >
-          {historyOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-          {t('rivalTab.last7Days')}
-        </button>
+        <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderBottomColor: historyOpen ? "var(--habit-border)" : "transparent", transition: "border-color 0.3s" }}>
+          <button
+            onClick={() => setHistoryOpen(!historyOpen)}
+            className="flex items-center gap-2 transition-colors"
+            style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase" }}
+          >
+            {historyOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {t('rivalTab.last7Days')}
+          </button>
+          {historyOpen && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setHistoryView("you")}
+                style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 10, color: historyView === "you" ? "#7B61FF" : "var(--habit-dim)", textTransform: "uppercase" }}
+              >
+                YOU
+              </button>
+              <button
+                onClick={() => setHistoryView("johan")}
+                style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 10, color: historyView === "johan" ? "#00e5ff" : "var(--habit-dim)", textTransform: "uppercase" }}
+              >
+                {RIVAL_NAME}
+              </button>
+            </div>
+          )}
+        </div>
         {historyOpen && (
-          <div className="px-4 pb-4 space-y-1.5">
+          <div className="px-4 py-4 space-y-1.5">
             {weeklyHistory.map((day) => {
-              const pct = (day.hours || 0) / maxBarH;
+              const h = historyView === "johan" ? (day.johan?.hours || 0) : (day.player?.hours || 0);
+              const pct = h / maxBarH;
               const d = new Date(day.date);
               const label = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
               const dayPattern = getDayPattern(day.date);
@@ -687,14 +707,14 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
                     <div className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${pct * 100}%`,
-                        background: dayPattern.type === "surge" ? "#ef4444" : dayPattern.type === "weak" ? "#94a3b8" : "#7B61FF",
-                        boxShadow: dayPattern.type === "surge" ? "0 0 4px rgba(239,68,68,0.5)" : "0 0 4px rgba(123,97,255,0.4)",
+                        background: historyView === "you" ? "#7B61FF" : (dayPattern.type === "surge" ? "#ef4444" : dayPattern.type === "weak" ? "#94a3b8" : "#00e5ff"),
+                        boxShadow: historyView === "you" ? "0 0 4px rgba(123,97,255,0.4)" : (dayPattern.type === "surge" ? "0 0 4px rgba(239,68,68,0.5)" : "0 0 4px rgba(0,229,255,0.4)"),
                       }} />
                   </div>
                   <div className="w-8 text-right" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 10, color: "#878190" }}>
-                    {(day.hours || 0).toFixed(1)}h
+                    {h.toFixed(1)}h
                   </div>
-                  {dayPattern.type === "surge" && (
+                  {historyView === "johan" && dayPattern.type === "surge" && (
                     <span style={{ fontFamily: "'Nunito'", fontSize: 8, color: "#ef4444" }}>⚡</span>
                   )}
                 </div>

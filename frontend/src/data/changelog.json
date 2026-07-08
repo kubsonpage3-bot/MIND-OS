@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-08",
+        "version": "1.4.35",
+        "changes": [
+            {
+                "text": "Fixed Johan's Rival tab displaying 0.0h for weekly stats and added a toggle to compare your Last 7 Days against Johan's.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-08",
         "version": "1.4.34",
         "changes": [
             {
