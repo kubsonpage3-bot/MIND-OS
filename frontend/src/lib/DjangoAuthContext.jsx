@@ -12,6 +12,8 @@ import { queryClientInstance } from '@/lib/query-client';
  * @property {any} error
  * @property {Function} login
  * @property {Function} register
+ * @property {Function} guestLogin
+ * @property {Function} convertGuest
  * @property {Function} logout
  * @property {Function} refreshProfile
  */
@@ -98,6 +100,73 @@ export const DjangoAuthProvider = ({ children }) => {
     queryClientInstance.clear();
   };
 
+  const generateUUID = () => {
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+  };
+
+  const generateRandomSecret = () => {
+    const array = new Uint8Array(32);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const guestLogin = async () => {
+    setError(null);
+    try {
+      let guestId = localStorage.getItem('guest_id');
+      let guestSecret = localStorage.getItem('guest_secret');
+
+      if (!guestId || !guestSecret) {
+        guestId = `guest_${generateUUID()}`;
+        guestSecret = generateRandomSecret();
+        localStorage.setItem('guest_id', guestId);
+        localStorage.setItem('guest_secret', guestSecret);
+      }
+
+      const tokenData = await djangoApi.auth.guestLogin(guestId, guestSecret);
+      localStorage.setItem('access_token', tokenData.access);
+      localStorage.setItem('refresh_token', tokenData.refresh);
+      setIsAuthenticated(true);
+
+      const profileData = await queryClientInstance.fetchQuery({
+        queryKey: ['userprofile'],
+        queryFn: djangoApi.profile.get,
+      });
+      setUser({ username: profileData.username || 'Hero' });
+      return profileData;
+    } catch (err) {
+      console.error('Guest login failed:', err);
+      setError(err.message || 'Guest login failed');
+      throw err;
+    }
+  };
+
+  const convertGuest = async (username, email, password, password2) => {
+    setError(null);
+    try {
+      const tokenData = await djangoApi.auth.convertGuest(username, email, password, password2);
+      localStorage.setItem('access_token', tokenData.access);
+      localStorage.setItem('refresh_token', tokenData.refresh);
+      
+      // Clear guest credentials from localStorage
+      localStorage.removeItem('guest_id');
+      localStorage.removeItem('guest_secret');
+      
+      const profileData = await queryClientInstance.fetchQuery({
+        queryKey: ['userprofile'],
+        queryFn: djangoApi.profile.get,
+      });
+      setUser({ username: profileData.username || 'Hero' });
+      return profileData;
+    } catch (err) {
+      console.error('Guest conversion failed:', err);
+      setError(err.message || 'Conversion failed');
+      throw err;
+    }
+  };
+
   return (
     <DjangoAuthContext.Provider value={{
       user,
@@ -107,6 +176,8 @@ export const DjangoAuthProvider = ({ children }) => {
       error,
       login,
       register,
+      guestLogin,
+      convertGuest,
       logout,
       refreshProfile,
     }}>

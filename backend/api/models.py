@@ -44,6 +44,12 @@ class UserProfile(models.Model):
         verbose_name="Аналитика включена",
     )
 
+    # Гостевой аккаунт (без email/пароля, привязан к устройству)
+    is_guest = models.BooleanField(
+        default=False,
+        verbose_name="Гость",
+    )
+
     # ── Характеристики персонажа ──────────────────────────────────────────
 
     # Здоровье (Hit Points): текущее и максимальное

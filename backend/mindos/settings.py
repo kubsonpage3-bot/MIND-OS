@@ -227,6 +227,7 @@ REST_FRAMEWORK = {
         "user": "200/min",
         "login": "5/min",
         "register": "3/min",
+        "guest_login": "5/min",
     },
 }
 

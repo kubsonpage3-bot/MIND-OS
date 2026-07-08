@@ -8,6 +8,8 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     RegisterView,
+    GuestLoginView,
+    ConvertGuestView,
     UserProfileView,
     TaskViewSet,
     SkillActivateView,
@@ -64,6 +66,10 @@ urlpatterns = [
     # ——— Регистрация —————————————————————————————————————————————————
     # POST /api/auth/register/
     path("auth/register/", RegisterView.as_view(), name="register"),
+    # POST /api/auth/guest-login/
+    path("auth/guest-login/", GuestLoginView.as_view(), name="guest-login"),
+    # POST /api/auth/convert-guest/
+    path("auth/convert-guest/", ConvertGuestView.as_view(), name="convert-guest"),
     # ——— Профиль персонажа ————————————————————————————————————————————
     # GET    /api/profile/
     # PUT    /api/profile/

@@ -85,7 +85,11 @@ def health_check(request):
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView  # noqa: E402
-from api.throttles import LoginRateThrottle, RegisterRateThrottle  # noqa: E402
+from api.throttles import (  # noqa: E402
+    LoginRateThrottle,
+    RegisterRateThrottle,
+    GuestLoginRateThrottle,
+)
 
 
 class LoginView(TokenObtainPairView):
@@ -120,7 +124,134 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+from rest_framework_simplejwt.tokens import RefreshToken  # noqa: E402
+from django.contrib.auth.models import User  # noqa: E402
+from django.contrib.auth.hashers import make_password, check_password  # noqa: E402
+
+
+class GuestLoginView(APIView):
+    """
+    POST /api/auth/guest-login/
+    Создаёт или авторизует гостевой аккаунт, привязанный к guest_id и guest_secret.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [GuestLoginRateThrottle]
+
+    def post(self, request):
+        guest_id = request.data.get("guest_id")
+        guest_secret = request.data.get("guest_secret")
+
+        if not guest_id or not guest_secret:
+            return Response(
+                {"detail": "guest_id and guest_secret are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Ensure it's a valid guest format to avoid abuse, e.g. guest_UUID
+        if not guest_id.startswith("guest_"):
+            return Response(
+                {"detail": "Invalid guest_id format"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(username=guest_id)
+            if not check_password(guest_secret, user.password):
+                return Response(
+                    {"detail": "Invalid guest credentials"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+            if not user.profile.is_guest:
+                return Response(
+                    {"detail": "User is not a guest"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except User.DoesNotExist:
+            user = User.objects.create(
+                username=guest_id, password=make_password(guest_secret)
+            )
+            # Profile created by post_save signal
+            profile = user.profile
+            profile.is_guest = True
+            profile.save(update_fields=["is_guest"])
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }
+        )
+
+
+class ConvertGuestView(APIView):
+    """
+    POST /api/auth/convert-guest/
+    Конвертирует гостевой аккаунт в полноценный (заменяет username, email, пароль и снимает флаг is_guest).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if not request.user.profile.is_guest:
+            return Response(
+                {"detail": "Current user is not a guest"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        password_confirm = request.data.get("password_confirm")
+
+        if not all([username, email, password, password_confirm]):
+            return Response(
+                {"detail": "All fields are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if password != password_confirm:
+            return Response(
+                {"detail": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"detail": "Username is already taken"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {"detail": "Email is already registered"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            user = request.user
+            user.username = username
+            user.email = email
+            user.set_password(password)
+            user.save()
+
+            profile = user.profile
+            profile.is_guest = False
+            profile.save(update_fields=["is_guest"])
+
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "detail": "Successfully converted to full account",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }
+        )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
+
 # Профиль персонажа
 # ─────────────────────────────────────────────────────────────────────────────
 

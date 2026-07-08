@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import { X, Crown, Zap, Shield, Sparkles } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
 import { isMobileApp } from "@/utils/platformUtils";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function PremiumUpgradeModal({ onClose }) {
   const { t } = useTranslation();
+  const { profile } = useDjangoAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -95,7 +97,25 @@ export default function PremiumUpgradeModal({ onClose }) {
             </div>
           )}
 
-          {isMobileApp() ? (
+          {profile?.is_guest ? (
+            <div className="text-center space-y-3">
+              <p className="text-white/60 text-sm">
+                Guest accounts cannot purchase Premium.
+              </p>
+              
+              <div
+                className="block w-full py-3 rounded-xl
+                           bg-amber-500/20 border border-amber-500/40
+                           text-amber-400 font-ui font-bold
+                           text-center text-sm tracking-wide"
+              >
+                Create a full account first
+              </div>
+              <p className="text-white/30 text-xs">
+                Convert your guest profile from the dashboard to unlock premium features.
+              </p>
+            </div>
+          ) : isMobileApp() ? (
             <div className="text-center space-y-3">
               <p className="text-white/60 text-sm">
                 {t('premium.webOnly')}

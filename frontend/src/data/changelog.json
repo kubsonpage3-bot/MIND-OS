@@ -1,4 +1,14 @@
-﻿[
+[
+    {
+        "date": "2026-07-08",
+        "version": "1.4.34",
+        "changes": [
+            {
+                "text": "Added a 'Continue as Guest' option! You can now start playing immediately without creating an account, and your progress is securely saved to your device. You can upgrade to a full account later at any time.",
+                "type": "feature"
+            }
+        ]
+    },
     {
         "date":  "2026-07-08",
         "version":  "1.4.33",
@@ -8,7 +18,7 @@
                             "type":  "feature"
                         },
                         {
-                            "text":  "Fixed a bug where submitting a training log would incorrectly show a double \u0027Session Expired\u0027 error.",
+                            "text":  "Fixed a bug where submitting a training log would incorrectly show a double 'Session Expired' error.",
                             "type":  "fix"
                         },
                         {
@@ -16,7 +26,7 @@
                             "type":  "balance"
                         },
                         {
-                            "text":  "The \u0027Log Training\u0027 button now shows a loading state and disables itself during submission to prevent accidental double-clicks.",
+                            "text":  "The 'Log Training' button now shows a loading state and disables itself during submission to prevent accidental double-clicks.",
                             "type":  "polish"
                         }
                     ]

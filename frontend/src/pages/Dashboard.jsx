@@ -36,6 +36,8 @@ import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
 import BossPanel from "@/components/mindos/BossPanel";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
+import GuestBanner from "@/components/mindos/GuestBanner";
+import ConvertGuestModal from "@/components/mindos/ConvertGuestModal";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 // Removed getRankFromXP
@@ -153,6 +155,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const prevHpRef = useRef(null);
   const queryClient = useQueryClient();
   const [synced, setSynced] = useState(false);
+  const [isConvertGuestModalOpen, setIsConvertGuestModalOpen] = useState(false);
 
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks"],
@@ -472,6 +475,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   return (
     <div className="min-h-screen font-inter bg-transparent text-[var(--habit-text)]">
+      <GuestBanner onConvertClick={() => setIsConvertGuestModalOpen(true)} />
       <main className="max-w-7xl mx-auto px-0 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <AchievementTracker />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
@@ -632,6 +636,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         onClose={() => setDefeatedBossState(null)}
         combatResult={defeatedBossState?.combatResult}
         rewards={defeatedBossState?.rewards}
+      />
+
+      {/* Convert Guest Modal */}
+      <ConvertGuestModal 
+        isOpen={isConvertGuestModalOpen} 
+        onClose={() => setIsConvertGuestModalOpen(false)} 
       />
     </div>
   );

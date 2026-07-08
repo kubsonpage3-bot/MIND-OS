@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useDjangoAuth();
+  const { login, guestLogin } = useDjangoAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -27,6 +27,19 @@ export default function Login() {
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid username or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await guestLogin();
+      navigate('/', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Guest login failed');
     } finally {
       setLoading(false);
     }
@@ -95,13 +108,24 @@ export default function Login() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-mono text-sm font-bold text-white hover:bg-indigo-500 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.4)]"
-          >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : '► ACCESS CORE'}
-          </button>
+          <div className="flex flex-col space-y-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-mono text-sm font-bold text-white hover:bg-indigo-500 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.4)]"
+            >
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : '► ACCESS CORE'}
+            </button>
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleGuestLogin}
+              className="flex w-full items-center justify-center rounded-lg border border-indigo-500/30 bg-slate-900/50 px-4 py-2.5 font-mono text-sm font-bold text-indigo-300 hover:bg-indigo-500/20 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+            >
+              CONTINUE AS GUEST
+            </button>
+          </div>
         </form>
 
         <p className="mt-6 text-center text-xs font-mono text-slate-400 uppercase tracking-wide">

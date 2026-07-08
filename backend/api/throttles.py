@@ -7,3 +7,7 @@ class LoginRateThrottle(AnonRateThrottle):
 
 class RegisterRateThrottle(AnonRateThrottle):
     scope = "register"
+
+
+class GuestLoginRateThrottle(AnonRateThrottle):
+    scope = "guest_login"

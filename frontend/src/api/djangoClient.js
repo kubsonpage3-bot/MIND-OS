@@ -247,6 +247,18 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ token }),
       }),
+
+    guestLogin: (guest_id, guest_secret) =>
+      djangoFetch('/auth/guest-login/', {
+        method: 'POST',
+        body: JSON.stringify({ guest_id, guest_secret }),
+      }),
+
+    convertGuest: (username, email, password, password_confirm) =>
+      djangoFetch('/auth/convert-guest/', {
+        method: 'POST',
+        body: JSON.stringify({ username, email, password, password_confirm }),
+      }),
   },
 
   analytics: {
