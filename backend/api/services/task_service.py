@@ -320,6 +320,7 @@ def _complete_task_logic(user, task_id, is_positive=True):
         if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
             if not isinstance(task.last_reward_data, dict):
                 task.last_reward_data = {}
+            task.last_reward_data["shield_used"] = False
             task.last_reward_data["xp_earned"] = final_xp
             task.last_reward_data["gold_earned"] = final_gold
             task.last_reward_data["item_dropped"] = outcome.get("item_dropped")
@@ -588,9 +589,13 @@ def process_missed_tasks(user):
     сбрасывает их флаг выполнения и возвращает обновленный профиль.
     """
     profile = UserProfile.objects.select_for_update().get(user=user)
-    import pytz
+    import zoneinfo
 
-    user_tz = pytz.timezone(profile.timezone or "UTC")
+    try:
+        user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+    except Exception:
+        user_tz = zoneinfo.ZoneInfo("UTC")
+
     local_today = timezone.now().astimezone(user_tz).date()
 
     # Если крон еще не запускался или сегодня новый день по локальному времени
@@ -618,6 +623,10 @@ def process_missed_tasks(user):
     elixir_active = ActiveEffect.objects.filter(
         user=user, skill_id="elixir", expires_at__gt=timezone.now()
     ).exists()
+
+    from api.services.mechanics import get_passive_multipliers
+
+    passive_effects = get_passive_multipliers(profile, {})
 
     for task in dailies:
         # Проверяем, был ли дейлик выполнен вчера
@@ -647,7 +656,21 @@ def process_missed_tasks(user):
             total_dmg += final_dmg
             task.is_completed = False
             if not transcendence_active:
-                task.streak = 0
+                habit_shield = passive_effects.get("habit_shield", False)
+                if not isinstance(task.last_reward_data, dict):
+                    task.last_reward_data = {}
+
+                if habit_shield:
+                    shield_used = task.last_reward_data.get("shield_used", False)
+                    if not shield_used:
+                        task.last_reward_data["shield_used"] = True
+                    else:
+                        task.streak = 0
+                        task.last_reward_data["shield_used"] = False
+                else:
+                    task.streak = 0
+                    task.last_reward_data["shield_used"] = False
+
             task.value = calc_new_value(task.value, "fail", "daily")
             log.append(
                 {
@@ -661,9 +684,6 @@ def process_missed_tasks(user):
 
         task.save()
 
-    from api.services.mechanics import get_passive_multipliers
-
-    passive_effects = get_passive_multipliers(profile, {})
     daily_regen = passive_effects.get("daily_hp_regen", 0.0)
 
     profile.hp = max(0, profile.hp - total_dmg)

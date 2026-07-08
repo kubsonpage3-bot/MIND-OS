@@ -550,6 +550,8 @@ def test_skills_and_allies_multipliers(user, profile):
     # 2. Add Kira (Science +5%) and Sharp Focus (Focus >=8 +10%)
     RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
     UnlockedSkill.objects.create(user_profile=profile, skill_code="sharp_focus")
+    profile.active_allies = ["kira"]
+    profile.save()
 
     # Refresh recruited_allies
     profile.refresh_from_db()
@@ -578,6 +580,8 @@ def test_skills_and_allies_multipliers(user, profile):
 
     # 4. Void boss damage
     RecruitedAlly.objects.create(user_profile=profile, ally_code="void", level=1)
+    profile.active_allies = ["void"]
+    profile.save()
     profile.refresh_from_db()
     effects4 = get_passive_multipliers(profile, {})
     assert effects4["boss_dmg_mult"] == 1.10
@@ -607,6 +611,8 @@ def test_additive_stacking_passive_multipliers(user, profile):
 
     # Add an ally to test Aura of Focus (ally_mult)
     RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
+    profile.active_allies = ["kira"]
+    profile.save()
 
     profile.refresh_from_db()
 
@@ -670,7 +676,9 @@ def test_unbreakable_daily_regen(user, profile):
     from datetime import timedelta
 
     profile.hp = 10
-    profile.last_login_date = timezone.now().date() - timedelta(days=1)
+    yesterday = timezone.now().date() - timedelta(days=1)
+    profile.last_login_date = yesterday
+    profile.last_daily_cron_at = yesterday
     profile.save()
 
     UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")

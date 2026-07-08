@@ -1770,3 +1770,40 @@ WARNING 2026-07-07 16:19:16,844 log 25720 24524 Forbidden: /api/calendar/events/
 WARNING 2026-07-07 16:19:51,731 log 25720 24524 Forbidden: /api/party/members/1592/profile/
 WARNING 2026-07-07 16:19:53,796 log 25720 24524 Not Found: /api/party/members/999999/profile/
 ERROR 2026-07-07 16:19:58,488 task_service 25720 24524 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-07 23:43:59,194 log 25712 21704 Unauthorized: /api/analytics/event/
+WARNING 2026-07-07 23:44:01,933 log 25712 21704 Bad Request: /api/analytics/event/
+WARNING 2026-07-07 23:44:07,716 log 25712 21704 Bad Request: /api/auth/register/
+WARNING 2026-07-07 23:44:12,196 log 25712 21704 Bad Request: /api/profile/
+WARNING 2026-07-07 23:44:14,598 log 25712 21704 Forbidden: /api/calendar/events/
+WARNING 2026-07-07 23:44:48,397 log 25712 21704 Forbidden: /api/party/members/1677/profile/
+WARNING 2026-07-07 23:44:50,355 log 25712 21704 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-07 23:44:55,783 task_service 25712 21704 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-07 23:46:32,416 log 23308 12972 Unauthorized: /api/analytics/event/
+WARNING 2026-07-07 23:46:34,963 log 23308 12972 Bad Request: /api/analytics/event/
+WARNING 2026-07-07 23:46:40,372 log 23308 12972 Bad Request: /api/auth/register/
+WARNING 2026-07-07 23:46:44,855 log 23308 12972 Bad Request: /api/profile/
+WARNING 2026-07-07 23:46:47,219 log 23308 12972 Forbidden: /api/calendar/events/
+WARNING 2026-07-07 23:47:19,837 log 23308 12972 Forbidden: /api/party/members/1762/profile/
+WARNING 2026-07-07 23:47:21,736 log 23308 12972 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-07 23:47:26,468 task_service 23308 12972 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-07 23:49:58,721 task_service 14452 29140 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-07 23:52:49,872 task_service 25664 5440 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-07 23:54:56,032 task_service 24236 30540 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-07 23:58:53,177 task_service 25860 23116 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-08 00:06:14,807 task_service 4056 30036 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-08 00:23:16,694 log 19648 29908 Unauthorized: /api/analytics/event/
+WARNING 2026-07-08 00:23:19,263 log 19648 29908 Bad Request: /api/analytics/event/
+WARNING 2026-07-08 00:23:24,524 log 19648 29908 Bad Request: /api/auth/register/
+WARNING 2026-07-08 00:23:28,839 log 19648 29908 Bad Request: /api/profile/
+WARNING 2026-07-08 00:23:31,385 log 19648 29908 Forbidden: /api/calendar/events/
+WARNING 2026-07-08 00:24:03,991 log 19648 29908 Forbidden: /api/party/members/2007/profile/
+WARNING 2026-07-08 00:24:06,078 log 19648 29908 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-08 00:24:11,064 task_service 19648 29908 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-08 11:42:45,511 log 19888 14768 Unauthorized: /api/analytics/event/
+WARNING 2026-07-08 11:42:48,055 log 19888 14768 Bad Request: /api/analytics/event/
+WARNING 2026-07-08 11:42:54,057 log 19888 14768 Bad Request: /api/auth/register/
+WARNING 2026-07-08 11:42:58,419 log 19888 14768 Bad Request: /api/profile/
+WARNING 2026-07-08 11:43:00,801 log 19888 14768 Forbidden: /api/calendar/events/
+WARNING 2026-07-08 11:43:33,195 log 19888 14768 Forbidden: /api/party/members/2092/profile/
+WARNING 2026-07-08 11:43:35,079 log 19888 14768 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-08 11:43:40,186 task_service 19888 14768 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]

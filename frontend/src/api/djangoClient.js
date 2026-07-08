@@ -90,9 +90,22 @@ export async function djangoFetch(endpoint, options = {}) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        let errorMessage = errorData.detail || errorData.message || errorData.error;
+        if (!errorMessage && typeof errorData === 'object' && Object.keys(errorData).length > 0) {
+          // Flatten DRF validation errors {"field": ["msg"]} -> "field: msg"
+          const firstKey = Object.keys(errorData)[0];
+          const firstValue = errorData[firstKey];
+          if (Array.isArray(firstValue) && firstValue.length > 0) {
+             errorMessage = `${firstKey}: ${firstValue[0]}`;
+          } else if (typeof firstValue === 'string') {
+             errorMessage = `${firstKey}: ${firstValue}`;
+          }
+        }
+
         throw {
           status: response.status,
-          message: errorData.detail || errorData.message || errorData.error || 'Request failed',
+          message: errorMessage || 'Request failed',
           data: errorData,
         };
       }

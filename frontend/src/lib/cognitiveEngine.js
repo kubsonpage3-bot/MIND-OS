@@ -166,7 +166,6 @@ export function getFocusMultiplier(focus) {
 }
 
 export function getStreakMultiplier(streakDays) {
-  if (streakDays <= 3) return 0.85;
   if (streakDays <= 7) return 1.0;
   if (streakDays <= 14) return 1.1;
   if (streakDays <= 21) return 1.2;

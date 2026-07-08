@@ -36,6 +36,14 @@ def buy_skill_node(user, skill_code: str) -> UserProfile:
     cost_sp = config.get("sp", 0)
     cost_gold = config.get("gold", 0)
 
+    from api.services.mechanics import get_passive_multipliers
+
+    passive_effects = get_passive_multipliers(profile, {})
+    cost_reduction = passive_effects.get("skill_cost_reduction", 0.0)
+    if cost_reduction > 0:
+        cost_sp = max(0, int(cost_sp * (1.0 - cost_reduction)))
+        cost_gold = max(0, int(cost_gold * (1.0 - cost_reduction)))
+
     if profile.skill_points < cost_sp:
         raise GameLogicError("Insufficient Skill Points (SP).")
     if profile.gold < cost_gold:

@@ -189,10 +189,16 @@ def summon_boss(user, boss_id):
         difficulty, BOSS_DIFFICULTY_MULTIPLIERS["NORMAL"]
     )
 
+    from api.services.mechanics import get_passive_multipliers
+
+    passives = get_passive_multipliers(profile, {})
+    boss_hp_reduction = passives.get("boss_hp_reduction", 0.0)
+    boss_hp_multiplier = mult["hp"] * (1.0 - boss_hp_reduction)
+
     encounter = BossEncounter.objects.create(
         user=user,
         boss=boss,
-        hp_current=int(boss.hp_max * mult["hp"]),
+        hp_current=int(boss.hp_max * boss_hp_multiplier),
         reward_multiplier=mult["reward"],
     )
 

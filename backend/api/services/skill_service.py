@@ -8,6 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from api.models import UserProfile, ActiveEffect, SkillCooldown, UnlockedSkill
+from .mechanics import get_passive_multipliers, apply_boss_damage
 
 # ─── Определения классов и скиллов (зеркало rpgSystem.js) ─────────────────
 
@@ -145,6 +146,19 @@ def activate_skill(user, skill_id):
             effective_mana_cost = 0
             used_void_clarity = True
 
+    passive_effects = get_passive_multipliers(profile, {})
+    effective_mana_cost -= passive_effects.get("skill_mana_cost_reduction", 0)
+    effective_mana_cost = max(0, effective_mana_cost)
+
+    used_hex_free_skill = False
+    if passive_effects.get("daily_free_skill", False):
+        hex_free_effect = ActiveEffect.objects.filter(
+            user=profile.user, effect_id="hex_daily_free_skill_used"
+        ).first()
+        if not hex_free_effect:
+            effective_mana_cost = 0
+            used_hex_free_skill = True
+
     # Проверка маны
     if profile.mana < effective_mana_cost:
         return (
@@ -175,6 +189,10 @@ def activate_skill(user, skill_id):
     if has_mindguard:
         effective_cooldown_h *= 0.85
 
+    cooldown_reduction = passive_effects.get("cooldown_reduction", 0.0)
+    if cooldown_reduction > 0:
+        effective_cooldown_h *= 1.0 - cooldown_reduction
+
     cd_until = timezone.now() + timedelta(hours=effective_cooldown_h)
     SkillCooldown.objects.update_or_create(
         user=profile.user,
@@ -195,6 +213,21 @@ def activate_skill(user, skill_id):
                 "expires_at": effect_data["expires_at"],
             },
         )
+
+    if used_hex_free_skill:
+        ActiveEffect.objects.update_or_create(
+            user=profile.user,
+            effect_id="hex_daily_free_skill_used",
+            defaults={
+                "skill_id": "hex_passive",
+                "data": {},
+                "expires_at": get_midnight(),
+            },
+        )
+
+    skill_boss_damage = passive_effects.get("skill_boss_damage", 0)
+    if skill_boss_damage > 0:
+        apply_boss_damage(profile.user, skill_boss_damage)
 
     # Собираем ответ
     effects_qs = ActiveEffect.objects.filter(user=profile.user).values(

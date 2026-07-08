@@ -16,13 +16,14 @@ def get_unique_subjects_today(stats):
 
 def add_unique_subject_today(stats, subject):
     if not stats:
-        return
+        return 0
     today_str = str(timezone.now().date())
     subjects = get_unique_subjects_today(stats)
     if subject not in subjects:
         subjects.append(subject)
         stats.unique_subjects_today = {"date": today_str, "subjects": subjects}
         stats.save(update_fields=["unique_subjects_today"])
+    return len(subjects)
 
 
 COGNITIVE_COEFFICIENTS = {
@@ -50,6 +51,70 @@ COGNITIVE_COEFFICIENTS = {
     "art": {"gf": 0.04, "ps": 0.03, "gc": 0.03, "vm": 0.02},
     "other": {"gf": 0.02, "ps": 0.02, "gc": 0.02, "vm": 0.02},
 }
+
+
+def calculate_training_efficiency(
+    profile, focus, hours, streak_days, hours_today, subject_hours_today
+):
+    """
+    Computes the training efficiency on the server, replicating cognitiveEngine.js.
+    Uses real calculated stats (FOC, MEM) for accurate boundaries.
+    """
+    stats = profile.total_stats
+    stat_foc = stats.get("foc", 5)
+    stat_mem = stats.get("mem", 5)
+
+    # Base Focus
+    if focus <= 3:
+        focus_mult = 0.4
+    elif focus <= 6:
+        focus_mult = 0.8
+    elif focus <= 8:
+        focus_mult = 1.0
+    else:
+        focus_mult = 1.3
+
+    # Base Streak
+    if streak_days <= 7:
+        streak_mult = 1.0
+    elif streak_days <= 14:
+        streak_mult = 1.1
+    elif streak_days <= 21:
+        streak_mult = 1.2
+    elif streak_days <= 30:
+        streak_mult = 1.35
+    else:
+        streak_mult = 1.5
+
+    # Base Fatigue
+    if hours_today <= 2:
+        raw_fatigue = 1.0
+    elif hours_today <= 4:
+        raw_fatigue = 0.9
+    elif hours_today <= 6:
+        raw_fatigue = 0.75
+    else:
+        raw_fatigue = 0.5
+
+    # Diminishing Returns
+    if subject_hours_today < 1:
+        dimin_mult = 1.0
+    elif subject_hours_today < 2:
+        dimin_mult = 0.8
+    elif subject_hours_today < 3:
+        dimin_mult = 0.5
+    else:
+        dimin_mult = 0.2
+
+    # Stat boosts
+    foc_stat_bonus = 1.0 + (stat_foc - 5) * 0.01
+    mem_fatigue_bonus = 1.0 + (stat_mem - 5) * 0.015
+
+    focus_mult = focus_mult * foc_stat_bonus
+    fatigue_mult = min(1.0, raw_fatigue * mem_fatigue_bonus)
+
+    total = focus_mult * streak_mult * fatigue_mult * dimin_mult
+    return round(total, 3)
 
 
 def calculate_cognitive_gains(activity, hours, eff_total, profile):
@@ -140,9 +205,10 @@ def calculate_task_outcome(
         crit_chance = foc * 0.005 + passive_effects.get("crit_chance_bonus", 0.0)
         if random.random() < crit_chance:
             result["is_crit"] = True
-            final_xp *= 2
-            final_gold *= 2
-            damage_dealt *= 2
+            crit_mult = passive_effects.get("crit_damage_mult", 2.0)
+            final_xp *= crit_mult
+            final_gold *= crit_mult
+            damage_dealt *= crit_mult
 
         # Luck (LCK): Acts as a multiplier for Gold. Formula: Final_Gold * (1 + (LCK / 100))  # noqa: E501
         final_gold = final_gold * (1 + (lck / 100.0))
@@ -252,6 +318,18 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
 
         final_xp = max(0, int(xp_reward * profile.xp_multiplier))
         final_gold = max(0, int(gold_reward * profile.gold_multiplier))
+
+        # Check for boss kill mana and HP restores
+        from api.services.mechanics import get_passive_multipliers
+
+        passives = get_passive_multipliers(profile, {})
+        mana_restore = passives.get("boss_kill_mana_restore", 0)
+        if mana_restore > 0:
+            profile.mana = min(profile.max_mana, profile.mana + mana_restore)
+
+        hp_heal = passives.get("boss_kill_hp_heal", 0)
+        if hp_heal > 0:
+            profile.hp = min(profile.max_hp, profile.hp + hp_heal)
 
         gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
@@ -376,7 +454,12 @@ def get_passive_multipliers(profile, context: dict):
     from django.utils import timezone
 
     unlocked_skills = set(profile.unlocked_skills.values_list("skill_code", flat=True))
-    recruited_allies = {a.ally_code: a.level for a in profile.recruited_allies.all()}
+
+    active_codes = profile.active_allies or []
+    recruited_allies = {
+        a.ally_code: a.level
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+    }
 
     from api.models import ActiveEffect
     from django.db.models import Q
@@ -394,25 +477,43 @@ def get_passive_multipliers(profile, context: dict):
         "gc_mult": 1.0,
         "ps_mult": 1.0,
         "vm_mult": 1.0,
-        "boss_dmg_mult": 1.0,
-        "foc_mult": 1.0,
         "crit_chance_bonus": 0.0,
+        "crit_damage_mult": 2.0,
+        "boss_dmg_mult": 1.0,
+        "boss_kill_mana_restore": 0,
+        "boss_kill_hp_heal": 0,
+        "boss_hp_reduction": 0.0,
+        "daily_hp_regen": 0.0,
+        "missed_daily_hp_reduction": 0.0,
+        "max_hp_bonus": 0,
+        "max_mana_bonus": 0,
+        "always_crit": False,
+        "habit_shield": False,
+        "science_threshold_reduction": 0.0,
+        "language_threshold_reduction": 0.0,
+        "triple_subject_gold_bonus": 0,
+        "weekly_free_mana": False,
+        "cognitive_metric_multiplier": 0.0,
+        "foc_mult": 1.0,
         "drop_chance_bonus": 0.0,
         "mana_regen_mult": 1.0,
         "ally_stat_mult": 1.0,
         "min_focus": 0.0,
         "gf_ceiling_flat": 0.0,
         "gf_flat_bonus": 0.0,
-        "daily_hp_regen": 0.0,
         "guaranteed_loot_drop": False,
+        "cooldown_reduction": 0.0,
+        "skill_mana_cost_reduction": 0,
+        "skill_boss_damage": 0,
+        "daily_free_skill": False,
     }
 
     focus_rating = context.get("focus_rating", 0.0)
     is_exercise = context.get("is_exercise", False)
     is_prayer = context.get("is_prayer", False)
+    is_meditation = context.get("is_meditation", False)
     is_science = context.get("is_science", False)
     is_language = context.get("is_language", False)
-    task_type = context.get("task_type", "")
 
     # SKILLS
     if "sharp_focus" in unlocked_skills and focus_rating >= 8.0:
@@ -475,8 +576,6 @@ def get_passive_multipliers(profile, context: dict):
         today = timezone.now().date()
         if profile.last_training_at != today:
             effects["xp_mult"] += 0.50
-            # Flow state profile update happens in view if needed, but we can't update it here purely
-            # without side effects. We'll leave the profile save up to the caller.
 
     if "polymath" in unlocked_skills:
         stats = getattr(profile.user, "stats", None)
@@ -518,24 +617,56 @@ def get_passive_multipliers(profile, context: dict):
 
     kira_level = recruited_allies.get("kira", 0)
     if kira_level >= 1 and is_science:
-        effects["xp_mult"] += (0.05 if kira_level == 1 else 0.10) * ally_mult
+        effects["xp_mult"] += 0.05 * ally_mult
+    if kira_level >= 2 and is_science:
+        effects["xp_mult"] += 0.05 * ally_mult
     if kira_level >= 3 and is_science:
         effects["gf_flat_bonus"] += 0.002 * ally_mult
+    if kira_level >= 4 and is_science:
+        effects["always_crit"] = True
+    if kira_level >= 5 and is_science:
+        effects["science_threshold_reduction"] += 0.10 * ally_mult
 
     neko_level = recruited_allies.get("neko", 0)
-    if neko_level >= 1 and task_type == "daily":
+    if neko_level >= 1:
         effects["gold_mult"] += 0.05 * ally_mult
+    if neko_level >= 2:
+        effects["streak_xp_mult"] += 0.08 * ally_mult
+    if neko_level >= 3:
+        effects["mana_flat_bonus"] += int(3 * ally_mult)
+    if neko_level >= 4:
+        effects["habit_shield"] = True
     if neko_level >= 5:
         effects["gold_mult"] += 0.15 * ally_mult
 
+    # VOID
     void_level = recruited_allies.get("void", 0)
     if void_level >= 1:
-        effects["boss_dmg_mult"] += 0.10 * ally_mult
+        if void_level >= 5:
+            effects["boss_dmg_mult"] += 0.50 * ally_mult
+        else:
+            effects["boss_dmg_mult"] += 0.10 * ally_mult
+    if void_level >= 2:
+        effects["crit_damage_mult"] += 0.20 * ally_mult
+    if void_level >= 3:
+        effects["boss_kill_mana_restore"] += int(15 * ally_mult)
+    if void_level >= 4:
+        effects["boss_hp_reduction"] += 0.05 * ally_mult
 
+    # LUNA
     luna_level = recruited_allies.get("luna", 0)
     if luna_level >= 1 and is_exercise:
         effects["xp_mult"] += 0.08 * ally_mult
+    if luna_level >= 2:
+        effects["missed_daily_hp_reduction"] += 0.10 * ally_mult
+    if luna_level >= 3:
+        effects["daily_hp_regen"] += 1.0 * ally_mult
+    if luna_level >= 4:
+        effects["boss_kill_hp_heal"] += int(5 * ally_mult)
+    if luna_level >= 5:
+        effects["max_hp_bonus"] += int(20 * ally_mult)
 
+    # SAKURA
     sakura_level = recruited_allies.get("sakura", 0)
     if sakura_level >= 1 and is_language:
         effects["xp_mult"] += 0.10 * ally_mult
@@ -544,18 +675,43 @@ def get_passive_multipliers(profile, context: dict):
         effects["vm_mult"] += 0.10 * ally_mult
     if sakura_level >= 4:
         effects["xp_mult"] += 0.08 * ally_mult
+    if sakura_level >= 5 and is_language:
+        effects["language_threshold_reduction"] += 0.20 * ally_mult
 
+    # YUKI
     yuki_level = recruited_allies.get("yuki", 0)
     if yuki_level >= 1:
         effects["xp_mult"] += 0.08 * ally_mult
+    if yuki_level >= 2:
+        effects["max_mana_bonus"] += int(20 * ally_mult)
 
+    # NENE
     nene_level = recruited_allies.get("nene", 0)
-    if nene_level >= 1 and is_prayer:
+    if nene_level >= 1 and (is_meditation or is_prayer):
         effects["xp_mult"] += 0.15 * ally_mult
+    if nene_level >= 2:
+        effects["triple_subject_gold_bonus"] += int(30 * ally_mult)
+    if nene_level >= 3:
+        effects["daily_hp_regen"] += 2.0 * ally_mult
     if nene_level >= 4:
         effects["gf_mult"] += 0.10 * ally_mult
         effects["gc_mult"] += 0.10 * ally_mult
         effects["ps_mult"] += 0.10 * ally_mult
         effects["vm_mult"] += 0.10 * ally_mult
+        effects["cognitive_metric_multiplier"] += 0.10 * ally_mult
+    if nene_level >= 5:
+        effects["weekly_free_mana"] = True
+
+    hex_level = recruited_allies.get("hex", 0)
+    if hex_level >= 1:
+        effects["cooldown_reduction"] += 0.15 * ally_mult
+    if hex_level >= 2:
+        effects["skill_mana_cost_reduction"] += int(10 * ally_mult)
+    if hex_level >= 3:
+        effects["skill_boss_damage"] += int(20 * ally_mult)
+    if hex_level >= 4:
+        effects["cooldown_reduction"] += 0.20 * ally_mult
+    if hex_level >= 5:
+        effects["daily_free_skill"] = True
 
     return effects

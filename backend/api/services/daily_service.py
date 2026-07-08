@@ -71,6 +71,17 @@ def process_daily_login(user):
 
     profile.last_login_date = today
 
+    # Weekly reset check
+    current_iso_week = f"{today.year}-W{today.isocalendar()[1]}"
+    if profile.last_weekly_reset != current_iso_week:
+        profile.last_weekly_reset = current_iso_week
+        from api.services.mechanics import get_passive_multipliers
+
+        passives = get_passive_multipliers(profile, {})
+        weekly_mana = passives.get("weekly_free_mana", 0)
+        if weekly_mana > 0:
+            profile.mana = min(profile.mana_max, profile.mana + weekly_mana)
+
     # fortunes_favor (Gain 100G daily)
     if UnlockedSkill.objects.filter(
         user_profile=profile, skill_code="fortunes_favor"
@@ -86,5 +97,7 @@ def process_daily_login(user):
     ):
         profile.gold += 200
 
-    profile.save(update_fields=["last_login_date", "streak", "gold"])
+    profile.save(
+        update_fields=["last_login_date", "streak", "gold", "last_weekly_reset", "mana"]
+    )
     return profile

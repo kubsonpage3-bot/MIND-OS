@@ -25,7 +25,7 @@ ALLOWED_ACTIVITIES = {
 class TrainingLogSerializer(serializers.Serializer):
     """
     Validates incoming payload for POST /api/training/log/.
-    Prevents XP farming via extreme hour/focus values.
+    Prevents XP farming via server-side efficiency recalculation.
     """
 
     hours = serializers.FloatField(
@@ -38,7 +38,6 @@ class TrainingLogSerializer(serializers.Serializer):
     )
     efficiency = serializers.FloatField(
         min_value=0.0,
-        max_value=1.0,
         required=False,
         default=1.0,
     )
@@ -56,6 +55,52 @@ class TrainingLogSerializer(serializers.Serializer):
         required=False,
         default=0,
     )
+
+    def validate(self, data):
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return data
+
+        from api.models import UserProfile, TrainingSession
+        from django.utils import timezone
+        from django.db.models import Sum
+        from api.services.mechanics import calculate_training_efficiency
+
+        profile = UserProfile.objects.get(user=request.user)
+        today = timezone.now().date()
+
+        hours = data.get("hours", 0.0)
+        focus = data.get("focus_rating", 7)
+        activity = data.get("activity", "other")
+        client_eff = data.get("efficiency", 1.0)
+        streak_days = profile.streak
+
+        hours_today = (
+            TrainingSession.objects.filter(
+                user_profile=profile, created_at__date=today
+            ).aggregate(Sum("hours"))["hours__sum"]
+            or 0.0
+        )
+
+        subject_hours_today = (
+            TrainingSession.objects.filter(
+                user_profile=profile, activity_key=activity, created_at__date=today
+            ).aggregate(Sum("hours"))["hours__sum"]
+            or 0.0
+        )
+
+        computed_eff = calculate_training_efficiency(
+            profile, focus, hours, streak_days, hours_today, subject_hours_today
+        )
+
+        if abs(client_eff - computed_eff) > 0.02:
+            raise serializers.ValidationError(
+                {
+                    "efficiency": f"Efficiency mismatch. Server calculated {computed_eff}, client submitted {client_eff}."
+                }
+            )
+
+        return data
 
     def validate_activity(self, value: str) -> str:
         cleaned = value.strip().lower()

@@ -129,6 +129,9 @@ class UserProfile(models.Model):
     seen_guides = models.JSONField(
         default=dict, blank=True, verbose_name="Просмотренные гайды"
     )
+    last_weekly_reset = models.CharField(
+        max_length=10, null=True, blank=True, verbose_name="Неделя последнего сброса"
+    )
 
     # Данные соперника (RivalTab)
     rival_data = models.JSONField(
@@ -311,7 +314,20 @@ class UserProfile(models.Model):
         """
         BASE_HP = 100
         HP_PER_PRESTIGE = 50
-        return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE)
+        bonus = 0
+
+        if self.active_allies and "luna" in self.active_allies:
+            try:
+                luna = next(
+                    (a for a in self.recruited_allies.all() if a.ally_code == "luna"),
+                    None,
+                )
+                if luna and luna.level >= 5:
+                    bonus += 20
+            except Exception:
+                pass
+
+        return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE) + bonus
 
     @property
     def max_mana(self) -> int:
@@ -320,7 +336,20 @@ class UserProfile(models.Model):
         """
         BASE_MANA = 100
         multiplier = 1.0 + (0.15 * float(self.prestige_count))
-        return int(BASE_MANA * multiplier)
+        bonus = 0
+
+        if self.active_allies and "yuki" in self.active_allies:
+            try:
+                yuki = next(
+                    (a for a in self.recruited_allies.all() if a.ally_code == "yuki"),
+                    None,
+                )
+                if yuki and yuki.level >= 2:
+                    bonus += 20
+            except Exception:
+                pass
+
+        return int(BASE_MANA * multiplier) + bonus
 
     @property
     def streak_title(self) -> str:

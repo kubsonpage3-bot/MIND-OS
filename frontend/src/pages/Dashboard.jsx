@@ -336,11 +336,19 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     },
     onError: (err) => {
       console.error("Training logging failed:", err);
-      toast({
-        variant: "destructive",
-        title: t('dashboard.session_expired'),
-        description: t('dashboard.session_expired_desc'),
-      });
+      if (err?.status === 401) {
+        toast({
+          variant: "destructive",
+          title: t('dashboard.session_expired', 'Session Expired'),
+          description: t('dashboard.session_expired_desc', 'Your session has expired. Please log in again.'),
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: t('dashboard.training_failed', 'Log Failed'),
+          description: err?.message || 'Failed to submit training log.',
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     }
   });
@@ -546,7 +554,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 {(activeSection === "train" || activeSection === "training") && (
                   <TabPanel title={"🏋️‍♀️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
                     <TabGuideModal guideId="training" profile={profile} />
-                    <ActivityLogger onLog={handleLog} profile={profile} logs={logs} tasks={tasks} />
+                    <ActivityLogger onLog={handleLog} isLogging={logTraining.isPending} profile={profile} logs={logs} tasks={tasks} />
                   </TabPanel>
                 )}
 

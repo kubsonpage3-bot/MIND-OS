@@ -39,6 +39,12 @@ def get_rank_info(profile: UserProfile) -> dict:
     )
     multiplier = 0.8 if has_endurance else 1.0
 
+    from api.services.mechanics import get_passive_multipliers
+
+    passives = get_passive_multipliers(profile, {})
+    reduction = passives.get("science_threshold_reduction", 0.0)
+    multiplier = max(0.1, multiplier - reduction)
+
     thresholds = [
         {"id": r["id"], "min": int(r["min"] * multiplier)} for r in RANK_THRESHOLDS
     ]
@@ -70,6 +76,12 @@ def get_humanities_rank_info(profile: UserProfile) -> dict:
         s.skill_code == "master_of_arts" for s in profile.unlocked_skills.all()
     )
     multiplier = 0.85 if has_master else 1.0
+
+    from api.services.mechanics import get_passive_multipliers
+
+    passives = get_passive_multipliers(profile, {})
+    reduction = passives.get("language_threshold_reduction", 0.0)
+    multiplier = max(0.1, multiplier - reduction)
 
     thresholds = []
     for r in HUMANITIES_RANK_THRESHOLDS:

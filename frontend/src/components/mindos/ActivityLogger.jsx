@@ -14,7 +14,7 @@ function loadHiddenActivities() {
 }
 function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
 
-export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }) {
+export default function ActivityLogger({ onLog, isLogging, profile, logs = [], tasks = [] }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [trainTab, setTrainTab] = useState("log"); // "log" | "create"
@@ -363,7 +363,7 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
 
             <EfficiencyMeter
               focus={focusRating}
-              streakDays={profile?.streak_days || 0}
+              streakDays={profile?.streak || 0}
               hoursToday={hoursToday}
               subjectHoursToday={subjectHoursToday}
               statFoc={profile?.total_stats?.foc || 5}
@@ -441,7 +441,8 @@ export default function ActivityLogger({ onLog, profile, logs = [], tasks = [] }
               </AnimatePresence>
               <button
                 onClick={confirmLog}
-                className="w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
+                disabled={isLogging}
+                className={`w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98] ${isLogging ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, letterSpacing: "0.02em", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
                 Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} {t('training.efficiency', 'eff.')}

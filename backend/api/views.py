@@ -805,10 +805,17 @@ class PrestigeView(generics.GenericAPIView):
                     {"detail": (f"You must reach {required_xp} " "XP to prestige.")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            from api.services.mechanics import get_passive_multipliers
+
+            passive_effects = get_passive_multipliers(profile, {})
+            p_bonus = passive_effects.get("prestige_bonus", 0.0)
+
             profile.prestige_count += 1
-            profile.damage_multiplier = round(profile.damage_multiplier + 0.1, 4)
-            profile.gold_multiplier = round(profile.gold_multiplier + 0.15, 4)
-            profile.xp_multiplier = round(profile.xp_multiplier + 0.15, 4)
+            profile.damage_multiplier = round(
+                profile.damage_multiplier + 0.1 + p_bonus, 4
+            )
+            profile.gold_multiplier = round(profile.gold_multiplier + 0.15 + p_bonus, 4)
+            profile.xp_multiplier = round(profile.xp_multiplier + 0.15 + p_bonus, 4)
 
             # Increase IQ ceilings permanently by 15%
             profile.gf_ceiling = round(profile.gf_ceiling * 1.15, 2)
@@ -823,7 +830,13 @@ class PrestigeView(generics.GenericAPIView):
             # Use computed max_hp and max_mana properties
             profile.hp = profile.max_hp
             profile.mana = profile.max_mana
-            profile.rank_xp = 0
+
+            # Start rank
+            start_rank = passive_effects.get("prestige_start_rank", "F")
+            if start_rank == "C":
+                profile.rank_xp = 600
+            else:
+                profile.rank_xp = 0
 
             profile.save()
 
@@ -1010,7 +1023,11 @@ class TrainingLogView(generics.GenericAPIView):
 
             from api.services.mechanics import add_unique_subject_today
 
-            add_unique_subject_today(stats, activity)
+            unique_subjects_count = add_unique_subject_today(stats, activity)
+            if unique_subjects_count == 3:
+                triple_gold = passive_effects.get("triple_subject_gold_bonus", 0)
+                if triple_gold > 0:
+                    profile.gold += triple_gold
 
             # Update cognitive stats using backend calculation
             eff_total = float(data.get("efficiency", 1.0))
@@ -1102,11 +1119,18 @@ class TrainingLogView(generics.GenericAPIView):
                 if "living_library" in unlocked_skills:
                     final_xp = int(final_xp * 1.15)
 
-            if is_language and "cross_training" in unlocked_skills:
-                profile.humanities_xp += (
-                    hours * 0.3 * passive_effects.get("humanities_xp_mult", 1.0)
-                )
-                profile.save(update_fields=["humanities_xp"])
+            if is_language:
+                mana_bonus = passive_effects.get("language_mana_bonus", 0)
+                if mana_bonus > 0:
+                    profile.mana = min(profile.mana_max, profile.mana + mana_bonus)
+
+                if "cross_training" in unlocked_skills:
+                    profile.humanities_xp += (
+                        hours * 0.3 * passive_effects.get("humanities_xp_mult", 1.0)
+                    )
+                    profile.save(update_fields=["humanities_xp", "mana"])
+                elif mana_bonus > 0:
+                    profile.save(update_fields=["mana"])
 
             final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
