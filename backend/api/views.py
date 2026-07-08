@@ -1681,6 +1681,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.streak = 0
                     profile.last_daily_cron_at = None
                     profile.seen_guides = {}
+                    profile.rival_data = {}
 
                     profile.base_pwr = 5
                     profile.base_foc = 5
