@@ -9,7 +9,7 @@
   
   { "id": "loan_shark", "cost": 400, "cat": "economy", "durationDays": null, "synergy": "compound", "conflicts": [], "permanent_lock": false, "disabled": false },
   { "id": "compound", "cost": 1000, "cat": "economy", "durationDays": null, "synergy": "loan_shark", "conflicts": [], "permanent_lock": false, "disabled": false },
-  { "id": "miser", "cost": 700, "cat": "economy", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": true },
+  { "id": "miser", "cost": 700, "cat": "economy", "durationDays": null, "synergy": null, "conflicts": [], "permanent_lock": false, "disabled": false },
   { "id": "tithe", "cost": 800, "cat": "economy", "durationDays": null, "synergy": "compound", "conflicts": [], "permanent_lock": false, "disabled": false },
   
   { "id": "ascetic_loop", "cost": 900, "cat": "streak", "durationDays": null, "synergy": "monks_path", "conflicts": [], "permanent_lock": false, "disabled": false },
