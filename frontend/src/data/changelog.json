@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-09",
+        "version": "1.4.38",
+        "changes": [
+            {
+                "text": "Added a custom emoji picker to the Add Activity modal, allowing you to choose your own icons for custom activities.",
+                "type": "feature"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-09",
         "version": "1.4.37",
         "changes": [
             {

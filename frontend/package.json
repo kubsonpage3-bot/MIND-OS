@@ -52,6 +52,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.5.2",
+    "emoji-picker-react": "^4.19.1",
     "framer-motion": "^11.16.4",
     "html2canvas": "^1.4.1",
     "i18next": "^26.3.4",

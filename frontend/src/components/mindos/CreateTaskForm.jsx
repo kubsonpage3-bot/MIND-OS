@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { djangoApi } from "@/api/djangoClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 const CATEGORIES = ["Math", "Physics", "Chemistry", "Biology", "English", "Philosophy", "Coding", "Sleep", "Nutrition", "Reading", "Social", "Mindfulness", "Exercise", "Running", "Music", "Art", "History", "Languages", "Other"];
 
@@ -25,8 +26,10 @@ const PRIORITIES = [
 export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [form, setForm] = useState({
     name: "",
+    icon: "⭐",
     type: hideTypeSelector ? "button" : "daily",
     category: "Math",
     priority: "medium",
@@ -48,6 +51,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
     try {
       const taskData = {
         title: form.name.trim(),
+        icon: form.icon,
         task_type: form.type,
         category: form.category || "Other",
         notes: form.notes || "",
@@ -67,7 +71,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
       djangoApi.analytics.logEvent("task_created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onCreated?.();
-      setForm({ name: "", type: hideTypeSelector ? "button" : "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
+      setForm({ name: "", icon: "⭐", type: hideTypeSelector ? "button" : "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
     } catch (e) {
       console.error("Failed to create custom task on backend:", e);
     }
@@ -104,15 +108,40 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         <div className="text-xs font-mono text-muted-foreground/50 uppercase tracking-wider">{t("task_form.create_custom_task", "Create Custom Task")}</div>
       )}
 
-      {/* Name */}
-      <div className="space-y-1.5">
+      {/* Name and Icon */}
+      <div className="space-y-1.5 relative">
         <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.task_name", "Task Name")}</div>
-        <Input
-          value={form.name}
-          onChange={e => set("name", e.target.value)}
-          placeholder={t("task_form.placeholder_name", "Enter task name...")}
-          className="font-mono text-sm bg-muted/20 border-border/60"
-        />
+        <div className="flex gap-2 relative">
+          <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="w-10 h-10 shrink-0 rounded-md border border-border/60 bg-muted/20 flex items-center justify-center text-lg hover:bg-muted/40 transition-colors"
+          >
+            {form.icon}
+          </button>
+          
+          <Input
+            value={form.name}
+            onChange={e => set("name", e.target.value)}
+            placeholder={t("task_form.placeholder_name", "Enter task name...")}
+            className="font-mono text-sm bg-muted/20 border-border/60 flex-1 h-10"
+          />
+        </div>
+        
+        {showEmojiPicker && (
+          <div className="absolute z-50 top-16 left-0 shadow-2xl">
+            <div className="fixed inset-0 z-40" onClick={() => setShowEmojiPicker(false)}></div>
+            <div className="relative z-50 rounded-xl overflow-hidden border" style={{ borderColor: 'var(--habit-border)' }}>
+              <EmojiPicker
+                theme={Theme.DARK}
+                onEmojiClick={(emojiData) => {
+                  set("icon", emojiData.emoji);
+                  setShowEmojiPicker(false);
+                }}
+                lazyLoadEmojis={true}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Type — hidden when hideTypeSelector */}
