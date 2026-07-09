@@ -2070,9 +2070,13 @@ class PartyLeaderboardView(generics.GenericAPIView):
         data = []
         for mem in memberships:
             # Reusing parts of PartyMembershipSerializer, or just a simple dict
+            display_name = mem.user.profile.character_name or mem.user.username
+            if mem.user.profile.anonymous_mode:
+                display_name = "Anonymous Wanderer"
+
             data.append(
                 {
-                    "username": mem.user.username,
+                    "username": display_name,
                     "weekly_xp": mem.weekly_xp,
                     "level": mem.user.profile.level,
                     "avatar": (

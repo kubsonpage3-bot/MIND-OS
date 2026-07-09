@@ -53,6 +53,7 @@ from .views import (
     ToggleMutatorView,
     DejaVuView,
 )
+from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
 # TaskViewSet → /api/tasks/
@@ -162,4 +163,8 @@ urlpatterns = [
         PartyMemberProfileView.as_view(),
         name="party-member-profile",
     ),
+    # ─── Push Notifications ───────────────────────────────────────────────────
+    path("notifications/subscribe/", PushSubscribeView.as_view(), name="push-subscribe"),
+    path("notifications/unsubscribe/", PushUnsubscribeView.as_view(), name="push-unsubscribe"),
+    path("cron/streak-warnings/", CronStreakWarningView.as_view(), name="cron-streak-warnings"),
 ]

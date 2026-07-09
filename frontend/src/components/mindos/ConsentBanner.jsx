@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { djangoApi } from "@/api/djangoClient";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function ConsentBanner() {
   const [show, setShow] = useState(false);
@@ -13,7 +15,9 @@ export default function ConsentBanner() {
     }
   }, []);
 
-  const handleChoice = (choice) => {
+  const { isAuthenticated } = useDjangoAuth();
+
+  const handleChoice = async (choice) => {
     localStorage.setItem("mindos_consent_analytics", choice);
     
     if (typeof window.gtag === "function") {
@@ -23,6 +27,14 @@ export default function ConsentBanner() {
         "ad_user_data": choice,
         "ad_personalization": choice
       });
+    }
+
+    if (isAuthenticated) {
+      try {
+        await djangoApi.profile.update({ analytics_enabled: choice === "granted" });
+      } catch (e) {
+        console.error("Failed to sync consent to server:", e);
+      }
     }
 
     // Dispatch a custom event to sync with PrivacyPanel if it's open

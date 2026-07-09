@@ -147,6 +147,16 @@ def recruit_ally(user, ally_code: str) -> RecruitedAlly:
         profile.gold -= cost
         ally_rec.level = 1
         ally_rec.save()
+
+        # Trigger push notification
+        from api.services.push_service import send_notification_to_user
+        send_notification_to_user(
+            user=user,
+            pref_key="new_ally",
+            title="New Ally Unlocked! 🤝",
+            body=f"You successfully recruited {config['name']} to your party!",
+            url="/character/party"
+        )
     else:
         # Улучшение
         if current_level >= 5:

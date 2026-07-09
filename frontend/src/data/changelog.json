@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-09",
+        "version": "1.4.40",
+        "changes": [
+            {
+                "text": "Completed settings migration to server. Privacy settings (Analytics Consent, Anonymous Mode, Rival Visibility) and Push Notification preferences are now safely backed up to the cloud instead of being stored locally on your device.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-09",
         "version": "1.4.39",
         "changes": [
             {

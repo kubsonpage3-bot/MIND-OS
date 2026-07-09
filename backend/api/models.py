@@ -43,6 +43,20 @@ class UserProfile(models.Model):
         default=True,
         verbose_name="Аналитика включена",
     )
+    anonymous_mode = models.BooleanField(
+        default=False,
+        verbose_name="Анонимный режим",
+    )
+    rival_visibility = models.BooleanField(
+        default=True,
+        verbose_name="Видимость для соперника",
+    )
+    character_name = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="Имя персонажа",
+    )
 
     # Гостевой аккаунт (без email/пароля, привязан к устройству)
     is_guest = models.BooleanField(
@@ -142,6 +156,11 @@ class UserProfile(models.Model):
     # Данные соперника (RivalTab)
     rival_data = models.JSONField(
         default=dict, blank=True, verbose_name="Данные соперника"
+    )
+
+    # Настройки уведомлений
+    notification_preferences = models.JSONField(
+        default=dict, blank=True, verbose_name="Настройки push-уведомлений"
     )
 
     # Поля для мутаторов (Group 3)
@@ -412,6 +431,24 @@ def create_user_profile(sender, instance, created, **kwargs):
 # NOTE: save_user_profile signal intentionally removed — it caused a phantom
 # profile.save() on every User.save() (e.g., JWT token rotation), adding an
 # unnecessary DB write per request cycle.
+
+
+class PushSubscription(models.Model):
+    """
+    Stores Web Push subscription details for a user (can have multiple per user for different devices).
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="push_subscriptions")
+    endpoint = models.TextField(unique=True)
+    p256dh = models.CharField(max_length=100)
+    auth = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Push-подписка"
+        verbose_name_plural = "Push-подписки"
+
+    def __str__(self):
+        return f"Push sub for {self.user.username}"
 
 
 class UserStats(models.Model):

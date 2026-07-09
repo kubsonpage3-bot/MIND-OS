@@ -80,8 +80,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "rank_info",
             "streak_title",
             "analytics_enabled",
+            "anonymous_mode",
+            "rival_visibility",
+            "character_name",
             "is_premium",
             "timezone",
+            "notification_preferences",
         )
         read_only_fields = (
             "id",

@@ -31,60 +31,44 @@ export default function AccountPanel() {
     },
   });
 
-  const [consent, setConsent] = useState(() => {
-    return localStorage.getItem("mindos_consent_analytics") || "denied";
-  });
+  const characterName = profile?.character_name || "";
+  const anonymousMode = profile?.anonymous_mode || false;
+  const rivalVisibility = profile?.rival_visibility !== false; // default true
+  const analyticsEnabled = profile?.analytics_enabled !== false; // default true
 
   useEffect(() => {
-    const handleUpdate = (e) => {
-      setConsent(e.detail);
-    };
-    window.addEventListener("mindos_consent_updated", handleUpdate);
-    return () => window.removeEventListener("mindos_consent_updated", handleUpdate);
-  }, []);
-
-  useEffect(() => {
-    const localChoice = localStorage.getItem("mindos_consent_analytics");
-    if (profile && localChoice) {
-      const serverConsent = profile.analytics_enabled ? "granted" : "denied";
-      if (localChoice !== serverConsent) {
-        localStorage.setItem("mindos_consent_analytics", serverConsent);
-        setConsent(serverConsent);
-        if (typeof window.gtag === "function") {
-          window.gtag("consent", "update", {
-            "analytics_storage": serverConsent,
-            "ad_storage": serverConsent,
-            "ad_user_data": serverConsent,
-            "ad_personalization": serverConsent
-          });
-        }
+    if (profile) {
+      const consentValue = analyticsEnabled ? "granted" : "denied";
+      localStorage.setItem("mindos_consent_analytics", consentValue);
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          "analytics_storage": consentValue,
+          "ad_storage": consentValue,
+          "ad_user_data": consentValue,
+          "ad_personalization": consentValue
+        });
       }
     }
   }, [profile?.analytics_enabled]);
 
-  const [privacy, setPrivacy] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("mindos_privacy") || "{}");
-    } catch {
-      return {};
+  const updatePrivacySetting = (key, value) => {
+    if (profile) {
+      updateProfile.mutate({ data: { [key]: value } });
     }
-  });
-
-  const updateSetting = (key, value) => {
-    const newSettings = { ...privacy, [key]: value };
-    setPrivacy(newSettings);
-    localStorage.setItem("mindos_privacy", JSON.stringify(newSettings));
   };
 
-  useEffect(() => {
-    try {
-      setCharacterName(localStorage.getItem("mindos_character_name") || "");
-    } catch { }
-  }, []);
+  const [localCharName, setLocalCharName] = useState("");
 
-  const updateCharacterName = (name) => {
-    setCharacterName(name);
-    localStorage.setItem("mindos_character_name", name);
+  useEffect(() => {
+    if (profile) {
+      setLocalCharName(profile.character_name || "");
+    }
+  }, [profile?.character_name]);
+
+  const updateCharacterName = () => {
+    if (profile && localCharName !== profile.character_name) {
+      updateProfile.mutate({ data: { character_name: localCharName } });
+    }
   };
 
   const handleLogout = () => {
@@ -161,8 +145,9 @@ export default function AccountPanel() {
         <p className="text-[10px] text-muted-foreground/70">{t('settings.characterProfileDesc')}</p>
         <input
           type="text"
-          value={characterName}
-          onChange={(e) => updateCharacterName(e.target.value)}
+          value={localCharName}
+          onChange={(e) => setLocalCharName(e.target.value)}
+          onBlur={updateCharacterName}
           placeholder={t('settings.enterCharacterName')}
           className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-sm"
         />
@@ -390,14 +375,14 @@ export default function AccountPanel() {
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-muted-foreground">{t('privacy.visibleLabel')}</span>
           <button
-            onClick={() => updateSetting("rivalVisible", !privacy.rivalVisible)}
+            onClick={() => updatePrivacySetting("rival_visibility", !rivalVisibility)}
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
-              privacy.rivalVisible !== false
+              rivalVisibility
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
                 : "border-border/40 text-muted-foreground"
             }`}
           >
-            {privacy.rivalVisible !== false ? "ON" : "OFF"}
+            {rivalVisibility ? "ON" : "OFF"}
           </button>
         </div>
       </div>
@@ -412,14 +397,14 @@ export default function AccountPanel() {
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-muted-foreground">{t('privacy.anonLabel')}</span>
           <button
-            onClick={() => updateSetting("anonymous", !privacy.anonymous)}
+            onClick={() => updatePrivacySetting("anonymous_mode", !anonymousMode)}
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
-              privacy.anonymous
+              anonymousMode
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
                 : "border-border/40 text-muted-foreground"
             }`}
           >
-            {privacy.anonymous ? "ON" : "OFF"}
+            {anonymousMode ? "ON" : "OFF"}
           </button>
         </div>
       </div>
@@ -435,31 +420,21 @@ export default function AccountPanel() {
           <span className="text-xs font-mono text-muted-foreground">{t('privacy.analyticsLabel')}</span>
           <button
             onClick={() => {
-              const nextConsent = consent === "granted" ? "denied" : "granted";
-              localStorage.setItem("mindos_consent_analytics", nextConsent);
-              setConsent(nextConsent);
-              if (typeof window.gtag === "function") {
-                window.gtag("consent", "update", {
-                  "analytics_storage": nextConsent,
-                  "ad_storage": nextConsent,
-                  "ad_user_data": nextConsent,
-                  "ad_personalization": nextConsent
-                });
-              }
+              const nextConsent = !analyticsEnabled;
               if (profile) {
                 updateProfile.mutate({ 
-                  data: { analytics_enabled: nextConsent === "granted" }
+                  data: { analytics_enabled: nextConsent }
                 });
               }
             }}
             disabled={updateProfile.isPending}
             className={`px-3 py-1.5 flex items-center justify-center min-w-[50px] text-xs font-mono rounded border transition-all ${
-              consent === "granted"
+              analyticsEnabled
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
                 : "border-border/40 text-muted-foreground"
             } ${updateProfile.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {updateProfile.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (consent === "granted" ? "ON" : "OFF")}
+            {updateProfile.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (analyticsEnabled ? "ON" : "OFF")}
           </button>
         </div>
       </div>

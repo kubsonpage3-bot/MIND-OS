@@ -88,6 +88,16 @@ def process_boss_death(user, encounter):
     profile.gold += final_gold
     gain_xp(profile, final_xp)
 
+    # Trigger push notification
+    from api.services.push_service import send_notification_to_user
+    send_notification_to_user(
+        user=user,
+        pref_key="boss_defeated",
+        title="Boss Defeated! 🎉",
+        body=f"You successfully defeated {encounter.boss.name} and earned {final_gold} gold!",
+        url="/character/boss"
+    )
+
     # Добавление уникального лута в инвентарь
     item_dropped = None
     if encounter.boss.drop_item_id:

@@ -1,65 +1,171 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Mail, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
 
 const NOTIFICATION_TYPES = [
   { id: "streak_risk", label: "Risk of losing streak", icon: "🔥", default: true },
   { id: "rival_overtook", label: "Rival overtook you", icon: "⚔️", default: true },
-  { id: "boss_ready", label: "Boss ready to fight", icon: "👹", default: true },
   { id: "boss_defeated", label: "Boss defeated", icon: "🎉", default: true },
   { id: "new_ally", label: "New ally unlocked", icon: "🤝", default: true },
-  { id: "rank_up", label: "Rank promotion", icon: "⬆️", default: true },
   { id: "weekly_report", label: "Weekly report ready", icon: "📊", default: true },
 ];
 
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+function urlB64ToUint8Array(base64String) {
+  if (!base64String) return null;
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export default function NotificationsPanel() {
-  const [notifications, setNotifications] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
-    } catch {
-      return {};
+  const queryClient = useQueryClient();
+
+  // 1. Fetch character profile which contains notification_preferences
+  const { data: profile } = useQuery({
+    queryKey: ["character"],
+    queryFn: async () => {
+      const res = await djangoApi.get("/profile/");
+      return res.data;
+    },
+  });
+
+  const [notifications, setNotifications] = useState({});
+  const [reminderTime, setReminderTime] = useState("21:00");
+  const [channel, setChannel] = useState("push");
+
+  useEffect(() => {
+    if (profile && profile.notification_preferences) {
+      setNotifications(profile.notification_preferences);
+      if (profile.notification_preferences.reminderTime) {
+        setReminderTime(profile.notification_preferences.reminderTime);
+      }
+      if (profile.notification_preferences.channel) {
+        setChannel(profile.notification_preferences.channel);
+      }
+    }
+  }, [profile]);
+
+  // Mutation to save preferences to the backend
+  const updatePrefsMutation = useMutation({
+    mutationFn: async (newPrefs) => {
+      const res = await djangoApi.patch("/profile/", {
+        notification_preferences: newPrefs,
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["character"] });
+    },
+    onError: (err) => {
+      console.error("Failed to save notification preferences", err);
     }
   });
 
-  const [reminderTime, setReminderTime] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("mindos_reminders") || "{}").time || "21:00";
-    } catch {
-      return "21:00";
+  const subscribeToPush = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.warn("Push notifications are not supported by the browser.");
+      return;
     }
-  });
-
-  const [channel, setChannel] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("mindos_notifications") || "{}").channel || "push";
-    } catch {
-      return "push";
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        console.warn("Push permission denied.");
+        return;
+      }
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        const applicationServerKey = urlB64ToUint8Array(VAPID_PUBLIC_KEY);
+        if (!applicationServerKey) {
+          console.error("VITE_VAPID_PUBLIC_KEY is not defined in env.");
+          return;
+        }
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey
+        });
+      }
+      
+      // Send subscription to backend
+      const subJSON = subscription.toJSON();
+      await djangoApi.post("/notifications/subscribe/", {
+        endpoint: subJSON.endpoint,
+        keys: subJSON.keys
+      });
+      console.log("Successfully subscribed to push notifications");
+    } catch (err) {
+      console.error("Failed to subscribe to push notifications", err);
     }
-  });
+  };
 
-  const updateNotification = (typeId, enabled) => {
+  const unsubscribeFromPush = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        const subJSON = subscription.toJSON();
+        await djangoApi.post("/notifications/unsubscribe/", {
+          endpoint: subJSON.endpoint
+        });
+        // We can optionally call subscription.unsubscribe() here to stop receiving them locally too,
+        // but typically removing it from backend is sufficient and avoids needing to resubscribe later.
+        // await subscription.unsubscribe();
+      }
+    } catch (err) {
+      console.error("Failed to unsubscribe from push notifications", err);
+    }
+  };
+
+  const updateNotification = async (typeId, enabled) => {
     const newNotifs = { ...notifications, [typeId]: enabled };
     setNotifications(newNotifs);
-    localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
+    // localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
+    updatePrefsMutation.mutate(newNotifs);
+
+    // Handle real push subscriptions when enabling/disabling streak_risk
+    // For now, any enabled push can trigger subscribeToPush to ensure the browser has permission.
+    if (enabled) {
+      await subscribeToPush();
+    } else if (typeId === "streak_risk") {
+      await unsubscribeFromPush();
+    }
   };
 
   const updateReminderTime = (time) => {
     setReminderTime(time);
-    const current = JSON.parse(localStorage.getItem("mindos_reminders") || "{}");
-    localStorage.setItem("mindos_reminders", JSON.stringify({ ...current, time }));
+    const newNotifs = { ...notifications, reminderTime: time };
+    setNotifications(newNotifs);
+    updatePrefsMutation.mutate(newNotifs);
   };
 
   const updateChannel = (newChannel) => {
     setChannel(newChannel);
-    const current = JSON.parse(localStorage.getItem("mindos_notifications") || "{}");
-    localStorage.setItem("mindos_notifications", JSON.stringify({ ...current, channel: newChannel }));
+    const newNotifs = { ...notifications, channel: newChannel };
+    setNotifications(newNotifs);
+    updatePrefsMutation.mutate(newNotifs);
   };
 
   const toggleAll = (enable) => {
     const newNotifs = {};
     NOTIFICATION_TYPES.forEach(t => { newNotifs[t.id] = enable; });
     setNotifications(newNotifs);
-    localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
+    updatePrefsMutation.mutate(newNotifs);
+    
+    if (enable) {
+      subscribeToPush();
+    } else {
+      unsubscribeFromPush();
+    }
   };
 
   return (
