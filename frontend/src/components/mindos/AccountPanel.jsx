@@ -14,7 +14,6 @@ export default function AccountPanel() {
   const { profile, logout } = useDjangoAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [characterName, setCharacterName] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [deleteStatus, setDeleteStatus] = useState(null); // null | "pending" | "done"
@@ -31,7 +30,6 @@ export default function AccountPanel() {
     },
   });
 
-  const characterName = profile?.character_name || "";
   const anonymousMode = profile?.anonymous_mode || false;
   const rivalVisibility = profile?.rival_visibility !== false; // default true
   const analyticsEnabled = profile?.analytics_enabled !== false; // default true
