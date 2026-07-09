@@ -67,10 +67,7 @@ const TOOLS_TABS = [
 const CHARACTER_TABS = [
   { id: "overview", label: "dashboard.tab_stats" },
   { id: "skills", label: "dashboard.tab_skills" },
-  { id: "skill_tree", label: "dashboard.tab_tree" },
-  { id: "allies", label: "dashboard.tab_allies" },
   { id: "achievements", label: "dashboard.tab_achv" },
-  { id: "mutators", label: "dashboard.tab_mutators" },
   { id: "shop", label: "dashboard.tab_shop" },
 ];
 

@@ -1,5 +1,19 @@
 [
     {
+        "date": "2026-07-09",
+        "version": "1.4.37",
+        "changes": [
+            {
+                "text": "Streamlined Settings navigation: Privacy settings are now merged into the Account tab. The Metrics tab has been completely removed from Settings as this data is already available on the Dashboard.",
+                "type": "polish"
+            },
+            {
+                "text": "Removed obsolete Skill Tree, Allies, and Mutators tabs from the mobile character navigation to reduce clutter, as they are now fully integrated into the Shop.",
+                "type": "polish"
+            }
+        ]
+    },
+    {
         "date": "2026-07-08",
         "version": "1.4.35",
         "changes": [

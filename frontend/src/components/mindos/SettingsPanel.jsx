@@ -5,22 +5,18 @@ import { useTranslation } from "react-i18next";
 import NotificationsPanel from "@/components/mindos/NotificationsPanel";
 import AccountPanel from "@/components/mindos/AccountPanel";
 import GameplayPanel from "@/components/mindos/GameplayPanel";
-import PrivacyPanel from "@/components/mindos/PrivacyPanel";
 import AppearancePanel from "@/components/mindos/AppearancePanel";
 import ResetPanel from "@/components/mindos/ResetPanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
-import MetricsPanel from "@/components/mindos/MetricsPanel";
 import GuidesPanel from "@/components/mindos/GuidesPanel";
 import ChangelogPanel from "@/components/mindos/ChangelogPanel";
 import changelogData from "@/data/changelog.json";
 
 export const SETTINGS_TABS = [
-  { id: "metrics", label: "Metrics", icon: Brain },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "account", label: "Account", icon: User },
   { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
-  { id: "privacy", label: "Privacy", icon: Shield },
   { id: "guides", label: "Guides", icon: BookOpen },
   { id: "changelog", label: "Updates", icon: Info },
   { id: "reset", label: "Reset", icon: RotateCcw },
@@ -96,9 +92,6 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
         })}
       </div>
 
-      {/* METRICS */}
-      {showDataTab === "metrics" && <MetricsPanel />}
-
       {/* APPEARANCE */}
       {showDataTab === "appearance" && <AppearancePanel />}
 
@@ -110,9 +103,6 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* GAMEPLAY */}
       {showDataTab === "gameplay" && <GameplayPanel />}
-
-      {/* PRIVACY */}
-      {showDataTab === "privacy" && <PrivacyPanel />}
 
       {/* GUIDES */}
       {showDataTab === "guides" && <GuidesPanel />}
