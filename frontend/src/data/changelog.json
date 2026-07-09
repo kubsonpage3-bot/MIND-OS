@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-09",
+        "version": "1.4.39",
+        "changes": [
+            {
+                "text": "Redesigned mobile navigation tabs across Tasks, Stats, and Character screens to be more compact, horizontally scrollable, and easier to use on small screens.",
+                "type": "polish"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-09",
         "version": "1.4.38",
         "changes": [
             {
