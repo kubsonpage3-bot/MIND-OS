@@ -266,7 +266,7 @@ export function getActivityDetails(key, tasks = []) {
       const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
       return {
         label: task.name || task.title,
-        icon: CATEGORY_ICONS[category] || "🔘",
+        icon: task.icon || CATEGORY_ICONS[category] || "🔘",
         description: task.notes || `Custom ${category} activity`,
         coefficients: coeff,
         xpPerHour: task.xpReward || 25,

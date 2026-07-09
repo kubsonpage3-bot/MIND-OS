@@ -37,7 +37,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
         const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
         list[key] = {
           label: t.name || t.title,
-          icon: CATEGORY_ICONS[category] || "🔘",
+          icon: t.icon || CATEGORY_ICONS[category] || "🔘",
           description: t.notes || `Custom ${category} activity`,
           coefficients: coeff,
           xpPerHour: t.xpReward || 25,

@@ -39,6 +39,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "order",
             "rewards",
             "category",
+            "icon",
             "scheduled_time",
             "show_in_calendar",
             "default_hours",

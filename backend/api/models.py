@@ -545,6 +545,10 @@ class Task(models.Model):
         verbose_name="Категория",
     )
 
+    icon = models.CharField(
+        max_length=20, blank=True, null=True, default="", verbose_name="Иконка"
+    )
+
     # Календарь
     scheduled_time = models.TimeField(
         null=True,
