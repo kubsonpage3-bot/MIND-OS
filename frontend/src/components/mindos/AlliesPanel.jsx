@@ -93,77 +93,69 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade, isActi
       transition={{
         scale: justRecruited ? { duration: 0.5, ease: "easeOut" } : {}
       }}
+      className="flex flex-col text-center p-3 relative cursor-pointer"
       onClick={() => setShowDetail(true)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="flex items-center gap-3 p-3">
-        {/* Animated portrait */}
+      {/* Animated portrait */}
+      <div className="mx-auto mb-2">
         <AllyPortrait ally={ally} isRecruited={isRecruited} hovered={hovered} />
+      </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-mono text-xs font-black" style={{ color: isRecruited ? ally.color : "var(--habit-dim)" }}>{ally.name}</span>
-            <span className="text-[8px] font-mono px-1 py-0.5 rounded font-bold" style={{ background: `${rankColor}20`, color: rankColor, border: `1px solid ${rankColor}50` }}>
-              RANK {ally.rank}
-            </span>
-            {isRecruited && (
-              <span className="text-[8px] font-mono px-1 py-0.5 rounded font-bold" style={{ background: "#00ff8820", color: "#00ff88", border: "1px solid #00ff8840" }}>ACTIVE</span>
+      {/* Info */}
+      <div className="flex-1 min-w-0 flex flex-col justify-start">
+        <div className="font-mono text-[11px] font-black truncate px-1" style={{ color: isRecruited ? ally.color : "var(--habit-dim)" }}>
+          {ally.name}
+        </div>
+        <div className="text-[9px] font-mono text-muted-foreground/40 italic truncate px-1">
+          {ally.title}
+        </div>
+        {isRecruited && (
+          <div className="flex gap-1 justify-center items-center mt-2">
+            <span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: "#00ff8820", color: "#00ff88", border: "1px solid #00ff8840" }}>ACTIVE</span>
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }, (_, i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full"
+                  animate={i < level ? { opacity: [0.7, 1, 0.7] } : {}}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+                  style={{ background: i < level ? ally.color : "var(--habit-border)", boxShadow: i < level ? `0 0 4px ${ally.color}` : "none" }}
+                />
+              ))}
+            </div>
+            <span className="text-[9px] font-mono text-muted-foreground/40">Lv{level}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Action button at bottom */}
+      <div className="mt-3 w-full shrink-0 flex flex-col gap-1">
+        {isRecruited ? (
+          <div onClick={e => e.stopPropagation()}>
+            {isActive ? (
+              <button onClick={onDeactivate}
+                className="w-full text-[9px] font-mono font-bold px-2 py-1.5 rounded border transition-colors bg-green-500/20 border-green-500/40 text-green-400">
+                DISMISS
+              </button>
+            ) : isFull ? (
+              <button disabled
+                className="w-full text-[9px] font-mono font-bold px-2 py-1.5 rounded border bg-white/5 border-white/10 text-white/30 cursor-not-allowed">
+                PARTY FULL
+              </button>
+            ) : (
+              <button onClick={onActivate}
+                className="w-full text-[9px] font-mono font-bold px-2 py-1.5 rounded border transition-colors bg-purple-500/20 border-purple-500/40 text-purple-400">
+                + ADD TO PARTY
+              </button>
             )}
           </div>
-          <div className="text-[9px] font-mono text-muted-foreground/40 italic">{ally.title}</div>
-          {isRecruited && (
-            <>
-              <div className="flex gap-0.5 mt-1">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 rounded-full"
-                    animate={i < level ? { opacity: [0.7, 1, 0.7] } : {}}
-                    transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
-                    style={{ background: i < level ? ally.color : "var(--habit-border)", boxShadow: i < level ? `0 0 4px ${ally.color}` : "none" }}
-                  />
-                ))}
-                <span className="text-[9px] font-mono text-muted-foreground/40 ml-1">Lv{level}</span>
-              </div>
-              <div className="text-[9px] font-mono mt-0.5 truncate" style={{ color: ally.color }}>▸ {ally.levels[level - 1]}</div>
-              <div className="mt-2" onClick={e => e.stopPropagation()}>
-                {isActive ? (
-                  <button onClick={onDeactivate}
-                    className="text-xs px-3 py-1 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400">
-                    ✓ Recruited — Dismiss
-                  </button>
-                ) : isFull ? (
-                  <button disabled
-                    className="text-xs px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/30 cursor-not-allowed">
-                    Party Full
-                  </button>
-                ) : (
-                  <button onClick={onActivate}
-                    className="text-xs px-3 py-1 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-400">
-                    + Recruit to Party
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Cost */}
-        <div className="shrink-0 text-right">
-          {!isRecruited ? (
-            <div className="text-[10px] font-mono font-bold" style={{ color: canAffordRecruit ? "var(--habit-gold)" : "var(--habit-dim)" }}>
-              {ally.recruitCost}G
-            </div>
-          ) : level < 5 ? (
-            <div className="text-[10px] font-mono" style={{ color: canAffordUpgrade ? ally.color : "#4a4060" }}>
-              {nextCost}G →Lv{level + 1}
-            </div>
-          ) : (
-            <div className="text-[9px] font-mono text-muted-foreground/30">MAX</div>
-          )}
-        </div>
+        ) : (
+          <div className="text-[10px] font-mono font-bold" style={{ color: canAffordRecruit ? "var(--habit-gold)" : "var(--habit-dim)" }}>
+            {ally.recruitCost}G
+          </div>
+        )}
       </div>
     </GameCard>
   );
@@ -198,7 +190,7 @@ export default function AlliesPanel({ onSpendGold }) {
   });
 
   const updateAlliesMutation = useMutation({
-    mutationFn: (newAllies) => djangoApi.profile.update({ active_allies: newAllies }),
+    mutationFn: (/** @type {string[]} */ newAllies) => djangoApi.profile.update({ active_allies: newAllies }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       refreshProfile();
@@ -280,7 +272,7 @@ export default function AlliesPanel({ onSpendGold }) {
         <div className="text-[10px] font-mono font-bold" style={{ color: "#f0c040" }}>🪙 {normalizeGold(gold).toLocaleString()}G</div>
       </div>
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
         {sortedAllies.map(ally => {
           const isRecruited = recruited.includes(ally.id);
           const level = levels[ally.id] || 0;

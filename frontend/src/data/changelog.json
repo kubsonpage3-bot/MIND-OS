@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-10",
+        "version": "1.4.43",
+        "changes": [
+            {
+                "text": "Redesigned Shop, Inventory, Mutators, Scrolls, and Allies tabs to use a responsive grid layout for a cleaner and more compact view.",
+                "type": "feature"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-10",
         "version": "1.4.42",
         "changes": [
             {

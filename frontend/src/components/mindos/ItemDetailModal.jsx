@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 // Shared modal for displaying expanded item details (Gear, Consumables, Mutators, etc.)
-export default function ItemDetailModal({ item, isOpen, onClose, actionButton, tierColor = "#a8a29e", iconUrl, title, subtitle, stats, description }) {
+export default function ItemDetailModal({ item, isOpen, onClose, actionButton, tierColor = "#a8a29e", iconUrl = undefined, title = undefined, subtitle = undefined, stats = null, description = null }) {
   const { t } = useTranslation();
 
   if (!item && !title) return null;
