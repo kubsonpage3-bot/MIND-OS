@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { Clock } from "lucide-react";
@@ -6,6 +7,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function HistoryLog({ logs, tasks = [] }) {
   const { profile } = useDjangoAuth();
+  const { t } = useTranslation();
   const sorted = [...logs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const dailyRankMap = useMemo(() => {
@@ -46,7 +48,7 @@ export default function HistoryLog({ logs, tasks = [] }) {
     return (
       <div className="text-center py-12" style={{ fontFamily: "'Nunito'", fontSize: 13, color: "var(--habit-dim)" }}>
         <div className="text-4xl mb-2">📋</div>
-        No sessions logged yet.<br />Start training to build your history.
+        {t('dashboard.no_sessions')}<br />{t('dashboard.no_sessions_sub')}
       </div>
     );
   }

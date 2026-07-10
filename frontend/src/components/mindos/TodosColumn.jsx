@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Trash2, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { playSound } from '@/lib/soundEffects.js';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
@@ -37,6 +38,7 @@ function isOverdue(task) {
 
 export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRankXP }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', type: 'todo', category: 'Math', difficulty: 'medium',
@@ -157,7 +159,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
         {activeTodos.length === 0 && (
           <div className="text-center py-8">
             <div className="text-3xl mb-2">📜</div>
-            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>No to-dos yet. Add a quest!</div>
+            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_todos')}</div>
           </div>
         )}
         <AnimatePresence>

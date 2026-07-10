@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { playSound } from '@/lib/soundEffects.js';
 import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
@@ -40,6 +41,7 @@ function getDayStartHour() {
 
 export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { success, error } = useHaptic();
   const tasks = dailies;
   const [cronMsg, setCronMsg] = useState(null);
@@ -241,7 +243,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
         {tasks.length === 0 && (
           <div className="text-center py-8">
             <div className="text-4xl mb-2">📅</div>
-            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>No dailies yet. Add a routine!</div>
+            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_dailies')}</div>
           </div>
         )}
         <AnimatePresence>

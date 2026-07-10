@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { Bell, Mail, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 
-const NOTIFICATION_TYPES = [
-  { id: "streak_risk", label: "Risk of losing streak", icon: "🔥", default: true },
-  { id: "rival_overtook", label: "Rival overtook you", icon: "⚔️", default: true },
-  { id: "boss_defeated", label: "Boss defeated", icon: "🎉", default: true },
-  { id: "new_ally", label: "New ally unlocked", icon: "🤝", default: true },
-  { id: "weekly_report", label: "Weekly report ready", icon: "📊", default: true },
+const NOTIFICATION_TYPE_KEYS = [
+  { id: "streak_risk", labelKey: "streak_risk", icon: "🔥", default: true },
+  { id: "rival_overtook", labelKey: "rival_overtook", icon: "⚔️", default: true },
+  { id: "boss_defeated", labelKey: "boss_defeated", icon: "🎉", default: true },
+  { id: "new_ally", labelKey: "new_ally", icon: "🤝", default: true },
+  { id: "weekly_report", labelKey: "weekly_report", icon: "📊", default: true },
 ];
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
@@ -28,8 +29,8 @@ function urlB64ToUint8Array(base64String) {
 
 export default function NotificationsPanel() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
-  // 1. Fetch character profile which contains notification_preferences
   const { data: profile } = useQuery({
     queryKey: ["character"],
     queryFn: async () => {
@@ -54,7 +55,6 @@ export default function NotificationsPanel() {
     }
   }, [profile]);
 
-  // Mutation to save preferences to the backend
   const updatePrefsMutation = useMutation({
     mutationFn: async (newPrefs) => {
       const res = await djangoApi.patch("/profile/", {
@@ -94,8 +94,6 @@ export default function NotificationsPanel() {
           applicationServerKey: applicationServerKey
         });
       }
-      
-      // Send subscription to backend
       const subJSON = subscription.toJSON();
       await djangoApi.post("/notifications/subscribe/", {
         endpoint: subJSON.endpoint,
@@ -117,9 +115,6 @@ export default function NotificationsPanel() {
         await djangoApi.post("/notifications/unsubscribe/", {
           endpoint: subJSON.endpoint
         });
-        // We can optionally call subscription.unsubscribe() here to stop receiving them locally too,
-        // but typically removing it from backend is sufficient and avoids needing to resubscribe later.
-        // await subscription.unsubscribe();
       }
     } catch (err) {
       console.error("Failed to unsubscribe from push notifications", err);
@@ -129,11 +124,7 @@ export default function NotificationsPanel() {
   const updateNotification = async (typeId, enabled) => {
     const newNotifs = { ...notifications, [typeId]: enabled };
     setNotifications(newNotifs);
-    // localStorage.setItem("mindos_notifications", JSON.stringify(newNotifs));
     updatePrefsMutation.mutate(newNotifs);
-
-    // Handle real push subscriptions when enabling/disabling streak_risk
-    // For now, any enabled push can trigger subscribeToPush to ensure the browser has permission.
     if (enabled) {
       await subscribeToPush();
     } else if (typeId === "streak_risk") {
@@ -157,10 +148,9 @@ export default function NotificationsPanel() {
 
   const toggleAll = (enable) => {
     const newNotifs = {};
-    NOTIFICATION_TYPES.forEach(t => { newNotifs[t.id] = enable; });
+    NOTIFICATION_TYPE_KEYS.forEach(nt => { newNotifs[nt.id] = enable; });
     setNotifications(newNotifs);
     updatePrefsMutation.mutate(newNotifs);
-    
     if (enable) {
       subscribeToPush();
     } else {
@@ -173,16 +163,16 @@ export default function NotificationsPanel() {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <Bell className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Notification Center</span>
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('notifications_panel.center')}</span>
       </div>
 
       {/* Daily Reminder Time */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Daily Reminder Time</span>
+          <span className="font-mono text-xs font-bold">{t('notifications_panel.reminder_time')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Receive a daily reminder to complete your tasks</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('notifications_panel.reminder_desc')}</p>
         <input
           type="time"
           value={reminderTime}
@@ -195,14 +185,14 @@ export default function NotificationsPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Notification Channel</span>
+          <span className="font-mono text-xs font-bold">{t('notifications_panel.channel')}</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Choose how you want to receive notifications</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('notifications_panel.channel_desc')}</p>
         <div className="flex gap-1">
           {[
             { id: "push", label: "Push", icon: "📱" },
             { id: "email", label: "Email", icon: "✉️" },
-            { id: "none", label: "None", icon: "🔕" },
+            { id: "none", labelKey: "channel_none", icon: "🔕" },
           ].map(ch => (
             <button
               key={ch.id}
@@ -213,7 +203,7 @@ export default function NotificationsPanel() {
                   : "border-border/40 text-muted-foreground hover:border-border"
               }`}
             >
-              <span className="mr-1">{ch.icon}</span>{ch.label}
+              <span className="mr-1">{ch.icon}</span>{ch.labelKey ? t(`notifications_panel.${ch.labelKey}`) : ch.label}
             </button>
           ))}
         </div>
@@ -225,19 +215,19 @@ export default function NotificationsPanel() {
           onClick={() => toggleAll(true)}
           className="flex-1 py-2 rounded-lg border border-primary/40 text-primary font-mono text-xs hover:bg-primary/10 transition-colors"
         >
-          Enable All
+          {t('notifications_panel.enable_all')}
         </button>
         <button
           onClick={() => toggleAll(false)}
           className="flex-1 py-2 rounded-lg border border-border text-muted-foreground font-mono text-xs hover:bg-accent transition-colors"
         >
-          Disable All
+          {t('notifications_panel.disable_all')}
         </button>
       </div>
 
       {/* Individual Notifications */}
       <div className="space-y-2">
-        {NOTIFICATION_TYPES.map(notif => (
+        {NOTIFICATION_TYPE_KEYS.map(notif => (
           <motion.div
             key={notif.id}
             initial={{ opacity: 0, x: -10 }}
@@ -247,7 +237,7 @@ export default function NotificationsPanel() {
             <div className="flex items-center gap-3">
               <span className="text-lg">{notif.icon}</span>
               <div>
-                <div className="font-mono text-xs text-foreground">{notif.label}</div>
+                <div className="font-mono text-xs text-foreground">{t(`notifications_panel.${notif.labelKey}`)}</div>
               </div>
             </div>
             <button

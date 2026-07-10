@@ -192,7 +192,7 @@
     "mem_effect": "Снижение стоимости маны/усталости",
     "spd_effect": "+{{val}} баз. золото",
     "lck_effect": "+{{val}}% множитель золота и дропа",
-    "pwr_effect_short": "Base XP",
+    "pwr_effect_short": "баз. XP",
     "def_effect_short": "урон HP",
     "foc_effect_short": "шанс крит",
     "mem_effect_short": "стоимость маны",
@@ -338,7 +338,7 @@
     "manageSubscription": "⚙ Управление подпиской",
     "openingPortal": "Открываем портал…",
     "cancelUpgradeBilling": "Отменить, обновить или посмотреть историю счетов",
-    "upgradeTitle": "Upgrade to",
+    "upgradeTitle": "Перейти на",
     "upgradeSubtitle": "Разблокировать полную игру",
     "secureCheckout": "Безопасная оплата через Stripe · Отмена в любой время",
     "premiumActive": "● АКТИВНО",
@@ -372,164 +372,164 @@
     "btn_modal_summon": "ПРИЗВАТЬ — {{price}}G",
     "items": {
       "misted_wanderer": {
-        "name": "Misted Wanderer",
-        "scrollName": "Scroll of the Misted Wanderer",
-        "quote": "\"You cannot find what you cannot see.\"",
-        "boss": "Misted Wanderer",
-        "uniqueItem_label": "Wanderer's Hood",
-        "uniqueItem_effect": "+2% gold from Habits"
+        "name": "Туманный Странник",
+        "scrollName": "Свиток Туманного Странника",
+        "quote": "«Нельзя найти то, чего не видишь.»",
+        "boss": "Туманный Странник",
+        "uniqueItem_label": "Капюшон странника",
+        "uniqueItem_effect": "+2% золота от Привычек"
       },
       "nameless_bones": {
-        "name": "Nameless Bones",
-        "scrollName": "Scroll of the Nameless Bones",
-        "quote": "\"Even dust remembers what it was.\"",
-        "boss": "Nameless Skeleton",
-        "uniqueItem_label": "Bone Bracelet",
-        "uniqueItem_effect": "+2% XP from Dailies"
+        "name": "Безымянные Кости",
+        "scrollName": "Свиток Безымянных Костей",
+        "quote": "«Даже пыль помнит, чем была.»",
+        "boss": "Безымянный Скелет",
+        "uniqueItem_label": "Костяной Браслет",
+        "uniqueItem_effect": "+2% XP от Ежедневных"
       },
       "herald_jackal": {
-        "name": "Jackal's Howl",
-        "scrollName": "Scroll of the Jackal's Howl",
-        "quote": "\"I herald only one thing — your end.\"",
-        "boss": "Herald Jackal",
-        "uniqueItem_label": "Herald's Fang",
-        "uniqueItem_effect": "+3% XP from Exercise tasks"
+        "name": "Вой Шакала",
+        "scrollName": "Свиток Воя Шакала",
+        "quote": "«Я предвещаю лишь одно — твой конец.»",
+        "boss": "Шакал-Вестник",
+        "uniqueItem_label": "Клык Вестника",
+        "uniqueItem_effect": "+3% XP от задач на Упражнения"
       },
       "ink_warden": {
-        "name": "Ink Mark",
-        "scrollName": "Scroll of the Ink Mark",
-        "quote": "\"Every word written is a chain forged.\"",
-        "boss": "Ink Warden",
-        "uniqueItem_label": "Warden's Quill",
-        "uniqueItem_effect": "+3% XP from Study tasks"
+        "name": "Знак Чернил",
+        "scrollName": "Свиток Знака Чернил",
+        "quote": "«Каждое написанное слово — кованая цепь.»",
+        "boss": "Страж Чернил",
+        "uniqueItem_label": "Перо Стража",
+        "uniqueItem_effect": "+3% XP от задач на Учёбу"
       },
       "abyssal_bellringer": {
-        "name": "Echoing Bell",
-        "scrollName": "Scroll of the Echoing Bell",
-        "quote": "\"The toll rings for you alone.\"",
-        "boss": "Abyssal Bellringer",
-        "uniqueItem_label": "Echo Bell",
-        "uniqueItem_effect": "+4% Focus stat gain"
+        "name": "Звенящий Колокол",
+        "scrollName": "Свиток Звенящего Колокола",
+        "quote": "«Набат звонит только по тебе.»",
+        "boss": "Бездонный Звонарь",
+        "uniqueItem_label": "Эхо-Колокол",
+        "uniqueItem_effect": "+4% к росту стата Фокус"
       },
       "frost_executioner": {
-        "name": "Bloodfrost",
-        "scrollName": "Scroll of Bloodfrost",
-        "quote": "\"Cold doesn't kill. Hesitation does.\"",
-        "boss": "Frost Executioner",
-        "uniqueItem_label": "Frostbite Blade",
-        "uniqueItem_effect": "+4% damage to bosses"
+        "name": "Кровавый Мороз",
+        "scrollName": "Свиток Кровавого Мороза",
+        "quote": "«Холод не убивает. Убивает нерешительность.»",
+        "boss": "Морозный Палач",
+        "uniqueItem_label": "Клинок Обморожения",
+        "uniqueItem_effect": "+4% урона боссам"
       },
       "weaving_shade": {
-        "name": "Spinning Silk",
-        "scrollName": "Scroll of Spinning Silk",
-        "quote": "\"Every thread is a trap I've already set.\"",
-        "boss": "Weaving Shade",
-        "uniqueItem_label": "Silk-Woven Mantle",
-        "uniqueItem_effect": "−5% HP loss on missed daily"
+        "name": "Прядущий Шёлк",
+        "scrollName": "Свиток Прядущего Шёлка",
+        "quote": "«Каждая нить — это ловушка, которую я уже расставил.»",
+        "boss": "Ткущая Тень",
+        "uniqueItem_label": "Шёлковый Плащ",
+        "uniqueItem_effect": "−5% потери HP при пропуске ежедневной"
       },
       "ember_smith": {
-        "name": "Forge Wrath",
-        "scrollName": "Scroll of Forge Wrath",
-        "quote": "\"I forge weapons. You are merely the ore.\"",
-        "boss": "Ember Smith",
-        "uniqueItem_label": "Ember Gauntlet",
-        "uniqueItem_effect": "+5% gold from To-Dos"
+        "name": "Гнев Кузницы",
+        "scrollName": "Свиток Гнева Кузницы",
+        "quote": "«Я кую оружие. Ты — всего лишь руда.»",
+        "boss": "Кузнец Жара",
+        "uniqueItem_label": "Перчатка Жара",
+        "uniqueItem_effect": "+5% золота от Задач"
       },
       "sanctuary_weeper": {
-        "name": "Sanctuary's Tear",
-        "scrollName": "Scroll of the Sanctuary's Tear",
-        "quote": "\"I weep not for you, but for what I must do.\"",
-        "boss": "Sanctuary Weeper",
-        "uniqueItem_label": "Glass Tear",
-        "uniqueItem_effect": "+5 HP on a perfect day"
+        "name": "Слеза Святилища",
+        "scrollName": "Свиток Слезы Святилища",
+        "quote": "«Я плачу не по тебе, а по тому, что должен сделать.»",
+        "boss": "Плакальщик Святилища",
+        "uniqueItem_label": "Стеклянная Слеза",
+        "uniqueItem_effect": "+5 HP в идеальный день"
       },
       "shallow_leviathan": {
-        "name": "Black Tide",
-        "scrollName": "Scroll of the Black Tide",
-        "quote": "\"The ocean does not drown — it invites.\"",
-        "boss": "Shallow Leviathan",
-        "uniqueItem_label": "Leviathan Scale",
-        "uniqueItem_effect": "+5% MP regen"
+        "name": "Чёрный Прилив",
+        "scrollName": "Свиток Чёрного Прилива",
+        "quote": "«Океан не топит — он приглашает.»",
+        "boss": "Прибрежный Левиафан",
+        "uniqueItem_label": "Чешуя Левиафана",
+        "uniqueItem_effect": "+5% восстановления MP"
       },
       "faceless_king": {
-        "name": "Ashen Name",
-        "scrollName": "Scroll of the Ashen Name",
-        "quote": "\"I have no face because I am everyone's fear.\"",
-        "boss": "Faceless King",
-        "uniqueItem_label": "Crown of Ash",
-        "uniqueItem_effect": "+8% XP from all tasks"
+        "name": "Пепельное Имя",
+        "scrollName": "Свиток Пепельного Имени",
+        "quote": "«У меня нет лица — ведь я страх каждого.»",
+        "boss": "Безликий Король",
+        "uniqueItem_label": "Корона из Пепла",
+        "uniqueItem_effect": "+8% XP от всех задач"
       },
       "ore_golem": {
-        "name": "Mine's Groan",
-        "scrollName": "Scroll of the Mine's Groan",
-        "quote": "\"The mountain does not fall. It buries.\"",
-        "boss": "Ore Golem",
-        "uniqueItem_label": "Golem's Grip",
-        "uniqueItem_effect": "+8% gold from Habits"
+        "name": "Стон Шахты",
+        "scrollName": "Свиток Стона Шахты",
+        "quote": "«Гора не падает. Она погребает.»",
+        "boss": "Рудный Голем",
+        "uniqueItem_label": "Хватка Голема",
+        "uniqueItem_effect": "+8% золота от Привычек"
       },
       "wounded_moon": {
-        "name": "Lunar Scar",
-        "scrollName": "Scroll of the Lunar Scar",
-        "quote": "\"Even a wound becomes a crown if you survive it.\"",
-        "boss": "Wounded Moon",
-        "uniqueItem_label": "Scar Shard",
-        "uniqueItem_effect": "+8% damage to bosses"
+        "name": "Лунный Шрам",
+        "scrollName": "Свиток Лунного Шрама",
+        "quote": "«Даже рана становится короной, если ты её пережил.»",
+        "boss": "Раненая Луна",
+        "uniqueItem_label": "Осколок Шрама",
+        "uniqueItem_effect": "+8% урона боссам"
       },
       "choir_forgotten": {
-        "name": "Forgotten Choir",
-        "scrollName": "Scroll of the Forgotten Choir",
-        "quote": "\"We sing the names of those erased by time.\"",
-        "boss": "Choir of the Forgotten",
-        "uniqueItem_label": "Forgotten Score",
-        "uniqueItem_effect": "+10% to one domain's stat ceiling"
+        "name": "Забытый Хор",
+        "scrollName": "Свиток Забытого Хора",
+        "quote": "«Мы поём имена тех, кого стёрло время.»",
+        "boss": "Хор Забытых",
+        "uniqueItem_label": "Забытая Партитура",
+        "uniqueItem_effect": "+10% к потолку стата одного домена"
       },
       "bottomless_miser": {
-        "name": "Abyssal Greed",
-        "scrollName": "Scroll of Abyssal Greed",
-        "quote": "\"There is never enough. Not gold. Not time. Not you.\"",
-        "boss": "Bottomless Miser",
-        "uniqueItem_label": "Abyssal Purse",
-        "uniqueItem_effect": "+12% gold from all sources"
+        "name": "Бездонная Жадность",
+        "scrollName": "Свиток Бездонной Жадности",
+        "quote": "«Никогда не достаточно. Ни золота. Ни времени. Ни тебя.»",
+        "boss": "Бездонный Скряга",
+        "uniqueItem_label": "Бездонный Кошель",
+        "uniqueItem_effect": "+12% золота из всех источников"
       },
       "winter_thorn": {
-        "name": "Winter's Thorn",
-        "scrollName": "Scroll of Winter's Thorn",
-        "quote": "\"Beauty and ruin wear the same face.\"",
-        "boss": "Winter Thorn",
-        "uniqueItem_label": "Winter Plate",
-        "uniqueItem_effect": "immune to 1 missed daily/week"
+        "name": "Зимний Шип",
+        "scrollName": "Свиток Зимнего Шипа",
+        "quote": "«Красота и гибель носят одно лицо.»",
+        "boss": "Зимний Шип",
+        "uniqueItem_label": "Зимняя Броня",
+        "uniqueItem_effect": "иммунитет к 1 пропущенной ежедневной в неделю"
       },
       "king_ashen_throne": {
-        "name": "Ashen Throne",
-        "scrollName": "Scroll of the Ashen Throne",
-        "quote": "\"Every throne is built on someone's grave. Yours will be no different.\"",
-        "boss": "King of the Ashen Throne",
-        "uniqueItem_label": "Throne Seal",
-        "uniqueItem_effect": "+15% Power Score"
+        "name": "Пепельный Трон",
+        "scrollName": "Свиток Пепельного Трона",
+        "quote": "«Каждый трон стоит на чьей-то могиле. Твой — не исключение.»",
+        "boss": "Король Пепельного Трона",
+        "uniqueItem_label": "Печать Трона",
+        "uniqueItem_effect": "+15% к Силовому Показателю"
       },
       "eclipse_warden": {
-        "name": "Eclipse Eye",
-        "scrollName": "Scroll of the Eclipse Eye",
-        "quote": "\"I do not block the light. I consume it.\"",
-        "boss": "Eclipse Warden",
-        "uniqueItem_label": "Eclipse Eye",
-        "uniqueItem_effect": "unlocks an extra ally slot"
+        "name": "Затменный Глаз",
+        "scrollName": "Свиток Затменного Глаза",
+        "quote": "«Я не блокирую свет. Я его поглощаю.»",
+        "boss": "Страж Затмения",
+        "uniqueItem_label": "Глаз Затмения",
+        "uniqueItem_effect": "открывает дополнительный слот союзника"
       },
       "nameless_god": {
-        "name": "Nameless God",
-        "scrollName": "Scroll of the Nameless God",
-        "quote": "\"I was worshipped before language existed. I will remain after it ends.\"",
-        "boss": "Nameless Machine-God",
-        "uniqueItem_label": "Mask of the Nameless",
-        "uniqueItem_effect": "+25% boss rewards, permanently"
+        "name": "Безымянный Бог",
+        "scrollName": "Свиток Безымянного Бога",
+        "quote": "«Мне поклонялись до появления языка. Я останусь после его конца.»",
+        "boss": "Безымянный Бог-Машина",
+        "uniqueItem_label": "Маска Безымянного",
+        "uniqueItem_effect": "+25% наград от боссов навсегда"
       },
       "final_dusk": {
-        "name": "Final Dusk",
-        "scrollName": "Scroll of the Final Dusk",
-        "quote": "\"This is not the end of the world. It is the end of yours.\"",
-        "boss": "The Final Dusk",
-        "uniqueItem_label": "Blade of the Final Dusk",
-        "uniqueItem_effect": "doubles damage against all bosses"
+        "name": "Последние Сумерки",
+        "scrollName": "Свиток Последних Сумерек",
+        "quote": "«Это не конец света. Это конец твоего.»",
+        "boss": "Последние Сумерки",
+        "uniqueItem_label": "Клинок Последних Сумерек",
+        "uniqueItem_effect": "удваивает урон всем боссам"
       }
     }
   },
@@ -582,7 +582,12 @@
     "tab_allies": "Союзники",
     "tab_achv": "Достиж.",
     "tab_mutators": "Мутаторы",
-    "tab_shop": "Магазин"
+    "tab_shop": "Магазин",
+    "no_habits": "Привычек пока нет. Создай первую!",
+    "no_dailies": "Ежедневных задач пока нет. Добавь рутину!",
+    "no_todos": "Задач пока нет. Добавь квест!",
+    "no_sessions": "Сессий пока нет.",
+    "no_sessions_sub": "Начни тренировки, чтобы создать историю."
   },
   "skill_panel": {
     "ready": "ГОТОВО",
@@ -1247,5 +1252,38 @@
         "desc": "Прошлые неудачи увеличивают текущую сложность."
       }
     }
+  },
+  "guest": {
+    "mode_banner": "Гостевой режим — Прогресс сохранён только на этом устройстве.",
+    "create_account_btn": "СОЗДАТЬ АККАУНТ",
+    "upgrade_title": "Полноценный аккаунт",
+    "upgrade_desc": "Сохрани прогресс навсегда. Полный аккаунт открывает премиум-функции, синхронизацию между устройствами и рейтинги.",
+    "username": "Имя пользователя",
+    "email": "Эл. почта",
+    "password": "Пароль",
+    "confirm_password": "Подтвердить пароль",
+    "passwords_no_match": "Пароли не совпадают",
+    "failed_convert": "Не удалось создать аккаунт"
+  },
+  "notifications_panel": {
+    "center": "Центр уведомлений",
+    "reminder_time": "Время ежедневного напоминания",
+    "reminder_desc": "Получайте ежедневное напоминание о выполнении задач",
+    "channel": "Канал уведомлений",
+    "channel_desc": "Выберите способ получения уведомлений",
+    "channel_none": "Нет",
+    "enable_all": "Включить все",
+    "disable_all": "Отключить все",
+    "streak_risk": "Риск потери серии",
+    "rival_overtook": "Соперник обогнал тебя",
+    "boss_defeated": "Босс повержен",
+    "new_ally": "Новый союзник разблокирован",
+    "weekly_report": "Недельный отчёт готов"
+  },
+  "mutators_ui": {
+    "active_count": "{{n}}/{{max}} активно",
+    "ironman_title": "РЕЖИМ ЖЕЛЕЗНОГО ЧЕЛОВЕКА",
+    "ironman_desc": "Если HP достигает 0 — активируется принудительный престиж. Это нельзя отменить. Взамен: +15% XP ранга навсегда.",
+    "ironman_confirm_btn": "ПОДТВЕРДИТЬ — 3000G"
   }
 }

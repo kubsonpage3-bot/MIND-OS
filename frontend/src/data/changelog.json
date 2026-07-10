@@ -1,5 +1,15 @@
 [
     {
+        "date": "2026-07-10",
+        "version": "1.4.42",
+        "changes": [
+            {
+                "text": "Completed a comprehensive Russian localization audit and fix. All hardcoded English text in empty states, the guest mode banner, and notification settings have been properly translated. Fixed missing translations for all 19 boss scrolls and repaired the broken mutator translations in the UI.",
+                "type": "content"
+            }
+        ]
+    },
+    {
         "date": "2026-07-09",
         "version": "1.4.41",
         "changes": [

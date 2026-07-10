@@ -582,7 +582,12 @@
     "tab_allies": "Allies",
     "tab_achv": "Achv",
     "tab_mutators": "Mutators",
-    "tab_shop": "Shop"
+    "tab_shop": "Shop",
+    "no_habits": "No habits yet. Build one!",
+    "no_dailies": "No dailies yet. Add a routine!",
+    "no_todos": "No to-dos yet. Add a quest!",
+    "no_sessions": "No sessions logged yet.",
+    "no_sessions_sub": "Start training to build your history."
   },
   "skill_panel": {
     "ready": "READY",
@@ -1247,5 +1252,38 @@
         "desc": "Past failures increase current difficulty."
       }
     }
+  },
+  "guest": {
+    "mode_banner": "Guest Mode — Your progress is saved only on this device.",
+    "create_account_btn": "CREATE ACCOUNT",
+    "upgrade_title": "Upgrade to Full Account",
+    "upgrade_desc": "Secure your progress permanently. Full accounts can access premium features, cross-device sync, and community leaderboards.",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "passwords_no_match": "Passwords do not match",
+    "failed_convert": "Failed to convert account"
+  },
+  "notifications_panel": {
+    "center": "Notification Center",
+    "reminder_time": "Daily Reminder Time",
+    "reminder_desc": "Receive a daily reminder to complete your tasks",
+    "channel": "Notification Channel",
+    "channel_desc": "Choose how you want to receive notifications",
+    "channel_none": "None",
+    "enable_all": "Enable All",
+    "disable_all": "Disable All",
+    "streak_risk": "Risk of losing streak",
+    "rival_overtook": "Rival overtook you",
+    "boss_defeated": "Boss defeated",
+    "new_ally": "New ally unlocked",
+    "weekly_report": "Weekly report ready"
+  },
+  "mutators_ui": {
+    "active_count": "{{n}}/{{max}} active",
+    "ironman_title": "IRONMAN MODE",
+    "ironman_desc": "If HP reaches 0 — prestige will be forcefully activated. This cannot be undone. In exchange: all Rank XP +15% permanently.",
+    "ironman_confirm_btn": "CONFIRM — 3000G"
   }
 }

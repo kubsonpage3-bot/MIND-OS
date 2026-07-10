@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
+import { useTranslation } from 'react-i18next';
 import { Loader2, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function ConvertGuestModal({ isOpen, onClose }) {
   const { convertGuest } = useDjangoAuth();
+  const { t } = useTranslation();
   
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -17,7 +19,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== passwordConfirm) {
-      setError('Passwords do not match');
+      setError(t('guest.passwords_no_match'));
       return;
     }
 
@@ -28,7 +30,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
       await convertGuest(username, email, password, passwordConfirm);
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to convert account');
+      setError(err.message || t('guest.failed_convert'));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
           >
             <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-mono font-bold text-amber-500 uppercase tracking-widest">
-                Upgrade to Full Account
+                {t('guest.upgrade_title')}
               </h2>
               <button 
                 onClick={onClose}
@@ -63,12 +65,12 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
 
             <div className="p-6">
               <p className="text-sm font-mono text-slate-300 mb-6 leading-relaxed">
-                Secure your progress permanently. Full accounts can access premium features, cross-device sync, and community leaderboards.
+                {t('guest.upgrade_desc')}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">Username</label>
+                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">{t('guest.username')}</label>
                   <input
                     type="text"
                     required
@@ -79,7 +81,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
                 </div>
                 
                 <div>
-                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">Email</label>
+                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">{t('guest.email')}</label>
                   <input
                     type="email"
                     required
@@ -90,7 +92,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">Password</label>
+                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">{t('guest.password')}</label>
                   <input
                     type="password"
                     required
@@ -101,7 +103,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">Confirm Password</label>
+                  <label className="mb-1 block text-xs font-mono uppercase text-slate-400">{t('guest.confirm_password')}</label>
                   <input
                     type="password"
                     required
@@ -122,7 +124,7 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
                   disabled={loading}
                   className="w-full flex justify-center items-center rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-900 font-bold font-mono py-2.5 mt-2 transition-all disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CREATE ACCOUNT"}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('guest.create_account_btn')}
                 </button>
               </form>
             </div>

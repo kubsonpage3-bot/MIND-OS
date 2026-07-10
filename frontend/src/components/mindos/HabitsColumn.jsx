@@ -2,6 +2,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { playSound } from '@/lib/soundEffects.js';
 import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
@@ -42,6 +43,7 @@ const CATEGORY_COLORS = {
 
 export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { success, error } = useHaptic();
   const tasks = habits;
 
@@ -152,7 +154,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         {tasks.length === 0 && (
           <div className="text-center py-8">
             <div className="text-4xl mb-2">💪</div>
-            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>No habits yet. Build one!</div>
+            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_habits')}</div>
           </div>
         )}
         <AnimatePresence>

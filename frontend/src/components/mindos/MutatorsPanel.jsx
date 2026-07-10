@@ -104,9 +104,9 @@ export default function MutatorsPanel({ onSpendGold }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">Mutators</div>
+        <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">{t('sidebar.sections.mutators')}</div>
         <div className="text-[10px] font-mono font-bold" style={{ color: active.length >= MAX_ACTIVE ? "#ef4444" : "#00cc88" }}>
-          {active.length}/{MAX_ACTIVE} active
+          {t('mutators_ui.active_count', { n: active.length, max: MAX_ACTIVE })}
         </div>
       </div>
 
@@ -142,27 +142,27 @@ export default function MutatorsPanel({ onSpendGold }) {
                     {/* Pixel art icon */}
                     <div className={`shrink-0 w-9 h-9 rounded-lg border overflow-hidden flex items-center justify-center ${active_ ? "border-[#f0c04060] bg-[#f0c04010]" : "border-border bg-muted/30"}`}
                       style={{ imageRendering: "pixelated" }}>
-                      <img src={mut.icon} alt={t(mut.name)} className="w-full h-full object-contain"
+                        <img src={mut.icon} alt={t(`rpgData.mutators.${mut.id}.name`)} className="w-full h-full object-contain"
                         style={{ imageRendering: "pixelated" }} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`font-mono text-[11px] font-black tracking-wide ${active_ ? "text-[#f0c040]" : purchased_ ? "text-primary" : "text-foreground"}`}>
-                          {t(mut.name)}
+                          {t(`rpgData.mutators.${mut.id}.name`)}
                         </span>
                         {active_ && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded"
-                          style={{ background: "#f0c04025", color: "#f0c040", border: "1px solid #f0c04040" }}>ACTIVE</span>}
-                        {purchased_ && !active_ && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary">BOUGHT</span>}
+                          style={{ background: "#f0c04025", color: "#f0c040", border: "1px solid #f0c04040" }}>{t('boss_panel.active')}</span>}
+                        {purchased_ && !active_ && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary">{t('character.bought')}</span>}
                         {mut.toggle && <span className="text-[8px] font-mono text-muted-foreground/40">[toggle]</span>}
                         {mut.durationDays && <span className="text-[8px] font-mono text-muted-foreground/40">{mut.durationDays}d</span>}
                       </div>
-                      <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 leading-relaxed">{t(mut.desc)}</div>
+                      <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 leading-relaxed">{t(`rpgData.mutators.${mut.id}.desc`)}</div>
 
                       {/* Synergy line */}
                       {mut.synergy && (
                         <div className={`mt-1 text-[8px] font-mono italic ${synActive ? "text-[#f0c040]" : "text-muted-foreground/60"}`}>
-                          {synActive ? `⚡ Synergy: ${t(MUTATORS.find(m => m.id === mut.synergy)?.name)} — ACTIVE ✦` : `Synergy: ${t(MUTATORS.find(m => m.id === mut.synergy)?.name)}`}
+                          {synActive ? `⚡ Synergy: ${t(`rpgData.mutators.${MUTATORS.find(m => m.id === mut.synergy)?.id}.name`)} — ACTIVE ✦` : `Synergy: ${t(`rpgData.mutators.${MUTATORS.find(m => m.id === mut.synergy)?.id}.name`)}`}
                         </div>
                       )}
                     </div>
@@ -191,14 +191,13 @@ export default function MutatorsPanel({ onSpendGold }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
           <div className="rounded-2xl border border-red-900/60 bg-card p-6 max-w-sm w-full space-y-4 text-center">
             <div className="text-2xl">💀</div>
-            <div className="font-mono font-black text-red-400 tracking-widest">IRONMAN MODE</div>
+            <div className="font-mono font-black text-red-400 tracking-widest">{t('mutators_ui.ironman_title')}</div>
             <div className="text-xs font-mono text-muted-foreground/70 leading-relaxed">
-              If HP reaches 0 — prestige will be forcefully activated. This <span className="text-red-400">cannot be undone</span>.
-              In exchange: all Rank XP +15% permanently.
+              {t('mutators_ui.ironman_desc')}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmIronman(false)} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">CANCEL</button>
-              <button onClick={confirmIronmanActivate} className="flex-1 py-2 text-xs font-mono rounded-lg bg-red-600 text-white font-bold">CONFIRM — 3000G</button>
+              <button onClick={() => setConfirmIronman(false)} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">{t('skill_tree.btn_cancel')}</button>
+              <button onClick={confirmIronmanActivate} className="flex-1 py-2 text-xs font-mono rounded-lg bg-red-600 text-white font-bold">{t('mutators_ui.ironman_confirm_btn')}</button>
             </div>
           </div>
         </div>
