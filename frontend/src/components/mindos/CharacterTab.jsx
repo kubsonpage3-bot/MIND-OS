@@ -24,6 +24,7 @@ import AchievementsPanel from "./AchievementsPanel";
 import MutatorsPanel from "./MutatorsPanel";
 import TabGuideModal from "./TabGuideModal";
 import GameCard from "@/components/ui/GameCard";
+import ItemDetailModal from "./ItemDetailModal";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
@@ -68,6 +69,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
   }, [location.search]);
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
 
@@ -721,7 +723,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               <MutatorsPanel onSpendGold={spendGold} />
             </>
           )}
-          <div className="space-y-2 max-h-80 overflow-y-auto">
+          <div className={`max-h-80 overflow-y-auto ${shopTab === "gear" || shopTab === "consumables" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1" : "space-y-2"}`}>
             {(shopTab === "scrolls" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
               .sort((a, b) => a.cost - b.cost)
               .map((item, idx) => {
@@ -735,19 +737,18 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                     isActive={isBought}
                     borderColor={tierColor}
                     glowColor="#f0c040"
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{
                       opacity: 1,
-                      x: 0,
                       scale: isBought ? [1, 1.04, 1] : 1,
                     }}
                     transition={{
                       opacity: { duration: 0.2, delay: idx * 0.045 },
-                      x: { duration: 0.2, delay: idx * 0.045 },
                       scale: isBought ? { duration: 0.35, ease: "easeOut" } : {},
                     }}
-                    className="flex items-center justify-between gap-2"
+                    className="flex flex-col text-center p-3 relative cursor-pointer"
                     style={{ imageRendering: "pixelated" }}
+                    onClick={() => setSelectedItem(item)}
                   >
                     {/* Pixel scanlines */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -760,33 +761,32 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                     {isBought && <PixelBurstLayer bursts={bursts} />}
 
                     {/* Icon */}
-                    <div className="w-12 h-12 rounded border flex items-center justify-center shrink-0 overflow-hidden z-10 bg-gray-100 dark:bg-gray-800/50"
+                    <div className="w-14 h-14 mx-auto rounded border flex items-center justify-center shrink-0 overflow-hidden z-10 bg-gray-100 dark:bg-gray-800/50 mb-2"
                       style={{ borderColor: `${tierColor}50`, imageRendering: "pixelated" }}>
                       <motion.div
                         whileHover={{ scale: 1.15, rotate: [-2, 2, -2, 0] }}
                         transition={{ duration: 0.3 }}
-                        className="w-full h-full p-1"
+                        className="w-full h-full p-2"
                         style={{ imageRendering: "pixelated" }}
                       >
                         <img src={item.icon_url || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                       </motion.div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-mono font-bold" style={{ color: tierColor }}>{item.label}</span>
-                        <span className="text-[9px] font-mono text-muted-foreground/40 tracking-widest">{item.tier}</span>
+                    <div className="flex-1 min-w-0 flex flex-col justify-start">
+                      <div className="text-xs font-mono font-bold truncate px-1" style={{ color: tierColor }}>
+                        {item.label}
                       </div>
-                      <div className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">
+                      <div className="text-[10px] font-mono text-muted-foreground/60 mt-1 line-clamp-2 px-1 mb-3">
                         {item.stats ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : (item.description || item.effect)}
                       </div>
                     </div>
 
                     <motion.button
-                      onClick={() => buyItem(item)}
+                      onClick={(e) => { e.stopPropagation(); buyItem(item); }}
                       disabled={!canAfford || (!item.consumable && owned)}
                       whileTap={canAfford && !((!item.consumable) && owned) ? { scale: 0.88, y: 2 } : {}}
-                      className="ml-2 px-3 py-1.5 text-[10px] font-mono font-bold rounded-none border transition-colors shrink-0 relative overflow-hidden"
+                      className="w-full mt-auto py-2 text-[10px] font-mono font-bold rounded border transition-colors shrink-0 relative overflow-hidden"
                       style={{
                         borderColor: canAfford && !(!item.consumable && owned) ? "#f0c040" : "#1e293b",
                         color: canAfford && !(!item.consumable && owned) ? "#f0c040" : "#475569",
@@ -843,6 +843,35 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
           </div>
         </div>
       )}
+
+      {/* Shared Item Detail Modal */}
+      <ItemDetailModal 
+        item={selectedItem}
+        isOpen={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+        title={selectedItem?.label}
+        tierColor={selectedItem ? getTierColor(selectedItem.tier) : undefined}
+        actionButton={
+          selectedItem && (
+            <button
+              onClick={() => { buyItem(selectedItem); setSelectedItem(null); }}
+              disabled={gold < selectedItem.cost || (!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))}
+              className="w-full py-3 text-xs font-mono font-bold rounded border transition-colors relative overflow-hidden"
+              style={{
+                borderColor: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c040" : "#1e293b",
+                color: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c040" : "#475569",
+                background: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c04015" : "transparent",
+                opacity: (!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id)) ? 0.4 : 1,
+              }}
+            >
+              {(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id)) 
+                ? t('character.owned') 
+                : `${selectedItem.cost}G - ${t('inventory.buy', 'Buy')}`
+              }
+            </button>
+          )
+        }
+      />
 
       {/* Off-screen container for generating Shareable Image */}
       <div
