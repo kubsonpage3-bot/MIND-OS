@@ -20,6 +20,7 @@ class BossSerializer(serializers.ModelSerializer):
 
 class BossEncounterSerializer(serializers.ModelSerializer):
     boss = BossSerializer(read_only=True)
+    idle_damage_applied = serializers.IntegerField(read_only=True, required=False)
 
     class Meta:
         model = BossEncounter
@@ -32,6 +33,8 @@ class BossEncounterSerializer(serializers.ModelSerializer):
             "is_defeated",
             "started_at",
             "expires_at",
+            "last_idle_tick_at",
+            "idle_damage_applied",
         )
         read_only_fields = fields
 

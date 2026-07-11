@@ -24,6 +24,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     prestige_xp_required = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
     streak_title = serializers.ReadOnlyField()
+    offline_seconds = serializers.IntegerField(read_only=True, required=False)
+    max_streak = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -87,6 +89,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_premium",
             "timezone",
             "notification_preferences",
+            "offline_seconds",
         )
         read_only_fields = (
             "id",
@@ -165,6 +168,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_unlocked_achievements(self, obj):
         # UserAchievement is linked to User, not UserProfile
         return [a.achievement_id for a in obj.user.achievements.all()]
+
+    def get_max_streak(self, obj):
+        try:
+            return obj.user.stats.max_streak
+        except Exception:
+            return 0
 
     def update(self, instance, validated_data):
         # Premium class check

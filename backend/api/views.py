@@ -300,6 +300,16 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             "recruited_allies",
             "user__achievements",
         ).get_or_create(user=self.request.user)
+        
+        now = timezone.now()
+        if profile.last_seen_at:
+            profile.offline_seconds = int((now - profile.last_seen_at).total_seconds())
+        else:
+            profile.offline_seconds = 0
+            
+        profile.last_seen_at = now
+        profile.save(update_fields=["last_seen_at"])
+        
         return profile
 
 
@@ -683,7 +693,19 @@ class BossEncounterView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return BossEncounter.objects.filter(user=self.request.user)
+        encounters = list(BossEncounter.objects.filter(user=self.request.user))
+        from api.services.combat_service import apply_idle_damage
+        
+        for encounter in encounters:
+            if not encounter.is_defeated:
+                damage = apply_idle_damage(encounter)
+                encounter.idle_damage_applied = damage
+                if damage > 0:
+                    encounter.save(update_fields=["hp_current", "last_idle_tick_at"])
+            else:
+                encounter.idle_damage_applied = 0
+                
+        return encounters
 
 
 # ─────────────────────────────────────────────────────────────────────────────

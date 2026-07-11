@@ -1,6 +1,30 @@
 [
     {
         "date": "2026-07-11",
+        "version": "1.4.50",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed boss scrolls crashing with a 500 error when trying to summon — the database was missing the new idle-damage columns that were accidentally left unpushed."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-11",
+        "version": "1.4.49",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Added passive Boss damage! Your party now continues to attack active bosses even when you are offline, dealing steady damage up to 24 hours."
+            },
+            {
+                "type": "feature",
+                "text": "Added an Offline Summary modal that appears when you return after being away for a while, showing how much boss damage and rival XP was accumulated."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-11",
         "version": "1.4.48",
         "changes": [
             {

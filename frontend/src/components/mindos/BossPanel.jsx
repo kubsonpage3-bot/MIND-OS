@@ -19,6 +19,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   const [attackAnim, setAttackAnim] = useState(false);
   const [particleTrigger, setParticleTrigger] = useState(null); // { id, intensity, color }
   const [open, setOpen] = useState(true);
+  const [displayHP, setDisplayHP] = useState(0);
 
   // 1. Подписываемся на энкаунтеры (для отображения активного босса)
   const { data: encountersData = [] } = useQuery({
@@ -89,9 +90,29 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   }
 
   const color = activeBossTemplate.color;
-  const bossHP = activeEncounter.hp_current;
   const maxHP = activeEncounter.boss.hp_max;
+  const minHP = Math.max(0, Math.floor(maxHP * 0.05));
+  
+  useEffect(() => {
+    if (!activeEncounter || activeEncounter.is_defeated) return;
+
+    const serverHP = activeEncounter.hp_current;
+    const serverTime = activeEncounter.last_idle_tick_at ? new Date(activeEncounter.last_idle_tick_at).getTime() : Date.now();
+
+    const updateHP = () => {
+      const elapsedSeconds = Math.max(0, (Date.now() - serverTime) / 1000);
+      const idleDamage = elapsedSeconds * 0.1;
+      setDisplayHP(Math.floor(Math.max(minHP, serverHP - idleDamage)));
+    };
+
+    updateHP();
+    const interval = setInterval(updateHP, 1000);
+    return () => clearInterval(interval);
+  }, [activeEncounter, minHP]);
+
+  const bossHP = activeEncounter.is_defeated ? 0 : (displayHP || activeEncounter.hp_current);
   const hpPercent = Math.max(0, (bossHP / maxHP) * 100);
+  const isNearlyDefeated = bossHP <= minHP && !activeEncounter.is_defeated && bossHP > 0;
   const imgUrl = SCROLL_BOSS_IMAGES[activeEncounter.boss.id_name] || SCROLL_BOSS_IMAGES.misted_wanderer;
 
   return (
@@ -216,15 +237,30 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             <div className="w-full space-y-1">
               <div className="flex justify-between text-xs font-mono">
                 <span style={{ color }}>{activeBossTemplate.boss}</span>
-                <span className="text-muted-foreground">HP: {bossHP.toLocaleString()}/{maxHP.toLocaleString()}</span>
+                <span className="text-muted-foreground">
+                  HP: {bossHP.toLocaleString()}/{maxHP.toLocaleString()}
+                </span>
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${hpPercent}%`, background: `linear-gradient(90deg, #991b1b, ${color})` }} />
               </div>
-              <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeBossTemplate.name}</div>
-              <div className="text-[10px] font-mono text-yellow-400/70">
-                Reward: +{Math.round(activeEncounter.boss.reward_gold).toLocaleString()}G · +{activeBossTemplate.reward.sp}SP · {activeBossTemplate.uniqueItem.label}
+              <div className="flex justify-between items-end">
+                <div>
+                  <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeBossTemplate.name}</div>
+                  <div className="text-[10px] font-mono text-yellow-400/70">
+                    Reward: +{Math.round(activeEncounter.boss.reward_gold).toLocaleString()}G · +{activeBossTemplate.reward.sp}SP · {activeBossTemplate.uniqueItem.label}
+                  </div>
+                </div>
+                {isNearlyDefeated && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-[10px] font-mono font-bold text-red-400 animate-pulse bg-red-400/10 px-2 py-0.5 rounded border border-red-400/30"
+                  >
+                    FINAL BLOW REQUIRED!
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>

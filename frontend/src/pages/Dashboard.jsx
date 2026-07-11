@@ -38,6 +38,7 @@ import PixelRankRoad from "@/components/mindos/PixelRankRoad";
 import AchievementTracker from "@/components/mindos/AchievementTracker";
 import GuestBanner from "@/components/mindos/GuestBanner";
 import ConvertGuestModal from "@/components/mindos/ConvertGuestModal";
+import OfflineSummaryModal from "@/components/mindos/OfflineSummaryModal";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 // Removed getRankFromXP
@@ -640,6 +641,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         isOpen={isConvertGuestModalOpen} 
         onClose={() => setIsConvertGuestModalOpen(false)} 
       />
+
+      {/* Offline Summary Modal */}
+      <OfflineSummaryModal profile={profile} />
     </div>
   );
 }
