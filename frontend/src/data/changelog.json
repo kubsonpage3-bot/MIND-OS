@@ -3,6 +3,10 @@
         "date": "2026-07-11",
         "version": "1.4.47",
         "changes": [
+    {
+      "type": "feature",
+      "text": "Added rarity-based color coding (Common, Uncommon, Rare, Epic, Legendary) to all Achievements with new glow and shimmer effects."
+    },
             {
                 "text": "Fixed NaN and missing values in the Party Member profile modal.",
                 "type": "fix"

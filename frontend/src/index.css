@@ -751,6 +751,24 @@ html[data-theme="cyberpunk"] .task-card {
   93%,97%     { opacity: 1; background: rgba(0,0,0,0.85); border-radius: 2px; }
 }
 
+@keyframes legendary-shimmer {
+  0% { transform: translateX(-150%) skewX(-15deg); }
+  50% { transform: translateX(150%) skewX(-15deg); }
+  100% { transform: translateX(150%) skewX(-15deg); }
+}
+
+.legendary-shimmer-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(251, 191, 36, 0.2) 50%, rgba(255,255,255,0) 100%);
+  animation: legendary-shimmer 3s infinite;
+  pointer-events: none;
+}
+
 /* ─── BOSS ARENA (stays dark — intentional) ─── */
 .boss-arena {
   background: linear-gradient(180deg, #1a1040 0%, #0d0820 100%);
