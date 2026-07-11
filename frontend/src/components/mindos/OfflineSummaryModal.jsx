@@ -13,7 +13,7 @@ export default function OfflineSummaryModal({ profile }) {
   const queryClient = useQueryClient();
 
   // Подписываемся на данные энкаунтеров, чтобы обновиться, когда они загрузятся
-  const { data: encountersData } = useQuery({
+  const { data: encountersData, isSuccess } = useQuery({
     queryKey: ['combat_encounters'],
     queryFn: djangoApi.combat.getEncounters,
   });
@@ -21,7 +21,12 @@ export default function OfflineSummaryModal({ profile }) {
   useEffect(() => {
     // Only show if offline for more than 1 hour (3600 seconds)
     // For testing purposes, we can show it for > 60 seconds.
-    if (profile?.offline_seconds && profile.offline_seconds > 60) {
+    if (profile?.offline_seconds && profile.offline_seconds > 60 && isSuccess) {
+      // FIX: Once we lock in the offline summary data, do not overwrite it.
+      // BossPanel.jsx refetches encounters every 5 seconds, which would set 
+      // idle_damage_applied to 0 on subsequent fetches, wiping out our modal's number!
+      if (summaryData) return; 
+
       // Use the reactive encountersData
       const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
       const activeEncounter = encounters.find(e => !e.is_defeated);
@@ -50,7 +55,7 @@ export default function OfflineSummaryModal({ profile }) {
 
       setIsOpen(true);
     }
-  }, [profile?.offline_seconds, encountersData]);
+  }, [profile?.offline_seconds, encountersData, isSuccess, summaryData]);
 
   if (!summaryData) return null;
 
