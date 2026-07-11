@@ -203,7 +203,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                     color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
                     textDecoration: 'none',
                   }}>
-                    {task.title}
+                    {task.name}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{task.category}</span>
