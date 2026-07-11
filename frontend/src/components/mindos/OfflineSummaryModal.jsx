@@ -35,22 +35,17 @@ export default function OfflineSummaryModal({ profile }) {
       const minutesOffline = Math.floor((profile.offline_seconds % 3600) / 60);
       
       let idleDamage = 0;
-      let offlineXP = 0; // Johan's XP
 
       if (activeEncounter && activeEncounter.idle_damage_applied > 0) {
         idleDamage = activeEncounter.idle_damage_applied;
       }
       
-      // Calculate fake Johan XP for demonstration
-      offlineXP = Math.floor(profile.offline_seconds / 3600 * 15) || Math.floor(profile.offline_seconds / 60); // 1 XP per minute fallback
-
       // If encounters haven't loaded yet, idleDamage is 0, but it will update when they do load
       setSummaryData({
         hours: hoursOffline,
         minutes: minutesOffline,
         seconds: profile.offline_seconds % 60,
-        idleDamage,
-        offlineXP
+        idleDamage
       });
 
       setIsOpen(true);
@@ -103,26 +98,6 @@ export default function OfflineSummaryModal({ profile }) {
                 </div>
               </motion.div>
             )}
-
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-blue-950/30 border border-blue-900/50 rounded-xl p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-900/50 flex items-center justify-center text-xl border border-blue-700/50">
-                  👥
-                </div>
-                <div>
-                  <div className="font-bold text-blue-100 text-sm">Rival Progress (Johan)</div>
-                  <div className="text-xs text-blue-400/80 font-mono">Aggregate XP gained</div>
-                </div>
-              </div>
-              <div className="text-xl font-black font-mono text-blue-400">
-                +{summaryData.offlineXP.toLocaleString()} XP
-              </div>
-            </motion.div>
           </div>
 
           <Button 
