@@ -175,10 +175,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                       style={{ borderColor: "#1e293b", color: "#4a4060", background: "transparent" }}
                     >UNEQUIP</motion.button>
                   )}
-                  
+
                   {!equipped_now && (
-                    <motion.button 
-                      whileTap={{ scale: 0.9 }} 
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => sellMutation.mutate(item.id)}
                       disabled={sellMutation.isPending}
                       className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center"
@@ -275,9 +275,9 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                       {alreadyActive ? "■ ACTIVE" : <><Zap className="w-3 h-3" /> USE</>}
                     </span>
                   </motion.button>
-                  
-                  <motion.button 
-                    whileTap={{ scale: 0.9 }} 
+
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => sellMutation.mutate(item.id)}
                     disabled={sellMutation.isPending}
                     className="w-full px-2 py-1.5 text-[9px] font-mono font-black rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center"

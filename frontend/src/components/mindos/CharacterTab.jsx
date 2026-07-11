@@ -845,7 +845,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       )}
 
       {/* Shared Item Detail Modal */}
-      <ItemDetailModal 
+      <ItemDetailModal
         item={selectedItem}
         isOpen={!!selectedItem}
         onClose={() => setSelectedItem(null)}
@@ -864,8 +864,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
                 opacity: (!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id)) ? 0.4 : 1,
               }}
             >
-              {(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id)) 
-                ? t('character.owned') 
+              {(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))
+                ? t('character.owned')
                 : `${selectedItem.cost}G - ${t('inventory.buy', 'Buy')}`
               }
             </button>

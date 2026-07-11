@@ -1,5 +1,15 @@
 [
     {
+        "date": "2026-07-11",
+        "version": "1.4.44",
+        "changes": [
+            {
+                "text": "Fixed Gear and Consumables grid layout so items are no longer cut off mid-row and the UI naturally expands to fit available screen space.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
         "date": "2026-07-10",
         "version": "1.4.43",
         "changes": [
