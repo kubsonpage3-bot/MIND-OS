@@ -332,4 +332,9 @@ VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_CLAIM_EMAIL = os.environ.get("VAPID_CLAIM_EMAIL", "")
 
 # ── Cron Job Secret ───────────────────────────────────────────────────────
-CRON_SECRET = os.environ.get("CRON_SECRET", "")
+CRON_SECRET = os.environ.get("CRON_SECRET")
+if not CRON_SECRET:
+    raise ValueError(
+        "CRON_SECRET environment variable is not set. "
+        "The application cannot start without it."
+    )

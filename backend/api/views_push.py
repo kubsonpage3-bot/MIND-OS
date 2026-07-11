@@ -31,7 +31,7 @@ class PushSubscribeView(APIView):
                 "user": request.user,
                 "p256dh": p256dh,
                 "auth": auth,
-            }
+            },
         )
 
         return Response(
@@ -50,53 +50,62 @@ class PushUnsubscribeView(APIView):
             )
 
         # Delete the subscription if it belongs to the user
-        PushSubscription.objects.filter(
-            user=request.user, endpoint=endpoint
-        ).delete()
+        PushSubscription.objects.filter(user=request.user, endpoint=endpoint).delete()
 
         return Response({"status": "unsubscribed"}, status=status.HTTP_200_OK)
 
 
 class CronStreakWarningView(APIView):
     """
-    Called by an external cron service (like cron-job.org) 
+    Called by an external cron service (like cron-job.org)
     every hour to send streak warnings to users.
     """
+
     permission_classes = []  # Custom auth via header
 
     def post(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-        
+            return Response(
+                {"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
         token = auth_header.split(" ")[1]
-        if token != getattr(settings, "CRON_SECRET", ""):
+        if token != settings.CRON_SECRET:
             return Response({"error": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
-        
+
         try:
-            from .services.push_service import send_rival_overtook_warnings, send_weekly_reports
+            from .services.push_service import (
+                send_rival_overtook_warnings,
+                send_weekly_reports,
+            )
             from datetime import datetime
-            
+
             sent_streak = send_streak_warnings()
             sent_rival = send_rival_overtook_warnings()
-            
+
             # Usually weekly reports are sent on a specific day (e.g., Sunday).
-            # We can check if today is Sunday, but for now we just call it and it could 
+            # We can check if today is Sunday, but for now we just call it and it could
             # internally check the day, or we check it here. Let's say Sunday:
             sent_weekly = 0
             if datetime.now().weekday() == 6:  # 6 is Sunday
                 sent_weekly = send_weekly_reports()
-                
+
             total_sent = sent_streak + sent_rival + sent_weekly
-            return Response({
-                "status": "ok", 
-                "sent_count": total_sent,
-                "details": {
-                    "streak": sent_streak,
-                    "rival": sent_rival,
-                    "weekly": sent_weekly
-                }
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "status": "ok",
+                    "sent_count": total_sent,
+                    "details": {
+                        "streak": sent_streak,
+                        "rival": sent_rival,
+                        "weekly": sent_weekly,
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
             logger.error(f"Error in CronStreakWarningView: {e}", exc_info=True)
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
