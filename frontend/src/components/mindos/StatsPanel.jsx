@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { getLevelTitle } from "@/lib/cognitiveEngine";
 import { useQuery } from "@tanstack/react-query";
-import djangoApi from "@/api/djangoClient";
+import { djangoApi } from "@/api/djangoClient";
 import { motion } from "framer-motion";
 
 
