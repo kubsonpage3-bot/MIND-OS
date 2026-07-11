@@ -61,7 +61,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
             style={{ paddingTop: "100px" }}
           >
             <div 
-              className="w-full max-w-2xl mx-4 mb-4 pointer-events-auto rounded-2xl border overflow-hidden"
+              className="w-full max-w-2xl mx-4 mb-4 pointer-events-auto rounded-2xl border overflow-hidden text-slate-200"
               style={{
                 background: "linear-gradient(135deg, rgba(22,20,18,0.98) 0%, rgba(15,13,11,0.99) 100%)",
                 border: "1px solid rgba(240,192,64,0.3)",
@@ -87,7 +87,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       placeholder="Enter task name..."
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="font-mono text-sm h-11"
+                      className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
                       autoFocus
                     />
                   </div>
@@ -193,7 +193,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                         type="date"
                         value={form.dueDate}
                         onChange={e => setForm({ ...form, dueDate: e.target.value })}
-                        className="font-mono text-sm h-11"
+                        className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
                       />
                     </div>
                   )}
@@ -206,7 +206,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                         type="time"
                         value={form.scheduledTime}
                         onChange={e => setForm({ ...form, scheduledTime: e.target.value })}
-                        className="font-mono text-sm h-11"
+                        className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
                       />
                     </div>
                   )}
@@ -238,7 +238,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       placeholder="Add notes..."
                       value={form.notes}
                       onChange={e => setForm({ ...form, notes: e.target.value })}
-                      className="h-24 text-xs font-mono"
+                      className="h-24 text-xs font-mono text-slate-200 bg-black/20 border-white/10"
                     />
                   </div>
 

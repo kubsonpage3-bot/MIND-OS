@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-11",
+        "version": "1.4.45",
+        "changes": [
+            {
+                "text": "Fixed a bug where text typed in the Create Task modal was invisible in the light theme.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-11",
         "version": "1.4.44",
         "changes": [
             {
