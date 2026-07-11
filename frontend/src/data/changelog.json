@@ -1,6 +1,34 @@
 [
     {
         "date": "2026-07-11",
+        "version": "1.4.47",
+        "changes": [
+            {
+                "text": "Fixed NaN and missing values in the Party Member profile modal.",
+                "type": "fix"
+            },
+            {
+                "text": "Added the member's Pixel Character avatar with rarity border to their Party Profile.",
+                "type": "feature"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-11",
+        "version": "1.4.46",
+        "changes": [
+            {
+                "text": "Fixed a bug where To-Do task titles were missing from the list.",
+                "type": "fix"
+            },
+            {
+                "text": "Fixed invisible text in Create Task modal inputs when using dark mode.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-11",
         "version": "1.4.45",
         "changes": [
             {

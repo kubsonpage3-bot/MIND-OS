@@ -85,11 +85,11 @@ def health_check(request):
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView  # noqa: E402
-from api.throttles import (
+from api.throttles import (  # noqa: E402
     LoginRateThrottle,
     RegisterRateThrottle,
     GuestLoginRateThrottle,
-)  # noqa: E402
+)
 
 
 class LoginView(TokenObtainPairView):
@@ -124,9 +124,9 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password, check_password
+from rest_framework_simplejwt.tokens import RefreshToken  # noqa: E402
+from django.contrib.auth.models import User  # noqa: E402
+from django.contrib.auth.hashers import make_password, check_password  # noqa: E402
 
 
 class GuestLoginView(APIView):
@@ -2141,13 +2141,13 @@ class PartyMemberProfileView(generics.GenericAPIView):
             {
                 "user_id": target_user.id,
                 "username": target_user.username,
-                "date_joined": target_user.date_joined.isoformat(),
+                "joined": target_user.date_joined.isoformat(),
                 "party_joined_at": (
                     target_membership.joined_at.isoformat()
                     if target_membership
                     else None
                 ),
-                "avatar": (
+                "character_image": (
                     profile.avatar.url
                     if profile.avatar and profile.avatar.name
                     else None
@@ -2156,12 +2156,13 @@ class PartyMemberProfileView(generics.GenericAPIView):
                 "level": profile.level,
                 "rank": rank_info.get("current_id", "F"),
                 "rank_info": rank_info,
+                "rank_xp": profile.rank_xp,
                 "hp": profile.hp,
-                "hp_max": total_stats.get("hp_max", 100),
+                "max_hp": total_stats.get("hp_max", 100),
                 "xp": profile.xp,
                 "xp_to_next_level": profile.xp_to_next_level,
                 "mana": profile.mana,
-                "mana_max": total_stats.get("mana_max", 50),
+                "max_mana": total_stats.get("mana_max", 50),
                 "total_tasks_completed": stats.total_tasks_completed,
                 "max_streak": stats.max_streak,
                 "allies": allies,

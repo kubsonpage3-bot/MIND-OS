@@ -4,6 +4,7 @@ import BottomSheet from '@/components/ui/BottomSheet';
 import OptimizedImage from './OptimizedImage';
 import { getRankDisplayData } from '@/lib/rankEngine';
 import { AllyPortrait } from './AlliesPanel';
+import PixelCharacter from './PixelCharacter';
 
 export default function PartyMemberProfileSheet({ isOpen, onClose, userId, memberName }) {
   const { data: profile, isLoading, isError } = useQuery({
@@ -29,26 +30,27 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
           {/* Top section: Avatar & Basic Info */}
           <div className="flex flex-col items-center gap-2">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[var(--habit-border)] bg-[var(--habit-panel)] flex items-center justify-center shadow-lg">
-                {profile.character_image && profile.character_image !== "/assets/ui/default_avatar.webp" ? (
-                  <OptimizedImage
-                    src={profile.character_image}
-                    alt={profile.username}
-                    className="w-full h-full object-cover"
-                    style={{ imageRendering: "pixelated" }}
-                  />
-                ) : (
-                  <span className="text-3xl font-mono font-black text-[var(--habit-text)] opacity-80 uppercase">
-                    {profile.username?.charAt(0) || '?'}
-                  </span>
-                )}
-              </div>
-              <div className="absolute -bottom-1 -right-1 bg-[var(--habit-purple)] text-white text-[10px] font-black font-mono px-2 py-0.5 rounded-lg border border-[var(--habit-purple-glow)] z-10 shadow-sm">
-                Lv.{profile.level}
-              </div>
+              {(() => {
+                const rank = getRankDisplayData(profile.rank_info?.current_id || 'F', profile);
+                return (
+                  <div 
+                    className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg relative"
+                    style={{
+                      background: `radial-gradient(circle at 50% 50%, ${rank.color}18 0%, var(--habit-panel) 80%)`,
+                      border: `2px solid ${rank.color}44`,
+                      boxShadow: `0 4px 20px ${rank.color}18`,
+                    }}
+                  >
+                    <PixelCharacter rankId={rank.id} rankColor={rank.color} size={72} hideLabel={true} />
+                    <div className="absolute -bottom-2 bg-[var(--habit-purple)] text-white text-[10px] font-black font-mono px-2 py-0.5 rounded-lg border border-[var(--habit-purple-glow)] z-10 shadow-sm">
+                      Lv.{profile.level}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             
-            <div className="text-center mt-2">
+            <div className="text-center mt-3">
               <div className="font-mono font-black text-lg text-[var(--habit-text)]">{profile.username}</div>
               <div className="text-xs font-mono text-[var(--habit-dim)]">{profile.character_class}</div>
             </div>
