@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import { queryClientInstance } from '@/lib/query-client';
+import { secureStorage } from '@/utils/secureStorage';
 
 /**
  * @typedef {Object} DjangoAuthContextValue
@@ -74,8 +75,8 @@ export const DjangoAuthProvider = ({ children }) => {
     setError(null);
     try {
       const tokenData = await djangoApi.auth.login(username, password);
-      localStorage.setItem('access_token', tokenData.access);
-      localStorage.setItem('refresh_token', tokenData.refresh);
+      await secureStorage.setItem('access_token', tokenData.access);
+      await secureStorage.setItem('refresh_token', tokenData.refresh);
       setIsAuthenticated(true);
 
       const profileData = await queryClientInstance.fetchQuery({
@@ -104,8 +105,8 @@ export const DjangoAuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    await secureStorage.removeItem('access_token');
+    await secureStorage.removeItem('refresh_token');
     setUser(null);
     setIsAuthenticated(false);
     queryClientInstance.clear();
@@ -126,19 +127,19 @@ export const DjangoAuthProvider = ({ children }) => {
   const guestLogin = async () => {
     setError(null);
     try {
-      let guestId = localStorage.getItem('guest_id');
-      let guestSecret = localStorage.getItem('guest_secret');
+      let guestId = await secureStorage.getItem('guest_id');
+      let guestSecret = await secureStorage.getItem('guest_secret');
 
       if (!guestId || !guestSecret) {
         guestId = `guest_${generateUUID()}`;
         guestSecret = generateRandomSecret();
-        localStorage.setItem('guest_id', guestId);
-        localStorage.setItem('guest_secret', guestSecret);
+        await secureStorage.setItem('guest_id', guestId);
+        await secureStorage.setItem('guest_secret', guestSecret);
       }
 
       const tokenData = await djangoApi.auth.guestLogin(guestId, guestSecret);
-      localStorage.setItem('access_token', tokenData.access);
-      localStorage.setItem('refresh_token', tokenData.refresh);
+      await secureStorage.setItem('access_token', tokenData.access);
+      await secureStorage.setItem('refresh_token', tokenData.refresh);
       setIsAuthenticated(true);
 
       const profileData = await queryClientInstance.fetchQuery({
@@ -158,12 +159,12 @@ export const DjangoAuthProvider = ({ children }) => {
     setError(null);
     try {
       const tokenData = await djangoApi.auth.convertGuest(username, email, password, password2);
-      localStorage.setItem('access_token', tokenData.access);
-      localStorage.setItem('refresh_token', tokenData.refresh);
+      await secureStorage.setItem('access_token', tokenData.access);
+      await secureStorage.setItem('refresh_token', tokenData.refresh);
       
-      // Clear guest credentials from localStorage
-      localStorage.removeItem('guest_id');
-      localStorage.removeItem('guest_secret');
+      // Clear guest credentials from secure storage
+      await secureStorage.removeItem('guest_id');
+      await secureStorage.removeItem('guest_secret');
       
       const profileData = await queryClientInstance.fetchQuery({
         queryKey: ['userprofile'],

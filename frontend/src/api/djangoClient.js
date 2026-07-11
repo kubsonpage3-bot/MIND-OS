@@ -1,3 +1,4 @@
+import { secureStorage } from '@/utils/secureStorage';
 export const API_ORIGIN = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 // HOST_ORIGIN is always the bare scheme+host — never includes /api.
 // Guards against VITE_API_URL being set to 'https://host/api' in Cloudflare Pages,
@@ -48,7 +49,7 @@ export async function djangoFetch(endpoint, options = {}) {
   const url = apiUrl(endpoint);
 
   // 1. Attach authorization header if token is present
-  const accessToken = localStorage.getItem('access_token');
+  const accessToken = await secureStorage.getItem('access_token');
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -164,7 +165,7 @@ async function handleUnauthorized(endpoint, options) {
   isRefreshing = true;
 
   try {
-    const refreshToken = localStorage.getItem('refresh_token');
+    const refreshToken = await secureStorage.getItem('refresh_token');
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -183,9 +184,9 @@ async function handleUnauthorized(endpoint, options) {
     }
 
     const data = await response.json();
-    localStorage.setItem('access_token', data.access);
+    await secureStorage.setItem('access_token', data.access);
     if (data.refresh) {
-      localStorage.setItem('refresh_token', data.refresh);
+      await secureStorage.setItem('refresh_token', data.refresh);
     }
 
     isRefreshing = false;
@@ -202,8 +203,8 @@ async function handleUnauthorized(endpoint, options) {
     return djangoFetch(endpoint, newOptions);
   } catch (error) {
     isRefreshing = false;
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    await secureStorage.removeItem('access_token');
+    await secureStorage.removeItem('refresh_token');
     sessionStorage.setItem('mindos_session_expired', 'true');
     // Dispatch custom event so the UI knows to redirect to login
     window.dispatchEvent(new CustomEvent('django-auth-logout'));

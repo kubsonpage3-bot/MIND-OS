@@ -1,6 +1,20 @@
 [
     {
         "date": "2026-07-11",
+        "version": "1.4.48",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Security: Login tokens are now stored via the secure Tauri store (encrypted) when running as a desktop app, instead of plain browser storage."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Fixed a server misconfiguration that could allow unauthenticated access to the background notification scheduler."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-11",
         "version": "1.4.47",
         "changes": [
     {
