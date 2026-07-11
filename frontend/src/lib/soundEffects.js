@@ -102,6 +102,11 @@ const playSoundEffects = {
     setTimeout(() => playTone(146.83, 0.3, 'square', 0.1), 150);
   },
   
+  boss_idle_tick: () => {
+    playNoise(0.1, 0.01);
+    playTone(60, 0.1, 'sine', 0.02);
+  },
+  
   mana_restore: () => {
     playTone(783.99, 0.15, 'sine', 0.08);
     setTimeout(() => playTone(987.77, 0.2, 'sine', 0.06), 120);

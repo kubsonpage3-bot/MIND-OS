@@ -4,6 +4,10 @@
         "version": "1.4.50",
         "changes": [
             {
+                "type": "feature",
+                "text": "Added visual polish to idle boss damage! You'll now see floating damage numbers, ambient pulsing, and a desperate low-health state as your party chips away at the boss's HP in real-time."
+            },
+            {
                 "type": "fix",
                 "text": "Fixed boss scrolls crashing with a 500 error when trying to summon — the database was missing the new idle-damage columns that were accidentally left unpushed."
             }
