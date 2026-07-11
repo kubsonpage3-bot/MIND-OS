@@ -18,6 +18,14 @@
             {
                 "type": "fix",
                 "text": "Fixed boss scrolls crashing with a 500 error when trying to summon — the database was missing the new idle-damage columns that were accidentally left unpushed."
+            },
+            {
+                "type": "feature",
+                "text": "Increased the minimum offline time required to trigger the 'While you were away' summary to 5 minutes."
+            },
+            {
+                "type": "feature",
+                "text": "Added a visual animation to the Boss HP bar that clearly shows passive idle damage draining from the boss when returning from being offline."
             }
         ]
     },
@@ -81,10 +89,10 @@
         "date": "2026-07-11",
         "version": "1.4.47",
         "changes": [
-    {
-      "type": "feature",
-      "text": "Added rarity-based color coding (Common, Uncommon, Rare, Epic, Legendary) to all Achievements with new glow and shimmer effects."
-    },
+            {
+                "type": "feature",
+                "text": "Added rarity-based color coding (Common, Uncommon, Rare, Epic, Legendary) to all Achievements with new glow and shimmer effects."
+            },
             {
                 "text": "Fixed NaN and missing values in the Party Member profile modal.",
                 "type": "fix"
@@ -232,7 +240,7 @@
                 "type": "feature"
             },
             {
-                "text": "Fixed a bug where submitting a training log would incorrectly show a double \u0027Session Expired\u0027 error.",
+                "text": "Fixed a bug where submitting a training log would incorrectly show a double 'Session Expired' error.",
                 "type": "fix"
             },
             {
@@ -240,7 +248,7 @@
                 "type": "balance"
             },
             {
-                "text": "The \u0027Log Training\u0027 button now shows a loading state and disables itself during submission to prevent accidental double-clicks.",
+                "text": "The 'Log Training' button now shows a loading state and disables itself during submission to prevent accidental double-clicks.",
                 "type": "polish"
             }
         ]
@@ -251,7 +259,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Activated final abilities for 5 allies: Kira (Science reduction), Sakura (Language reduction \u0026 MP bonus), and Nene (Weekly MP \u0026 Triple Subject Gold)."
+                "text": "Activated final abilities for 5 allies: Kira (Science reduction), Sakura (Language reduction & MP bonus), and Nene (Weekly MP & Triple Subject Gold)."
             }
         ]
     },
@@ -281,7 +289,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed an issue where the character\u0027s class name and lore were displaying as raw system codes instead of readable text in the Hero tab."
+                "text": "Fixed an issue where the character's class name and lore were displaying as raw system codes instead of readable text in the Hero tab."
             }
         ]
     },
@@ -321,7 +329,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed all untranslated text shown as raw keys (e.g. \u0027privacy.rivalVisibility\u0027, \u0027rivalTab.youLabel\u0027) in Privacy, Rival, Projections, and Reset screens — all text now displays correctly in English and Russian."
+                "text": "Fixed all untranslated text shown as raw keys (e.g. 'privacy.rivalVisibility', 'rivalTab.youLabel') in Privacy, Rival, Projections, and Reset screens — all text now displays correctly in English and Russian."
             }
         ]
     },
@@ -371,7 +379,7 @@
         "changes": [
             {
                 "type": "content",
-                "text": "Added crisp, localized gear-style stat lines for all consumables (e.g. \u0027+50 HP\u0027, \u0027+30% Focus\u0027) in the Shop and Inventory for better readability."
+                "text": "Added crisp, localized gear-style stat lines for all consumables (e.g. '+50 HP', '+30% Focus') in the Shop and Inventory for better readability."
             }
         ]
     },
@@ -381,7 +389,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed an issue where some UI sections like Settings and Metrics incorrectly displayed raw translation keys (e.g., \u0027metrics.live_preview\u0027) instead of proper English text after switching languages."
+                "text": "Fixed an issue where some UI sections like Settings and Metrics incorrectly displayed raw translation keys (e.g., 'metrics.live_preview') instead of proper English text after switching languages."
             }
         ]
     },
@@ -431,7 +439,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Completely resolved the \u0027Transaction error\u0027 that occurred when completing tasks. Your progress will now save reliably."
+                "text": "Completely resolved the 'Transaction error' that occurred when completing tasks. Your progress will now save reliably."
             }
         ]
     },
@@ -441,7 +449,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed a critical bug where completing multiple habits or dailies too quickly would cause a \u0027Transaction error\u0027 (400 Bad Request) and fail to save your progress."
+                "text": "Fixed a critical bug where completing multiple habits or dailies too quickly would cause a 'Transaction error' (400 Bad Request) and fail to save your progress."
             }
         ]
     },
@@ -451,7 +459,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -461,7 +469,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -471,7 +479,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -481,7 +489,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -491,7 +499,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -501,7 +509,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -511,7 +519,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -521,7 +529,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -531,7 +539,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             }
         ]
     },
@@ -639,7 +647,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. \u00272m ago\u0027)."
+                "text": "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. '2m ago')."
             },
             {
                 "type": "feature",
@@ -647,7 +655,7 @@
             },
             {
                 "type": "fix",
-                "text": "Training \u0027Create Task\u0027 tab now only creates Button-type activities — no more duplicate Habit/Daily forms."
+                "text": "Training 'Create Task' tab now only creates Button-type activities — no more duplicate Habit/Daily forms."
             },
             {
                 "type": "feature",
@@ -673,7 +681,7 @@
             },
             {
                 "type": "fix",
-                "text": "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing \u0027Tauri Desktop\u0027."
+                "text": "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing 'Tauri Desktop'."
             },
             {
                 "type": "fix",
@@ -865,11 +873,11 @@
             },
             {
                 "type": "fix",
-                "text": "Fixed Party Member Profiles displaying incorrect \u0027Joined\u0027 dates, missing portraits, and \u0027MAX\u0027 Rank XP."
+                "text": "Fixed Party Member Profiles displaying incorrect 'Joined' dates, missing portraits, and 'MAX' Rank XP."
             },
             {
                 "type": "feature",
-                "text": "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
+                "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
             },
             {
                 "type": "fix",
@@ -889,11 +897,11 @@
             },
             {
                 "type": "fix",
-                "text": "Fixed a bug where the header XP bar displayed \u0027MAX\u0027 instead of the actual required XP values for players in the Ascendant prestige track."
+                "text": "Fixed a bug where the header XP bar displayed 'MAX' instead of the actual required XP values for players in the Ascendant prestige track."
             },
             {
                 "type": "fix",
-                "text": "Fixed a visual issue where rank cards (F to SSS) incorrectly displayed an \u0027Ascendant\u0027 subtitle for prestige players."
+                "text": "Fixed a visual issue where rank cards (F to SSS) incorrectly displayed an 'Ascendant' subtitle for prestige players."
             },
             {
                 "type": "fix",
@@ -919,7 +927,7 @@
             },
             {
                 "type": "feature",
-                "text": "Introduced a Party Streak system! The streak grows as long as EVERY party member completes at least one daily task each day. Don\u0027t let your party down!"
+                "text": "Introduced a Party Streak system! The streak grows as long as EVERY party member completes at least one daily task each day. Don't let your party down!"
             },
             {
                 "type": "feature",
@@ -937,15 +945,15 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed a visual issue in the Allies screen where character portraits didn\u0027t correctly match their names and lore descriptions."
+                "text": "Fixed a visual issue in the Allies screen where character portraits didn't correctly match their names and lore descriptions."
             },
             {
                 "type": "polish",
-                "text": "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a \u0027peek\u0027 effect."
+                "text": "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a 'peek' effect."
             },
             {
                 "type": "polish",
-                "text": "Moved the Language \u0026 Region settings into the Gameplay tab on mobile to declutter the top navigation bar."
+                "text": "Moved the Language & Region settings into the Gameplay tab on mobile to declutter the top navigation bar."
             },
             {
                 "type": "balance",
@@ -957,7 +965,7 @@
             },
             {
                 "type": "feature",
-                "text": "Introduced the post-SSS \u0027Ascendant\u0027 rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style."
+                "text": "Introduced the post-SSS 'Ascendant' rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style."
             },
             {
                 "type": "balance",
@@ -965,7 +973,7 @@
             },
             {
                 "type": "fix",
-                "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash \u0027Bought\u0027 but fail to actually deduct gold or add the item to your inventory."
+                "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory."
             },
             {
                 "type": "balance",
@@ -981,7 +989,7 @@
             },
             {
                 "type": "polish",
-                "text": "Unified Language \u0026 Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar."
+                "text": "Unified Language & Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar."
             }
         ]
     },
@@ -1005,7 +1013,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed a bug where the \u0027Activities\u0027 sub-tab under Tasks displayed a raw translation key instead of the correct label."
+                "text": "Fixed a bug where the 'Activities' sub-tab under Tasks displayed a raw translation key instead of the correct label."
             },
             {
                 "type": "fix",
@@ -1045,7 +1053,7 @@
             },
             {
                 "type": "feature",
-                "text": "Added full Russian language support across the entire app! You can switch languages in Settings \u003e Language."
+                "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language."
             },
             {
                 "type": "content",
@@ -1071,11 +1079,11 @@
             },
             {
                 "type": "feature",
-                "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. \u0027The Defiant\u0027, \u0027Revenant\u0027) based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard."
+                "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. 'The Defiant', 'Revenant') based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard."
             },
             {
                 "type": "fix",
-                "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the \u0027AWAKENING\u0027 rank title instead of their actual rank."
+                "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the 'AWAKENING' rank title instead of their actual rank."
             },
             {
                 "type": "feature",
@@ -1095,11 +1103,11 @@
             },
             {
                 "type": "fix",
-                "text": "Fixed a bug where the bottom navigation \u0027Stats\u0027 button was not highlighted when viewing the Projections/Mastery Radar."
+                "text": "Fixed a bug where the bottom navigation 'Stats' button was not highlighted when viewing the Projections/Mastery Radar."
             },
             {
                 "type": "fix",
-                "text": "Fixed Skill Tree node misalignment where connector lines didn\u0027t precisely hit the center of nodes."
+                "text": "Fixed Skill Tree node misalignment where connector lines didn't precisely hit the center of nodes."
             },
             {
                 "type": "fix",
@@ -1115,11 +1123,11 @@
             },
             {
                 "type": "fix",
-                "text": "Wired the mobile \u0027Stats\u0027 bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation."
+                "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation."
             },
             {
                 "type": "fix",
-                "text": "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., \u0027KubsonM\u0027 and \u0027kubsonm\u0027 both work for the same account)."
+                "text": "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., 'KubsonM' and 'kubsonm' both work for the same account)."
             }
         ]
     },
@@ -1147,7 +1155,7 @@
             },
             {
                 "type": "fix",
-                "text": "Fixed duplicate \u0027Show in Calendar\u0027 field appearing twice in the task creation form."
+                "text": "Fixed duplicate 'Show in Calendar' field appearing twice in the task creation form."
             },
             {
                 "type": "fix",
@@ -1161,7 +1169,7 @@
         "changes": [
             {
                 "type": "fix",
-                "text": "Fixed a visual bug that displayed \u0027NaN\u0027 and missing XP requirements on the Rank Progression screen."
+                "text": "Fixed a visual bug that displayed 'NaN' and missing XP requirements on the Rank Progression screen."
             }
         ]
     },

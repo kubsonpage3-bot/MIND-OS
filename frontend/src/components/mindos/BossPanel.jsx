@@ -83,13 +83,38 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     const serverHP = activeEncounter.hp_current;
     const serverTime = activeEncounter.last_idle_tick_at ? new Date(activeEncounter.last_idle_tick_at).getTime() : Date.now();
 
+    // Instead of jumping immediately to serverHP, we check if there's idle_damage_applied that we haven't animated yet.
+    // If the modal just popped up with idle_damage_applied, we want the bar to start at the pre-damage HP, 
+    // and quickly drain down to serverHP so the user actually SEES the HP being taken away!
+    const preDamageHP = serverHP + (activeEncounter.idle_damage_applied || 0);
+
+    // Only do the initial drain once per encounter data update
+    let isInitialDrain = (activeEncounter.idle_damage_applied || 0) > 0;
+
     const updateHP = () => {
       const elapsedSeconds = Math.max(0, (Date.now() - serverTime) / 1000);
       const idleDamage = elapsedSeconds * 0.1;
       const newDisplayHP = Math.floor(Math.max(minHP, serverHP - idleDamage));
       
       setDisplayHP(prev => {
-        if (prev !== 0 && newDisplayHP < prev) {
+        // Handle initialization
+        if (prev === 0) {
+            return isInitialDrain ? preDamageHP : newDisplayHP;
+        }
+
+        // Handle the fast initial drain from preDamageHP to serverHP
+        if (isInitialDrain && prev > newDisplayHP) {
+            // Drain 5% of max HP per frame or a fixed amount to make it fast but visible
+            const drainAmount = Math.max(Math.floor(maxHP * 0.02), 10);
+            const nextHP = Math.max(newDisplayHP, prev - drainAmount);
+            if (nextHP <= newDisplayHP) {
+                isInitialDrain = false; // Finished draining
+            }
+            return nextHP;
+        }
+
+        // Normal 10s idle ticks
+        if (prev !== 0 && newDisplayHP < prev && !isInitialDrain) {
           const damageAmt = prev - newDisplayHP;
           const id = Date.now();
           setIdleDamageFloats(curr => [...curr, { id, value: damageAmt }]);
@@ -106,7 +131,8 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     };
 
     updateHP();
-    const interval = setInterval(updateHP, 1000);
+    // Use requestAnimationFrame style interval for the fast drain, or just stick to 100ms if draining, otherwise 1000ms
+    const interval = setInterval(updateHP, 100);
     return () => clearInterval(interval);
   }, [activeEncounter, activeBossTemplate]);
 

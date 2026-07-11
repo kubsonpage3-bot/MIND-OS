@@ -21,7 +21,7 @@ export default function OfflineSummaryModal({ profile }) {
   useEffect(() => {
     // Only show if offline for more than 1 hour (3600 seconds)
     // For testing purposes, we can show it for > 60 seconds.
-    if (profile?.offline_seconds && profile.offline_seconds > 60 && isSuccess) {
+    if (profile?.offline_seconds && profile.offline_seconds > 300 && isSuccess) {
       // FIX: Once we lock in the offline summary data, do not overwrite it.
       // BossPanel.jsx refetches encounters every 5 seconds, which would set 
       // idle_damage_applied to 0 on subsequent fetches, wiping out our modal's number!
