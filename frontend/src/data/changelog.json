@@ -5,6 +5,10 @@
         "changes": [
             {
                 "type": "fix",
+                "text": "Fixed a critical bug that caused the Dashboard to crash entirely (React Error #310) when returning from being offline due to a missing internal reference in the 'While you were away' screen."
+            },
+            {
+                "type": "fix",
                 "text": "Fixed a bug where passive boss damage wasn't accumulating correctly while the app was open, and ensured the 'While you were away' screen perfectly matches the actual damage dealt."
             },
             {

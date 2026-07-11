@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 
 export default function OfflineSummaryModal({ profile }) {
@@ -56,11 +56,14 @@ export default function OfflineSummaryModal({ profile }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800 text-zinc-100">
+      <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800 text-zinc-100" aria-describedby="offline-summary-desc">
         <DialogHeader>
           <DialogTitle className="text-xl font-black text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
             WHILE YOU WERE OFFLINE
           </DialogTitle>
+          <DialogDescription id="offline-summary-desc" className="sr-only">
+            Summary of what happened while you were offline.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col items-center space-y-6 py-4">
