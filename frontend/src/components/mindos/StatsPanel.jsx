@@ -33,6 +33,16 @@ export default function StatsPanel({ profile, logs }) {
 
   const cards = [
     {
+      icon: "⭐",
+      value: weeklyXP,
+      label: "Weekly XP",
+      color: "#7B61FF",
+      valueStyle: { fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: "#7B61FF" },
+      bar: true,
+      barPct: xpPct,
+      barColor: "#7B61FF",
+    },
+    {
       icon: "📈",
       value: cognitiveROI != null ? cognitiveROI : "—",
       label: "Cogn. ROI",
