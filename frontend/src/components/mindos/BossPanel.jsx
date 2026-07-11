@@ -23,6 +23,13 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   const [idleDamageFloats, setIdleDamageFloats] = useState([]);
   const [idleShake, setIdleShake] = useState(false);
 
+  // Preserve initial drain state across React Query refetches
+  const initialDrainRef = useRef({
+    active: false,
+    preDamageHP: 0,
+    serverHP: 0,
+  });
+
   // 1. Подписываемся на энкаунтеры (для отображения активного босса)
   const { data: encountersData = [] } = useQuery({
     queryKey: ['combat_encounters'],
@@ -83,19 +90,34 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     const serverHP = activeEncounter.hp_current;
     const serverTime = activeEncounter.last_idle_tick_at ? new Date(activeEncounter.last_idle_tick_at).getTime() : Date.now();
 
-    // Instead of jumping immediately to serverHP, we check if there's idle_damage_applied that we haven't animated yet.
-    // If the modal just popped up with idle_damage_applied, we want the bar to start at the pre-damage HP, 
-    // and quickly drain down to serverHP so the user actually SEES the HP being taken away!
-    const preDamageHP = serverHP + (activeEncounter.idle_damage_applied || 0);
+    // Lock in the initial drain state if we have offline damage and aren't already draining it
+    if (!initialDrainRef.current.active && (activeEncounter.idle_damage_applied || 0) > 0) {
+      initialDrainRef.current = {
+        active: true,
+        preDamageHP: serverHP + activeEncounter.idle_damage_applied,
+        serverHP: serverHP
+      };
+    } else if (initialDrainRef.current.active && serverHP !== initialDrainRef.current.serverHP) {
+      // Abort drain if the server HP changed (e.g. user dealt damage)
+      initialDrainRef.current.active = false;
+    }
 
-    // Only do the initial drain once per encounter data update
-    let isInitialDrain = (activeEncounter.idle_damage_applied || 0) > 0;
+    const isInitialDrain = initialDrainRef.current.active;
+    const preDamageHP = isInitialDrain ? initialDrainRef.current.preDamageHP : serverHP;
 
     const updateHP = () => {
       const elapsedSeconds = Math.max(0, (Date.now() - serverTime) / 1000);
       const idleDamage = elapsedSeconds * 0.1;
       const newDisplayHP = Math.floor(Math.max(minHP, serverHP - idleDamage));
       
+      if (window.isOfflineModalOpen) {
+        setDisplayHP(prev => {
+          if (prev === 0) return isInitialDrain ? preDamageHP : newDisplayHP;
+          return prev;
+        });
+        return;
+      }
+
       setDisplayHP(prev => {
         // Handle initialization
         if (prev === 0) {
@@ -108,7 +130,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             const drainAmount = Math.max(Math.floor(maxHP * 0.02), 10);
             const nextHP = Math.max(newDisplayHP, prev - drainAmount);
             if (nextHP <= newDisplayHP) {
-                isInitialDrain = false; // Finished draining
+                initialDrainRef.current.active = false; // Finished draining
             }
             return nextHP;
         }

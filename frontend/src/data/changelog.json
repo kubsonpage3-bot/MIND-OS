@@ -24,6 +24,10 @@
                 "text": "Increased the minimum offline time required to trigger the 'While you were away' summary to 5 minutes."
             },
             {
+                "type": "fix",
+                "text": "Fixed a critical UX issue where offline passive boss damage was applied in the background while the 'While You Were Offline' modal was still open, making it look like the boss didn't take any damage."
+            },
+            {
                 "type": "feature",
                 "text": "Added a visual animation to the Boss HP bar that clearly shows passive idle damage draining from the boss when returning from being offline."
             }

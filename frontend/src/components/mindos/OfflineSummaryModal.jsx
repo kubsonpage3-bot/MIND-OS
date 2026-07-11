@@ -19,6 +19,13 @@ export default function OfflineSummaryModal({ profile }) {
   });
 
   useEffect(() => {
+    window.isOfflineModalOpen = isOpen;
+    return () => {
+      window.isOfflineModalOpen = false;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     // Only show if offline for more than 1 hour (3600 seconds)
     // For testing purposes, we can show it for > 60 seconds.
     if (profile?.offline_seconds && profile.offline_seconds > 300 && isSuccess) {
