@@ -723,7 +723,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               <MutatorsPanel onSpendGold={spendGold} />
             </>
           )}
-          <div className={`max-h-80 overflow-y-auto ${shopTab === "gear" || shopTab === "consumables" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1" : "space-y-2"}`}>
+          <div className={`${shopTab === "gear" || shopTab === "consumables" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1" : "space-y-2"}`}>
             {(shopTab === "scrolls" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
               .sort((a, b) => a.cost - b.cost)
               .map((item, idx) => {

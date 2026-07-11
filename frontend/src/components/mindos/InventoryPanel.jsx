@@ -125,7 +125,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
       {/* Gear list */}
       {tab === "gear" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1 max-h-96 overflow-y-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
           {gearOwned.length === 0 ? (
             <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">No gear in inventory. Buy from the shop!</div>
           ) : gearOwned.map((item, idx) => {
@@ -196,7 +196,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
       {/* Consumables list */}
       {tab === "consumables" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1 max-h-96 overflow-y-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
           {consumablesOwned.length === 0 ? (
             <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">No consumables. Buy from the shop!</div>
           ) : consumablesOwned.map((item, idx) => {
