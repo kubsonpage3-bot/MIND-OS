@@ -10,6 +10,30 @@
             {
                 "type": "fix",
                 "text": "Security: Fixed a server misconfiguration that could allow unauthenticated access to the background notification scheduler."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Applied rate limiting to billing webhook to prevent resource exhaustion."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Removed raw error details from task sync response."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Prevented duplicate account registration with the same email."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Hardened CSRF protection in production."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Stopped persisting sensitive game state in local storage for legacy features."
+            },
+            {
+                "type": "fix",
+                "text": "Security: Applied rate limiting to guest account conversion."
             }
         ]
     },

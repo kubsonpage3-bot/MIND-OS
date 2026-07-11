@@ -169,8 +169,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://mind-os-d5sk.onrender.com",
 ]
 
-# На время разработки, чтобы исключить блокировки CSRF
-CSRF_COOKIE_HTTPONLY = False
+# CSRF_COOKIE_HTTPONLY protects against XSS extracting the CSRF token
+CSRF_COOKIE_HTTPONLY = True
 
 CORS_ALLOW_METHODS = [
     "DELETE",

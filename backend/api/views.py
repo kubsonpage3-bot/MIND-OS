@@ -22,7 +22,13 @@ from django.db import transaction
 
 from rest_framework import viewsets, generics, status, filters, serializers
 from rest_framework.views import APIView
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import (
+    action,
+    api_view,
+    permission_classes,
+    throttle_classes,
+)
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.services.billing_service import (
@@ -44,6 +50,7 @@ from .serializers import (
     CraftSerializer,
     RecipeListSerializer,
 )
+
 from .models import (
     ActiveEffect,
     SkillCooldown,
@@ -193,6 +200,7 @@ class ConvertGuestView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [RegisterRateThrottle]
 
     def post(self, request):
         if not request.user.profile.is_guest:
@@ -437,9 +445,10 @@ class TaskViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
+            logger.error(f"process_missed failed: {e}", exc_info=True)
             return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "Failed to process missed tasks. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     @action(
@@ -718,6 +727,7 @@ def create_portal_session_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 def stripe_webhook_view(request):
     """POST /api/billing/webhook/"""
     payload = request.body

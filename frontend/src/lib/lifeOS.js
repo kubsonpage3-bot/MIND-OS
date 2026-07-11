@@ -59,7 +59,9 @@ export function loadState() {
 }
 
 export function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // Strip sensitive game state before saving to comply with SSOT
+  const { xp, hp, maxHp, gold, level, statPoints, stats, equipment, inventory, logs, ...uiPrefs } = state;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(uiPrefs));
 }
 
 export function gainXP(state, amount) {

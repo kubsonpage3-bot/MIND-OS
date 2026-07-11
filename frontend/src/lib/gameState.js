@@ -1,38 +1,4 @@
-// Global game state for RPG features — persisted to localStorage
 
-const KEY = "mindos_game_state";
-
-export const DEFAULT_GAME_STATE = {
-  gold: 0,
-  hp: 100,
-  maxHp: 100,
-  statPoints: 0,
-  stats: { pwr: 5, def: 5, foc: 5, mem: 5, spd: 5, lck: 5 },
-  equipped: {}, // slot -> item
-  inventory: [],
-  bossIndex: 0,
-  bossHP: null, // null = use boss max
-  tasks: [], // habits, dailies, todos
-  consumables: {}, // active consumable effects
-  // ─── RPG Engine fields ───────────────────────────────────────────────────
-  buffs: [],          // активные баффы [ createBuff(...) ]
-  streak: 0,          // дней подряд без пропусков дейликов
-  lastDailyTickMs: 0, // timestamp последнего суточного тика
-};
-
-export function loadGameState() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return { ...DEFAULT_GAME_STATE };
-    return { ...DEFAULT_GAME_STATE, ...JSON.parse(raw) };
-  } catch {
-    return { ...DEFAULT_GAME_STATE };
-  }
-}
-
-export function saveGameState(state) {
-  localStorage.setItem(KEY, JSON.stringify(state));
-}
 
 export const BOSSES = [
   {
@@ -96,46 +62,4 @@ const RANK_ORDER = ["F","D","C","B","A","S","SS","SSS"];
 export function rankMeetsReq(currentRankId, reqRank) {
   if (!reqRank) return true;
   return RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(reqRank);
-}
-
-// ─── RPG Engine buff helpers (работают через loadGameState/saveGameState) ────
-
-/**
- * Добавить бафф в gameState.buffs.
- * @param {object} buff - объект баффа из createBuff()
- */
-export function addBuffToState(buff) {
-  try {
-    const gs = loadGameState();
-    gs.buffs = [...(gs.buffs || []), buff];
-    saveGameState(gs);
-  } catch {}
-}
-
-/**
- * Получить активные баффы (без просроченных).
- * @returns {object[]}
- */
-export function getActiveBuffs() {
-  try {
-    const gs = loadGameState();
-    const now = Date.now();
-    return (gs.buffs || []).filter(b =>
-      !b.isExpired && (b.expiresAt === null || now < b.expiresAt)
-    );
-  } catch { return []; }
-}
-
-/**
- * Удалить все просроченные баффы из gameState.
- */
-export function pruneExpiredBuffs() {
-  try {
-    const gs = loadGameState();
-    const now = Date.now();
-    gs.buffs = (gs.buffs || []).filter(b =>
-      !b.isExpired && (b.expiresAt === null || now < b.expiresAt)
-    );
-    saveGameState(gs);
-  } catch {}
 }
