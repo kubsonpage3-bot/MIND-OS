@@ -4,6 +4,10 @@
         "version": "1.4.48",
         "changes": [
             {
+                "type": "feature",
+                "text": "Dashboard: Redesigned the Day Streak card with a game-like tier system, progress bar, personal best tracking, and protective shield indicator."
+            },
+            {
                 "type": "fix",
                 "text": "Security: Login tokens are now stored via the secure Tauri store (encrypted) when running as a desktop app, instead of plain browser storage."
             },
