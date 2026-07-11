@@ -4,6 +4,10 @@
         "version": "1.4.50",
         "changes": [
             {
+                "type": "fix",
+                "text": "Fixed a bug where passive boss damage wasn't accumulating correctly while the app was open, and ensured the 'While you were away' screen perfectly matches the actual damage dealt."
+            },
+            {
                 "type": "feature",
                 "text": "Added visual polish to idle boss damage! You'll now see floating damage numbers, ambient pulsing, and a desperate low-health state as your party chips away at the boss's HP in real-time."
             },

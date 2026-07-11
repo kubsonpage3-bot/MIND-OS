@@ -45,7 +45,7 @@ def apply_idle_damage(encounter):
     idle_damage = int(elapsed_seconds * 0.1)
     
     if idle_damage <= 0:
-        encounter.last_idle_tick_at = now
+        # DO NOT reset last_idle_tick_at if no damage was applied, otherwise we lose fractional seconds!
         return 0
         
     min_hp = int(encounter.boss.hp_max * 0.05)
@@ -59,7 +59,10 @@ def apply_idle_damage(encounter):
     damage_applied = original_hp - new_hp
     
     encounter.hp_current = new_hp
-    encounter.last_idle_tick_at = now
+    # Advance the tick only by the consumed time to preserve remainder
+    from datetime import timedelta
+    consumed_seconds = idle_damage * 10
+    encounter.last_idle_tick_at = last_tick + timedelta(seconds=consumed_seconds)
     
     return damage_applied
 

@@ -12,14 +12,18 @@ export default function OfflineSummaryModal({ profile }) {
   const [summaryData, setSummaryData] = useState(null);
   const queryClient = useQueryClient();
 
+  // Подписываемся на данные энкаунтеров, чтобы обновиться, когда они загрузятся
+  const { data: encountersData } = useQuery({
+    queryKey: ['combat_encounters'],
+    queryFn: djangoApi.combat.getEncounters,
+  });
+
   useEffect(() => {
     // Only show if offline for more than 1 hour (3600 seconds)
     // For testing purposes, we can show it for > 60 seconds.
-    // Let's use 60 seconds (1 minute) for easier testing, or maybe 10 seconds.
-    // The spec says "offline summary screen".
     if (profile?.offline_seconds && profile.offline_seconds > 60) {
-      // Check if there is an active boss encounter to see if idle damage was applied
-      const encounters = queryClient.getQueryData(['combat_encounters']) || [];
+      // Use the reactive encountersData
+      const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
       const activeEncounter = encounters.find(e => !e.is_defeated);
       
       const hoursOffline = Math.floor(profile.offline_seconds / 3600);
@@ -35,6 +39,7 @@ export default function OfflineSummaryModal({ profile }) {
       // Calculate fake Johan XP for demonstration
       offlineXP = Math.floor(profile.offline_seconds / 3600 * 15) || Math.floor(profile.offline_seconds / 60); // 1 XP per minute fallback
 
+      // If encounters haven't loaded yet, idleDamage is 0, but it will update when they do load
       setSummaryData({
         hours: hoursOffline,
         minutes: minutesOffline,
@@ -45,7 +50,7 @@ export default function OfflineSummaryModal({ profile }) {
 
       setIsOpen(true);
     }
-  }, [profile?.offline_seconds, queryClient]);
+  }, [profile?.offline_seconds, encountersData]);
 
   if (!summaryData) return null;
 
