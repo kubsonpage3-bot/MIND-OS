@@ -359,15 +359,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         try:
             membership = user.party_membership
 
-            today_iso = timezone.now().date().isocalendar()
-            current_iso_week = f"{str(today_iso[0])[-2:]}W{today_iso[1]:02d}"
-
-            if membership.weekly_xp_reset_week != current_iso_week:
-                membership.weekly_xp = 0
-                membership.weekly_xp_reset_week = current_iso_week
-
-            membership.weekly_xp += final_xp
-
             if task.task_type == task.TaskType.DAILY:
                 today = timezone.now().date()
                 if membership.last_daily_completed_date != today:
@@ -402,8 +393,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             membership.save(
                 update_fields=[
-                    "weekly_xp",
-                    "weekly_xp_reset_week",
                     "last_daily_completed_date",
                 ]
             )

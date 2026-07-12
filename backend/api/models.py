@@ -231,6 +231,10 @@ class UserProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     last_seen_at = models.DateTimeField(auto_now_add=True, verbose_name="Был в сети")
 
+    # Недельный опыт
+    weekly_xp = models.PositiveIntegerField(default=0)
+    weekly_xp_reset_week = models.CharField(max_length=10, null=True, blank=True)
+
     class Meta:
         verbose_name = "Профиль персонажа"
         verbose_name_plural = "Профили персонажей"
@@ -438,7 +442,10 @@ class PushSubscription(models.Model):
     """
     Stores Web Push subscription details for a user (can have multiple per user for different devices).
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="push_subscriptions")
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="push_subscriptions"
+    )
     endpoint = models.TextField(unique=True)
     p256dh = models.CharField(max_length=100)
     auth = models.CharField(max_length=100)
@@ -857,7 +864,9 @@ class BossEncounter(models.Model):
     expires_at = models.DateTimeField(
         null=True, blank=True, verbose_name="Время истечения"
     )
-    last_idle_tick_at = models.DateTimeField(auto_now_add=True, verbose_name="Последний тик урона")
+    last_idle_tick_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Последний тик урона"
+    )
 
     class Meta:
         verbose_name = "Битва с боссом"
@@ -1183,8 +1192,6 @@ class PartyMembership(models.Model):
 
     # Party Enhancements v1
     last_daily_completed_date = models.DateField(null=True, blank=True)
-    weekly_xp = models.PositiveIntegerField(default=0)
-    weekly_xp_reset_week = models.CharField(max_length=10, null=True, blank=True)
     last_buff_sent_at = models.DateField(null=True, blank=True)
 
     class Meta:

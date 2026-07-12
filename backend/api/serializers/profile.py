@@ -90,12 +90,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "timezone",
             "notification_preferences",
             "offline_seconds",
+            "weekly_xp",
         )
         read_only_fields = (
             "id",
             "user",
             "level",
             "xp",
+            "weekly_xp",
             "xp_to_next_level",
             "xp_progress_percent",
             "total_stats",

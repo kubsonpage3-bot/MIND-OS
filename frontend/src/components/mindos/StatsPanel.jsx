@@ -15,7 +15,7 @@ export default function StatsPanel({ profile, logs }) {
   const weekAgo = new Date(Date.now() - 7 * 86400000);
   const weekLogs = logs.filter(l => new Date(l.created_at) >= weekAgo);
 
-  const weeklyXP = weekLogs.reduce((sum, l) => sum + (l.xp_earned || 0), 0);
+  const weeklyXP = profile?.weekly_xp || 0;
   const xpPct = (weeklyXP % XP_PER_LEVEL) / XP_PER_LEVEL * 100;
   const streak = profile?.streak || 0;
 

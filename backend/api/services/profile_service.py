@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from api.models import UserProfile
 from api.constants import RANK_THRESHOLDS, HUMANITIES_RANK_THRESHOLDS
 
@@ -12,6 +13,16 @@ def gain_xp(profile: UserProfile, amount: int) -> bool:
     profile.xp += amount
     leveled_up = False
 
+    # Обновляем недельный опыт
+    today_iso = timezone.now().date().isocalendar()
+    current_iso_week = f"{str(today_iso[0])[-2:]}W{today_iso[1]:02d}"
+
+    if profile.weekly_xp_reset_week != current_iso_week:
+        profile.weekly_xp = 0
+        profile.weekly_xp_reset_week = current_iso_week
+
+    profile.weekly_xp += amount
+
     # Проверяем, не достиг ли персонаж нового уровня
     while profile.xp >= profile.xp_to_next_level:
         profile.xp -= profile.xp_to_next_level
@@ -23,7 +34,17 @@ def gain_xp(profile: UserProfile, amount: int) -> bool:
         profile.mana_max += 5
         leveled_up = True
 
-    profile.save(update_fields=["xp", "level", "xp_to_next_level", "hp", "mana_max"])
+    profile.save(
+        update_fields=[
+            "xp",
+            "level",
+            "xp_to_next_level",
+            "hp",
+            "mana_max",
+            "weekly_xp",
+            "weekly_xp_reset_week",
+        ]
+    )
 
     return leveled_up
 
