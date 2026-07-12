@@ -112,6 +112,15 @@ def activate_skill(user, skill_id):
     # Блокируем профиль для защиты от гонки (race conditions)
     profile, _ = UserProfile.objects.select_for_update().get_or_create(user=user)
 
+    active_mutators = profile.active_mutators or {}
+    active_list = (
+        active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
+    )
+    active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+
+    if "silence" in active_ids:
+        return False, "Silence mutator is active. Cannot use skills.", None, None
+
     char_class = profile.character_class
     class_def = CLASS_DEFS.get(char_class)
     if not class_def:

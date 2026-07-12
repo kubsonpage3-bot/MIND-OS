@@ -123,8 +123,8 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
         const response = await djangoApi.shop.getItems();
         return (response || []).map((item) => ({
           id: item.code,
-          label: item.name,
-          desc: item.description,
+          label: t(`items.${item.code}.name`, item.name),
+          desc: t(`items.${item.code}.desc`, item.description),
           tier: item.tier,
           cost: item.cost,
           consumable: item.item_type === "consumable",

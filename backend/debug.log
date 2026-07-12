@@ -1936,3 +1936,13 @@ Traceback (most recent call last):
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
 WARNING 2026-07-11 21:26:18,715 log 24140 23848 Bad Request: /api/combat/summon/
 WARNING 2026-07-11 21:27:31,222 log 20840 22016 Bad Request: /api/combat/summon/
+WARNING 2026-07-12 20:01:49,587 log 19820 13544 Unauthorized: /api/analytics/event/
+WARNING 2026-07-12 20:01:52,153 log 19820 13544 Bad Request: /api/analytics/event/
+WARNING 2026-07-12 20:01:57,891 log 19820 13544 Bad Request: /api/auth/register/
+WARNING 2026-07-12 20:02:02,528 log 19820 13544 Bad Request: /api/profile/
+WARNING 2026-07-12 20:02:05,306 log 19820 13544 Forbidden: /api/calendar/events/
+WARNING 2026-07-12 20:02:45,123 log 19820 13544 Forbidden: /api/party/members/2215/profile/
+WARNING 2026-07-12 20:02:47,167 log 19820 13544 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-12 20:02:52,992 task_service 19820 13544 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-12 20:04:03,133 log 20176 4372 Forbidden: /api/party/members/2258/profile/
+WARNING 2026-07-12 20:04:05,086 log 20176 4372 Not Found: /api/party/members/999999/profile/

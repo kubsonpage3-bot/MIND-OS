@@ -29,7 +29,13 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
   const [confirmDelete, setConfirmDelete] = useState(null); // activity key pending confirmation
 
   const allActivities = useMemo(() => {
-    const list = { ...ACTIVITIES };
+    const list = {};
+    Object.keys(ACTIVITIES).forEach(key => {
+      list[key] = {
+        ...ACTIVITIES[key],
+        label: t(`activities.${key}`, ACTIVITIES[key].label)
+      };
+    });
     tasks.forEach(t => {
       if (t.type === 'button') {
         const key = `custom_task_${t.id}`;

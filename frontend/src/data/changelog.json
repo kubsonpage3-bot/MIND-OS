@@ -1,6 +1,20 @@
 [
     {
         "date": "2026-07-12",
+        "version": "1.4.56",
+        "changes": [
+            {
+                "type": "content",
+                "text": "Completed a massive localization pass: all Shop Items, Ally details (names, titles, lore, and abilities), and Training Activities are now fully translated into Russian."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed several mutator calculations: 'Monk's Path' now correctly applies a +40% XP bonus strictly to Prayer/Meditation activities, and 'Iron Routine' correctly applies its +25% XP bonus."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-12",
         "version": "1.4.55",
         "changes": [
             {

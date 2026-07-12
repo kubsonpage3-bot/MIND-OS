@@ -8,6 +8,7 @@ import { showRewardToast } from "@/components/mindos/RewardToast";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
 import GameCard from "@/components/ui/GameCard";
+import { useTranslation } from "react-i18next";
 
 const RANK_COLORS = { E: "#888", D: "#22c55e", C: "#3b82f6", B: "#a855f7", A: "#f0c040", S: "#ff3355" };
 const RANK_GLOW = { E: "#88888840", D: "#22c55e40", C: "#3b82f640", B: "#a855f740", A: "#f0c04040", S: "#ff335540" };
@@ -62,6 +63,7 @@ export function AllyPortrait({ ally, isRecruited = true, hovered = false }) {
 }
 
 function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade, isActive, isFull, onActivate, onDeactivate }) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [justRecruited, setJustRecruited] = useState(false);
@@ -106,10 +108,10 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade, isActi
       {/* Info */}
       <div className="flex-1 min-w-0 flex flex-col justify-start">
         <div className="font-mono text-[11px] font-black truncate px-1" style={{ color: isRecruited ? ally.color : "var(--habit-dim)" }}>
-          {ally.name}
+          {String(t(`allies.${ally.id}.name`, ally.name))}
         </div>
         <div className="text-[9px] font-mono text-muted-foreground/40 italic truncate px-1">
-          {ally.title}
+          {String(t(`allies.${ally.id}.title`, ally.title))}
         </div>
         {isRecruited && (
           <div className="flex gap-1 justify-center items-center mt-2">
@@ -162,6 +164,7 @@ function AllyCard({ ally, isRecruited, level, gold, onRecruit, onUpgrade, isActi
 }
 
 export default function AlliesPanel({ onSpendGold }) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState(null);
   const [revealState, setRevealState] = useState("idle"); // idle, shaking, flipping_front, revealed
   const { profile, refreshProfile } = useDjangoAuth();
@@ -299,12 +302,17 @@ export default function AlliesPanel({ onSpendGold }) {
       {teamBonuses.length > 0 && (
         <div className="p-3 rounded-xl border border-border bg-card/40 space-y-1.5">
           <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-widest">Active Team Bonuses</div>
-          {teamBonuses.map(({ ally, bonus }) => (
-            <div key={ally.id} className="flex items-center gap-2 text-[10px] font-mono">
-              <span className="font-bold" style={{ color: ally.color }}>{ally.name}:</span>
-              <span className="text-foreground/60">{bonus}</span>
-            </div>
-          ))}
+          {teamBonuses.map(({ ally, bonus }, idx) => {
+            const currentLevel = (levels[ally.id] || 1) - 1;
+            const translatedLevels = t(`allies.${ally.id}.levels`, { returnObjects: true });
+            const translatedBonus = Array.isArray(translatedLevels) ? translatedLevels[currentLevel] : bonus;
+            return (
+              <div key={ally.id} className="flex items-center gap-2 text-[10px] font-mono">
+                <span className="font-bold" style={{ color: ally.color }}>{t(`allies.${ally.id}.name`, ally.name)}:</span>
+                <span className="text-foreground/60">{translatedBonus}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -368,15 +376,17 @@ export default function AlliesPanel({ onSpendGold }) {
                     style={{ imageRendering: "pixelated", filter: displayAsRecruited ? "brightness(1.1) saturate(1.3)" : "brightness(0.5) grayscale(0.5)" }}
                   />
                 </motion.div>
-                <div className="font-mono font-black text-sm relative z-10" style={{ color: selected.color }}>{selected.name}</div>
+                <div className="font-mono font-black text-sm relative z-10" style={{ color: selected.color }}>{String(t(`allies.${selected.id}.name`, selected.name))}</div>
                 <div className="flex items-center gap-2 relative z-10">
-                  <span className="text-[9px] font-mono text-muted-foreground/50">{selected.title}</span>
+                  <span className="text-[9px] font-mono text-muted-foreground/50">{String(t(`allies.${selected.id}.title`, selected.title))}</span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold"
                     style={{ background: `${RANK_COLORS[selected.rank]}20`, color: RANK_COLORS[selected.rank], border: `1px solid ${RANK_COLORS[selected.rank]}50` }}>
                     RANK {selected.rank}
                   </span>
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{selected.lore}"</div>
+                <div className="border border-border p-3 rounded bg-muted/30 relative">
+                  <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{String(t(`allies.${selected.id}.lore`, selected.lore))}"</div>
+                </div>
               </div>
 
               {/* Levels */}
@@ -385,11 +395,18 @@ export default function AlliesPanel({ onSpendGold }) {
                 {selected.levels.map((bonus, i) => {
                   const currentLevel = levels[selected.id] || 0;
                   const isUnlocked = displayAsRecruited && currentLevel > i;
+                  const translatedLevels = t(`allies.${selected.id}.levels`, { returnObjects: true });
+                  const translatedBonus = Array.isArray(translatedLevels) ? translatedLevels[i] : bonus;
+                  const hasLevel = true;
                   return (
                     <div key={i} className="flex items-start gap-2 text-[10px] font-mono"
                       style={{ opacity: isUnlocked ? 1 : 0.35 }}>
                       <span className="shrink-0" style={{ color: isUnlocked ? selected.color : "#4a4060" }}>Lv{i + 1}</span>
-                      <span className="text-foreground/70">{bonus}</span>
+                      {hasLevel ? (
+                        <span className="text-foreground/60">{String(translatedBonus)}</span>
+                      ) : (
+                        <span className="text-foreground/60">Locked</span>
+                      )}
                     </div>
                   );
                 })}

@@ -1285,5 +1285,246 @@
     "ironman_title": "IRONMAN MODE",
     "ironman_desc": "If HP reaches 0 — prestige will be forcefully activated. This cannot be undone. In exchange: all Rank XP +15% permanently.",
     "ironman_confirm_btn": "CONFIRM — 3000G"
+  },
+  "items": {
+    "data_ring": {
+      "name": "Data Ring",
+      "desc": "Data Ring"
+    },
+    "basic_cortex": {
+      "name": "Basic Cortex Link",
+      "desc": "Basic Cortex Link"
+    },
+    "training_implants": {
+      "name": "Training Implants",
+      "desc": "Training Implants"
+    },
+    "mobility_frame": {
+      "name": "Mobility Frame",
+      "desc": "Mobility Frame"
+    },
+    "neural_cap": {
+      "name": "Neural Cap",
+      "desc": "Neural Cap"
+    },
+    "carbon_vest": {
+      "name": "Carbon Vest",
+      "desc": "Carbon Vest"
+    },
+    "echo_ring": {
+      "name": "Echo Ring",
+      "desc": "Echo Ring"
+    },
+    "dual_channel": {
+      "name": "Dual-Channel Adapter",
+      "desc": "Dual-Channel Adapter"
+    },
+    "force_amplifiers": {
+      "name": "Force Amplifiers",
+      "desc": "Force Amplifiers"
+    },
+    "sync_visor": {
+      "name": "Sync Visor",
+      "desc": "Sync Visor"
+    },
+    "overdrive_chassis": {
+      "name": "Overdrive Chassis",
+      "desc": "Overdrive Chassis"
+    },
+    "reactive_shell": {
+      "name": "Reactive Shell",
+      "desc": "Reactive Shell"
+    },
+    "null_ring": {
+      "name": "Null Ring",
+      "desc": "Null Ring"
+    },
+    "synaptic_boosters": {
+      "name": "Synaptic Boosters",
+      "desc": "Synaptic Boosters"
+    },
+    "quantum_sync": {
+      "name": "Quantum Sync",
+      "desc": "Quantum Sync"
+    },
+    "phase_legs": {
+      "name": "Phase Legs",
+      "desc": "Phase Legs"
+    },
+    "resonance_core": {
+      "name": "Resonance Core",
+      "desc": "Resonance Core"
+    },
+    "cognitive_crown": {
+      "name": "Cognitive Crown",
+      "desc": "Cognitive Crown"
+    },
+    "transcendence_helm": {
+      "name": "Transcendence Helm",
+      "desc": "Transcendence Helm"
+    },
+    "void_bridge": {
+      "name": "Void Bridge",
+      "desc": "Void Bridge"
+    },
+    "singularity_engine": {
+      "name": "Singularity Engine",
+      "desc": "Singularity Engine"
+    },
+    "small_heal": {
+      "name": "Small Health Potion",
+      "desc": "Restores 20 HP instantly."
+    },
+    "focus_stim": {
+      "name": "Focus Stim",
+      "desc": "Grants +30% Focus multiplier for your next Focus Session."
+    },
+    "memory_patch": {
+      "name": "Memory Patch",
+      "desc": "Instantly boosts your Growth Coefficient (Gc) by +0.2."
+    },
+    "boss_damage_plus": {
+      "name": "Boss Damage+",
+      "desc": "Deals +50% damage to the boss in your next Focus Session."
+    },
+    "medium_heal": {
+      "name": "Health Potion",
+      "desc": "Restores 50 HP instantly."
+    },
+    "xp_booster": {
+      "name": "XP Booster",
+      "desc": "Grants +50% XP from all sources for 24 hours."
+    },
+    "large_heal": {
+      "name": "Mega Health Potion",
+      "desc": "Restores 100 HP instantly."
+    },
+    "streak_shield": {
+      "name": "Streak Shield",
+      "desc": "Automatically protects your daily streak from breaking once if you miss a day."
+    },
+    "elixir": {
+      "name": "Elixir of Life",
+      "desc": "Restores HP to 100% and grants 10 minutes of complete damage immunity."
+    },
+    "placeholder": {
+      "name": "Loading...",
+      "desc": "Loading..."
+    }
+  },
+  "allies": {
+    "yuki": {
+      "name": "YUKI",
+      "title": "The Witch Bride",
+      "lore": "She guards the threshold between effort and destiny.",
+      "levels": [
+        "All Rank XP gains +8% globally",
+        "Mana max +20 permanently",
+        "Prestige bonus increased by +5%",
+        "Skill tree node costs -25%",
+        "After prestige: start at Rank C instead of F"
+      ]
+    },
+    "void": {
+      "name": "VOID",
+      "title": "The Abyss Walker",
+      "lore": "He feeds on the time you waste.",
+      "levels": [
+        "Boss damage +15%",
+        "Missed habit penalty reduced by 50%",
+        "Passive HP regen +5 per day",
+        "Critical strike chance +10% vs bosses",
+        "Once per week: skip a daily without breaking streak"
+      ]
+    },
+    "hex": {
+      "name": "HEX",
+      "title": "The Cursed One",
+      "lore": "Knowledge always comes at a price.",
+      "levels": [
+        "Gold gains +10%",
+        "Random chance to double task rewards",
+        "Shop discount 10%",
+        "Chance to find random consumable on completing a Hard task",
+        "Once per month: reset a skill tree node for free"
+      ]
+    },
+    "kira": {
+      "name": "KIRA",
+      "title": "The Analyst",
+      "lore": "Data never lies, but it doesn't always tell the truth.",
+      "levels": [
+        "Focus sessions grant +15% Mana",
+        "Increased loot drop chance from bosses",
+        "Unlocks detailed statistics on Dashboard",
+        "Coding tasks give +20% Rank XP",
+        "Once per day: instantly complete any one habit"
+      ]
+    },
+    "sakura": {
+      "name": "SAKURA",
+      "title": "The Pink Phantom",
+      "lore": "Too fast for regrets.",
+      "levels": [
+        "Increases Speed (SPD) by +3",
+        "Running/Exercise tasks yield +20% Gold",
+        "Chance to dodge damage when missing a task",
+        "Increases Max Mana by 10",
+        "Skill activations cost 5 less Mana"
+      ]
+    },
+    "nene": {
+      "name": "NENE",
+      "title": "The Silent Scholar",
+      "lore": "A smile that carries the weight of a thousand books.",
+      "levels": [
+        "Prayer/Meditation sessions give +15% Rank XP",
+        "Logging 3+ subjects/day gives +30G bonus",
+        "HP restored +2 per day passively",
+        "All cognitive metric gains +10%",
+        "Once per week: full mana restoration for free"
+      ]
+    },
+    "neko": {
+      "name": "NEKO",
+      "title": "The Dreamer",
+      "lore": "Sleeps on keyboards, wakes up for innovation.",
+      "levels": [
+        "Increases Luck (LCK) by +5",
+        "Chance to get double XP for creative tasks",
+        "Passive Mana regen +1 per hour",
+        "Reduces Boss Damage taken by 10%",
+        "Once per day: get a random beneficial buff"
+      ]
+    },
+    "luna": {
+      "name": "LUNA",
+      "title": "The Cat Spirit",
+      "lore": "She walks where the shadows are deep.",
+      "levels": [
+        "Increases Memory (MEM) by +4",
+        "Reading tasks give +25% Mana",
+        "Increases chance of critical task success",
+        "Bonus XP for late-night sessions",
+        "Hides one failed task from breaking streak"
+      ]
+    }
+  },
+  "activities": {
+    "mathematics": "Mathematics",
+    "physics": "Physics",
+    "history": "History",
+    "english": "English",
+    "philosophy": "Philosophy",
+    "vocabulary": "Vocabulary",
+    "chess_logic": "Chess / Logic",
+    "coding": "Coding",
+    "creative_answers": "Creative Answers",
+    "exercise": "Exercise",
+    "prayer_meditation": "Prayer / Meditation",
+    "running": "Running",
+    "reading": "Reading",
+    "german": "German",
+    "other_languages": "Other Languages"
   }
 }

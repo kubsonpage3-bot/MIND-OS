@@ -260,6 +260,11 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         "completed_near_deadline": completed_near_deadline,
         "task_category": task_category,
         "task_age_days": task_age_days,
+        "task_streak": (
+            getattr(task, "streak", 0)
+            if task.task_type == Task.TaskType.DAILY
+            else getattr(task, "pos_streak", 0)
+        ),
     }
 
     mutator_effects = apply_active_mutators(profile, context)
@@ -776,6 +781,9 @@ def process_missed_tasks(user):
             if "ironman" in active_ids:
                 profile.hp = max(1, int(profile.hp * 0.75))
                 profile.gold = max(0, int(profile.gold * 0.90))
+
+            if "double_nothing" in active_ids:
+                profile.hp = int(profile.hp * 0.50)
 
             dmg = calculate_fail_damage(task, profile)
             if iron_fast_active or elixir_active:
