@@ -53,10 +53,10 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
   const safePs = ps || 100.0;
   const safeVm = vm || 100.0;
   
-  const safeGfCeiling = gfCeiling || 120.0;
-  const safeGcCeiling = gcCeiling || 135.0;
-  const safePsCeiling = psCeiling || 112.0;
-  const safeVmCeiling = vmCeiling || 138.0;
+  const safeGfCeiling = gfCeiling || 105.0;
+  const safeGcCeiling = gcCeiling || 105.0;
+  const safePsCeiling = psCeiling || 105.0;
+  const safeVmCeiling = vmCeiling || 105.0;
 
   const iq = calculateIQ(safeGf, safeGc, safePs, safeVm);
   const potentialIQ = calculateIQ(safeGfCeiling, safeGcCeiling, safePsCeiling, safeVmCeiling);

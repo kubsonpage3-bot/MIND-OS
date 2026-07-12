@@ -267,10 +267,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     gc: dp.gc ?? 100.0,
     ps: dp.ps ?? 100.0,
     vm: dp.vm ?? 100.0,
-    gf_ceiling: dp.gf_ceiling ?? 120.0,
-    gc_ceiling: dp.gc_ceiling ?? 135.0,
-    ps_ceiling: dp.ps_ceiling ?? 112.0,
-    vm_ceiling: dp.vm_ceiling ?? 138.0,
+    gf_ceiling: dp.gf_ceiling ?? 105.0,
+    gc_ceiling: dp.gc_ceiling ?? 105.0,
+    ps_ceiling: dp.ps_ceiling ?? 105.0,
+    vm_ceiling: dp.vm_ceiling ?? 105.0,
   } : null;
 
   const profileLoading = djangoProfileLoading || !profile;

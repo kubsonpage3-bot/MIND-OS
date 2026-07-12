@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-12",
+        "version": "1.4.54",
+        "changes": [
+            {
+                "type": "balance",
+                "text": "Standardized all cognitive metric ceilings to a default of 105. Existing accounts with arbitrarily higher ceilings have been reset to 105 to ensure fair progression."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-12",
         "version": "1.4.53",
         "changes": [
             {

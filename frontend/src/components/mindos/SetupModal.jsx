@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 
 const DEFAULTS = {
   gf: 103, gc: 118, ps: 100, vm: 120,
-  gf_ceiling: 120, gc_ceiling: 135, ps_ceiling: 112, vm_ceiling: 138,
+  gf_ceiling: 105, gc_ceiling: 105, ps_ceiling: 105, vm_ceiling: 105,
 };
 
 const FIELDS = [
