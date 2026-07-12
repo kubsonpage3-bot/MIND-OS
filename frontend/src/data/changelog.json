@@ -1,5 +1,29 @@
 [
     {
+        "date": "2026-07-12",
+        "version": "1.4.52",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Completely visually overhauled the Skill Tree to a Minecraft-style rigid grid layout with chunky beveled node squares and chain connectors."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-12",
+        "version": "1.4.51",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed an annoying console warning ('Missing Description for DialogContent') that would occasionally appear when navigating the mobile app, particularly in the Rival tab and menus."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed a critical bug where defeating a boss would fail to drop unique loot and instead cause a server error, preventing the boss from actually being defeated."
+            }
+        ]
+    },
+    {
         "date": "2026-07-11",
         "version": "1.4.50",
         "changes": [

@@ -34,36 +34,37 @@ def apply_idle_damage(encounter):
     Returns the amount of idle damage actually applied.
     """
     now = timezone.now()
-    
+
     last_tick = encounter.last_idle_tick_at or encounter.started_at
     elapsed_seconds = max(0, (now - last_tick).total_seconds())
-    
+
     # Cap at 24 hours
     elapsed_seconds = min(elapsed_seconds, 24 * 3600)
-    
+
     # 1 damage per 10 seconds (0.1 DPS)
     idle_damage = int(elapsed_seconds * 0.1)
-    
+
     if idle_damage <= 0:
         # DO NOT reset last_idle_tick_at if no damage was applied, otherwise we lose fractional seconds!
         return 0
-        
+
     min_hp = int(encounter.boss.hp_max * 0.05)
-    
+
     original_hp = encounter.hp_current
     new_hp = max(min_hp, encounter.hp_current - idle_damage)
-    
+
     if original_hp <= min_hp:
         new_hp = original_hp
-        
+
     damage_applied = original_hp - new_hp
-    
+
     encounter.hp_current = new_hp
     # Advance the tick only by the consumed time to preserve remainder
     from datetime import timedelta
+
     consumed_seconds = idle_damage * 10
     encounter.last_idle_tick_at = last_tick + timedelta(seconds=consumed_seconds)
-    
+
     return damage_applied
 
 
@@ -134,12 +135,13 @@ def process_boss_death(user, encounter):
 
     # Trigger push notification
     from api.services.push_service import send_notification_to_user
+
     send_notification_to_user(
         user=user,
         pref_key="boss_defeated",
         title="Boss Defeated! 🎉",
         body=f"You successfully defeated {encounter.boss.name} and earned {final_gold} gold!",
-        url="/character/boss"
+        url="/character/boss",
     )
 
     # Добавление уникального лута в инвентарь
@@ -157,7 +159,7 @@ def process_boss_death(user, encounter):
                     rolled_stats[stat] = random.randint(rules["min"], rules["max"])
 
             inv_item, created = InventoryItem.objects.get_or_create(
-                profile=profile,
+                user_profile=profile,
                 item=item,
                 defaults={"stat_bonuses": rolled_stats} if rolled_stats else {},
             )
