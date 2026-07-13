@@ -123,12 +123,12 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   {/* Category selector */}
                   <div>
                     <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Category</label>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5">
                       {CATEGORIES.map(c => (
                         <button
                           key={c}
                           onClick={() => setForm({ ...form, category: c })}
-                          className="px-2 py-2 text-xs font-mono pixel-btn border-2 transition-all"
+                          className="aspect-square p-0 flex flex-col items-center justify-center text-center text-[9px] leading-[1.1] font-mono pixel-btn border-2 transition-all"
                           style={{
                             borderColor: form.category === c ? "rgba(240,192,64,0.5)" : "rgba(148,163,184,0.25)",
                             color: form.category === c ? "#f0c040" : "#64748b",
@@ -136,7 +136,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                             boxShadow: "0 1px 0 rgba(0,0,0,0.3)"
                           }}
                         >
-                          {t("categories." + c, c)}
+                          <span className="line-clamp-2 w-full px-0.5">{t("categories." + c, c)}</span>
                         </button>
                       ))}
                     </div>

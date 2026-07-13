@@ -14,6 +14,10 @@
             {
                 "type": "content",
                 "text": "Updated the anime characters in the Pomodoro module with new optimized artwork and matching dynamic color effects."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed category selector circles in the mobile Create Task modal to maintain perfect uniform sizing regardless of label length, without truncating names."
             }
         ]
     },
