@@ -150,7 +150,7 @@ export default function AppShell({ defaultTab = "mind" }) {
     // Do NOT start the AppShell horizontal swipe if the user is interacting with a task drag handle 
     // or a native horizontal scroll container. This prevents Framer Motion from stealing the touch events 
     // from @hello-pangea/dnd's sensors.
-    const isDragHandle = target.closest('[data-rbd-drag-handle-context-id]');
+    const isDragHandle = target.closest('[data-rfd-drag-handle-context-id]');
     const isScrollable = target.closest('[data-no-swipe], .overflow-x-auto, [style*="overflow-x: auto"], [style*="overflow-x:auto"]');
     
     if (!isDragHandle && !isScrollable && typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches) {

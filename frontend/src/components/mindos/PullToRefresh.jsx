@@ -24,7 +24,7 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
     const handleTouchStart = (e) => {
       // 2. Preventing Drag-and-Drop Conflict
       // If the touch originated on a drag handle, ignore it completely
-      if (e.target.closest('[data-rbd-drag-handle-context-id]')) {
+      if (e.target.closest('[data-rfd-drag-handle-context-id]')) {
         ignoreDrag.current = true;
         return;
       }
@@ -128,38 +128,39 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
 
   const fillPercentage = Math.min(pullDistance / THRESHOLD, 1);
 
+  // Indicator height so we know how far to push content down
+  const INDICATOR_HEIGHT = 64;
+
   return (
-    <div className="relative w-full">
-      {/* Indicator Layer */}
-      <motion.div 
-        className="absolute top-0 left-0 right-0 flex justify-center items-start pointer-events-none z-50 overflow-hidden"
-        style={{ height: 100, top: -100 }}
+    <div className="w-full">
+      {/* Indicator — visible above content, pushed down with content via translateY */}
+      <motion.div
+        style={{ height: INDICATOR_HEIGHT, marginTop: -INDICATOR_HEIGHT }}
         animate={controls}
+        className="flex justify-center items-end pb-3 pointer-events-none"
       >
-        <div className="flex flex-col items-center justify-end h-full pb-3 drop-shadow-md">
-          {/* Pixel Art Loading Orbs */}
-          <div className="flex space-x-2 mb-2">
-            <div 
-              className={`w-3 h-3 transition-colors duration-200 shadow-[2px_2px_0_rgba(0,0,0,0.5)] ${refreshing ? 'animate-bounce bg-[var(--habit-gold)]' : fillPercentage > 0.3 ? 'bg-[var(--habit-gold)]' : 'bg-muted'}`} 
-              style={{ animationDelay: '0ms' }} 
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex space-x-2">
+            <div
+              className={`w-3 h-3 shadow-[2px_2px_0_rgba(0,0,0,0.5)] transition-colors duration-200 ${refreshing ? 'animate-bounce bg-[var(--habit-gold)]' : fillPercentage > 0.3 ? 'bg-[var(--habit-gold)]' : 'bg-muted'}`}
+              style={{ animationDelay: '0ms' }}
             />
-            <div 
-              className={`w-3 h-3 transition-colors duration-200 shadow-[2px_2px_0_rgba(0,0,0,0.5)] ${refreshing ? 'animate-bounce bg-[var(--habit-gold)]' : fillPercentage > 0.6 ? 'bg-[var(--habit-gold)]' : 'bg-muted'}`} 
-              style={{ animationDelay: '150ms' }} 
+            <div
+              className={`w-3 h-3 shadow-[2px_2px_0_rgba(0,0,0,0.5)] transition-colors duration-200 ${refreshing ? 'animate-bounce bg-[var(--habit-gold)]' : fillPercentage > 0.6 ? 'bg-[var(--habit-gold)]' : 'bg-muted'}`}
+              style={{ animationDelay: '150ms' }}
             />
-            <div 
-              className={`w-3 h-3 transition-colors duration-200 shadow-[2px_2px_0_rgba(0,0,0,0.5)] ${refreshing ? 'animate-bounce bg-[var(--habit-gold)]' : fillPercentage >= 1 ? 'bg-[var(--habit-gold)]' : 'bg-muted'}`} 
-              style={{ animationDelay: '300ms' }} 
+            <div
+              className={`w-3 h-3 shadow-[2px_2px_0_rgba(0,0,0,0.5)] transition-colors duration-200 ${refreshing ? 'animate-bounce bg-[var(--habit-gold)]' : fillPercentage >= 1 ? 'bg-[var(--habit-gold)]' : 'bg-muted'}`}
+              style={{ animationDelay: '300ms' }}
             />
           </div>
-          
-          <span className="text-[10px] font-bold font-mono text-[var(--habit-text)] uppercase tracking-wider shadow-sm drop-shadow-md">
+          <span className="text-[10px] font-bold font-mono text-[var(--habit-text)] uppercase tracking-wider">
             {refreshing ? 'SYNCING...' : pullDistance >= THRESHOLD ? 'RELEASE TO SYNC' : 'PULL TO SYNC'}
           </span>
         </div>
       </motion.div>
 
-      {/* Content Layer */}
+      {/* Content pushed down by same translateY */}
       <motion.div animate={controls} className="min-h-full">
         {children}
       </motion.div>
