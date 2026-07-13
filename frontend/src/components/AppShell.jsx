@@ -60,18 +60,19 @@ export default function AppShell({ defaultTab = "mind" }) {
   }, []);
 
   // Navigation helpers — push to history so Android back button works
-  const setNav = useCallback((app, section, subItem) => {
+  const setNav = useCallback((app, section, subItem, extraParams) => {
     const p = new URLSearchParams();
     p.set("app", app);
     p.set("section", section);
     if (subItem) p.set("sub", subItem);
+    if (extraParams?.shopTab) p.set("shopTab", extraParams.shopTab);
     navigate(`/?${p.toString()}`);
   }, [navigate]);
 
   const setActiveApp = (app) => setNav(app, "dashboard", null);
   const handleSectionChange = (section) => setNav(activeApp, section, null);
   const handleSubItemChange = (sub) => setNav(activeApp, activeSection, sub);
-  const handleNavigate = (section, sub) => setNav(activeApp, section, sub ?? null);
+  const handleNavigate = (section, sub, extraParams) => setNav(extraParams?.app || activeApp, section, sub ?? null, extraParams);
 
   // HP damage flash detection
   useEffect(() => {

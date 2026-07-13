@@ -5,6 +5,10 @@
         "changes": [
             {
                 "type": "fix",
+                "text": "Fixed a critical issue where clicking 'Open Shop' or other actions on Gameplay Insights would cause a white screen crash due to an invalid routing state."
+            },
+            {
+                "type": "fix",
                 "text": "Fixed an issue on mobile where dragging tasks would glitch or 'teleport' due to conflicts with the device's native scrolling."
             }
         ]

@@ -13,7 +13,10 @@ export default function GameplayInsightCard({ onNavigate }) {
   const handleAction = () => {
     playSound('ui_click');
     if (onNavigate && activeInsight.targetSection) {
-      onNavigate(activeInsight.targetApp, activeInsight.targetSection, activeInsight.targetSub);
+      onNavigate(activeInsight.targetSection, activeInsight.targetSub, {
+        app: activeInsight.targetApp,
+        shopTab: activeInsight.targetShopTab
+      });
     }
   };
 

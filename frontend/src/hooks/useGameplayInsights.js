@@ -91,7 +91,8 @@ export function useGameplayInsights() {
           cta: 'insights.no_boss.cta',
           targetApp: 'mind',
           targetSection: 'character',
-          targetSub: 'shop'
+          targetSub: 'shop',
+          targetShopTab: 'scrolls'
         };
       }
     }
@@ -142,7 +143,8 @@ export function useGameplayInsights() {
           cta: 'insights.no_mutators.cta',
           targetApp: 'mind',
           targetSection: 'character',
-          targetSub: 'shop'
+          targetSub: 'shop',
+          targetShopTab: 'mutators'
         };
       }
     }
@@ -159,7 +161,8 @@ export function useGameplayInsights() {
           cta: 'insights.no_allies.cta',
           targetApp: 'mind',
           targetSection: 'character',
-          targetSub: 'allies'
+          targetSub: 'shop',
+          targetShopTab: 'allies'
         };
       }
     }
