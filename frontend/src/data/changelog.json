@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.83",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Top navigation tabs in Tasks, Hero, and Stats now use a sleek segmented style with a smooth sliding indicator — matching the Pomodoro panel design."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.82",
         "changes": [
             {
