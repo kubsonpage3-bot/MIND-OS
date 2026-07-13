@@ -103,11 +103,7 @@ export default function ProjectionTable({ profile, logs }) {
       <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">{t('projection.avgPace')}</div>
 
       {/* Cognitive metrics table */}
-      <div 
-        className="overflow-x-auto" 
-        onPointerDown={(e) => e.stopPropagation()}
-        style={{ touchAction: 'pan-x pan-y' }}
-      >
+      <div className="overflow-x-auto">
         <table className="w-full text-xs font-mono">
           <thead>
             <tr className="border-b border-border">

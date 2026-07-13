@@ -14,7 +14,6 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
       <div 
         className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide items-center"
         style={{ WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)', maskImage: 'linear-gradient(to right, black 85%, transparent 100%)' }}
-        onPointerDown={(e) => e.stopPropagation()}
         onPointerDownCapture={(e) => e.stopPropagation()}
       >
         {tabs.map(tab => (

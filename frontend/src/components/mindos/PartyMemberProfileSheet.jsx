@@ -148,7 +148,7 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
                 <span className="text-xs font-mono text-white/30">No allies recruited yet</span>
               </div>
             ) : (
-              <div className="flex gap-2 overflow-x-auto pb-2" style={{ paddingRight: '1rem' }} onPointerDown={(e) => e.stopPropagation()}>
+              <div className="flex gap-2 overflow-x-auto pb-2" style={{ paddingRight: '1rem' }}>
                 {profile.allies.map(allyRef => {
                   const allyMeta = ALLIES.find(a => a.id === allyRef.ally_code);
                   if (!allyMeta) return null;
