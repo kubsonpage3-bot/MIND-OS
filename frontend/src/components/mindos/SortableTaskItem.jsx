@@ -13,7 +13,7 @@ export function SortableTaskItem({ id, children }) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms ease',
+    transition: transition || undefined,
     // Dragged item appears above others
     zIndex: isDragging ? 999 : undefined,
     // Subtle opacity while dragging

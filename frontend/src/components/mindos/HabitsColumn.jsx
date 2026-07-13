@@ -8,7 +8,7 @@ import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import { djangoApi } from '@/api/djangoClient';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
-import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem } from './SortableTaskItem';
@@ -232,7 +232,13 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
             const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
             const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
             return (
-              <SortableTaskItem key={task.id} id={task.id}>
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 30 }}
+              >
+              <SortableTaskItem id={task.id}>
                     <div
                       className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
                       style={{ border: '1px solid var(--habit-border)' }}
@@ -313,28 +319,12 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                       </div>
                     </div>
               </SortableTaskItem>
+              </motion.div>
             );
           })}
         </AnimatePresence>
         </SortableContext>
-        <DragOverlay>
-          {activeId ? (() => {
-            const task = tasks.find(t => String(t.id) === activeId);
-            if (!task) return null;
-            const tv = task.value ?? task.rpgValue ?? 0;
-            const tvColor = getTaskValueColor(tv);
-            return (
-              <div className="flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ring-2 ring-primary shadow-2xl opacity-90" style={{ border: '1px solid var(--habit-border)' }}>
-                <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor }} />
-                <div className="flex-1 min-w-0">
-                  <div className="truncate flex items-center gap-1.5 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14 }}>
-                    <span>{task.name}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })() : null}
-        </DragOverlay>
+
       </div>
       </DndContext>
 

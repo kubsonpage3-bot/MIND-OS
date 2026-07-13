@@ -7,7 +7,7 @@ import { playSound } from '@/lib/soundEffects.js';
 import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import { djangoApi } from '@/api/djangoClient';
-import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem } from './SortableTaskItem';
@@ -315,7 +315,13 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
             const tvColor = getTaskValueColor(tv);
 
             return (
-              <SortableTaskItem key={task.id} id={task.id}>
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 30 }}
+              >
+              <SortableTaskItem id={task.id}>
                     <div
                       className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
                       style={{ border: '1px solid var(--habit-border)' }}
@@ -365,30 +371,12 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                       </div>
                     </div>
               </SortableTaskItem>
+              </motion.div>
             );
           })}
         </AnimatePresence>
         </SortableContext>
-        <DragOverlay>
-          {activeId ? (() => {
-            const task = tasks.find(t => String(t.id) === activeId);
-            if (!task) return null;
-            const tv = task.value ?? task.rpgValue ?? 0;
-            const tvColor = getTaskValueColor(tv);
-            return (
-              <div className="flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ring-2 ring-primary shadow-2xl opacity-90" style={{ border: '1px solid var(--habit-border)' }}>
-                {!task.is_completed && (
-                  <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor }} />
-                )}
-                <div className="flex-1 min-w-0 pr-2 overflow-hidden">
-                  <div className="font-semibold text-sm truncate" style={{ color: 'var(--habit-text)' }}>
-                    {task.name}
-                  </div>
-                </div>
-              </div>
-            );
-          })() : null}
-        </DragOverlay>
+
       </div>
       </DndContext>
 
