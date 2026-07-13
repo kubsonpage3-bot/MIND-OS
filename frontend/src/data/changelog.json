@@ -4,6 +4,10 @@
         "version": "1.4.58",
         "changes": [
             {
+                "type": "fix",
+                "text": "Fixed a bug where tasks could not be created from the column headers, and resolved an issue where task cards would disappear or flicker when dragged."
+            },
+            {
                 "type": "feature",
                 "text": "Added drag-and-drop support: you can now reorder tasks by long-pressing and dragging them. Also replaced the tiny delete button with a larger two-tap confirmation button to prevent accidental mis-clicks on mobile."
             }
