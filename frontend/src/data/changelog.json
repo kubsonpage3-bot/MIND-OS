@@ -9,10 +9,6 @@
             },
             {
                 "type": "fix",
-                "text": "Fixed top navigation tab names showing wrong translations (e.g. Stats showing instead of Projections)."
-            },
-            {
-                "type": "fix",
                 "text": "Fixed infinite empty scrolling on mobile when the History or Stats page has no logged items."
             }
         ]
