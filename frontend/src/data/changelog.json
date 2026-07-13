@@ -1,8 +1,12 @@
 [
     {
         "date": "2026-07-13",
-        "version": "1.4.58",
+        "version": "1.4.59",
         "changes": [
+            {
+                "type": "content",
+                "text": "Fully localized the onboarding tutorial and all section-specific guides into Russian."
+            },
             {
                 "type": "content",
                 "text": "Fully localized the 'Guides' and 'About' sections into Russian to complete the app's interface translation."

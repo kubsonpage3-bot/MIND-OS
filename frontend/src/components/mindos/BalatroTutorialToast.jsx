@@ -3,41 +3,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, ChevronLeft } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
+import { useTranslation } from "react-i18next";
 
 const TUTORIAL_STEPS = [
   {
     icon: "⚔️",
-    title: "Complete Tasks",
-    description: "Check off Habits and Dailies to deal damage to the active Boss.",
-    refersTo: "Tasks tab"
+    id: "tasks"
   },
   {
     icon: "🧠",
-    title: "Log Training",
-    description: "Train subjects to increase cognitive metrics and earn XP.",
-    refersTo: "Dashboard / Training"
+    id: "training"
   },
   {
     icon: "🏅",
-    title: "Level Up Character",
-    description: "Unlock permanent stat bonuses in the Skill Tree with SP.",
-    refersTo: "Character / Skill Tree"
+    id: "character"
   },
   {
     icon: "🛒",
-    title: "Equip Gear & Allies",
-    description: "Spend Gold in the Shop to boost your stats and bonuses.",
-    refersTo: "Character / Shop"
+    id: "shop"
   },
   {
     icon: "🏆",
-    title: "Climb the Ranks",
-    description: "Stay consistent to rank up from F to SSS and prestige for permanent bonuses.",
-    refersTo: "Dashboard Rank Progression"
+    id: "ranks"
   }
 ];
 
 export default function BalatroTutorialToast({ profile, forceOpen = false, onCloseCallback }) {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const queryClient = useQueryClient();
@@ -123,20 +115,20 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
             {/* Header */}
             <div className="flex items-center gap-3 mb-3">
               <div className="text-2xl drop-shadow-lg">{TUTORIAL_STEPS[currentStep].icon}</div>
-              <div>
-                <h3 className="font-bold text-white text-base tracking-wide" style={{ textShadow: "0 0 10px var(--habit-purple-glow)" }}>
-                  {TUTORIAL_STEPS[currentStep].title}
+              <div className="flex-1">
+                <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider mb-1">
+                  {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep].id}.title`)}
                 </h3>
-                <p className="text-[10px] uppercase font-mono tracking-widest text-white/50">
-                  {TUTORIAL_STEPS[currentStep].refersTo}
-                </p>
+                <div className="text-[10px] text-neon-cyan font-mono uppercase tracking-wider mb-2">
+                  {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep].id}.refersTo`)}
+                </div>
               </div>
             </div>
 
             {/* Body */}
             <div className="min-h-[48px] mb-5">
-              <p className="text-sm text-white/80 leading-relaxed font-medium">
-                {TUTORIAL_STEPS[currentStep].description}
+              <p className="font-mono text-xs text-white/80 leading-relaxed min-h-[40px]">
+                {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep].id}.description`)}
               </p>
             </div>
 
@@ -163,7 +155,7 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
                   onClick={handleClose}
                   className="px-3 py-1.5 text-xs font-bold text-white/40 hover:text-white transition-colors uppercase tracking-wider cursor-pointer"
                 >
-                  Skip
+                  {t('onboarding_tour.skip')}
                 </button>
                 
                 <div className="flex gap-1">
@@ -183,7 +175,7 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
                       boxShadow: "0 0 10px var(--habit-purple-glow)"
                     }}
                   >
-                    {currentStep === TUTORIAL_STEPS.length - 1 ? "Start" : "Next"}
+                    {currentStep === TUTORIAL_STEPS.length - 1 ? t('onboarding_tour.start') : t('onboarding_tour.next')}
                     {currentStep < TUTORIAL_STEPS.length - 1 && <ChevronRight size={14} className="-mr-1" />}
                   </button>
                 </div>

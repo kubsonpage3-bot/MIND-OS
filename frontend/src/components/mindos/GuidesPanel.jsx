@@ -54,7 +54,7 @@ export default function GuidesPanel() {
             >
               <span className="font-mono text-sm text-white/80 group-hover:text-white transition-colors tracking-wider flex items-center gap-2">
                 <span>{content?.icon}</span>
-                <span className="uppercase">{t(`guides.sections.${g.id}`, content?.title || g.id)}</span>
+                <span className="uppercase">{t(`section_guides.${g.id}.title`, content?.title || g.id)}</span>
               </span>
               <span className="text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs font-bold">
                 {t('guides.view')}
