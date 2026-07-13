@@ -22,9 +22,16 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
     const element = scrollRef?.current || document.body;
 
     const handleTouchStart = (e) => {
-      // 2. Preventing Drag-and-Drop Conflict
-      // If the touch originated on a drag handle, ignore it completely
-      if (e.target.closest('[data-rfd-drag-handle-context-id]')) {
+      // Ignore if touching any part of a draggable task card (not just the handle)
+      if (
+        e.target.closest('[data-rfd-drag-handle-context-id]') ||
+        e.target.closest('[data-rfd-draggable-context-id]')
+      ) {
+        ignoreDrag.current = true;
+        return;
+      }
+      // Also ignore if a DnD drag is already in progress
+      if (document.body.classList.contains('is-dragging-task')) {
         ignoreDrag.current = true;
         return;
       }
@@ -43,6 +50,11 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
     };
 
     const handleTouchMove = (e) => {
+      // Yield to DnD immediately if a drag-reorder is active
+      if (document.body.classList.contains('is-dragging-task')) {
+        ignoreDrag.current = true;
+        return;
+      }
       if (ignoreDrag.current || !isDragging.current || refreshing) return;
 
       const y = e.touches[0].clientY;
