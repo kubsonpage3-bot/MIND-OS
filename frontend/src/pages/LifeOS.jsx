@@ -68,7 +68,7 @@ export default function LifeOS() {
   }
 
   return (
-    <div className="min-h-screen pb-[130px] md:pb-8 bg-[#1a0a2e] text-white font-mono">
+    <div className="min-h-screen bg-[#1a0a2e] text-white font-mono">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-purple-900/60 bg-[#1a0a2e]/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">

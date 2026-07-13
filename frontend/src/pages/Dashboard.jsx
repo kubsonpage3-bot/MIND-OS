@@ -146,14 +146,19 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
   
+  // Group tool sections under a single key so the page doesn't unmount when switching sub-tabs
+  const getTabKey = (sec) => {
+    if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return "tools";
+    return sec || "dashboard";
+  };
+  const activeTabKey = getTabKey(activeSection);
+  
   const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
   const getSectionIndex = (sec) => {
     if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 3; // "tools"
     const idx = BOTTOM_TABS.indexOf(sec);
     return idx === -1 ? 0 : idx;
   };
-  
-  const motionKey = ["history", "pomodoro", "calendar", "stats"].includes(activeSection) ? "tools" : activeTab;
   
   const prevTabRef = useRef(activeTab);
   const directionRef = useRef(0);
@@ -567,7 +572,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           <TabErrorBoundary tabKey={activeTab}>
             <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
               <motion.div
-                key={motionKey}
+                key={activeTabKey}
                 custom={slideDirection}
                 variants={pageVariants}
                 initial="initial"
@@ -577,7 +582,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2}
                 onDragEnd={handleDragEnd}
-                className="w-full pb-[130px] md:pb-8"
+                className="w-full"
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
