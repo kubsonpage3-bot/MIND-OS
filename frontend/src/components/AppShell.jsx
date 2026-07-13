@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Brain, Sparkles, Cloud, CloudOff, RefreshCw } from "lucide-react";
-import { motion, useMotionValue, useTransform, useDragControls } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "@/components/navigation/Sidebar";
@@ -125,10 +125,6 @@ export default function AppShell({ defaultTab = "mind" }) {
   const rankXP = djangoProfile?.rank_xp || 0;
   const currentRank = djangoProfile?.rank_info?.current_id || "F";
 
-  const x = useMotionValue(0);
-  const opacity = useTransform(x, [-400, 0, 400], [0.5, 1, 0.5]);
-  const scale = useTransform(x, [-400, 0, 400], [0.9, 1, 0.9]);
-  const dragBlocked = useRef(false);
   const mainScrollRef = useRef(null);
 
   const getSwipeIndex = (section) => {
@@ -137,42 +133,35 @@ export default function AppShell({ defaultTab = "mind" }) {
     }
     return SWIPE_TABS.indexOf(section);
   };
-  
+
   const currentIndex = getSwipeIndex(activeSection);
   const prevSection = currentIndex > 0 ? MOBILE_SECTIONS[currentIndex - 1] : null;
   const nextSection = currentIndex !== -1 && currentIndex < MOBILE_SECTIONS.length - 1 ? MOBILE_SECTIONS[currentIndex + 1] : null;
 
-  const dragControls = useDragControls();
+  // Native touch swipe — zero conflict with @hello-pangea/dnd
+  const swipeStartX = useRef(0);
+  const swipeStartY = useRef(0);
+  const swipeLocked = useRef(null); // 'x' | 'y' | null
 
-  // Detect if touch starts inside a horizontally scrollable element or a drag-and-drop handle — if so, block swipe
-  const handlePointerDown = useCallback((e) => {
-    const target = e.target;
-    // Do NOT start the AppShell horizontal swipe if the user is interacting with a task drag handle 
-    // or a native horizontal scroll container. This prevents Framer Motion from stealing the touch events 
-    // from @hello-pangea/dnd's sensors.
-    const isDragHandle = target.closest('[data-rfd-drag-handle-context-id]');
-    const isScrollable = target.closest('[data-no-swipe], .overflow-x-auto, [style*="overflow-x: auto"], [style*="overflow-x:auto"]');
-    
-    if (!isDragHandle && !isScrollable && typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches) {
-      dragControls.start(e, { snapToCursor: false });
-    }
-  }, [dragControls]);
+  const handleTouchStartSwipe = useCallback((e) => {
+    const t = e.touches[0];
+    swipeStartX.current = t.clientX;
+    swipeStartY.current = t.clientY;
+    swipeLocked.current = null;
+  }, []);
 
-  const handleDragEnd = (e, { offset, velocity }) => {
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    if (!isMobile || dragBlocked.current) {
-      dragBlocked.current = false;
-      return;
-    }
-
-    const swipe = offset.x + velocity.x * 0.2;
-
-    if (swipe < -SWIPE_THRESHOLD && nextSection) {
-      handleNavigate(nextSection.navTarget, null);
-    } else if (swipe > SWIPE_THRESHOLD && prevSection) {
-      handleNavigate(prevSection.navTarget, null);
-    }
-  };
+  const handleTouchEndSwipe = useCallback((e) => {
+    if (!window.matchMedia('(max-width: 768px)').matches) return;
+    // Ignore if started on a drag handle
+    if (e.target.closest('[data-rfd-drag-handle-context-id]')) return;
+    if (e.target.closest('[data-no-swipe], .overflow-x-auto')) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeStartX.current;
+    const dy = t.clientY - swipeStartY.current;
+    if (Math.abs(dx) < Math.abs(dy) || Math.abs(dx) < SWIPE_THRESHOLD) return;
+    if (dx < 0 && nextSection) handleNavigate(nextSection.navTarget, null);
+    else if (dx > 0 && prevSection) handleNavigate(prevSection.navTarget, null);
+  }, [nextSection, prevSection, handleNavigate]);
   return (
     <div className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300">
       {/* HP damage red screen flash */}
@@ -217,16 +206,11 @@ export default function AppShell({ defaultTab = "mind" }) {
       </div>
 
       {/* Main content area */}
-      <motion.div
+      <div
         ref={mainScrollRef}
-        drag="x"
-        dragControls={dragControls}
-        dragListener={false}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.4}
-        onPointerDown={handlePointerDown}
-        onDragEnd={handleDragEnd}
-        style={{ x, opacity, scale, background: "var(--habit-bg)", transformOrigin: "center center", touchAction: "pan-y" }}
+        onTouchStart={handleTouchStartSwipe}
+        onTouchEnd={handleTouchEndSwipe}
+        style={{ background: "var(--habit-bg)", touchAction: "pan-y" }}
         className={`relative z-10 overflow-y-auto overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >
         <PullToRefresh onRefresh={handleManualSync} scrollRef={mainScrollRef}>
@@ -258,7 +242,7 @@ export default function AppShell({ defaultTab = "mind" }) {
         )}
         {activeApp === "life" && <LifeOS />}
         </PullToRefresh>
-      </motion.div>
+      </div>
 
       {/* Bottom navigation — mobile only */}
       <BottomNav
