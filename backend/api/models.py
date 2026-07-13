@@ -149,6 +149,13 @@ class UserProfile(models.Model):
     seen_guides = models.JSONField(
         default=dict, blank=True, verbose_name="Просмотренные гайды"
     )
+    # Скрытые инсайты
+    dismissed_insights = models.JSONField(
+        default=dict, blank=True, verbose_name="Скрытые инсайты"
+    )
+    last_insight_dismissed_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Время последнего скрытия инсайта"
+    )
     last_weekly_reset = models.CharField(
         max_length=10, null=True, blank=True, verbose_name="Неделя последнего сброса"
     )

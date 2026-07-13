@@ -1,38 +1,21 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 
-const DISMISS_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours
-
-// Safe localStorage wrapper
-function getDismissedInsights() {
-  try {
-    const raw = localStorage.getItem('mindos_dismissed_insights');
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    return {};
-  }
-}
-
-function setDismissedInsight(insightId) {
-  try {
-    const dismissed = getDismissedInsights();
-    dismissed[insightId] = Date.now();
-    localStorage.setItem('mindos_dismissed_insights', JSON.stringify(dismissed));
-  } catch (e) {
-    // Ignore
-  }
-}
+const DISMISS_COOLDOWN_MS = 48 * 60 * 60 * 1000; // 48 hours
+const GLOBAL_GRACE_PERIOD_MS = 60 * 60 * 1000; // 1 hour
 
 export function useGameplayInsights() {
   const { profile } = useDjangoAuth();
-  const [dismissed, setDismissed] = useState(getDismissedInsights);
+  const queryClient = useQueryClient();
+  const [now, setNow] = useState(Date.now());
 
-  // Auto-refresh dismissed state every minute so cool-down properly expires
+  // Auto-refresh the 'now' timestamp every minute so cooldowns properly expire
+  // and insights reappear if the app is left open.
   useEffect(() => {
     const interval = setInterval(() => {
-      setDismissed(getDismissedInsights());
+      setNow(Date.now());
     }, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -51,18 +34,48 @@ export function useGameplayInsights() {
     enabled: !!profile,
   });
 
+  const { mutate: dismissInsight } = useMutation({
+    mutationFn: (insightId) => {
+      if (!profile) return Promise.resolve();
+      
+      const currentTimeStr = new Date().toISOString();
+      const currentDismissed = profile.dismissed_insights || {};
+      
+      return djangoApi.profile.update({
+        dismissed_insights: {
+          ...currentDismissed,
+          [insightId]: currentTimeStr
+        },
+        last_insight_dismissed_at: currentTimeStr
+      });
+    },
+    onSuccess: () => {
+      // Obey SSOT: invalidate the character profile query so it refetches immediately
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+    }
+  });
+
   const activeInsight = useMemo(() => {
     if (!profile) return null;
 
-    const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
-    const tasks = Array.isArray(tasksData) ? tasksData : (tasksData?.results || []);
+    // Check global grace period
+    if (profile.last_insight_dismissed_at) {
+      const lastDismissedTime = new Date(profile.last_insight_dismissed_at).getTime();
+      if (now - lastDismissedTime < GLOBAL_GRACE_PERIOD_MS) {
+        return null; // Don't show any insights during the grace period
+      }
+    }
 
-    const now = Date.now();
+    const dismissed = profile.dismissed_insights || {};
     const isDismissed = (id) => {
-      const dismissTime = dismissed[id];
-      if (!dismissTime) return false;
+      const dismissTimeStr = dismissed[id];
+      if (!dismissTimeStr) return false;
+      const dismissTime = new Date(dismissTimeStr).getTime();
       return (now - dismissTime) < DISMISS_COOLDOWN_MS;
     };
+
+    const encounters = Array.isArray(encountersData) ? encountersData : (encountersData?.results || []);
+    const tasks = Array.isArray(tasksData) ? tasksData : (tasksData?.results || []);
 
     // 1. Prestige Eligibility
     if (profile.rank_info && (profile.rank_info.rank === 'SSS' || profile.rank_xp >= profile.prestige_xp_required)) {
@@ -132,7 +145,7 @@ export function useGameplayInsights() {
     }
 
     // 5. Zero Active Mutators
-    const mutators = profile.active_mutators || [];
+    const mutators = Array.isArray(profile.active_mutators) ? profile.active_mutators : [];
     if (mutators.length === 0 && profile.level >= 3) {
       if (!isDismissed('no_mutators')) {
         return {
@@ -150,7 +163,7 @@ export function useGameplayInsights() {
     }
 
     // 6. Empty Ally Slots
-    const allies = profile.active_allies || [];
+    const allies = Array.isArray(profile.active_allies) ? profile.active_allies : [];
     if (allies.length === 0) {
       if (!isDismissed('no_allies')) {
         return {
@@ -184,7 +197,7 @@ export function useGameplayInsights() {
     }
 
     // 8. Rival Discovery
-    const seenGuides = profile.seen_guides || [];
+    const seenGuides = Array.isArray(profile.seen_guides) ? profile.seen_guides : [];
     if (!seenGuides.includes('rival')) {
       if (!isDismissed('rival_discovery')) {
         return {
@@ -200,12 +213,7 @@ export function useGameplayInsights() {
     }
 
     return null;
-  }, [profile, encountersData, tasksData, dismissed]);
-
-  const dismissInsight = (id) => {
-    setDismissedInsight(id);
-    setDismissed(getDismissedInsights());
-  };
+  }, [profile, encountersData, tasksData, now]);
 
   return { activeInsight, dismissInsight };
 }

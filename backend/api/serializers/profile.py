@@ -91,6 +91,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "notification_preferences",
             "offline_seconds",
             "weekly_xp",
+            "dismissed_insights",
+            "last_insight_dismissed_at",
         )
         read_only_fields = (
             "id",

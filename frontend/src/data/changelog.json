@@ -4,6 +4,10 @@
         "version": "1.4.61",
         "changes": [
             {
+                "type": "feature",
+                "text": "Gameplay Insights are now synced across all your devices! We also reduced the frequency so they won't appear as often, giving you a 1-hour quiet period after dismissing any tip."
+            },
+            {
                 "type": "fix",
                 "text": "Fixed a critical issue where clicking 'Open Shop' or other actions on Gameplay Insights would cause a white screen crash due to an invalid routing state."
             },
