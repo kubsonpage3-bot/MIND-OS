@@ -24,7 +24,7 @@ export default function RankRoadTable({ rankXP = 0 }) {
     <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
       <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('rankRoad.title')}</div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" onPointerDown={(e) => e.stopPropagation()}>
         <table className="w-full text-xs font-mono">
           <thead>
             <tr className="text-muted-foreground/50 border-b border-border">

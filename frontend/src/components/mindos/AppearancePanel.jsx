@@ -222,6 +222,7 @@ export default function AppearancePanel() {
             <div className="text-[10px] font-mono text-muted-foreground">{t('settings.volume')}: {settings.soundVolume || 50}%</div>
             <input
               type="range" min="0" max="100"
+              onPointerDown={(e) => e.stopPropagation()}
               value={settings.soundVolume || 50}
               onChange={e => updateSetting("soundVolume", parseInt(e.target.value))}
               className="w-full"
