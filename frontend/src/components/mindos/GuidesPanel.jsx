@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import TabGuideModal from "./TabGuideModal";
 import { GUIDE_CONTENT } from "@/constants/guideContent";
+import { useTranslation } from "react-i18next";
 
 const ALL_GUIDES = [
   { id: "dashboard" },
@@ -16,6 +17,7 @@ const ALL_GUIDES = [
 ];
 
 export default function GuidesPanel() {
+  const { t } = useTranslation();
   const [activeGuide, setActiveGuide] = useState(null);
 
   const handleReplayMainTutorial = () => {
@@ -25,7 +27,7 @@ export default function GuidesPanel() {
   return (
     <div className="space-y-6">
       <div className="mb-4 text-sm text-white/60">
-        Replay any of the introductory guides for the various sections of MIND OS.
+        {t('guides.description')}
       </div>
 
       <button 
@@ -34,10 +36,10 @@ export default function GuidesPanel() {
       >
         <span className="font-mono text-sm text-white/90 font-bold tracking-wider flex items-center gap-2">
           <span>🎓</span>
-          <span className="uppercase text-neon-cyan">Replay Main Tutorial</span>
+          <span className="uppercase text-neon-cyan">{t('guides.replayTutorial')}</span>
         </span>
         <span className="text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs font-bold">
-          START
+          {t('guides.start')}
         </span>
       </button>
 
@@ -52,10 +54,10 @@ export default function GuidesPanel() {
             >
               <span className="font-mono text-sm text-white/80 group-hover:text-white transition-colors tracking-wider flex items-center gap-2">
                 <span>{content?.icon}</span>
-                <span className="uppercase">{content?.title || g.id}</span>
+                <span className="uppercase">{t(`guides.sections.${g.id}`, content?.title || g.id)}</span>
               </span>
               <span className="text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs font-bold">
-                VIEW
+                {t('guides.view')}
               </span>
             </button>
           );

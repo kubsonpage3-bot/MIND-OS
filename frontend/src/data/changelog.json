@@ -4,6 +4,10 @@
         "version": "1.4.58",
         "changes": [
             {
+                "type": "content",
+                "text": "Fully localized the 'Guides' and 'About' sections into Russian to complete the app's interface translation."
+            },
+            {
                 "type": "feature",
                 "text": "Streamlined the settings menu by removing unused or confusing configurations (Pomodoro Duration, Streak Freeze, Auto-archive, Domain Weights, and Units)."
             },

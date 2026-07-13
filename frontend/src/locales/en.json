@@ -1538,5 +1538,49 @@
     "Reading & Writing": "Reading & Writing",
     "Work & Career": "Work & Career",
     "Other": "Other"
+  },
+  "guides": {
+    "description": "Replay any of the introductory guides for the various sections of MIND OS.",
+    "replayTutorial": "Replay Main Tutorial",
+    "start": "START",
+    "view": "VIEW",
+    "sections": {
+      "dashboard": "Cognitive Metrics",
+      "training": "Training",
+      "tasks": "Tasks",
+      "character": "Character",
+      "skill_tree": "Skill Tree",
+      "allies": "Allies",
+      "mutators": "Mutators",
+      "shop": "Shop",
+      "rival": "Rival",
+      "party": "Party"
+    }
+  },
+  "about": {
+    "header": "About",
+    "version": "Version:",
+    "build": "Build:",
+    "platform": "Platform:",
+    "description": "MIND OS is a gamified productivity system that combines cognitive training with RPG mechanics. Track habits, complete daily tasks, defeat bosses, and level up your character while improving your real-life cognitive abilities.",
+    "coreFeatures": "Core Features",
+    "features": {
+      "metrics": "Cognitive metric tracking (GF, GC, PS, VM)",
+      "tasks": "Task management (Habits, Dailies, To-Dos)",
+      "bosses": "Boss battles & rank progression",
+      "character": "Character customization & skill trees",
+      "allies": "Ally system & achievements",
+      "cloud": "Cloud sync across devices",
+      "pomodoro": "Pomodoro timer & calendar"
+    },
+    "links": {
+      "documentation": "Documentation",
+      "feedback": "Feedback & Bug Report",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "support1": "Want to support the developer?",
+    "support2": "You can send a donation via PayPal to: kubsonpage3@gmail.com",
+    "builtWith": "Built with ❤️ for MIND OS"
   }
 }
