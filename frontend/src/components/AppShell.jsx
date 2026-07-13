@@ -138,30 +138,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   const prevSection = currentIndex > 0 ? MOBILE_SECTIONS[currentIndex - 1] : null;
   const nextSection = currentIndex !== -1 && currentIndex < MOBILE_SECTIONS.length - 1 ? MOBILE_SECTIONS[currentIndex + 1] : null;
 
-  // Native touch swipe — zero conflict with @dnd-kit
-  const swipeStartX = useRef(0);
-  const swipeStartY = useRef(0);
-  const swipeLocked = useRef(null); // 'x' | 'y' | null
-
-  const handleTouchStartSwipe = useCallback((e) => {
-    const t = e.touches[0];
-    swipeStartX.current = t.clientX;
-    swipeStartY.current = t.clientY;
-    swipeLocked.current = null;
-  }, []);
-
-  const handleTouchEndSwipe = useCallback((e) => {
-    if (!window.matchMedia('(max-width: 768px)').matches) return;
-    // Ignore if dragging a task
-    if (document.body.classList.contains('dnd-dragging')) return;
-    if (e.target.closest('[data-no-swipe], .overflow-x-auto')) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - swipeStartX.current;
-    const dy = t.clientY - swipeStartY.current;
-    if (Math.abs(dx) < Math.abs(dy) || Math.abs(dx) < SWIPE_THRESHOLD) return;
-    if (dx < 0 && nextSection) handleNavigate(nextSection.navTarget, null);
-    else if (dx > 0 && prevSection) handleNavigate(prevSection.navTarget, null);
-  }, [nextSection, prevSection, handleNavigate]);
+  // Native swipe is now handled beautifully by Framer Motion drag="x" in Dashboard.jsx
   return (
     <div className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300">
       {/* HP damage red screen flash */}
@@ -207,8 +184,6 @@ export default function AppShell({ defaultTab = "mind" }) {
 
       <div
         ref={mainScrollRef}
-        onTouchStart={handleTouchStartSwipe}
-        onTouchEnd={handleTouchEndSwipe}
         style={{ background: "var(--habit-bg)" }}
         className={`relative z-10 overflow-y-auto overscroll-y-none overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >

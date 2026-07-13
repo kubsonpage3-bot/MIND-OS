@@ -182,6 +182,32 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   };
 
+  const swipePower = (offset, velocity) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  const handleDragEnd = (e, { offset, velocity }) => {
+    const swipe = swipePower(offset.x, velocity.x);
+    const threshold = 10000; // swipe confidence threshold
+    
+    // Ignore drag if we are currently dragging a task
+    if (document.body.classList.contains('dnd-dragging')) return;
+
+    if (swipe < -threshold) {
+      // Swiped left -> Next tab
+      const currentIdx = getSectionIndex(activeTab);
+      if (currentIdx < MOBILE_SECTIONS_ORDER.length - 1) {
+        onSectionChange(MOBILE_SECTIONS_ORDER[currentIdx + 1]);
+      }
+    } else if (swipe > threshold) {
+      // Swiped right -> Prev tab
+      const currentIdx = getSectionIndex(activeTab);
+      if (currentIdx > 0) {
+        onSectionChange(MOBILE_SECTIONS_ORDER[currentIdx - 1]);
+      }
+    }
+  };
+
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
   const [externalDamage, setExternalDamage] = useState(null);
@@ -542,6 +568,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
+                drag={typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={handleDragEnd}
                 className="w-full"
               >
                 {/* Dashboard — Habitica-style layout */}
