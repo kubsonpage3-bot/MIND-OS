@@ -109,23 +109,32 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
           </p>
         )}
         {isMobileApp() ? (
-          <div className="text-center space-y-2">
-            <p className="text-white/50 text-sm">
-              {t('dashboard.premium_available')}
+          <div className="text-center space-y-3">
+            <p className="text-white/70 text-sm font-mono">
+              Want Premium? Visit the site to purchase:
             </p>
-            
             <div
-              className="block px-6 py-2 rounded-lg
+              className="inline-block px-6 py-2 rounded-lg
                          border border-amber-500/40
-                         text-amber-400 text-sm font-ui"
+                         text-amber-400 text-sm font-mono tracking-wide"
             >
               🌐 mindos.pages.dev
             </div>
           </div>
         ) : (
-          <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-            {t('dashboard.btn_upgrade')}
-          </button>
+          <div className="flex flex-col items-center gap-3">
+            <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold font-mono text-sm rounded transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+              {t('dashboard.btn_upgrade')}
+            </button>
+            <a
+              href="https://mindos.pages.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-mono text-amber-400/70 hover:text-amber-400 transition-colors underline underline-offset-2"
+            >
+              🌐 mindos.pages.dev
+            </a>
+          </div>
         )}
       </div>
       <AnimatePresence>
@@ -725,7 +734,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 )}
                 {activeSection === "pomodoro" && (
                   <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
-                    <PomodoroPanel />
+                    <PremiumGate isPremium={profile?.is_premium}>
+                      <PomodoroPanel />
+                    </PremiumGate>
                   </TabPanel>
                 )}
                 {activeSection === "calendar" && (

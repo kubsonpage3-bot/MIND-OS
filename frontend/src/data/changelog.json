@@ -1,6 +1,20 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.74",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed Pomodoro tabs (Stats, History, Settings) not appearing on desktop — they were using a mobile-only nav component."
+            },
+            {
+                "type": "feature",
+                "text": "Restored Premium gate on Pomodoro and Calendar: mobile shows a 'Visit mindos.pages.dev' notice, desktop shows an upgrade button plus a clickable link to the site."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.73",
         "changes": [
             {
