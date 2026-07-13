@@ -636,7 +636,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="w-full min-h-[calc(100dvh-200px)] md:min-h-0"
+                className="w-full min-h-[50dvh] md:min-h-0"
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (

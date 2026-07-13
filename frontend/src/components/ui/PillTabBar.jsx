@@ -23,7 +23,6 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
           background: "rgba(255,255,255,0.05)",
           border: "1px solid rgba(255,255,255,0.08)",
         }}
-        onPointerDownCapture={(e) => e.stopPropagation()}
       >
         {/* Sliding active indicator */}
         {activeIndex >= 0 && (
@@ -59,7 +58,7 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
                 className="font-mono text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-all duration-200"
                 style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
               >
-                {t(`sidebar.sections.${tab.id}`, tab.label || tab.id)}
+                {tab.label ? (tab.label.includes('.') ? t(tab.label) : tab.label) : t(`sidebar.sections.${tab.id}`, tab.id)}
               </span>
             </button>
           );
