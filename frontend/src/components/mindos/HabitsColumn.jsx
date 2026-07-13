@@ -8,7 +8,11 @@ import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import { djangoApi } from '@/api/djangoClient';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
-import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { useTaskDndSensors } from '../../utils/dndConfig';
+import { SortableTaskItem } from './SortableTaskItem';
+import { useState } from 'react';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 
 function getTaskValueColor(tv) {
@@ -58,6 +62,52 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   const { profile } = useDjangoAuth();
   const hp = profile?.hp ?? 100;
   const maxHp = profile?.hp_max ?? 100;
+
+  const sensors = useTaskDndSensors();
+  const [activeId, setActiveId] = useState(null);
+
+  const handleDragStart = (e) => {
+    setActiveId(e.active.id);
+    document.body.classList.add('dnd-dragging');
+  };
+
+  const handleDragEnd = (e) => {
+    setActiveId(null);
+    document.body.classList.remove('dnd-dragging');
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+
+    queryClient.setQueryData(["tasks"], (oldTasks) => {
+      if (!oldTasks) return oldTasks;
+      const newTasks = [...oldTasks];
+      const oldIndex = newTasks.findIndex(t => String(t.id) === active.id);
+      const newIndex = newTasks.findIndex(t => String(t.id) === over.id);
+      if (oldIndex === -1 || newIndex === -1) return oldTasks;
+
+      const columnType = newTasks[oldIndex].type;
+      const columnTasks = newTasks.filter(t => t.type === columnType);
+      const otherTasks = newTasks.filter(t => t.type !== columnType);
+
+      const oldColIndex = columnTasks.findIndex(t => String(t.id) === active.id);
+      const newColIndex = columnTasks.findIndex(t => String(t.id) === over.id);
+      
+      const reorderedCol = arrayMove(columnTasks, oldColIndex, newColIndex);
+      reorderedCol.forEach((t, i) => { t.order = i; });
+
+      const updates = reorderedCol.map(t => ({ id: t.id, order: t.order }));
+      djangoApi.tasks.reorder(updates).catch(err => {
+        console.error('Reorder failed', err);
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      });
+
+      return [...otherTasks, ...reorderedCol];
+    });
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+    document.body.classList.remove('dnd-dragging');
+  };
 
   const completeMutation = useMutation({
     mutationFn: (/** @type {any} */ { task, positive }) => djangoApi.tasks.complete(task.id, positive),
@@ -158,14 +208,12 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       </AnimatePresence>
 
       {/* Task list */}
-      <Droppable droppableId="habit">
-        {(provided) => (
-          <div 
-            className="flex-1 p-3 space-y-2" 
-            style={{ background: 'var(--habit-panel)', minHeight: 120 }}
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-          >
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
+        <div 
+          className="flex-1 p-3 space-y-2" 
+          style={{ background: 'var(--habit-panel)', minHeight: 120 }}
+        >
+          <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
             {tasks.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-4xl mb-2">💪</div>
@@ -184,17 +232,9 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
             const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
             const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
             return (
-              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    style={provided.draggableProps.style}
-                    className={snapshot.isDragging ? 'z-50' : ''}
-                  >
+              <SortableTaskItem key={task.id} id={task.id}>
                     <div
-                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary shadow-2xl' : ''}`}
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                     >
                       {/* Task Value color bar */}
@@ -272,16 +312,31 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
                       </div>
                     </div>
-                  </div>
-                )}
-              </Draggable>
+              </SortableTaskItem>
             );
           })}
         </AnimatePresence>
-        {provided.placeholder}
+        </SortableContext>
+        <DragOverlay>
+          {activeId ? (() => {
+            const task = tasks.find(t => String(t.id) === activeId);
+            if (!task) return null;
+            const tv = task.value ?? task.rpgValue ?? 0;
+            const tvColor = getTaskValueColor(tv);
+            return (
+              <div className="flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ring-2 ring-primary shadow-2xl opacity-90" style={{ border: '1px solid var(--habit-border)' }}>
+                <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor }} />
+                <div className="flex-1 min-w-0">
+                  <div className="truncate flex items-center gap-1.5 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14 }}>
+                    <span>{task.name}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })() : null}
+        </DragOverlay>
       </div>
-      )}
-      </Droppable>
+      </DndContext>
 
     </div>
   );

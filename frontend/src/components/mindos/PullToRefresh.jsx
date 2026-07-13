@@ -22,16 +22,8 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
     const element = scrollRef?.current || document.body;
 
     const handleTouchStart = (e) => {
-      // Ignore if touching any part of a draggable task card (not just the handle)
-      if (
-        e.target.closest('[data-rfd-drag-handle-context-id]') ||
-        e.target.closest('[data-rfd-draggable-context-id]')
-      ) {
-        ignoreDrag.current = true;
-        return;
-      }
-      // Also ignore if a DnD drag is already in progress
-      if (document.body.classList.contains('is-dragging-task')) {
+      // Ignore if a DnD drag is already in progress
+      if (document.body.classList.contains('dnd-dragging')) {
         ignoreDrag.current = true;
         return;
       }
@@ -51,7 +43,7 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
 
     const handleTouchMove = (e) => {
       // Yield to DnD immediately if a drag-reorder is active
-      if (document.body.classList.contains('is-dragging-task')) {
+      if (document.body.classList.contains('dnd-dragging')) {
         ignoreDrag.current = true;
         return;
       }

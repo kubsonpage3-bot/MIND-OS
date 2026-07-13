@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DragDropContext } from '@hello-pangea/dnd';
+
 import HabitsColumn from "./HabitsColumn";
 import DailiesColumn from "./DailiesColumn";
 import TodosColumn from "./TodosColumn";
@@ -64,44 +64,9 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
     setCreateModalOpen(true);
   };
 
-  const handleDragStart = (start) => {
-    document.body.classList.add('is-dragging-task');
-  };
-
-  const handleDragEnd = async (result) => {
-    document.body.classList.remove('is-dragging-task');
-    if (!result.destination) return;
-    const { source, destination } = result;
-
-    if (source.droppableId !== destination.droppableId) return;
-    if (source.index === destination.index) return;
-
-    queryClient.setQueryData(["tasks"], (oldTasks) => {
-      if (!oldTasks) return oldTasks;
-      const newTasks = [...oldTasks];
-      const columnType = source.droppableId;
-
-      const columnTasks = newTasks.filter(t => t.type === columnType);
-      const otherTasks = newTasks.filter(t => t.type !== columnType);
-
-      const [movedTask] = columnTasks.splice(source.index, 1);
-      if (!movedTask) return oldTasks;
-      columnTasks.splice(destination.index, 0, movedTask);
-
-      columnTasks.forEach((t, i) => { t.order = i; });
-
-      const updates = columnTasks.map(t => ({ id: t.id, order: t.order }));
-      djangoApi.tasks.reorder(updates).catch(e => {
-        console.error('Reorder failed', e);
-        queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      });
-
-      return [...otherTasks, ...columnTasks];
-    });
-  };
 
   return (
-    <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <>
       <TabGuideModal guideId="tasks" profile={profile} />
 
       {/* Mobile sub-tab bar */}
@@ -128,6 +93,6 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
       <CreateTaskModal isOpen={isCreateModalOpen} onClose={() => setCreateModalOpen(false)}
         formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
-    </DragDropContext>
+    </>
   );
 }

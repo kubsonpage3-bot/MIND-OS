@@ -166,7 +166,7 @@
     touch-action: manipulation;
   }
 
-  body.is-dragging-task {
+  body.dnd-dragging {
     /* Physically lock the body from scrolling during drag to prevent 'teleporting' native scroll override */
     overflow: hidden !important;
     touch-action: none !important;

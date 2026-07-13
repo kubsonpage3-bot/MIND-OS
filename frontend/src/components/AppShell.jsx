@@ -138,7 +138,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   const prevSection = currentIndex > 0 ? MOBILE_SECTIONS[currentIndex - 1] : null;
   const nextSection = currentIndex !== -1 && currentIndex < MOBILE_SECTIONS.length - 1 ? MOBILE_SECTIONS[currentIndex + 1] : null;
 
-  // Native touch swipe — zero conflict with @hello-pangea/dnd
+  // Native touch swipe — zero conflict with @dnd-kit
   const swipeStartX = useRef(0);
   const swipeStartY = useRef(0);
   const swipeLocked = useRef(null); // 'x' | 'y' | null
@@ -152,8 +152,8 @@ export default function AppShell({ defaultTab = "mind" }) {
 
   const handleTouchEndSwipe = useCallback((e) => {
     if (!window.matchMedia('(max-width: 768px)').matches) return;
-    // Ignore if started on a drag handle
-    if (e.target.closest('[data-rfd-drag-handle-context-id]')) return;
+    // Ignore if dragging a task
+    if (document.body.classList.contains('dnd-dragging')) return;
     if (e.target.closest('[data-no-swipe], .overflow-x-auto')) return;
     const t = e.changedTouches[0];
     const dx = t.clientX - swipeStartX.current;
