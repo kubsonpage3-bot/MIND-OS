@@ -617,7 +617,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </AnimatePresence>
 
         {/* Main content area */}
-        <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5" style={{ background: 'transparent' }}>
+        <div ref={containerRef} className="rounded-none md:rounded-2xl p-0 py-3 md:p-5" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
             <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
               <motion.div
@@ -627,7 +627,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                ref={containerRef}
                 className="w-full min-h-[calc(100dvh-200px)] md:min-h-0"
               >
                 {/* Dashboard — Habitica-style layout */}
@@ -726,9 +725,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 )}
                 {activeSection === "pomodoro" && (
                   <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
-                    <PremiumGate isPremium={profile?.is_premium} showNotice={true}>
-                      <PomodoroPanel />
-                    </PremiumGate>
+                    <PomodoroPanel />
                   </TabPanel>
                 )}
                 {activeSection === "calendar" && (
