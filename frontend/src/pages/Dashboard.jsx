@@ -199,83 +199,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   };
 
-  // Robust native touch swipe tracking
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    let touchStart = null;
-    let isHorizontal = null;
-
-    const handleStart = (e) => {
-      if (document.body.classList.contains('dnd-dragging')) return;
-      const t = e.touches[0];
-      touchStart = { x: t.clientX, y: t.clientY };
-      isHorizontal = null;
-    };
-
-    const handleMove = (e) => {
-      if (!touchStart || document.body.classList.contains('dnd-dragging')) return;
-      const t = e.touches[0];
-      const dx = t.clientX - touchStart.x;
-      const dy = t.clientY - touchStart.y;
-
-      if (isHorizontal === null) {
-        // Disambiguate horizontal vs vertical swipe after moving at least 8 pixels
-        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-          isHorizontal = Math.abs(dx) > Math.abs(dy) * 1.5;
-        }
-      }
-
-      if (isHorizontal === true) {
-        // Prevent default browser behavior (scrolling/overscroll) for horizontal gestures
-        // This keeps the gesture active and prevents 'touchcancel' from firing.
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-      }
-    };
-
-    const handleEnd = (e) => {
-      if (!touchStart) return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - touchStart.x;
-      const dy = t.clientY - touchStart.y;
-      touchStart = null;
-
-      // Ensure it was a dominant horizontal swipe and crossed the min threshold (e.g. 50px)
-      if (isHorizontal === true && Math.abs(dx) >= 60) {
-        const currentIdx = getSectionIndex(activeTab);
-        if (dx < 0) {
-          // Swipe left → Next tab
-          if (currentIdx < BOTTOM_TABS.length - 1) {
-            const nextTab = BOTTOM_TABS[currentIdx + 1];
-            onSectionChange(nextTab === "tools" ? "history" : nextTab);
-          }
-        } else {
-          // Swipe right → Prev tab
-          if (currentIdx > 0) {
-            const prevTab = BOTTOM_TABS[currentIdx - 1];
-            onSectionChange(prevTab === "tools" ? "history" : prevTab);
-          }
-        }
-      }
-    };
-
-    el.addEventListener('touchstart', handleStart, { passive: true });
-    el.addEventListener('touchmove', handleMove, { passive: false }); // Passive false allows preventDefault()
-    el.addEventListener('touchend', handleEnd, { passive: true });
-    el.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
-
-    return () => {
-      el.removeEventListener('touchstart', handleStart);
-      el.removeEventListener('touchmove', handleMove);
-      el.removeEventListener('touchend', handleEnd);
-    };
-  }, [activeTab, onSectionChange]);
-
+  // Removed custom touch swipe tracker in favor of framer-motion native drag-follow
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
   const [externalDamage, setExternalDamage] = useState(null);
@@ -626,7 +550,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </AnimatePresence>
 
         {/* Main content area */}
-        <div ref={containerRef} className="rounded-none md:rounded-2xl p-0 py-3 md:p-5" style={{ background: 'transparent' }}>
+        <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
             <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
               <motion.div
@@ -636,7 +560,32 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="w-full min-h-[calc(100dvh-200px)] md:min-h-0"
+                className="w-full min-h-[calc(100dvh-200px)] md:min-h-0 touch-pan-y"
+                drag={typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(e, { offset, velocity }) => {
+                  if (document.body.classList.contains('dnd-dragging')) return;
+                  const swipe = offset.x;
+                  const swipeVelocity = velocity.x;
+                  const threshold = 60;
+                  const velocityThreshold = 500;
+                  const currentIdx = getSectionIndex(activeTab);
+                  
+                  if (swipe < -threshold || swipeVelocity < -velocityThreshold) {
+                    // Swipe left -> Next tab
+                    if (currentIdx < BOTTOM_TABS.length - 1) {
+                      const nextTab = BOTTOM_TABS[currentIdx + 1];
+                      onSectionChange(nextTab === "tools" ? "history" : nextTab);
+                    }
+                  } else if (swipe > threshold || swipeVelocity > velocityThreshold) {
+                    // Swipe right -> Prev tab
+                    if (currentIdx > 0) {
+                      const prevTab = BOTTOM_TABS[currentIdx - 1];
+                      onSectionChange(prevTab === "tools" ? "history" : prevTab);
+                    }
+                  }
+                }}
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
