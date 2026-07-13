@@ -642,7 +642,7 @@ function PartyView({ party }) {
       )}
 
       {/* Sub-tab switcher */}
-      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDownCapture={(e) => e.stopPropagation()}>
+      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDown={(e) => e.stopPropagation()}>
         {[
           { id: "members", label: "MEMBERS" },
           { id: "feed", label: "FEED" },
