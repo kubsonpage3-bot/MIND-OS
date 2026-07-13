@@ -57,7 +57,7 @@ function EventBlock({ event, colDate, handlers }) {
 
   return (
     <div
-      onMouseDown={(e) => { if (!isTask && e.button === 0) onDragStart(e, event, colDate); }}
+      onPointerDown={(e) => { if (!isTask && e.button === 0) onDragStart(e, event, colDate); }}
       onDoubleClick={(e) => { e.stopPropagation(); if (!isTask) openEdit(event); }}
       className={`absolute left-0.5 right-0.5 rounded-lg overflow-hidden select-none group z-10 ${isTask ? 'cursor-default' : 'cursor-grab'}`}
       style={{
@@ -65,6 +65,7 @@ function EventBlock({ event, colDate, handlers }) {
         backgroundColor: event.color + "22",
         borderLeft: `3px solid ${event.color}`,
         boxShadow: `0 0 8px ${event.color}33`,
+        touchAction: "none"
       }}
     >
       <div className="px-1.5 py-1 h-full flex flex-col justify-between">
@@ -83,13 +84,14 @@ function EventBlock({ event, colDate, handlers }) {
       {!isTask && (
         <>
           <div
-            onMouseDown={(e) => { e.stopPropagation(); onResizeStart(e, event); }}
+            onPointerDown={(e) => { e.stopPropagation(); onResizeStart(e, event); }}
             className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ touchAction: "none" }}
           >
             <div className="w-8 h-0.5 rounded-full bg-foreground/30" />
           </div>
           <button
-            onMouseDown={(e) => { e.stopPropagation(); deleteEvent(event.id); }}
+            onPointerDown={(e) => { e.stopPropagation(); deleteEvent(event.id); }}
             className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity w-4 h-4 flex items-center justify-center rounded text-muted-foreground hover:text-foreground"
           >
             <X className="w-2.5 h-2.5" />
@@ -289,6 +291,9 @@ export default function CalendarPanel() {
   // ── DRAG: move event ──────────────────────────────────────────────────────
   const onDragStart = useCallback((e, event, colDate) => {
     e.stopPropagation();
+    if (e.currentTarget && typeof e.currentTarget.setPointerCapture === "function") {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
     e.preventDefault();
     const startMins = timeToMins(event.startTime);
     const endMins = timeToMins(event.endTime);
@@ -338,17 +343,20 @@ export default function CalendarPanel() {
       }
       }
       dragRef.current = null;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
     };
 
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   }, []);
 
   // ── RESIZE: bottom handle ─────────────────────────────────────────────────
   const onResizeStart = useCallback((e, event) => {
     e.stopPropagation();
+    if (e.currentTarget && typeof e.currentTarget.setPointerCapture === "function") {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
     e.preventDefault();
     resizeRef.current = { eventId: event.id, startMins: timeToMins(event.startTime) };
 
@@ -375,12 +383,12 @@ export default function CalendarPanel() {
         });
       }
       resizeRef.current = null;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
     };
 
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   }, []);
 
   // ── CLICK ON GRID to create event ────────────────────────────────────────

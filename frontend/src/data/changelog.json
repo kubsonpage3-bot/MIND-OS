@@ -1,6 +1,20 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.63",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Enabled calendar event dragging and resizing on mobile devices, matching the desktop experience."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed tab navigation scroll resetting on stats/tools sub-tabs and expanded mobile swipe hit areas to avoid dead zones."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.62",
         "changes": [
             {
