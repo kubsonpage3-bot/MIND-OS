@@ -145,6 +145,43 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
+  
+  const MOBILE_SECTIONS_ORDER = ["dashboard", "tasks", "character", "history", "pomodoro", "calendar", "stats", "settings"];
+  const getSectionIndex = (sec) => {
+    const idx = MOBILE_SECTIONS_ORDER.indexOf(sec);
+    return idx === -1 ? 0 : idx;
+  };
+  
+  const prevTabRef = useRef(activeTab);
+  const directionRef = useRef(0);
+  if (activeTab !== prevTabRef.current) {
+    const oldIdx = getSectionIndex(prevTabRef.current);
+    const newIdx = getSectionIndex(activeTab);
+    directionRef.current = newIdx > oldIdx ? 1 : newIdx < oldIdx ? -1 : 0;
+    prevTabRef.current = activeTab;
+  }
+  const slideDirection = directionRef.current;
+
+  const pageVariants = {
+    initial: (direction) => {
+      const isMobile = typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches;
+      if (!isMobile) return { opacity: 0, y: 15 };
+      return { opacity: 0, x: direction > 0 ? 30 : direction < 0 ? -30 : 0, filter: "blur(2px)" };
+    },
+    animate: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { type: "spring", stiffness: 400, damping: 30 }
+    },
+    exit: (direction) => {
+      const isMobile = typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches;
+      if (!isMobile) return { opacity: 0, y: -15 };
+      return { opacity: 0, x: direction > 0 ? -30 : direction < 0 ? 30 : 0, filter: "blur(2px)", transition: { duration: 0.15 } };
+    }
+  };
+
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
   const [externalDamage, setExternalDamage] = useState(null);
@@ -497,12 +534,15 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         {/* Main content area */}
         <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
-            <>
+            <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? 0 : 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15 }}
+                custom={slideDirection}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="w-full"
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
@@ -620,7 +660,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                   </TabPanel>
                 )}
               </motion.div>
-            </>
+            </AnimatePresence>
           </TabErrorBoundary>
         </div>
       </main>
