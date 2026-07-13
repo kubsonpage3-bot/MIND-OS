@@ -354,7 +354,7 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
   return (
     <div className="space-y-4 relative">
       {/* ── Sub-tab switcher: RIVAL | PARTY ── */}
-      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
+      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDownCapture={(e) => e.stopPropagation()}>
         {[
           { id: "rival", label: "RIVAL" },
           { id: "party", label: "PARTY" },

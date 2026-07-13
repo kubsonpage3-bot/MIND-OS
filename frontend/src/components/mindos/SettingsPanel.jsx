@@ -65,7 +65,7 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }}>
+      <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDownCapture={(e) => e.stopPropagation()}>
         {SETTINGS_TABS.map(tTab => {
           const isActive = showDataTab === tTab.id;
           return (
