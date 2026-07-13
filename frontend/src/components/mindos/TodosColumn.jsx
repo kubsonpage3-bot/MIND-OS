@@ -235,7 +235,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
             return (
               <SortableTaskItem key={task.id} id={task.id}>
                     <div
-                      className="flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150"
+                      className="flex-1 min-w-0 flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150"
                       style={{
                         background: 'var(--habit-panel)',
                         border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,

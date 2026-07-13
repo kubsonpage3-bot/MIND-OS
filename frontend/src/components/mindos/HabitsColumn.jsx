@@ -234,7 +234,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
             return (
               <SortableTaskItem key={task.id} id={task.id}>
                     <div
-                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
+                      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                     >
                       {/* Task Value color bar */}

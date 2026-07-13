@@ -25,7 +25,7 @@ export function SortableTaskItem({ id, children }) {
       ref={setNodeRef}
       style={style}
       className={`
-        touch-none flex
+        flex w-full
         ${isDragging
           ? 'shadow-[0_8px_32px_rgba(168,85,247,0.4)] scale-[1.02] z-50'
           : ''
