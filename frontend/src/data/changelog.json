@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.81",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "The Pomodoro Activity Heatmap is now fully responsive on mobile devices — perfectly fitting the screen without annoying horizontal scrolling."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.80",
         "changes": [
             {
