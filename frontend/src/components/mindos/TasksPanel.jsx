@@ -26,6 +26,14 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
     notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
   });
 
+  // DEBUG: on-screen log visible on mobile without DevTools
+  const [debugLog, setDebugLog] = useState([]);
+  const dbg = (msg) => {
+    const line = `${new Date().toISOString().slice(11,19)} ${msg}`;
+    console.log('[DND DEBUG]', line);
+    setDebugLog(prev => [line, ...prev].slice(0, 12));
+  };
+
   const habits = tasks.filter(t => t.type === 'habit');
   const dailies = tasks.filter(t => t.type === 'daily');
   const todos = tasks.filter(t => t.type === 'todo');
@@ -64,39 +72,64 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
     setCreateModalOpen(true);
   };
 
-  const handleDragStart = () => {
-    // Add class to body to disable native scrolling and enforce touch-action: none globally
+  const handleDragStart = (start) => {
     document.body.classList.add('is-dragging-task');
+    dbg(`START draggableId=${start.draggableId} src=${start.source.index} col=${start.source.droppableId}`);
   };
 
   const handleDragEnd = async (result) => {
     document.body.classList.remove('is-dragging-task');
-    if (!result.destination) return;
-    const { source, destination } = result;
 
-    if (source.droppableId !== destination.droppableId) return;
-    if (source.index === destination.index) return;
+    if (!result.destination) {
+      dbg(`END no-destination (dropped outside) — snap back expected`);
+      return;
+    }
+
+    const { source, destination, draggableId } = result;
+    dbg(`END id=${draggableId} src=${source.index}->${destination.index} col=${source.droppableId}->${destination.droppableId}`);
+
+    if (source.droppableId !== destination.droppableId) {
+      dbg(`SKIP cross-column move`);
+      return;
+    }
+    if (source.index === destination.index) {
+      dbg(`SKIP same index`);
+      return;
+    }
 
     queryClient.setQueryData(["tasks"], (oldTasks) => {
-      if (!oldTasks) return oldTasks;
+      if (!oldTasks) {
+        dbg(`CACHE null — setQueryData skipped`);
+        return oldTasks;
+      }
+      dbg(`CACHE size=${oldTasks.length} isArray=${Array.isArray(oldTasks)}`);
+
       const newTasks = [...oldTasks];
-      const columnType = source.droppableId; 
-      
+      const columnType = source.droppableId;
+
       const columnTasks = newTasks.filter(t => t.type === columnType);
       const otherTasks = newTasks.filter(t => t.type !== columnType);
 
+      dbg(`COL=${columnType} colTasks=${columnTasks.length}`);
+
       const [movedTask] = columnTasks.splice(source.index, 1);
+      if (!movedTask) {
+        dbg(`ERROR: movedTask undefined at index ${source.index}`);
+        return oldTasks;
+      }
       columnTasks.splice(destination.index, 0, movedTask);
 
-      columnTasks.forEach((t, i) => {
-        t.order = i;
-      });
+      columnTasks.forEach((t, i) => { t.order = i; });
 
       const updates = columnTasks.map(t => ({ id: t.id, order: t.order }));
-      djangoApi.tasks.reorder(updates).catch(e => {
-        console.error("Reorder failed", e);
-        queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      });
+      dbg(`API calling reorder with ${updates.length} tasks`);
+
+      djangoApi.tasks.reorder(updates)
+        .then(() => dbg(`API reorder SUCCESS`))
+        .catch(e => {
+          dbg(`API reorder FAILED: ${e?.message || e}`);
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        });
 
       return [...otherTasks, ...columnTasks];
     });
@@ -105,6 +138,22 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
   return (
     <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <TabGuideModal guideId="tasks" profile={profile} />
+
+      {/* DEBUG OVERLAY — remove after diagnosis */}
+      {debugLog.length > 0 && (
+        <div
+          style={{
+            position: 'fixed', bottom: 80, left: 0, right: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.85)', color: '#0f0', fontFamily: 'monospace',
+            fontSize: 10, padding: '6px 8px', maxHeight: 160, overflowY: 'auto',
+            borderTop: '1px solid #0f0',
+          }}
+          onClick={() => setDebugLog([])}
+        >
+          <div style={{ color: '#ff0', marginBottom: 2 }}>🐛 DND DEBUG (tap to clear)</div>
+          {debugLog.map((line, i) => <div key={i}>{line}</div>)}
+        </div>
+      )}
 
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
       <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} sticky={true} />
@@ -132,4 +181,4 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
         formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
     </DragDropContext>
   );
-}
+}
