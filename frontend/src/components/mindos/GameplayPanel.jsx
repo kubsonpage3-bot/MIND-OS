@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Calendar, Timer, Swords, Archive, Brain, ChevronDown, UserCog, Lock, Globe } from "lucide-react";
+import { Gamepad2, Calendar, Timer, Swords, ChevronDown, UserCog, Lock, Globe } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { AnimatePresence } from "framer-motion";
 import PremiumUpgradeModal from "./PremiumUpgradeModal";
@@ -16,11 +16,7 @@ const WEEK_START_OPTIONS = [
   { id: "saturday", label: "Saturday" },
 ];
 
-const POMODORO_PRESETS = [
-  { work: 25, break: 5, label: "Classic (25/5)" },
-  { work: 50, break: 10, label: "Extended (50/10)" },
-  { work: 90, break: 15, label: "Deep Work (90/15)" },
-];
+
 
 const BOSS_DIFFICULTIES = [
   { id: "easy", label: "Easy", hp: 500, reward: 0.8 },
@@ -29,18 +25,7 @@ const BOSS_DIFFICULTIES = [
   { id: "extreme", label: "Extreme", hp: 5000, reward: 2.5 },
 ];
 
-const DOMAIN_WEIGHTS = {
-  STEM: ["gf", "ps"],
-  Languages: ["vm", "gc"],
-  "Humanities & Arts": ["gc", "vm"],
-  "Health & Fitness": ["ps", "gf"],
-  "Rest & Recovery": ["gf", "gc", "ps", "vm"],
-  Mindfulness: ["gf", "vm"],
-  "Social & Communication": ["vm", "gc"],
-  "Reading & Writing": ["vm", "gc"],
-  "Work & Career": ["gf", "ps"],
-  Other: ["gf", "gc", "ps", "vm"],
-};
+
 
 const TIME_OPTIONS = [
   "00:00","01:00","02:00","03:00","04:00","05:00",
@@ -105,11 +90,7 @@ export default function GameplayPanel() {
     localStorage.setItem("mindos_gameplay_settings", JSON.stringify(newSettings));
   };
 
-  const updateDomainWeight = (domain, stats) => {
-    const current = gameplay.domainWeights || {};
-    const newWeights = { ...current, [domain]: stats };
-    updateSetting("domainWeights", newWeights);
-  };
+
 
   return (
     <div className="space-y-4">
@@ -222,29 +203,7 @@ export default function GameplayPanel() {
         </BottomSheet>
       </div>
 
-      {/* Pomodoro Preset */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Timer className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">{t('settings.pomodoroDuration')}</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground/70">{t('settings.pomodoroDurationDesc')}</p>
-        <div className="space-y-2">
-          {POMODORO_PRESETS.map(preset => (
-            <button
-              key={preset.label}
-              onClick={() => updateSetting("pomodoro", { work: preset.work, break: preset.break })}
-              className={`w-full py-2 text-xs font-mono rounded border transition-all text-left px-3 ${
-                gameplay.pomodoro?.work === preset.work
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
-              }`}
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       {/* Boss Difficulty */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-3 relative overflow-hidden" style={{ borderColor: "rgba(240,192,64,0.3)", background: "linear-gradient(to bottom, rgba(15,10,20,0.5), rgba(10,5,15,0.8))" }}>
@@ -301,95 +260,11 @@ export default function GameplayPanel() {
         </button>
       </div>
 
-      {/* Streak Freeze */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">{t('settings.streakFreeze')}</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground/70">{t('settings.streakFreezeDesc')}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-muted-foreground">{t('settings.enableStreakFreeze')}</span>
-          <button
-            onClick={() => updateSetting("streakFreeze", !gameplay.streakFreeze)}
-            className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
-              gameplay.streakFreeze
-                ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
-            }`}
-          >
-            {gameplay.streakFreeze ? t('settings.on') : t('settings.off')}
-          </button>
-        </div>
-        {gameplay.streakFreeze && (
-          <div className="text-[10px] text-muted-foreground/70 font-mono mt-2">
-            {t('settings.freezesAvailable')}: {gameplay.freezeUses || 3}/{t('settings.perMonth')}
-          </div>
-        )}
-      </div>
 
-      {/* Auto-archive Todos */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">{t('settings.autoArchiveTodos')}</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground/70">{t('settings.autoArchiveTodosDesc')}</p>
-        <div className="flex gap-1">
-          {[0, 1, 3, 7, 14, 30].map(days => (
-            <button
-              key={days}
-              onClick={() => updateSetting("autoArchiveDays", days)}
-              className={`flex-1 py-1.5 text-[10px] font-mono rounded border transition-all ${
-                gameplay.autoArchiveDays === days
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
-              }`}
-            >
-              {days === 0 ? t('settings.never') : `${days}${t('settings.days_abbr')}`}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* Domain Weights */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Brain className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">{t('settings.domainWeights')}</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground/70">{t('settings.domainWeightsDesc')}</p>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {Object.entries(DOMAIN_WEIGHTS).map(([domain, defaultStats]) => {
-            const currentStats = gameplay.domainWeights?.[domain] || defaultStats;
-            return (
-              <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                <span className="text-xs font-mono text-foreground">{domain}</span>
-                <div className="flex gap-1">
-                  {["gf", "gc", "ps", "vm"].map(stat => (
-                    <button
-                      key={stat}
-                      onClick={() => {
-                        const newStats = currentStats.includes(stat)
-                          ? currentStats.filter(s => s !== stat)
-                          : [...currentStats, stat];
-                        updateDomainWeight(domain, newStats);
-                      }}
-                      className={`w-6 h-6 text-[9px] font-mono rounded transition-all ${
-                        currentStats.includes(stat)
-                          ? `bg-${stat === 'gf' ? 'blue' : stat === 'gc' ? 'green' : stat === 'ps' ? 'yellow' : 'purple'}-500/20 border border-${stat === 'gf' ? 'blue' : stat === 'gc' ? 'green' : stat === 'ps' ? 'yellow' : 'purple'}-400 text-${stat === 'gf' ? 'blue' : stat === 'gc' ? 'green' : stat === 'ps' ? 'yellow' : 'purple'}-400`
-                          : "border-border/40 text-muted-foreground"
-                      }`}
-                    >
-                      {stat.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+
+
+
       <AnimatePresence>
         {showPremiumModal && (
           <PremiumUpgradeModal onClose={() => setShowPremiumModal(false)} />

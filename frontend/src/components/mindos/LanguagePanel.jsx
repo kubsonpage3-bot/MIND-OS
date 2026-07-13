@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Globe, Ruler, ChevronDown, Check } from "lucide-react";
+import { Globe, ChevronDown, Check } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { useTranslation } from "react-i18next";
 
@@ -55,32 +55,7 @@ export default function LanguagePanel() {
         </button>
       </div>
 
-      {/* Units */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Ruler className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Units</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground/70">Measurement system for Exercise category</p>
-        <div className="flex gap-1">
-          {[
-            { id: "metric", label: "Metric (km, kg)" },
-            { id: "imperial", label: "Imperial (mi, lbs)" },
-          ].map(unit => (
-            <button
-              key={unit.id}
-              onClick={() => updateSetting("units", unit.id)}
-              className={`flex-1 py-2.5 text-xs font-mono rounded border transition-all ${
-                settings.units === unit.id
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
-              }`}
-            >
-              {unit.label}
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       {/* Language picker BottomSheet */}
       <BottomSheet isOpen={langSheetOpen} onClose={() => setLangSheetOpen(false)} title="Select Language">

@@ -4,6 +4,10 @@
         "version": "1.4.58",
         "changes": [
             {
+                "type": "feature",
+                "text": "Streamlined the settings menu by removing unused or confusing configurations (Pomodoro Duration, Streak Freeze, Auto-archive, Domain Weights, and Units)."
+            },
+            {
                 "type": "fix",
                 "text": "Fixed a bug where tasks could not be created from the column headers, and resolved an issue where task cards would disappear or flicker when dragged."
             },
