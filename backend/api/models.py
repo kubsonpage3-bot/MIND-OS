@@ -171,6 +171,11 @@ class UserProfile(models.Model):
         default=dict, blank=True, verbose_name="Настройки push-уведомлений"
     )
 
+    # Настройки помодоро
+    pomodoro_settings = models.JSONField(
+        default=dict, blank=True, verbose_name="Настройки помодоро"
+    )
+
     # Поля для мутаторов (Group 3)
     tasks_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено задач сегодня (momentum)"

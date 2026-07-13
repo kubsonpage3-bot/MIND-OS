@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.77",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Migrated Pomodoro settings from local storage to the Django backend database (SSOT), ensuring your timer settings are synced across all your devices."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.76",
         "changes": [
             {

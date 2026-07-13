@@ -89,6 +89,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_premium",
             "timezone",
             "notification_preferences",
+            "pomodoro_settings",
             "offline_seconds",
             "weekly_xp",
             "dismissed_insights",

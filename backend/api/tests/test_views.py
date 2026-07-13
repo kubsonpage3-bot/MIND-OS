@@ -100,3 +100,26 @@ def test_mark_guide_seen(api_client, user):
     # Verify via DB
     user.profile.refresh_from_db()
     assert user.profile.seen_guides == {"mutators": True, "tasks": True}
+
+
+@pytest.mark.django_db
+def test_pomodoro_settings_api(api_client, user, profile):
+    api_client.force_authenticate(user=user)
+
+    # 1. Check default value
+    profile_url = reverse("user-profile")
+    resp = api_client.get(profile_url)
+    assert resp.status_code == 200
+    assert resp.data["pomodoro_settings"] == {}
+
+    # 2. Patch new settings
+    new_settings = {"work": 45, "break": 10, "longBreak": 20, "cycles": 5}
+    patch_resp = api_client.patch(
+        profile_url, {"pomodoro_settings": new_settings}, format="json"
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.data["pomodoro_settings"] == new_settings
+
+    # 3. Verify DB update
+    profile.refresh_from_db()
+    assert profile.pomodoro_settings == new_settings

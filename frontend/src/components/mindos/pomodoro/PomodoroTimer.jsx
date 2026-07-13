@@ -5,6 +5,7 @@ import { Play, Pause, RotateCcw, Zap, Coffee, Moon, CheckCircle2, Loader2 } from
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { usePomodoro } from '@/hooks/usePomodoro';
+import { useProfileSync } from '@/hooks/useProfileSync';
 
 const PRESETS = [
   { id: 'classic', label: 'Classic', work: 25, break: 5, longBreak: 15, cycles: 4 },
@@ -150,21 +151,22 @@ export default function PomodoroTimer() {
   const seconds = timeLeft % 60;
   const circumference = 2 * Math.PI * 110;
 
-  // ─── LOAD SETTINGS FROM LOCALSTORAGE ────────────────────────────────────────
+  const { profile } = useProfileSync();
+
+  // ─── LOAD SETTINGS FROM USERPROFILE (SSOT) ──────────────────────────────────
   useEffect(() => {
-    const loadSettings = () => {
-      const saved = localStorage.getItem('pomodoro_settings');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setPreset({ id: 'custom', label: 'Custom', ...parsed });
-        } catch (e) {}
-      }
-    };
-    loadSettings();
-    window.addEventListener('pomodoro_settings_updated', loadSettings);
-    return () => window.removeEventListener('pomodoro_settings_updated', loadSettings);
-  }, []);
+    if (profile?.pomodoro_settings) {
+      const ps = profile.pomodoro_settings;
+      setPreset({
+        id: 'custom',
+        label: 'Custom',
+        work: ps.work ?? 25,
+        break: ps.break ?? 5,
+        longBreak: ps.longBreak ?? 15,
+        cycles: ps.cycles ?? 4,
+      });
+    }
+  }, [profile?.pomodoro_settings]);
 
   // Reset timer when preset changes
   useEffect(() => {
