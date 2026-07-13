@@ -205,13 +205,12 @@ export default function AppShell({ defaultTab = "mind" }) {
         ) : <div/>}
       </div>
 
-      {/* Main content area */}
       <div
         ref={mainScrollRef}
         onTouchStart={handleTouchStartSwipe}
         onTouchEnd={handleTouchEndSwipe}
         style={{ background: "var(--habit-bg)" }}
-        className={`relative z-10 overflow-y-auto overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
+        className={`relative z-10 overflow-y-auto overscroll-y-none overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >
         <PullToRefresh onRefresh={handleManualSync} scrollRef={mainScrollRef}>
           {activeApp === "mind" && (

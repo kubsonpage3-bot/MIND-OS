@@ -28,7 +28,7 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
         return;
       }
 
-      if (scrollRef?.current && scrollRef.current.scrollTop > 0) {
+      if (scrollRef?.current && scrollRef.current.scrollTop > 2) {
         ignoreDrag.current = true;
         return;
       }
