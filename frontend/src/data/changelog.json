@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.82",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "The mobile bottom navigation bar now has a sleek segmented design with per-tab accent colors and a smooth animated indicator — just like the Pomodoro tabs."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.81",
         "changes": [
             {
