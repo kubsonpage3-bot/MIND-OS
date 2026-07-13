@@ -7,6 +7,8 @@ import { playSound } from '@/lib/soundEffects.js';
 import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import { djangoApi } from '@/api/djangoClient';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
+import ConfirmDeleteButton from './ConfirmDeleteButton';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -22,10 +24,16 @@ const DIFFICULTIES = [
 ];
 
 const CATEGORY_COLORS = {
-  Math: '#3b82f6', Physics: '#3b82f6', Coding: '#3b82f6',
-  English: '#00cc88', Reading: '#22c55e', Philosophy: '#22c55e',
-  Exercise: '#ef4444', Sleep: '#f59e0b', Nutrition: '#f59e0b',
-  Social: '#a855f7', Mindfulness: '#9944ff',
+  STEM: '#3b82f6',
+  Languages: '#00cc88',
+  'Humanities & Arts': '#eab308',
+  'Health & Fitness': '#ef4444',
+  'Rest & Recovery': '#f97316',
+  Mindfulness: '#9944ff',
+  'Social & Communication': '#a855f7',
+  'Reading & Writing': '#22c55e',
+  'Work & Career': '#64748b',
+  Other: '#94a3b8',
 };
 
 
@@ -239,89 +247,103 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       </AnimatePresence>
 
       {/* Task list */}
-      <div className="flex-1 p-3 space-y-2" style={{ background: 'var(--habit-panel)', minHeight: 120 }}>
-        {tasks.length === 0 && (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-2">📅</div>
-            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_dailies')}</div>
-          </div>
-        )}
-        <AnimatePresence>
-          {tasks.map(task => {
+      <Droppable droppableId="daily">
+        {(provided) => (
+          <div 
+            className="flex-1 p-3 space-y-2" 
+            style={{ background: 'var(--habit-panel)', minHeight: 120 }}
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {tasks.length === 0 && (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">📅</div>
+                <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_dailies')}</div>
+              </div>
+            )}
+            <AnimatePresence>
+          {tasks.map((task, index) => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
             const tv = task.value ?? task.rpgValue ?? 0;
             const tvColor = getTaskValueColor(tv);
 
             return (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: task.is_completed ? 0.5 : 1, y: 0 }}
-                exit={{ opacity: 0, x: 30 }}
-                className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.is_completed ? '' : 'task-card bg-white dark:bg-gray-900'}`}
-                style={{
-                  border: '1px solid var(--habit-border)'
-                }}
-                onClick={() => {
-                  if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-                  completeDaily(task);
-                }}
-              >
-                {/* Task Value bar */}
-                {!task.is_completed && (
+              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                {(provided, snapshot) => (
                   <motion.div
-                    animate={{ background: tvColor }}
-                    transition={{ duration: 0.6 }}
-                    style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
-                    title={`Task Value: ${tv.toFixed(1)}`}
-                  />
-                )}
-
-                {/* Checkbox */}
-                <div className="shrink-0">
-                  {task.is_completed
-                    ? <CheckSquare size={20} strokeWidth={2} style={{ color: 'var(--habit-purple)' }} />
-                    : <Square size={20} strokeWidth={2} style={{ color: 'var(--habit-dim)' }} />}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className={`truncate ${task.is_completed ? '' : 'text-gray-900 dark:text-gray-100'}`} style={{
-                    fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-                    color: task.is_completed ? 'var(--habit-dim)' : undefined,
-                    textDecoration: task.is_completed ? 'line-through' : 'none',
-                  }}>
-                    {task.name}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{task.category}</span>
-                    <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
-                    {(task.streak || 0) > 0 && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
-                        <Flame size={9} />
-                        {task.streak}
-                      </span>
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ 
+                      opacity: task.is_completed ? 0.5 : 1, 
+                      y: 0,
+                      scale: snapshot.isDragging ? 1.05 : 1,
+                      boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
+                    }}
+                    exit={{ opacity: 0, x: 30 }}
+                    className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.is_completed ? '' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary z-50' : ''}`}
+                    style={{
+                      border: '1px solid var(--habit-border)',
+                      ...provided.draggableProps.style,
+                    }}
+                    onClick={() => {
+                      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                      completeDaily(task);
+                    }}
+                  >
+                    {/* Task Value bar */}
+                    {!task.is_completed && (
+                      <motion.div
+                        animate={{ background: tvColor }}
+                        transition={{ duration: 0.6 }}
+                        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                        title={`Task Value: ${tv.toFixed(1)}`}
+                      />
                     )}
-                    <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-                      TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Delete */}
-                <motion.button
-                  whileTap={{ scale: 0.8 }}
-                  onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
-                  style={{ color: 'rgba(148,163,184,0.3)' }}
-                >
-                  <Trash2 size={11} strokeWidth={1.5} />
-                </motion.button>
-              </motion.div>
+                    {/* Checkbox */}
+                    <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}>
+                      {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pr-2 overflow-hidden">
+                      <div className={`font-semibold text-sm truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{ color: 'var(--habit-text)' }}>
+                        {task.name}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
+                        <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
+                        {(task.streak || 0) > 0 && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
+                            <Flame size={10} strokeWidth={2.5} />
+                            <span>{task.streak}</span>
+                          </span>
+                        )}
+                        {tv !== 0 && (
+                          <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+                            TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Delete */}
+                    <div className="shrink-0">
+                      <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
+                    </div>
+                  </motion.div>
+                )}
+              </Draggable>
             );
           })}
         </AnimatePresence>
+        {provided.placeholder}
       </div>
+      )}
+      </Droppable>
 
     </div>
   );

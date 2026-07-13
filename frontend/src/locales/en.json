@@ -1526,5 +1526,17 @@
     "reading": "Reading",
     "german": "German",
     "other_languages": "Other Languages"
+  },
+  "categories": {
+    "STEM": "STEM",
+    "Languages": "Languages",
+    "Humanities & Arts": "Humanities & Arts",
+    "Health & Fitness": "Health & Fitness",
+    "Rest & Recovery": "Rest & Recovery",
+    "Mindfulness": "Mindfulness",
+    "Social & Communication": "Social & Communication",
+    "Reading & Writing": "Reading & Writing",
+    "Work & Career": "Work & Career",
+    "Other": "Other"
   }
 }

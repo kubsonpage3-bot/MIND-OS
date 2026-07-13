@@ -30,17 +30,16 @@ const BOSS_DIFFICULTIES = [
 ];
 
 const DOMAIN_WEIGHTS = {
-  Math: ["gf", "gc"],
-  Physics: ["gf", "ps"],
-  English: ["vm", "gc"],
-  Philosophy: ["gc", "gf"],
-  Coding: ["gf", "ps"],
-  Sleep: ["gf", "gc", "ps", "vm"],
-  Nutrition: ["gf", "gc", "ps"],
-  Reading: ["vm", "gc"],
-  Social: ["vm", "gc"],
+  STEM: ["gf", "ps"],
+  Languages: ["vm", "gc"],
+  "Humanities & Arts": ["gc", "vm"],
+  "Health & Fitness": ["ps", "gf"],
+  "Rest & Recovery": ["gf", "gc", "ps", "vm"],
   Mindfulness: ["gf", "vm"],
-  Exercise: ["ps", "gf"],
+  "Social & Communication": ["vm", "gc"],
+  "Reading & Writing": ["vm", "gc"],
+  "Work & Career": ["gf", "ps"],
+  Other: ["gf", "gc", "ps", "vm"],
 };
 
 const TIME_OPTIONS = [
@@ -83,7 +82,7 @@ export default function GameplayPanel() {
   });
 
   const tzMutation = useMutation({
-    mutationFn: (tz) => djangoApi.profile.update({ timezone: tz }),
+    mutationFn: (/** @type {string} */ tz) => djangoApi.profile.update({ timezone: tz }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     }

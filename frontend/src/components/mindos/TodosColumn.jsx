@@ -7,6 +7,8 @@ import { playSound } from '@/lib/soundEffects.js';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
 import { djangoApi } from '@/api/djangoClient';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
+import ConfirmDeleteButton from './ConfirmDeleteButton';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -22,10 +24,16 @@ const DIFFICULTIES = [
 ];
 
 const CATEGORY_COLORS = {
-  Math: '#3b82f6', Physics: '#3b82f6', Coding: '#3b82f6',
-  English: '#00cc88', Reading: '#22c55e', Philosophy: '#22c55e',
-  Exercise: '#ef4444', Sleep: '#f59e0b', Nutrition: '#f59e0b',
-  Social: '#a855f7', Mindfulness: '#9944ff',
+  STEM: '#3b82f6',
+  Languages: '#00cc88',
+  'Humanities & Arts': '#eab308',
+  'Health & Fitness': '#ef4444',
+  'Rest & Recovery': '#f97316',
+  Mindfulness: '#9944ff',
+  'Social & Communication': '#a855f7',
+  'Reading & Writing': '#22c55e',
+  'Work & Career': '#64748b',
+  Other: '#94a3b8',
 };
 
 
@@ -41,7 +49,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    name: '', type: 'todo', category: 'Math', difficulty: 'medium',
+    name: '', type: 'todo', category: 'Other', difficulty: 'medium',
     notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
   });
   const [formType, setFormType] = useState('todo');
@@ -155,15 +163,22 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       </div>
 
       {/* Task list */}
-      <div className="flex-1 p-3 space-y-2" style={{ background: 'var(--habit-panel)', minHeight: 120 }}>
-        {activeTodos.length === 0 && (
-          <div className="text-center py-8">
-            <div className="text-3xl mb-2">📜</div>
-            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_todos')}</div>
-          </div>
-        )}
-        <AnimatePresence>
-          {sortedActive.map(task => {
+      <Droppable droppableId="todo">
+        {(provided) => (
+          <div 
+            className="flex-1 p-3 space-y-2" 
+            style={{ background: 'var(--habit-panel)', minHeight: 120 }}
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {activeTodos.length === 0 && (
+              <div className="text-center py-8">
+                <div className="text-3xl mb-2">📜</div>
+                <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_todos')}</div>
+              </div>
+            )}
+            <AnimatePresence>
+          {sortedActive.map((task, index) => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
             const tv = task.value ?? 0;
@@ -171,18 +186,28 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
             const overdue = isOverdue(task);
 
             return (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: 30 }}
-                className="flex items-center gap-2 rounded-xl p-2.5 cursor-pointer"
-                style={{
-                  background: 'var(--habit-panel)',
-                  border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
-                }}
-                onClick={() => !toggleMutation.isPending && completeTodo(task)}
-              >
+              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                {(provided, snapshot) => (
+                  <motion.div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      scale: snapshot.isDragging ? 1.05 : 1,
+                      boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
+                    }}
+                    exit={{ opacity: 0, x: 30 }}
+                    className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${snapshot.isDragging ? 'ring-2 ring-primary z-50' : ''}`}
+                    style={{
+                      background: 'var(--habit-panel)',
+                      border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+                      ...provided.draggableProps.style,
+                    }}
+                    onClick={() => !toggleMutation.isPending && completeTodo(task)}
+                  >
                 {/* Task Value bar */}
                 <motion.div
                   animate={{ background: tvColor }}
@@ -206,7 +231,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                     {task.name}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{task.category}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
                     <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
                     {/* Task Value — показывает, насколько упала награда */}
                     <span className="text-[10px] font-mono" style={{ color: tvColor }}>
@@ -230,18 +255,19 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                 </div>
 
                 {/* Delete */}
-                <motion.button
-                  whileTap={{ scale: 0.8 }}
-                  onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
-                  style={{ color: 'rgba(148,163,184,0.3)' }}
-                >
-                  <Trash2 size={11} strokeWidth={1.5} />
-                </motion.button>
+                <div className="shrink-0">
+                  <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
+                </div>
               </motion.div>
+                )}
+              </Draggable>
             );
           })}
         </AnimatePresence>
+        {provided.placeholder}
       </div>
+      )}
+      </Droppable>
 
       <CreateTaskModal isOpen={showForm} onClose={() => setShowForm(false)}
         formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />

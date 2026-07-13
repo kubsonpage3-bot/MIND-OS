@@ -217,10 +217,24 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     from api.services.mechanics import apply_active_mutators, get_passive_multipliers
 
     task_category = getattr(task, "category", "")
-    is_science = task_category in {"Math", "Physics", "Coding", "Chemistry", "Biology"}
-    is_language = task_category in {"English", "Languages", "History", "Philosophy"}
-    is_exercise = task_category in {"Exercise", "Running"}
-    is_prayer = task_category in {"Prayer", "Mindfulness", "Prayer/Meditation"}
+    is_science = task_category in {
+        "STEM",
+        "Math",
+        "Physics",
+        "Coding",
+        "Chemistry",
+        "Biology",
+    }
+    is_language = task_category in {
+        "Languages",
+        "Humanities & Arts",
+        "Reading & Writing",
+        "English",
+        "Philosophy",
+        "History",
+    }
+    is_exercise = task_category in {"Health & Fitness", "Exercise", "Running"}
+    is_prayer = task_category in {"Mindfulness", "Prayer", "Prayer/Meditation"}
 
     completed_near_deadline = False
     if task.task_type == Task.TaskType.DAILY:
@@ -633,7 +647,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         final_damage_dealt = max(
             0,
             int(
-                (task_base_dmg + damage_dealt)
+                (task_base_dmg + (damage_dealt or 0))
                 * profile.damage_multiplier
                 * boss_dmg_mult
                 * system_overload_mult

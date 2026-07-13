@@ -21,10 +21,16 @@ function getLocalDateStr(date = new Date()) {
 }
 
 const CATEGORY_COLORS = {
-  Math: "#3b82f6", Physics: "#3b82f6", Coding: "#3b82f6",
-  English: "#00cc88", Reading: "#22c55e", Philosophy: "#22c55e",
-  Exercise: "#ef4444", Sleep: "#f59e0b", Nutrition: "#f59e0b",
-  Social: "#a855f7", Mindfulness: "#9944ff",
+  STEM: "#3b82f6",
+  Languages: "#00cc88",
+  "Humanities & Arts": "#eab308",
+  "Health & Fitness": "#ef4444",
+  "Rest & Recovery": "#f97316",
+  Mindfulness: "#9944ff",
+  "Social & Communication": "#a855f7",
+  "Reading & Writing": "#22c55e",
+  "Work & Career": "#64748b",
+  Other: "#94a3b8",
 };
 
 function timeToMins(t) {
@@ -153,7 +159,7 @@ export default function CalendarPanel() {
 
   // Mutations
   const createEventMut = useMutation({
-    mutationFn: (ev) => djangoFetch("/calendar/events/", {
+    mutationFn: (/** @type {any} */ ev) => djangoFetch("/calendar/events/", {
       method: "POST", body: JSON.stringify({
         title: ev.title, description: ev.description,
         date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
@@ -163,7 +169,7 @@ export default function CalendarPanel() {
   });
 
   const updateEventMut = useMutation({
-    mutationFn: (ev) => djangoFetch(`/calendar/events/${ev.id}/`, {
+    mutationFn: (/** @type {any} */ ev) => djangoFetch(`/calendar/events/${ev.id}/`, {
       method: "PATCH", body: JSON.stringify({
         title: ev.title, description: ev.description,
         date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
@@ -178,10 +184,16 @@ export default function CalendarPanel() {
   });
   
   const CATEGORY_COLORS = {
-    Math: "#3b82f6", Physics: "#3b82f6", Coding: "#3b82f6",
-    English: "#00cc88", Reading: "#22c55e", Philosophy: "#22c55e",
-    Exercise: "#ef4444", Sleep: "#f59e0b", Nutrition: "#f59e0b",
-    Social: "#a855f7", Mindfulness: "#9944ff",
+    STEM: "#3b82f6",
+    Languages: "#00cc88",
+    "Humanities & Arts": "#eab308",
+    "Health & Fitness": "#ef4444",
+    "Rest & Recovery": "#f97316",
+    Mindfulness: "#9944ff",
+    "Social & Communication": "#a855f7",
+    "Reading & Writing": "#22c55e",
+    "Work & Career": "#64748b",
+    Other: "#94a3b8",
   };
 
 

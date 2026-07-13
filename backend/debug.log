@@ -1946,3 +1946,19 @@ WARNING 2026-07-12 20:02:47,167 log 19820 13544 Not Found: /api/party/members/99
 ERROR 2026-07-12 20:02:52,992 task_service 19820 13544 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 WARNING 2026-07-12 20:04:03,133 log 20176 4372 Forbidden: /api/party/members/2258/profile/
 WARNING 2026-07-12 20:04:05,086 log 20176 4372 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-13 04:07:20,062 log 16292 20324 Unauthorized: /api/analytics/event/
+WARNING 2026-07-13 04:07:22,921 log 16292 20324 Bad Request: /api/analytics/event/
+WARNING 2026-07-13 04:07:28,337 log 16292 20324 Bad Request: /api/auth/register/
+WARNING 2026-07-13 04:07:33,303 log 16292 20324 Bad Request: /api/profile/
+WARNING 2026-07-13 04:07:36,227 log 16292 20324 Forbidden: /api/calendar/events/
+WARNING 2026-07-13 04:08:15,277 log 16292 20324 Forbidden: /api/party/members/2313/profile/
+WARNING 2026-07-13 04:08:17,224 log 16292 20324 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-13 04:08:23,123 task_service 16292 20324 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-13 04:12:44,757 log 8536 3708 Unauthorized: /api/analytics/event/
+WARNING 2026-07-13 04:12:47,246 log 8536 3708 Bad Request: /api/analytics/event/
+WARNING 2026-07-13 04:12:52,839 log 8536 3708 Bad Request: /api/auth/register/
+WARNING 2026-07-13 04:12:57,945 log 8536 3708 Bad Request: /api/profile/
+WARNING 2026-07-13 04:13:00,466 log 8536 3708 Forbidden: /api/calendar/events/
+WARNING 2026-07-13 04:13:37,605 log 8536 3708 Forbidden: /api/party/members/2405/profile/
+WARNING 2026-07-13 04:13:39,568 log 8536 3708 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-13 04:13:45,461 task_service 8536 3708 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]

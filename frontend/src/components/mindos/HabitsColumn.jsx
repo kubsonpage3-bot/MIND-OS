@@ -8,6 +8,8 @@ import { useHaptic } from '@/hooks/useHaptic';
 import { showRewardToast } from '@/components/mindos/RewardToast';
 import { djangoApi } from '@/api/djangoClient';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
+import ConfirmDeleteButton from './ConfirmDeleteButton';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -32,10 +34,16 @@ const DIFFICULTIES = [
 ];
 
 const CATEGORY_COLORS = {
-  Math: '#3b82f6', Physics: '#3b82f6', Coding: '#3b82f6',
-  English: '#00cc88', Reading: '#22c55e', Philosophy: '#22c55e',
-  Exercise: '#ef4444', Sleep: '#f59e0b', Nutrition: '#f59e0b',
-  Social: '#a855f7', Mindfulness: '#9944ff',
+  STEM: '#3b82f6',
+  Languages: '#00cc88',
+  'Humanities & Arts': '#eab308',
+  'Health & Fitness': '#ef4444',
+  'Rest & Recovery': '#f97316',
+  Mindfulness: '#9944ff',
+  'Social & Communication': '#a855f7',
+  'Reading & Writing': '#22c55e',
+  'Work & Career': '#64748b',
+  Other: '#94a3b8',
 };
 
 
@@ -150,15 +158,22 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       </AnimatePresence>
 
       {/* Task list */}
-      <div className="flex-1 p-3 space-y-2" style={{ background: 'var(--habit-panel)', minHeight: 120 }}>
-        {tasks.length === 0 && (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-2">💪</div>
-            <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_habits')}</div>
-          </div>
-        )}
-        <AnimatePresence>
-          {tasks.map(task => {
+      <Droppable droppableId="habit">
+        {(provided) => (
+          <div 
+            className="flex-1 p-3 space-y-2" 
+            style={{ background: 'var(--habit-panel)', minHeight: 120 }}
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {tasks.length === 0 && (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">💪</div>
+                <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_habits')}</div>
+              </div>
+            )}
+            <AnimatePresence>
+          {tasks.map((task, index) => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
             const tv = task.value ?? task.rpgValue ?? 0;
@@ -169,12 +184,23 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
             const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
 
             return (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 30 }}
-                className="task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900"
-                style={{ border: '1px solid var(--habit-border)' }}
-              >
+              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                {(provided, snapshot) => (
+                  <motion.div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    initial={{ opacity: 0, y: 6 }} 
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      scale: snapshot.isDragging ? 1.05 : 1,
+                      boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
+                    }} 
+                    exit={{ opacity: 0, x: 30 }}
+                    className={`task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ${snapshot.isDragging ? 'ring-2 ring-primary z-50' : ''}`}
+                    style={{ border: '1px solid var(--habit-border)', ...provided.draggableProps.style }}
+                  >
                 {/* Task Value color bar */}
                 <motion.div
                   animate={{ background: tvColor }}
@@ -213,7 +239,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                     {task.negStreak >= 5 && <span className="text-xs" title={`Neg streak: ${task.negStreak}!`}>💀</span>}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{task.category}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
                     <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
                     <span className="text-[10px] font-mono" style={{ color: tvColor }}>
                       TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
@@ -251,15 +277,18 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
                 {/* Delete */}
                 <div className="shrink-0">
-                  <motion.button whileTap={{ scale: 0.8 }} onClick={() => deleteTask(task.id)} style={{ color: 'rgba(148,163,184,0.3)' }}>
-                    <Trash2 size={11} strokeWidth={1.5} />
-                  </motion.button>
+                  <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
                 </div>
               </motion.div>
+                )}
+              </Draggable>
             );
           })}
         </AnimatePresence>
+        {provided.placeholder}
       </div>
+      )}
+      </Droppable>
 
     </div>
   );

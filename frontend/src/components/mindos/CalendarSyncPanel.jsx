@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import { Calendar, Link, Unlink, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const CONNECTOR_ID = "6a3c683c1511b0c03aa71701";
 
 export default function CalendarSyncPanel({ tasks = [] }) {
+  const { t } = useTranslation();
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -165,7 +167,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold text-foreground truncate">{task.name}</div>
               <div className="text-[10px] text-muted-foreground">
-                Daily at {task.scheduledTime} • {task.category}
+                Daily at {task.scheduledTime} • {t("categories." + task.category, task.category)}
               </div>
             </div>
             <Button
@@ -198,7 +200,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold text-foreground truncate">{task.name}</div>
               <div className="text-[10px] text-muted-foreground">
-                Due {task.dueDate} • {task.category}
+                Due {task.dueDate} • {t("categories." + task.category, task.category)}
               </div>
             </div>
             <Button

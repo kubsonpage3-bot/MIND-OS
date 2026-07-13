@@ -318,6 +318,12 @@ export const djangoApi = {
         body: JSON.stringify(taskData),
       }),
 
+    reorder: (updates) =>
+      djangoFetch('/tasks/reorder/', {
+        method: 'POST',
+        body: JSON.stringify(updates),
+      }),
+
     update: (id, taskData) =>
       djangoFetch(`/tasks/${id}/`, {
         method: 'PATCH',

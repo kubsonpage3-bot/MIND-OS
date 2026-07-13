@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 
-const CATEGORIES = ["Math", "Physics", "Chemistry", "Biology", "English", "Philosophy", "Coding", "Sleep", "Nutrition", "Reading", "Social", "Mindfulness", "Exercise", "Running", "Music", "Art", "History", "Languages", "Other"];
+const CATEGORIES = ["STEM", "Languages", "Humanities & Arts", "Health & Fitness", "Rest & Recovery", "Mindfulness", "Social & Communication", "Reading & Writing", "Work & Career", "Other"];
 
 const TASK_TYPES = [
   { id: "habit", label: "Habit", desc: "Repeatable ± action" },
@@ -31,7 +31,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
     name: "",
     icon: "⭐",
     type: hideTypeSelector ? "button" : "daily",
-    category: "Math",
+    category: "Other",
     priority: "medium",
     notes: "",
     dueDate: "",
@@ -59,11 +59,11 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         due_date: form.dueDate || null,
         
         // Custom rewards and session defaults (with safety fallback values)
-        xp_reward: Math.max(1, parseInt(form.xpReward, 10) || 10),
-        gold_reward: Math.max(1, parseInt(form.goldReward, 10) || 8),
-        boss_damage: Math.max(1, parseInt(form.bossDamage, 10) || 15),
-        default_hours: Math.max(0.5, parseFloat(form.defaultHours) || 1.0),
-        default_focus: Math.max(1, Math.min(10, parseInt(form.defaultFocus, 10) || 7)),
+        xp_reward: Math.max(1, parseInt(String(form.xpReward), 10) || 10),
+        gold_reward: Math.max(1, parseInt(String(form.goldReward), 10) || 8),
+        boss_damage: Math.max(1, parseInt(String(form.bossDamage), 10) || 15),
+        default_hours: Math.max(0.5, parseFloat(String(form.defaultHours)) || 1.0),
+        default_focus: Math.max(1, Math.min(10, parseInt(String(form.defaultFocus), 10) || 7)),
       };
 
       await djangoApi.tasks.create(taskData);
@@ -176,7 +176,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
                 color: form.category === c ? "var(--habit-purple)" : "var(--habit-dim)",
                 background: form.category === c ? "var(--habit-purple-light)" : "transparent",
               }}>
-              {c}
+              {t("categories." + c, c)}
             </button>
           ))}
         </div>

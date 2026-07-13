@@ -1,5 +1,25 @@
 [
     {
+        "date": "2026-07-13",
+        "version": "1.4.58",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Added drag-and-drop support: you can now reorder tasks by long-pressing and dragging them. Also replaced the tiny delete button with a larger two-tap confirmation button to prevent accidental mis-clicks on mobile."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
+        "version": "1.4.57",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Consolidated task categories into 10 general categories (STEM, Languages, Humanities & Arts, Health & Fitness, Rest & Recovery, Mindfulness, Social & Communication, Reading & Writing, Work & Career, Other) with full English and Russian localization."
+            }
+        ]
+    },
+    {
         "date": "2026-07-12",
         "version": "1.4.56",
         "changes": [

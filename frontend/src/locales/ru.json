@@ -1526,5 +1526,17 @@
     "reading": "Чтение",
     "german": "Немецкий",
     "other_languages": "Другие языки"
+  },
+  "categories": {
+    "STEM": "Наука и STEM",
+    "Languages": "Языки",
+    "Humanities & Arts": "Гуманитарные науки и искусство",
+    "Health & Fitness": "Здоровье и спорт",
+    "Rest & Recovery": "Отдых и сон",
+    "Mindfulness": "Осознанность",
+    "Social & Communication": "Общение и социум",
+    "Reading & Writing": "Чтение и письмо",
+    "Work & Career": "Работа и карьера",
+    "Other": "Другое"
   }
 }

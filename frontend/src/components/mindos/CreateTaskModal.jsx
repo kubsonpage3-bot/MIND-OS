@@ -1,11 +1,12 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import FantasyIcon from "@/components/navigation/FantasyIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const CATEGORIES = ["Math", "Physics", "English", "Philosophy", "Coding", "Sleep", "Nutrition", "Reading", "Social", "Mindfulness", "Exercise"];
+const CATEGORIES = ["STEM", "Languages", "Humanities & Arts", "Health & Fitness", "Rest & Recovery", "Mindfulness", "Social & Communication", "Reading & Writing", "Work & Career", "Other"];
 const DIFFICULTIES = [
   { id: "trivial", label: "Trivial", color: "#64748b" },
   { id: "easy", label: "Easy", color: "#22c55e" },
@@ -16,6 +17,7 @@ const PRIORITIES = ["low", "medium", "high", "critical"];
 const PRIORITY_COLORS = { low: "#22c55e", medium: "#f59e0b", high: "#ef4444", critical: "#a855f7" };
 
 export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate }) {
+  const { t } = useTranslation();
   // Close on Escape
   useEffect(() => {
     const handleEsc = (e) => {
@@ -133,7 +135,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                             boxShadow: "0 1px 0 rgba(0,0,0,0.3)"
                           }}
                         >
-                          {c}
+                          {t("categories." + c, c)}
                         </button>
                       ))}
                     </div>

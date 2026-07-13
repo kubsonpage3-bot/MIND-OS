@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { DragDropContext } from '@hello-pangea/dnd';
 import HabitsColumn from "./HabitsColumn";
 import DailiesColumn from "./DailiesColumn";
 import TodosColumn from "./TodosColumn";
@@ -21,7 +22,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [formType, setFormType] = useState('habit');
   const [form, setForm] = useState({
-    name: '', type: 'habit', category: 'Math', difficulty: 'medium',
+    name: '', type: 'habit', category: 'Other', difficulty: 'medium',
     notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
   });
 
@@ -36,7 +37,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
       const created = await djangoApi.tasks.create({
         title: form.name,
         task_type: form.type,
-        category: form.category || 'Math',
+        category: form.category || 'Other',
         difficulty: form.difficulty || 'medium',
         notes: form.notes || '',
         due_date: form.dueDate || null,
@@ -50,7 +51,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setCreateModalOpen(false);
-      setForm({ name: '', type: 'habit', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
+      setForm({ name: '', type: 'habit', category: 'Other', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
     } catch (e) {
       console.error('Django task create failed:', e.response?.data || e.message || e);
       showRewardToast({ label: `Error: Could not create task on server` });
@@ -63,34 +64,66 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
     setCreateModalOpen(true);
   };
 
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const { source, destination } = result;
+
+    if (source.droppableId !== destination.droppableId) return;
+    if (source.index === destination.index) return;
+
+    queryClient.setQueryData(["tasks"], (oldTasks) => {
+      if (!oldTasks) return oldTasks;
+      const newTasks = [...oldTasks];
+      const columnType = source.droppableId; 
+      
+      const columnTasks = newTasks.filter(t => t.type === columnType);
+      const otherTasks = newTasks.filter(t => t.type !== columnType);
+
+      const [movedTask] = columnTasks.splice(source.index, 1);
+      columnTasks.splice(destination.index, 0, movedTask);
+
+      columnTasks.forEach((t, i) => {
+        t.order = i;
+      });
+
+      const updates = columnTasks.map(t => ({ id: t.id, order: t.order }));
+      djangoApi.tasks.reorder(updates).catch(e => {
+        console.error("Reorder failed", e);
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      });
+
+      return [...otherTasks, ...columnTasks];
+    });
+  };
+
   return (
-    <>
+    <DragDropContext onDragEnd={handleDragEnd}>
       <TabGuideModal guideId="tasks" profile={profile} />
 
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
-      <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} wrap={false} sticky={true} />
+      <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} sticky={true} />
 
       {/* Mobile: show only the active tab */}
       <div className="md:hidden">
         {taskTab === 'tasks' && (
           <div className="flex flex-col gap-6">
-            <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('habit')} />
-            <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('daily')} />
-            <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('todo')} />
+            <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
+            <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
+            <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
           </div>
         )}
-        {taskTab === 'activities' && <ActivityLogger onLog={onLog} profile={profile} logs={logs} tasks={tasks} />}
+        {taskTab === 'activities' && <ActivityLogger onLog={onLog} profile={profile} logs={logs} tasks={tasks} isLogging={false} />}
       </div>
 
       {/* Desktop: side-by-side layout (unchanged) */}
       <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('habit')} />
-        <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('daily')} />
-        <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => openCreateModal('todo')} />
+        <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
+        <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
+        <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
       </div>
 
       <CreateTaskModal isOpen={isCreateModalOpen} onClose={() => setCreateModalOpen(false)}
         formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
-    </>
+    </DragDropContext>
   );
 }

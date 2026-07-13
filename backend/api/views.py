@@ -529,6 +529,43 @@ class TaskViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="reorder",
+    )
+    def reorder(self, request):
+        """
+        POST /api/tasks/reorder/
+        Обновляет порядок сортировки для переданных задач.
+        Ожидает JSON массива объектов: [{"id": 1, "order": 0}, {"id": 2, "order": 1}]
+        """
+        updates = request.data
+        if not isinstance(updates, list):
+            return Response(
+                {"detail": "Expected a list of updates."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        tasks_to_update = []
+        for item in updates:
+            task_id = item.get("id")
+            order = item.get("order")
+            if task_id is None or order is None:
+                continue
+
+            try:
+                task = Task.objects.get(id=task_id, user=request.user)
+                task.order = int(order)
+                tasks_to_update.append(task)
+            except (Task.DoesNotExist, ValueError):
+                continue
+
+        if tasks_to_update:
+            Task.objects.bulk_update(tasks_to_update, ["order"])
+
+        return Response({"detail": "Tasks reordered successfully."})
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Скиллы — активация и эффекты
@@ -1107,6 +1144,7 @@ class TrainingLogView(generics.GenericAPIView):
         task_category = task.category if task else "Other"
 
         is_science = activity in SCIENCE_ACTIVITIES or task_category in {
+            "STEM",
             "Math",
             "Physics",
             "Coding",
@@ -1114,12 +1152,15 @@ class TrainingLogView(generics.GenericAPIView):
             "Biology",
         }
         is_exercise = activity in EXERCISE_ACTIVITIES or task_category in {
+            "Health & Fitness",
             "Exercise",
             "Running",
         }
         is_language = activity in LANGUAGE_ACTIVITIES or task_category in {
-            "English",
             "Languages",
+            "Humanities & Arts",
+            "Reading & Writing",
+            "English",
             "History",
             "Philosophy",
         }
@@ -1282,7 +1323,12 @@ class TrainingLogView(generics.GenericAPIView):
             if (
                 isinstance(activity, str)
                 and activity.lower() in ["reading", "philosophy"]
-            ) or task_cat_lower in ["reading", "philosophy"]:
+            ) or task_cat_lower in [
+                "reading",
+                "philosophy",
+                "reading & writing",
+                "humanities & arts",
+            ]:
                 if "living_library" in unlocked_skills:
                     final_xp = int(final_xp * 1.15)
 
