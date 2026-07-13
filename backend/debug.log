@@ -1962,3 +1962,11 @@ WARNING 2026-07-13 04:13:00,466 log 8536 3708 Forbidden: /api/calendar/events/
 WARNING 2026-07-13 04:13:37,605 log 8536 3708 Forbidden: /api/party/members/2405/profile/
 WARNING 2026-07-13 04:13:39,568 log 8536 3708 Not Found: /api/party/members/999999/profile/
 ERROR 2026-07-13 04:13:45,461 task_service 8536 3708 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-13 18:51:42,059 log 18424 26260 Unauthorized: /api/analytics/event/
+WARNING 2026-07-13 18:51:44,756 log 18424 26260 Bad Request: /api/analytics/event/
+WARNING 2026-07-13 18:51:50,725 log 18424 26260 Bad Request: /api/auth/register/
+WARNING 2026-07-13 18:51:55,744 log 18424 26260 Bad Request: /api/profile/
+WARNING 2026-07-13 18:51:58,382 log 18424 26260 Forbidden: /api/calendar/events/
+WARNING 2026-07-13 18:52:40,818 log 18424 26260 Forbidden: /api/party/members/2497/profile/
+WARNING 2026-07-13 18:52:42,836 log 18424 26260 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-13 18:52:48,588 task_service 18424 26260 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]

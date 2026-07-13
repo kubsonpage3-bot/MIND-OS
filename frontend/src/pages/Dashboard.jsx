@@ -217,6 +217,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     const handleStart = (e) => {
       if (document.body.classList.contains('dnd-dragging')) return;
+      if (e.target.closest('.overflow-x-auto, .overflow-x-scroll, .touch-none, [data-no-swipe]')) return;
       if (e.touches.length !== 1) return;
       const t = e.touches[0];
       touchStart = { x: t.clientX, y: t.clientY };
@@ -235,7 +236,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       const dy = t.clientY - touchStart.y;
 
       if (isHorizontal === null) {
-        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+        if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
           if (Math.abs(dy) > Math.abs(dx)) {
             // It's a vertical scroll, cancel swipe detection
             touchStart = null;
@@ -266,7 +267,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           // Swipe left -> Next
           if (activeTabRef.current) {
              activeTabRef.current.style.transition = 'none';
-             activeTabRef.current.style.transform = 'translateX(0)';
+             activeTabRef.current.style.transform = '';
           }
           const nextTab = BOTTOM_TABS[currentIdx + 1];
           onSectionChange(nextTab === "tools" ? "history" : nextTab);
@@ -274,7 +275,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           // Swipe right -> Prev
           if (activeTabRef.current) {
              activeTabRef.current.style.transition = 'none';
-             activeTabRef.current.style.transform = 'translateX(0)';
+             activeTabRef.current.style.transform = '';
           }
           const prevTab = BOTTOM_TABS[currentIdx - 1];
           onSectionChange(prevTab === "tools" ? "history" : prevTab);
@@ -282,9 +283,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           // Snap back
           if (activeTabRef.current) {
             activeTabRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
-            activeTabRef.current.style.transform = 'translateX(0)';
+            activeTabRef.current.style.transform = '';
             setTimeout(() => {
-              if (activeTabRef.current) activeTabRef.current.style.transition = 'none';
+              if (activeTabRef.current) {
+                activeTabRef.current.style.transition = 'none';
+                activeTabRef.current.style.transform = '';
+              }
             }, 300);
           }
         }

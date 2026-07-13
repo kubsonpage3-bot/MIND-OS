@@ -1,6 +1,20 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.86",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed a critical touch conflict where scrolling horizontally on tables or quickly dragging tasks would accidentally swipe the whole page."
+            },
+            {
+                "type": "fix",
+                "text": "Subtabs in Hero and Stats are now much easier to press, ignoring minor finger movements that previously cancelled the click."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.85",
         "changes": [
             {

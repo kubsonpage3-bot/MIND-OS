@@ -46,7 +46,7 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 transition-all duration-200 active:scale-95"
+              className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-all duration-200"
             >
               {Icon && (
                 <Icon
