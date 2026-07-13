@@ -279,7 +279,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                     className={snapshot.isDragging ? 'z-50' : ''}
                   >
                     <div
-                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary scale-[1.03] shadow-2xl' : ''}`}
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary shadow-2xl' : ''}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                       onClick={() => {
                         if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;

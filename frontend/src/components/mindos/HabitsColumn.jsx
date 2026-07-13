@@ -194,7 +194,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                     className={snapshot.isDragging ? 'z-50' : ''}
                   >
                     <div
-                      className={`task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 transition-all duration-150 ${snapshot.isDragging ? 'ring-2 ring-primary scale-[1.03] shadow-2xl' : ''}`}
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary shadow-2xl' : ''}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                     >
                       {/* Task Value color bar */}

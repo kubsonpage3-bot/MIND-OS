@@ -196,7 +196,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                     className={snapshot.isDragging ? 'z-50' : ''}
                   >
                     <div
-                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${snapshot.isDragging ? 'ring-2 ring-primary scale-[1.03] shadow-2xl' : ''}`}
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${snapshot.isDragging ? 'ring-2 ring-primary shadow-2xl' : ''}`}
                       style={{
                         background: 'var(--habit-panel)',
                         border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
