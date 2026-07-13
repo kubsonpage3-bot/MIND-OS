@@ -582,7 +582,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2}
                 onDragEnd={handleDragEnd}
-                className="w-full"
+                className="w-full min-h-[calc(100dvh-200px)] md:min-h-0"
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
