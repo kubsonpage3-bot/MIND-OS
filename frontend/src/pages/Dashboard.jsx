@@ -146,9 +146,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
   
-  const MOBILE_SECTIONS_ORDER = ["dashboard", "tasks", "character", "history", "pomodoro", "calendar", "stats", "settings"];
+  const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
   const getSectionIndex = (sec) => {
-    const idx = MOBILE_SECTIONS_ORDER.indexOf(sec);
+    if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 3; // "tools"
+    const idx = BOTTOM_TABS.indexOf(sec);
     return idx === -1 ? 0 : idx;
   };
   
@@ -196,14 +197,16 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     if (swipe < -threshold) {
       // Swiped left -> Next tab
       const currentIdx = getSectionIndex(activeTab);
-      if (currentIdx < MOBILE_SECTIONS_ORDER.length - 1) {
-        onSectionChange(MOBILE_SECTIONS_ORDER[currentIdx + 1]);
+      if (currentIdx < BOTTOM_TABS.length - 1) {
+        const nextTab = BOTTOM_TABS[currentIdx + 1];
+        onSectionChange(nextTab === "tools" ? "history" : nextTab);
       }
     } else if (swipe > threshold) {
       // Swiped right -> Prev tab
       const currentIdx = getSectionIndex(activeTab);
       if (currentIdx > 0) {
-        onSectionChange(MOBILE_SECTIONS_ORDER[currentIdx - 1]);
+        const prevTab = BOTTOM_TABS[currentIdx - 1];
+        onSectionChange(prevTab === "tools" ? "history" : prevTab);
       }
     }
   };
