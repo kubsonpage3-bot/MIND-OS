@@ -10,6 +10,10 @@
             {
                 "type": "fix",
                 "text": "Fixed tab navigation scroll resetting on stats/tools sub-tabs and expanded mobile swipe hit areas to avoid dead zones."
+            },
+            {
+                "type": "content",
+                "text": "Updated the anime characters in the Pomodoro module with new optimized artwork and matching dynamic color effects."
             }
         ]
     },
