@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -40,7 +41,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
     onCreate();
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -80,7 +81,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
               </div>
 
               {/* Scrollable content */}
-              <div className="overflow-y-auto p-6 pt-8" style={{ maxHeight: "calc(100vh - 220px)" }}>
+              <div className="overflow-y-auto overscroll-contain p-6 pt-8" style={{ maxHeight: "calc(100vh - 220px)" }}>
                 <div className="space-y-5">
                   {/* Task Name */}
                   <div>
@@ -267,4 +268,6 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
       )}
     </AnimatePresence>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
 }
