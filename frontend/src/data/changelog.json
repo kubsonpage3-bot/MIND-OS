@@ -18,6 +18,10 @@
             {
                 "type": "fix",
                 "text": "Fixed category selector circles in the mobile Create Task modal to maintain perfect uniform sizing regardless of label length, without truncating names."
+            },
+            {
+                "type": "feature",
+                "text": "Upgraded the Organic Skill Tree to an interactive pan-and-zoom canvas. You can now pinch-to-zoom on mobile or use mouse wheel/drag on desktop to easily navigate the entire tree."
             }
         ]
     },

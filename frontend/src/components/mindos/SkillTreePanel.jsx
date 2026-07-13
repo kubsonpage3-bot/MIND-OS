@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { SKILL_TREE } from "@/constants/rpgData";
-import { Lock, RotateCcw, Save, Brain, Dumbbell, Coins, Sparkles, BookOpen, X, Check } from "lucide-react";
+import { Lock, RotateCcw, Save, Brain, Dumbbell, Coins, Sparkles, BookOpen, X, Check, ZoomIn, ZoomOut, House } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playSound } from "@/lib/soundEffects.js";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "@/components/mindos/RewardToast";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 // ─── RESPEC COST ─────────────────────────────────────────────────────────────
 function getRespecCost(unlockedCount) {
@@ -133,12 +134,6 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const [confirmPreset, setConfirmPreset] = useState(null);
   
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const scrollRef = useRef(null);
-  
-  // Drag panning state
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
-  const hasDragged = useRef(false);
   
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
@@ -146,52 +141,6 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const unlocked = profile?.unlocked_skills || [];
   const sp = profile?.skill_points || 0;
   const currentGold = profile?.gold || gold;
-
-  // Center canvas on mount
-  useEffect(() => {
-    if (scrollRef.current) {
-      const el = scrollRef.current;
-      el.scrollLeft = 0; // Start at left side for FTB tree
-      el.scrollTop = (CANVAS_HEIGHT - el.clientHeight) / 2;
-    }
-  }, []);
-
-  const handlePointerDown = (e) => {
-    // Only process mouse events (let touch rely on native scroll)
-    if (e.pointerType !== 'mouse') return;
-    // Only left click
-    if (e.button !== 0) return;
-    
-    setIsDragging(true);
-    hasDragged.current = false;
-    dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
-      scrollLeft: scrollRef.current.scrollLeft,
-      scrollTop: scrollRef.current.scrollTop
-    };
-  };
-
-  const handlePointerMove = (e) => {
-    if (e.pointerType !== 'mouse') return;
-    if (!isDragging) return;
-    
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-      hasDragged.current = true;
-    }
-    
-    scrollRef.current.scrollLeft = dragStart.current.scrollLeft - dx;
-    scrollRef.current.scrollTop = dragStart.current.scrollTop - dy;
-  };
-
-  const handlePointerUp = () => {
-    setIsDragging(false);
-    // Don't reset hasDragged here so click events can read it,
-    // it will be reset on the next pointer down.
-  };
 
   const canUnlock = (node) => {
     if (unlocked.includes(node.id)) return false;
@@ -327,30 +276,34 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       </div>
 
       {/* Canvas Area */}
-      <div 
-        ref={scrollRef}
-        className={`flex-1 overflow-auto relative select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        style={{ scrollbarWidth: "none", touchAction: "pan-x pan-y" }} // Hide scrollbar for immersion
-        onTouchStart={e => e.stopPropagation()}
-        onTouchMove={e => e.stopPropagation()}
-        onTouchEnd={e => e.stopPropagation()}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
+      <TransformWrapper
+        minScale={0.3}
+        maxScale={2.0}
+        initialScale={1}
+        centerOnInit={true}
       >
-        <div 
-          className="relative"
-          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-        >
-          {/* Background Grid Pattern - FTB Style Stone/Grid */}
-          <div 
-            className="absolute inset-0" 
-            style={{ 
-              backgroundColor: '#1e1e1e',
-              backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
-              backgroundSize: '40px 40px' 
-            }}
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <div className="flex-1 relative overflow-hidden bg-[#1e1e1e]" style={{ touchAction: "none" }}>
+            {/* Controls Panel */}
+            <div className="absolute top-4 right-4 z-50 flex flex-col gap-1.5 bg-black/60 backdrop-blur border border-white/10 rounded-lg p-1.5 shadow-xl">
+              <button onClick={() => zoomIn()} className="p-2 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors" title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
+              <button onClick={() => zoomOut()} className="p-2 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors" title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
+              <button onClick={() => resetTransform()} className="p-2 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors" title="Reset View"><House className="w-4 h-4" /></button>
+            </div>
+            
+            <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
+              <div 
+                className="relative"
+                style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+              >
+                {/* Background Grid Pattern - FTB Style Stone/Grid */}
+                <div 
+                  className="absolute inset-0" 
+                  style={{ 
+                    backgroundColor: '#1e1e1e',
+                    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+                    backgroundSize: '40px 40px' 
+                  }}
           />
 
           {/* SVG Connectors - Chain Style */}
@@ -480,11 +433,6 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
 
                 <motion.button
                   onClick={(e) => {
-                    if (hasDragged.current) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      return;
-                    }
                     setSelectedNodeId(node.id);
                     playSound("click");
                   }}
@@ -536,8 +484,11 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               </div>
             );
           })}
-        </div>
-      </div>
+              </div>
+            </TransformComponent>
+          </div>
+        )}
+      </TransformWrapper>
 
       {/* Info Panel (Bottom Docked) */}
       <AnimatePresence>
