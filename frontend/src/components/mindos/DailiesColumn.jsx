@@ -307,7 +307,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                 <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_dailies')}</div>
               </div>
             )}
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
           {tasks.map((task, index) => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
@@ -317,9 +317,11 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
             return (
               <motion.div
                 key={task.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: 30 }}
+                layout={!activeId}
+                initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: 40, filter: "blur(4px)" }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
               <SortableTaskItem id={task.id}>
                     <div

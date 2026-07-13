@@ -216,27 +216,30 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
           <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
             {tasks.length === 0 && (
               <div className="text-center py-8">
-                <div className="text-4xl mb-2">💪</div>
+                <div className="text-3xl mb-2">🌱</div>
                 <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_habits')}</div>
               </div>
             )}
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
           {tasks.map((task, index) => {
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
+            const hp = task.task_hp ?? 10;
+            const maxHp = 10;
+            const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+            const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
             const tv = task.value ?? task.rpgValue ?? 0;
-            const score = task.score ?? 0;
             const tvColor = getTaskValueColor(tv);
             const con = getConStat();
             const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);
-            const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
-            const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
             return (
               <motion.div
                 key={task.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: 30 }}
+                layout={!activeId}
+                initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: 40, filter: "blur(4px)" }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
               <SortableTaskItem id={task.id}>
                     <div
