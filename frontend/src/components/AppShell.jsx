@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Brain, Sparkles, Cloud, CloudOff, RefreshCw } from "lucide-react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion, useMotionValue, useTransform, useDragControls } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "@/components/navigation/Sidebar";
@@ -14,6 +14,7 @@ import RewardToast from "@/components/mindos/RewardToast";
 import BalatroTutorialToast from "@/components/mindos/BalatroTutorialToast";
 import GameplayInsightCard from "@/components/mindos/GameplayInsightCard";
 import { THEMES } from "@/lib/themes";
+import PullToRefresh from "@/components/mindos/PullToRefresh";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 // Removed getRankFromXP
@@ -140,12 +141,21 @@ export default function AppShell({ defaultTab = "mind" }) {
   const prevSection = currentIndex > 0 ? MOBILE_SECTIONS[currentIndex - 1] : null;
   const nextSection = currentIndex !== -1 && currentIndex < MOBILE_SECTIONS.length - 1 ? MOBILE_SECTIONS[currentIndex + 1] : null;
 
-  // Detect if touch starts inside a horizontally scrollable element — if so, block drag
-  const handleDragStart = useCallback((e) => {
+  const dragControls = useDragControls();
+
+  // Detect if touch starts inside a horizontally scrollable element or a drag-and-drop handle — if so, block swipe
+  const handlePointerDown = useCallback((e) => {
     const target = e.target;
-    const scrollable = target.closest('[data-no-swipe], .overflow-x-auto, [style*="overflow-x: auto"], [style*="overflow-x:auto"]');
-    dragBlocked.current = !!scrollable;
-  }, []);
+    // Do NOT start the AppShell horizontal swipe if the user is interacting with a task drag handle 
+    // or a native horizontal scroll container. This prevents Framer Motion from stealing the touch events 
+    // from @hello-pangea/dnd's sensors.
+    const isDragHandle = target.closest('[data-rbd-drag-handle-context-id]');
+    const isScrollable = target.closest('[data-no-swipe], .overflow-x-auto, [style*="overflow-x: auto"], [style*="overflow-x:auto"]');
+    
+    if (!isDragHandle && !isScrollable && typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches) {
+      dragControls.start(e, { snapToCursor: false });
+    }
+  }, [dragControls]);
 
   const handleDragEnd = (e, { offset, velocity }) => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -207,17 +217,21 @@ export default function AppShell({ defaultTab = "mind" }) {
 
       {/* Main content area */}
       <motion.div
-        drag={typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? "x" : false}
+        ref={mainScrollRef}
+        drag="x"
+        dragControls={dragControls}
+        dragListener={false}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.4}
-        onDragStart={handleDragStart}
+        onPointerDown={handlePointerDown}
         onDragEnd={handleDragEnd}
         style={{ x, opacity, scale, background: "var(--habit-bg)", transformOrigin: "center center", touchAction: "pan-y" }}
         className={`relative z-10 overflow-y-auto overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} pb-[130px] md:pb-8 flex-1 w-full`}
       >
-        {activeApp === "mind" && (
-          <>
-            <div className="relative">
+        <PullToRefresh onRefresh={handleManualSync} scrollRef={mainScrollRef}>
+          {activeApp === "mind" && (
+            <>
+              <div className="relative">
               <CharacterStatusBar rankXP={rankXP} currentRankId={currentRank} onToggleSidebar={() => setMobileSidebarOpen(true)} theme={THEMES[currentTheme]} />
               <button
                 onClick={handleManualSync}
@@ -242,6 +256,7 @@ export default function AppShell({ defaultTab = "mind" }) {
           </>
         )}
         {activeApp === "life" && <LifeOS />}
+        </PullToRefresh>
       </motion.div>
 
       {/* Bottom navigation — mobile only */}

@@ -18,6 +18,14 @@
             {
                 "type": "fix",
                 "text": "Fixed an issue on mobile where dragging tasks would glitch or 'teleport' due to conflicts with the device's native scrolling."
+            },
+            {
+                "type": "feature",
+                "text": "Added a retro pixel-art Pull-to-Refresh system on mobile to manually synchronize your progress."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed a critical gesture conflict that prevented long-pressing and drag-reordering tasks on mobile devices."
             }
         ]
     },
