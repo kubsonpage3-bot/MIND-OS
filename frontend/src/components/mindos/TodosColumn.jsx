@@ -10,7 +10,7 @@ import { djangoApi } from '@/api/djangoClient';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useTaskDndSensors } from '../../utils/dndConfig';
-import { SortableTaskItem } from './SortableTaskItem';
+import { SortableTaskItem, DragHandle } from "./SortableTaskItem";
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 
 function getTaskValueColor(tv) {
@@ -243,13 +243,14 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
               >
               <SortableTaskItem id={task.id}>
                     <div
-                      className="flex-1 min-w-0 flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150"
+                      className="flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150"
                       style={{
                         background: 'var(--habit-panel)',
                         border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
                       }}
                       onClick={() => !toggleMutation.isPending && completeTodo(task)}
                     >
+                      <DragHandle />
                 {/* Task Value bar */}
                 <div
                   style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}

@@ -1,5 +1,9 @@
+import { createContext, useContext } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
+
+const DragContext = createContext(null)
 
 export function SortableTaskItem({ id, children }) {
   const {
@@ -32,26 +36,38 @@ export function SortableTaskItem({ id, children }) {
         }
       `}
     >
-      {/* Drag handle — only this area initiates drag */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="
-          cursor-grab active:cursor-grabbing
-          touch-none select-none
-          flex items-center justify-center
-          w-8 h-full px-1
-          opacity-40 hover:opacity-100
-          transition-opacity duration-200
-        "
-        aria-label="Drag to reorder"
-      >
-        ⠿
-      </div>
-      {/* Task content — receives NO drag listeners */}
-      <div className="flex-1 min-w-0">
-        {children}
-      </div>
+      <DragContext.Provider value={{ attributes, listeners }}>
+        {/* The child component (the task card) will now include the DragHandle inside itself */}
+        <div className="flex-1 min-w-0">
+          {children}
+        </div>
+      </DragContext.Provider>
+    </div>
+  )
+}
+
+export function DragHandle() {
+  const context = useContext(DragContext)
+  if (!context) return null
+  const { attributes, listeners } = context
+
+  return (
+    <div
+      {...attributes}
+      {...listeners}
+      className="
+        cursor-grab active:cursor-grabbing
+        touch-none select-none
+        flex items-center justify-center
+        h-full w-8
+        opacity-30 hover:opacity-100 hover:bg-[var(--habit-dim)]/10
+        transition-all duration-200
+        border-r border-[var(--habit-border)]
+        shrink-0
+      "
+      aria-label="Drag to reorder"
+    >
+      <GripVertical size={16} className="text-[var(--habit-text)]" />
     </div>
   )
 }

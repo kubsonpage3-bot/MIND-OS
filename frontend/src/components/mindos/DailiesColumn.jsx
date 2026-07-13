@@ -10,7 +10,7 @@ import { djangoApi } from '@/api/djangoClient';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useTaskDndSensors } from '../../utils/dndConfig';
-import { SortableTaskItem } from './SortableTaskItem';
+import { SortableTaskItem, DragHandle } from './SortableTaskItem';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 
 function getTaskValueColor(tv) {
@@ -325,13 +325,15 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
               >
               <SortableTaskItem id={task.id}>
                     <div
-                      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
+                      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                       onClick={() => {
                         if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
                         completeDaily(task);
                       }}
                     >
+                      <DragHandle />
+                      
                       {/* Task Value bar */}
                       {!task.is_completed && (
                         <div
