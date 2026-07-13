@@ -632,9 +632,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   }
 
   return (
-    <div className="min-h-screen font-inter bg-transparent text-[var(--habit-text)]">
+    <div className="flex flex-col flex-1 min-h-full font-inter bg-transparent text-[var(--habit-text)]">
       <GuestBanner onConvertClick={() => setIsConvertGuestModalOpen(true)} />
-      <main ref={containerRef} className="max-w-7xl mx-auto px-0 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+      <main ref={containerRef} className="flex-1 w-full max-w-7xl mx-auto px-0 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <AchievementTracker />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
@@ -666,7 +666,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="w-full min-h-[calc(100dvh-200px)] md:min-h-0 touch-pan-y"
+                className="w-full touch-pan-y"
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
