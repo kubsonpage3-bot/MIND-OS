@@ -161,7 +161,15 @@
     width: 100%;
     overflow-x: hidden;
     overscroll-behavior-x: none;
+    overscroll-behavior-y: none; /* Disable pull-to-refresh which breaks touch drag */
+    overscroll-behavior: none;
     touch-action: manipulation;
+  }
+
+  body.is-dragging-task {
+    /* Physically lock the body from scrolling during drag to prevent 'teleporting' native scroll override */
+    overflow: hidden !important;
+    touch-action: none !important;
   }
 
   #root {

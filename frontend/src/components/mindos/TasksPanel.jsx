@@ -64,7 +64,13 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
     setCreateModalOpen(true);
   };
 
+  const handleDragStart = () => {
+    // Add class to body to disable native scrolling and enforce touch-action: none globally
+    document.body.classList.add('is-dragging-task');
+  };
+
   const handleDragEnd = async (result) => {
+    document.body.classList.remove('is-dragging-task');
     if (!result.destination) return;
     const { source, destination } = result;
 
@@ -97,7 +103,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
   };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <TabGuideModal guideId="tasks" profile={profile} />
 
       {/* Mobile sub-tab bar — hidden on md: desktop shows all columns */}
