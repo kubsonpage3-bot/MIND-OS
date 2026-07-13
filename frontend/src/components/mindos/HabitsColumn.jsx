@@ -193,23 +193,13 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                     style={provided.draggableProps.style}
                     className={snapshot.isDragging ? 'z-50' : ''}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }} 
-                      animate={{ 
-                        opacity: 1, 
-                        y: 0,
-                        scale: snapshot.isDragging ? 1.05 : 1,
-                        boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
-                      }} 
-                      exit={{ opacity: 0, x: 30 }}
-                      className={`task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ${snapshot.isDragging ? 'ring-2 ring-primary' : ''}`}
+                    <div
+                      className={`task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 transition-all duration-150 ${snapshot.isDragging ? 'ring-2 ring-primary scale-[1.03] shadow-2xl' : ''}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                     >
                       {/* Task Value color bar */}
-                      <motion.div
-                        animate={{ background: tvColor }}
-                        transition={{ duration: 0.6 }}
-                        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                      <div
+                        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
                         title={`Task Value: ${tv.toFixed(1)}`}
                       />
 
@@ -254,10 +244,8 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                         <div className="flex items-center gap-1.5 mt-1.5">
                           <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f74e52', minWidth: 12 }}>HP</span>
                           <div className="flex-1 relative" style={{ height: 6, background: '#fee2e2', borderRadius: 2, overflow: 'hidden' }}>
-                            <motion.div
-                              animate={{ width: `${hpPct}%` }}
-                              transition={{ duration: 0.4, ease: 'easeOut' }}
-                              style={{ height: '100%', background: hpColor, borderRadius: 2 }}
+                            <div
+                              style={{ height: '100%', background: hpColor, borderRadius: 2, width: `${hpPct}%`, transition: 'width 0.4s ease-out' }}
                             />
                           </div>
                           <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
@@ -283,7 +271,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                       <div className="shrink-0 flex items-center h-full ml-1">
                         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
                 )}
               </Draggable>

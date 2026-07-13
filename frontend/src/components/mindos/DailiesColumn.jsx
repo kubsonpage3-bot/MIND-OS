@@ -278,16 +278,8 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                     style={provided.draggableProps.style}
                     className={snapshot.isDragging ? 'z-50' : ''}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ 
-                        opacity: task.is_completed ? 0.5 : 1, 
-                        y: 0,
-                        scale: snapshot.isDragging ? 1.05 : 1,
-                        boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
-                      }}
-                      exit={{ opacity: 0, x: 30 }}
-                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.is_completed ? '' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary' : ''}`}
+                    <div
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary scale-[1.03] shadow-2xl' : ''}`}
                       style={{ border: '1px solid var(--habit-border)' }}
                       onClick={() => {
                         if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
@@ -296,10 +288,8 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                     >
                       {/* Task Value bar */}
                       {!task.is_completed && (
-                        <motion.div
-                          animate={{ background: tvColor }}
-                          transition={{ duration: 0.6 }}
-                          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                        <div
+                          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
                           title={`Task Value: ${tv.toFixed(1)}`}
                         />
                       )}
@@ -335,7 +325,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                       <div className="shrink-0">
                         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
                 )}
               </Draggable>

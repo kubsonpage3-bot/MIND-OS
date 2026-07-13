@@ -195,16 +195,8 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                     style={provided.draggableProps.style}
                     className={snapshot.isDragging ? 'z-50' : ''}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ 
-                        opacity: 1, 
-                        y: 0,
-                        scale: snapshot.isDragging ? 1.05 : 1,
-                        boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
-                      }}
-                      exit={{ opacity: 0, x: 30 }}
-                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${snapshot.isDragging ? 'ring-2 ring-primary' : ''}`}
+                    <div
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer transition-all duration-150 ${snapshot.isDragging ? 'ring-2 ring-primary scale-[1.03] shadow-2xl' : ''}`}
                       style={{
                         background: 'var(--habit-panel)',
                         border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
@@ -212,10 +204,8 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                       onClick={() => !toggleMutation.isPending && completeTodo(task)}
                     >
                 {/* Task Value bar */}
-                <motion.div
-                  animate={{ background: tvColor }}
-                  transition={{ duration: 0.6 }}
-                  style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                <div
+                  style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
                   title={`Task Value: ${tv.toFixed(1)}`}
                 />
 
@@ -261,7 +251,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                 <div className="shrink-0">
                   <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
                 </div>
-              </motion.div>
+              </div>
             </div>
           )}
         </Draggable>
