@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.61",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed an issue on mobile where dragging tasks would glitch or 'teleport' due to conflicts with the device's native scrolling."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.60",
         "changes": [
             {
