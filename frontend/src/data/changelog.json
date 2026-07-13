@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.67",
+        "changes": [
+            {
+                "type": "content",
+                "text": "Fully localized all 31 in-game achievements to Russian, updated reward titles, and aligned descriptions and rewards with backend configurations."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.66",
         "changes": [
             {

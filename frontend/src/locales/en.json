@@ -985,158 +985,158 @@
     "achievements": {
       "first_step": {
         "name": "First Step",
-        "desc": "Complete your first session.",
-        "reward": "+10 Gold"
+        "desc": "Log your first session",
+        "reward": "+50G"
       },
       "seven_suns": {
         "name": "Seven Suns",
-        "desc": "Achieve a 7-day streak.",
-        "reward": "+50 Gold"
+        "desc": "Reach a 7-day streak",
+        "reward": "+150G"
       },
       "iron_will": {
         "name": "Iron Will",
-        "desc": "Achieve a 30-day streak.",
-        "reward": "+200 Gold"
+        "desc": "Reach a 30-day streak",
+        "reward": "+500G + Title"
       },
       "unbroken": {
         "name": "Unbroken",
-        "desc": "Achieve a 100-day streak.",
-        "reward": "+1000 Gold"
+        "desc": "Reach a 100-day streak",
+        "reward": "+2000G + Title"
       },
       "eternal": {
         "name": "Eternal",
-        "desc": "Achieve a 365-day streak.",
-        "reward": "+5000 Gold"
+        "desc": "Reach a 365-day streak",
+        "reward": "+10000G + Title"
       },
       "first_blood": {
         "name": "First Blood",
-        "desc": "Deal 100 damage to bosses.",
-        "reward": "+15 Gold"
+        "desc": "Deal 100 total boss damage",
+        "reward": "+30G"
       },
       "boss_slayer": {
         "name": "Boss Slayer",
-        "desc": "Defeat your first boss.",
-        "reward": "+100 Gold"
+        "desc": "Defeat your first boss",
+        "reward": "+200G + Title"
       },
       "dragon_hunter": {
         "name": "Dragon Hunter",
-        "desc": "Defeat 4 bosses.",
-        "reward": "+400 Gold"
+        "desc": "Defeat the Crimson Sovereign",
+        "reward": "+1000G + Title"
       },
       "emperors_bane": {
-        "name": "Emperors Bane",
-        "desc": "Defeat 5 bosses.",
-        "reward": "+500 Gold"
+        "name": "Emperor's Bane",
+        "desc": "Defeat the Void Emperor",
+        "reward": "+5000G + Title"
       },
       "void_walker": {
         "name": "Void Walker",
-        "desc": "Walk the path of the void.",
-        "reward": "+1000 Gold"
+        "desc": "Complete all 5 bosses",
+        "reward": "+10000G + Title"
       },
       "first_session": {
         "name": "First Session",
-        "desc": "Complete a study session.",
-        "reward": "+10 Gold"
+        "desc": "Log your first TRAIN session",
+        "reward": "+30G"
       },
       "scholar": {
         "name": "Scholar",
-        "desc": "Complete 50 sessions.",
-        "reward": "+200 Gold"
+        "desc": "Log 50 total sessions",
+        "reward": "+300G"
       },
       "polymath_ach": {
         "name": "Polymath",
-        "desc": "Study 10 unique subjects.",
-        "reward": "+300 Gold"
+        "desc": "Log in 10 different subjects",
+        "reward": "+500G"
       },
       "master": {
         "name": "Master",
-        "desc": "Reach rank 4 in a subject.",
-        "reward": "+250 Gold"
+        "desc": "Reach B rank in any subject",
+        "reward": "+1000G"
       },
       "grandmaster": {
         "name": "Grandmaster",
-        "desc": "Reach rank 8 in a subject.",
-        "reward": "+1000 Gold"
+        "desc": "Reach SSS rank in any subject",
+        "reward": "+5000G + Title"
       },
       "first_coin": {
         "name": "First Coin",
-        "desc": "Earn your first gold.",
-        "reward": "A sense of pride"
+        "desc": "Earn your first Gold",
+        "reward": "+10G"
       },
       "merchant": {
         "name": "Merchant",
-        "desc": "Earn 1000 gold total.",
-        "reward": "+100 Gold"
+        "desc": "Accumulate 1000G total earned",
+        "reward": "+100G"
       },
       "wealthy": {
         "name": "Wealthy",
-        "desc": "Earn 10000 gold total.",
-        "reward": "+500 Gold"
+        "desc": "Accumulate 10000G total earned",
+        "reward": "+500G"
       },
       "tycoon": {
         "name": "Tycoon",
-        "desc": "Earn 100000 gold total.",
-        "reward": "+2000 Gold"
+        "desc": "Accumulate 100000G total earned",
+        "reward": "+2000G + Title"
       },
       "first_prayer": {
         "name": "First Prayer",
-        "desc": "Complete a prayer session.",
-        "reward": "+15 Gold"
+        "desc": "Log your first Prayer session",
+        "reward": "+50G"
       },
       "devotion": {
         "name": "Devotion",
-        "desc": "Complete 20 prayer sessions.",
-        "reward": "+150 Gold"
+        "desc": "Log 20 Prayer sessions",
+        "reward": "+300G"
       },
       "sanctified": {
         "name": "Sanctified",
-        "desc": "Reach prayer rank 7.",
-        "reward": "+500 Gold"
+        "desc": "Reach S rank in Prayer",
+        "reward": "+1000G + Title"
       },
       "first_crit": {
         "name": "First Crit",
-        "desc": "Land a critical hit.",
-        "reward": "+20 Gold"
+        "desc": "Land your first critical hit",
+        "reward": "+20G"
       },
       "precision": {
         "name": "Precision",
-        "desc": "Land 50 critical hits.",
-        "reward": "+150 Gold"
+        "desc": "Land 50 critical hits",
+        "reward": "+300G"
       },
       "sharpshooter": {
         "name": "Sharpshooter",
-        "desc": "Land 500 critical hits.",
-        "reward": "+800 Gold"
+        "desc": "Land 500 critical hits",
+        "reward": "+2000G + Title"
       },
       "first_ally": {
         "name": "First Ally",
-        "desc": "Recruit your first ally.",
-        "reward": "+50 Gold"
+        "desc": "Recruit your first ally",
+        "reward": "+100G"
       },
       "commander": {
         "name": "Commander",
-        "desc": "Recruit 3 allies.",
-        "reward": "+200 Gold"
+        "desc": "Recruit 3 allies",
+        "reward": "+500G"
       },
       "warlords_court": {
-        "name": "Warlords Court",
-        "desc": "Recruit 5 allies.",
-        "reward": "+500 Gold"
+        "name": "Warlord's Court",
+        "desc": "Recruit all 5 allies",
+        "reward": "+2000G + Title"
       },
       "loyal_bonds": {
         "name": "Loyal Bonds",
-        "desc": "Reach ally max level 5.",
-        "reward": "+400 Gold"
+        "desc": "Upgrade any ally to Lv5",
+        "reward": "+1000G"
       },
       "reborn": {
         "name": "Reborn",
-        "desc": "Prestige for the first time.",
-        "reward": "+1 Prestige Point"
+        "desc": "Complete your first prestige",
+        "reward": "Title: Reborn"
       },
       "phoenix": {
         "name": "Phoenix",
-        "desc": "Prestige 3 times.",
-        "reward": "+3 Prestige Points"
+        "desc": "Complete 3 prestiges",
+        "reward": "Title: Phoenix"
       }
     },
     "mutators": {

@@ -98,7 +98,7 @@ function AchievementCard({ ach, isUnlocked }) {
         {isUnlocked ? ach.icon : "🔒"}
       </motion.div>
       <div className="text-[9px] font-mono font-bold" style={{ color: isUnlocked ? ach.color : "#4a4060" }}>
-        {isUnlocked ? ach.name : "???"}
+        {isUnlocked ? t(`rpgData.achievements.${ach.id}.name`, ach.name) : "???"}
       </div>
       {isUnlocked && showTip && (
         <motion.div
@@ -106,8 +106,12 @@ function AchievementCard({ ach, isUnlocked }) {
           animate={{ opacity: 1, y: 0 }}
           className="absolute z-10 top-full left-1/2 -translate-x-1/2 mt-1 w-36 p-2 rounded-lg border border-border bg-card text-left shadow-xl"
         >
-          <div className="text-[9px] font-mono text-foreground/70 leading-snug">{replaceBossNames(ach.desc, t)}</div>
-          <div className="text-[9px] font-mono mt-1" style={{ color: ach.color }}>{ach.reward}</div>
+          <div className="text-[9px] font-mono text-foreground/70 leading-snug">
+            {replaceBossNames(t(`rpgData.achievements.${ach.id}.desc`, ach.desc), t)}
+          </div>
+          <div className="text-[9px] font-mono mt-1" style={{ color: ach.color }}>
+            {t(`rpgData.achievements.${ach.id}.reward`, ach.reward)}
+          </div>
         </motion.div>
       )}
     </motion.div>

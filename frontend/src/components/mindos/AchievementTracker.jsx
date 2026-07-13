@@ -21,11 +21,8 @@ export default function AchievementTracker() {
         const achId = typeof ach === 'string' ? ach : ach.code;
         let achName = typeof ach === 'string' ? ach : (ach.name || achId);
 
-        // Map to real name without underscores if we only have an ID
-        if (typeof ach === 'string' || achName === achId) {
-          const found = ACHIEVEMENTS.find(a => a.id === achId);
-          achName = found ? i18n.t(found.name) : achId.replace(/_/g, ' ').toUpperCase();
-        }
+        const found = ACHIEVEMENTS.find(a => a.id === achId);
+        achName = i18n.t(`rpgData.achievements.${achId}.name`, found ? found.name : achName);
 
         if (!prevUnlocked.current.has(achId)) {
           prevUnlocked.current.add(achId);

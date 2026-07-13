@@ -84,7 +84,7 @@ export default function AchievementsPanel({ profile, logs, alliesData, prestigeD
                     className="text-[9px] font-mono font-bold mt-2 leading-tight z-10 relative" 
                     style={{ color: isUnlocked ? rColor : "#4a4060", textShadow: isUnlocked ? "0 1px 2px rgba(0,0,0,0.8)" : "none" }}
                   >
-                    {isUnlocked ? t(ach.name) : "???"}
+                    {isUnlocked ? t(`rpgData.achievements.${ach.id}.name`, ach.name) : "???"}
                   </div>
                   
                   {isUnlocked && (
@@ -92,7 +92,7 @@ export default function AchievementsPanel({ profile, logs, alliesData, prestigeD
                       className="text-[8px] font-mono font-bold mt-1 z-10 relative"
                       style={{ color: rColor, textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
                     >
-                      {t(ach.reward)}
+                      {t(`rpgData.achievements.${ach.id}.reward`, ach.reward)}
                     </div>
                   )}
                 </div>
