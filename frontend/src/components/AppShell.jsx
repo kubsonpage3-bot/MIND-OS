@@ -15,6 +15,7 @@ import BalatroTutorialToast from "@/components/mindos/BalatroTutorialToast";
 import GameplayInsightCard from "@/components/mindos/GameplayInsightCard";
 import { THEMES } from "@/lib/themes";
 import PullToRefresh from "@/components/mindos/PullToRefresh";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 // Removed getRankFromXP
@@ -45,7 +46,8 @@ export default function AppShell({ defaultTab = "mind" }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const SWIPE_THRESHOLD = 80;
   const SWIPE_TABS = MOBILE_SECTIONS.map(s => s.navTarget);
-  const { profile: djangoProfile } = useDjangoAuth();
+  const { profile: djangoProfile, refreshProfile } = useDjangoAuth();
+  const queryClient = useQueryClient();
   const [currentTheme, setCurrentTheme] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}").theme || 'dark'; } catch { return 'dark'; }
   });
@@ -114,12 +116,19 @@ export default function AppShell({ defaultTab = "mind" }) {
   }, []);
 
 
-  const handleManualSync = () => {
+  const handleManualSync = async () => {
     setSyncStatus("syncing");
-    setTimeout(() => {
+    try {
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+      await queryClient.invalidateQueries();
       setSyncStatus("synced");
       setLastSync(new Date());
-    }, 800);
+    } catch (e) {
+      console.error("Sync failed:", e);
+      setSyncStatus("error");
+    }
   };
 
   const rankXP = djangoProfile?.rank_xp || 0;
