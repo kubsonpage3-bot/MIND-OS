@@ -153,6 +153,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     return idx === -1 ? 0 : idx;
   };
   
+  const motionKey = ["history", "pomodoro", "calendar", "stats"].includes(activeSection) ? "tools" : activeTab;
+  
   const prevTabRef = useRef(activeTab);
   const directionRef = useRef(0);
   if (activeTab !== prevTabRef.current) {
@@ -565,7 +567,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           <TabErrorBoundary tabKey={activeTab}>
             <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
               <motion.div
-                key={activeTab}
+                key={motionKey}
                 custom={slideDirection}
                 variants={pageVariants}
                 initial="initial"
