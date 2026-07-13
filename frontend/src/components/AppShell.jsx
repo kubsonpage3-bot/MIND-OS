@@ -129,6 +129,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   const opacity = useTransform(x, [-400, 0, 400], [0.5, 1, 0.5]);
   const scale = useTransform(x, [-400, 0, 400], [0.9, 1, 0.9]);
   const dragBlocked = useRef(false);
+  const mainScrollRef = useRef(null);
 
   const getSwipeIndex = (section) => {
     if (["history", "pomodoro", "calendar", "stats"].includes(section)) {
