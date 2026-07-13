@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.78",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Added the ability to long-press on any task, habit, or daily to open the edit modal, allowing you to easily update titles, categories, and difficulties without needing to recreate them."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.77",
         "changes": [
             {

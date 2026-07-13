@@ -17,7 +17,7 @@ const DIFFICULTIES = [
 const PRIORITIES = ["low", "medium", "high", "critical"];
 const PRIORITY_COLORS = { low: "#22c55e", medium: "#f59e0b", high: "#ef4444", critical: "#a855f7" };
 
-export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate }) {
+export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate, editMode = false }) {
   const { t } = useTranslation();
   // Close on Escape
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
-                <span className="font-mono text-base font-bold tracking-wider" style={{ color: "#f0c040" }}>CREATE NEW TASK</span>
+                <span className="font-mono text-base font-bold tracking-wider" style={{ color: "#f0c040" }}>{editMode ? "EDIT TASK" : "CREATE NEW TASK"}</span>
                 <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
                   <FantasyIcon size={22}><X /></FantasyIcon>
                 </button>
@@ -258,7 +258,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       opacity: !form.name.trim() ? 0.5 : 1
                     }}
                   >
-                    CREATE TASK
+                    {editMode ? "SAVE CHANGES" : "CREATE TASK"}
                   </button>
                 </div>
               </div>

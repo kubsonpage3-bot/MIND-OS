@@ -12,6 +12,8 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem, DragHandle } from './SortableTaskItem';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
+import CreateTaskModal from '@/components/mindos/CreateTaskModal';
+import { useLongPress } from '@/hooks/useLongPress';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -50,6 +52,71 @@ function getDayStartHour() {
   } catch { return 0; }
 }
 
+function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDaily }) {
+  const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
+  const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
+  const tv = task.value ?? task.rpgValue ?? 0;
+  const tvColor = getTaskValueColor(tv);
+
+  const longPressProps = useLongPress(
+    () => onEdit(task),
+    () => {
+      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+      completeDaily(task);
+    }
+  );
+
+  return (
+    <div
+      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
+      style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
+      {...longPressProps}
+    >
+      <DragHandle />
+      
+      {/* Task Value bar */}
+      {!task.is_completed && (
+        <div
+          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
+          title={`Task Value: ${tv.toFixed(1)}`}
+        />
+      )}
+
+      {/* Checkbox */}
+      <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}>
+        {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pr-2 overflow-hidden">
+        <div className={`font-semibold text-sm truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{ color: 'var(--habit-text)' }}>
+          {task.name}
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
+          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
+          {(task.streak || 0) > 0 && (
+            <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
+              <Flame size={10} strokeWidth={2.5} />
+              <span>{task.streak}</span>
+            </span>
+          )}
+          {tv !== 0 && (
+            <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+              TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Delete */}
+      <div className="shrink-0">
+        <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
+      </div>
+    </div>
+  );
+}
+
 export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -57,6 +124,14 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const tasks = dailies;
   const [cronMsg, setCronMsg] = useState(null);
   const [deathMsg, setDeathMsg] = useState(null);
+
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    name: '', type: 'daily', category: 'Other', difficulty: 'medium',
+    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
+  });
+  const [formType, setFormType] = useState('daily');
+  const [editingTask, setEditingTask] = useState(null);
 
   // Запускаем cron при монтировании и при возвращении в приложение (смена вкладки)
   useEffect(() => {
@@ -149,6 +224,47 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const handleDragCancel = () => {
     setActiveId(null);
     document.body.classList.remove('dnd-dragging');
+  };
+
+  const updateTaskMutation = useMutation({
+    mutationFn: (taskData) => djangoApi.tasks.update(taskData.id, taskData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      setShowForm(false);
+      setEditingTask(null);
+    }
+  });
+
+  const handleSave = () => {
+    if (!form.name.trim() || !editingTask) return;
+    updateTaskMutation.mutate({
+      id: editingTask.id,
+      title: form.name,
+      task_type: formType,
+      category: form.category,
+      difficulty: form.difficulty,
+      notes: form.notes || '',
+      due_date: form.dueDate || null,
+      scheduled_time: form.scheduledTime || null,
+      show_in_calendar: !!form.showInCalendar,
+    });
+  };
+
+  const handleEdit = (task) => {
+    setForm({
+      name: task.name,
+      type: task.type || 'daily',
+      category: task.category || 'Other',
+      difficulty: task.difficulty || 'medium',
+      notes: task.notes || '',
+      priority: task.priority || 'medium',
+      dueDate: task.due_date || '',
+      scheduledTime: task.scheduled_time || '',
+      showInCalendar: task.show_in_calendar || false,
+    });
+    setFormType(task.type || 'daily');
+    setEditingTask(task);
+    setShowForm(true);
   };
 
 
@@ -309,11 +425,6 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
             )}
             <AnimatePresence mode="popLayout">
           {tasks.map((task, index) => {
-            const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
-            const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
-            const tv = task.value ?? task.rpgValue ?? 0;
-            const tvColor = getTaskValueColor(tv);
-
             return (
               <motion.div
                 key={task.id}
@@ -323,58 +434,16 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                 exit={{ opacity: 0, scale: 0.8, x: 40, filter: "blur(4px)" }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
-              <SortableTaskItem id={task.id}>
-                    <div
-                      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
-                      style={{ border: '1px solid var(--habit-border)' }}
-                      onClick={() => {
-                        if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-                        completeDaily(task);
-                      }}
-                    >
-                      <DragHandle />
-                      
-                      {/* Task Value bar */}
-                      {!task.is_completed && (
-                        <div
-                          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
-                          title={`Task Value: ${tv.toFixed(1)}`}
-                        />
-                      )}
-
-                      {/* Checkbox */}
-                      <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}>
-                        {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0 pr-2 overflow-hidden">
-                        <div className={`font-semibold text-sm truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{ color: 'var(--habit-text)' }}>
-                          {task.name}
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-                          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
-                          {(task.streak || 0) > 0 && (
-                            <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
-                              <Flame size={10} strokeWidth={2.5} />
-                              <span>{task.streak}</span>
-                            </span>
-                          )}
-                          {tv !== 0 && (
-                            <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-                              TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Delete */}
-                      <div className="shrink-0">
-                        <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
-                      </div>
-                    </div>
-              </SortableTaskItem>
+                <SortableTaskItem id={task.id}>
+                  <TaskItemRow
+                    task={task}
+                    completeMutation={completeMutation}
+                    deleteTask={deleteTask}
+                    onEdit={handleEdit}
+                    t={t}
+                    completeDaily={completeDaily}
+                  />
+                </SortableTaskItem>
               </motion.div>
             );
           })}
@@ -384,6 +453,8 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       </div>
       </DndContext>
 
+      <CreateTaskModal isOpen={showForm} onClose={() => setShowForm(false)}
+        formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={handleSave} editMode={!!editingTask} />
     </div>
   );
 }

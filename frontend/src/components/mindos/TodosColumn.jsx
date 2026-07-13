@@ -12,6 +12,7 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem, DragHandle } from "./SortableTaskItem";
 import ConfirmDeleteButton from './ConfirmDeleteButton';
+import { useLongPress } from '@/hooks/useLongPress';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -47,6 +48,81 @@ function isOverdue(task) {
   return new Date(task.due_date) < new Date();
 }
 
+function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
+  const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
+  const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
+  const tv = task.value ?? 0;
+  const tvColor = getTaskValueColor(tv);
+  const overdue = isOverdue(task);
+
+  const longPressProps = useLongPress(
+    () => onEdit(task),
+    () => { if (!toggleMutation.isPending) toggleMutation.mutate(task.id); }
+  );
+
+  return (
+    <div
+      className="flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150"
+      style={{
+        background: 'var(--habit-panel)',
+        border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+        ...longPressProps.style
+      }}
+      {...longPressProps}
+    >
+      <DragHandle />
+      {/* Task Value bar */}
+      <div
+        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
+        title={`Task Value: ${tv.toFixed(1)}`}
+      />
+
+      {/* Checkbox */}
+      <div className="shrink-0">
+        <Square size={20} strokeWidth={2} style={{ color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)' }} />
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="truncate" style={{
+          fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
+          color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
+          textDecoration: 'none',
+        }}>
+          {task.name}
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
+          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
+          {/* Task Value */}
+          <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+            TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+          </span>
+          {/* Due date */}
+          {task.due_date && (
+            <span className="flex items-center gap-0.5 text-[10px]" style={{ color: overdue ? 'var(--habit-red)' : 'var(--habit-dim)' }}>
+              <Clock size={8} />
+              {new Date(task.due_date).toLocaleDateString()}
+              {overdue && ' ⚠️'}
+            </span>
+          )}
+        </div>
+        {/* Предупреждение о снижении награды */}
+        {tv < -5 && (
+          <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
+            reward -{ Math.round(Math.abs(tv) * 5) }%
+          </div>
+        )}
+      </div>
+
+      {/* Delete */}
+      <div className="shrink-0">
+        <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
+      </div>
+    </div>
+  );
+}
+
 export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRankXP }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -56,6 +132,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
   });
   const [formType, setFormType] = useState('todo');
+  const [editingTask, setEditingTask] = useState(null);
 
   const activeTodos = todos.filter(t => !t.is_completed);
 
@@ -114,18 +191,58 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     }
   });
 
-  const createTask = () => {
+  const updateTaskMutation = useMutation({
+    mutationFn: (taskData) => djangoApi.tasks.update(taskData.id, taskData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      setShowForm(false);
+      setEditingTask(null);
+    }
+  });
+
+  const handleSave = () => {
     if (!form.name.trim()) return;
-    createTaskMutation.mutate({
-      title: form.name,
-      task_type: 'todo',
-      category: form.category,
-      difficulty: form.difficulty,
-      notes: form.notes || '',
-      due_date: form.dueDate || null,
-      scheduled_time: form.scheduledTime || null,
-      show_in_calendar: !!form.showInCalendar,
+    if (editingTask) {
+      updateTaskMutation.mutate({
+        id: editingTask.id,
+        title: form.name,
+        task_type: formType,
+        category: form.category,
+        difficulty: form.difficulty,
+        notes: form.notes || '',
+        due_date: form.dueDate || null,
+        scheduled_time: form.scheduledTime || null,
+        show_in_calendar: !!form.showInCalendar,
+      });
+    } else {
+      createTaskMutation.mutate({
+        title: form.name,
+        task_type: formType,
+        category: form.category,
+        difficulty: form.difficulty,
+        notes: form.notes || '',
+        due_date: form.dueDate || null,
+        scheduled_time: form.scheduledTime || null,
+        show_in_calendar: !!form.showInCalendar,
+      });
+    }
+  };
+
+  const handleEdit = (task) => {
+    setForm({
+      name: task.name,
+      type: task.type || 'todo',
+      category: task.category || 'Other',
+      difficulty: task.difficulty || 'medium',
+      notes: task.notes || '',
+      priority: task.priority || 'medium',
+      dueDate: task.due_date || '',
+      scheduledTime: task.scheduled_time || '',
+      showInCalendar: task.show_in_calendar || false,
     });
+    setFormType(task.type || 'todo');
+    setEditingTask(task);
+    setShowForm(true);
   };
 
   const toggleMutation = useMutation({
@@ -206,7 +323,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-orange, #ff8800)' }}>
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>TO-DOS</span>
-        <button onClick={() => setShowForm(true)} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+        <button onClick={() => { setEditingTask(null); setShowForm(true); }} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
           <Plus size={16} className="text-white" strokeWidth={3} />
         </button>
       </div>
@@ -226,12 +343,6 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
             )}
             <AnimatePresence mode="popLayout">
           {sortedActive.map((task, index) => {
-            const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
-            const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
-            const tv = task.value ?? 0;
-            const tvColor = getTaskValueColor(tv);
-            const overdue = isOverdue(task);
-
             return (
               <motion.div
                 key={task.id}
@@ -241,66 +352,15 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                 exit={{ opacity: 0, scale: 0.8, x: 40, filter: "blur(4px)" }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
-              <SortableTaskItem id={task.id}>
-                    <div
-                      className="flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150"
-                      style={{
-                        background: 'var(--habit-panel)',
-                        border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
-                      }}
-                      onClick={() => !toggleMutation.isPending && completeTodo(task)}
-                    >
-                      <DragHandle />
-                {/* Task Value bar */}
-                <div
-                  style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
-                  title={`Task Value: ${tv.toFixed(1)}`}
-                />
-
-                {/* Checkbox */}
-                <div className="shrink-0">
-                  <Square size={20} strokeWidth={2} style={{ color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)' }} />
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="truncate" style={{
-                    fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-                    color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
-                    textDecoration: 'none',
-                  }}>
-                    {task.name}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-                    <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
-                    {/* Task Value — показывает, насколько упала награда */}
-                    <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-                      TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-                    </span>
-                    {/* Due date */}
-                    {task.due_date && (
-                      <span className="flex items-center gap-0.5 text-[10px]" style={{ color: overdue ? 'var(--habit-red)' : 'var(--habit-dim)' }}>
-                        <Clock size={8} />
-                        {new Date(task.due_date).toLocaleDateString()}
-                        {overdue && ' ⚠️'}
-                      </span>
-                    )}
-                  </div>
-                  {/* Предупреждение о снижении награды */}
-                  {tv < -5 && (
-                    <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
-                      reward -{ Math.round(Math.abs(tv) * 5) }%
-                    </div>
-                  )}
-                </div>
-
-                {/* Delete */}
-                <div className="shrink-0">
-                  <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
-                </div>
-              </div>
-              </SortableTaskItem>
+                <SortableTaskItem id={task.id}>
+                  <TaskItemRow
+                    task={task}
+                    toggleMutation={toggleMutation}
+                    deleteTask={deleteTask}
+                    onEdit={handleEdit}
+                    t={t}
+                  />
+                </SortableTaskItem>
               </motion.div>
             );
           })}
@@ -311,7 +371,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       </DndContext>
 
       <CreateTaskModal isOpen={showForm} onClose={() => setShowForm(false)}
-        formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
+        formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={handleSave} editMode={!!editingTask} />
     </div>
   );
 }
