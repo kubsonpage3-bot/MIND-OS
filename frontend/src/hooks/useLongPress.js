@@ -4,13 +4,16 @@ export function useLongPress(onLongPress, onClick, { delay = 500, moveThreshold 
   const timeoutRef = useRef(null);
   const isLongPressRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0 });
+  const validStartRef = useRef(false);
 
   const start = useCallback((e) => {
+    validStartRef.current = false;
     // Only left click or touch
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     // Ignore if clicked on a button or drag handle
     if (e.target.closest('button') || e.target.closest('[aria-label="Drag to reorder"]')) return;
 
+    validStartRef.current = true;
     isLongPressRef.current = false;
     startPosRef.current = { x: e.clientX, y: e.clientY };
 
@@ -26,9 +29,11 @@ export function useLongPress(onLongPress, onClick, { delay = 500, moveThreshold 
       timeoutRef.current = null;
     }
 
-    if (shouldTriggerClick && !isLongPressRef.current) {
+    if (shouldTriggerClick && validStartRef.current && !isLongPressRef.current) {
       if (onClick) onClick(e);
     }
+    
+    validStartRef.current = false;
   }, [onClick]);
 
   const onPointerMove = useCallback((e) => {
