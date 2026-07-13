@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }) {
+export default function PillTabBar({ tabs, activeTab, onChange, sticky = false, wrap = false }) {
   const { t } = useTranslation();
   return (
     <div 
@@ -12,9 +12,9 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
       `}
     >
       <div 
-        className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide items-center"
-        style={{ WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)', maskImage: 'linear-gradient(to right, black 85%, transparent 100%)' }}
-        onPointerDownCapture={(e) => e.stopPropagation()}
+        className={`flex gap-2 px-4 py-2 items-center ${wrap ? 'flex-wrap' : 'overflow-x-auto scrollbar-hide'}`}
+        style={!wrap ? { WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)', maskImage: 'linear-gradient(to right, black 85%, transparent 100%)' } : {}}
+        onPointerDownCapture={!wrap ? ((e) => e.stopPropagation()) : undefined}
       >
         {tabs.map(tab => (
           <button
