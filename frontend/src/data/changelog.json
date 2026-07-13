@@ -1,6 +1,26 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.88",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed horizontal swipes not working anywhere on the Stats page — the swipe listener now covers the entire screen instead of just the content area."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
+        "version": "1.4.87",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed a layout bug where the empty space at the bottom of short pages (like History or Settings) would not respond to horizontal swipes."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.86",
         "changes": [
             {

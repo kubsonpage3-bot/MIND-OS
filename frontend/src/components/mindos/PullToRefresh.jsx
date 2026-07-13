@@ -142,7 +142,7 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
   const INDICATOR_HEIGHT = 64;
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col flex-1 min-h-full">
       {/* Indicator — visible above content, pushed down with content via translateY */}
       <motion.div
         style={{ height: INDICATOR_HEIGHT, marginTop: -INDICATOR_HEIGHT }}
@@ -171,7 +171,7 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
       </motion.div>
 
       {/* Content pushed down by same translateY */}
-      <motion.div animate={controls} className="min-h-full">
+      <motion.div animate={controls} className="flex-1 flex flex-col min-h-full">
         {children}
       </motion.div>
     </div>

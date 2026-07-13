@@ -205,9 +205,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const activeTabRef = useRef(null);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
     if (!isMobile) return;
 
@@ -217,7 +214,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     const handleStart = (e) => {
       if (document.body.classList.contains('dnd-dragging')) return;
-      if (e.target.closest('.overflow-x-auto, .overflow-x-scroll, .touch-none, [data-no-swipe]')) return;
+      // Ignore touches on bottom nav, modals, or elements that opt out
+      if (e.target.closest('.overflow-x-auto, .overflow-x-scroll, .touch-none, [data-no-swipe], nav')) return;
       if (e.touches.length !== 1) return;
       const t = e.touches[0];
       touchStart = { x: t.clientX, y: t.clientY };
@@ -225,7 +223,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       currentX = 0;
       
       if (activeTabRef.current) {
-        activeTabRef.current.style.transition = 'none'; // disable transition while dragging
+        activeTabRef.current.style.transition = 'none';
       }
     };
 
@@ -238,7 +236,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (isHorizontal === null) {
         if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
           if (Math.abs(dy) > Math.abs(dx)) {
-            // It's a vertical scroll, cancel swipe detection
+            // Vertical scroll wins — bail immediately
             touchStart = null;
             return;
           }
@@ -247,9 +245,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       }
 
       if (isHorizontal === true) {
-        if (e.cancelable) e.preventDefault(); // lock vertical scroll
+        if (e.cancelable) e.preventDefault();
         
-        // Apply slight resistance
         currentX = dx * 0.85;
         if (activeTabRef.current) {
           activeTabRef.current.style.transform = `translateX(${currentX}px)`;
@@ -264,7 +261,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         const currentIdx = getSectionIndex(activeTab);
         
         if (currentX < -threshold && currentIdx < BOTTOM_TABS.length - 1) {
-          // Swipe left -> Next
           if (activeTabRef.current) {
              activeTabRef.current.style.transition = 'none';
              activeTabRef.current.style.transform = '';
@@ -272,7 +268,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           const nextTab = BOTTOM_TABS[currentIdx + 1];
           onSectionChange(nextTab === "tools" ? "history" : nextTab);
         } else if (currentX > threshold && currentIdx > 0) {
-          // Swipe right -> Prev
           if (activeTabRef.current) {
              activeTabRef.current.style.transition = 'none';
              activeTabRef.current.style.transform = '';
@@ -296,16 +291,17 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       touchStart = null;
     };
 
-    el.addEventListener('touchstart', handleStart, { passive: true });
-    el.addEventListener('touchmove', handleMove, { passive: false });
-    el.addEventListener('touchend', handleEnd);
-    el.addEventListener('touchcancel', handleEnd);
+    // ✅ Listen on document — catches touches in empty space at bottom of short pages
+    document.addEventListener('touchstart', handleStart, { passive: true });
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
+    document.addEventListener('touchcancel', handleEnd);
 
     return () => {
-      el.removeEventListener('touchstart', handleStart);
-      el.removeEventListener('touchmove', handleMove);
-      el.removeEventListener('touchend', handleEnd);
-      el.removeEventListener('touchcancel', handleEnd);
+      document.removeEventListener('touchstart', handleStart);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleEnd);
+      document.removeEventListener('touchcancel', handleEnd);
     };
   }, [activeTab, onSectionChange]);
 
