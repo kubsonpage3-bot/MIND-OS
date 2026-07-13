@@ -453,4 +453,15 @@ export const djangoApi = {
     }),
     leaderboard: () => djangoFetch('/party/leaderboard/')
   },
+
+  pomodoro: {
+    getSessions: () => djangoFetch('/pomodoro/sessions/'),
+    saveSession: (data) =>
+      djangoFetch('/pomodoro/sessions/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    getHeatmap: (days = 365) => djangoFetch(`/pomodoro/sessions/heatmap/?days=${days}`),
+    getStats: () => djangoFetch('/pomodoro/sessions/stats/'),
+  },
 };

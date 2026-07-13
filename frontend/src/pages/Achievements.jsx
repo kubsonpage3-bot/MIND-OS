@@ -57,7 +57,7 @@ function BossMedalCard({ boss, defeated }) {
       </motion.div>
       <div className="text-center">
         <div className="font-mono text-[10px] font-black tracking-wider" style={{ color: defeated ? boss.color : "#4a4060" }}>
-          {t(`bosses.${boss.id}`, boss.name)}
+          {String(t(`bosses.${boss.id}`, boss.name))}
         </div>
         <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 italic">{defeated ? replaceBossNames(t(`achievements_page.medal_desc_${boss.id}`, boss.desc), t) : "???"}</div>
       </div>
@@ -98,7 +98,7 @@ function AchievementCard({ ach, isUnlocked }) {
         {isUnlocked ? ach.icon : "🔒"}
       </motion.div>
       <div className="text-[9px] font-mono font-bold" style={{ color: isUnlocked ? ach.color : "#4a4060" }}>
-        {isUnlocked ? t(`rpgData.achievements.${ach.id}.name`, ach.name) : "???"}
+        {isUnlocked ? String(t(`rpgData.achievements.${ach.id}.name`, ach.name)) : "???"}
       </div>
       {isUnlocked && showTip && (
         <motion.div
@@ -110,7 +110,7 @@ function AchievementCard({ ach, isUnlocked }) {
             {replaceBossNames(t(`rpgData.achievements.${ach.id}.desc`, ach.desc), t)}
           </div>
           <div className="text-[9px] font-mono mt-1" style={{ color: ach.color }}>
-            {t(`rpgData.achievements.${ach.id}.reward`, ach.reward)}
+            {String(t(`rpgData.achievements.${ach.id}.reward`, ach.reward))}
           </div>
         </motion.div>
       )}

@@ -119,7 +119,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
     const { active, over } = e;
     if (!over || active.id === over.id) return;
 
-    queryClient.setQueryData(["tasks"], (oldTasks) => {
+    queryClient.setQueryData(["tasks"], (/** @type {any[]} */ oldTasks) => {
       if (!oldTasks) return oldTasks;
       const newTasks = [...oldTasks];
       const oldIndex = newTasks.findIndex(t => String(t.id) === active.id);

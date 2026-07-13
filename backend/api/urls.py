@@ -54,6 +54,7 @@ from .views import (
     DejaVuView,
 )
 from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
+from .views_pomodoro import PomodoroSessionViewSet
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
 # TaskViewSet → /api/tasks/
@@ -62,6 +63,9 @@ from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarnin
 router = DefaultRouter()
 router.register(r"tasks", TaskViewSet, basename="task")
 router.register(r"calendar/events", CalendarEventViewSet, basename="calendar-event")
+router.register(
+    r"pomodoro/sessions", PomodoroSessionViewSet, basename="pomodoro-session"
+)
 
 urlpatterns = [
     # ——— Здоровье / Healthcheck ——————————————————————————————————————
@@ -164,7 +168,17 @@ urlpatterns = [
         name="party-member-profile",
     ),
     # ─── Push Notifications ───────────────────────────────────────────────────
-    path("notifications/subscribe/", PushSubscribeView.as_view(), name="push-subscribe"),
-    path("notifications/unsubscribe/", PushUnsubscribeView.as_view(), name="push-unsubscribe"),
-    path("cron/streak-warnings/", CronStreakWarningView.as_view(), name="cron-streak-warnings"),
+    path(
+        "notifications/subscribe/", PushSubscribeView.as_view(), name="push-subscribe"
+    ),
+    path(
+        "notifications/unsubscribe/",
+        PushUnsubscribeView.as_view(),
+        name="push-unsubscribe",
+    ),
+    path(
+        "cron/streak-warnings/",
+        CronStreakWarningView.as_view(),
+        name="cron-streak-warnings",
+    ),
 ]

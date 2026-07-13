@@ -773,10 +773,6 @@
     "reminderTime": "Время напоминания",
     "setFor": "Установлено на"
   },
-  "skillPanel": {
-    "activeSkills": "АКТИВНЫЕ НАВЫКИ",
-    "mana": "МАНА"
-  },
   "streakControl": {
     "dayStreak": "Дней подряд"
   },

@@ -1817,6 +1817,9 @@ class ResetDataView(generics.GenericAPIView):
                 if reset_type == "nuclear":
                     InventoryItem.objects.filter(user_profile=profile).delete()
                     UserAchievement.objects.filter(user=request.user).delete()
+                    from api.models import PomodoroSession
+
+                    PomodoroSession.objects.filter(user=request.user).delete()
 
                 profile.save()
 

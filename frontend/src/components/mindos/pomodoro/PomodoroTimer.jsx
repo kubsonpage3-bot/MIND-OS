@@ -1,45 +1,44 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useRef } from "react";
-import OptimizedImage from "./OptimizedImage";
-import { Play, Pause, RotateCcw, Settings, X, Zap, Coffee, Moon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import OptimizedImage from '../OptimizedImage';
+import { Play, Pause, RotateCcw, Zap, Coffee, Moon, CheckCircle2, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { usePomodoro } from '@/hooks/usePomodoro';
 
 const PRESETS = [
-  { id: "classic", label: "Classic", work: 25, break: 5, longBreak: 15, cycles: 4 },
-  { id: "short", label: "Short", work: 15, break: 3, longBreak: 10, cycles: 4 },
-  { id: "deep", label: "Deep", work: 50, break: 10, longBreak: 30, cycles: 3 },
+  { id: 'classic', label: 'Classic', work: 25, break: 5, longBreak: 15, cycles: 4 },
+  { id: 'short',   label: 'Short',   work: 15, break: 3, longBreak: 10, cycles: 4 },
+  { id: 'deep',    label: 'Deep',    work: 50, break: 10, longBreak: 30, cycles: 3 },
 ];
 
-// Characters per mode with their image URLs
 const CHARACTERS = {
   work: {
-    name: "BEATRIX",
-    image: "/images/webp/pomodoro_char_1.webp",
-    color: "#f472b6",
-    glow: "rgba(244,114,182,0.5)",
-    accent: "#ec4899",
-    label: "FOCUS MODE",
-    particles: ["#ec4899", "#f472b6", "#fca5a5", "#fda4af"],
+    name: 'BEATRIX',
+    image: '/images/webp/pomodoro_char_1.webp',
+    color: '#f472b6',
+    glow: 'rgba(244,114,182,0.5)',
+    accent: '#ec4899',
+    label: 'FOCUS MODE',
+    particles: ['#ec4899', '#f472b6', '#fca5a5', '#fda4af'],
   },
   break: {
-    name: "LIGHTNING",
-    image: "/images/webp/pomodoro_char_2.webp",
-    color: "#8b5cf6",
-    glow: "rgba(139,92,246,0.5)",
-    accent: "#6d28d9",
-    label: "SHORT BREAK",
-    particles: ["#8b5cf6", "#a78bfa", "#c4b5fd", "#60a5fa"],
+    name: 'LIGHTNING',
+    image: '/images/webp/pomodoro_char_2.webp',
+    color: '#8b5cf6',
+    glow: 'rgba(139,92,246,0.5)',
+    accent: '#6d28d9',
+    label: 'SHORT BREAK',
+    particles: ['#8b5cf6', '#a78bfa', '#c4b5fd', '#60a5fa'],
   },
   longBreak: {
-    name: "SUMMONER",
-    image: "/images/webp/pomodoro_char_3.webp",
-    color: "#ef4444",
-    glow: "rgba(239,68,68,0.5)",
-    accent: "#dc2626",
-    label: "LONG REST",
-    particles: ["#ef4444", "#f87171", "#fca5a5", "#fb923c"],
+    name: 'SUMMONER',
+    image: '/images/webp/pomodoro_char_3.webp',
+    color: '#ef4444',
+    glow: 'rgba(239,68,68,0.5)',
+    accent: '#dc2626',
+    label: 'LONG REST',
+    particles: ['#ef4444', '#f87171', '#fca5a5', '#fb923c'],
   },
 };
 
@@ -83,7 +82,7 @@ function Particles({ colors, count = 18, active }) {
             duration: p.duration,
             delay: p.delay,
             repeat: Infinity,
-            ease: "easeOut",
+            ease: 'easeOut',
           }}
         />
       ))}
@@ -99,14 +98,14 @@ function OrbitRing({ color, radius, duration, reverse }) {
       style={{
         width: radius * 2,
         height: radius * 2,
-        top: "50%",
-        left: "50%",
+        top: '50%',
+        left: '50%',
         marginTop: -radius,
         marginLeft: -radius,
         borderColor: `${color}40`,
       }}
       animate={{ rotate: reverse ? -360 : 360 }}
-      transition={{ duration, repeat: Infinity, ease: "linear" }}
+      transition={{ duration, repeat: Infinity, ease: 'linear' }}
     >
       <div
         className="absolute w-2.5 h-2.5 rounded-full top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -116,156 +115,156 @@ function OrbitRing({ color, radius, duration, reverse }) {
   );
 }
 
-export default function PomodoroPanel() {
+export default function PomodoroTimer() {
   const { t } = useTranslation();
   const [preset, setPreset] = useState(PRESETS[0]);
-  const [showSettings, setShowSettings] = useState(false);
-  const [customSettings, setCustomSettings] = useState({ ...PRESETS[0] });
-  const [mode, setMode] = useState("work");
+  const [mode, setMode] = useState('work');
   const [timeLeft, setTimeLeft] = useState(PRESETS[0].work * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [cycleCount, setCycleCount] = useState(0);
   const [justCompleted, setJustCompleted] = useState(false);
+  const [focusLabel, setFocusLabel] = useState('');
 
+  // ─── ANTI-STALE-CLOSURE REFS ────────────────────────────────────────────────
+  // These refs always hold the latest values so the setInterval callback
+  // doesn't capture stale closures.
+  const modeRef = useRef(mode);
+  const presetRef = useRef(preset);
+  const cycleCountRef = useRef(cycleCount);
+  const focusLabelRef = useRef(focusLabel);
+  const isRunningRef = useRef(isRunning);
+
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { presetRef.current = preset; }, [preset]);
+  useEffect(() => { cycleCountRef.current = cycleCount; }, [cycleCount]);
+  useEffect(() => { focusLabelRef.current = focusLabel; }, [focusLabel]);
+  useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
+
+  const { saveSession, isSaving } = usePomodoro();
+
+  // ─── DERIVED STATE ───────────────────────────────────────────────────────────
   const char = CHARACTERS[mode];
-  const totalTime = mode === "work" ? preset.work * 60 : mode === "break" ? preset.break * 60 : preset.longBreak * 60;
+  const totalTime = mode === 'work' ? preset.work * 60 : mode === 'break' ? preset.break * 60 : preset.longBreak * 60;
   const progress = 1 - timeLeft / totalTime;
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const circumference = 2 * Math.PI * 110;
 
+  // ─── LOAD SETTINGS FROM LOCALSTORAGE ────────────────────────────────────────
+  useEffect(() => {
+    const loadSettings = () => {
+      const saved = localStorage.getItem('pomodoro_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setPreset({ id: 'custom', label: 'Custom', ...parsed });
+        } catch (e) {}
+      }
+    };
+    loadSettings();
+    window.addEventListener('pomodoro_settings_updated', loadSettings);
+    return () => window.removeEventListener('pomodoro_settings_updated', loadSettings);
+  }, []);
+
+  // Reset timer when preset changes
   useEffect(() => {
     setTimeLeft(preset.work * 60);
-    setMode("work");
+    setMode('work');
     setCycleCount(0);
     setIsRunning(false);
-  }, [preset]);
+  }, [preset.id]); // intentionally only preset.id so manual changes don't re-trigger
+
+  // ─── SESSION COMPLETE HANDLER (no stale closures — reads from refs) ──────────
+  const handleCycleComplete = useCallback(() => {
+    const currentMode = modeRef.current;
+    const currentPreset = presetRef.current;
+    const currentCycleCount = cycleCountRef.current;
+    const currentLabel = focusLabelRef.current;
+
+    setIsRunning(false);
+    setJustCompleted(true);
+    setTimeout(() => setJustCompleted(false), 2500);
+
+    // ── SSOT: Save session to Django backend ───────────────────────────────────
+    const duration =
+      currentMode === 'work' ? currentPreset.work
+      : currentMode === 'break' ? currentPreset.break
+      : currentPreset.longBreak;
+
+    saveSession({
+      duration,
+      mode: currentMode,
+      label: currentLabel,
+      completed: true,
+    });
+
+    // Advance the cycle state
+    if (currentMode === 'work') {
+      const newCount = currentCycleCount + 1;
+      setCycleCount(newCount);
+      if (newCount >= currentPreset.cycles) {
+        setMode('longBreak');
+        setTimeLeft(currentPreset.longBreak * 60);
+        setCycleCount(0);
+      } else {
+        setMode('break');
+        setTimeLeft(currentPreset.break * 60);
+      }
+    } else {
+      setMode('work');
+      setTimeLeft(currentPreset.work * 60);
+    }
+  }, [saveSession]); // saveSession is stable from useMutation
+
+  // ─── TIMER TICK ─────────────────────────────────────────────────────────────
+  // We track timeLeft in a ref to avoid stale closure; the state is updated
+  // every second for the UI but the completion logic uses the ref.
+  const timeLeftRef = useRef(timeLeft);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
 
   useEffect(() => {
     if (!isRunning) return;
+
     const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          handleCycleComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isRunning, mode, cycleCount, preset]);
-
-  const handleCycleComplete = () => {
-    setIsRunning(false);
-    setJustCompleted(true);
-    setTimeout(() => setJustCompleted(false), 2000);
-    if (mode === "work") {
-      const newCount = cycleCount + 1;
-      setCycleCount(newCount);
-      if (newCount >= preset.cycles) {
-        setMode("longBreak");
-        setTimeLeft(preset.longBreak * 60);
-        setCycleCount(0);
+      const current = timeLeftRef.current;
+      if (current <= 1) {
+        setTimeLeft(0);
+        clearInterval(interval);
+        handleCycleComplete();
       } else {
-        setMode("break");
-        setTimeLeft(preset.break * 60);
+        setTimeLeft(current - 1);
       }
-    } else {
-      setMode("work");
-      setTimeLeft(preset.work * 60);
-    }
-  };
+    }, 1000);
 
+    return () => clearInterval(interval);
+  }, [isRunning, handleCycleComplete]);
+
+  // ─── CONTROLS ────────────────────────────────────────────────────────────────
   const resetTimer = () => {
     setIsRunning(false);
     setCycleCount(0);
-    setMode("work");
+    setMode('work');
     setTimeLeft(preset.work * 60);
   };
 
   const switchMode = (newMode) => {
     setIsRunning(false);
     setMode(newMode);
-    const t = newMode === "work" ? preset.work : newMode === "break" ? preset.break : preset.longBreak;
-    setTimeLeft(t * 60);
+    const duration =
+      newMode === 'work' ? preset.work
+      : newMode === 'break' ? preset.break
+      : preset.longBreak;
+    setTimeLeft(duration * 60);
   };
 
   return (
     <div className="space-y-4 select-none">
-      {/* Settings modal */}
-      <AnimatePresence>
-        {showSettings && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-sm font-bold tracking-wider">{t('pomodoroPanel.settings')}</span>
-                <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-foreground">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Preset buttons */}
-              <div className="flex gap-2">
-                {PRESETS.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => { setCustomSettings({ ...p }); setPreset(p); setShowSettings(false); }}
-                    className={`flex-1 py-2 text-[10px] font-mono rounded-lg border transition-all uppercase ${
-                      preset.id === p.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Work (min)", key: "work" },
-                  { label: "Break (min)", key: "break" },
-                  { label: "Long Break (min)", key: "longBreak" },
-                  { label: "Cycles", key: "cycles" },
-                ].map(({ label, key }) => (
-                  <div key={key}>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">{label}</label>
-                    <Input
-                      type="number"
-                      value={customSettings[key]}
-                      onChange={e => setCustomSettings(s => ({ ...s, [key]: parseInt(e.target.value) || 1 }))}
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                onClick={() => {
-                  setPreset({ ...customSettings, id: "custom", label: "Custom" });
-                  setShowSettings(false);
-                }}
-                className="w-full font-mono"
-              >{t('pomodoroPanel.apply')}</Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Mode selector */}
       <div className="flex gap-2">
         {[
-          { id: "work", label: "FOCUS", icon: Zap },
-          { id: "break", label: "BREAK", icon: Coffee },
-          { id: "longBreak", label: "REST", icon: Moon },
+          { id: 'work', label: 'FOCUS', icon: Zap },
+          { id: 'break', label: 'BREAK', icon: Coffee },
+          { id: 'longBreak', label: 'REST', icon: Moon },
         ].map(({ id, label, icon: Icon }) => {
           const c = CHARACTERS[id];
           return (
@@ -274,9 +273,9 @@ export default function PomodoroPanel() {
               onClick={() => switchMode(id)}
               className="flex-1 py-2.5 text-[10px] font-mono rounded-xl border transition-all flex items-center justify-center gap-1.5"
               style={{
-                borderColor: mode === id ? c.accent : "rgba(255,255,255,0.08)",
-                background: mode === id ? `${c.accent}18` : "transparent",
-                color: mode === id ? c.color : "#64748b",
+                borderColor: mode === id ? c.accent : 'rgba(255,255,255,0.08)',
+                background: mode === id ? `${c.accent}18` : 'transparent',
+                color: mode === id ? c.color : '#64748b',
               }}
             >
               <Icon className="w-3 h-3" />
@@ -296,7 +295,7 @@ export default function PomodoroPanel() {
           transition={{ duration: 0.3 }}
           className="relative rounded-2xl overflow-hidden"
           style={{
-            background: `radial-gradient(ellipse at center, ${char.glow.replace("0.5", "0.08")} 0%, rgba(0,0,0,0) 70%)`,
+            background: `radial-gradient(ellipse at center, ${char.glow.replace('0.5', '0.08')} 0%, rgba(0,0,0,0) 70%)`,
             border: `1px solid ${char.accent}30`,
           }}
         >
@@ -307,30 +306,44 @@ export default function PomodoroPanel() {
             className="absolute inset-0 pointer-events-none"
             animate={isRunning ? {
               background: [
-                `radial-gradient(ellipse at 50% 80%, ${char.glow.replace("0.5", "0.05")} 0%, transparent 60%)`,
-                `radial-gradient(ellipse at 50% 80%, ${char.glow.replace("0.5", "0.15")} 0%, transparent 60%)`,
-              ]
+                `radial-gradient(ellipse at 50% 80%, ${char.glow.replace('0.5', '0.05')} 0%, transparent 60%)`,
+                `radial-gradient(ellipse at 50% 80%, ${char.glow.replace('0.5', '0.15')} 0%, transparent 60%)`,
+              ],
             } : {}}
-            transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+            transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
           />
 
           <div className="relative flex flex-col items-center px-4 pt-6 pb-4 gap-4">
+            {/* Focus Label Input — visible when paused in work mode */}
+            <AnimatePresence>
+              {!isRunning && mode === 'work' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="w-full max-w-[220px] absolute top-4 z-20"
+                >
+                  <Input
+                    placeholder={t('pomodoro.whatFocusingOn', 'What are you focusing on?')}
+                    value={focusLabel}
+                    onChange={(e) => setFocusLabel(e.target.value)}
+                    className="h-8 text-xs font-mono text-center bg-black/40 border-primary/20 focus:border-primary/50 placeholder:text-primary/40 rounded-full"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Character image */}
             <div className="relative">
-              {/* Orbit rings behind character */}
               <div className="relative w-48 h-48 flex items-end justify-center">
                 <OrbitRing color={char.accent} radius={85} duration={8} reverse={false} />
                 <OrbitRing color={char.color} radius={70} duration={5} reverse={true} />
 
-                {/* Character sprite */}
                 <motion.div
                   className="relative z-10 flex items-end justify-center"
-                  animate={isRunning ? {
-                    y: [0, -8, 0],
-                  } : { y: 0 }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  animate={isRunning ? { y: [0, -8, 0] } : { y: 0 }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                 >
-                  {/* Ground glow */}
                   <motion.div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 w-28 h-4 rounded-full blur-xl"
                     style={{ background: char.glow }}
@@ -343,13 +356,12 @@ export default function PomodoroPanel() {
                     className="relative z-10 h-40 object-contain drop-shadow-2xl"
                     style={{
                       filter: `drop-shadow(0 0 16px ${char.glow}) drop-shadow(0 0 6px ${char.color})`,
-                      imageRendering: "pixelated",
+                      imageRendering: 'pixelated',
                     }}
                   />
                 </motion.div>
               </div>
 
-              {/* Character name */}
               <motion.div
                 className="text-center mt-1 font-mono text-[10px] tracking-[0.3em] font-bold"
                 style={{ color: char.color }}
@@ -363,9 +375,7 @@ export default function PomodoroPanel() {
             {/* Timer circle */}
             <div className="relative w-52 h-52">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 240 240">
-                {/* Track */}
                 <circle cx="120" cy="120" r="110" stroke={`${char.accent}20`} strokeWidth="6" fill="none" />
-                {/* Progress */}
                 <motion.circle
                   cx="120"
                   cy="120"
@@ -380,11 +390,9 @@ export default function PomodoroPanel() {
                   style={{ filter: `drop-shadow(0 0 6px ${char.color})` }}
                   transition={{ duration: 0.5 }}
                 />
-                {/* Inner glow ring */}
                 <circle cx="120" cy="120" r="100" stroke={`${char.accent}08`} strokeWidth="1" fill="none" />
               </svg>
 
-              {/* Time display */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -394,7 +402,7 @@ export default function PomodoroPanel() {
                     className="font-mono font-black text-5xl leading-none"
                     style={{ color: char.color, textShadow: `0 0 20px ${char.glow}` }}
                   >
-                    {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+                    {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                   </motion.div>
                 </AnimatePresence>
                 <div className="font-mono text-[10px] tracking-[0.25em] mt-1.5" style={{ color: `${char.color}80` }}>
@@ -411,7 +419,7 @@ export default function PomodoroPanel() {
                   className="w-2.5 h-2.5 rounded-sm"
                   style={{
                     background: i < cycleCount ? char.color : `${char.accent}25`,
-                    boxShadow: i < cycleCount ? `0 0 6px ${char.color}` : "none",
+                    boxShadow: i < cycleCount ? `0 0 6px ${char.color}` : 'none',
                   }}
                   animate={i < cycleCount ? { scale: [1, 1.3, 1] } : {}}
                   transition={{ duration: 0.5 }}
@@ -439,40 +447,54 @@ export default function PomodoroPanel() {
                 className="w-20 h-20 rounded-full font-mono font-bold text-sm flex items-center justify-center transition-all"
                 style={{
                   background: `linear-gradient(135deg, ${char.accent}, ${char.color})`,
-                  boxShadow: isRunning ? `0 0 24px ${char.glow}, 0 0 8px ${char.glow}` : `0 4px 20px ${char.glow.replace("0.5", "0.3")}`,
-                  color: "#fff",
+                  boxShadow: isRunning
+                    ? `0 0 24px ${char.glow}, 0 0 8px ${char.glow}`
+                    : `0 4px 20px ${char.glow.replace('0.5', '0.3')}`,
+                  color: '#fff',
                 }}
                 animate={isRunning ? {
                   boxShadow: [
                     `0 0 16px ${char.glow}`,
                     `0 0 32px ${char.glow}`,
                     `0 0 16px ${char.glow}`,
-                  ]
+                  ],
                 } : {}}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
                 {isRunning ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
               </motion.button>
 
-              <motion.button
-                onClick={() => setShowSettings(true)}
-                whileTap={{ scale: 0.9 }}
-                className="w-12 h-12 rounded-full border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              {/* Save status indicator */}
+              <div className="w-12 h-12 rounded-full border flex items-center justify-center"
                 style={{ borderColor: `${char.accent}30` }}
               >
-                <Settings className="w-4 h-4" />
-              </motion.button>
+                <AnimatePresence mode="wait">
+                  {isSaving ? (
+                    <motion.div key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+                    </motion.div>
+                  ) : justCompleted ? (
+                    <motion.div key="done" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ opacity: 0 }}>
+                      <CheckCircle2 className="w-4 h-4" style={{ color: char.color }} />
+                    </motion.div>
+                  ) : (
+                    <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 0.3 }}>
+                      <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* Session info */}
+      {/* Session info footer */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "FOCUS", value: `${preset.work}m`, color: CHARACTERS.work.color },
-          { label: "BREAK", value: `${preset.break}m`, color: CHARACTERS.break.color },
-          { label: "REST", value: `${preset.longBreak}m`, color: CHARACTERS.longBreak.color },
+          { label: 'FOCUS', value: `${preset.work}m`, color: CHARACTERS.work.color },
+          { label: 'BREAK', value: `${preset.break}m`, color: CHARACTERS.break.color },
+          { label: 'REST',  value: `${preset.longBreak}m`, color: CHARACTERS.longBreak.color },
         ].map(item => (
           <div
             key={item.label}

@@ -18,7 +18,7 @@ import FlyingReward from "@/components/mindos/FlyingReward";
 import ActivityLogger from "@/components/mindos/ActivityLogger";
 import ProjectionTable from "@/components/mindos/ProjectionTable";
 import HistoryLog from "@/components/mindos/HistoryLog";
-import PomodoroPanel from "@/components/mindos/PomodoroPanel";
+import PomodoroPanel from "@/components/mindos/pomodoro/PomodoroPanel";
 import CalendarPanel from "@/components/mindos/CalendarPanel";
 import TasksPanel from "@/components/mindos/TasksPanel";
 import CharacterTab from "@/components/mindos/CharacterTab";
@@ -190,33 +190,43 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   };
 
-  const swipePower = (offset, velocity) => {
-    return Math.abs(offset) * velocity;
-  };
+  // Native touch swipe — bypasses dnd-kit sensor conflict that blocks Framer drag
+  const touchStartRef = useRef(null);
+  const SWIPE_MIN_X = 50;   // px horizontal distance required
+  const SWIPE_MAX_Y = 80;   // px vertical distance allowed (prevents accidental swipes during scroll)
 
-  const handleDragEnd = (e, { offset, velocity }) => {
-    const swipe = swipePower(offset.x, velocity.x);
-    const threshold = 10000; // swipe confidence threshold
-    
-    // Ignore drag if we are currently dragging a task
+  const handleTouchStart = useCallback((e) => {
     if (document.body.classList.contains('dnd-dragging')) return;
+    const t = e.changedTouches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }, []);
 
-    if (swipe < -threshold) {
-      // Swiped left -> Next tab
-      const currentIdx = getSectionIndex(activeTab);
+  const handleTouchEnd = useCallback((e) => {
+    if (!touchStartRef.current) return;
+    if (document.body.classList.contains('dnd-dragging')) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartRef.current.x;
+    const dy = Math.abs(t.clientY - touchStartRef.current.y);
+    touchStartRef.current = null;
+
+    // Must be sufficiently horizontal and not a scroll
+    if (Math.abs(dx) < SWIPE_MIN_X || dy > SWIPE_MAX_Y) return;
+
+    const currentIdx = getSectionIndex(activeTab);
+    if (dx < 0) {
+      // Swiped left → Next tab
       if (currentIdx < BOTTOM_TABS.length - 1) {
         const nextTab = BOTTOM_TABS[currentIdx + 1];
         onSectionChange(nextTab === "tools" ? "history" : nextTab);
       }
-    } else if (swipe > threshold) {
-      // Swiped right -> Prev tab
-      const currentIdx = getSectionIndex(activeTab);
+    } else {
+      // Swiped right → Prev tab
       if (currentIdx > 0) {
         const prevTab = BOTTOM_TABS[currentIdx - 1];
         onSectionChange(prevTab === "tools" ? "history" : prevTab);
       }
     }
-  };
+  }, [activeTab, getSectionIndex, onSectionChange]);
 
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
@@ -578,10 +588,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                drag={typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches ? "x" : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
-                onDragEnd={handleDragEnd}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
                 className="w-full min-h-[calc(100dvh-200px)] md:min-h-0"
               >
                 {/* Dashboard — Habitica-style layout */}

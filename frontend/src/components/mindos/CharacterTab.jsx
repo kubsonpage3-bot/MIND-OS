@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { createPortal } from "react-dom";
 import { getTierColor } from "@/lib/gameState";
 import { CLASSES } from "@/constants/rpgData";
 import { djangoApi, getMediaUrl } from "@/api/djangoClient";
@@ -815,33 +816,42 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
       )}
 
       {/* Equip modal */}
-      {activeSlot && (
+      {activeSlot && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
           style={{ touchAction: 'none', overscrollBehavior: 'none' }}
           onClick={() => setActiveSlot(null)}
         >
-          <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-3" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
+          <motion.div
+            initial={{ scale: 0.95, y: 15, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border/40 pb-2">
               <span className="font-mono text-xs font-bold">{String(t(`slots.${activeSlot}`, activeSlot?.toUpperCase()))} — {t('character.select_slot')}</span>
-              <button onClick={() => setActiveSlot(null)}><X className="w-4 h-4 text-muted-foreground" /></button>
+              <button onClick={() => setActiveSlot(null)} className="p-1 hover:bg-accent rounded-lg transition-colors"><X className="w-4 h-4 text-muted-foreground" /></button>
             </div>
-            {inventory.filter(i => i.slot === activeSlot).length === 0 ? (
-              <div className="text-xs text-muted-foreground/50 font-mono text-center py-4">{t('character.no_items_slot')}</div>
-            ) : inventory.filter(i => i.slot === activeSlot).map((item, idx) => (
-              <button key={idx} onClick={() => equipItem(item)}
-                className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent transition-colors text-left">
-                <div>
-                  <div className="text-xs font-mono font-bold" style={{ color: getTierColor(item.tier) }}>{item.label}</div>
-                  <div className="text-[10px] font-mono text-muted-foreground">
-                    {item.stats && Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" ")}
+            <div className="max-h-[60vh] overflow-y-auto space-y-2 pr-1">
+              {inventory.filter(i => i.slot === activeSlot).length === 0 ? (
+                <div className="text-xs text-muted-foreground/50 font-mono text-center py-8">{t('character.no_items_slot')}</div>
+              ) : inventory.filter(i => i.slot === activeSlot).map((item, idx) => (
+                <button key={idx} onClick={() => equipItem(item)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent hover:border-primary/30 transition-all text-left">
+                  <div>
+                    <div className="text-xs font-mono font-bold" style={{ color: getTierColor(item.tier) }}>{item.label}</div>
+                    <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                      {item.stats && Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" ")}
+                    </div>
                   </div>
-                </div>
-                <span className="text-[10px] text-muted-foreground/50">{item.tier}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+                  <span className="text-[10px] text-muted-foreground/50 font-mono">{item.tier}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        </div>,
+        document.body
       )}
 
       {/* Shared Item Detail Modal */}

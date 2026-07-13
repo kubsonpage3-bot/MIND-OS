@@ -1,6 +1,46 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.71",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Upgraded the Pomodoro tool with inner tab navigation (Timer, Stats, History, Settings), a GitHub-style activity heatmap, and synchronized backend session storage."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
+        "version": "1.4.70",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed swipe navigation between bottom bar tabs on mobile — swipes left/right now reliably switch sections without conflicting with task drag-and-drop."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
+        "version": "1.4.69",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed positioning and visibility of equipment selection and item detail modals on mobile devices by portalling them to the root document body."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
+        "version": "1.4.68",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed internal data structures and type stability issues to prevent potential display glitches with achievements, daily tasks, and boss medals."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.67",
         "changes": [
             {

@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.functional import cached_property
+from datetime import date
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Профиль персонажа
@@ -1336,3 +1337,34 @@ class FeatureEvent(models.Model):
 
     def __str__(self):
         return f"FeatureEvent: {self.event_name} @ {self.timestamp}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pomodoro
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class PomodoroSession(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="pomodoro_sessions",
+        verbose_name="Пользователь",
+    )
+    date = models.DateField(default=date.today, verbose_name="Дата сессии")
+    started_at = models.DateTimeField(auto_now_add=True, verbose_name="Время старта")
+    duration = models.PositiveIntegerField(
+        default=25, verbose_name="Длительность (мин)"
+    )
+    mode = models.CharField(max_length=20, default="focus", verbose_name="Режим")
+    label = models.CharField(max_length=200, blank=True, verbose_name="Лейбл фокуса")
+    completed = models.BooleanField(default=True, verbose_name="Завершена")
+
+    class Meta:
+        verbose_name = "Сессия помодоро"
+        verbose_name_plural = "Сессии помодоро"
+        ordering = ["-started_at"]
+        indexes = [models.Index(fields=["user", "date"])]
+
+    def __str__(self):
+        return f"Pomodoro {self.mode} ({self.duration}m) - {self.user.username}"
