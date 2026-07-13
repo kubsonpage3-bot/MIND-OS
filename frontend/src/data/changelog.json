@@ -1,8 +1,12 @@
 [
     {
         "date": "2026-07-13",
-        "version": "1.4.59",
+        "version": "1.4.60",
         "changes": [
+            {
+                "type": "feature",
+                "text": "Added 'Gameplay Insights' — a smart, non-intrusive hint system that helps you discover underused mechanics and optimize your progress."
+            },
             {
                 "type": "content",
                 "text": "Fully localized the onboarding tutorial and all section-specific guides into Russian."

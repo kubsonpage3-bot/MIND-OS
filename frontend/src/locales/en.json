@@ -1657,5 +1657,47 @@
       "title": "Party",
       "body": "Team up with real friends using a shared invite code. Everyone in your Party can see each other's rank, level, streak, class, and HP — no shared boss, no chat, just visibility. The idea is simple: progress you can't show anyone is easier to quietly abandon than progress your friends can actually see."
     }
+  },
+  "insights": {
+    "prestige": {
+      "title": "Prestige Available!",
+      "description": "You've reached maximum rank! Prestige now to earn a permanent XP multiplier.",
+      "cta": "Prestige Now"
+    },
+    "no_boss": {
+      "title": "No Active Boss",
+      "description": "You have no active boss. Summon one in the Shop so your tasks deal damage!",
+      "cta": "Visit Shop"
+    },
+    "unspent_sp": {
+      "title": "Unspent Skill Points",
+      "description": "You have unspent Skill Points. Visit the Skill Tree to permanently boost your stats.",
+      "cta": "Open Skill Tree"
+    },
+    "dailies_risk": {
+      "title": "Streak at Risk",
+      "description": "Watch out! You have incomplete Dailies. Finish them before midnight to avoid taking damage.",
+      "cta": "View Dailies"
+    },
+    "no_mutators": {
+      "title": "No Active Mutators",
+      "description": "Mutators trade risk for higher rewards. Equip one in the Shop to accelerate your progress.",
+      "cta": "View Mutators"
+    },
+    "no_allies": {
+      "title": "Empty Party",
+      "description": "You're fighting alone! Recruit an Ally to passively boost your training sessions.",
+      "cta": "Recruit Ally"
+    },
+    "excess_gold": {
+      "title": "Gold Piling Up",
+      "description": "Your gold is piling up! Spend it on better gear or consumables in the Shop.",
+      "cta": "Visit Shop"
+    },
+    "rival_discovery": {
+      "title": "Meet Your Rival",
+      "description": "Check out the Rival tab to see how you stack up against Johan.",
+      "cta": "View Rival"
+    }
   }
 }

@@ -12,6 +12,7 @@ import { applyTheme } from "@/lib/themes";
 import { applyAppearanceSettings } from "@/lib/applyAppearance";
 import RewardToast from "@/components/mindos/RewardToast";
 import BalatroTutorialToast from "@/components/mindos/BalatroTutorialToast";
+import GameplayInsightCard from "@/components/mindos/GameplayInsightCard";
 import { THEMES } from "@/lib/themes";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -249,12 +250,13 @@ export default function AppShell({ defaultTab = "mind" }) {
         onNavigate={handleNavigate}
       />
 
-      <RewardToast />
+      <GameplayInsightCard onNavigate={handleNavigate} />
       <BalatroTutorialToast 
         profile={djangoProfile} 
         forceOpen={forceTutorialOpen} 
         onCloseCallback={() => setForceTutorialOpen(false)} 
       />
+      <RewardToast />
     </div>
   );
 }
