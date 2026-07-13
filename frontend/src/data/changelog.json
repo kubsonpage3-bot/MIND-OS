@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.66",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Redesigned the Organic Skill Tree on mobile to use a vertical accordion layout. Branches are now collapsible cards, and nodes are stacked vertically with native vertical scrolling, while keeping desktop view auto-scaled."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.65",
         "changes": [
             {
