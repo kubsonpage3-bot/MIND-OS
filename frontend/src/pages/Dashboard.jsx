@@ -139,6 +139,13 @@ function loadRankXP() {
   return { rankXP: 0, currentRank: "F", rankHistory: [] };
 }
 
+const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
+const getSectionIndex = (sec) => {
+  if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 3; // "tools"
+  const idx = BOTTOM_TABS.indexOf(sec);
+  return idx === -1 ? 0 : idx;
+};
+
 export default function Dashboard({ activeSection = "dashboard", activeSubItem = null, onSectionChange, onSubItemChange }) {
   const { t } = useTranslation();
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
@@ -152,13 +159,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     return sec || "dashboard";
   };
   const activeTabKey = getTabKey(activeSection);
-  
-  const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
-  const getSectionIndex = (sec) => {
-    if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 3; // "tools"
-    const idx = BOTTOM_TABS.indexOf(sec);
-    return idx === -1 ? 0 : idx;
-  };
   
   const prevTabRef = useRef(activeTab);
   const directionRef = useRef(0);
@@ -190,43 +190,82 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   };
 
-  // Native touch swipe — bypasses dnd-kit sensor conflict that blocks Framer drag
-  const touchStartRef = useRef(null);
-  const SWIPE_MIN_X = 50;   // px horizontal distance required
-  const SWIPE_MAX_Y = 80;   // px vertical distance allowed (prevents accidental swipes during scroll)
+  // Robust native touch swipe tracking
+  const containerRef = useRef(null);
 
-  const handleTouchStart = useCallback((e) => {
-    if (document.body.classList.contains('dnd-dragging')) return;
-    const t = e.changedTouches[0];
-    touchStartRef.current = { x: t.clientX, y: t.clientY };
-  }, []);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-  const handleTouchEnd = useCallback((e) => {
-    if (!touchStartRef.current) return;
-    if (document.body.classList.contains('dnd-dragging')) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStartRef.current.x;
-    const dy = Math.abs(t.clientY - touchStartRef.current.y);
-    touchStartRef.current = null;
+    let touchStart = null;
+    let isHorizontal = null;
 
-    // Must be sufficiently horizontal and not a scroll
-    if (Math.abs(dx) < SWIPE_MIN_X || dy > SWIPE_MAX_Y) return;
+    const handleStart = (e) => {
+      if (document.body.classList.contains('dnd-dragging')) return;
+      const t = e.touches[0];
+      touchStart = { x: t.clientX, y: t.clientY };
+      isHorizontal = null;
+    };
 
-    const currentIdx = getSectionIndex(activeTab);
-    if (dx < 0) {
-      // Swiped left → Next tab
-      if (currentIdx < BOTTOM_TABS.length - 1) {
-        const nextTab = BOTTOM_TABS[currentIdx + 1];
-        onSectionChange(nextTab === "tools" ? "history" : nextTab);
+    const handleMove = (e) => {
+      if (!touchStart || document.body.classList.contains('dnd-dragging')) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+
+      if (isHorizontal === null) {
+        // Disambiguate horizontal vs vertical swipe after moving at least 8 pixels
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          isHorizontal = Math.abs(dx) > Math.abs(dy) * 1.5;
+        }
       }
-    } else {
-      // Swiped right → Prev tab
-      if (currentIdx > 0) {
-        const prevTab = BOTTOM_TABS[currentIdx - 1];
-        onSectionChange(prevTab === "tools" ? "history" : prevTab);
+
+      if (isHorizontal === true) {
+        // Prevent default browser behavior (scrolling/overscroll) for horizontal gestures
+        // This keeps the gesture active and prevents 'touchcancel' from firing.
+        if (e.cancelable) {
+          e.preventDefault();
+        }
       }
-    }
-  }, [activeTab, getSectionIndex, onSectionChange]);
+    };
+
+    const handleEnd = (e) => {
+      if (!touchStart) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+      touchStart = null;
+
+      // Ensure it was a dominant horizontal swipe and crossed the min threshold (e.g. 50px)
+      if (isHorizontal === true && Math.abs(dx) >= 60) {
+        const currentIdx = getSectionIndex(activeTab);
+        if (dx < 0) {
+          // Swipe left → Next tab
+          if (currentIdx < BOTTOM_TABS.length - 1) {
+            const nextTab = BOTTOM_TABS[currentIdx + 1];
+            onSectionChange(nextTab === "tools" ? "history" : nextTab);
+          }
+        } else {
+          // Swipe right → Prev tab
+          if (currentIdx > 0) {
+            const prevTab = BOTTOM_TABS[currentIdx - 1];
+            onSectionChange(prevTab === "tools" ? "history" : prevTab);
+          }
+        }
+      }
+    };
+
+    el.addEventListener('touchstart', handleStart, { passive: true });
+    el.addEventListener('touchmove', handleMove, { passive: false }); // Passive false allows preventDefault()
+    el.addEventListener('touchend', handleEnd, { passive: true });
+    el.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', handleStart);
+      el.removeEventListener('touchmove', handleMove);
+      el.removeEventListener('touchend', handleEnd);
+    };
+  }, [activeTab, onSectionChange]);
 
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
@@ -588,8 +627,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
+                ref={containerRef}
                 className="w-full min-h-[calc(100dvh-200px)] md:min-h-0"
               >
                 {/* Dashboard — Habitica-style layout */}
