@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.65",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Upgraded the Organic Skill Tree to automatically scale to fit any viewport size on load and resize, eliminating the need for manual scrolling or panning, while keeping node hitboxes extra large for easy tapping."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.64",
         "changes": [
             {

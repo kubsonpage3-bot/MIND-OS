@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { SKILL_TREE } from "@/constants/rpgData";
-import { Lock, RotateCcw, Save, Brain, Dumbbell, Coins, Sparkles, BookOpen, X, Check, ZoomIn, ZoomOut, House } from "lucide-react";
+import { Lock, RotateCcw, Save, Brain, Dumbbell, Coins, Sparkles, BookOpen, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playSound } from "@/lib/soundEffects.js";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "@/components/mindos/RewardToast";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 // ─── RESPEC COST ─────────────────────────────────────────────────────────────
 function getRespecCost(unlockedCount) {
@@ -135,6 +134,27 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   
+  const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      
+      const scaleX = width / CANVAS_WIDTH;
+      const scaleY = height / CANVAS_HEIGHT;
+      const targetScale = Math.min(scaleX, scaleY);
+      
+      const MIN_SCALE = 0.45;
+      setScale(Math.max(MIN_SCALE, targetScale));
+    });
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
@@ -276,219 +296,222 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       </div>
 
       {/* Canvas Area */}
-      <TransformWrapper
-        minScale={0.3}
-        maxScale={2.0}
-        initialScale={1}
-        centerOnInit={true}
+      <div 
+        ref={containerRef}
+        className="flex-1 relative bg-[#1e1e1e] overflow-auto flex items-center justify-center"
+        onPointerDownCapture={(e) => e.stopPropagation()}
+        onTouchStartCapture={(e) => e.stopPropagation()}
       >
-        {({ zoomIn, zoomOut, resetTransform }) => (
-          <div className="flex-1 relative overflow-hidden bg-[#1e1e1e]" style={{ touchAction: "none" }}>
-            {/* Controls Panel */}
-            <div className="absolute top-4 right-4 z-50 flex flex-col gap-1.5 bg-black/60 backdrop-blur border border-white/10 rounded-lg p-1.5 shadow-xl">
-              <button onClick={() => zoomIn()} className="p-2 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors" title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
-              <button onClick={() => zoomOut()} className="p-2 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors" title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
-              <button onClick={() => resetTransform()} className="p-2 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors" title="Reset View"><House className="w-4 h-4" /></button>
-            </div>
-            
-            <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
-              <div 
-                className="relative"
-                style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-              >
-                {/* Background Grid Pattern - FTB Style Stone/Grid */}
-                <div 
-                  className="absolute inset-0" 
-                  style={{ 
-                    backgroundColor: '#1e1e1e',
-                    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
-                    backgroundSize: '40px 40px' 
-                  }}
-          />
+        <div
+          style={{
+            width: CANVAS_WIDTH * scale,
+            height: CANVAS_HEIGHT * scale,
+            position: "relative",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              width: CANVAS_WIDTH,
+              height: CANVAS_HEIGHT,
+              transform: `scale(${scale})`,
+              transformOrigin: "top left",
+              position: "absolute",
+              top: 0,
+              left: 0,
+            }}
+          >
+            {/* Background Grid Pattern - FTB Style Stone/Grid */}
+            <div 
+              className="absolute inset-0" 
+              style={{ 
+                backgroundColor: '#1e1e1e',
+                backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+                backgroundSize: '40px 40px' 
+              }}
+            />
 
-          {/* SVG Connectors - Chain Style */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            {GRAPH_DATA.links.map(link => {
-              const isSourceUnlocked = link.sourceId === "center" || unlocked.includes(link.sourceId);
-              const isTargetUnlocked = unlocked.includes(link.targetId);
+            {/* SVG Connectors - Chain Style */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              {GRAPH_DATA.links.map(link => {
+                const isSourceUnlocked = link.sourceId === "center" || unlocked.includes(link.sourceId);
+                const isTargetUnlocked = unlocked.includes(link.targetId);
+                
+                // Determine if target is available
+                const targetNode = GRAPH_DATA.nodes.find(n => n.id === link.targetId);
+                const targetCanAfford = targetNode ? (sp >= (targetNode.sp || 0) && currentGold >= (targetNode.gold || 0)) : false;
+                const isTargetAvailable = isSourceUnlocked && !isTargetUnlocked && targetCanAfford;
+
+                const isMastered = isTargetUnlocked;
+                
+                // Leading into locked node -> dark gray. Else -> branch color
+                const frontColor = (isMastered || isTargetAvailable) ? link.color : "#4a4a4a";
+
+                let pathStr = "";
+                if (link.isOrthogonal) {
+                  const midX = link.x1 + 60;
+                  pathStr = `${link.x1},${link.y1} ${midX},${link.y1} ${midX},${link.y2} ${link.x2},${link.y2}`;
+                } else {
+                  pathStr = `${link.x1},${link.y1} ${link.x2},${link.y2}`;
+                }
+
+                return (
+                  <g key={link.id}>
+                    {/* Back shadow/chain outline line */}
+                    <motion.polyline
+                      points={pathStr}
+                      fill="none"
+                      stroke="#1a1a1a"
+                      strokeWidth={10}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                    {/* Front colored line */}
+                    <motion.polyline
+                      points={pathStr}
+                      fill="none"
+                      stroke={frontColor}
+                      strokeWidth={5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Nodes */}
+            {GRAPH_DATA.nodes.map(node => {
+              const isUnlocked = node.isStart || unlocked.includes(node.id);
+              const prereqMet = node.isStart || !node.requires || unlocked.includes(node.requires);
+              const isSelected = selectedNodeId === node.id;
               
-              // Determine if target is available
-              const targetNode = GRAPH_DATA.nodes.find(n => n.id === link.targetId);
-              const targetCanAfford = targetNode ? (sp >= (targetNode.sp || 0) && currentGold >= (targetNode.gold || 0)) : false;
-              const isTargetAvailable = isSourceUnlocked && !isTargetUnlocked && targetCanAfford;
+              let state = "LOCKED";
+              if (isUnlocked) state = "MASTERED";
+              else if (prereqMet && sp >= (node.sp || 0) && currentGold >= (node.gold || 0)) state = "AVAILABLE";
 
-              const isMastered = isTargetUnlocked;
-              
-              // Leading into locked node -> dark gray. Else -> branch color
-              const frontColor = (isMastered || isTargetAvailable) ? link.color : "#4a4a4a";
+              // Colors based on state
+              let outerBorderColor = "#5a5a5a";
+              let slotBg = "#2b2b2b";
+              let slotIconColor = "#888888";
+              let showCheckmark = false;
+              let showPulse = false;
+              let outerRingColor = "transparent";
+              let outerRingOpacity = 0;
 
-              let pathStr = "";
-              if (link.isOrthogonal) {
-                const midX = link.x1 + 60;
-                pathStr = `${link.x1},${link.y1} ${midX},${link.y1} ${midX},${link.y2} ${link.x2},${link.y2}`;
-              } else {
-                pathStr = `${link.x1},${link.y1} ${link.x2},${link.y2}`;
+              if (state === "MASTERED") {
+                outerBorderColor = "#c99a2e";
+                slotBg = "#3a2f14";
+                slotIconColor = node.color || "#fff";
+                showCheckmark = true;
+                outerRingColor = "#c99a2e";
+                outerRingOpacity = 0.5;
+              } else if (state === "AVAILABLE") {
+                outerBorderColor = "#e8e8e8";
+                slotBg = "#2b2b2b";
+                slotIconColor = node.color || "#fff";
+                showPulse = true;
+                outerRingColor = "#e8e8e8";
+                outerRingOpacity = 0.4;
               }
 
+              // Start node override
+              if (node.isStart) {
+                outerBorderColor = "#c99a2e";
+                slotBg = "#3a2f14";
+                slotIconColor = "#fff";
+                showCheckmark = false;
+              }
+
+              const Icon = node.isStart ? Sparkles : (CAT_ICONS[node.branchKey] || Sparkles);
+              
               return (
-                <g key={link.id}>
-                  {/* Back shadow/chain outline line */}
-                  <motion.polyline
-                    points={pathStr}
-                    fill="none"
-                    stroke="#1a1a1a"
-                    strokeWidth={10}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                  />
-                  {/* Front colored line */}
-                  <motion.polyline
-                    points={pathStr}
-                    fill="none"
-                    stroke={frontColor}
-                    strokeWidth={5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-                  />
-                </g>
-              );
-            })}
-          </svg>
-
-          {/* Nodes */}
-          {GRAPH_DATA.nodes.map(node => {
-            const isUnlocked = node.isStart || unlocked.includes(node.id);
-            const prereqMet = node.isStart || !node.requires || unlocked.includes(node.requires);
-            const isSelected = selectedNodeId === node.id;
-            
-            let state = "LOCKED";
-            if (isUnlocked) state = "MASTERED";
-            else if (prereqMet && sp >= (node.sp || 0) && currentGold >= (node.gold || 0)) state = "AVAILABLE";
-
-            // Colors based on state
-            let outerBorderColor = "#5a5a5a";
-            let slotBg = "#2b2b2b";
-            let slotIconColor = "#888888";
-            let showCheckmark = false;
-            let showPulse = false;
-            let outerRingColor = "transparent";
-            let outerRingOpacity = 0;
-
-            if (state === "MASTERED") {
-              outerBorderColor = "#c99a2e";
-              slotBg = "#3a2f14";
-              slotIconColor = node.color || "#fff";
-              showCheckmark = true;
-              outerRingColor = "#c99a2e";
-              outerRingOpacity = 0.5;
-            } else if (state === "AVAILABLE") {
-              outerBorderColor = "#e8e8e8";
-              slotBg = "#2b2b2b";
-              slotIconColor = node.color || "#fff";
-              showPulse = true;
-              outerRingColor = "#e8e8e8";
-              outerRingOpacity = 0.4;
-            }
-
-            // Start node override
-            if (node.isStart) {
-              outerBorderColor = "#c99a2e";
-              slotBg = "#3a2f14";
-              slotIconColor = "#fff";
-              showCheckmark = false;
-            }
-
-            const Icon = node.isStart ? Sparkles : (CAT_ICONS[node.branchKey] || Sparkles);
-            
-            return (
-              <div
-                key={node.id}
-                className="absolute"
-                style={{
-                  left: node.x - 32,
-                  top: node.y - 32,
-                  width: 64,
-                  height: 64,
-                  zIndex: isSelected ? 30 : 10,
-                }}
-              >
-                {/* Subtle Outer Ring (Animated if available) */}
-                {(state === "AVAILABLE" || state === "MASTERED") && (
-                  <motion.div
-                    className="absolute inset-0 rounded-sm pointer-events-none"
-                    style={{
-                      border: `1px solid ${outerRingColor}`,
-                      margin: "-4px",
-                    }}
-                    animate={showPulse ? { opacity: [0.4, 0.7, 0.4] } : { opacity: outerRingOpacity }}
-                    transition={showPulse ? { duration: 2, ease: "easeInOut", repeat: Infinity } : {}}
-                  />
-                )}
-
-                <motion.button
-                  onClick={(e) => {
-                    setSelectedNodeId(node.id);
-                    playSound("click");
-                  }}
-                  className="w-full h-full relative flex items-center justify-center transition-all duration-300 outline-none"
+                <div
+                  key={node.id}
+                  className="absolute"
                   style={{
-                    backgroundColor: slotBg,
-                    border: `3px solid ${outerBorderColor}`,
-                    boxShadow: `
-                      inset 2px 2px 0px rgba(255,255,255,0.15),
-                      inset -2px -2px 0px rgba(0,0,0,0.5),
-                      ${isSelected ? '0 0 0 2px #fff' : 'none'}
-                    `,
+                    left: node.x - 32,
+                    top: node.y - 32,
+                    width: 64,
+                    height: 64,
+                    zIndex: isSelected ? 30 : 10,
                   }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  {state === "LOCKED" ? (
-                    <Lock className="w-8 h-8 text-muted-foreground/40" />
-                  ) : (
-                    <Icon 
-                      className="w-8 h-8" 
-                      style={{ color: slotIconColor }} 
+                  {/* Subtle Outer Ring (Animated if available) */}
+                  {(state === "AVAILABLE" || state === "MASTERED") && (
+                    <motion.div
+                      className="absolute inset-0 rounded-sm pointer-events-none"
+                      style={{
+                        border: `1px solid ${outerRingColor}`,
+                        margin: "-4px",
+                      }}
+                      animate={showPulse ? { opacity: [0.4, 0.7, 0.4] } : { opacity: outerRingOpacity }}
+                      transition={showPulse ? { duration: 2, ease: "easeInOut", repeat: Infinity } : {}}
                     />
                   )}
+
+                  <motion.button
+                    onClick={(e) => {
+                      setSelectedNodeId(node.id);
+                      playSound("click");
+                    }}
+                    className="w-full h-full relative flex items-center justify-center transition-all duration-300 outline-none before:absolute before:inset-[-12px] before:content-['']"
+                    style={{
+                      backgroundColor: slotBg,
+                      border: `3px solid ${outerBorderColor}`,
+                      boxShadow: `
+                        inset 2px 2px 0px rgba(255,255,255,0.15),
+                        inset -2px -2px 0px rgba(0,0,0,0.5),
+                        ${isSelected ? '0 0 0 2px #fff' : 'none'}
+                      `,
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {state === "LOCKED" ? (
+                      <Lock className="w-8 h-8 text-muted-foreground/40" />
+                    ) : (
+                      <Icon 
+                        className="w-8 h-8" 
+                        style={{ color: slotIconColor }} 
+                      />
+                    )}
+                    
+                    {/* Mastered Checkmark Badge */}
+                    {showCheckmark && !node.isStart && (
+                      <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-zinc-900 border-2 border-[#c99a2e] rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-[#c99a2e]" strokeWidth={3} />
+                      </div>
+                    )}
+                  </motion.button>
                   
-                  {/* Mastered Checkmark Badge */}
-                  {showCheckmark && !node.isStart && (
-                    <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-zinc-900 border-2 border-[#c99a2e] rounded-full flex items-center justify-center">
-                      <Check className="w-4 h-4 text-[#c99a2e]" strokeWidth={3} />
+                  {/* Node Label */}
+                  {!node.isStart && (
+                    <div 
+                      className="absolute -bottom-7 w-48 -ml-8 text-center pointer-events-none"
+                      style={{
+                        fontFamily: "'Nunito', sans-serif",
+                        fontSize: "10px",
+                        fontWeight: 800,
+                        color: state === "MASTERED" ? node.color : state === "AVAILABLE" ? "#e8d8b0" : "rgba(200,170,80,0.4)",
+                        textShadow: "0 1px 4px #000, 0 1px 8px #000"
+                      }}
+                    >
+                      {t(`rpgData.skillTree.${node.id}.name`, node.name)}
                     </div>
                   )}
-                </motion.button>
-                
-                {/* Node Label */}
-                {!node.isStart && (
-                  <div 
-                    className="absolute -bottom-7 w-48 -ml-8 text-center pointer-events-none"
-                    style={{
-                      fontFamily: "'Nunito', sans-serif",
-                      fontSize: "10px",
-                      fontWeight: 800,
-                      color: state === "MASTERED" ? node.color : state === "AVAILABLE" ? "#e8d8b0" : "rgba(200,170,80,0.4)",
-                      textShadow: "0 1px 4px #000, 0 1px 8px #000"
-                    }}
-                  >
-                    {t(`rpgData.skillTree.${node.id}.name`, node.name)}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-              </div>
-            </TransformComponent>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </TransformWrapper>
+        </div>
+      </div>
 
       {/* Info Panel (Bottom Docked) */}
       <AnimatePresence>
