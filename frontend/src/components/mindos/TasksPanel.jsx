@@ -26,9 +26,13 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
     notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
   });
 
-  const habits = tasks.filter(t => t.type === 'habit');
-  const dailies = tasks.filter(t => t.type === 'daily');
-  const todos = tasks.filter(t => t.type === 'todo');
+  // Normalize to always be an array — guards against cache being temporarily
+  // set to a paginated object `{ results: [...] }` which causes `.filter is not a function`
+  const taskList = Array.isArray(tasks) ? tasks : (tasks?.results ?? []);
+
+  const habits = taskList.filter(t => t.type === 'habit');
+  const dailies = taskList.filter(t => t.type === 'daily');
+  const todos = taskList.filter(t => t.type === 'todo');
 
   const createTask = async () => {
     if (!form.name.trim()) return;

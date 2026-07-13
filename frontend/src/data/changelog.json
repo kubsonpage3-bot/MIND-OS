@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.79",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed a crash after editing a habit or task that caused the screen to go blank with 'filter is not a function' error."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.78",
         "changes": [
             {
