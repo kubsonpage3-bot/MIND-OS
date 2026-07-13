@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.80",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed tasks disappearing from the list after editing a habit, daily, or todo — they now update instantly without any flicker."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.79",
         "changes": [
             {

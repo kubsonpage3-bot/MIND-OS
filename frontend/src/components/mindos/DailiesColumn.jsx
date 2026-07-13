@@ -229,10 +229,27 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
 
   const updateTaskMutation = useMutation({
     mutationFn: (taskData) => djangoApi.tasks.update(taskData.id, taskData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    onSuccess: (res, taskData) => {
+      queryClient.setQueryData(['tasks'], (old) => {
+        const list = Array.isArray(old) ? old : (old?.results ?? []);
+        return list.map(t =>
+          t.id === taskData.id
+            ? {
+                ...t,
+                name: taskData.title ?? t.name,
+                type: taskData.task_type ?? t.type,
+                category: taskData.category ?? t.category,
+                difficulty: taskData.difficulty ?? t.difficulty,
+                notes: taskData.notes ?? t.notes,
+              }
+            : t
+        );
+      });
       setShowForm(false);
       setEditingTask(null);
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
   });
 

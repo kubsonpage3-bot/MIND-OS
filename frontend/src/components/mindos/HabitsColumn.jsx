@@ -221,10 +221,30 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
   const updateTaskMutation = useMutation({
     mutationFn: (taskData) => djangoApi.tasks.update(taskData.id, taskData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    onSuccess: (res, taskData) => {
+      // Optimistically update just this task in the cache — avoids tasks disappearing
+      // during the refetch cycle that invalidateQueries would trigger
+      queryClient.setQueryData(['tasks'], (old) => {
+        const list = Array.isArray(old) ? old : (old?.results ?? []);
+        return list.map(t =>
+          t.id === taskData.id
+            ? {
+                ...t,
+                name: taskData.title ?? t.name,
+                type: taskData.task_type ?? t.type,
+                category: taskData.category ?? t.category,
+                difficulty: taskData.difficulty ?? t.difficulty,
+                notes: taskData.notes ?? t.notes,
+              }
+            : t
+        );
+      });
       setShowForm(false);
       setEditingTask(null);
+    },
+    onError: () => {
+      // Full refetch on error to restore real server state
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
   });
 
