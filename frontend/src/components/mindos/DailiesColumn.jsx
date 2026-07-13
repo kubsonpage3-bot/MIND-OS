@@ -271,70 +271,72 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
             return (
               <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                 {(provided, snapshot) => (
-                  <motion.div
+                  <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ 
-                      opacity: task.is_completed ? 0.5 : 1, 
-                      y: 0,
-                      scale: snapshot.isDragging ? 1.05 : 1,
-                      boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
-                    }}
-                    exit={{ opacity: 0, x: 30 }}
-                    className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.is_completed ? '' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary z-50' : ''}`}
-                    style={{
-                      border: '1px solid var(--habit-border)',
-                      ...provided.draggableProps.style,
-                    }}
-                    onClick={() => {
-                      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-                      completeDaily(task);
-                    }}
+                    style={provided.draggableProps.style}
+                    className={snapshot.isDragging ? 'z-50' : ''}
                   >
-                    {/* Task Value bar */}
-                    {!task.is_completed && (
-                      <motion.div
-                        animate={{ background: tvColor }}
-                        transition={{ duration: 0.6 }}
-                        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
-                        title={`Task Value: ${tv.toFixed(1)}`}
-                      />
-                    )}
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ 
+                        opacity: task.is_completed ? 0.5 : 1, 
+                        y: 0,
+                        scale: snapshot.isDragging ? 1.05 : 1,
+                        boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
+                      }}
+                      exit={{ opacity: 0, x: 30 }}
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${task.is_completed ? '' : 'task-card bg-white dark:bg-gray-900'} ${snapshot.isDragging ? 'ring-2 ring-primary' : ''}`}
+                      style={{ border: '1px solid var(--habit-border)' }}
+                      onClick={() => {
+                        if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                        completeDaily(task);
+                      }}
+                    >
+                      {/* Task Value bar */}
+                      {!task.is_completed && (
+                        <motion.div
+                          animate={{ background: tvColor }}
+                          transition={{ duration: 0.6 }}
+                          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                          title={`Task Value: ${tv.toFixed(1)}`}
+                        />
+                      )}
 
-                    {/* Checkbox */}
-                    <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}>
-                      {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0 pr-2 overflow-hidden">
-                      <div className={`font-semibold text-sm truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{ color: 'var(--habit-text)' }}>
-                        {task.name}
+                      {/* Checkbox */}
+                      <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}>
+                        {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-                        <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
-                        {(task.streak || 0) > 0 && (
-                          <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
-                            <Flame size={10} strokeWidth={2.5} />
-                            <span>{task.streak}</span>
-                          </span>
-                        )}
-                        {tv !== 0 && (
-                          <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-                            TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Delete */}
-                    <div className="shrink-0">
-                      <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
-                    </div>
-                  </motion.div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 pr-2 overflow-hidden">
+                        <div className={`font-semibold text-sm truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{ color: 'var(--habit-text)' }}>
+                          {task.name}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
+                          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
+                          {(task.streak || 0) > 0 && (
+                            <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
+                              <Flame size={10} strokeWidth={2.5} />
+                              <span>{task.streak}</span>
+                            </span>
+                          )}
+                          {tv !== 0 && (
+                            <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+                              TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Delete */}
+                      <div className="shrink-0">
+                        <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
+                      </div>
+                    </motion.div>
+                  </div>
                 )}
               </Draggable>
             );

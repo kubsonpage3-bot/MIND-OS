@@ -177,109 +177,114 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
             const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
             const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
             const tv = task.value ?? task.rpgValue ?? 0;
+            const score = task.score ?? 0;
             const tvColor = getTaskValueColor(tv);
             const con = getConStat();
             const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);
             const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
             const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
-
             return (
               <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                 {(provided, snapshot) => (
-                  <motion.div
+                  <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    initial={{ opacity: 0, y: 6 }} 
-                    animate={{ 
-                      opacity: 1, 
-                      y: 0,
-                      scale: snapshot.isDragging ? 1.05 : 1,
-                      boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
-                    }} 
-                    exit={{ opacity: 0, x: 30 }}
-                    className={`task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ${snapshot.isDragging ? 'ring-2 ring-primary z-50' : ''}`}
-                    style={{ border: '1px solid var(--habit-border)', ...provided.draggableProps.style }}
+                    style={provided.draggableProps.style}
+                    className={snapshot.isDragging ? 'z-50' : ''}
                   >
-                {/* Task Value color bar */}
-                <motion.div
-                  animate={{ background: tvColor }}
-                  transition={{ duration: 0.6 }}
-                  style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
-                  title={`Task Value: ${tv.toFixed(1)}`}
-                />
-
-                {/* +/- buttons */}
-                <div className="flex flex-col gap-1 shrink-0">
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
-                    onClick={() => {
-                      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-                      habitClick(task, true);
-                    }}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-base"
-                    style={{ background: '#22c55e', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
-                  >+</motion.button>
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
-                    onClick={() => {
-                      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-                      habitClick(task, false);
-                    }}
-                    className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base"
-                    style={{ background: '#ef4444', color: 'white', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
-                  >−</motion.button>
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="truncate flex items-center gap-1.5 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14 }}>
-                    <span>{task.name}</span>
-                    {task.posStreak >= 5 && <span className="text-xs" title={`Hot streak: ${task.posStreak}!`}>🔥</span>}
-                    {task.negStreak >= 5 && <span className="text-xs" title={`Neg streak: ${task.negStreak}!`}>💀</span>}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-                    <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
-                    <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-                      TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-                    </span>
-                  </div>
-
-                  {/* HP bar */}
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f74e52', minWidth: 12 }}>HP</span>
-                    <div className="flex-1 relative" style={{ height: 6, background: '#fee2e2', borderRadius: 2, overflow: 'hidden' }}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }} 
+                      animate={{ 
+                        opacity: 1, 
+                        y: 0,
+                        scale: snapshot.isDragging ? 1.05 : 1,
+                        boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
+                      }} 
+                      exit={{ opacity: 0, x: 30 }}
+                      className={`task-card flex items-center gap-2 rounded-xl p-2.5 bg-white dark:bg-gray-900 ${snapshot.isDragging ? 'ring-2 ring-primary' : ''}`}
+                      style={{ border: '1px solid var(--habit-border)' }}
+                    >
+                      {/* Task Value color bar */}
                       <motion.div
-                        animate={{ width: `${hpPct}%` }}
-                        transition={{ duration: 0.4, ease: 'easeOut' }}
-                        style={{ height: '100%', background: hpColor, borderRadius: 2 }}
+                        animate={{ background: tvColor }}
+                        transition={{ duration: 0.6 }}
+                        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0 }}
+                        title={`Task Value: ${tv.toFixed(1)}`}
                       />
-                    </div>
-                    <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
-                      {Math.round(hp)}/{maxHp}
-                    </span>
-                  </div>
 
-                  {/* Streaks + next damage preview */}
-                  <div className="flex items-center justify-between mt-1">
-                    <div className="flex gap-2">
-                      <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#22c55e' }}>+{task.posStreak || 0}</span>
-                      <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#ef4444' }}>−{task.negStreak || 0}</span>
-                    </div>
-                    {(task.negStreak || 0) > 0 && (
-                      <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f59e0b' }}>
-                        next: -{Math.round(nextDmg * 10) / 10}hp
-                      </span>
-                    )}
-                  </div>
-                </div>
+                      {/* +/- buttons */}
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <motion.button
+                          whileTap={{ scale: 0.8 }}
+                          onClick={() => {
+                            if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                            habitClick(task, true);
+                          }}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-base"
+                          style={{ background: '#22c55e', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
+                        >+</motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.8 }}
+                          onClick={() => {
+                            if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+                            habitClick(task, false);
+                          }}
+                          className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base"
+                          style={{ background: '#ef4444', color: 'white', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
+                        >−</motion.button>
+                      </div>
 
-                {/* Delete */}
-                <div className="shrink-0">
-                  <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
-                </div>
-              </motion.div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate flex items-center gap-1.5 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14 }}>
+                          <span>{task.name}</span>
+                          {task.posStreak >= 5 && <span className="text-xs" title={`Hot streak: ${task.posStreak}!`}>🔥</span>}
+                          {task.negStreak >= 5 && <span className="text-xs" title={`Neg streak: ${task.negStreak}!`}>💀</span>}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
+                          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
+                          <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+                            TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+                          </span>
+                        </div>
+
+                        {/* HP bar */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f74e52', minWidth: 12 }}>HP</span>
+                          <div className="flex-1 relative" style={{ height: 6, background: '#fee2e2', borderRadius: 2, overflow: 'hidden' }}>
+                            <motion.div
+                              animate={{ width: `${hpPct}%` }}
+                              transition={{ duration: 0.4, ease: 'easeOut' }}
+                              style={{ height: '100%', background: hpColor, borderRadius: 2 }}
+                            />
+                          </div>
+                          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
+                            {Math.round(hp)}/{maxHp}
+                          </span>
+                        </div>
+
+                        {/* Streaks + next damage preview */}
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="flex gap-2">
+                            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#22c55e' }}>+{task.posStreak || 0}</span>
+                            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#ef4444' }}>−{task.negStreak || 0}</span>
+                          </div>
+                          {(task.negStreak || 0) > 0 && (
+                            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f59e0b' }}>
+                              next: -{Math.round(nextDmg * 10) / 10}hp
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Delete */}
+                      <div className="shrink-0 flex items-center h-full ml-1">
+                        <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
+                      </div>
+                    </motion.div>
+                  </div>
                 )}
               </Draggable>
             );

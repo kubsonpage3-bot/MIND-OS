@@ -188,26 +188,29 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
             return (
               <Draggable key={task.id} draggableId={String(task.id)} index={index}>
                 {(provided, snapshot) => (
-                  <motion.div
+                  <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ 
-                      opacity: 1, 
-                      y: 0,
-                      scale: snapshot.isDragging ? 1.05 : 1,
-                      boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
-                    }}
-                    exit={{ opacity: 0, x: 30 }}
-                    className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${snapshot.isDragging ? 'ring-2 ring-primary z-50' : ''}`}
-                    style={{
-                      background: 'var(--habit-panel)',
-                      border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
-                      ...provided.draggableProps.style,
-                    }}
-                    onClick={() => !toggleMutation.isPending && completeTodo(task)}
+                    style={provided.draggableProps.style}
+                    className={snapshot.isDragging ? 'z-50' : ''}
                   >
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ 
+                        opacity: 1, 
+                        y: 0,
+                        scale: snapshot.isDragging ? 1.05 : 1,
+                        boxShadow: snapshot.isDragging ? '0 25px 50px -12px rgba(0,0,0,0.25)' : 'none'
+                      }}
+                      exit={{ opacity: 0, x: 30 }}
+                      className={`flex items-center gap-2 rounded-xl p-2.5 cursor-pointer ${snapshot.isDragging ? 'ring-2 ring-primary' : ''}`}
+                      style={{
+                        background: 'var(--habit-panel)',
+                        border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+                      }}
+                      onClick={() => !toggleMutation.isPending && completeTodo(task)}
+                    >
                 {/* Task Value bar */}
                 <motion.div
                   animate={{ background: tvColor }}
@@ -259,8 +262,9 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
                   <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
                 </div>
               </motion.div>
-                )}
-              </Draggable>
+            </div>
+          )}
+        </Draggable>
             );
           })}
         </AnimatePresence>
