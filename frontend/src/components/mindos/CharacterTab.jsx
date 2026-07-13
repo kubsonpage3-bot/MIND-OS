@@ -403,7 +403,7 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               <ChevronLeft className="w-5 h-5" />
             </button>
           )}
-          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass ? t(chosenClass.name) : ""}</span>
+          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass ? t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name) : ""}</span>
           {profile?.prestige_count > 0 && (
             <span style={{ fontFamily: "'PixeloidSans'", fontSize: 8, background: "var(--habit-border)", color: "var(--habit-gold)", border: "1px solid var(--habit-border)", padding: "2px 6px", borderRadius: 4 }}>
               ×{profile?.prestige_count} PRESTIGE
@@ -440,12 +440,12 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
               boxShadow: `0 4px 20px ${currentRank.color}18`,
             }}>
             <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} hideLabel={true} />
-            <div className="font-mono text-xs font-black tracking-widest" style={{ color: classColor }}>{chosenClass ? String(t(`classes.${chosenClass.id}`, chosenClass.name)) : ""}</div>
+            <div className="font-mono text-xs font-black tracking-widest" style={{ color: classColor }}>{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : ""}</div>
             <div className="font-mono text-sm font-bold px-3 py-1 rounded-lg"
               style={{ color: currentRank.color, background: `${currentRank.color}20`, border: `1px solid ${currentRank.color}50` }}>
               {currentRank.id} — {t(`ranks.${currentRank.id}`, currentRank.label)}
             </div>
-            <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{chosenClass ? t(chosenClass.lore) : ""}"</div>
+            <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{chosenClass ? t(`rpgData.classes.${chosenClass.id}.lore`, chosenClass.lore) : ""}"</div>
           </div>
 
           {/* HP + Mana bars */}

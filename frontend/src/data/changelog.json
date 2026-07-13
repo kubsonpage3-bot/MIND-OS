@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.64",
+        "changes": [
+            {
+                "type": "content",
+                "text": "Completed full Russian localization for the Organic Skill Tree, all active skills, class details, and skill action notifications."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.63",
         "changes": [
             {

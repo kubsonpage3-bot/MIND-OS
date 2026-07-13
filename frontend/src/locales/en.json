@@ -773,10 +773,6 @@
     "reminderTime": "Reminder Time",
     "setFor": "Set for"
   },
-  "skillPanel": {
-    "activeSkills": "ACTIVE SKILLS",
-    "mana": "MANA"
-  },
   "streakControl": {
     "dayStreak": "Day Streak"
   },
@@ -786,195 +782,204 @@
     "scroll_boss": "Scroll Boss",
     "active": "ACTIVE"
   },
+  "skillPanel": {
+    "activeSkills": "ACTIVE SKILLS",
+    "mana": "MANA",
+    "ready": "READY",
+    "tooFast": "⚡ TOO FAST! WAIT COOLDOWN",
+    "activatedMsg": "{{name}} activated!",
+    "notEnoughMana": "✗ NOT ENOUGH MANA",
+    "useSkill": "► USE SKILL"
+  },
   "rpgData": {
     "classes": {
       "architect": {
         "name": "Architect",
-        "lore": "Masters of systematic design and deep work."
+        "lore": "Builds systems. Thinks in structures. Never improvises."
       },
       "ascetic": {
         "name": "Ascetic",
-        "lore": "Those who find power in minimalism and focus."
+        "lore": "Forges the will through suffering. Pain is the teacher."
       },
       "linguist": {
         "name": "Linguist",
-        "lore": "Scholars who weave words into reality."
+        "lore": "Languages are keys. Every key opens a different mind."
       },
       "warlord": {
         "name": "Warlord",
-        "lore": "Relentless conquerors of goals and tasks."
+        "lore": "The body is the weapon. Discipline is the ammunition."
       }
     },
     "skills": {
       "blueprint": {
         "name": "Blueprint",
-        "desc": "Create a foundational plan."
+        "desc": "Next 3 tasks logged give +50% Rank XP until midnight."
       },
       "system_overload": {
         "name": "System Overload",
-        "desc": "Push past normal limits."
+        "desc": "Deal 3× damage to current boss on next task completion."
       },
       "infinite_loop": {
         "name": "Infinite Loop",
-        "desc": "Automate a perfect cycle."
+        "desc": "All sessions in next 2 hours count double for cognitive metrics."
       },
       "iron_fast": {
         "name": "Iron Fast",
-        "desc": "Abstain from distraction."
+        "desc": "For 24h: each task restores 5 HP. Missed dailies deal 0 HP damage."
       },
       "contemplate": {
         "name": "Contemplate",
-        "desc": "Deep focus meditation."
+        "desc": "Instantly gain +3 to all Gf/Gc/Ps/Vm as if a 1h perfect session."
       },
       "transcendence": {
         "name": "Transcendence",
-        "desc": "Rise above worldly desires."
+        "desc": "For 48h: streak cannot break. Rival XP frozen."
       },
       "babel_mode": {
         "name": "Babel Mode",
-        "desc": "Understand complex patterns."
+        "desc": "Next language session counts across all three language subjects."
       },
       "polyglot_surge": {
         "name": "Polyglot Surge",
-        "desc": "Rapid skill acquisition."
+        "desc": "Push all language subject ranks forward by 2 virtual hours each."
       },
       "memetic_transfer": {
         "name": "Memetic Transfer",
-        "desc": "Share knowledge efficiently."
+        "desc": "For 24h: Gc and Vm gains also mirror as Gf gains at 50% rate."
       },
       "battle_fury": {
         "name": "Battle Fury",
-        "desc": "Aggressive task completion."
+        "desc": "For 1h: +50% physical damage, -20% mana regen."
       },
       "war_cry": {
         "name": "War Cry",
-        "desc": "Boost motivation instantly."
+        "desc": "Reduce boss HP by 10% and stun boss for 1h."
       },
       "tactical_retreat": {
         "name": "Tactical Retreat",
-        "desc": "Strategic rest and recovery."
+        "desc": "Reset boss encounter, gain 25% max mana back."
       }
     },
     "skillTree": {
       "sharp_focus": {
         "name": "Sharp Focus",
-        "desc": "Increase base concentration."
+        "desc": "Sessions with Focus 8+ give +10% bonus Rank XP"
       },
       "deep_concentration": {
         "name": "Deep Concentration",
-        "desc": "Lengthen focus sessions."
+        "desc": "Focus minimum counts as 7.0"
       },
       "flow_state": {
         "name": "Flow State",
-        "desc": "Enter the zone faster."
+        "desc": "First session each day gives 1.5× Rank XP"
       },
       "neural_expansion": {
         "name": "Neural Expansion",
-        "desc": "Learn complex subjects easily."
+        "desc": "Gf ceiling +5 permanently"
       },
       "cognitive_supremacy": {
         "name": "Cognitive Supremacy",
-        "desc": "Mastery over the mind."
+        "desc": "All cognitive metric gains +20%"
       },
       "godmind": {
         "name": "Godmind",
-        "desc": "Absolute mental clarity."
+        "desc": "IQ score contributes 0.5× to Rank XP per session"
       },
       "iron_conditioning": {
         "name": "Iron Conditioning",
-        "desc": "Increase base endurance."
+        "desc": "Exercise and Running give +15% Rank XP"
       },
       "endurance_protocol": {
         "name": "Endurance Protocol",
-        "desc": "Reduce fatigue from work."
+        "desc": "Running rank thresholds reduced by 20%"
       },
       "combat_reflexes": {
         "name": "Combat Reflexes",
-        "desc": "Quickly tackle new tasks."
+        "desc": "Critical hit chance +10% globally"
       },
       "pain_threshold": {
         "name": "Pain Threshold",
-        "desc": "Resist burnout."
+        "desc": "Missed daily HP loss reduced by 25%"
       },
       "unbreakable": {
         "name": "Unbreakable",
-        "desc": "Become immune to distraction."
+        "desc": "HP regenerates +3 per day passively"
       },
       "apex_predator": {
         "name": "Apex Predator",
-        "desc": "Dominate all challenges."
+        "desc": "Boss damage +30% permanently"
       },
       "resource_awareness": {
         "name": "Resource Awareness",
-        "desc": "Better manage your time."
+        "desc": "Task completions give +10% Gold"
       },
       "compound_returns": {
         "name": "Compound Returns",
-        "desc": "Small habits yield big results."
+        "desc": "7-day perfect streak gives bonus 200G"
       },
       "loot_magnetism": {
-        "name": "Loot Magnetism",
-        "desc": "Find opportunities everywhere."
+        "name": "Fortune's Pull",
+        "desc": "Item drop chance from tasks +3%"
       },
       "market_knowledge": {
         "name": "Market Knowledge",
-        "desc": "Understand the value of work."
+        "desc": "Selling items gives 60% of buy price"
       },
       "fortunes_favor": {
-        "name": "Fortunes Favor",
-        "desc": "Luck favors the prepared."
+        "name": "Fortune's Favor",
+        "desc": "Daily login bonus Gold doubled"
       },
       "golden_mind": {
         "name": "Golden Mind",
-        "desc": "Turn ideas into wealth."
+        "desc": "Sessions over 2h give a guaranteed loot drop"
       },
       "inner_stillness": {
         "name": "Inner Stillness",
-        "desc": "Calm the restless mind."
+        "desc": "Prayer/Meditation sessions give +20% Rank XP"
       },
       "resilience": {
         "name": "Resilience",
-        "desc": "Bounce back from failure."
+        "desc": "Mana regeneration +25%"
       },
       "mindguard": {
         "name": "Mindguard",
-        "desc": "Protect your focus."
+        "desc": "Active skill cooldowns reduced by 15%"
       },
       "aura_of_focus": {
         "name": "Aura of Focus",
-        "desc": "Inspire focus in others."
+        "desc": "Allies gain +10% to their stat bonuses"
       },
       "transcendent_will": {
         "name": "Transcendent Will",
-        "desc": "Overcome any obstacle."
+        "desc": "Rival advancement speed reduced by 10% permanently"
       },
       "void_clarity": {
         "name": "Void Clarity",
-        "desc": "See the truth in emptiness."
+        "desc": "Once per week: use any active skill at 0 mana cost"
       },
       "polymath": {
         "name": "Polymath",
-        "desc": "Broaden your skill base."
+        "desc": "Logging 3+ subjects in one day gives +20 bonus XP"
       },
       "cross_training": {
-        "name": "Cross Training",
-        "desc": "Apply skills to new areas."
+        "name": "Cross-Training",
+        "desc": "Language sessions give 30% of hours to Humanities ranks"
       },
       "encyclopedia": {
         "name": "Encyclopedia",
-        "desc": "Retain vast knowledge."
+        "desc": "Gc gains increased by 20% from all sources"
       },
       "master_of_arts": {
         "name": "Master of Arts",
-        "desc": "Excel in creative endeavors."
+        "desc": "Humanities rank thresholds reduced by 15%"
       },
       "living_library": {
         "name": "Living Library",
-        "desc": "Become a source of wisdom."
+        "desc": "Reading/Philosophy sessions advance you faster vs rival"
       },
       "omniscience": {
         "name": "Omniscience",
-        "desc": "Know all there is to know."
+        "desc": "All 5 metrics gain +0.3 flat on each achievement unlock"
       }
     },
     "achievements": {

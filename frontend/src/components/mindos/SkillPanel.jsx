@@ -16,8 +16,8 @@ function useNow() {
   return now;
 }
 
-function formatCountdown(ms) {
-  if (ms <= 0) return "READY";
+function formatCountdown(ms, t) {
+  if (ms <= 0) return t('skillPanel.ready', 'READY');
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   const s = Math.floor((ms % 60000) / 1000);
@@ -110,12 +110,13 @@ export default function SkillPanel({ classId }) {
       // Show toast error (handles 429 throttling and other issues)
       const errorObj = /** @type {any} */ (err);
       const errorMsg = errorObj?.message || "Skill activation failed";
-      setToast(errorObj?.status === 429 ? "⚡ TOO FAST! WAIT COOLDOWN" : `⚡ ${errorMsg}`);
+      setToast(errorObj?.status === 429 ? t('skillPanel.tooFast', "⚡ TOO FAST! WAIT COOLDOWN") : `⚡ ${errorMsg}`);
       setTimeout(() => setToast(null), 3000);
     },
     onSuccess: (data) => {
       const dataObj = /** @type {any} */ (data);
-      setToast(dataObj?.detail || `${t(cls?.skills.find(s => s.id === glowing)?.name) || 'Skill'} activated!`);
+      const skillName = glowing ? t(`rpgData.skills.${glowing}.name`, cls?.skills.find(s => s.id === glowing)?.name) : 'Skill';
+      setToast(dataObj?.detail || t('skillPanel.activatedMsg', { defaultValue: `${skillName} activated!`, name: skillName }));
       setTimeout(() => setToast(null), 3000);
     },
     onSettled: () => {
@@ -228,16 +229,16 @@ export default function SkillPanel({ classId }) {
                       className="text-[8px]"
                     >■</motion.span>
                   )}
-                  {t(skill.name)}
+                  {t(`rpgData.skills.${skill.id}.name`, skill.name)}
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{t(skill.desc)}</div>
+                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{t(`rpgData.skills.${skill.id}.desc`, skill.desc)}</div>
               </div>
               <div className="shrink-0 text-right">
                 <div className="text-[10px] font-mono font-bold" style={{ color: state.hasMana ? cls.color : "#ef4444" }}>
                   {skill.mana} MP
                 </div>
                 <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 tracking-widest">
-                  {formatCountdown(state.remaining)}
+                  {formatCountdown(state.remaining, t)}
                 </div>
               </div>
             </div>
@@ -264,7 +265,7 @@ export default function SkillPanel({ classId }) {
                 />
               )}
               <span className="relative z-10">
-                {state.onCooldown ? `⧗ ${formatCountdown(state.remaining)}` : !state.hasMana ? "✗ NOT ENOUGH MANA" : "► USE SKILL"}
+                {state.onCooldown ? `⧗ ${formatCountdown(state.remaining, t)}` : !state.hasMana ? t('skillPanel.notEnoughMana', "✗ NOT ENOUGH MANA") : t('skillPanel.useSkill', "► USE SKILL")}
               </span>
             </motion.button>
           </motion.div>
