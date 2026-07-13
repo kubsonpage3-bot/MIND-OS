@@ -9,6 +9,10 @@
             },
             {
                 "type": "fix",
+                "text": "Fixed a bug where clicking the 'X' to close an Insight didn't seem to work, making it persist on the screen. The dismissal is now instant."
+            },
+            {
+                "type": "fix",
                 "text": "Fixed a critical issue where clicking 'Open Shop' or other actions on Gameplay Insights would cause a white screen crash due to an invalid routing state."
             },
             {

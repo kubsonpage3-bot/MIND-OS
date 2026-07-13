@@ -49,9 +49,36 @@ export function useGameplayInsights() {
         last_insight_dismissed_at: currentTimeStr
       });
     },
-    onSuccess: () => {
-      // Obey SSOT: invalidate the character profile query so it refetches immediately
-      queryClient.invalidateQueries({ queryKey: ['character'] });
+    onMutate: async (insightId) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['userprofile'] });
+      
+      // Snapshot the previous value
+      const previousProfile = queryClient.getQueryData(['userprofile']);
+      
+      // Optimistically update to new value
+      if (previousProfile) {
+        const currentTimeStr = new Date().toISOString();
+        queryClient.setQueryData(['userprofile'], {
+          ...previousProfile,
+          dismissed_insights: {
+            ...(previousProfile.dismissed_insights || {}),
+            [insightId]: currentTimeStr
+          },
+          last_insight_dismissed_at: currentTimeStr
+        });
+      }
+      
+      return { previousProfile };
+    },
+    onError: (err, newTodo, context) => {
+      if (context?.previousProfile) {
+        queryClient.setQueryData(['userprofile'], context.previousProfile);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure sync
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
     }
   });
 
