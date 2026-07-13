@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-13",
+        "version": "1.4.75",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Redesigned Pomodoro tab bar: compact full-width segmented control with a spring-animated sliding indicator and per-tab accent colors — no more horizontal scrolling on mobile or desktop."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-13",
         "version": "1.4.74",
         "changes": [
             {

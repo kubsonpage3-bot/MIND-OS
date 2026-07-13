@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, BarChart2, CalendarDays, Settings } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 import PomodoroTimer from './PomodoroTimer';
 import PomodoroStats from './PomodoroStats';
 import PomodoroHistory from './PomodoroHistory';
 import PomodoroSettings from './PomodoroSettings';
+
+const TAB_COLORS = {
+  timer:    { active: '#a855f7', glow: 'rgba(168,85,247,0.35)' },
+  stats:    { active: '#3b82f6', glow: 'rgba(59,130,246,0.35)' },
+  history:  { active: '#22c55e', glow: 'rgba(34,197,94,0.35)'  },
+  settings: { active: '#f59e0b', glow: 'rgba(245,158,11,0.35)' },
+};
 
 export default function PomodoroPanel() {
   const { t } = useTranslation();
@@ -15,17 +23,30 @@ export default function PomodoroPanel() {
     { id: 'timer',    label: t('pomodoro.tabs.timer',    'Timer'),    icon: Clock },
     { id: 'stats',    label: t('pomodoro.tabs.stats',    'Stats'),    icon: BarChart2 },
     { id: 'history',  label: t('pomodoro.tabs.history',  'History'),  icon: CalendarDays },
-    { id: 'settings', label: t('pomodoro.tabs.settings', 'Settings'), icon: Settings },
+    { id: 'settings', label: t('pomodoro.tabs.settings', 'Set'),      icon: Settings },
   ];
 
   return (
-    <div className="flex flex-col h-full space-y-4">
-      {/* Tab Navigation — visible on ALL screen sizes */}
-      <div className="w-full bg-black/40 backdrop-blur-md border-b border-white/10">
+    <div className="flex flex-col h-full">
+      {/* ── Compact segmented tab bar ── */}
+      <div className="px-3 pt-2 pb-1">
         <div
-          className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide items-center"
-          style={{ WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)', maskImage: 'linear-gradient(to right, black 85%, transparent 100%)' }}
+          className="relative flex w-full rounded-xl p-0.5"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
         >
+          {/* Sliding active indicator */}
+          <motion.div
+            className="absolute top-0.5 bottom-0.5 rounded-[10px] pointer-events-none"
+            style={{
+              width: `calc(${100 / TABS.length}% - 4px)`,
+              left: `calc(${TABS.findIndex(t => t.id === activeTab) * (100 / TABS.length)}% + 2px)`,
+              background: TAB_COLORS[activeTab]?.active,
+              boxShadow: `0 0 12px ${TAB_COLORS[activeTab]?.glow}, 0 0 4px ${TAB_COLORS[activeTab]?.glow}`,
+            }}
+            layout
+            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+          />
+
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -33,26 +54,25 @@ export default function PomodoroPanel() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`
-                  font-mono text-xs uppercase tracking-widest
-                  flex items-center gap-1.5
-                  px-3 py-1.5 rounded-full whitespace-nowrap
-                  transition-all duration-150 active:scale-95
-                  ${isActive
-                    ? 'bg-violet-600 text-white shadow-[0_0_8px_rgba(139,92,246,0.3)]'
-                    : 'bg-white/10 text-white/50 hover:bg-white/20'
-                  }
-                `}
+                className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 transition-all duration-200 active:scale-95"
               >
-                <Icon className="w-3 h-3" />
-                {tab.label}
+                <Icon
+                  className="w-3.5 h-3.5 transition-all duration-200"
+                  style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}
+                />
+                <span
+                  className="font-mono text-[9px] uppercase tracking-wider leading-none transition-all duration-200"
+                  style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}
+                >
+                  {tab.label}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* ── Content ── */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'timer'    && <PomodoroTimer />}
         {activeTab === 'stats'    && <PomodoroStats />}
