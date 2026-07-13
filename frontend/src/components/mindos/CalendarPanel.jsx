@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CalendarSyncPanel from "@/components/mindos/CalendarSyncPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoFetch } from "@/api/djangoClient";
+import { toast } from "@/components/ui/use-toast";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -54,18 +55,21 @@ function EventBlock({ event, colDate, handlers }) {
   const height = Math.max(16, ((endMins - startMins) / 60) * HOUR_PX);
   const { onDragStart, onResizeStart, openEdit, deleteEvent } = handlers;
   const isTask = event.isTask;
+  const isPending = event._isPending;
 
   return (
     <div
-      onPointerDown={(e) => { if (!isTask && e.button === 0) onDragStart(e, event, colDate); }}
-      onDoubleClick={(e) => { e.stopPropagation(); if (!isTask) openEdit(event); }}
-      className={`absolute left-0.5 right-0.5 rounded-lg overflow-hidden select-none group z-10 ${isTask ? 'cursor-default' : 'cursor-grab'}`}
+      onPointerDown={(e) => { if (!isTask && !isPending && e.button === 0) onDragStart(e, event, colDate); }}
+      onDoubleClick={(e) => { e.stopPropagation(); if (!isTask && !isPending) openEdit(event); }}
+      className={`absolute left-0.5 right-0.5 rounded-lg overflow-hidden select-none group z-10 ${
+        isTask ? 'cursor-default' : isPending ? 'cursor-not-allowed opacity-50 animate-pulse' : 'cursor-grab'
+      }`}
       style={{
         top, height,
         backgroundColor: event.color + "22",
         borderLeft: `3px solid ${event.color}`,
         boxShadow: `0 0 8px ${event.color}33`,
-        touchAction: "none"
+        touchAction: isPending ? "auto" : "none"
       }}
     >
       <div className="px-1.5 py-1 h-full flex flex-col justify-between">
@@ -81,7 +85,7 @@ function EventBlock({ event, colDate, handlers }) {
           )}
         </div>
       </div>
-      {!isTask && (
+      {!isTask && !isPending && (
         <>
           <div
             onPointerDown={(e) => { e.stopPropagation(); onResizeStart(e, event); }}
@@ -167,7 +171,15 @@ export default function CalendarPanel() {
         date: ev.date, start_time: ev.startTime, end_time: ev.endTime, color: ev.color
       })
     }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] }),
+    onError: (err, variables) => {
+      setEvents(prev => prev.filter(e => e.id !== variables.id));
+      toast({
+        variant: "destructive",
+        title: "Error saving event",
+        description: "Failed to save event to server, please try again."
+      });
+    }
   });
 
   const updateEventMut = useMutation({
@@ -225,7 +237,7 @@ export default function CalendarPanel() {
       setEditingEvent(null);
     } else {
       const tempId = Date.now();
-      const createdEv = { ...newEvent, id: tempId };
+      const createdEv = { ...newEvent, id: tempId, _isPending: true };
       setEvents([...events, createdEv]);
       createEventMut.mutate(createdEv);
     }
@@ -358,14 +370,16 @@ export default function CalendarPanel() {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
     e.preventDefault();
-    resizeRef.current = { eventId: event.id, startMins: timeToMins(event.startTime) };
+    const rect = e.currentTarget.parentElement.getBoundingClientRect();
+    const offsetY = e.clientY - rect.bottom;
+    resizeRef.current = { eventId: event.id, startMins: timeToMins(event.startTime), offsetY };
 
     const onMove = (mv) => {
       if (!resizeRef.current || !gridRef.current) return;
-      const { eventId, startMins } = resizeRef.current;
+      const { eventId, startMins, offsetY } = resizeRef.current;
       const gridRect = gridRef.current.getBoundingClientRect();
       const scrollTop = scrollRef.current ? scrollRef.current.scrollTop : 0;
-      let rawEndMins = ((mv.clientY - gridRect.top + scrollTop) / HOUR_PX) * 60;
+      let rawEndMins = (((mv.clientY - offsetY) - gridRect.top + scrollTop) / HOUR_PX) * 60;
       let newEnd = snapTo15(Math.max(startMins + MIN_EVENT_MINS, Math.min(24 * 60, rawEndMins)));
       setEvents(prev => prev.map(ev => ev.id === eventId
         ? { ...ev, endTime: minsToTime(newEnd) }

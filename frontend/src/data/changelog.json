@@ -5,7 +5,7 @@
         "changes": [
             {
                 "type": "feature",
-                "text": "Enabled calendar event dragging and resizing on mobile devices, matching the desktop experience."
+                "text": "Enabled calendar event dragging and resizing on mobile devices, with precise touch-offset alignment and sync guards to prevent disappearing events."
             },
             {
                 "type": "fix",
