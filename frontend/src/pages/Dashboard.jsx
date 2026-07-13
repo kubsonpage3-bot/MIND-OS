@@ -194,14 +194,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     // Ignore drag if we are currently dragging a task
     if (document.body.classList.contains('dnd-dragging')) return;
 
-    if (swipe < -threshold || offset.x < -100) {
+    if (swipe < -threshold) {
       // Swiped left -> Next tab
       const currentIdx = getSectionIndex(activeTab);
       if (currentIdx < BOTTOM_TABS.length - 1) {
         const nextTab = BOTTOM_TABS[currentIdx + 1];
         onSectionChange(nextTab === "tools" ? "history" : nextTab);
       }
-    } else if (swipe > threshold || offset.x > 100) {
+    } else if (swipe > threshold) {
       // Swiped right -> Prev tab
       const currentIdx = getSectionIndex(activeTab);
       if (currentIdx > 0) {
@@ -575,7 +575,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2}
                 onDragEnd={handleDragEnd}
-                className="w-full min-h-[75vh]"
+                className="w-full pb-[130px] md:pb-8"
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
