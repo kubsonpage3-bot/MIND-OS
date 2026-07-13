@@ -77,16 +77,22 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
       }
 
       // If we are locked into a vertical pull down, handle it
-      if (dy > 0) {
-        // Cancel native scroll / overscroll behavior to prevent the browser's default refresh
-        if (e.cancelable) {
-          e.preventDefault();
+      if (directionLocked.current) {
+        if (dy > 0) {
+          // Cancel native scroll / overscroll behavior to prevent the browser's default refresh
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+          
+          // Exponential rubber-banding formula that smoothly approaches MAX_PULL
+          const pull = MAX_PULL * (1 - Math.exp(-dy / 250));
+          setPullDistance(pull);
+          controls.set({ y: pull });
+        } else {
+          // User pushed finger back above the start point
+          setPullDistance(0);
+          controls.set({ y: 0 });
         }
-        
-        // Add physical resistance using square root curve
-        const pull = Math.min(Math.sqrt(dy) * 6, MAX_PULL);
-        setPullDistance(pull);
-        controls.set({ y: pull });
       }
     };
 
