@@ -300,9 +300,6 @@ export default function AppShell({ defaultTab = "mind" }) {
         )}
         {activeApp === "life" && <LifeOS />}
         </PullToRefresh>
-        {/* Spacer block to push content above the fixed bottom navigation bar on mobile. 
-            This avoids the WebKit bug where padding-bottom on a scrolling flex container is ignored. */}
-        <div className="shrink-0 w-full md:hidden" style={{ height: "var(--bottom-bar-height)" }} />
       </div>
 
       {/* Bottom navigation — mobile only */}

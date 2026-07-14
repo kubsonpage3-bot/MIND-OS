@@ -20,6 +20,15 @@ const TABS = [
 export default function LifeOS() {
   const { t } = useTranslation();
   const [gs, setGs] = useState(() => checkMidnightReset(loadState()));
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 768px)");
+    setIsMobile(media.matches);
+    const listener = (e) => setIsMobile(e.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
   const [activeTab, setActiveTab] = useState("tasks");
 
   const update = useCallback((updater) => {
@@ -99,7 +108,12 @@ export default function LifeOS() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-5 space-y-5">
+      <main
+        className="max-w-7xl mx-auto px-4 py-5 space-y-5 md:pb-5"
+        style={{
+          paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined
+        }}
+      >
         {/* Character Panel always visible */}
         <CharacterPanel gs={gs} update={update} />
 

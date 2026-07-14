@@ -161,6 +161,15 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const { t } = useTranslation();
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 768px)");
+    setIsMobile(media.matches);
+    const listener = (e) => setIsMobile(e.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
+
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
   
@@ -729,7 +738,13 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                   const isTools = ["history", "pomodoro", "calendar", "stats"].includes(sectionToRender);
 
                   return (
-                    <div key={tabKey} className="w-full shrink-0 h-auto overflow-x-hidden touch-pan-y px-0 md:px-4">
+                    <div
+                      key={tabKey}
+                      className="w-full shrink-0 h-auto overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0"
+                      style={{
+                        paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined
+                      }}
+                    >
                       
                       {sectionToRender === "dashboard" && (
                         <>

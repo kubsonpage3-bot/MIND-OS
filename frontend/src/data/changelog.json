@@ -1,6 +1,16 @@
 [
     {
         "date":  "2026-07-14",
+        "version":  "1.5.0",
+        "changes":  [
+                        {
+                            "text":  "Fixed visual cutoff at the bottom of all tabs. Added a comfortable layout buffer on mobile viewports so that the last elements are fully scrollable and visible above the bottom navigation bar.",
+                            "type":  "fix"
+                        }
+                    ]
+    },
+    {
+        "date":  "2026-07-14",
         "version":  "1.4.99",
         "changes":  [
                         {
