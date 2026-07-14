@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'MIND OS',
   webDir: 'dist',
   android: {
-    webContentsDebuggingEnabled: false
+    webContentsDebuggingEnabled: true
   }
 };
 

@@ -159,6 +159,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://api.mindosgrowth.org",
     "https://mindos.pages.dev",
     "https://mind-os-d5sk.onrender.com",
+    "http://localhost",
+    "capacitor://localhost",
 ]
 
 # CSRF Trusted Origins for Render & Cloudflare Pages
@@ -167,6 +169,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://mindos.pages.dev",
     "https://mind-os-d5sk.onrender.com",
+    "http://localhost",
+    "capacitor://localhost",
 ]
 
 # CSRF_COOKIE_HTTPONLY protects against XSS extracting the CSRF token

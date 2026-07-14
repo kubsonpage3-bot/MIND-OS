@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const modalStack = [];
+export const modalStack = [];
 
 export function pushModal(onClose) {
   modalStack.push(onClose);
