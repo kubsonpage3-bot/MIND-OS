@@ -139,9 +139,11 @@ export default function CalendarPanel() {
   const [showForm, setShowForm] = useState(false);
   const todayStr = getLocalDateStr(new Date());
 
-  // API Queries
+  // WARNING: Use ["tasks", "calendar"] to avoid clashing with Dashboard's mapped ["tasks"] cache entry.
+  // Prefix invalidation on ["tasks"] will still automatically trigger invalidation for this query.
+  // Note: Any new backend fields must be updated in Dashboard's query mapping as well.
   const { data: tasks = [] } = useQuery({
-    queryKey: ["tasks"],
+    queryKey: ["tasks", "calendar"],
     queryFn: () => djangoFetch("/tasks/").then(data => data.results || data || []),
   });
 

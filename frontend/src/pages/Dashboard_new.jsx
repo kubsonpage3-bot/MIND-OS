@@ -736,6 +736,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const [synced, setSynced] = useState(false);
   const [isConvertGuestModalOpen, setIsConvertGuestModalOpen] = useState(false);
 
+  // WARNING: If you add any new fields to the backend Task model, you MUST add them to this
+  // mapping list, otherwise they will be silently stripped out in the dashboard task cache.
+  // The Calendar raw tasks query ["tasks", "calendar"] should also consume them raw.
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
@@ -763,6 +766,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         xpReward: dt.xp_reward || 10,
         goldReward: dt.gold_reward || 8,
         bossDamage: dt.boss_damage || 15,
+        scheduled_time: dt.scheduled_time || null,
+        scheduled_end_time: dt.scheduled_end_time || null,
+        show_in_calendar: dt.show_in_calendar || false,
+        repeat_weekdays: dt.repeat_weekdays !== undefined ? dt.repeat_weekdays : 127,
       }));
       return mapped;
     },
