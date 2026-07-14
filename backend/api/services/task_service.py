@@ -9,6 +9,19 @@ from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
 
 
+def is_daily_scheduled_for_date(task, date_val) -> bool:
+    """
+    Checks if a daily task is scheduled to run on a given date based on repeat_weekdays.
+    """
+    if task.task_type != Task.TaskType.DAILY:
+        return True
+    repeat_weekdays = getattr(task, "repeat_weekdays", 127)
+    if repeat_weekdays is None:
+        repeat_weekdays = 127
+    weekday_flag = 1 << date_val.weekday()
+    return (repeat_weekdays & weekday_flag) > 0
+
+
 def complete_task(user, task_id, is_positive=True):
     try:
         with transaction.atomic():
@@ -68,10 +81,23 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 task.value = task.last_reward_data.get("value_before", task.value)
 
     elif task.task_type == Task.TaskType.DAILY:
-        today = timezone.now().date()
-        already_done_today = (
-            task.last_completed_at and task.last_completed_at.date() == today
-        )
+        import zoneinfo
+        try:
+            user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+        except Exception:
+            user_tz = zoneinfo.ZoneInfo("UTC")
+
+        local_now = timezone.now().astimezone(user_tz)
+        local_today = local_now.date()
+
+        # Check if daily is scheduled for today
+        if not is_daily_scheduled_for_date(task, local_today):
+            raise ValidationError("This daily task is not scheduled for today.")
+
+        already_done_today = False
+        if task.last_completed_at:
+            last_completed_local = task.last_completed_at.astimezone(user_tz).date()
+            already_done_today = last_completed_local == local_today
 
         if is_positive:
             if already_done_today and not is_deja_vu:
@@ -763,13 +789,20 @@ def process_missed_tasks(user):
     passive_effects = get_passive_multipliers(profile, {})
 
     for task in dailies:
+        # If the task is not scheduled for the day that just ended, skip penalty
+        if not is_daily_scheduled_for_date(task, profile.last_daily_cron_at):
+            if task.is_completed:
+                task.is_completed = False
+                task.last_completed_at = None
+                task.save()
+            continue
+
         # Проверяем, был ли дейлик выполнен вчера
-        # Если last_completed_at равен дате последнего крона (или позже, но до сегодня)
-        was_completed = (
-            task.is_completed
-            and task.last_completed_at
-            and task.last_completed_at.date() >= profile.last_daily_cron_at
-        )
+        # Если last_completed_at равен дате последнего крона (или позже, но до сегодня) в локальном времени
+        was_completed = False
+        if task.is_completed and task.last_completed_at:
+            last_completed_local = task.last_completed_at.astimezone(user_tz).date()
+            was_completed = last_completed_local >= profile.last_daily_cron_at
 
         if was_completed:
             task.is_completed = False

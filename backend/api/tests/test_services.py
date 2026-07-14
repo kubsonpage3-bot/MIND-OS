@@ -918,3 +918,87 @@ def test_sell_item(user, profile):
     assert not InventoryItem.objects.filter(
         user_profile=p, item__code="test_sword"
     ).exists()
+
+
+@pytest.mark.django_db
+def test_weekday_schedule_completion(user, profile):
+    import datetime
+    from api.services.task_service import is_daily_scheduled_for_date
+
+    # Create a daily task scheduled only on Monday (flag = 1)
+    task = Task.objects.create(
+        user=user,
+        title="Monday Only Daily",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=1,  # Monday only
+    )
+
+    # Let's mock the current day as Monday (e.g. 2026-07-13 is a Monday)
+    monday_date = datetime.date(2026, 7, 13)
+    assert is_daily_scheduled_for_date(task, monday_date) is True
+
+    # Let's mock the current day as Tuesday (e.g. 2026-07-14 is a Tuesday)
+    tuesday_date = datetime.date(2026, 7, 14)
+    assert is_daily_scheduled_for_date(task, tuesday_date) is False
+
+
+@pytest.mark.django_db
+def test_complete_task_validation_off_days(user, profile):
+    import datetime
+    from unittest.mock import patch
+    from api.services.task_service import complete_task
+    from rest_framework.exceptions import ValidationError
+
+    # Monday only Daily
+    task = Task.objects.create(
+        user=user,
+        title="Monday Only Daily",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=1,  # Monday only
+    )
+
+    # If we try to complete it on a Tuesday (2026-07-14 is a Tuesday)
+    profile.timezone = "UTC"
+    profile.save()
+    
+    tuesday_now = datetime.datetime(2026, 7, 14, 12, 0, tzinfo=datetime.timezone.utc)
+    
+    with patch('django.utils.timezone.now', return_value=tuesday_now):
+        with pytest.raises(ValidationError) as excinfo:
+            complete_task(user, task.id, True)
+        assert "This daily task is not scheduled for today." in str(excinfo.value)
+
+
+@pytest.mark.django_db
+def test_process_missed_tasks_skips_off_days(user, profile):
+    import datetime
+    from unittest.mock import patch
+    from api.services.task_service import process_missed_tasks
+    
+    # Clear existing tasks to isolate
+    Task.objects.filter(user=user).delete()
+    
+    # Monday only Daily
+    task = Task.objects.create(
+        user=user,
+        title="Monday Only Daily",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=1,  # Monday only
+        streak=5,
+    )
+    
+    profile.timezone = "UTC"
+    profile.last_daily_cron_at = datetime.date(2026, 7, 14)  # Tuesday (off-day)
+    profile.hp = 100
+    profile.save()
+
+    # Now it is Wednesday (2026-07-15), which means we are evaluating Tuesday (off-day).
+    wednesday_now = datetime.datetime(2026, 7, 15, 0, 5, tzinfo=datetime.timezone.utc)
+    
+    with patch('django.utils.timezone.now', return_value=wednesday_now):
+        res = process_missed_tasks(user)
+        assert res["fired"] is True
+        task.refresh_from_db()
+        profile.refresh_from_db()
+        assert profile.hp == 100
+        assert task.streak == 5  # Streak did not break!

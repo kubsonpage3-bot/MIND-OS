@@ -283,20 +283,39 @@ export default function CalendarPanel() {
   const getDayEvents = (dateStr) => {
     // Regular events
     const regularEvents = events.filter(e => e.date === dateStr && !e.isTask);
-    // Daily tasks with showInCalendar - show on all dates (recurring)
+    // Daily tasks with showInCalendar - show on scheduled dates (recurring)
+    const dateObj = new Date(dateStr);
+    const jsDay = dateObj.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1; // 0 = Monday, ..., 6 = Sunday
+    const weekdayFlag = 1 << pythonWeekday;
+
     const dailyTaskEvents = tasks
-      .filter(t => t.task_type === "daily" && t.show_in_calendar && t.scheduled_time)
-      .map(t => ({
-        id: `task-${t.id}-${dateStr}`,
-        title: t.title,
-        description: t.notes || "",
-        date: dateStr,
-        startTime: t.scheduled_time.substring(0, 5),
-        endTime: minsToTime(timeToMins(t.scheduled_time.substring(0, 5)) + Math.round((t.default_hours || 1) * 60)),
-        color: CATEGORY_COLORS[t.category] || "#3b82f6",
-        isTask: true,
-        taskId: t.id,
-      }));
+      .filter(t => {
+        if (t.task_type !== "daily" || !t.show_in_calendar || !t.scheduled_time) {
+          return false;
+        }
+        const repeatWeekdays = t.repeat_weekdays !== undefined && t.repeat_weekdays !== null ? t.repeat_weekdays : 127;
+        return (repeatWeekdays & weekdayFlag) > 0;
+      })
+      .map(t => {
+        let endTimeStr;
+        if (t.scheduled_end_time) {
+          endTimeStr = t.scheduled_end_time.substring(0, 5);
+        } else {
+          endTimeStr = minsToTime(timeToMins(t.scheduled_time.substring(0, 5)) + Math.round((t.default_hours || 1) * 60));
+        }
+        return {
+          id: `task-${t.id}-${dateStr}`,
+          title: t.title,
+          description: t.notes || "",
+          date: dateStr,
+          startTime: t.scheduled_time.substring(0, 5),
+          endTime: endTimeStr,
+          color: CATEGORY_COLORS[t.category] || "#3b82f6",
+          isTask: true,
+          taskId: t.id,
+        };
+      });
     return [...regularEvents, ...dailyTaskEvents].sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
 

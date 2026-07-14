@@ -41,7 +41,9 @@ class TaskSerializer(serializers.ModelSerializer):
             "category",
             "icon",
             "scheduled_time",
+            "scheduled_end_time",
             "show_in_calendar",
+            "repeat_weekdays",
             "default_hours",
             "default_focus",
             "xp_reward",
@@ -74,6 +76,26 @@ class TaskSerializer(serializers.ModelSerializer):
                 "Difficulty value must be greater than zero."
             )
         return value
+
+    def validate_repeat_weekdays(self, value):
+        if value == 0:
+            raise serializers.ValidationError("At least one weekday must be selected.")
+        return value
+
+    def validate(self, attrs):
+        scheduled_time = attrs.get("scheduled_time", getattr(self.instance, "scheduled_time", None) if self.instance else None)
+        scheduled_end_time = attrs.get("scheduled_end_time", getattr(self.instance, "scheduled_end_time", None) if self.instance else None)
+
+        if scheduled_time and scheduled_end_time:
+            if scheduled_end_time <= scheduled_time:
+                raise serializers.ValidationError(
+                    {"scheduled_end_time": "Scheduled end time must be after start time."}
+                )
+        if scheduled_end_time and not scheduled_time:
+            raise serializers.ValidationError(
+                {"scheduled_time": "Scheduled start time is required if end time is set."}
+            )
+        return attrs
 
 
 class TaskCompleteSerializer(serializers.Serializer):

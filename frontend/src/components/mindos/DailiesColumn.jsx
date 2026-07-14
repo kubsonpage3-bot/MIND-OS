@@ -58,9 +58,18 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
   const tv = task.value ?? task.rpgValue ?? 0;
   const tvColor = getTaskValueColor(tv);
 
+  const isScheduledToday = (() => {
+    if (task.repeat_weekdays === undefined || task.repeat_weekdays === null) return true;
+    const jsDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1; // 0 = Monday, ..., 6 = Sunday
+    const flag = 1 << pythonWeekday;
+    return (task.repeat_weekdays & flag) > 0;
+  })();
+
   const longPressProps = useLongPress(
     () => onEdit(task),
     () => {
+      if (!isScheduledToday) return;
       if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
       completeDaily(task);
     }
@@ -68,7 +77,13 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
 
   return (
     <div
-      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-white dark:bg-gray-900'}`}
+      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden transition-all duration-150 ${
+        !isScheduledToday
+          ? 'opacity-40 bg-gray-100/50 dark:bg-gray-800/20 cursor-default'
+          : task.is_completed
+          ? 'opacity-50 cursor-pointer'
+          : 'task-card bg-white dark:bg-gray-900 cursor-pointer'
+      }`}
       style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
       {...longPressProps}
     >
@@ -128,7 +143,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', type: 'daily', category: 'Other', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
+    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
   });
   const [formType, setFormType] = useState('daily');
   const [editingTask, setEditingTask] = useState(null);
@@ -264,7 +279,9 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       notes: form.notes || '',
       due_date: form.dueDate || null,
       scheduled_time: form.scheduledTime || null,
+      scheduled_end_time: form.scheduledEndTime || null,
       show_in_calendar: !!form.showInCalendar,
+      repeat_weekdays: form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127,
     });
   };
 
@@ -278,7 +295,9 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       priority: task.priority || 'medium',
       dueDate: task.due_date || '',
       scheduledTime: task.scheduled_time || '',
+      scheduledEndTime: task.scheduled_end_time || '',
       showInCalendar: task.show_in_calendar || false,
+      repeatWeekdays: task.repeat_weekdays !== undefined ? task.repeat_weekdays : 127,
     });
     setFormType(task.type || 'daily');
     setEditingTask(task);

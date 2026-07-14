@@ -23,7 +23,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
   const [formType, setFormType] = useState('habit');
   const [form, setForm] = useState({
     name: '', type: 'habit', category: 'Other', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
+    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
   });
 
   // Normalize to always be an array — guards against cache being temporarily
@@ -46,7 +46,9 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
         notes: form.notes || '',
         due_date: form.dueDate || null,
         scheduled_time: form.scheduledTime || null,
+        scheduled_end_time: form.scheduledEndTime || null,
         show_in_calendar: !!form.showInCalendar,
+        repeat_weekdays: form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127,
       });
 
       console.log('Успешно создано:', created);
@@ -55,7 +57,7 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setCreateModalOpen(false);
-      setForm({ name: '', type: 'habit', category: 'Other', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false });
+      setForm({ name: '', type: 'habit', category: 'Other', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127 });
     } catch (e) {
       console.error('Django task create failed:', e.response?.data || e.message || e);
       showRewardToast({ label: `Error: Could not create task on server` });

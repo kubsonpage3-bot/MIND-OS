@@ -613,9 +613,18 @@ class Task(models.Model):
         blank=True,
         verbose_name="Время (календарь)",
     )
+    scheduled_end_time = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Время окончания (календарь)",
+    )
     show_in_calendar = models.BooleanField(
         default=False,
         verbose_name="Показывать в календаре",
+    )
+    repeat_weekdays = models.PositiveSmallIntegerField(
+        default=127,
+        verbose_name="Дни повторения",
     )
 
     # Настройки кастомного сессионного лога (для типа BUTTON)

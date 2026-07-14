@@ -204,16 +204,75 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                     </div>
                   )}
 
-                  {/* Daily-specific: Scheduled Time */}
+                  {/* Daily-specific: Time Window */}
+                  {form.type === "daily" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">Start Time</label>
+                        <Input
+                          type="time"
+                          value={form.scheduledTime || ""}
+                          onChange={e => setForm({ ...form, scheduledTime: e.target.value })}
+                          className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">End Time</label>
+                        <Input
+                          type="time"
+                          value={form.scheduledEndTime || ""}
+                          onChange={e => setForm({ ...form, scheduledEndTime: e.target.value })}
+                          className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inline Time Error */}
+                  {form.type === "daily" && form.scheduledTime && form.scheduledEndTime && form.scheduledEndTime <= form.scheduledTime && (
+                    <p className="text-red-400 text-[10px] font-mono uppercase tracking-wider">
+                      ⚠️ End time must be after start time
+                    </p>
+                  )}
+
+                  {/* Daily-specific: Repeat Schedule (weekdays) */}
                   {form.type === "daily" && (
                     <div>
-                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Scheduled Time</label>
-                      <Input
-                        type="time"
-                        value={form.scheduledTime}
-                        onChange={e => setForm({ ...form, scheduledTime: e.target.value })}
-                        className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
-                      />
+                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">Repeat Schedule</label>
+                      <div className="flex gap-1.5 justify-between">
+                        {[
+                          { label: "M", flag: 1 },
+                          { label: "T", flag: 2 },
+                          { label: "W", flag: 4 },
+                          { label: "T", flag: 8 },
+                          { label: "F", flag: 16 },
+                          { label: "S", flag: 32 },
+                          { label: "S", flag: 64 },
+                        ].map((day, idx) => {
+                          const currentBitmask = form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127;
+                          const isSelected = (currentBitmask & day.flag) > 0;
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                let newBitmask = isSelected ? currentBitmask - day.flag : currentBitmask + day.flag;
+                                if (newBitmask === 0) return;
+                                setForm({ ...form, repeatWeekdays: newBitmask });
+                              }}
+                              className="w-10 h-10 rounded-full font-mono text-xs font-bold border-2 transition-all flex items-center justify-center"
+                              style={{
+                                borderColor: isSelected ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.25)",
+                                color: isSelected ? "#f0c040" : "#64748b",
+                                background: isSelected ? "rgba(240,192,64,0.12)" : "rgba(255,255,255,0.02)",
+                                boxShadow: "0 1px 0 rgba(0,0,0,0.3)"
+                              }}
+                            >
+                              {day.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
@@ -249,20 +308,26 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   </div>
 
                   {/* Create button */}
-                  <button
-                    onClick={handleCreate}
-                    disabled={!form.name.trim()}
-                    className="w-full pixel-btn border-2 font-mono font-bold py-4 text-base tracking-wider"
-                    style={{ 
-                      borderColor: "#f0c040",
-                      background: !form.name.trim() ? "rgba(240,192,64,0.15)" : "rgba(240,192,64,0.25)",
-                      color: "#f0c040",
-                      boxShadow: "0 2px 0 rgba(0,0,0,0.4)",
-                      opacity: !form.name.trim() ? 0.5 : 1
-                    }}
-                  >
-                    {editMode ? "SAVE CHANGES" : "CREATE TASK"}
-                  </button>
+                  {(() => {
+                    const isTimeInvalid = form.type === "daily" && form.scheduledTime && form.scheduledEndTime && form.scheduledEndTime <= form.scheduledTime;
+                    const isSubmitDisabled = !form.name.trim() || isTimeInvalid;
+                    return (
+                      <button
+                        onClick={handleCreate}
+                        disabled={isSubmitDisabled}
+                        className="w-full pixel-btn border-2 font-mono font-bold py-4 text-base tracking-wider"
+                        style={{ 
+                          borderColor: "#f0c040",
+                          background: isSubmitDisabled ? "rgba(240,192,64,0.15)" : "rgba(240,192,64,0.25)",
+                          color: "#f0c040",
+                          boxShadow: "0 2px 0 rgba(0,0,0,0.4)",
+                          opacity: isSubmitDisabled ? 0.5 : 1
+                        }}
+                      >
+                        {editMode ? "SAVE CHANGES" : "CREATE TASK"}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

@@ -170,7 +170,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', type: 'habit', category: 'Other', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', showInCalendar: false,
+    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
   });
   const [formType, setFormType] = useState('habit');
   const [editingTask, setEditingTask] = useState(null);
@@ -259,7 +259,9 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       notes: form.notes || '',
       due_date: form.dueDate || null,
       scheduled_time: form.scheduledTime || null,
+      scheduled_end_time: form.scheduledEndTime || null,
       show_in_calendar: !!form.showInCalendar,
+      repeat_weekdays: form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127,
     });
   };
 
@@ -273,7 +275,9 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       priority: task.priority || 'medium',
       dueDate: task.due_date || '',
       scheduledTime: task.scheduled_time || '',
+      scheduledEndTime: task.scheduled_end_time || '',
       showInCalendar: task.show_in_calendar || false,
+      repeatWeekdays: task.repeat_weekdays !== undefined ? task.repeat_weekdays : 127,
     });
     setFormType(task.type || 'habit');
     setEditingTask(task);
