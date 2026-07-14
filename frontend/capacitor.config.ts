@@ -10,6 +10,18 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorUpdater: {
       autoUpdate: true,
+    },
+    SplashScreen: {
+      launchShowDuration: 0,
+      launchAutoHide: false,
+      backgroundColor: "#0a0a0f",
+      showSpinner: false,
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP"
+    },
+    Keyboard: {
+      resize: "none",
+      resizeOnFullScreen: true
     }
   }
 };
