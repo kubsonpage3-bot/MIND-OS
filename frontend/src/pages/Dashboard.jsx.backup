@@ -28,7 +28,6 @@ import TabGuideModal from "@/components/mindos/TabGuideModal";
 import SettingsPanel from "@/components/mindos/SettingsPanel";
 import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
 import { isMobileApp } from "@/utils/platformUtils";
-import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
 
@@ -209,27 +208,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const activeTabRef = useRef(null);
   const activeSectionRef = useRef(activeSection);
   const dragX = useMotionValue(0);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const activeTabIndex = getSectionIndex(activeSection);
-  const activeIndexRef = useRef(activeTabIndex);
-  activeIndexRef.current = activeTabIndex;
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
+  // Keep activeSectionRef current without re-registering touch listeners
+  activeSectionRef.current = activeSection;
 
+  // Reset drag offset whenever the active tab key changes (AnimatePresence swap)
   useEffect(() => {
-    if (containerWidth > 0) {
-      animate(dragX, -(activeTabIndex * containerWidth), {
-        type: 'spring', stiffness: 380, damping: 36, mass: 0.8
-      });
-    }
-  }, [activeTabIndex, containerWidth]);
+    dragX.set(0);
+  }, [activeTabKey]);
 
   useEffect(() => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -237,21 +223,22 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     let touchStart = null;
     let isHorizontal = null;
+    // Velocity tracking via exponential moving average (px/s)
     let velocityX = 0;
     let lastMoveTime = 0;
     let lastMoveX = 0;
 
     const handleStart = (e) => {
-      if (document.body.classList.contains('dnd-dragging') || modalStack.length > 0) return;
+      if (document.body.classList.contains('dnd-dragging')) return;
       if (e.target.closest('.overflow-x-auto, .overflow-x-scroll, .touch-none, [data-no-swipe], nav')) return;
       if (e.touches.length !== 1) return;
-      
       const touch = e.touches[0];
       touchStart = { x: touch.clientX, y: touch.clientY };
       isHorizontal = null;
       velocityX = 0;
       lastMoveTime = Date.now();
       lastMoveX = touch.clientX;
+      // Stop any in-progress snap-back animation immediately
       dragX.stop();
     };
 
@@ -262,8 +249,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       const dy = touch.clientY - touchStart.y;
 
       if (isHorizontal === null) {
+        // Wait for at least 10px movement before locking direction
         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
           if (Math.abs(dy) > Math.abs(dx) * 0.9) {
+            // Predominantly vertical — yield to scroll
             touchStart = null;
             return;
           }
@@ -275,28 +264,20 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (isHorizontal === true) {
         if (e.cancelable) e.preventDefault();
 
+        // Track velocity with EMA (smooth out jitter from noisy touch events)
         const now = Date.now();
         const dt = now - lastMoveTime;
         if (dt > 0 && dt < 100) {
-          const instantV = (touch.clientX - lastMoveX) / dt * 1000;
+          const instantV = (touch.clientX - lastMoveX) / dt * 1000; // px/s
+          // EMA α=0.4: weights recent samples more, but smooths spikes
           velocityX = velocityX * 0.6 + instantV * 0.4;
         }
         lastMoveTime = now;
         lastMoveX = touch.clientX;
 
-        const cw = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
-        const currentIdx = activeIndexRef.current;
-        const baseOffset = -(currentIdx * cw);
-        let targetX = baseOffset + dx;
-
-        if (targetX > 0) {
-          targetX = targetX * 0.3;
-        } else if (targetX < -(BOTTOM_TABS.length - 1) * cw) {
-          const over = targetX - (-(BOTTOM_TABS.length - 1) * cw);
-          targetX = -(BOTTOM_TABS.length - 1) * cw + (over * 0.3);
-        }
-
-        dragX.set(targetX);
+        // Rubber-band resistance: feels like iOS — harder to pull beyond threshold
+        const resistance = 0.55;
+        dragX.set(dx * resistance);
       }
     };
 
@@ -307,28 +288,41 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (isHorizontal !== true) return;
       isHorizontal = null;
 
-      const cw = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
-      const currentIdx = activeIndexRef.current;
-      const baseOffset = -(currentIdx * cw);
-      const distValue = dragX.get() - baseOffset;
+      const distValue = dragX.get();
       const vel = velocityX;
 
-      const DIST_THRESHOLD = cw * 0.25;
-      const VEL_THRESHOLD  = 450;
+      /**
+       * COMPLETION LOGIC — two independent ways to trigger a tab switch:
+       *
+       * 1. DISTANCE: dragged past 30px (after 0.55 resistance ≈ 55px real finger travel)
+       *    → catches slow deliberate drags
+       *
+       * 2. VELOCITY: finger moving faster than 450 px/s at release
+       *    → catches quick native-feeling flicks regardless of distance
+       *
+       * Switch happens if EITHER condition is true (OR gate).
+       */
+      const DIST_THRESHOLD = 30;   // px after resistance (≈ 55px real)
+      const VEL_THRESHOLD  = 450;  // px/s — quick flick
 
       const wantsForward = distValue < -DIST_THRESHOLD || vel < -VEL_THRESHOLD;
       const wantsBack    = distValue >  DIST_THRESHOLD || vel >  VEL_THRESHOLD;
 
+      const currentIdx = getSectionIndex(activeSectionRef.current);
+
       if (wantsForward && currentIdx < BOTTOM_TABS.length - 1) {
+        dragX.set(0);
         const nextTab = BOTTOM_TABS[currentIdx + 1];
         hapticLight();
         onSectionChange(nextTab === 'tools' ? 'history' : nextTab);
       } else if (wantsBack && currentIdx > 0) {
+        dragX.set(0);
         const prevTab = BOTTOM_TABS[currentIdx - 1];
         hapticLight();
         onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
       } else {
-        animate(dragX, baseOffset, {
+        // Neither threshold met — iOS-style spring snap-back
+        animate(dragX, 0, {
           type: 'spring',
           stiffness: 350,
           damping: 30,
@@ -348,6 +342,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       document.removeEventListener('touchend', handleEnd);
       document.removeEventListener('touchcancel', handleEnd);
     };
+  // ✅ Only depends on onSectionChange — no re-register on every tab change
   }, [onSectionChange]);
 
 
@@ -543,7 +538,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     },
     onError: (err) => {
       console.error("Training logging failed:", err);
-      if (/** @type {any} */ (err)?.status === 401) {
+      if (err?.status === 401) {
         toast({
           variant: "destructive",
           title: t('dashboard.session_expired', 'Session Expired'),
@@ -703,127 +698,138 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         {/* Main content area */}
         <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5 overflow-x-hidden" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
-            <div className="w-full h-full overflow-hidden relative">
+            <AnimatePresence mode="wait" custom={slideDirection} initial={false}>
               <motion.div
-                className="flex flex-row w-full h-full"
-                style={{ x: dragX, willChange: 'transform' }}
+                ref={activeTabRef}
+                key={activeTabKey}
+                custom={slideDirection}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="w-full touch-pan-y"
+                style={{ willChange: 'transform' }}
               >
-                {BOTTOM_TABS.map((tabKey, idx) => {
-                  if (Math.abs(idx - activeTabIndex) > 1) {
-                    return <div key={tabKey} className="w-full shrink-0" />;
-                  }
-
-                  const sectionToRender = (idx === activeTabIndex) ? activeSection : tabKey;
-                  const isTools = ["history", "pomodoro", "calendar", "stats"].includes(sectionToRender);
-
-                  return (
-                    <div key={tabKey} className="w-full shrink-0 h-full overflow-y-auto overflow-x-hidden touch-pan-y px-0 md:px-4">
-                      
-                      {sectionToRender === "dashboard" && (
-                        <>
-                          <TabGuideModal guideId="dashboard" profile={profile} />
-                          {profile && (
-                            <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
-                              <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                                <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"📊 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
-                              </div>
-                              <div className="px-4 pb-4">
-                                <div className="flex flex-col md:flex-row gap-4">
-                                  <div className="shrink-0">
-                                    <IQDisplay gf={profile.gf} gc={profile.gc} ps={profile.ps} vm={profile.vm} gfCeiling={profile.gf_ceiling} gcCeiling={profile.gc_ceiling} psCeiling={profile.ps_ceiling} vmCeiling={profile.vm_ceiling} />
-                                  </div>
-                                  <div className="flex-1 space-y-3 py-2">
-                                    {["gf", "gc", "ps", "vm"].map(mk => (
-                                      <MetricBar key={mk} metricKey={mk} current={profile[mk]} ceiling={profile[`${mk}_ceiling`]} />
-                                    ))}
-                                  </div>
-                                </div>
-                                <div className="mt-3">
-                                  <StatsPanel profile={profile} logs={logs} />
-                                </div>
-                              </div>
+                {/* Inner drag layer — drives live swipe preview via MotionValue, no FM conflict */}
+                <motion.div style={{ x: dragX }}>
+                {/* Dashboard — Habitica-style layout */}
+                {activeSection === "dashboard" && (
+                  <>
+                    <TabGuideModal guideId="dashboard" profile={profile} />
+                    {/* IQ + Metrics block */}
+                    {profile && (
+                      <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+                        {/* Header */}
+                        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+                          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"🧠 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
+                        </div>
+                        <div className="px-4 pb-4">
+                          {/* IQ + metrics side by side */}
+                          <div className="flex flex-col md:flex-row gap-4">
+                            <div className="shrink-0">
+                              <IQDisplay gf={profile.gf} gc={profile.gc} ps={profile.ps} vm={profile.vm} gfCeiling={profile.gf_ceiling} gcCeiling={profile.gc_ceiling} psCeiling={profile.ps_ceiling} vmCeiling={profile.vm_ceiling} />
                             </div>
-                          )}
-
-                          <DailyQuoteWidget />
-                          <ActivePartyWidget />
-
-                          <div className="mt-4 px-2 pb-3 bg-[var(--habit-panel)] border border-[var(--habit-border)] rounded-2xl shadow-sm pt-3">
-                            <BossPanel currentScore={rankXPData.rankXP || 0} onBossDamage={handleBossDamage} externalDamage={externalDamage} />
+                            <div className="flex-1 space-y-3 py-2">
+                              {["gf", "gc", "ps", "vm"].map(mk => (
+                                <MetricBar key={mk} metricKey={mk} current={profile[mk]} ceiling={profile[`${mk}_ceiling`]} />
+                              ))}
+                            </div>
                           </div>
-
-                          <div className="mt-4">
-                            <PixelRankRoad rankXP={rankXPData.rankXP} />
+                          {/* Stats row */}
+                          <div className="mt-3">
+                            <StatsPanel profile={profile} logs={logs} />
                           </div>
-                        </>
-                      )}
+                        </div>
+                      </div>
+                    )}
 
-                      {(sectionToRender === "train" || sectionToRender === "training") && (
-                        <TabPanel title={"⚔️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
-                          <TabGuideModal guideId="training" profile={profile} />
-                          <ActivityLogger onLog={handleLog} isLogging={logTraining.isPending} profile={profile} logs={logs} tasks={tasks} />
-                        </TabPanel>
-                      )}
+                    <DailyQuoteWidget />
 
-                      {sectionToRender === "tasks" && (
-                        <TabPanel title={"📋 " + t("sidebar.sections.tasks", "TASKS").toUpperCase()}>
-                          <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
-                        </TabPanel>
-                      )}
+                    {/* Active Party Widget */}
+                    <ActivePartyWidget />
 
-                      {sectionToRender === "character" && (
-                        <>
-                          <PillTabBar tabs={CHARACTER_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} />
-                          <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
-                            <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
-                          </TabPanel>
-                        </>
-                      )}
-
-                      {sectionToRender === "rival" && (
-                        <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>
-                          <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
-                        </TabPanel>
-                      )}
-
-                      {isTools && (
-                        <PillTabBar tabs={TOOLS_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={sectionToRender} onChange={onSectionChange} />
-                      )}
-                      {sectionToRender === "stats" && (
-                        <TabPanel title={"📈 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
-                          <ProjectionTable profile={profile} logs={logs} />
-                        </TabPanel>
-                      )}
-                      {sectionToRender === "history" && (
-                        <TabPanel title={"📜 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>
-                          <HistoryLog logs={logs} tasks={tasks} />
-                        </TabPanel>
-                      )}
-                      {sectionToRender === "pomodoro" && (
-                        <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
-                          <PremiumGate isPremium={profile?.is_premium}>
-                            <PomodoroPanel />
-                          </PremiumGate>
-                        </TabPanel>
-                      )}
-                      {sectionToRender === "calendar" && (
-                        <TabPanel title={"📅 " + t("sidebar.sections.calendar", "CALENDAR").toUpperCase()}>
-                          <PremiumGate isPremium={profile?.is_premium}>
-                            <CalendarPanel />
-                          </PremiumGate>
-                        </TabPanel>
-                      )}
-
-                      {sectionToRender === "settings" && (
-                        <TabPanel title={"⚙️ " + t("sidebar.sections.settings", "SETTINGS").toUpperCase()}>
-                          <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
-                        </TabPanel>
-                      )}
+                    {/* Boss Panel */}
+                    <div className="mt-4 px-2 pb-3 bg-[var(--habit-panel)] border border-[var(--habit-border)] rounded-2xl shadow-sm pt-3">
+                      <BossPanel currentScore={rankXPData.rankXP || 0} onBossDamage={handleBossDamage} externalDamage={externalDamage} />
                     </div>
-                  );
-                })}
+
+                    {/* Pixel Rank Road Map */}
+                    <div className="mt-4">
+                      <PixelRankRoad rankXP={rankXPData.rankXP} />
+                    </div>
+                  </>
+                )}
+
+                {/* Train section */}
+                {(activeSection === "train" || activeSection === "training") && (
+                  <TabPanel title={"🏋️‍♀️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
+                    <TabGuideModal guideId="training" profile={profile} />
+                    <ActivityLogger onLog={handleLog} isLogging={logTraining.isPending} profile={profile} logs={logs} tasks={tasks} />
+                  </TabPanel>
+                )}
+
+                {/* Tasks section with sub-tabs */}
+                {activeSection === "tasks" && (
+                  <TabPanel title={"⚔️ " + t("sidebar.sections.tasks", "TASKS").toUpperCase()}>
+                    <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
+                  </TabPanel>
+                )}
+
+                {/* Character section with sub-tabs */}
+                {activeSection === "character" && (
+                  <>
+                    <PillTabBar tabs={CHARACTER_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} wrap={true} />
+                    <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
+                      <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
+                    </TabPanel>
+                  </>
+                )}
+
+                {/* Rival section */}
+                {activeSection === "rival" && (
+                  <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>
+                    <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
+                  </TabPanel>
+                )}
+
+                {/* Tools/Stats sections */}
+                {["history", "pomodoro", "calendar", "stats"].includes(activeSection) && (
+                  <PillTabBar tabs={TOOLS_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSection} onChange={onSectionChange} wrap={true} />
+                )}
+                {activeSection === "stats" && (
+                  <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
+                    <ProjectionTable profile={profile} logs={logs} />
+                  </TabPanel>
+                )}
+                {activeSection === "history" && (
+                  <TabPanel title={"📋 " + t("sidebar.sections.history", "HISTORY").toUpperCase()}>
+                    <HistoryLog logs={logs} tasks={tasks} />
+                  </TabPanel>
+                )}
+                {activeSection === "pomodoro" && (
+                  <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
+                    <PremiumGate isPremium={profile?.is_premium}>
+                      <PomodoroPanel />
+                    </PremiumGate>
+                  </TabPanel>
+                )}
+                {activeSection === "calendar" && (
+                  <TabPanel title={"📅 " + t("sidebar.sections.calendar", "CALENDAR").toUpperCase()}>
+                    <PremiumGate isPremium={profile?.is_premium}>
+                      <CalendarPanel />
+                    </PremiumGate>
+                  </TabPanel>
+                )}
+
+                {/* Settings section with sub-tabs */}
+                {activeSection === "settings" && (
+                  <TabPanel title={"⚙️ " + t("sidebar.sections.settings", "SETTINGS").toUpperCase()}>
+                    <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
+                  </TabPanel>
+                )}
+                </motion.div>
               </motion.div>
-            </div>
+            </AnimatePresence>
           </TabErrorBoundary>
         </div>
       </main>

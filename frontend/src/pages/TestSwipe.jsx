@@ -99,7 +99,7 @@ function SwipeableListItemWrapper({ task }) {
 
 export default function TestSwipe() {
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24 overflow-y-auto">
+    <div className="min-h-screen bg-black text-white p-4 pb-4 overflow-y-auto">
       <h1 className="text-xl font-bold mb-6 text-center">Swipe Implementations Test</h1>
       
       <section className="mb-8">

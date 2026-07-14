@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { SKILL_TREE } from "@/constants/rpgData";
@@ -315,7 +316,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       {/* Canvas Area or Mobile Accordion */}
       {isMobile ? (
         <div 
-          className="flex-1 overflow-y-auto p-4 pt-16 pb-28 space-y-3 bg-[#0a0a0f]"
+          className="flex-1 overflow-y-auto p-4 pt-16 pb-4 space-y-3 bg-[#0a0a0f]"
           onPointerDownCapture={(e) => e.stopPropagation()}
           onTouchStartCapture={(e) => e.stopPropagation()}
         >

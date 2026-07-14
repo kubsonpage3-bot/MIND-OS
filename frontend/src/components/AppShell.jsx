@@ -229,7 +229,7 @@ export default function AppShell({ defaultTab = "mind" }) {
       <div
         ref={mainScrollRef}
         className={`relative z-10 overflow-y-auto overscroll-y-none overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} md:pb-8 flex-1 w-full flex flex-col`}
-        style={{ background: "var(--habit-bg)", paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ background: "var(--habit-bg)", paddingBottom: 'var(--bottom-bar-height)' }}
       >
         <PullToRefresh onRefresh={handleManualSync} scrollRef={mainScrollRef}>
           {activeApp === "mind" && (

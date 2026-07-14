@@ -34,13 +34,14 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50"
+      className="md:hidden fixed bottom-0 left-0 right-0 w-full z-50 flex items-start"
       style={{
         background: "var(--habit-bottom-bg)",
         borderTop: "1px solid var(--habit-bottom-border)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        paddingBottom: "calc(8px + env(safe-area-inset-bottom))",
+        height: "var(--bottom-bar-height)",
+        paddingBottom: "var(--sab)",
         paddingTop: "8px",
         paddingLeft: "12px",
         paddingRight: "12px",

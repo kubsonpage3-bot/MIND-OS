@@ -1,5 +1,15 @@
 [
     {
+        "version": "1.4.97",
+        "date": "2026-07-14",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Standardized the bottom navigation bar height across all mobile tabs and added native safe-area insets to prevent the UI from overlapping with system notches or home indicators."
+            }
+        ]
+    },
+    {
         "version": "1.4.96",
         "date": "2026-07-14",
         "changes": [

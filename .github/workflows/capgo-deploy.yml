@@ -26,7 +26,7 @@ jobs:
         run: npm run build
 
       - name: Capgo Deploy
-        uses: cap-go/capgo-action@v1
+        uses: capgo/capgo-action@v1
         with:
           token: ${{ secrets.CAPGO_TOKEN }}
           app_id: 'com.mindos.app'

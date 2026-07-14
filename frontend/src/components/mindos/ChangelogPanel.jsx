@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect } from "react";
 import GameCard from "@/components/ui/GameCard";
 import changelogData from "@/data/changelog.json";
@@ -26,7 +27,7 @@ export default function ChangelogPanel() {
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6">
       <div className="flex flex-col mb-6">
         <span className="font-mono text-2xl font-bold tracking-widest text-white uppercase">System Updates</span>
         <span className="text-sm text-muted-foreground">Recent changes, patches, and features.</span>

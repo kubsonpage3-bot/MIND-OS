@@ -1723,6 +1723,8 @@ class ResetDataView(generics.GenericAPIView):
 
                 if reset_type == "allies":
                     profile.recruited_allies.all().delete()  # type: ignore
+                    profile.active_allies = []
+                    profile.save(update_fields=["active_allies"])
                     return Response(
                         {"message": "Allies reset"}, status=status.HTTP_200_OK
                     )
@@ -1813,6 +1815,7 @@ class ResetDataView(generics.GenericAPIView):
                 if reset_type in ["stats", "nuclear"]:
                     profile.unlocked_skills.all().delete()  # type: ignore
                     profile.recruited_allies.all().delete()  # type: ignore
+                    profile.active_allies = []
 
                 if reset_type == "nuclear":
                     InventoryItem.objects.filter(user_profile=profile).delete()

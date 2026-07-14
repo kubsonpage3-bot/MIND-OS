@@ -32,6 +32,10 @@
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left,   0px);
 
+    /* Single Source of Truth for Bottom Bar Height */
+    --bottom-nav-base-height: 64px;
+    --bottom-bar-height: calc(var(--bottom-nav-base-height) + var(--sab));
+
     /* Habitica-style light theme */
     --background: 240 20% 97%;
     --foreground: 255 14% 18%;
