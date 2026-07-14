@@ -47,7 +47,11 @@ export default function OfflineSummaryModal({ profile }) {
         idleDamage = activeEncounter.idle_damage_applied;
       }
       
-      // If encounters haven't loaded yet, idleDamage is 0, but it will update when they do load
+      // Do not show the modal if no idle damage was dealt (e.g., no active boss)
+      if (idleDamage === 0) {
+        return;
+      }
+      
       setSummaryData({
         hours: hoursOffline,
         minutes: minutesOffline,

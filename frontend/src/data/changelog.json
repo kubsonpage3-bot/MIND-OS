@@ -1,5 +1,15 @@
 [
     {
+        "date": "2026-07-14",
+        "version": "1.4.89",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "The 'Time you were away' offline summary modal will now only appear if you have an active boss and actual passive damage was dealt, preventing annoying popups when not engaged in a boss fight."
+            }
+        ]
+    },
+    {
         "date": "2026-07-13",
         "version": "1.4.88",
         "changes": [
