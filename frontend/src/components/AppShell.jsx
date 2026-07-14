@@ -171,6 +171,46 @@ export default function AppShell({ defaultTab = "mind" }) {
 
   const mainScrollRef = useRef(null);
 
+  // Temporary Debug HUD for edge-to-edge spacer tracking
+  const showDebugHUD = new URLSearchParams(location.search).get("debug") === "1";
+  const [computedBottomBarHeight, setComputedBottomBarHeight] = useState("0px");
+  const [scrollMetrics, setScrollMetrics] = useState({ scrollHeight: 0, clientHeight: 0 });
+
+  useEffect(() => {
+    if (!showDebugHUD) return;
+    const updateMetrics = () => {
+      const height = window.getComputedStyle(document.documentElement).getPropertyValue('--bottom-bar-height') || "not set";
+      setComputedBottomBarHeight(height);
+
+      if (mainScrollRef.current) {
+        setScrollMetrics({
+          scrollHeight: mainScrollRef.current.scrollHeight,
+          clientHeight: mainScrollRef.current.clientHeight
+        });
+      }
+    };
+    updateMetrics();
+    const interval = setInterval(updateMetrics, 1000);
+    window.addEventListener('resize', updateMetrics);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', updateMetrics);
+    };
+  }, [showDebugHUD, activeSection]);
+
+  const getRenderedItemCount = () => {
+    if (activeSection === "tasks") {
+      const tasksData = queryClient.getQueryData(["tasks"]);
+      return Array.isArray(tasksData) ? tasksData.length : 0;
+    }
+    if (activeSection === "history") {
+      const logsData = queryClient.getQueryData(["trainingLogs"])?.log;
+      return Array.isArray(logsData) ? logsData.length : 0;
+    }
+    return "N/A";
+  };
+  const itemCount = getRenderedItemCount();
+
   const getSwipeIndex = (section) => {
     if (["history", "pomodoro", "calendar", "stats"].includes(section)) {
       return SWIPE_TABS.indexOf("history");
@@ -279,6 +319,19 @@ export default function AppShell({ defaultTab = "mind" }) {
         onCloseCallback={() => setForceTutorialOpen(false)} 
       />
       <RewardToast />
+      {showDebugHUD && (
+        <div 
+          className="fixed top-4 right-4 z-[9999] bg-black/90 text-emerald-400 p-4 rounded-xl border border-emerald-500/30 font-mono text-[10px] space-y-1.5 shadow-2xl pointer-events-none"
+          style={{ maxWidth: "280px" }}
+        >
+          <div className="font-bold border-b border-emerald-500/20 pb-1 mb-1">MIND OS DEBUG HUD</div>
+          <div>Tab: <span className="text-white">{activeSection}</span></div>
+          <div>--bottom-bar-height: <span className="text-white">{computedBottomBarHeight}</span></div>
+          <div>Scroll Height: <span className="text-white">{scrollMetrics.scrollHeight}px</span></div>
+          <div>Client Height: <span className="text-white">{scrollMetrics.clientHeight}px</span></div>
+          <div>Rendered Items Count: <span className="text-white">{itemCount}</span></div>
+        </div>
+      )}
     </div>
   );
 }

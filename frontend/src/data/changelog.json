@@ -1,6 +1,16 @@
 [
     {
         "date":  "2026-07-14",
+        "version":  "1.4.99",
+        "changes":  [
+                        {
+                            "text":  "Corrected the horizontal tab scroll wrapper to resolve cutoff issues and prevent empty vertical stretching. Integrated a debug HUD to assist with layout verification.",
+                            "type":  "fix"
+                        }
+                    ]
+    },
+    {
+        "date":  "2026-07-14",
         "version":  "1.4.98",
         "changes":  [
                         {
@@ -35,11 +45,11 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed the Android app being stuck on the loading screen ‚Äî the backend URL was not baked into the mobile build, so the app could never connect."
+                            "text":  "Fixed the Android app being stuck on the loading screen √¢‚Ç¨‚Äù the backend URL was not baked into the mobile build, so the app could never connect."
                         },
                         {
                             "type":  "feature",
-                            "text":  "The Android app icon is now a glowing pixel-art brain ‚Äî no more default placeholder."
+                            "text":  "The Android app icon is now a glowing pixel-art brain √¢‚Ç¨‚Äù no more default placeholder."
                         }
                     ]
     },
@@ -77,7 +87,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "Swipe now responds to quick flicks ó a fast short swipe completes the tab change even if you didn\u0027t drag far. Distance OR velocity threshold triggers navigation (whichever comes first)."
+                            "text":  "Swipe now responds to quick flicks ‚Äî a fast short swipe completes the tab change even if you didn\u0027t drag far. Distance OR velocity threshold triggers navigation (whichever comes first)."
                         }
                     ]
     },
@@ -87,11 +97,11 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed swipe glitch where the page would flicker or stay stuck after a swipe ó rewrote the drag system to use Framer Motion\u0027s native MotionValue, eliminating all transform conflicts."
+                            "text":  "Fixed swipe glitch where the page would flicker or stay stuck after a swipe ‚Äî rewrote the drag system to use Framer Motion\u0027s native MotionValue, eliminating all transform conflicts."
                         },
                         {
                             "type":  "fix",
-                            "text":  "Fixed the app freezing on the STATS tab ó swipe listeners no longer re-register on every tab change, removing the race condition that caused the freeze."
+                            "text":  "Fixed the app freezing on the STATS tab ‚Äî swipe listeners no longer re-register on every tab change, removing the race condition that caused the freeze."
                         },
                         {
                             "type":  "feature",
@@ -105,11 +115,11 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed content being clipped at the bottom on various devices ó padding now correctly adapts to your screen\u0027s safe area (notch, home indicator)."
+                            "text":  "Fixed content being clipped at the bottom on various devices ‚Äî padding now correctly adapts to your screen\u0027s safe area (notch, home indicator)."
                         },
                         {
                             "type":  "fix",
-                            "text":  "Fixed extra empty space appearing at the bottom after swiping between tabs ó old and new screens no longer share layout space during transitions."
+                            "text":  "Fixed extra empty space appearing at the bottom after swiping between tabs ‚Äî old and new screens no longer share layout space during transitions."
                         },
                         {
                             "type":  "fix",
@@ -117,7 +127,7 @@
                         },
                         {
                             "type":  "fix",
-                            "text":  "Fixed a gesture conflict between pull-to-refresh and left/right swipe ó a horizontal swipe now immediately cancels any accidental pull state."
+                            "text":  "Fixed a gesture conflict between pull-to-refresh and left/right swipe ‚Äî a horizontal swipe now immediately cancels any accidental pull state."
                         }
                     ]
     },
@@ -137,7 +147,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed horizontal swipes not working anywhere on the Stats page ó the swipe listener now covers the entire screen instead of just the content area."
+                            "text":  "Fixed horizontal swipes not working anywhere on the Stats page ‚Äî the swipe listener now covers the entire screen instead of just the content area."
                         }
                     ]
     },
@@ -195,7 +205,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "Top navigation tabs in Tasks, Hero, and Stats now use a sleek segmented style with a smooth sliding indicator ó matching the Pomodoro panel design."
+                            "text":  "Top navigation tabs in Tasks, Hero, and Stats now use a sleek segmented style with a smooth sliding indicator ‚Äî matching the Pomodoro panel design."
                         }
                     ]
     },
@@ -205,7 +215,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "The mobile bottom navigation bar now has a sleek segmented design with per-tab accent colors and a smooth animated indicator ó just like the Pomodoro tabs."
+                            "text":  "The mobile bottom navigation bar now has a sleek segmented design with per-tab accent colors and a smooth animated indicator ‚Äî just like the Pomodoro tabs."
                         }
                     ]
     },
@@ -215,7 +225,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "The Pomodoro Activity Heatmap is now fully responsive on mobile devices ó perfectly fitting the screen without annoying horizontal scrolling."
+                            "text":  "The Pomodoro Activity Heatmap is now fully responsive on mobile devices ‚Äî perfectly fitting the screen without annoying horizontal scrolling."
                         }
                     ]
     },
@@ -225,7 +235,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed tasks disappearing from the list after editing a habit, daily, or todo ó they now update instantly without any flicker."
+                            "text":  "Fixed tasks disappearing from the list after editing a habit, daily, or todo ‚Äî they now update instantly without any flicker."
                         }
                     ]
     },
@@ -275,7 +285,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "Redesigned Pomodoro tab bar: compact full-width segmented control with a spring-animated sliding indicator and per-tab accent colors ó no more horizontal scrolling on mobile or desktop."
+                            "text":  "Redesigned Pomodoro tab bar: compact full-width segmented control with a spring-animated sliding indicator and per-tab accent colors ‚Äî no more horizontal scrolling on mobile or desktop."
                         }
                     ]
     },
@@ -285,7 +295,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed Pomodoro tabs (Stats, History, Settings) not appearing on desktop ó they were using a mobile-only nav component."
+                            "text":  "Fixed Pomodoro tabs (Stats, History, Settings) not appearing on desktop ‚Äî they were using a mobile-only nav component."
                         },
                         {
                             "type":  "feature",
@@ -333,7 +343,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed swipe navigation between bottom bar tabs on mobile ó swipes left/right now reliably switch sections without conflicting with task drag-and-drop."
+                            "text":  "Fixed swipe navigation between bottom bar tabs on mobile ‚Äî swipes left/right now reliably switch sections without conflicting with task drag-and-drop."
                         }
                     ]
     },
@@ -469,7 +479,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "Added \u0027Gameplay Insights\u0027 ó a smart, non-intrusive hint system that helps you discover underused mechanics and optimize your progress."
+                            "text":  "Added \u0027Gameplay Insights\u0027 ‚Äî a smart, non-intrusive hint system that helps you discover underused mechanics and optimize your progress."
                         },
                         {
                             "type":  "content",
@@ -589,7 +599,7 @@
                         },
                         {
                             "type":  "fix",
-                            "text":  "Fixed boss scrolls crashing with a 500 error when trying to summon ó the database was missing the new idle-damage columns that were accidentally left unpushed."
+                            "text":  "Fixed boss scrolls crashing with a 500 error when trying to summon ‚Äî the database was missing the new idle-damage columns that were accidentally left unpushed."
                         },
                         {
                             "type":  "feature",
@@ -905,7 +915,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed all untranslated text shown as raw keys (e.g. \u0027privacy.rivalVisibility\u0027, \u0027rivalTab.youLabel\u0027) in Privacy, Rival, Projections, and Reset screens ó all text now displays correctly in English and Russian."
+                            "text":  "Fixed all untranslated text shown as raw keys (e.g. \u0027privacy.rivalVisibility\u0027, \u0027rivalTab.youLabel\u0027) in Privacy, Rival, Projections, and Reset screens ‚Äî all text now displays correctly in English and Russian."
                         }
                     ]
     },
@@ -1231,7 +1241,7 @@
                         },
                         {
                             "type":  "fix",
-                            "text":  "Training \u0027Create Task\u0027 tab now only creates Button-type activities ó no more duplicate Habit/Daily forms."
+                            "text":  "Training \u0027Create Task\u0027 tab now only creates Button-type activities ‚Äî no more duplicate Habit/Daily forms."
                         },
                         {
                             "type":  "feature",
@@ -1345,19 +1355,19 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Significantly reduced server load ó the game now fetches your profile data in far fewer database queries."
+                            "text":  "Significantly reduced server load ‚Äî the game now fetches your profile data in far fewer database queries."
                         },
                         {
                             "type":  "fix",
-                            "text":  "The daily login check no longer runs on every page load ó server skips it if you already logged in today."
+                            "text":  "The daily login check no longer runs on every page load ‚Äî server skips it if you already logged in today."
                         },
                         {
                             "type":  "fix",
-                            "text":  "Added 4 database speed indexes ó boss encounters, inventory, skills, and training logs load faster."
+                            "text":  "Added 4 database speed indexes ‚Äî boss encounters, inventory, skills, and training logs load faster."
                         },
                         {
                             "type":  "fix",
-                            "text":  "Training sessions now validate input on the server ó prevents exploiting the XP formula with extreme values."
+                            "text":  "Training sessions now validate input on the server ‚Äî prevents exploiting the XP formula with extreme values."
                         },
                         {
                             "type":  "fix",
@@ -1371,7 +1381,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Server now handles 3x more simultaneous players ó upgraded from 1 to 3 backend workers."
+                            "text":  "Server now handles 3x more simultaneous players ‚Äî upgraded from 1 to 3 backend workers."
                         },
                         {
                             "type":  "fix",
@@ -1403,7 +1413,7 @@
                         },
                         {
                             "type":  "fix",
-                            "text":  "Fixed swipe navigation from Stats tab to Settings on mobile ó the horizontal rank table was blocking the gesture."
+                            "text":  "Fixed swipe navigation from Stats tab to Settings on mobile ‚Äî the horizontal rank table was blocking the gesture."
                         }
                     ]
     },
@@ -1713,7 +1723,7 @@
         "changes":  [
                         {
                             "type":  "fix",
-                            "text":  "Fixed site crash on load ó the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever."
+                            "text":  "Fixed site crash on load ‚Äî the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever."
                         }
                     ]
     },
@@ -1723,7 +1733,7 @@
         "changes":  [
                         {
                             "type":  "feature",
-                            "text":  "Calendar events are now saved to the cloud ó they persist across devices and sessions instead of being lost on browser clear."
+                            "text":  "Calendar events are now saved to the cloud ‚Äî they persist across devices and sessions instead of being lost on browser clear."
                         },
                         {
                             "type":  "feature",

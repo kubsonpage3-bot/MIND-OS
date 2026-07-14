@@ -210,6 +210,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const activeSectionRef = useRef(activeSection);
   const dragX = useMotionValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const activeTabIndex = getSectionIndex(activeSection);
   const activeIndexRef = useRef(activeTabIndex);
   activeIndexRef.current = activeTabIndex;
@@ -225,8 +226,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   useEffect(() => {
     if (containerWidth > 0) {
-      animate(dragX, -(activeTabIndex * containerWidth), {
+      setIsTransitioning(true);
+      const anim = animate(dragX, -(activeTabIndex * containerWidth), {
         type: 'spring', stiffness: 380, damping: 36, mass: 0.8
+      });
+      anim.then(() => {
+        setIsTransitioning(false);
       });
     }
   }, [activeTabIndex, containerWidth]);
@@ -274,6 +279,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
       if (isHorizontal === true) {
         if (e.cancelable) e.preventDefault();
+        setIsTransitioning(true);
 
         const now = Date.now();
         const dt = now - lastMoveTime;
@@ -328,11 +334,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         hapticLight();
         onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
       } else {
-        animate(dragX, baseOffset, {
+        const anim = animate(dragX, baseOffset, {
           type: 'spring',
           stiffness: 350,
           damping: 30,
           mass: 0.8,
+        });
+        anim.then(() => {
+          setIsTransitioning(false);
         });
       }
     };
@@ -703,21 +712,24 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         {/* Main content area */}
         <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5 overflow-x-hidden" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
-            <div className="w-full h-full overflow-hidden relative">
+            <div className="w-full h-auto overflow-hidden relative">
               <motion.div
-                className="flex flex-row w-full h-full"
+                className="flex flex-row w-full h-auto"
                 style={{ x: dragX, willChange: 'transform' }}
               >
                 {BOTTOM_TABS.map((tabKey, idx) => {
-                  if (Math.abs(idx - activeTabIndex) > 1) {
-                    return <div key={tabKey} className="w-full shrink-0" />;
+                  const isActive = idx === activeTabIndex;
+                  const isVisible = isActive || (isTransitioning && Math.abs(idx - activeTabIndex) <= 1);
+
+                  if (!isVisible) {
+                    return <div key={tabKey} className="w-full shrink-0 h-0 overflow-hidden" />;
                   }
 
-                  const sectionToRender = (idx === activeTabIndex) ? activeSection : tabKey;
+                  const sectionToRender = isActive ? activeSection : tabKey;
                   const isTools = ["history", "pomodoro", "calendar", "stats"].includes(sectionToRender);
 
                   return (
-                    <div key={tabKey} className="w-full shrink-0 h-full overflow-y-auto overflow-x-hidden touch-pan-y px-0 md:px-4">
+                    <div key={tabKey} className="w-full shrink-0 h-auto overflow-x-hidden touch-pan-y px-0 md:px-4">
                       
                       {sectionToRender === "dashboard" && (
                         <>
