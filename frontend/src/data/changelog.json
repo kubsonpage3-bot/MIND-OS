@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-14",
+        "version": "1.4.92",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Swipe now responds to quick flicks — a fast short swipe completes the tab change even if you didn't drag far. Distance OR velocity threshold triggers navigation (whichever comes first)."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-14",
         "version": "1.4.91",
         "changes": [
             {

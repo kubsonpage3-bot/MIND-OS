@@ -223,6 +223,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     let touchStart = null;
     let isHorizontal = null;
+    // Velocity tracking via exponential moving average (px/s)
+    let velocityX = 0;
+    let lastMoveTime = 0;
+    let lastMoveX = 0;
 
     const handleStart = (e) => {
       if (document.body.classList.contains('dnd-dragging')) return;
@@ -231,6 +235,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       const touch = e.touches[0];
       touchStart = { x: touch.clientX, y: touch.clientY };
       isHorizontal = null;
+      velocityX = 0;
+      lastMoveTime = Date.now();
+      lastMoveX = touch.clientX;
       // Stop any in-progress snap-back animation immediately
       dragX.stop();
     };
@@ -256,6 +263,18 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
       if (isHorizontal === true) {
         if (e.cancelable) e.preventDefault();
+
+        // Track velocity with EMA (smooth out jitter from noisy touch events)
+        const now = Date.now();
+        const dt = now - lastMoveTime;
+        if (dt > 0 && dt < 100) {
+          const instantV = (touch.clientX - lastMoveX) / dt * 1000; // px/s
+          // EMA α=0.4: weights recent samples more, but smooths spikes
+          velocityX = velocityX * 0.6 + instantV * 0.4;
+        }
+        lastMoveTime = now;
+        lastMoveX = touch.clientX;
+
         // Rubber-band resistance: feels like iOS — harder to pull beyond threshold
         const resistance = 0.55;
         dragX.set(dx * resistance);
@@ -269,23 +288,38 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (isHorizontal !== true) return;
       isHorizontal = null;
 
-      const currentValue = dragX.get();
-      // Threshold: 65px of DRAGGED distance (which equals ~118px real since resistance=0.55)
-      const threshold = 65;
+      const distValue = dragX.get();
+      const vel = velocityX;
+
+      /**
+       * COMPLETION LOGIC — two independent ways to trigger a tab switch:
+       *
+       * 1. DISTANCE: dragged past 30px (after 0.55 resistance ≈ 55px real finger travel)
+       *    → catches slow deliberate drags
+       *
+       * 2. VELOCITY: finger moving faster than 450 px/s at release
+       *    → catches quick native-feeling flicks regardless of distance
+       *
+       * Switch happens if EITHER condition is true (OR gate).
+       */
+      const DIST_THRESHOLD = 30;   // px after resistance (≈ 55px real)
+      const VEL_THRESHOLD  = 450;  // px/s — quick flick
+
+      const wantsForward = distValue < -DIST_THRESHOLD || vel < -VEL_THRESHOLD;
+      const wantsBack    = distValue >  DIST_THRESHOLD || vel >  VEL_THRESHOLD;
+
       const currentIdx = getSectionIndex(activeSectionRef.current);
 
-      if (currentValue < -threshold && currentIdx < BOTTOM_TABS.length - 1) {
-        // Navigate forward — reset drag instantly before FM transition takes over
+      if (wantsForward && currentIdx < BOTTOM_TABS.length - 1) {
         dragX.set(0);
         const nextTab = BOTTOM_TABS[currentIdx + 1];
         onSectionChange(nextTab === 'tools' ? 'history' : nextTab);
-      } else if (currentValue > threshold && currentIdx > 0) {
-        // Navigate backward
+      } else if (wantsBack && currentIdx > 0) {
         dragX.set(0);
         const prevTab = BOTTOM_TABS[currentIdx - 1];
         onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
       } else {
-        // Below threshold — iOS-style spring snap-back
+        // Neither threshold met — iOS-style spring snap-back
         animate(dragX, 0, {
           type: 'spring',
           stiffness: 350,
@@ -306,8 +340,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       document.removeEventListener('touchend', handleEnd);
       document.removeEventListener('touchcancel', handleEnd);
     };
-  // ✅ Only depends on onSectionChange — no re-register on every tab change (was causing STATS freeze race condition)
+  // ✅ Only depends on onSectionChange — no re-register on every tab change
   }, [onSectionChange]);
+
 
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
