@@ -5,12 +5,15 @@ import { X, Crown, Zap, Shield, Sparkles } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
 import { isMobileApp } from "@/utils/platformUtils";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { useHardwareBack } from "@/utils/modalStack";
 
 export default function PremiumUpgradeModal({ onClose }) {
   const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  useHardwareBack(true, onClose);
 
   const handleUpgrade = async () => {
     // Safety guard — should never reach here on mobile

@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { playSound } from '@/lib/soundEffects';
+import { useHardwareBack } from '@/utils/modalStack';
 
 export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards }) {
+  useHardwareBack(isOpen, onClose);
+  
   React.useEffect(() => {
     if (isOpen) {
       playSound('level_up');

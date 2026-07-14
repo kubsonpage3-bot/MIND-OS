@@ -29,7 +29,7 @@ import SettingsPanel from "@/components/mindos/SettingsPanel";
 import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
 import { isMobileApp } from "@/utils/platformUtils";
 import PillTabBar from "@/components/ui/PillTabBar";
-import { hapticHeavy } from "@/hooks/useHaptic";
+import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
 
 import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
 import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
@@ -313,10 +313,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (wantsForward && currentIdx < BOTTOM_TABS.length - 1) {
         dragX.set(0);
         const nextTab = BOTTOM_TABS[currentIdx + 1];
+        hapticLight();
         onSectionChange(nextTab === 'tools' ? 'history' : nextTab);
       } else if (wantsBack && currentIdx > 0) {
         dragX.set(0);
         const prevTab = BOTTOM_TABS[currentIdx - 1];
+        hapticLight();
         onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
       } else {
         // Neither threshold met — iOS-style spring snap-back

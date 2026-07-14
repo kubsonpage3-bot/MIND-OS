@@ -16,8 +16,11 @@ const DIFFICULTIES = [
 ];
 const PRIORITIES = ["low", "medium", "high", "critical"];
 const PRIORITY_COLORS = { low: "#22c55e", medium: "#f59e0b", high: "#ef4444", critical: "#a855f7" };
+import { useHardwareBack } from "@/utils/modalStack";
 
 export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate, editMode = false }) {
+  useHardwareBack(isOpen, onClose);
+  
   const { t } = useTranslation();
   // Close on Escape
   useEffect(() => {

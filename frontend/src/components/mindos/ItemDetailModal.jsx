@@ -2,9 +2,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
+import { useHardwareBack } from '@/utils/modalStack';
 
 // Shared modal for displaying expanded item details (Gear, Consumables, Mutators, etc.)
 export default function ItemDetailModal({ item, isOpen, onClose, actionButton, tierColor = "#a8a29e", iconUrl = undefined, title = undefined, subtitle = undefined, stats = null, description = null }) {
+  useHardwareBack(isOpen, onClose);
   const { t } = useTranslation();
 
   if (!item && !title) return null;

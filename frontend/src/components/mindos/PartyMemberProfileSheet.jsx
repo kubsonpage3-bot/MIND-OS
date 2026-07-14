@@ -5,8 +5,11 @@ import OptimizedImage from './OptimizedImage';
 import { getRankDisplayData } from '@/lib/rankEngine';
 import { AllyPortrait } from './AlliesPanel';
 import PixelCharacter from './PixelCharacter';
+import { useHardwareBack } from '@/utils/modalStack';
 
 export default function PartyMemberProfileSheet({ isOpen, onClose, userId, memberName }) {
+  useHardwareBack(isOpen, onClose);
+  
   const { data: profile, isLoading, isError } = useQuery({
     queryKey: ['party-member-profile', userId],
     queryFn: () => djangoApi.party.memberProfile(userId),

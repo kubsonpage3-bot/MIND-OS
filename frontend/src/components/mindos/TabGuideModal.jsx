@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { GUIDE_CONTENT } from "@/constants/guideContent";
 import { useTranslation } from "react-i18next";
+import { useHardwareBack } from "@/utils/modalStack";
 
 /**
  * TabGuideModal
@@ -23,6 +24,8 @@ export default function TabGuideModal({
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  useHardwareBack(isOpen, () => handleDismiss());
 
   const content = GUIDE_CONTENT[guideId] || {
     icon: "🤖",

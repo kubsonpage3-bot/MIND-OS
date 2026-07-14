@@ -1,30 +1,12 @@
 /**
  * useHaptic — тактильная отдача для нативных ощущений.
  *
- * На Android/iOS (Tauri mobile) использует @tauri-apps/plugin-haptics.
- * В браузере/десктопе — Web Vibration API как фоллбэк.
+ * On Android/iOS uses @capacitor/haptics.
+ * In browser/desktop uses Web Vibration API as fallback.
  */
 
-let tauriHaptics = null;
-
-// Ленивая загрузка плагина только в мобильном окружении Tauri
-async function getTauriHaptics() {
-  if (tauriHaptics !== null) return tauriHaptics;
-
-  try {
-    // Проверяем, что мы внутри Tauri
-    if (typeof window !== 'undefined' && window.__TAURI_INTERNALS__) {
-      const mod = await import('@tauri-apps/plugin-haptics');
-      tauriHaptics = mod;
-    } else {
-      tauriHaptics = false;
-    }
-  } catch {
-    tauriHaptics = false;
-  }
-
-  return tauriHaptics;
-}
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 
 function isHapticsEnabled() {
   try {
@@ -40,10 +22,9 @@ function isHapticsEnabled() {
  */
 export async function hapticLight() {
   if (!isHapticsEnabled()) return;
-  const haptics = await getTauriHaptics();
-  if (haptics) {
+  if (Capacitor.isNativePlatform()) {
     try {
-      await haptics.impactFeedback('light');
+      await Haptics.impact({ style: ImpactStyle.Light });
       return;
     } catch {}
   }
@@ -56,10 +37,9 @@ export async function hapticLight() {
  */
 export async function hapticMedium() {
   if (!isHapticsEnabled()) return;
-  const haptics = await getTauriHaptics();
-  if (haptics) {
+  if (Capacitor.isNativePlatform()) {
     try {
-      await haptics.impactFeedback('medium');
+      await Haptics.impact({ style: ImpactStyle.Medium });
       return;
     } catch {}
   }
@@ -71,10 +51,9 @@ export async function hapticMedium() {
  */
 export async function hapticHeavy() {
   if (!isHapticsEnabled()) return;
-  const haptics = await getTauriHaptics();
-  if (haptics) {
+  if (Capacitor.isNativePlatform()) {
     try {
-      await haptics.impactFeedback('heavy');
+      await Haptics.impact({ style: ImpactStyle.Heavy });
       return;
     } catch {}
   }
@@ -86,10 +65,9 @@ export async function hapticHeavy() {
  */
 export async function hapticSuccess() {
   if (!isHapticsEnabled()) return;
-  const haptics = await getTauriHaptics();
-  if (haptics) {
+  if (Capacitor.isNativePlatform()) {
     try {
-      await haptics.notificationFeedback('success');
+      await Haptics.notification({ type: NotificationType.Success });
       return;
     } catch {}
   }
@@ -101,10 +79,9 @@ export async function hapticSuccess() {
  */
 export async function hapticError() {
   if (!isHapticsEnabled()) return;
-  const haptics = await getTauriHaptics();
-  if (haptics) {
+  if (Capacitor.isNativePlatform()) {
     try {
-      await haptics.notificationFeedback('error');
+      await Haptics.notification({ type: NotificationType.Error });
       return;
     } catch {}
   }

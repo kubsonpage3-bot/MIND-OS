@@ -1,6 +1,20 @@
 [
     {
         "date": "2026-07-14",
+        "version": "1.4.93",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed a bug on Android where pressing the hardware back button would occasionally leave modal dialogs stuck on screen without closing them."
+            },
+            {
+                "type": "polish",
+                "text": "Integrated native haptic feedback (vibration) and dynamic system status bar coloring for the upcoming Android app."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-14",
         "version": "1.4.92",
         "changes": [
             {

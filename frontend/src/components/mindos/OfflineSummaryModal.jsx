@@ -5,12 +5,15 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
+import { useHardwareBack } from "@/utils/modalStack";
 
 export default function OfflineSummaryModal({ profile }) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [summaryData, setSummaryData] = useState(null);
   const queryClient = useQueryClient();
+
+  useHardwareBack(isOpen, () => setIsOpen(false));
 
   // Подписываемся на данные энкаунтеров, чтобы обновиться, когда они загрузятся
   const { data: encountersData, isSuccess } = useQuery({

@@ -111,5 +111,14 @@ export function applyTheme(themeName) {
     metaThemeColor.name = "theme-color";
     document.head.appendChild(metaThemeColor);
   }
-  metaThemeColor.content = theme.bgOverlay || "#121215";
+  const bgColor = theme.bgOverlay || "#121215";
+  metaThemeColor.content = bgColor;
+
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    // Dynamically import to avoid breaking non-Capacitor builds
+    import('@capacitor/status-bar').then(({ StatusBar, Style }) => {
+      StatusBar.setStyle({ style: theme.darkMode ? Style.Dark : Style.Light }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: bgColor }).catch(() => {});
+    }).catch(() => {});
+  }
 }

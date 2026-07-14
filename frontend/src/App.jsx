@@ -9,6 +9,7 @@ import Achievements from "./pages/Achievements";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SelectClass from "./pages/SelectClass";
+import TestSwipe from "./pages/TestSwipe";
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import AnalyticsMigrationGate from '@/components/AnalyticsMigrationGate';
@@ -55,6 +56,7 @@ function ProtectedRoutes() {
         <Route path="/LifeOS" element={<AppShell defaultTab="life" />} />
         <Route path="/achievements" element={<Achievements />} />
         <Route path="/select-class" element={<SelectClass />} />
+        <Route path="/test-swipe" element={<TestSwipe />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Navigate to="/" replace />} />
         <Route path="*" element={<PageNotFound />} />

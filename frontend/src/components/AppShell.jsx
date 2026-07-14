@@ -62,6 +62,41 @@ export default function AppShell({ defaultTab = "mind" }) {
     return () => window.removeEventListener("replayMainTutorial", handleReplay);
   }, []);
 
+  // Capacitor hardware back button handling
+  useEffect(() => {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      import('@capacitor/app').then(({ App }) => {
+        const backListener = App.addListener('backButton', async () => {
+          // 1. Try to close custom modals registered with useHardwareBack
+          const { closeTopModal } = await import('@/utils/modalStack');
+          if (closeTopModal()) return;
+
+          // 2. Try to close Radix UI dialogs (by simulating Escape key)
+          const hasDialog = document.querySelector('[role="dialog"], [data-state="open"]');
+          if (hasDialog) {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            return; // Assume the dialog handles its own close
+          }
+
+          // 3. Fallback to router navigation
+          const search = new URLSearchParams(window.location.search);
+          const app = search.get("app") || "mind";
+          const section = search.get("section") || "dashboard";
+          const subItem = search.get("sub") || null;
+          
+          if (app === "mind" && section === "dashboard" && !subItem) {
+            App.exitApp();
+          } else {
+            window.history.back();
+          }
+        });
+        return () => {
+          backListener.then(l => l.remove());
+        };
+      }).catch(() => {});
+    }
+  }, []);
+
   // Navigation helpers — push to history so Android back button works
   const setNav = useCallback((app, section, subItem, extraParams) => {
     const p = new URLSearchParams();

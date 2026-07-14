@@ -3,8 +3,11 @@ import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { useTranslation } from 'react-i18next';
 import { Loader2, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useHardwareBack } from '@/utils/modalStack';
 
 export default function ConvertGuestModal({ isOpen, onClose }) {
+  useHardwareBack(isOpen, onClose);
+  
   const { convertGuest } = useDjangoAuth();
   const { t } = useTranslation();
   
