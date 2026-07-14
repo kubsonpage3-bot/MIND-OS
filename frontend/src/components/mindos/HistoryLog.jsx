@@ -56,7 +56,7 @@ export default function HistoryLog({ logs, tasks = [] }) {
   const colorMap = { gf: "#3b82f6", gc: "#22c55e", ps: "#f59e0b", vm: "#a855f7" };
 
   return (
-    <div className="space-y-2 max-h-[65vh] md:max-h-[500px] overflow-y-auto pr-1">
+    <div className="space-y-2 md:max-h-[500px] md:overflow-y-auto pr-1">
       {sorted.map((log) => {
         const activity = getActivityDetails(log.activity_key, tasks);
         const gains = Object.entries(METRIC_CONFIG)

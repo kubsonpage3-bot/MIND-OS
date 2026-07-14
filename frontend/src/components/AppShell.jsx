@@ -229,7 +229,7 @@ export default function AppShell({ defaultTab = "mind" }) {
       <div
         ref={mainScrollRef}
         className={`relative z-10 overflow-y-auto overscroll-y-none overflow-x-hidden md:transition-all md:duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"} md:pb-8 flex-1 w-full flex flex-col`}
-        style={{ background: "var(--habit-bg)", paddingBottom: 'var(--bottom-bar-height)' }}
+        style={{ background: "var(--habit-bg)" }}
       >
         <PullToRefresh onRefresh={handleManualSync} scrollRef={mainScrollRef}>
           {activeApp === "mind" && (
@@ -260,6 +260,9 @@ export default function AppShell({ defaultTab = "mind" }) {
         )}
         {activeApp === "life" && <LifeOS />}
         </PullToRefresh>
+        {/* Spacer block to push content above the fixed bottom navigation bar on mobile. 
+            This avoids the WebKit bug where padding-bottom on a scrolling flex container is ignored. */}
+        <div className="shrink-0 w-full md:hidden" style={{ height: "var(--bottom-bar-height)" }} />
       </div>
 
       {/* Bottom navigation — mobile only */}

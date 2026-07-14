@@ -766,17 +766,17 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                       )}
 
                       {sectionToRender === "tasks" && (
-                        <TabPanel title={"📋 " + t("sidebar.sections.tasks", "TASKS").toUpperCase()}>
+                        <div className="py-2">
                           <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
-                        </TabPanel>
+                        </div>
                       )}
 
                       {sectionToRender === "character" && (
                         <>
                           <PillTabBar tabs={CHARACTER_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} />
-                          <TabPanel title={"👤 " + t("sidebar.sections.character", "CHARACTER").toUpperCase()}>
+                          <div className="py-2">
                             <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
-                          </TabPanel>
+                          </div>
                         </>
                       )}
 
@@ -815,9 +815,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                       )}
 
                       {sectionToRender === "settings" && (
-                        <TabPanel title={"⚙️ " + t("sidebar.sections.settings", "SETTINGS").toUpperCase()}>
+                        <div className="py-2">
                           <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
-                        </TabPanel>
+                        </div>
                       )}
                     </div>
                   );
