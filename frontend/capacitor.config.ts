@@ -6,6 +6,11 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: {
     webContentsDebuggingEnabled: true
+  },
+  plugins: {
+    CapacitorUpdater: {
+      autoUpdate: true,
+    }
   }
 };
 

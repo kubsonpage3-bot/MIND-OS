@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.4.96",
+        "date": "2026-07-14",
+        "changes": [
+            {
+                "type": "feature",
+                "text": "Integrated Capgo Live Updates (OTA) into the Android app. Future UI and React updates will now be delivered automatically over-the-air upon app launch without requiring a new APK download."
+            }
+        ]
+    },
         "version": "1.4.95",
         "date": "2026-07-14",
         "changes": [
