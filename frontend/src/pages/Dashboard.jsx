@@ -184,19 +184,22 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     initial: (direction) => {
       const isMobile = typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches;
       if (!isMobile) return { opacity: 0, y: 15 };
-      return { opacity: 0, x: direction > 0 ? 30 : direction < 0 ? -30 : 0, filter: "blur(2px)" };
+      return { x: direction > 0 ? '100%' : direction < 0 ? '-100%' : 0, opacity: 1 };
     },
     animate: {
       opacity: 1,
       x: 0,
       y: 0,
-      filter: "blur(0px)",
-      transition: { type: "spring", stiffness: 400, damping: 30 }
+      transition: { type: 'spring', stiffness: 380, damping: 36, mass: 0.8 }
     },
     exit: (direction) => {
       const isMobile = typeof window !== 'undefined' && window.matchMedia("(max-width: 768px)").matches;
       if (!isMobile) return { opacity: 0, y: -15 };
-      return { opacity: 0, x: direction > 0 ? -30 : direction < 0 ? 30 : 0, filter: "blur(2px)", transition: { duration: 0.15 } };
+      return {
+        x: direction > 0 ? '-28%' : direction < 0 ? '28%' : 0,
+        opacity: 0.35,
+        transition: { duration: 0.18, ease: [0.4, 0, 0.6, 1] }
+      };
     }
   };
 
@@ -655,9 +658,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </AnimatePresence>
 
         {/* Main content area */}
-        <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5" style={{ background: 'transparent' }}>
+        <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5 overflow-x-hidden" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
-            <AnimatePresence mode="popLayout" custom={slideDirection} initial={false}>
+            <AnimatePresence mode="wait" custom={slideDirection} initial={false}>
               <motion.div
                 ref={activeTabRef}
                 key={activeTabKey}
@@ -667,6 +670,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 animate="animate"
                 exit="exit"
                 className="w-full touch-pan-y"
+                style={{ willChange: 'transform' }}
               >
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (

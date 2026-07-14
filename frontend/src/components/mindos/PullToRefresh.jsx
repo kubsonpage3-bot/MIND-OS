@@ -59,8 +59,13 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
         // Wait until we have moved at least 5 pixels to determine direction
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
           if (Math.abs(dx) > Math.abs(dy)) {
-            // Horizontal swipe detected, ignore pull-to-refresh
+            // Horizontal swipe detected — yield to Dashboard swipe handler
             ignoreDrag.current = true;
+            // Reset any partial pull that might have been accumulated
+            if (pullDistance > 0) {
+              setPullDistance(0);
+              controls.start({ y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } });
+            }
             return;
           } else {
             // Vertical swipe detected, lock direction
@@ -124,10 +129,10 @@ export default function PullToRefresh({ children, onRefresh, scrollRef }) {
       }
     };
 
-    element.addEventListener('touchstart', handleTouchStart, { passive: false });
+    element.addEventListener('touchstart', handleTouchStart, { passive: true });
     // Need passive: false on touchmove to allow e.preventDefault()
     element.addEventListener('touchmove', handleTouchMove, { passive: false });
-    element.addEventListener('touchend', handleTouchEnd, { passive: false });
+    element.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       element.removeEventListener('touchstart', handleTouchStart);

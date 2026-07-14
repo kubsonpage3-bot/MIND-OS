@@ -1,6 +1,28 @@
 [
     {
         "date": "2026-07-14",
+        "version": "1.4.90",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed content being clipped at the bottom on various devices — padding now correctly adapts to your screen's safe area (notch, home indicator)."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed extra empty space appearing at the bottom after swiping between tabs — old and new screens no longer share layout space during transitions."
+            },
+            {
+                "type": "fix",
+                "text": "Tab transitions now slide in from the full screen edge (iOS-style), making the swipe feel natural and responsive."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed a gesture conflict between pull-to-refresh and left/right swipe — a horizontal swipe now immediately cancels any accidental pull state."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-14",
         "version": "1.4.89",
         "changes": [
             {
