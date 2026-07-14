@@ -1,6 +1,16 @@
 [
     {
         "date":  "2026-07-14",
+        "version":  "1.5.2",
+        "changes":  [
+                        {
+                            "text":  "Fixed system status bar collision on Android by adding top safe-area padding. Configured native status bar styling to adapt dynamically to all 8 themes.",
+                            "type":  "fix"
+                        }
+                    ]
+    },
+    {
+        "date":  "2026-07-14",
         "version":  "1.5.1",
         "changes":  [
                         {

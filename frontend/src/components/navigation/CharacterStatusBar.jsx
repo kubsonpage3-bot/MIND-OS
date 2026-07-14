@@ -63,12 +63,13 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
 
   return (
     <div
-      className="sticky top-0 z-40"
+      className="sticky top-0 z-40 safe-top"
       style={{
         background: theme?.bgOverlay || "#1a1a2e",
         borderTop: `3px solid ${theme?.xpColor || "#7B61FF"}`,
         borderBottom: "2px solid #333",
         boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+        paddingTop: "var(--sat)"
       }}
     >
       <div className="flex items-stretch gap-0">

@@ -117,7 +117,8 @@ export function applyTheme(themeName) {
   if (window.Capacitor && window.Capacitor.isNativePlatform()) {
     // Dynamically import to avoid breaking non-Capacitor builds
     import('@capacitor/status-bar').then(({ StatusBar, Style }) => {
-      StatusBar.setStyle({ style: theme.darkMode ? Style.Dark : Style.Light }).catch(() => {});
+      const isLightBg = themeName === "solid_light";
+      StatusBar.setStyle({ style: isLightBg ? Style.Light : Style.Dark }).catch(() => {});
       StatusBar.setBackgroundColor({ color: bgColor }).catch(() => {});
     }).catch(() => {});
   }

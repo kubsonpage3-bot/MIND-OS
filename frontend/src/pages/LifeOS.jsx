@@ -78,8 +78,10 @@ export default function LifeOS() {
 
   return (
     <div className="min-h-screen bg-[#1a0a2e] text-white font-mono">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-purple-900/60 bg-[#1a0a2e]/95 backdrop-blur-md">
+      <header 
+        className="sticky top-0 z-30 border-b border-purple-900/60 bg-[#1a0a2e]/95 backdrop-blur-md safe-top"
+        style={{ paddingTop: "var(--sat)" }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Sparkles className="w-5 h-5 text-purple-400" />
