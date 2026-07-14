@@ -1,5 +1,19 @@
 [
     {
+        "version": "1.4.95",
+        "date": "2026-07-14",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed the Android app being stuck on the loading screen — the backend URL was not baked into the mobile build, so the app could never connect."
+            },
+            {
+                "type": "feature",
+                "text": "The Android app icon is now a glowing pixel-art brain — no more default placeholder."
+            }
+        ]
+    },
+    {
         "version": "1.4.94",
         "date": "2026-07-14",
         "changes": [
