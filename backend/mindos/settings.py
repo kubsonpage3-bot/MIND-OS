@@ -160,6 +160,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://mindos.pages.dev",
     "https://mind-os-d5sk.onrender.com",
     "http://localhost",
+    "https://localhost",
     "capacitor://localhost",
 ]
 
@@ -170,6 +171,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://mindos.pages.dev",
     "https://mind-os-d5sk.onrender.com",
     "http://localhost",
+    "https://localhost",
     "capacitor://localhost",
 ]
 
