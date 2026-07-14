@@ -123,3 +123,42 @@ def test_pomodoro_settings_api(api_client, user, profile):
     # 3. Verify DB update
     profile.refresh_from_db()
     assert profile.pomodoro_settings == new_settings
+
+
+@pytest.mark.django_db
+def test_active_allies_validation_and_representation(api_client, user, profile):
+    from api.models import RecruitedAlly
+
+    api_client.force_authenticate(user=user)
+    profile_url = reverse("user-profile")
+
+    # 1. Try setting active_allies with unrecruited ally
+    resp = api_client.patch(
+        profile_url, {"active_allies": ["kira"]}, format="json"
+    )
+    assert resp.status_code == 400
+    assert "Cannot activate unrecruited allies" in resp.data[0]
+
+    # 2. Recruit kira
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
+
+    # 3. Try setting active_allies with recruited ally (should succeed)
+    resp = api_client.patch(
+        profile_url, {"active_allies": ["kira"]}, format="json"
+    )
+    assert resp.status_code == 200
+    assert resp.data["active_allies"] == ["kira"]
+
+    # 4. Directly corrupt the database field with an unrecruited ally
+    profile.active_allies = ["kira", "invalid_ally"]
+    profile.save()
+
+    # 5. Fetch profile - it should self-heal the representation and DB
+    resp = api_client.get(profile_url)
+    assert resp.status_code == 200
+    assert resp.data["active_allies"] == ["kira"]
+
+    # 6. Verify the database was indeed cleaned up
+    profile.refresh_from_db()
+    assert profile.active_allies == ["kira"]
+

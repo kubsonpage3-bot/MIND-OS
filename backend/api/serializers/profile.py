@@ -180,6 +180,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
         except Exception:
             return 0
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.pk:
+            recruited_codes = set(
+                instance.recruited_allies.values_list("ally_code", flat=True)
+            )
+            active = ret.get("active_allies") or []
+            if isinstance(active, list):
+                cleaned_active = [code for code in active if code in recruited_codes]
+                ret["active_allies"] = cleaned_active
+                if cleaned_active != active:
+                    instance.active_allies = cleaned_active
+                    instance.save(update_fields=["active_allies"])
+        return ret
+
     def update(self, instance, validated_data):
         # Premium class check
         if "character_class" in validated_data:
@@ -245,6 +260,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 if isinstance(active_allies_data, list):
                     if len(active_allies_data) > 3:
                         raise ValidationError("Maximum of 3 active allies allowed.")
+                    # Validate that all active allies are actually recruited
+                    recruited_codes = set(
+                        instance.recruited_allies.values_list("ally_code", flat=True)
+                    )
+                    invalid_allies = [
+                        code for code in active_allies_data if code not in recruited_codes
+                    ]
+                    if invalid_allies:
+                        raise ValidationError(
+                            f"Cannot activate unrecruited allies: {', '.join(invalid_allies)}"
+                        )
                     instance.active_allies = active_allies_data
                     update_fields.add("active_allies")
 

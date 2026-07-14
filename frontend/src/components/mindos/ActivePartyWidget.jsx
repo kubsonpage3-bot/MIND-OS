@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { djangoApi } from "@/api/djangoClient";
 import OptimizedImage from "./OptimizedImage";
@@ -17,9 +17,18 @@ const RANK_BORDER_COLOR = {
 const RANK_COLORS = { E: "#888", D: "#22c55e", C: "#3b82f6", B: "#a855f7", A: "#f0c040", S: "#ff3355", SS: "#ffd700" };
 
 export default function ActivePartyWidget() {
-  const { profile } = useDjangoAuth();
+  const { profile, refreshProfile } = useDjangoAuth();
   const navigate = useNavigate();
   const [selectedAlly, setSelectedAlly] = useState(null);
+  const queryClient = useQueryClient();
+
+  const updateAlliesMutation = useMutation({
+    mutationFn: (newAllies) => djangoApi.profile.update({ active_allies: newAllies }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      refreshProfile();
+    }
+  });
 
   const { data: ALLIES = [] } = useQuery({
     queryKey: ["allies-config"],
@@ -31,7 +40,7 @@ export default function ActivePartyWidget() {
   if (typeof activeAllyIds === 'string') {
     try {
       activeAllyIds = JSON.parse(activeAllyIds);
-    } catch(e) {
+    } catch {
       // If it's a plain string like "neko", put it in an array
       activeAllyIds = [activeAllyIds];
     }
@@ -40,11 +49,21 @@ export default function ActivePartyWidget() {
     activeAllyIds = [];
   }
   const recruitedLevels = profile?.recruited_allies || {};
+
+  const handleDismiss = (allyId) => {
+    if (updateAlliesMutation.isPending) return;
+    const newAllies = activeAllyIds.filter(id => id !== allyId);
+    updateAlliesMutation.mutate(newAllies, {
+      onSuccess: () => {
+        setSelectedAlly(null);
+      }
+    });
+  };
   
   // Create 3 slots
   const slots = [0, 1, 2].map(index => {
     const allyId = activeAllyIds[index];
-    if (allyId) {
+    if (allyId && recruitedLevels[allyId] !== undefined) {
       return ALLIES.find(a => a.id === allyId) || null;
     }
     return null;
@@ -149,16 +168,26 @@ export default function ActivePartyWidget() {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  setSelectedAlly(null);
-                  handleEmptyClick();
-                }}
-                className="w-full py-2 font-mono font-bold text-xs rounded-xl border hover:bg-black/5 dark:hover:bg-white/5 transition-colors mt-2"
-                style={{ borderColor: "var(--habit-border)", color: "var(--habit-text)" }}
-              >
-                VIEW IN ALLIES
-              </button>
+              <div className="flex flex-col gap-2 mt-2">
+                <button
+                  onClick={() => handleDismiss(selectedAlly.id)}
+                  disabled={updateAlliesMutation.isPending}
+                  className="w-full py-2 font-mono font-bold text-xs rounded-xl border transition-colors bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateAlliesMutation.isPending ? "DISMISSING..." : "DISMISS FROM PARTY"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedAlly(null);
+                    handleEmptyClick();
+                  }}
+                  className="w-full py-2 font-mono font-bold text-xs rounded-xl border hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  style={{ borderColor: "var(--habit-border)", color: "var(--habit-text)" }}
+                >
+                  VIEW IN ALLIES
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
