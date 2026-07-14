@@ -1,5 +1,15 @@
 [
     {
+        "date": "2026-07-14",
+        "version": "1.5.3",
+        "changes": [
+            {
+                "text": "Fixed a bug where the main content area (Settings and Character Overview panels) was horizontally shifted and clipped on desktop viewports.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
         "date":  "2026-07-14",
         "version":  "1.5.2",
         "changes":  [
