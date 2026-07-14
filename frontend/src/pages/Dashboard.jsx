@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, animate } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
 
@@ -203,9 +203,19 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
   };
 
-  // Custom hybrid touch listener for true iOS swipe without breaking clicks
+  // MotionValue drives drag preview — FM stays fully in control, no style.transform conflicts
   const containerRef = useRef(null);
   const activeTabRef = useRef(null);
+  const activeSectionRef = useRef(activeSection);
+  const dragX = useMotionValue(0);
+
+  // Keep activeSectionRef current without re-registering touch listeners
+  activeSectionRef.current = activeSection;
+
+  // Reset drag offset whenever the active tab key changes (AnimatePresence swap)
+  useEffect(() => {
+    dragX.set(0);
+  }, [activeTabKey]);
 
   useEffect(() => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -213,92 +223,82 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     let touchStart = null;
     let isHorizontal = null;
-    let currentX = 0;
 
     const handleStart = (e) => {
       if (document.body.classList.contains('dnd-dragging')) return;
-      // Ignore touches on bottom nav, modals, or elements that opt out
       if (e.target.closest('.overflow-x-auto, .overflow-x-scroll, .touch-none, [data-no-swipe], nav')) return;
       if (e.touches.length !== 1) return;
-      const t = e.touches[0];
-      touchStart = { x: t.clientX, y: t.clientY };
+      const touch = e.touches[0];
+      touchStart = { x: touch.clientX, y: touch.clientY };
       isHorizontal = null;
-      currentX = 0;
-      
-      if (activeTabRef.current) {
-        activeTabRef.current.style.transition = 'none';
-      }
+      // Stop any in-progress snap-back animation immediately
+      dragX.stop();
     };
 
     const handleMove = (e) => {
       if (!touchStart || document.body.classList.contains('dnd-dragging')) return;
-      const t = e.touches[0];
-      const dx = t.clientX - touchStart.x;
-      const dy = t.clientY - touchStart.y;
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStart.x;
+      const dy = touch.clientY - touchStart.y;
 
       if (isHorizontal === null) {
-        if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-          if (Math.abs(dy) > Math.abs(dx)) {
-            // Vertical scroll wins — bail immediately
+        // Wait for at least 10px movement before locking direction
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+          if (Math.abs(dy) > Math.abs(dx) * 0.9) {
+            // Predominantly vertical — yield to scroll
             touchStart = null;
             return;
           }
           isHorizontal = true;
         }
+        return;
       }
 
       if (isHorizontal === true) {
         if (e.cancelable) e.preventDefault();
-        
-        currentX = dx * 0.85;
-        if (activeTabRef.current) {
-          activeTabRef.current.style.transform = `translateX(${currentX}px)`;
-        }
+        // Rubber-band resistance: feels like iOS — harder to pull beyond threshold
+        const resistance = 0.55;
+        dragX.set(dx * resistance);
       }
     };
 
-    const handleEnd = (e) => {
+    const handleEnd = () => {
       if (!touchStart) return;
-      if (isHorizontal === true) {
-        const threshold = 60;
-        const currentIdx = getSectionIndex(activeTab);
-        
-        if (currentX < -threshold && currentIdx < BOTTOM_TABS.length - 1) {
-          if (activeTabRef.current) {
-             activeTabRef.current.style.transition = 'none';
-             activeTabRef.current.style.transform = '';
-          }
-          const nextTab = BOTTOM_TABS[currentIdx + 1];
-          onSectionChange(nextTab === "tools" ? "history" : nextTab);
-        } else if (currentX > threshold && currentIdx > 0) {
-          if (activeTabRef.current) {
-             activeTabRef.current.style.transition = 'none';
-             activeTabRef.current.style.transform = '';
-          }
-          const prevTab = BOTTOM_TABS[currentIdx - 1];
-          onSectionChange(prevTab === "tools" ? "history" : prevTab);
-        } else {
-          // Snap back
-          if (activeTabRef.current) {
-            activeTabRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
-            activeTabRef.current.style.transform = '';
-            setTimeout(() => {
-              if (activeTabRef.current) {
-                activeTabRef.current.style.transition = 'none';
-                activeTabRef.current.style.transform = '';
-              }
-            }, 300);
-          }
-        }
-      }
       touchStart = null;
+
+      if (isHorizontal !== true) return;
+      isHorizontal = null;
+
+      const currentValue = dragX.get();
+      // Threshold: 65px of DRAGGED distance (which equals ~118px real since resistance=0.55)
+      const threshold = 65;
+      const currentIdx = getSectionIndex(activeSectionRef.current);
+
+      if (currentValue < -threshold && currentIdx < BOTTOM_TABS.length - 1) {
+        // Navigate forward — reset drag instantly before FM transition takes over
+        dragX.set(0);
+        const nextTab = BOTTOM_TABS[currentIdx + 1];
+        onSectionChange(nextTab === 'tools' ? 'history' : nextTab);
+      } else if (currentValue > threshold && currentIdx > 0) {
+        // Navigate backward
+        dragX.set(0);
+        const prevTab = BOTTOM_TABS[currentIdx - 1];
+        onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
+      } else {
+        // Below threshold — iOS-style spring snap-back
+        animate(dragX, 0, {
+          type: 'spring',
+          stiffness: 350,
+          damping: 30,
+          mass: 0.8,
+        });
+      }
     };
 
-    // ✅ Listen on document — catches touches in empty space at bottom of short pages
     document.addEventListener('touchstart', handleStart, { passive: true });
     document.addEventListener('touchmove', handleMove, { passive: false });
-    document.addEventListener('touchend', handleEnd);
-    document.addEventListener('touchcancel', handleEnd);
+    document.addEventListener('touchend', handleEnd, { passive: true });
+    document.addEventListener('touchcancel', handleEnd, { passive: true });
 
     return () => {
       document.removeEventListener('touchstart', handleStart);
@@ -306,7 +306,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       document.removeEventListener('touchend', handleEnd);
       document.removeEventListener('touchcancel', handleEnd);
     };
-  }, [activeTab, onSectionChange]);
+  // ✅ Only depends on onSectionChange — no re-register on every tab change (was causing STATS freeze race condition)
+  }, [onSectionChange]);
 
   const [badgeNotif, setBadgeNotif] = useState(null);
   const [rankUpNotif, setRankUpNotif] = useState(null);
@@ -672,6 +673,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 className="w-full touch-pan-y"
                 style={{ willChange: 'transform' }}
               >
+                {/* Inner drag layer — drives live swipe preview via MotionValue, no FM conflict */}
+                <motion.div style={{ x: dragX }}>
                 {/* Dashboard — Habitica-style layout */}
                 {activeSection === "dashboard" && (
                   <>
@@ -787,6 +790,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                     <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
                   </TabPanel>
                 )}
+                </motion.div>
               </motion.div>
             </AnimatePresence>
           </TabErrorBoundary>

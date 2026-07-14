@@ -1,6 +1,24 @@
 [
     {
         "date": "2026-07-14",
+        "version": "1.4.91",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Fixed swipe glitch where the page would flicker or stay stuck after a swipe — rewrote the drag system to use Framer Motion's native MotionValue, eliminating all transform conflicts."
+            },
+            {
+                "type": "fix",
+                "text": "Fixed the app freezing on the STATS tab — swipe listeners no longer re-register on every tab change, removing the race condition that caused the freeze."
+            },
+            {
+                "type": "feature",
+                "text": "Added iOS-style rubber-band snap-back: short swipes now bounce back smoothly with a spring animation instead of accidentally switching tabs."
+            }
+        ]
+    },
+    {
+        "date": "2026-07-14",
         "version": "1.4.90",
         "changes": [
             {
