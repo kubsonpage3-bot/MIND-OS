@@ -27,10 +27,16 @@
 @layer base {
   :root {
     /* ─── Safe-area insets (notch / home bar / Dynamic Island) ─── */
-    --sat: env(safe-area-inset-top,    0px);
-    --sar: env(safe-area-inset-right,  0px);
+    /* Fallback for older iOS (11.0 - 11.2) */
+    --sat: constant(safe-area-inset-top, 0px);
+    --sar: constant(safe-area-inset-right, 0px);
+    --sab: constant(safe-area-inset-bottom, 0px);
+    --sal: constant(safe-area-inset-left, 0px);
+    /* Modern iOS and Android (11.2+) */
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
-    --sal: env(safe-area-inset-left,   0px);
+    --sal: env(safe-area-inset-left, 0px);
 
     /* Single Source of Truth for Bottom Bar Height */
     --bottom-nav-base-height: 64px;
