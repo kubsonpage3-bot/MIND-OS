@@ -34,7 +34,7 @@ export default function SelectClass() {
   });
 
   return (
-    <div className="h-full w-full bg-[#05040a] text-foreground p-6 flex flex-col items-center justify-start md:justify-center relative overflow-y-auto overflow-x-hidden">
+    <div className="h-dvh w-full bg-[#05040a] text-foreground p-6 flex flex-col items-center justify-start md:justify-center relative overflow-y-auto overflow-x-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.08)_0%,transparent_70%)] pointer-events-none" />
       
