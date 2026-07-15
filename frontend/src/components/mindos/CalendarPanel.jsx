@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, RefreshCw } from "lucide-react";
+import { useProfileMount } from "@/utils/perf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -133,6 +134,7 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers }) {
 }
 
 export default function CalendarPanel() {
+  useProfileMount("CalendarPanel");
   const queryClient = useQueryClient();
   const { profile: djangoProfile } = useDjangoAuth();
   const [currentDate, setCurrentDate] = useState(new Date());

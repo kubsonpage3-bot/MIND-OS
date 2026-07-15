@@ -10,6 +10,8 @@ export const saveSettings = async (settings) => {
     if (Capacitor.isNativePlatform()) {
       await Preferences.set({ key: 'mindos_settings', value: JSON.stringify(settings) });
     }
+    window.mindos_settings_loaded = true;
+    window.dispatchEvent(new CustomEvent("mindos-settings-changed", { detail: settings }));
   } catch (e) {
     console.error("Failed to save settings:", e);
   }

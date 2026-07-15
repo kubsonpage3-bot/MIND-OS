@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { IonItemSliding, IonItemOptions, IonItemOption, IonItem, IonLabel, setupIonicReact } from '@ionic/react';
 import '@ionic/react/css/core.css';

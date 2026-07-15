@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Square, Clock } from 'lucide-react';
+import { Plus, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

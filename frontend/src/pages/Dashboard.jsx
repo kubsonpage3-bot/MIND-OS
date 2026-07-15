@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -16,22 +16,24 @@ import TabErrorBoundary from "@/components/mindos/TabErrorBoundary";
 import FlyingReward from "@/components/mindos/FlyingReward";
 
 import ActivityLogger from "@/components/mindos/ActivityLogger";
-import ProjectionTable from "@/components/mindos/ProjectionTable";
-import HistoryLog from "@/components/mindos/HistoryLog";
-import PomodoroPanel from "@/components/mindos/pomodoro/PomodoroPanel";
-import CalendarPanel from "@/components/mindos/CalendarPanel";
-import TasksPanel from "@/components/mindos/TasksPanel";
-import CharacterTab from "@/components/mindos/CharacterTab";
-import RivalTab from "@/components/mindos/RivalTab";
 import BossDefeatModal from "@/components/mindos/BossDefeatModal";
 import TabGuideModal from "@/components/mindos/TabGuideModal";
-import SettingsPanel from "@/components/mindos/SettingsPanel";
 import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
+
+const ProjectionTable = lazy(() => import("@/components/mindos/ProjectionTable"));
+const HistoryLog = lazy(() => import("@/components/mindos/HistoryLog"));
+const PomodoroPanel = lazy(() => import("@/components/mindos/pomodoro/PomodoroPanel"));
+const CalendarPanel = lazy(() => import("@/components/mindos/CalendarPanel"));
+const TasksPanel = lazy(() => import("@/components/mindos/TasksPanel"));
+const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
+const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
+const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
 import { isMobileApp } from "@/utils/platformUtils";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
+import { useProfileMount } from "@/utils/perf";
 
 import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
 import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
@@ -159,6 +161,7 @@ const getSectionIndex = (sec) => {
 };
 
 export default function Dashboard({ activeSection = "dashboard", activeSubItem = null, onSectionChange, onSubItemChange }) {
+  useProfileMount("Dashboard");
   const { t } = useTranslation();
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
 
@@ -224,6 +227,29 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const activeTabIndex = getSectionIndex(activeSection);
   const activeIndexRef = useRef(activeTabIndex);
   activeIndexRef.current = activeTabIndex;
+
+  const [visitedIndices, setVisitedIndices] = useState([activeTabIndex]);
+
+  useEffect(() => {
+    setVisitedIndices((prev) => {
+      const next = [...prev];
+      if (!next.includes(activeTabIndex)) {
+        next.push(activeTabIndex);
+      }
+      if (isTransitioning) {
+        const prevIdx = activeTabIndex - 1;
+        const nextIdx = activeTabIndex + 1;
+        if (prevIdx >= 0 && !next.includes(prevIdx)) {
+          next.push(prevIdx);
+        }
+        if (nextIdx < BOTTOM_TABS.length && !next.includes(nextIdx)) {
+          next.push(nextIdx);
+        }
+      }
+      if (next.length === prev.length) return prev;
+      return next;
+    });
+  }, [activeTabIndex, isTransitioning]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -849,41 +875,60 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         {/* Main content area */}
         <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5 overflow-x-hidden" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
-            <div className="w-full h-auto overflow-hidden relative">
-              {!isMobile ? (
-                <div className="w-full h-auto px-0 md:px-4">
-                  {renderSectionContent(activeSection)}
-                </div>
-              ) : (
-                <motion.div
-                  className="flex flex-row w-full h-auto"
-                  style={{ x: dragX, willChange: 'transform' }}
-                >
-                  {BOTTOM_TABS.map((tabKey, idx) => {
-                    const isActive = idx === activeTabIndex;
-                    const isVisible = isActive || (isTransitioning && Math.abs(idx - activeTabIndex) <= 1);
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-20">
+                <div className="w-8 h-8 border-2 border-muted border-t-primary rounded-full animate-spin" />
+              </div>
+            }>
+              <div className="w-full h-auto overflow-hidden relative">
+                {!isMobile ? (
+                  <div className="w-full h-auto px-0 md:px-4">
+                    {renderSectionContent(activeSection)}
+                  </div>
+                ) : (
+                  <motion.div
+                    className="flex flex-row w-full h-auto"
+                    style={{
+                      x: dragX,
+                      willChange: "transform",
+                      transformStyle: "preserve-3d",
+                      backfaceVisibility: "hidden"
+                    }}
+                  >
+                    {BOTTOM_TABS.map((tabKey, idx) => {
+                      const isActive = idx === activeTabIndex;
+                      const isVisited = visitedIndices.includes(idx);
 
-                    if (!isVisible) {
-                      return <div key={tabKey} className="w-full shrink-0 h-0 overflow-hidden" />;
-                    }
+                      if (!isVisited) {
+                        return <div key={tabKey} className="w-full shrink-0 h-0 overflow-hidden" />;
+                      }
 
-                    const sectionToRender = isActive ? activeSection : tabKey;
+                      const sectionToRender = tabKey === "tools"
+                        ? (["history", "pomodoro", "calendar", "stats"].includes(activeSection) ? activeSection : "history")
+                        : tabKey;
 
-                    return (
-                      <div
-                        key={tabKey}
-                        className="w-full shrink-0 h-auto overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0"
-                        style={{
-                          paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined
-                        }}
-                      >
-                        {renderSectionContent(sectionToRender)}
-                      </div>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </div>
+                      const isCurrentlyVisible = isActive || (isTransitioning && Math.abs(idx - activeTabIndex) <= 1);
+
+                      return (
+                        <div
+                          key={tabKey}
+                          className="w-full shrink-0 h-auto overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0"
+                          style={{
+                            paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined,
+                            display: isCurrentlyVisible ? "block" : "none",
+                            willChange: "transform",
+                            transformStyle: "preserve-3d",
+                            backfaceVisibility: "hidden"
+                          }}
+                        >
+                          {renderSectionContent(sectionToRender)}
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </div>
+            </Suspense>
           </TabErrorBoundary>
         </div>
       </main>

@@ -125,20 +125,29 @@ export default function AppShell({ defaultTab = "mind" }) {
     lastHpRef.current = hp;
   }, [djangoProfile?.hp]);
 
-  // Sync rank data + zoom + theme
+  // Sync rank data + zoom + theme using custom events instead of 1s polling
   useEffect(() => {
-    const refresh = () => {
-      try {
-        const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
-        applyAppearanceSettings(settings);
-        if (settings.theme && settings.theme !== currentTheme) {
-          setCurrentTheme(settings.theme);
-        }
-      } catch {}
+    const handleSettingsChange = (e) => {
+      const settings = e.detail || {};
+      applyAppearanceSettings(settings);
+      if (settings.theme && settings.theme !== currentTheme) {
+        setCurrentTheme(settings.theme);
+      }
     };
-    refresh();
-    const interval = setInterval(refresh, 1000);
-    return () => clearInterval(interval);
+
+    // Initial sync
+    try {
+      const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
+      applyAppearanceSettings(settings);
+      if (settings.theme && settings.theme !== currentTheme) {
+        setCurrentTheme(settings.theme);
+      }
+    } catch {}
+
+    window.addEventListener("mindos-settings-changed", handleSettingsChange);
+    return () => {
+      window.removeEventListener("mindos-settings-changed", handleSettingsChange);
+    };
   }, [currentTheme]);
 
   // Apply theme

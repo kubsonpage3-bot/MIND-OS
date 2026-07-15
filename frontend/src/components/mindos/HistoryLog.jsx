@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { useTranslation } from 'react-i18next';
+import { useProfileMount } from "@/utils/perf";
 import { METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { Clock } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 export default function HistoryLog({ logs, tasks = [] }) {
+  useProfileMount("HistoryLog");
   const { profile } = useDjangoAuth();
   const { t } = useTranslation();
   const sorted = [...logs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

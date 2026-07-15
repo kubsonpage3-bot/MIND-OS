@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
+import { useProfileMount } from "@/utils/perf";
 import OptimizedImage from "./OptimizedImage";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { ACTIVITIES } from "@/lib/cognitiveEngine";
@@ -193,7 +194,8 @@ function TypingDots() {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-export default function RivalTab({ playerRankXP, playerStreak, logs }) {
+function RivalTab({ playerRankXP, playerStreak, logs }) {
+  useProfileMount("RivalTab");
   const { t } = useTranslation();
   const RIVAL_NAME = t(RIVAL_JOHAN_KEY);
   const [activeTab, setActiveTab] = useState("rival");
@@ -728,3 +730,5 @@ export default function RivalTab({ playerRankXP, playerStreak, logs }) {
     </div>
   );
 }
+
+export default memo(RivalTab);

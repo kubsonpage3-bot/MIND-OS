@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import AppShell from '@/components/AppShell';
-import Achievements from "./pages/Achievements";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import SelectClass from "./pages/SelectClass";
-import TestSwipe from "./pages/TestSwipe";
+
+const Achievements = lazy(() => import("./pages/Achievements"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const SelectClass = lazy(() => import("./pages/SelectClass"));
+const TestSwipe = lazy(() => import("./pages/TestSwipe"));
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import AnalyticsMigrationGate from '@/components/AnalyticsMigrationGate';
@@ -44,6 +45,7 @@ function useSystemTheme() {
         const themeSetting = savedSettings.theme;
         if (themeSetting) {
           document.documentElement.setAttribute("data-theme", themeSetting);
+          window.mindos_settings_loaded = true;
           return;
         }
 
@@ -56,8 +58,10 @@ function useSystemTheme() {
           localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
           document.documentElement.setAttribute("data-theme", "dark");
         }
+        window.mindos_settings_loaded = true;
       } catch (e) {
         console.warn('Settings and theme load failed', e);
+        window.mindos_settings_loaded = true;
       }
     }
     loadSettingsAndTheme();
@@ -154,15 +158,21 @@ export default function App() {
   return (
     <>
       <ConsentBanner />
-      {!isAuthenticated ? (
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      ) : (
-        <ProtectedRoutes />
-      )}
+      <Suspense fallback={
+        <div className="fixed inset-0 flex items-center justify-center bg-slate-950">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        </div>
+      }>
+        {!isAuthenticated ? (
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        ) : (
+          <ProtectedRoutes />
+        )}
+      </Suspense>
     </>
   );
 }

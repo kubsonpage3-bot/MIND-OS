@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import { Settings, Palette, Bell, User, Gamepad2, Shield, RotateCcw, Info, ChevronLeft, Brain, BookOpen } from "lucide-react";
+import { useState, useEffect, memo } from "react";
+import { Settings, Palette, Bell, User, Gamepad2, RotateCcw, Info, ChevronLeft, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useProfileMount } from "@/utils/perf";
 
 import NotificationsPanel from "@/components/mindos/NotificationsPanel";
 import AccountPanel from "@/components/mindos/AccountPanel";
@@ -22,7 +23,8 @@ export const SETTINGS_TABS = [
   { id: "reset", label: "Reset", icon: RotateCcw },
   { id: "about", label: "About", icon: Info },
 ];
-export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
+function SettingsPanel({ activeSubTab, onBack = undefined }) {
+  useProfileMount("SettingsPanel");
   const { t } = useTranslation();
   const [showDataTab, setShowDataTab] = useState(activeSubTab || "appearance");
   const [hasNewChangelog, setHasNewChangelog] = useState(false);
@@ -118,3 +120,5 @@ export default function SettingsPanel({ activeSubTab, onBack = undefined }) {
     </div>
   );
 }
+
+export default memo(SettingsPanel);

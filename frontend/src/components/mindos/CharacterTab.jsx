@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
+import { useProfileMount } from "@/utils/perf";
 import { getTierColor } from "@/lib/gameState";
 import { CLASSES } from "@/constants/rpgData";
 import { djangoApi, getMediaUrl } from "@/api/djangoClient";
@@ -48,7 +49,8 @@ const TIER_ORDER = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
 
 const SUB_TAB_IDS = ["overview", "skills", "achievements", "shop"];
 
-export default function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
+function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
+  useProfileMount("CharacterTab");
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const subTab = externalSubTab || "overview";
@@ -900,3 +902,5 @@ export default function CharacterTab({ profile, logs, rankXP: rankXPProp, curren
     </div>
   );
 }
+
+export default memo(CharacterTab);

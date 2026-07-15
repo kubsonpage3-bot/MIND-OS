@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import BottomSheet from '@/components/ui/BottomSheet';
-import OptimizedImage from './OptimizedImage';
 import { getRankDisplayData } from '@/lib/rankEngine';
 import { AllyPortrait } from './AlliesPanel';
 import PixelCharacter from './PixelCharacter';

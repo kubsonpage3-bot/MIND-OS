@@ -1,5 +1,37 @@
 [
     {
+        "date": "2026-07-15",
+        "version": "1.5.5",
+        "changes": [
+            {
+                "text": "Optimized the mobile swipe carousel with lazy-load keep-alive logic to prevent stutter and lag when swiping between tabs.",
+                "type": "fix"
+            },
+            {
+                "text": "Reduced main bundle size by 57% through code-splitting and dynamic imports of heavy dashboard panels.",
+                "type": "feature"
+            },
+            {
+                "text": "Replaced the continuous 1-second storage polling loop with an event-driven sync system to reduce idle battery usage.",
+                "type": "fix"
+            },
+            {
+                "text": "Enhanced carousel transitions with hardware-accelerated GPU promotion styling to eliminate rendering lag on mobile devices.",
+                "type": "polish"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-15",
+        "version": "1.5.4",
+        "changes": [
+            {
+                "text": "Fixed a bug where native haptic feedback (vibration) was completely disabled on Android/iOS native builds.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
         "date": "2026-07-14",
         "version": "1.5.3",
         "changes": [

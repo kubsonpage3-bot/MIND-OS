@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useProfileMount } from '@/utils/perf';
 
 import HabitsColumn from "./HabitsColumn";
 import DailiesColumn from "./DailiesColumn";
@@ -16,7 +17,8 @@ const TASK_TABS = [
   { id: 'activities', label: 'Activities' },
 ];
 
-export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly, onLog, profile, logs = [] }) {
+function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly, onLog, profile, logs = [] }) {
+  useProfileMount("TasksPanel");
   const queryClient = useQueryClient();
   const [taskTab, setTaskTab] = useState('tasks');
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
@@ -28,11 +30,13 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
 
   // Normalize to always be an array — guards against cache being temporarily
   // set to a paginated object `{ results: [...] }` which causes `.filter is not a function`
-  const taskList = Array.isArray(tasks) ? tasks : (tasks?.results ?? []);
+  const taskList = useMemo(() => {
+    return Array.isArray(tasks) ? tasks : (tasks?.results ?? []);
+  }, [tasks]);
 
-  const habits = taskList.filter(t => t.type === 'habit');
-  const dailies = taskList.filter(t => t.type === 'daily');
-  const todos = taskList.filter(t => t.type === 'todo');
+  const habits = useMemo(() => taskList.filter(t => t.type === 'habit'), [taskList]);
+  const dailies = useMemo(() => taskList.filter(t => t.type === 'daily'), [taskList]);
+  const todos = useMemo(() => taskList.filter(t => t.type === 'todo'), [taskList]);
 
   const createTask = async () => {
     if (!form.name.trim()) return;
@@ -101,4 +105,6 @@ export default function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankX
         formType={formType} setFormType={setFormType} form={form} setForm={setForm} onCreate={createTask} />
     </>
   );
-}
+}
+
+export default memo(TasksPanel);

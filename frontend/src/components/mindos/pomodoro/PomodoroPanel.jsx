@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useProfileMount } from '@/utils/perf';
 import { Clock, BarChart2, CalendarDays, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -16,6 +17,7 @@ const TAB_COLORS = {
 };
 
 export default function PomodoroPanel({ profile, tasks, logs, onLog }) {
+  useProfileMount("PomodoroPanel");
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('timer');
 
