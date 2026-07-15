@@ -4,9 +4,12 @@ import { THEMES, applyTheme } from "@/lib/themes";
 import { ACCENT_PALETTES, applyAppearanceSettings } from "@/lib/applyAppearance";
 import { useTranslation } from "react-i18next";
 import { saveSettings } from "@/utils/settings";
+import { useQueryClient } from "@tanstack/react-query";
+import { syncWidgetStats } from "@/utils/widget";
 
 export default function AppearancePanel() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}"); } catch { return {}; }
   });
@@ -16,7 +19,32 @@ export default function AppearancePanel() {
     setSettings(newSettings);
     saveSettings(newSettings);
     applyAppearanceSettings(newSettings);
-    if (key === "theme") applyTheme(value);
+    if (key === "theme") {
+      applyTheme(value);
+      /** @type {any} */
+      const profile = queryClient.getQueryData(["userprofile"]);
+      if (profile) {
+        const thresholds = profile.rank_info?.thresholds || [];
+        const currentRankId = profile.rank_info?.current_id || "F";
+        const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
+        const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
+        const nextMin = (currentIdx >= 0 && currentIdx < thresholds.length - 1)
+          ? thresholds[currentIdx + 1].min
+          : 10000;
+        syncWidgetStats({
+          hp: profile.hp || 0,
+          max_hp: profile.max_hp || 100,
+          mp: profile.mana || 0,
+          max_mp: profile.mana_max || 100,
+          xp: Math.max(0, (profile.rank_xp || 0) - currentMin),
+          max_xp: Math.max(1, nextMin - currentMin),
+          class: profile.character_class ? profile.character_class.toLowerCase() : "wanderer",
+          rank: currentRankId,
+          theme: value,
+          avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
+        });
+      }
+    }
   };
 
   useEffect(() => {

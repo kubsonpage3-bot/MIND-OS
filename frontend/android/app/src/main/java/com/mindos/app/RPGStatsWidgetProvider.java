@@ -12,8 +12,6 @@ import android.os.Build;
 import android.widget.RemoteViews;
 import org.json.JSONObject;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RPGStatsWidgetProvider extends AppWidgetProvider {
 
@@ -70,6 +68,94 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    private static String getRankBgFilename(String rankId) {
+        String normRank = rankId != null ? rankId.toUpperCase().trim() : "F";
+        switch (normRank) {
+            case "D": return "e40b7b940_generated_image.webp";
+            case "C": return "d7eeb708b_generated_image.webp";
+            case "B": return "21c3691e5_generated_image.webp";
+            case "A": return "a1200a724_generated_image.webp";
+            case "S": return "3c9b18011_generated_image.webp";
+            case "SS": return "f72c50f73_generated_image.webp";
+            case "SSS": return "788bddb7a_generated_image.webp";
+            case "F":
+            default:
+                return "0fafb424e_generated_image.webp";
+        }
+    }
+
+    private static String getThemeWallpaperFilename(String themeId) {
+        String normTheme = themeId != null ? themeId.toLowerCase().trim() : "solid_dark";
+        switch (normTheme) {
+            case "dark": return "theme_dark.webp";
+            case "anime": return "theme_anime.webp";
+            case "steampunk": return "theme_steampunk.webp";
+            case "dark_fantasy": return "theme_dark_fantasy.webp";
+            case "christian": return "theme_christian.webp";
+            default:
+                return null; // Solid themes do not display wallpapers
+        }
+    }
+
+    /**
+     * Helper to decode and downsample assets to prevent Binder transaction memory limits.
+     */
+    private static Bitmap decodeSampledBitmapFromAsset(Context context, String assetPath, int reqWidth, int reqHeight) {
+        try {
+            // First decode with inJustDecodeBounds=true to check dimensions
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            InputStream is = context.getAssets().open(assetPath);
+            BitmapFactory.decodeStream(is, null, options);
+            is.close();
+
+            // Calculate inSampleSize
+            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+            // Decode bitmap with inSampleSize set
+            options.inJustDecodeBounds = false;
+            // Optimize memory configuration: use RGB_565 for wallpapers since they lack transparent layers
+            if (assetPath.contains("theme_") || assetPath.contains("_generated_image")) {
+                options.inPreferredConfig = Bitmap.Config.RGB_565;
+            } else {
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            }
+
+            is = context.getAssets().open(assetPath);
+            Bitmap decoded = BitmapFactory.decodeStream(is, null, options);
+            is.close();
+
+            if (decoded != null) {
+                // Scale precisely to the requested size
+                Bitmap scaled = Bitmap.createScaledBitmap(decoded, reqWidth, reqHeight, true);
+                if (scaled != decoded) {
+                    decoded.recycle();
+                }
+                return scaled;
+            }
+        } catch (Exception e) {
+            // Safe fallback: do not crash on file-not-found or decoding failures
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        return inSampleSize;
+    }
+
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.rpg_stats_widget);
 
@@ -97,6 +183,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
                 int maxXp = Math.max(1, json.optInt("max_xp", 100));
                 String classId = json.optString("class", "wanderer");
                 String rankId = json.optString("rank", "F");
+                String themeId = json.optString("theme", "solid_dark");
 
                 // Bind Text Labels
                 views.setTextViewText(R.id.widget_hp_label, "HP: " + hp + "/" + maxHp);
@@ -108,18 +195,30 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
                 views.setProgressBar(R.id.widget_mp_progress, maxMp, Math.max(0, mp), false);
                 views.setProgressBar(R.id.widget_xp_progress, maxXp, Math.max(0, xp), false);
 
-                // Safe decoding of bundled WebP assets directly into RemoteViews Bitmap
-                Bitmap avatarBitmap = null;
-                try {
-                    String filename = getAvatarFilename(classId, rankId);
-                    InputStream is = context.getAssets().open("public/images/webp/" + filename);
-                    avatarBitmap = BitmapFactory.decodeStream(is);
-                    is.close();
-                } catch (Exception e) {
-                    // Graceful fallback: do not crash on missing/unresolved assets
-                    e.printStackTrace();
+                // 1. Bind Theme Wallpaper Background
+                String themeWallpaper = getThemeWallpaperFilename(themeId);
+                if (themeWallpaper != null) {
+                    Bitmap wallpaperBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + themeWallpaper, 450, 275);
+                    if (wallpaperBitmap != null) {
+                        views.setImageViewBitmap(R.id.widget_background_image, wallpaperBitmap);
+                    } else {
+                        views.setImageViewResource(R.id.widget_background_image, 0);
+                    }
+                } else {
+                    views.setImageViewResource(R.id.widget_background_image, 0);
                 }
 
+                // 2. Bind Rank Avatar Background Scene
+                String rankBgFile = getRankBgFilename(rankId);
+                Bitmap rankBgBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + rankBgFile, 128, 128);
+                if (rankBgBitmap != null) {
+                    views.setImageViewBitmap(R.id.widget_avatar_bg, rankBgBitmap);
+                } else {
+                    views.setImageViewResource(R.id.widget_avatar_bg, 0);
+                }
+
+                // 3. Load avatar character sprite
+                Bitmap avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + getAvatarFilename(classId, rankId), 128, 128);
                 if (avatarBitmap != null) {
                     views.setImageViewBitmap(R.id.widget_avatar, avatarBitmap);
                 } else {

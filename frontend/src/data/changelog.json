@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-15",
+        "version": "1.5.8",
+        "changes": [
+            {
+                "text": "Enhanced the native RPG stats home screen widget: added dynamic theme wallpapers, rank-specific avatar background scenes, and retro pixel-art typography.",
+                "type": "feature"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-15",
         "version": "1.5.7",
         "changes": [
             {

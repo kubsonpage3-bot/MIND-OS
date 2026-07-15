@@ -22,6 +22,7 @@ export const syncWidgetStats = async (profile) => {
         max_xp: profile.max_xp,
         class: profile.class || 'wanderer',
         rank: profile.rank || 'F',
+        theme: profile.theme || 'solid_dark',
         avatar_res_name: profile.avatar_res_name || 'avatar_default'
       })
     });

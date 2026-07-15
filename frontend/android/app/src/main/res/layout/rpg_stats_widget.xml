@@ -1,85 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:padding="12dp"
-    android:background="@drawable/widget_background">
+    android:background="@drawable/widget_background"
+    android:clipToOutline="true">
 
-    <!-- Avatar Section -->
-    <RelativeLayout
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_gravity="center_vertical"
-        android:background="#1E1E24">
-        <ImageView
-            android:id="@+id/widget_avatar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            android:contentDescription="Avatar" />
-    </RelativeLayout>
+    <!-- Theme Wallpaper background layer -->
+    <ImageView
+        android:id="@+id/widget_background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="Wallpaper" />
 
-    <!-- Stats Section -->
+    <!-- Dark Overlay to ensure text readability -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B3121216" />
+
+    <!-- Inner content layout -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="12dp">
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-        <!-- HP -->
-        <TextView
-            android:id="@+id/widget_hp_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="HP: 0/0"
-            android:textColor="#FF4A4A"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-        <ProgressBar
-            android:id="@+id/widget_hp_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="6dp"
-            android:progressDrawable="@drawable/hp_progress_drawable" />
+        <!-- Avatar Section -->
+        <RelativeLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_vertical"
+            android:background="#1E1E24">
+            
+            <!-- Rank specific background scene -->
+            <ImageView
+                android:id="@+id/widget_avatar_bg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Avatar Background" />
 
-        <!-- MP -->
-        <TextView
-            android:id="@+id/widget_mp_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="MP: 0/0"
-            android:textColor="#3D72DE"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-        <ProgressBar
-            android:id="@+id/widget_mp_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="6dp"
-            android:progressDrawable="@drawable/mp_progress_drawable" />
+            <!-- Character sprite overlay -->
+            <ImageView
+                android:id="@+id/widget_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:contentDescription="Avatar" />
+        </RelativeLayout>
 
-        <!-- XP -->
-        <TextView
-            android:id="@+id/widget_xp_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="XP: 0/0"
-            android:textColor="#CBA135"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-        <ProgressBar
-            android:id="@+id/widget_xp_progress"
-            style="?android:attr/progressBarStyleHorizontal"
+        <!-- Stats Section -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="2dp"
-            android:progressDrawable="@drawable/xp_progress_drawable" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="12dp">
+
+            <!-- HP -->
+            <TextView
+                android:id="@+id/widget_hp_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HP: 0/0"
+                android:textColor="#FF4A4A"
+                android:textSize="11sp"
+                android:fontFamily="@font/pixeloid_sans"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/widget_hp_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="6dp"
+                android:progressDrawable="@drawable/hp_progress_drawable" />
+
+            <!-- MP -->
+            <TextView
+                android:id="@+id/widget_mp_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MP: 0/0"
+                android:textColor="#3D72DE"
+                android:textSize="11sp"
+                android:fontFamily="@font/pixeloid_sans"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/widget_mp_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="6dp"
+                android:progressDrawable="@drawable/mp_progress_drawable" />
+
+            <!-- XP -->
+            <TextView
+                android:id="@+id/widget_xp_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XP: 0/0"
+                android:textColor="#CBA135"
+                android:textSize="11sp"
+                android:fontFamily="@font/pixeloid_sans"
+                android:textStyle="bold" />
+            <ProgressBar
+                android:id="@+id/widget_xp_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_marginTop="2dp"
+                android:progressDrawable="@drawable/xp_progress_drawable" />
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</RelativeLayout>

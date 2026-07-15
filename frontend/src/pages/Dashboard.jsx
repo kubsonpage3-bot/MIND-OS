@@ -557,6 +557,15 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         ? thresholds[currentIdx + 1].min
         : 10000;
 
+      const activeTheme = (() => {
+        try {
+          const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
+          return settings.theme || "solid_dark";
+        } catch (e) {
+          return "solid_dark";
+        }
+      })();
+
       syncWidgetStats({
         hp: profile.hp || 0,
         max_hp: profile.max_hp || 100,
@@ -566,6 +575,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         max_xp: Math.max(1, nextMin - currentMin),
         class: profile.character_class ? profile.character_class.toLowerCase() : "wanderer",
         rank: currentRankId,
+        theme: activeTheme,
         avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
       });
     }
