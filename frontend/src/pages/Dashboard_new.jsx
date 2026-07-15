@@ -778,6 +778,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         scheduled_end_time: dt.scheduled_end_time || null,
         show_in_calendar: dt.show_in_calendar || false,
         repeat_weekdays: dt.repeat_weekdays !== undefined ? dt.repeat_weekdays : 127,
+        mastery_category: dt.mastery_category || '',
       }));
       return mapped;
     },
@@ -1193,7 +1194,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 )}
                 {activeSection === "stats" && (
                   <TabPanel title={"📊 " + t("sidebar.sections.stats", "PROJECTIONS").toUpperCase()}>
-                    <ProjectionTable profile={profile} logs={logs} />
+                    <ProjectionTable profile={profile} logs={logs} tasks={tasks} />
                   </TabPanel>
                 )}
                 {activeSection === "history" && (

@@ -32,6 +32,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
     icon: "⭐",
     type: hideTypeSelector ? "button" : "daily",
     category: "Other",
+    masteryCategory: "",
     priority: "medium",
     notes: "",
     dueDate: "",
@@ -45,8 +46,10 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
+  const isSubmitDisabled = !form.name.trim() || (form.type === "button" && !form.masteryCategory);
+
   const create = async () => {
-    if (!form.name.trim()) return;
+    if (isSubmitDisabled) return;
 
     try {
       const taskData = {
@@ -54,6 +57,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         icon: form.icon,
         task_type: form.type,
         category: form.category || "Other",
+        mastery_category: form.type === "button" ? form.masteryCategory : "",
         notes: form.notes || "",
         difficulty: "medium", // default difficulty tier
         due_date: form.dueDate || null,
@@ -71,7 +75,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
       djangoApi.analytics.logEvent("task_created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onCreated?.();
-      setForm({ name: "", icon: "⭐", type: hideTypeSelector ? "button" : "daily", category: "Math", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
+      setForm({ name: "", icon: "⭐", type: hideTypeSelector ? "button" : "daily", category: "Math", masteryCategory: "", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
     } catch (e) {
       console.error("Failed to create custom task on backend:", e);
     }
@@ -182,6 +186,37 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         </div>
       </div>
 
+      {/* Mastery Area Selector (only for BUTTON training tasks) */}
+      {form.type === "button" && (
+        <div className="space-y-1.5 border-l-2 border-[var(--habit-purple)] pl-3">
+          <div className="text-[10px] font-mono text-[var(--habit-purple)] uppercase tracking-wider flex items-center gap-1">
+            <span>{t("task_form.mastery_area", "Mastery Area")}</span>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
+            {[
+              { id: "body", label: "Body", icon: "💪", color: "#ff4400" },
+              { id: "sciences", label: "Sciences", icon: "🔬", color: "#3b82f6" },
+              { id: "languages", label: "Languages", icon: "🌐", color: "#00cc88" },
+              { id: "spirit", label: "Spirit", icon: "✨", color: "#9944ff" },
+              { id: "humanities", label: "Humanities", icon: "📚", color: "#f0c040" },
+            ].map(m => (
+              <button key={m.id} type="button" onClick={() => set("masteryCategory", m.id)}
+                className="p-1.5 rounded-lg border text-center flex flex-col items-center justify-center transition-all"
+                style={{
+                  borderColor: form.masteryCategory === m.id ? m.color : "var(--habit-border)",
+                  background: form.masteryCategory === m.id ? `${m.color}20` : "transparent",
+                }}>
+                <span className="text-sm">{m.icon}</span>
+                <span className="text-[8px] font-mono font-bold mt-1" style={{ color: form.masteryCategory === m.id ? m.color : "var(--habit-dim)" }}>
+                  {t(`mastery.${m.id}`, m.label)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Priority */}
       <div className="space-y-1.5">
         <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.priority", "Priority")}</div>
@@ -258,12 +293,12 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
 
       <button
         onClick={create}
-        disabled={!form.name.trim()}
+        disabled={isSubmitDisabled}
         className="w-full py-3 rounded-xl font-mono font-bold text-sm transition-all"
         style={{
-          background: form.name.trim() ? "var(--habit-purple)" : "var(--habit-bg)",
-          color: form.name.trim() ? "white" : "var(--habit-dim)",
-          cursor: form.name.trim() ? "pointer" : "not-allowed",
+          background: !isSubmitDisabled ? "var(--habit-purple)" : "var(--habit-bg)",
+          color: !isSubmitDisabled ? "white" : "var(--habit-dim)",
+          cursor: !isSubmitDisabled ? "pointer" : "not-allowed",
         }}
       >
         {t("task_form.create_btn", "CREATE TASK")}

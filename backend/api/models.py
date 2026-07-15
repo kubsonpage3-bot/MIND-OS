@@ -603,6 +603,14 @@ class Task(models.Model):
         verbose_name="Категория",
     )
 
+    # Категория мастерства (для кастомных тренировок BUTTON)
+    mastery_category = models.CharField(
+        max_length=50,
+        default="",
+        blank=True,
+        verbose_name="Категория мастерства",
+    )
+
     icon = models.CharField(
         max_length=20, blank=True, null=True, default="", verbose_name="Иконка"
     )

@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { METRIC_CONFIG, calculateIQ } from "@/lib/cognitiveEngine";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
+import { djangoApi } from "@/api/djangoClient";
 import MasteryRadar from "./MasteryRadar";
 
 const SUBJECT_CATS = [
@@ -39,8 +41,15 @@ function daysTo90Pct(current, ceiling, dailyRate) {
   return days < 3650 ? days : null;
 }
 
-export default function ProjectionTable({ profile, logs }) {
+export default function ProjectionTable({ profile, logs, tasks = [] }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [isBackfillOpen, setIsBackfillOpen] = useState(false);
+
+  const unassignedTasks = useMemo(() => {
+    return tasks.filter(t => t.type === 'button' && !t.mastery_category);
+  }, [tasks]);
+
   const { dailyRates, projections, avgHoursPerDay, avgFocus, subjectStats } = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -72,10 +81,30 @@ export default function ProjectionTable({ profile, logs }) {
     const focusArr = recentLogs.map(l => l.focus_rating || 5);
     const avgFocus = focusArr.length > 0 ? focusArr.reduce((a, b) => a + b, 0) / focusArr.length : 5;
 
+    // Custom task category lookup
+    const customTaskMasteryMap = {};
+    tasks.forEach(t => {
+      if (t.type === 'button' && t.mastery_category) {
+        customTaskMasteryMap[`custom_task_${t.id}`] = t.mastery_category;
+      }
+    });
+
+    const getActivityMasteryCategory = (activityKey) => {
+      if (activityKey && activityKey.startsWith("custom_task_")) {
+        return customTaskMasteryMap[activityKey] || null;
+      }
+      for (const cat of SUBJECT_CATS) {
+        if (cat.activities.includes(activityKey)) {
+          return cat.id;
+        }
+      }
+      return null;
+    };
+
     // Subject category hours
     const subjectStats = SUBJECT_CATS.map(cat => {
-      const catLogs = logs.filter(l => cat.activities.includes(l.activity_key));
-      const recentCatLogs = recentLogs.filter(l => cat.activities.includes(l.activity_key));
+      const catLogs = logs.filter(l => getActivityMasteryCategory(l.activity_key) === cat.id);
+      const recentCatLogs = recentLogs.filter(l => getActivityMasteryCategory(l.activity_key) === cat.id);
       const totalHours = catLogs.reduce((s, l) => s + (l.hours || 0), 0);
       const weekHours = recentCatLogs.reduce((s, l) => s + (l.hours || 0), 0);
       const dailyRate = weekHours / 7;
@@ -88,7 +117,7 @@ export default function ProjectionTable({ profile, logs }) {
     });
 
     return { dailyRates, projections: proj, avgHoursPerDay, avgFocus, subjectStats };
-  }, [profile, logs]);
+  }, [profile, logs, tasks]);
 
   const currentIQ = calculateIQ(profile.gf, profile.gc, profile.ps, profile.vm);
   const iq7 = calculateIQ(projections.gf?.p7, projections.gc?.p7, projections.ps?.p7, projections.vm?.p7);
@@ -100,6 +129,18 @@ export default function ProjectionTable({ profile, logs }) {
 
   return (
     <div className="space-y-6">
+      {unassignedTasks.length > 0 && (
+        <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl flex items-center justify-between text-[11px] font-mono">
+          <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+            <span>🔮</span>
+            <span>{t("projection.unassigned_banner", "Some custom activities lack a Mastery Area mapping.")}</span>
+          </div>
+          <button onClick={() => setIsBackfillOpen(true)} className="px-2.5 py-1 bg-[var(--habit-purple)] text-[10px] text-white font-bold rounded-lg hover:opacity-90 transition-all">
+            {t("projection.assign_now", "TAP TO ASSIGN")}
+          </button>
+        </div>
+      )}
+
       <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">{t('projection.avgPace')}</div>
 
       {/* Cognitive metrics table */}
@@ -209,6 +250,64 @@ export default function ProjectionTable({ profile, logs }) {
         <span className="text-foreground">{t('projection.streak30')}</span>
         <span className="text-foreground/50">.</span>
       </div>
+
+      {/* Manual Backfill Modal */}
+      {isBackfillOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-[var(--habit-panel)] border border-[var(--habit-border)] rounded-2xl p-5 space-y-4 shadow-xl">
+            <div className="flex justify-between items-center border-b border-border/40 pb-2">
+              <h3 className="font-mono text-sm font-bold text-[var(--habit-purple)]">Tag Training Activities</h3>
+              <button onClick={() => setIsBackfillOpen(false)} className="text-muted-foreground hover:text-foreground text-xs font-mono">Close</button>
+            </div>
+            <p className="text-[10px] font-mono text-muted-foreground leading-relaxed">
+              Assign a Mastery Area to your custom activities so their historical and future hours count toward your metrics.
+            </p>
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              {unassignedTasks.map(tTask => (
+                <div key={tTask.id} className="p-2.5 rounded-xl border border-[var(--habit-border)] bg-muted/5 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-xs font-bold font-mono text-slate-200">
+                    <span>{tTask.icon || "🔘"}</span>
+                    <span>{tTask.name || tTask.title}</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {[
+                      { id: "body", icon: "💪", color: "#ff4400" },
+                      { id: "sciences", icon: "🔬", color: "#3b82f6" },
+                      { id: "languages", icon: "🌐", color: "#00cc88" },
+                      { id: "spirit", icon: "✨", color: "#9944ff" },
+                      { id: "humanities", icon: "📚", color: "#f0c040" },
+                    ].map(m => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await djangoApi.tasks.update(tTask.id, {
+                              title: tTask.name || tTask.title,
+                              task_type: "button",
+                              category: tTask.category,
+                              mastery_category: m.id
+                            });
+                            queryClient.invalidateQueries({ queryKey: ["tasks"] });
+                          } catch (err) {
+                            console.error("Failed to assign category:", err);
+                          }
+                        }}
+                        className="p-1 rounded-lg border text-center flex flex-col items-center justify-center hover:bg-muted/10 transition-all bg-black/10"
+                        style={{ borderColor: "var(--habit-border)" }}
+                        title={m.id.toUpperCase()}
+                      >
+                        <span className="text-xs">{m.icon}</span>
+                        <span className="text-[7px] font-mono font-bold mt-0.5 text-muted-foreground">{m.id.substring(0, 4)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

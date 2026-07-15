@@ -72,34 +72,36 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
       style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
       {...longPressProps}
     >
+      {/* Fused rectangular control on the left edge */}
+      <div className="flex flex-col shrink-0 w-8 self-stretch border-r border-[var(--habit-border)] overflow-hidden">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+            habitClick(task, true);
+          }}
+          className="flex-1 flex items-center justify-center text-white font-bold text-sm bg-[#22c55e] hover:bg-[#16a34a] active:bg-[#15803d] transition-colors"
+          style={{ opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
+        >+</motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+            habitClick(task, false);
+          }}
+          className="flex-1 flex items-center justify-center text-white font-bold text-sm bg-[#ef4444] hover:bg-[#dc2626] active:bg-[#b91c1c] transition-colors border-t border-[var(--habit-border)]"
+          style={{ opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
+        >−</motion.button>
+      </div>
+
       <DragHandle />
       {/* Task Value color bar */}
       <div
         style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
         title={`Task Value: ${tv.toFixed(1)}`}
       />
-
-      {/* +/- buttons */}
-      <div className="flex flex-col gap-1 shrink-0">
-        <motion.button
-          whileTap={{ scale: 0.8 }}
-          onClick={() => {
-            if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-            habitClick(task, true);
-          }}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-base"
-          style={{ background: '#22c55e', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
-        >+</motion.button>
-        <motion.button
-          whileTap={{ scale: 0.8 }}
-          onClick={() => {
-            if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-            habitClick(task, false);
-          }}
-          className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base"
-          style={{ background: '#ef4444', color: 'white', opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
-        >−</motion.button>
-      </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">

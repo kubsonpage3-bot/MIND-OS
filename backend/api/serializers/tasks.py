@@ -39,6 +39,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "order",
             "rewards",
             "category",
+            "mastery_category",
             "icon",
             "scheduled_time",
             "scheduled_end_time",
