@@ -20,6 +20,8 @@ export const syncWidgetStats = async (profile) => {
         max_mp: profile.max_mp,
         xp: profile.xp,
         max_xp: profile.max_xp,
+        class: profile.class || 'wanderer',
+        rank: profile.rank || 'F',
         avatar_res_name: profile.avatar_res_name || 'avatar_default'
       })
     });

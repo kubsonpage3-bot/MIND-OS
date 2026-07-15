@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-15",
+        "version": "1.5.7",
+        "changes": [
+            {
+                "text": "Fixed a bug where the native RPG stats home screen widget displayed a placeholder default avatar instead of the player's custom character.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-15",
         "version": "1.5.6",
         "changes": [
             {

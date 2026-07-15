@@ -564,10 +564,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         max_mp: profile.mana_max || 100,
         xp: Math.max(0, (profile.rank_xp || 0) - currentMin),
         max_xp: Math.max(1, nextMin - currentMin),
+        class: profile.character_class ? profile.character_class.toLowerCase() : "wanderer",
+        rank: currentRankId,
         avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
       });
     }
-  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class]);
+  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id]);
 
   const updateProfile = useMutation({
     /**
