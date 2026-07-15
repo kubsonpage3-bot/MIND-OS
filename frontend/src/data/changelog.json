@@ -5,7 +5,8 @@
         "changes": [
             { "type": "fix", "text": "Fixed a crash when trying to buy or decrypt a chest that caused the character tab to fail with a ReferenceError." },
             { "type": "feature", "text": "Updated the Decryptor Shop cards to beautifully display the retro pixel-art images of Standard and Quantum caches." },
-            { "type": "fix", "text": "Fixed a critical bug where equipped items could not be unequipped from their respective slots in the character overview." }
+            { "type": "fix", "text": "Fixed a critical bug where equipped items could not be unequipped from their respective slots in the character overview." },
+            { "type": "fix", "text": "Restored and cleaned transparent backgrounds for all mutator icons, resolving blocky/solid color frame issues on the mutator selection panel." }
         ]
     },
     {
