@@ -153,8 +153,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 "quantity": inv.quantity,
                 "is_equipped": inv.is_equipped,
                 "stat_bonuses": inv.stat_bonuses,
+                "gear_class": inv.item.gear_class,
+                "stats": {
+                    effect.effect_name: effect.effect_value
+                    for effect in inv.item.effects.all()
+                },
             }
-            for inv in obj.inventory_items.select_related("item").all()
+            for inv in obj.inventory_items.select_related("item")
+            .prefetch_related("item__effects")
+            .all()
         ]
 
     def get_equipped(self, obj):
@@ -265,7 +272,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
                         instance.recruited_allies.values_list("ally_code", flat=True)
                     )
                     invalid_allies = [
-                        code for code in active_allies_data if code not in recruited_codes
+                        code
+                        for code in active_allies_data
+                        if code not in recruited_codes
                     ]
                     if invalid_allies:
                         raise ValidationError(

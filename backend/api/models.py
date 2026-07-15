@@ -925,6 +925,14 @@ class Item(models.Model):
         CONSUMABLE = "consumable", "Consumable"
         MATERIAL = "material", "Material"
 
+    class GearClass(models.TextChoices):
+        E = "E", "Scrap"
+        D = "D", "Integrated"
+        C = "C", "Enhanced"
+        B = "B", "Advanced"
+        A = "A", "Elite"
+        S = "S", "Anomaly"
+
     code = models.CharField(
         max_length=100, unique=True, verbose_name="Уникальный код (напр. misted_hood)"
     )
@@ -943,6 +951,14 @@ class Item(models.Model):
         null=True,
         verbose_name="Слот экипировки (напр. headware, ring1)",
     )
+    gear_class = models.CharField(
+        max_length=1,
+        choices=GearClass.choices,
+        default=GearClass.E,
+        blank=True,
+        null=True,
+        verbose_name="Gear Class (E–S): Scrap/Integrated/Enhanced/Advanced/Elite/Anomaly",
+    )
 
     damage_boost = models.FloatField(default=0.0, verbose_name="Множитель урона (+%)")
     gold_boost = models.FloatField(default=0.0, verbose_name="Множитель золота (+%)")
@@ -960,6 +976,7 @@ class Item(models.Model):
             ("shop", "Shop"),
             ("boss_drop", "Boss Drop"),
             ("quest_reward", "Quest Reward"),
+            ("chest", "Chest Drop"),
         ],
         default="shop",
     )
@@ -979,8 +996,9 @@ class Item(models.Model):
         blank=True,
     )
 
-    def __str__(self):
-        return f"{self.name} ({self.code})"
+    def __str__(self) -> str:
+        gc = f" [{self.gear_class}]" if self.gear_class else ""
+        return f"{self.name}{gc} ({self.code})"
 
 
 class ItemEffect(models.Model):
@@ -994,6 +1012,39 @@ class ItemEffect(models.Model):
 
     def __str__(self):
         return f"{self.item.code} - {self.effect_name}"
+
+
+class LootChest(models.Model):
+    """
+    Типы лут-сундуков с весами выпадения по gear_class.
+    drop_rates хранит JSON: {'E': 45, 'D': 30, 'C': 15, 'B': 7, 'A': 2.5, 'S': 0.5}
+    """
+
+    class ChestType(models.TextChoices):
+        STANDARD = "standard_cache", "Standard Cache"
+        QUANTUM = "quantum_safe", "Quantum Safe"
+
+    chest_type = models.CharField(
+        max_length=30,
+        choices=ChestType.choices,
+        unique=True,
+        verbose_name="Тип сундука",
+    )
+    name = models.CharField(max_length=100, verbose_name="Название")
+    description = models.TextField(blank=True, verbose_name="Описание")
+    cost_gold = models.PositiveIntegerField(default=0, verbose_name="Стоимость (Gold)")
+    drop_rates = models.JSONField(
+        default=dict,
+        verbose_name="Шансы выпадения по gear_class (JSON)",
+    )
+    icon_url = models.CharField(max_length=255, blank=True, verbose_name="URL иконки")
+
+    class Meta:
+        verbose_name = "Лут-сундук"
+        verbose_name_plural = "Лут-сундуки"
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.chest_type}) — {self.cost_gold}g"
 
 
 class InventoryItem(models.Model):

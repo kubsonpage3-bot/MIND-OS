@@ -960,10 +960,10 @@ def test_complete_task_validation_off_days(user, profile):
     # If we try to complete it on a Tuesday (2026-07-14 is a Tuesday)
     profile.timezone = "UTC"
     profile.save()
-    
+
     tuesday_now = datetime.datetime(2026, 7, 14, 12, 0, tzinfo=datetime.timezone.utc)
-    
-    with patch('django.utils.timezone.now', return_value=tuesday_now):
+
+    with patch("django.utils.timezone.now", return_value=tuesday_now):
         with pytest.raises(ValidationError) as excinfo:
             complete_task(user, task.id, True)
         assert "This daily task is not scheduled for today." in str(excinfo.value)
@@ -974,10 +974,10 @@ def test_process_missed_tasks_skips_off_days(user, profile):
     import datetime
     from unittest.mock import patch
     from api.services.task_service import process_missed_tasks
-    
+
     # Clear existing tasks to isolate
     Task.objects.filter(user=user).delete()
-    
+
     # Monday only Daily
     task = Task.objects.create(
         user=user,
@@ -986,7 +986,7 @@ def test_process_missed_tasks_skips_off_days(user, profile):
         repeat_weekdays=1,  # Monday only
         streak=5,
     )
-    
+
     profile.timezone = "UTC"
     profile.last_daily_cron_at = datetime.date(2026, 7, 14)  # Tuesday (off-day)
     profile.hp = 100
@@ -994,11 +994,73 @@ def test_process_missed_tasks_skips_off_days(user, profile):
 
     # Now it is Wednesday (2026-07-15), which means we are evaluating Tuesday (off-day).
     wednesday_now = datetime.datetime(2026, 7, 15, 0, 5, tzinfo=datetime.timezone.utc)
-    
-    with patch('django.utils.timezone.now', return_value=wednesday_now):
+
+    with patch("django.utils.timezone.now", return_value=wednesday_now):
         res = process_missed_tasks(user)
         assert res["fired"] is True
         task.refresh_from_db()
         profile.refresh_from_db()
         assert profile.hp == 100
         assert task.streak == 5  # Streak did not break!
+
+
+@pytest.mark.django_db
+def test_open_loot_chest(user, profile):
+    from api.services.chest_service import open_chest
+    from api.models import Item, LootChest, ItemEffect, InventoryItem
+    from api.exceptions import GameLogicError
+
+    # Create test chest
+    LootChest.objects.create(
+        chest_type="test_standard",
+        name="Test Standard Cache",
+        description="Test chest description",
+        cost_gold=500,
+        drop_rates={"E": 100.0},
+        icon_url="/static/test.webp",
+    )
+
+    # Create E-class item
+    item = Item.objects.create(
+        code="scrap_sword",
+        name="Scrap Sword",
+        item_type=Item.ItemType.EQUIPMENT,
+        gear_class="E",
+        slot_type="arms",
+    )
+    # Add effect/stat
+    ItemEffect.objects.create(item=item, effect_name="pwr", effect_value=3.0)
+
+    # Scenario 1: Insufficient funds
+    profile.gold = 300
+    profile.save()
+    with pytest.raises(GameLogicError) as exc_info:
+        open_chest(user, "test_standard")
+    assert "Not enough gold" in str(exc_info.value)
+
+    # Scenario 2: Non-existent chest
+    with pytest.raises(GameLogicError) as exc_info:
+        open_chest(user, "non_existent_chest")
+    assert "does not exist" in str(exc_info.value)
+
+    # Scenario 3: Successful open
+    profile.gold = 1000
+    profile.save()
+
+    success, message, result = open_chest(user, "test_standard")
+    assert success is True
+    assert "You obtained" in message
+    assert result["gold_spent"] == 500
+    assert result["gold_remaining"] == 500
+    assert result["item"]["code"] in [
+        i.code
+        for i in Item.objects.filter(gear_class="E", item_type=Item.ItemType.EQUIPMENT)
+    ]
+    won_item_db = Item.objects.get(code=result["item"]["code"])
+    expected_stats = {
+        effect.effect_name: effect.effect_value for effect in won_item_db.effects.all()
+    }
+    assert result["item"]["stats"] == expected_stats
+
+    # Verify inventory item created for the rolled item
+    assert InventoryItem.objects.filter(user_profile=profile, item=won_item_db).exists()

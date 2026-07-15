@@ -4,7 +4,7 @@ MIND OS — регистрация моделей в Django-админке.
 
 from django.contrib import admin
 from django.db.models import Count
-from .models import UserProfile, Task, FeatureEvent
+from .models import UserProfile, Task, FeatureEvent, Item, ItemEffect, LootChest
 
 
 @admin.register(UserProfile)
@@ -97,7 +97,6 @@ class FeatureEventAdmin(admin.ModelAdmin):
     readonly_fields = ("timestamp",)
 
     def changelist_view(self, request, extra_context=None):
-        # Calculate aggregate counts
         counts = (
             FeatureEvent.objects.values("event_name")
             .annotate(count=Count("id"))
@@ -108,3 +107,30 @@ class FeatureEventAdmin(admin.ModelAdmin):
         extra_context["event_counts"] = counts
 
         return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "code",
+        "gear_class",
+        "slot_type",
+        "item_type",
+        "cost",
+        "source",
+    )
+    list_filter = ("gear_class", "slot_type", "item_type", "source")
+    search_fields = ("name", "code")
+
+
+@admin.register(ItemEffect)
+class ItemEffectAdmin(admin.ModelAdmin):
+    list_display = ("item", "effect_name", "effect_value")
+    list_filter = ("effect_name",)
+    search_fields = ("item__code", "item__name")
+
+
+@admin.register(LootChest)
+class LootChestAdmin(admin.ModelAdmin):
+    list_display = ("name", "chest_type", "cost_gold")

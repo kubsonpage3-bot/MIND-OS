@@ -396,6 +396,11 @@ export const djangoApi = {
       }),
   },
 
+  chests: {
+    getChests: () => djangoFetch('/chests/'),
+    open: (chestType) => djangoFetch(`/chests/${chestType}/open/`, { method: 'POST' }),
+  },
+
   combat: {
     getBosses: () => djangoFetch('/combat/bosses/'),
     getEncounters: () => djangoFetch('/combat/encounters/'),

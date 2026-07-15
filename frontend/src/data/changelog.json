@@ -1,6 +1,26 @@
 [
     {
         "date": "2026-07-15",
+        "version": "1.6.1",
+        "changes": [
+            { "type": "feature", "text": "Added the Decryptor Shop page inside the character tab shop to decrypt Standard and Quantum caches." },
+            { "type": "feature", "text": "Designed a high-tech hacker decryption terminal sequence animation before chest reveal." },
+            { "type": "feature", "text": "Added an interactive won-item reveal screen showing full cyberware stats, description, and direct equip options." },
+            { "type": "content", "text": "Generated and integrated unique 16-bit retro pixel-art visual assets for all 30 new Elden Ring-style items and the 2 new loot chests." }
+        ]
+    },
+    {
+        "date": "2026-07-15",
+        "version": "1.6.0",
+        "changes": [
+            { "type": "feature", "text": "All gear now has a class rating from E (Scrap) to S (Anomaly), shown as a coloured badge in your inventory." },
+            { "type": "feature", "text": "30 new items added across all classes — Elden Ring-inspired names and lore descriptions." },
+            { "type": "feature", "text": "Two loot chests available: Standard Cache (500g) and Quantum Safe (3000g), each with different drop rates per class." },
+            { "type": "feature", "text": "New backend endpoints: GET /api/chests/ to list chests, POST /api/chests/{type}/open/ to open one." }
+        ]
+    },
+    {
+        "date": "2026-07-15",
         "version": "1.5.9",
         "changes": [
             {

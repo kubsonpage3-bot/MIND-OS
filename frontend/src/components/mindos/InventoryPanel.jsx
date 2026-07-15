@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { getTierColor } from "@/lib/gameState";
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getTierColor, getGearClassColor, GEAR_CLASS_NAMES } from '@/lib/gameState';
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
 import { Package, Zap, Coins } from "lucide-react";
 import { getMediaUrl, djangoApi } from "@/api/djangoClient";
@@ -129,7 +129,9 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
           {gearOwned.length === 0 ? (
             <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">No gear in inventory. Buy from the shop!</div>
           ) : gearOwned.map((item, idx) => {
-            const tierColor = getTierColor(item.tier);
+            const tierColor = item.gear_class
+              ? getGearClassColor(item.gear_class)
+              : getTierColor(item.tier);
             const equipped_now = isEquipped(item);
             return (
               <GameCard key={`${item.id}-${idx}`}
@@ -155,12 +157,29 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 </div>
 
                 <div className="flex-1 min-w-0 flex flex-col justify-start">
-                  <div className="font-mono text-[11px] font-bold text-gray-900 dark:text-gray-200 truncate px-1" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>{item.label}</div>
+                  <div className="flex items-center justify-center gap-1 px-1">
+                    {item.gear_class && (
+                      <span
+                        className="text-[8px] font-mono font-black px-1 rounded shrink-0"
+                        style={{ background: `${tierColor}25`, color: tierColor, border: `1px solid ${tierColor}50` }}
+                      >
+                        {item.gear_class}
+                      </span>
+                    )}
+                    <div className="font-mono text-[11px] font-bold text-gray-900 dark:text-gray-200 truncate" style={{ color: tierColor }}>
+                      {item.label}
+                    </div>
+                  </div>
                   {equipped_now && <div className="mt-1"><span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: `${tierColor}30`, color: tierColor }}>EQUIPPED</span></div>}
                   <div className="text-[9px] font-mono text-muted-foreground/50 mt-1 truncate px-1">
-                    {item.stats ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : item.effect}
+                    {item.stats ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(' · ') : item.effect}
                   </div>
-                  <div className="text-[8px] font-mono text-muted-foreground/30 uppercase tracking-wider mt-0.5">{item.slot?.replace("_", " ")}</div>
+                  {item.gear_class && (
+                    <div className="text-[8px] font-mono mt-0.5 tracking-wider" style={{ color: `${tierColor}80` }}>
+                      {GEAR_CLASS_NAMES[item.gear_class]}
+                    </div>
+                  )}
+                  <div className="text-[8px] font-mono text-muted-foreground/30 uppercase tracking-wider mt-0.5">{item.slot?.replace('_', ' ')}</div>
                 </div>
 
                 <div className="mt-3 shrink-0 flex flex-col gap-1 z-10 relative">

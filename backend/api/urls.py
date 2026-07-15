@@ -52,6 +52,8 @@ from .views import (
     BuyMutatorView,
     ToggleMutatorView,
     DejaVuView,
+    LootChestListView,
+    OpenChestView,
 )
 from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
 from .views_pomodoro import PomodoroSessionViewSet
@@ -147,6 +149,9 @@ urlpatterns = [
     # ─── Крафт ──────────────────────────────────────────────────────────────────
     path("crafting/recipes/", RecipeListView.as_view(), name="crafting-recipes"),
     path("crafting/craft/", CraftItemView.as_view(), name="crafting-craft"),
+    # ─── Loot Chests ──────────────────────────────────────────────────────────
+    path("chests/", LootChestListView.as_view(), name="chests-list"),
+    path("chests/<str:chest_type>/open/", OpenChestView.as_view(), name="chest-open"),
     # ─── Party System ─────────────────────────────────────────────────────────
     path("party/create/", PartyCreateView.as_view(), name="party-create"),
     path("party/join/", PartyJoinView.as_view(), name="party-join"),

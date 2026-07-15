@@ -30,6 +30,7 @@ import ItemDetailModal from "./ItemDetailModal";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
+import ChestPanel from "./ChestPanel";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 
@@ -695,7 +696,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             );
           })()}
           <div className="flex gap-1 flex-wrap">
-            {["gear", "consumables", "scrolls", "inventory", "allies", "mutators"].map(tab => (
+            {["gear", "consumables", "scrolls", "chests", "inventory", "allies", "mutators"].map(tab => (
               <button key={tab} onClick={() => setShopTab(tab)}
                 className="px-3 py-1 text-[10px] font-mono uppercase rounded transition-all"
                 style={{
@@ -710,6 +711,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           </div>
           {shopTab === "scrolls" && (
             <ScrollsPanel gold={gold} onSpendGold={spendGold} />
+          )}
+          {shopTab === "chests" && (
+            <ChestPanel />
           )}
           {shopTab === "inventory" && (
             <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => { }} onToggleEquip={equipItem} />
@@ -727,7 +731,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             </>
           )}
           <div className={`${shopTab === "gear" || shopTab === "consumables" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1" : "space-y-2"}`}>
-            {(shopTab === "scrolls" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
+            {(shopTab === "scrolls" || shopTab === "chests" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
               .sort((a, b) => a.cost - b.cost)
               .map((item, idx) => {
                 const canAfford = gold >= item.cost;

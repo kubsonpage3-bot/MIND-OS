@@ -2451,3 +2451,50 @@ class DejaVuView(generics.GenericAPIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(result, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Loot Chest System
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class LootChestListView(generics.GenericAPIView):
+    """
+    GET /api/chests/
+    Returns available chest types with their drop rates and costs.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from api.models import LootChest
+
+        chests = LootChest.objects.all().values(
+            "chest_type", "name", "description", "cost_gold", "drop_rates", "icon_url"
+        )
+        return Response(list(chests), status=status.HTTP_200_OK)
+
+
+class OpenChestView(generics.GenericAPIView):
+    """
+    POST /api/chests/<chest_type>/open/
+    Opens a loot chest, deducts gold, and returns the won item.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, chest_type: str):
+        from api.services.chest_service import open_chest
+        from api.exceptions import GameLogicError
+
+        try:
+            success, message, result = open_chest(request.user, chest_type)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": f"Unexpected error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response({"detail": message, **result}, status=status.HTTP_200_OK)

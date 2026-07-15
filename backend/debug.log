@@ -2031,3 +2031,5 @@ Traceback (most recent call last):
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
 WARNING 2026-07-15 01:53:19,346 log 19912 18160 Bad Request: /api/tasks/
 WARNING 2026-07-15 01:53:38,967 log 9172 24964 Unauthorized: /api/tasks/
+ERROR 2026-07-15 21:01:37,353 task_service 25768 25160 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-15 21:02:10,692 task_service 25768 25160 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
