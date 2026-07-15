@@ -279,18 +279,22 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     }
   }, [saveSession]); // saveSession is stable from useMutation
 
-  // ─── TIMER TICK ─────────────────────────────────────────────────────────────
-  // We track timeLeft in a ref to avoid stale closure; the state is updated
-  // every second for the UI but the completion logic uses the ref.
+  // ─── TIMER TICK (TIMESTAMP-BASED & BACKGROUND-SAFE) ─────────────────────────
   const timeLeftRef = useRef(timeLeft);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+
+  const endTimeRef = useRef(null);
 
   useEffect(() => {
     if (!isRunning) return;
 
+    // Calculate absolute future completion timestamp
+    endTimeRef.current = Date.now() + timeLeftRef.current * 1000;
+
     const interval = setInterval(() => {
-      const current = timeLeftRef.current;
-      if (current <= 1) {
+      const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+      
+      if (remaining <= 0) {
         setTimeLeft(0);
         clearInterval(interval);
         if (linkedModeRef.current && selectedActivityRef.current) {
@@ -301,12 +305,24 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
           handleCycleComplete();
         }
       } else {
-        setTimeLeft(current - 1);
+        setTimeLeft(remaining);
       }
     }, 1000);
 
     return () => clearInterval(interval);
   }, [isRunning, handleCycleComplete]);
+
+  // Synchronize timer instantly when app is returned from background
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isRunning && endTimeRef.current) {
+        const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+        setTimeLeft(remaining);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isRunning]);
 
   // ─── CONTROLS ────────────────────────────────────────────────────────────────
   const resetTimer = useCallback(() => {
@@ -337,7 +353,12 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     setIsRunning(false);
 
     if (rating === null) {
-      resetTimer();
+      // Discard and cleanly exit to Standalone mode
+      setLinkedMode(false);
+      setIsRunning(false);
+      setCycleCount(0);
+      setMode('work');
+      setTimeLeft(preset.work * 60);
       return;
     }
 
