@@ -900,7 +900,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                       const isVisited = visitedIndices.includes(idx);
 
                       if (!isVisited) {
-                        return <div key={tabKey} className="w-full shrink-0 h-0 overflow-hidden" />;
+                        return (
+                          <div
+                            key={tabKey}
+                            className="w-full shrink-0 h-0 overflow-hidden"
+                          />
+                        );
                       }
 
                       const sectionToRender = tabKey === "tools"
@@ -912,10 +917,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                       return (
                         <div
                           key={tabKey}
-                          className="w-full shrink-0 h-auto overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0"
+                          className="w-full shrink-0 overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0"
                           style={{
                             paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined,
-                            display: isCurrentlyVisible ? "block" : "none",
+                            height: isCurrentlyVisible ? "auto" : 0,
+                            overflow: isCurrentlyVisible ? "visible" : "hidden",
+                            visibility: isCurrentlyVisible ? "visible" : "hidden",
                             willChange: "transform",
                             transformStyle: "preserve-3d",
                             backfaceVisibility: "hidden"
