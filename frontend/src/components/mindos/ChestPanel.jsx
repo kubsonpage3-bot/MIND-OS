@@ -7,7 +7,7 @@ import { playSound } from "@/lib/soundEffects";
 import { useProfileSync } from "@/hooks/useProfileSync";
 import GameCard from "@/components/ui/GameCard";
 import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
-import { Coins, Database, Loader2, Sparkles, Terminal, CheckCircle2, X } from "lucide-react";
+import { Coins, Database, Loader2, Sparkles, Terminal, CheckCircle2, X, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function ChestPanel() {
@@ -242,18 +242,38 @@ export default function ChestPanel() {
               <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
                 style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff 2px, #ffffff 3px)" }} />
 
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-mono text-sm font-black tracking-wider text-white uppercase" style={{ textShadow: `0 0 10px ${design.themeColor}50` }}>
-                    {chest.name}
-                  </h3>
-                  <p className="text-[10px] font-mono text-muted-foreground/75 mt-1 leading-relaxed max-w-[280px]">
+              <div className="flex gap-4 items-center">
+                {/* Chest Image */}
+                {chest.icon_url && (
+                  <div 
+                    className="w-16 h-16 shrink-0 border bg-black/40 flex items-center justify-center p-1 rounded relative overflow-hidden"
+                    style={{
+                      borderColor: design.borderColor,
+                      boxShadow: `0 0 10px ${design.themeColor}20`
+                    }}
+                  >
+                    <img 
+                      src={getMediaUrl(chest.icon_url)} 
+                      alt={chest.name} 
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                  </div>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-mono text-sm font-black tracking-wider text-white uppercase" style={{ textShadow: `0 0 10px ${design.themeColor}50` }}>
+                      {chest.name}
+                    </h3>
+                    <div className="flex items-center gap-1 font-mono text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded shrink-0">
+                      <Coins className="w-3 h-3" />
+                      {chest.cost_gold}G
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-mono text-muted-foreground/75 mt-1 leading-relaxed">
                     {chest.description}
                   </p>
-                </div>
-                <div className="flex items-center gap-1 font-mono text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded">
-                  <Coins className="w-3.5 h-3.5" />
-                  {chest.cost_gold}G
                 </div>
               </div>
 
