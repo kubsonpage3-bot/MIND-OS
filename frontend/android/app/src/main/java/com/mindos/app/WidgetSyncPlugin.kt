@@ -1,6 +1,5 @@
 package com.mindos.app
 
-import android.content.Context
 import android.content.Intent
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -11,10 +10,15 @@ import com.getcapacitor.annotation.CapacitorPlugin
 class WidgetSyncPlugin : Plugin() {
     @PluginMethod
     fun updateWidget(call: PluginCall) {
-        val context = context
-        val intent = Intent(context, RPGStatsWidgetProvider::class.java)
+        val ctx = context
+        if (ctx == null) {
+            call.reject("Android context is not initialized")
+            return
+        }
+        val intent = Intent(ctx, RPGStatsWidgetProvider::class.java)
         intent.action = RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET
-        context.sendBroadcast(intent)
+        intent.setPackage(ctx.packageName) // Explicitly package-restrict intent for security
+        ctx.sendBroadcast(intent)
         call.resolve()
     }
 }
