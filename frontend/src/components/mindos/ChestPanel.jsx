@@ -41,7 +41,7 @@ export default function ChestPanel() {
   // Mutate: open chest
   const openMutation = useMutation({
     mutationFn: (chestType) => djangoApi.chests.open(chestType),
-    onSuccess: (data) => {
+    onSuccess: (/** @type {any} */ data) => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
 
