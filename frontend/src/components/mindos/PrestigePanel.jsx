@@ -76,10 +76,14 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
       </AnimatePresence>
 
       <div className="p-4 rounded-2xl border space-y-3"
-        style={{ borderColor: canPrestige ? "#f0c04060" : "#1e1a38", background: "#0a0818",
-          boxShadow: canPrestige ? "0 0 16px #f0c04030" : "none" }}>
+        style={{
+          borderColor: canPrestige ? "#f0c04060" : "var(--habit-border)",
+          background: "var(--habit-panel)",
+          boxShadow: canPrestige ? "0 0 16px #f0c04030" : "none"
+        }}
+      >
         <div className="flex items-center justify-between">
-          <div className="font-mono text-xs font-bold" style={{ color: canPrestige ? "#f0c040" : "#4a4060" }}>
+          <div className="font-mono text-xs font-bold" style={{ color: canPrestige ? "#f0c040" : "var(--habit-dim)" }}>
             {t('prestige.prestige')}
           </div>
           {count > 0 && (

@@ -16,6 +16,7 @@ import GameplayInsightCard from "@/components/mindos/GameplayInsightCard";
 import { THEMES } from "@/lib/themes";
 import PullToRefresh from "@/components/mindos/PullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
+import { hapticError } from "@/hooks/useHaptic";
 
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 // Removed getRankFromXP
@@ -113,15 +114,15 @@ export default function AppShell({ defaultTab = "mind" }) {
   const handleNavigate = (section, sub, extraParams) => setNav(extraParams?.app || activeApp, section, sub ?? null, extraParams);
 
   // HP damage flash detection
+  const lastHpRef = useRef(null);
   useEffect(() => {
-    let lastHp = null;
     const hp = djangoProfile?.hp ?? 100;
-    if (lastHp !== null && hp < lastHp) {
+    if (lastHpRef.current !== null && hp < lastHpRef.current) {
       setHpFlash(true);
-      if (window.navigator?.vibrate) window.navigator.vibrate([30, 15, 30]);
+      hapticError();
       setTimeout(() => setHpFlash(false), 500);
     }
-    lastHp = hp;
+    lastHpRef.current = hp;
   }, [djangoProfile?.hp]);
 
   // Sync rank data + zoom + theme

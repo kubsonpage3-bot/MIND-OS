@@ -44,7 +44,7 @@ export default function PremiumUpgradeModal({ onClose }) {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="w-full max-w-md bg-[#0a0a0f] border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden relative"
+        className="w-full max-w-md bg-[var(--habit-panel)] border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden relative"
       >
         {/* Decorative background glow */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl" />

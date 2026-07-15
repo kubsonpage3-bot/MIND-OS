@@ -25,7 +25,7 @@ export default function AboutPanel() {
       </div>
 
       {/* App Info */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2 mb-2">
           <Zap className="w-4 h-4 text-primary" />
           <span className="font-mono text-sm font-bold text-foreground">MIND OS</span>
@@ -41,7 +41,7 @@ export default function AboutPanel() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 rounded-xl border border-border bg-card"
+        className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)]"
       >
         <p className="text-xs font-mono text-muted-foreground/80 leading-relaxed">
           {t('about.description')}
@@ -49,7 +49,7 @@ export default function AboutPanel() {
       </motion.div>
 
       {/* Features */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-2">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-2">
         <div className="font-mono text-xs font-bold mb-2">{t('about.coreFeatures')}</div>
         <ul className="text-[10px] font-mono text-muted-foreground/70 space-y-1">
           <li>• {t('about.features.metrics')}</li>
@@ -66,7 +66,7 @@ export default function AboutPanel() {
       <div className="space-y-2">
         <a
           href="#"
-          className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
+          className="w-full p-3 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] hover:border-primary/40 transition-colors flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
             <Book className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -77,7 +77,7 @@ export default function AboutPanel() {
 
         <a
           href="mailto:kubsonpage3@gmail.com"
-          className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
+          className="w-full p-3 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] hover:border-primary/40 transition-colors flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
             <MessageSquare className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -90,7 +90,7 @@ export default function AboutPanel() {
           href="https://mindos.pages.dev/privacy-policy.html"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
+          className="w-full p-3 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] hover:border-primary/40 transition-colors flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
             <Shield className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -103,7 +103,7 @@ export default function AboutPanel() {
           href="https://mindos.pages.dev/terms.html"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full p-3 rounded-xl border border-border bg-card hover:border-primary/40 transition-colors flex items-center justify-between group"
+          className="w-full p-3 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] hover:border-primary/40 transition-colors flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
             <FileText className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -114,7 +114,7 @@ export default function AboutPanel() {
       </div>
 
       {/* Support */}
-      <div className="p-4 rounded-xl border border-border bg-card">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)]">
         <p className="text-[10px] font-mono text-muted-foreground/60 leading-relaxed text-center">
           {t('about.support1')}<br />
           {t('about.support2')}
@@ -122,7 +122,7 @@ export default function AboutPanel() {
       </div>
 
       {/* Credits */}
-      <div className="p-4 rounded-xl border border-border bg-card">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)]">
         <div className="text-[10px] font-mono text-muted-foreground/50 text-center">
           {t('about.builtWith')}
         </div>

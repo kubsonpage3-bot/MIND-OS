@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { useTranslation } from "react-i18next";
+import { saveSettings } from "@/utils/settings";
 
 const LANGUAGES = [
   { id: "en", label: "English", flag: "🇬🇧" },
@@ -22,7 +23,7 @@ export default function LanguagePanel() {
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
-    localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
+    saveSettings(newSettings);
   };
 
   const currentLang = LANGUAGES.find(l => l.id === (settings.language || "en")) || LANGUAGES[0];

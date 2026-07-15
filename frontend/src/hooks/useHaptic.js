@@ -9,6 +9,9 @@ import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 
 function isHapticsEnabled() {
+  if (Capacitor.isNativePlatform() && !window.mindos_settings_loaded) {
+    return false;
+  }
   try {
     const settings = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
     return settings.hapticsEnabled !== false;

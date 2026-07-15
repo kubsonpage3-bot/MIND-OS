@@ -15,7 +15,7 @@ const TAB_COLORS = {
   settings: { active: '#f59e0b', glow: 'rgba(245,158,11,0.35)' },
 };
 
-export default function PomodoroPanel() {
+export default function PomodoroPanel({ profile, tasks, logs, onLog }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('timer');
 
@@ -74,7 +74,7 @@ export default function PomodoroPanel() {
 
       {/* ── Content ── */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'timer'    && <PomodoroTimer />}
+        {activeTab === 'timer'    && <PomodoroTimer profile={profile} tasks={tasks} logs={logs} onLog={onLog} />}
         {activeTab === 'stats'    && <PomodoroStats />}
         {activeTab === 'history'  && <PomodoroHistory />}
         {activeTab === 'settings' && <PomodoroSettings />}

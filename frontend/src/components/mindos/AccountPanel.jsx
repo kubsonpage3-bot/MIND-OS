@@ -135,7 +135,7 @@ export default function AccountPanel() {
       </div>
 
       {/* Character Profile */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <User className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.characterProfile')}</span>
@@ -147,7 +147,7 @@ export default function AccountPanel() {
           onChange={(e) => setLocalCharName(e.target.value)}
           onBlur={updateCharacterName}
           placeholder={t('settings.enterCharacterName')}
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-sm"
+          className="w-full px-3 py-2 rounded-lg border border-[var(--habit-border)] bg-background text-foreground font-mono text-sm"
         />
       </div>
 
@@ -296,7 +296,7 @@ export default function AccountPanel() {
       )}
 
       {/* Account Info */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Mail className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.accountInfo')}</span>
@@ -327,14 +327,14 @@ export default function AccountPanel() {
       </div>
 
       {/* Security */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.security')}</span>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full py-2 rounded-lg border border-border text-muted-foreground font-mono text-xs hover:bg-accent transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2 rounded-lg border border-[var(--habit-border)] text-muted-foreground font-mono text-xs hover:bg-accent transition-colors flex items-center justify-center gap-2"
         >
           <LogOut className="w-3 h-3" /> {t('settings.logout')}
         </button>
@@ -364,7 +364,7 @@ export default function AccountPanel() {
       </div>
 
       {/* Rival Visibility */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Eye className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('privacy.rivalVisibility')}</span>
@@ -377,7 +377,7 @@ export default function AccountPanel() {
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
               rivalVisibility
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
+                : "border-[var(--habit-border)]/40 text-muted-foreground"
             }`}
           >
             {rivalVisibility ? "ON" : "OFF"}
@@ -386,7 +386,7 @@ export default function AccountPanel() {
       </div>
 
       {/* Anonymous Mode */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <UserX className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('privacy.anonMode')}</span>
@@ -399,7 +399,7 @@ export default function AccountPanel() {
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
               anonymousMode
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
+                : "border-[var(--habit-border)]/40 text-muted-foreground"
             }`}
           >
             {anonymousMode ? "ON" : "OFF"}
@@ -408,7 +408,7 @@ export default function AccountPanel() {
       </div>
 
       {/* Analytics */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('privacy.analytics')}</span>
@@ -429,7 +429,7 @@ export default function AccountPanel() {
             className={`px-3 py-1.5 flex items-center justify-center min-w-[50px] text-xs font-mono rounded border transition-all ${
               analyticsEnabled
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
+                : "border-[var(--habit-border)]/40 text-muted-foreground"
             } ${updateProfile.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {updateProfile.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (analyticsEnabled ? "ON" : "OFF")}
@@ -438,7 +438,7 @@ export default function AccountPanel() {
       </div>
 
       {/* Data Usage */}
-      <div className="p-4 rounded-xl border border-border bg-card">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)]">
         <div className="space-y-2 text-[10px] font-mono text-muted-foreground/70">
           <p>{t('privacy.dataCollected')}</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
@@ -475,7 +475,7 @@ export default function AccountPanel() {
                   <p className="text-[10px] text-muted-foreground/70">{t('settings.deletionPending')}</p>
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="w-full py-2 rounded-lg border border-border font-mono text-xs text-muted-foreground hover:bg-accent transition-colors"
+                    className="w-full py-2 rounded-lg border border-[var(--habit-border)] font-mono text-xs text-muted-foreground hover:bg-accent transition-colors"
                   >
                     {t('settings.close')}
                   </button>

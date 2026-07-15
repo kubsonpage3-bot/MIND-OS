@@ -28,36 +28,39 @@ if (isNative) {
 
 function useSystemTheme() {
   useEffect(() => {
-    async function loadTheme() {
+    async function loadSettingsAndTheme() {
       try {
-        let themeSetting = null;
+        let savedSettings = {};
         if (isNative) {
           const { value } = await Preferences.get({ key: 'mindos_settings' });
           if (value) {
-            const saved = JSON.parse(value);
-            themeSetting = saved.theme;
+            savedSettings = JSON.parse(value);
+            localStorage.setItem("mindos_settings", value);
           }
         } else {
-          const saved = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
-          themeSetting = saved.theme;
+          savedSettings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
         }
 
-        if (themeSetting) return;
+        const themeSetting = savedSettings.theme;
+        if (themeSetting) {
+          document.documentElement.setAttribute("data-theme", themeSetting);
+          return;
+        }
+
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         if (prefersDark) {
-          const newSettings = { theme: "dark" };
+          const newSettings = { ...savedSettings, theme: "dark" };
           if (isNative) {
             await Preferences.set({ key: 'mindos_settings', value: JSON.stringify(newSettings) });
-          } else {
-            localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
           }
+          localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
           document.documentElement.setAttribute("data-theme", "dark");
         }
       } catch (e) {
-        console.warn('Theme load failed', e);
+        console.warn('Settings and theme load failed', e);
       }
     }
-    loadTheme();
+    loadSettingsAndTheme();
   }, []);
 }
 

@@ -1970,3 +1970,64 @@ WARNING 2026-07-13 18:51:58,382 log 18424 26260 Forbidden: /api/calendar/events/
 WARNING 2026-07-13 18:52:40,818 log 18424 26260 Forbidden: /api/party/members/2497/profile/
 WARNING 2026-07-13 18:52:42,836 log 18424 26260 Not Found: /api/party/members/999999/profile/
 ERROR 2026-07-13 18:52:48,588 task_service 18424 26260 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-15 00:41:20,774 log 19300 18300 Unauthorized: /api/analytics/event/
+WARNING 2026-07-15 00:41:21,648 log 19300 18300 Bad Request: /api/analytics/event/
+WARNING 2026-07-15 00:41:23,712 log 19300 18300 Bad Request: /api/auth/register/
+WARNING 2026-07-15 00:41:24,478 log 19300 18300 Bad Request: /api/profile/
+WARNING 2026-07-15 00:41:25,066 log 19300 18300 Forbidden: /api/calendar/events/
+WARNING 2026-07-15 00:41:36,077 log 19300 18300 Forbidden: /api/party/members/1/profile/
+WARNING 2026-07-15 00:41:36,776 log 19300 18300 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-15 00:41:37,003 task_service 19300 18300 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-15 00:44:02,991 log 25976 11456 Bad Request: /api/profile/
+WARNING 2026-07-15 00:45:06,873 log 11308 13520 Unauthorized: /api/analytics/event/
+WARNING 2026-07-15 00:45:07,752 log 11308 13520 Bad Request: /api/analytics/event/
+WARNING 2026-07-15 00:45:09,843 log 11308 13520 Bad Request: /api/auth/register/
+WARNING 2026-07-15 00:45:10,548 log 11308 13520 Bad Request: /api/profile/
+WARNING 2026-07-15 00:45:11,152 log 11308 13520 Forbidden: /api/calendar/events/
+WARNING 2026-07-15 00:45:21,892 log 11308 13520 Forbidden: /api/party/members/1/profile/
+WARNING 2026-07-15 00:45:22,475 log 11308 13520 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-15 00:45:22,662 task_service 11308 13520 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-15 00:45:27,534 log 11308 13520 Bad Request: /api/profile/
+WARNING 2026-07-15 01:18:12,698 log 12100 17152 Unauthorized: /api/analytics/event/
+WARNING 2026-07-15 01:18:13,649 log 12100 17152 Bad Request: /api/analytics/event/
+WARNING 2026-07-15 01:18:15,806 log 12100 17152 Bad Request: /api/auth/register/
+WARNING 2026-07-15 01:18:16,560 log 12100 17152 Bad Request: /api/profile/
+WARNING 2026-07-15 01:18:17,160 log 12100 17152 Forbidden: /api/calendar/events/
+WARNING 2026-07-15 01:18:28,023 log 12100 17152 Forbidden: /api/party/members/1/profile/
+WARNING 2026-07-15 01:18:28,563 log 12100 17152 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-15 01:18:28,778 task_service 12100 17152 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-15 01:18:33,681 log 12100 17152 Bad Request: /api/profile/
+WARNING 2026-07-15 01:23:50,927 log 11660 2696 Unauthorized: /api/analytics/event/
+WARNING 2026-07-15 01:23:51,757 log 11660 2696 Bad Request: /api/analytics/event/
+WARNING 2026-07-15 01:23:53,729 log 11660 2696 Bad Request: /api/auth/register/
+WARNING 2026-07-15 01:23:54,504 log 11660 2696 Bad Request: /api/profile/
+WARNING 2026-07-15 01:23:55,100 log 11660 2696 Forbidden: /api/calendar/events/
+WARNING 2026-07-15 01:24:06,576 log 11660 2696 Forbidden: /api/party/members/1/profile/
+WARNING 2026-07-15 01:24:07,265 log 11660 2696 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-15 01:24:07,495 task_service 11660 2696 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-15 01:24:12,768 log 11660 2696 Bad Request: /api/profile/
+ERROR 2026-07-15 01:25:42,718 task_service 4920 9672 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+ERROR 2026-07-15 01:27:22,425 task_service 8640 10080 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-15 01:28:29,337 log 23016 19680 Unauthorized: /api/analytics/event/
+WARNING 2026-07-15 01:28:30,154 log 23016 19680 Bad Request: /api/analytics/event/
+WARNING 2026-07-15 01:28:32,096 log 23016 19680 Bad Request: /api/auth/register/
+WARNING 2026-07-15 01:28:32,830 log 23016 19680 Bad Request: /api/profile/
+WARNING 2026-07-15 01:28:33,425 log 23016 19680 Forbidden: /api/calendar/events/
+WARNING 2026-07-15 01:28:44,562 log 23016 19680 Forbidden: /api/party/members/1/profile/
+WARNING 2026-07-15 01:28:45,255 log 23016 19680 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-15 01:28:45,496 task_service 23016 19680 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-15 01:28:48,044 task_service 23016 19680 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-15 01:28:50,468 log 23016 19680 Bad Request: /api/profile/
+ERROR 2026-07-15 01:53:16,984 exception 19912 18160 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+WARNING 2026-07-15 01:53:19,346 log 19912 18160 Bad Request: /api/tasks/
+WARNING 2026-07-15 01:53:38,967 log 9172 24964 Unauthorized: /api/tasks/

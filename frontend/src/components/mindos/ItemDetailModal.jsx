@@ -33,11 +33,11 @@ export default function ItemDetailModal({ item, isOpen, onClose, actionButton, t
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 10 }}
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
-            className="w-full max-w-sm bg-slate-900 border rounded-xl overflow-hidden shadow-2xl flex flex-col"
+            className="w-full max-w-sm bg-[var(--habit-panel)] border rounded-xl overflow-hidden shadow-2xl flex flex-col"
             style={{ borderColor: `${tierColor}50` }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-slate-800 bg-slate-900/50">
+            <div className="flex items-center justify-between p-3 border-b border-[var(--habit-border)] bg-[var(--habit-panel)]/50">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
                 {t('inventory.item_details', 'Item Details')}
               </span>
@@ -84,7 +84,7 @@ export default function ItemDetailModal({ item, isOpen, onClose, actionButton, t
 
             {/* Footer / Action */}
             {actionButton && (
-              <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+              <div className="p-4 border-t border-[var(--habit-border)] bg-[var(--habit-panel)]/50">
                 {actionButton}
               </div>
             )}

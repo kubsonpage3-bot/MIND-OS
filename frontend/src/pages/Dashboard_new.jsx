@@ -1205,7 +1205,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 {activeSection === "pomodoro" && (
                   <TabPanel title={"⏱️ " + t("sidebar.sections.pomodoro", "POMODORO").toUpperCase()}>
                     <PremiumGate isPremium={profile?.is_premium}>
-                      <PomodoroPanel />
+                      <PomodoroPanel profile={profile} tasks={tasks} logs={logs} onLog={handleLog} />
                     </PremiumGate>
                   </TabPanel>
                 )}

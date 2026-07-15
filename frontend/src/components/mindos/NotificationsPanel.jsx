@@ -167,7 +167,7 @@ export default function NotificationsPanel() {
       </div>
 
       {/* Daily Reminder Time */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('notifications_panel.reminder_time')}</span>
@@ -177,12 +177,12 @@ export default function NotificationsPanel() {
           type="time"
           value={reminderTime}
           onChange={(e) => updateReminderTime(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-sm"
+          className="w-full px-3 py-2 rounded-lg border border-[var(--habit-border)] bg-background text-foreground font-mono text-sm"
         />
       </div>
 
       {/* Notification Channel */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Mail className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('notifications_panel.channel')}</span>
@@ -200,7 +200,7 @@ export default function NotificationsPanel() {
               className={`flex-1 py-2 text-xs font-mono rounded border transition-all ${
                 channel === ch.id
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
+                  : "border-[var(--habit-border)]/40 text-muted-foreground hover:border-[var(--habit-border)]"
               }`}
             >
               <span className="mr-1">{ch.icon}</span>{ch.labelKey ? t(`notifications_panel.${ch.labelKey}`) : ch.label}
@@ -219,7 +219,7 @@ export default function NotificationsPanel() {
         </button>
         <button
           onClick={() => toggleAll(false)}
-          className="flex-1 py-2 rounded-lg border border-border text-muted-foreground font-mono text-xs hover:bg-accent transition-colors"
+          className="flex-1 py-2 rounded-lg border border-[var(--habit-border)] text-muted-foreground font-mono text-xs hover:bg-accent transition-colors"
         >
           {t('notifications_panel.disable_all')}
         </button>
@@ -232,7 +232,7 @@ export default function NotificationsPanel() {
             key={notif.id}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center justify-between p-3 rounded-xl border border-border bg-card"
+            className="flex items-center justify-between p-3 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)]"
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">{notif.icon}</span>
@@ -245,7 +245,7 @@ export default function NotificationsPanel() {
               className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
                 notifications[notif.id] !== false
                   ? "border-green-500/40 bg-green-500/10 text-green-400"
-                  : "border-border/40 text-muted-foreground"
+                  : "border-[var(--habit-border)]/40 text-muted-foreground"
               }`}
             >
               {notifications[notif.id] !== false ? "ON" : "OFF"}

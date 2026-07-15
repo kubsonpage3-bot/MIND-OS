@@ -107,7 +107,7 @@ export default function GameplayPanel() {
       </div>
 
       {/* Week Start */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.weekStartDay')}</span>
@@ -121,7 +121,7 @@ export default function GameplayPanel() {
               className={`flex-1 py-2 text-xs font-mono rounded border transition-all ${
                 gameplay.weekStart === opt.id
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
+                  : "border-[var(--habit-border)]/40 text-muted-foreground hover:border-[var(--habit-border)]"
               }`}
             >
               {t(`settings.weekday_${opt.id}`, opt.label)}
@@ -131,7 +131,7 @@ export default function GameplayPanel() {
       </div>
 
       {/* Custom Day Start */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Timer className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.customDayStart')}</span>
@@ -139,7 +139,7 @@ export default function GameplayPanel() {
         <p className="text-[10px] text-muted-foreground/70">{t('settings.customDayStartDesc')}</p>
         <button
           onClick={() => setShowTimePicker(true)}
-          className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
+          className="w-full px-3 py-2.5 rounded-lg border border-[var(--habit-border)] bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
         >
           <span>{gameplay.dayStart || "00:00"}</span>
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -153,7 +153,7 @@ export default function GameplayPanel() {
                 className={`py-3 text-sm font-mono rounded-lg border transition-all ${
                   (gameplay.dayStart || "00:00") === t
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-border/40 text-muted-foreground hover:border-border"
+                    : "border-[var(--habit-border)]/40 text-muted-foreground hover:border-[var(--habit-border)]"
                 }`}
               >
                 {t}
@@ -164,7 +164,7 @@ export default function GameplayPanel() {
       </div>
 
       {/* Timezone Setting */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.timezone')}</span>
@@ -172,7 +172,7 @@ export default function GameplayPanel() {
         <p className="text-[10px] text-muted-foreground/70">{t('settings.timezoneDesc')}</p>
         <button
           onClick={() => setShowTzPicker(true)}
-          className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
+          className="w-full px-3 py-2.5 rounded-lg border border-[var(--habit-border)] bg-background text-foreground font-mono text-sm flex items-center justify-between hover:border-primary/50 transition-colors"
         >
           <span>
             {profile?.timezone 
@@ -193,7 +193,7 @@ export default function GameplayPanel() {
                 className={`py-3 px-4 text-sm font-mono rounded-lg border transition-all text-left ${
                   (profile?.timezone || "UTC") === t.id
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-border/40 text-muted-foreground hover:border-border"
+                    : "border-[var(--habit-border)]/40 text-muted-foreground hover:border-[var(--habit-border)]"
                 }`}
               >
                 {t.label} <span className="text-[10px] opacity-50 ml-2">({t.id})</span>
@@ -206,7 +206,7 @@ export default function GameplayPanel() {
 
 
       {/* Boss Difficulty */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3 relative overflow-hidden" style={{ borderColor: "rgba(240,192,64,0.3)", background: "linear-gradient(to bottom, rgba(15,10,20,0.5), rgba(10,5,15,0.8))" }}>
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3 relative overflow-hidden" style={{ borderColor: "rgba(240,192,64,0.3)", background: "linear-gradient(to bottom, rgba(15,10,20,0.5), rgba(10,5,15,0.8))" }}>
         <div className="flex items-center gap-2">
           <Swords className="w-4 h-4" style={{ color: "#f0c040" }} />
           <span className="font-mono text-xs font-bold">{t('settings.bossDifficulty')}</span>
@@ -240,7 +240,7 @@ export default function GameplayPanel() {
       </div>
 
       {/* Change Class */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <UserCog className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.changeClass')}</span>

@@ -3,6 +3,7 @@ import { Palette, Type, Volume2, VolumeX, Waves, Smartphone } from "lucide-react
 import { THEMES, applyTheme } from "@/lib/themes";
 import { ACCENT_PALETTES, applyAppearanceSettings } from "@/lib/applyAppearance";
 import { useTranslation } from "react-i18next";
+import { saveSettings } from "@/utils/settings";
 
 export default function AppearancePanel() {
   const { t } = useTranslation();
@@ -13,7 +14,7 @@ export default function AppearancePanel() {
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
-    localStorage.setItem("mindos_settings", JSON.stringify(newSettings));
+    saveSettings(newSettings);
     applyAppearanceSettings(newSettings);
     if (key === "theme") applyTheme(value);
   };
@@ -31,7 +32,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* Theme */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Palette className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.themeTitle')}</span>
@@ -47,7 +48,7 @@ export default function AppearancePanel() {
                 className={`relative overflow-hidden rounded-xl border-2 transition-all text-left ${
                   isActive
                     ? "border-primary shadow-lg shadow-primary/30 scale-[1.03]"
-                    : "border-border/40 hover:border-border hover:scale-[1.01]"
+                    : "border-[var(--habit-border)]/40 hover:border-[var(--habit-border)] hover:scale-[1.01]"
                 }`}
                 style={{ minHeight: 80 }}
               >
@@ -96,7 +97,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* Accent Palette */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Waves className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.accentPalette')}</span>
@@ -112,7 +113,7 @@ export default function AppearancePanel() {
                 className={`w-full p-3 rounded-lg border transition-all text-left ${
                   settings.accentPalette === palette.id
                     ? "border-primary bg-primary/10"
-                    : "border-border/40 hover:border-border"
+                    : "border-[var(--habit-border)]/40 hover:border-[var(--habit-border)]"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -130,7 +131,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* UI Scale */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Type className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.uiScale')}</span>
@@ -144,7 +145,7 @@ export default function AppearancePanel() {
               className={`px-3 py-1.5 text-[10px] font-mono rounded border transition-all ${
                 (settings.zoom || 1.0) === zoom
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
+                  : "border-[var(--habit-border)]/40 text-muted-foreground hover:border-[var(--habit-border)]"
               }`}
             >
               {Math.round(zoom * 100)}%
@@ -154,7 +155,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* Font Size */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center gap-2">
           <Type className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono text-xs font-bold">{t('settings.fontSize')}</span>
@@ -168,7 +169,7 @@ export default function AppearancePanel() {
               className={`flex-1 py-2 text-xs font-mono rounded border transition-all ${
                 (settings.fontSize || "medium") === size
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/40 text-muted-foreground hover:border-border"
+                  : "border-[var(--habit-border)]/40 text-muted-foreground hover:border-[var(--habit-border)]"
               }`}
             >
               {t(`settings.fontSize_${size}`)}
@@ -178,7 +179,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* Reduce Animations */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Waves className="w-3.5 h-3.5 text-muted-foreground" />
@@ -189,7 +190,7 @@ export default function AppearancePanel() {
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
               settings.reduceMotion
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
+                : "border-[var(--habit-border)]/40 text-muted-foreground"
             }`}
           >
             {settings.reduceMotion ? t('settings.on') : t('settings.off')}
@@ -199,7 +200,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* Sound */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Volume2 className="w-3.5 h-3.5 text-muted-foreground" />
@@ -210,7 +211,7 @@ export default function AppearancePanel() {
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all flex items-center gap-1 ${
               settings.soundEnabled !== false
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
+                : "border-[var(--habit-border)]/40 text-muted-foreground"
             }`}
           >
             {settings.soundEnabled !== false ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
@@ -231,7 +232,7 @@ export default function AppearancePanel() {
       </div>
 
       {/* Haptics */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="w-3.5 h-3.5 text-muted-foreground" />
@@ -242,7 +243,7 @@ export default function AppearancePanel() {
             className={`px-3 py-1.5 text-xs font-mono rounded border transition-all ${
               settings.hapticsEnabled
                 ? "border-green-500/40 bg-green-500/10 text-green-400"
-                : "border-border/40 text-muted-foreground"
+                : "border-[var(--habit-border)]/40 text-muted-foreground"
             }`}
           >
             {settings.hapticsEnabled ? t('settings.on') : t('settings.off')}

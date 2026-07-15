@@ -268,7 +268,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const selectedNode = GRAPH_DATA.nodes.find(n => n.id === selectedNodeId);
 
   return (
-    <div className="relative flex flex-col h-[600px] bg-[#0a0a0f] rounded-xl overflow-hidden border border-border/10">
+    <div className="relative flex flex-col h-[600px] bg-[var(--habit-panel)] rounded-xl overflow-hidden border border-[var(--habit-border)]/10">
       
       {/* Header Overlay */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-[#0a0a0f] to-transparent pointer-events-none">
@@ -316,7 +316,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       {/* Canvas Area or Mobile Accordion */}
       {isMobile ? (
         <div 
-          className="flex-1 overflow-y-auto p-4 pt-16 pb-4 space-y-3 bg-[#0a0a0f]"
+          className="flex-1 overflow-y-auto p-4 pt-16 pb-4 space-y-3 bg-[var(--habit-panel)]"
           onPointerDownCapture={(e) => e.stopPropagation()}
           onTouchStartCapture={(e) => e.stopPropagation()}
         >
@@ -327,7 +327,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
             return (
               <div 
                 key={branchKey} 
-                className="border border-border/20 rounded-xl overflow-hidden bg-[#12121a] transition-all duration-300"
+                className="border border-[var(--habit-border)]/20 rounded-xl overflow-hidden bg-[var(--habit-bg)] transition-all duration-300"
                 style={{ borderColor: isExpanded ? `${branch.color}30` : 'rgba(255,255,255,0.05)' }}
               >
                 {/* Accordion Header */}
@@ -442,7 +442,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                                 
                                 {/* Mastered Checkmark Badge */}
                                 {showCheckmark && (
-                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-zinc-900 border border-[#c99a2e] rounded-full flex items-center justify-center">
+                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[var(--habit-panel)] border border-[#c99a2e] rounded-full flex items-center justify-center">
                                     <Check className="w-2.5 h-2.5 text-[#c99a2e]" strokeWidth={3} />
                                   </div>
                                 )}
@@ -667,7 +667,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                       
                       {/* Mastered Checkmark Badge */}
                       {showCheckmark && !node.isStart && (
-                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-zinc-900 border-2 border-[#c99a2e] rounded-full flex items-center justify-center">
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-[var(--habit-panel)] border-2 border-[#c99a2e] rounded-full flex items-center justify-center">
                           <Check className="w-4 h-4 text-[#c99a2e]" strokeWidth={3} />
                         </div>
                       )}
@@ -804,7 +804,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setShowRespec(false)}
-                  className="flex-1 py-2 rounded-lg border text-xs font-mono text-muted-foreground border-border/50 hover:bg-accent/20">
+                  className="flex-1 py-2 rounded-lg border text-xs font-mono text-muted-foreground border-[var(--habit-border)]/50 hover:bg-accent/20">
                   {t('skill_tree.btn_cancel')}
                 </button>
                 <button
@@ -843,12 +843,12 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
                 placeholder={t('skill_tree.preset_placeholder')}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-muted/20 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50"
+                className="w-full px-3 py-2 rounded-lg border border-[var(--habit-border)] bg-muted/20 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50"
                 onKeyDown={e => e.key === "Enter" && savePreset()}
               />
               <div className="flex gap-2">
                 <button onClick={() => setShowPresetSave(false)}
-                  className="flex-1 py-2 rounded-lg border text-xs font-mono text-muted-foreground border-border/50 hover:bg-accent/20">
+                  className="flex-1 py-2 rounded-lg border text-xs font-mono text-muted-foreground border-[var(--habit-border)]/50 hover:bg-accent/20">
                   {t('skill_tree.btn_cancel')}
                 </button>
                 <button

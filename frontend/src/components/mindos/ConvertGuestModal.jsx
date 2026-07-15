@@ -52,9 +52,9 @@ export default function ConvertGuestModal({ isOpen, onClose }) {
             initial={{ scale: 0.95, y: 10 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 10 }}
-            className="w-full max-w-md bg-slate-900 border border-amber-500/30 rounded-xl overflow-hidden shadow-2xl"
+            className="w-full max-w-md bg-[var(--habit-panel)] border border-amber-500/30 rounded-xl overflow-hidden shadow-2xl"
           >
-            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--habit-border)] bg-[var(--habit-panel)]/50">
               <h2 className="text-lg font-mono font-bold text-amber-500 uppercase tracking-widest">
                 {t('guest.upgrade_title')}
               </h2>

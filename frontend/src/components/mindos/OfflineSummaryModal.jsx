@@ -70,7 +70,7 @@ export default function OfflineSummaryModal({ profile }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800 text-zinc-100" aria-describedby="offline-summary-desc">
+      <DialogContent className="sm:max-w-md bg-[var(--habit-panel)] border-[var(--habit-border)] text-zinc-100" aria-describedby="offline-summary-desc">
         <DialogHeader>
           <DialogTitle className="text-xl font-black text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
             WHILE YOU WERE OFFLINE

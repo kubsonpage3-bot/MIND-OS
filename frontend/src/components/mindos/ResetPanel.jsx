@@ -153,7 +153,7 @@ export default function ResetPanel() {
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="p-4 rounded-xl border border-border bg-card space-y-3"
+          className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3"
         >
           <div className="flex items-center gap-2">
             <Activity className="w-3.5 h-3.5 text-muted-foreground" />
@@ -172,7 +172,7 @@ export default function ResetPanel() {
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="p-4 rounded-xl border border-border bg-card space-y-3"
+          className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3"
         >
           <div className="flex items-center gap-2">
             <Archive className="w-3.5 h-3.5 text-muted-foreground" />
@@ -182,7 +182,7 @@ export default function ResetPanel() {
           <button
             onClick={resetStreak}
             disabled={resetting}
-            className="w-full py-2 rounded-lg border border-border text-muted-foreground font-mono text-xs hover:bg-accent transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg border border-[var(--habit-border)] text-muted-foreground font-mono text-xs hover:bg-accent transition-colors disabled:opacity-50"
           >
             {resetting ? "Resetting..." : "Reset Streak"}
           </button>
@@ -192,7 +192,7 @@ export default function ResetPanel() {
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.05 }}
-          className="p-4 rounded-xl border border-border bg-card space-y-3"
+          className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3"
         >
           <div className="flex items-center gap-2">
             <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
@@ -215,7 +215,7 @@ export default function ResetPanel() {
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-4 rounded-xl border border-border bg-card space-y-3"
+          className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3"
         >
           <div className="flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-muted-foreground" />
@@ -235,7 +235,7 @@ export default function ResetPanel() {
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.15 }}
-          className="p-4 rounded-xl border border-border bg-card space-y-3"
+          className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3"
         >
           <div className="flex items-center gap-2">
             <Brain className="w-3.5 h-3.5 text-muted-foreground" />
