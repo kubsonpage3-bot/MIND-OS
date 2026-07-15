@@ -31,7 +31,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
+          if (cache.startsWith('mind-os-cache-') && cache !== CACHE_NAME) {
             return caches.delete(cache);
           }
         })

@@ -99,9 +99,19 @@
             return;
           }
 
+          const hasController = !!navigator.serviceWorker.controller;
           navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('Service Worker registered successfully:', reg.scope))
             .catch(err => console.error('Service Worker registration failed:', err));
+
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            if (hasController) {
+              refreshing = true;
+              window.location.reload();
+            }
+          });
         });
       }
     </script>
