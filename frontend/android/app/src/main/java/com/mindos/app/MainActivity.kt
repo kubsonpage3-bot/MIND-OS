@@ -6,8 +6,8 @@ import com.getcapacitor.BridgeActivity
 
 class MainActivity : BridgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        registerPlugin(WidgetSyncPlugin::class.java)
         super.onCreate(savedInstanceState)
+        registerPlugin(WidgetSyncPlugin::class.java)
         WindowCompat.setDecorFitsSystemWindows(window, false)
     }
 }
