@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-15",
+        "version": "1.5.9",
+        "changes": [
+            {
+                "text": "Fixed a layout inflation crash causing the stats home screen widget to display an error screen on some Android launchers.",
+                "type": "fix"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-15",
         "version": "1.5.8",
         "changes": [
             {

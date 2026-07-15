@@ -15,10 +15,11 @@
         android:contentDescription="Wallpaper" />
 
     <!-- Dark Overlay to ensure text readability -->
-    <View
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#B3121216" />
+        android:background="#B3121216"
+        android:contentDescription="" />
 
     <!-- Inner content layout -->
     <LinearLayout
@@ -67,7 +68,7 @@
                 android:text="HP: 0/0"
                 android:textColor="#FF4A4A"
                 android:textSize="11sp"
-                android:fontFamily="@font/pixeloid_sans"
+                android:typeface="monospace"
                 android:textStyle="bold" />
             <ProgressBar
                 android:id="@+id/widget_hp_progress"
@@ -86,7 +87,7 @@
                 android:text="MP: 0/0"
                 android:textColor="#3D72DE"
                 android:textSize="11sp"
-                android:fontFamily="@font/pixeloid_sans"
+                android:typeface="monospace"
                 android:textStyle="bold" />
             <ProgressBar
                 android:id="@+id/widget_mp_progress"
@@ -105,7 +106,7 @@
                 android:text="XP: 0/0"
                 android:textColor="#CBA135"
                 android:textSize="11sp"
-                android:fontFamily="@font/pixeloid_sans"
+                android:typeface="monospace"
                 android:textStyle="bold" />
             <ProgressBar
                 android:id="@+id/widget_xp_progress"
