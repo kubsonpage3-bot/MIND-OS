@@ -344,7 +344,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
 
   const unequip = (slot) => {
     playSound('click');
-    const eqId = rawEquipped[slot]?.id || rawEquipped[slot];
+    const eq = equipped[slot];
+    const eqId = eq?.id;
     if (eqId) {
       djangoApi.inventory.equip(eqId).then(() => {
         queryClient.invalidateQueries({ queryKey: ["userprofile"] });
