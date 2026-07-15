@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
+import { rawTasksQueryKey } from '@/constants/queryKeys';
 
 const DISMISS_COOLDOWN_MS = 48 * 60 * 60 * 1000; // 48 hours
 const GLOBAL_GRACE_PERIOD_MS = 60 * 60 * 1000; // 1 hour
@@ -27,9 +28,9 @@ export function useGameplayInsights() {
     enabled: !!profile,
   });
 
-  // Fetch tasks
+  // Fetch tasks (using a distinct queryKey to avoid clashing with Dashboard's mapped ["tasks"] query)
   const { data: tasksData } = useQuery({
-    queryKey: ['tasks'],
+    queryKey: rawTasksQueryKey('raw'),
     queryFn: djangoApi.tasks.list,
     enabled: !!profile,
   });
@@ -155,7 +156,11 @@ export function useGameplayInsights() {
 
     // 4. Streak / Dailies at Risk
     const currentHour = new Date().getHours();
-    const hasUnfinishedDailies = tasks.some(t => t.type === 'daily' && !t.completed);
+    const hasUnfinishedDailies = tasks.some(t => {
+      const isDaily = t.type === 'daily' || t.task_type === 'daily';
+      const isCompleted = t.is_completed || t.completed || t.done || false;
+      return isDaily && !isCompleted;
+    });
     if (currentHour >= 20 && hasUnfinishedDailies) {
       if (!isDismissed('dailies_risk')) {
         return {

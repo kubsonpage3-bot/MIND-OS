@@ -10,6 +10,7 @@ import { djangoFetch } from "@/api/djangoClient";
 import { toast } from "@/components/ui/use-toast";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { cn } from "@/lib/utils";
+import { rawTasksQueryKey } from "@/constants/queryKeys";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -141,11 +142,11 @@ export default function CalendarPanel() {
   const [showForm, setShowForm] = useState(false);
   const todayStr = getLocalDateStr(new Date());
 
-  // WARNING: Use ["tasks", "calendar"] to avoid clashing with Dashboard's mapped ["tasks"] cache entry.
+  // WARNING: Use rawTasksQueryKey("calendar") (["tasks", "calendar"]) to avoid clashing with Dashboard's mapped ["tasks"] cache entry.
   // Prefix invalidation on ["tasks"] will still automatically trigger invalidation for this query.
   // Note: Any new backend fields must be updated in Dashboard's query mapping as well.
   const { data: tasks = [] } = useQuery({
-    queryKey: ["tasks", "calendar"],
+    queryKey: rawTasksQueryKey("calendar"),
     queryFn: () => djangoFetch("/tasks/").then(data => {
       return Array.isArray(data) ? data : (data?.results || []);
     }),

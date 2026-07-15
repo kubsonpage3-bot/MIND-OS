@@ -29,6 +29,7 @@ import SettingsPanel from "@/components/mindos/SettingsPanel";
 import PremiumUpgradeModal from "@/components/mindos/PremiumUpgradeModal";
 import { modalStack } from "@/utils/modalStack";
 import { isMobileApp } from "@/utils/platformUtils";
+import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
 
@@ -738,9 +739,16 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   // WARNING: If you add any new fields to the backend Task model, you MUST add them to this
   // mapping list, otherwise they will be silently stripped out in the dashboard task cache.
-  // The Calendar raw tasks query ["tasks", "calendar"] should also consume them raw.
+  //
+  // CRITICAL CACHE RULES:
+  // - queryKey: TASKS_QUERY_KEY (["tasks"]) is strictly reserved for the mapped dashboard task list.
+  // - Do NOT consume raw tasks on this key. Raw task list queries must use a sub-key to avoid cache collision:
+  //   - ["tasks", "calendar"] in CalendarPanel.jsx
+  //   - ["tasks", "raw"] in useGameplayInsights.js
+  // - Any NEW hook/component needing raw task data must use rawTasksQueryKey("<feature>") from @/constants/queryKeys.
+  // - Invalidation on TASKS_QUERY_KEY (["tasks"]) automatically invalidates all sub-keys.
   const { data: tasks = [] } = useQuery({
-    queryKey: ["tasks"],
+    queryKey: TASKS_QUERY_KEY,
     queryFn: async () => {
       const djangoTasks = await djangoApi.tasks.list();
       const tasksArray = Array.isArray(djangoTasks) ? djangoTasks : (djangoTasks?.results || []);
