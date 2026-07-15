@@ -1,6 +1,16 @@
 [
     {
         "date": "2026-07-15",
+        "version": "1.5.6",
+        "changes": [
+            {
+                "text": "Added a native Android home screen widget displaying player stats (HP, MP, XP) and avatar.",
+                "type": "feature"
+            }
+        ]
+    },
+    {
+        "date": "2026-07-15",
         "version": "1.5.5",
         "changes": [
             {

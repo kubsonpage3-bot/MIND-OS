@@ -29,6 +29,7 @@ const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
 import { isMobileApp } from "@/utils/platformUtils";
+import { syncWidgetStats } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
@@ -545,6 +546,28 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   const profileLoading = djangoProfileLoading || !profile;
 
+  // Synchronize stats to Android Home Screen Widget
+  useEffect(() => {
+    if (profile) {
+      const thresholds = profile.rank_info?.thresholds || [];
+      const currentRankId = profile.rank_info?.current_id || "F";
+      const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
+      const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
+      const nextMin = (currentIdx >= 0 && currentIdx < thresholds.length - 1)
+        ? thresholds[currentIdx + 1].min
+        : 10000;
+
+      syncWidgetStats({
+        hp: profile.hp || 0,
+        max_hp: profile.max_hp || 100,
+        mp: profile.mana || 0,
+        max_mp: profile.mana_max || 100,
+        xp: Math.max(0, (profile.rank_xp || 0) - currentMin),
+        max_xp: Math.max(1, nextMin - currentMin),
+        avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
+      });
+    }
+  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class]);
 
   const updateProfile = useMutation({
     /**
