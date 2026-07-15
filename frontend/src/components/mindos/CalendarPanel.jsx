@@ -8,6 +8,8 @@ import CalendarSyncPanel from "@/components/mindos/CalendarSyncPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoFetch } from "@/api/djangoClient";
 import { toast } from "@/components/ui/use-toast";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { cn } from "@/lib/utils";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -61,9 +63,8 @@ function EventBlock({ event, colDate, handlers }) {
     <div
       onPointerDown={(e) => { if (!isTask && !isPending && e.button === 0) onDragStart(e, event, colDate); }}
       onDoubleClick={(e) => { e.stopPropagation(); if (!isTask && !isPending) openEdit(event); }}
-      className={`absolute left-0.5 right-0.5 rounded-lg overflow-hidden select-none group z-10 ${
-        isTask ? 'cursor-default' : isPending ? 'cursor-not-allowed opacity-50 animate-pulse' : 'cursor-grab'
-      }`}
+      className={`absolute left-0.5 right-0.5 rounded-lg overflow-hidden select-none group z-10 ${isTask ? 'cursor-default' : isPending ? 'cursor-not-allowed opacity-50 animate-pulse' : 'cursor-grab'
+        }`}
       style={{
         top, height,
         backgroundColor: event.color + "22",
@@ -72,14 +73,14 @@ function EventBlock({ event, colDate, handlers }) {
         touchAction: isPending ? "auto" : "none"
       }}
     >
-      <div className="px-1.5 py-1 h-full flex flex-col justify-between">
+      <div className={cn('px-1.5', 'py-1', 'h-full', 'flex', 'flex-col', 'justify-between')}>
         <div>
-          <div className="flex items-center gap-1">
+          <div className={cn('flex', 'items-center', 'gap-1')}>
             {isTask && <span className="text-[8px]">✓</span>}
             <div className={`text-[10px] font-bold leading-tight truncate ${isTask ? 'text-foreground' : 'text-foreground'}`}>{event.title}</div>
           </div>
           {height > 28 && (
-            <div className="text-[9px] text-muted-foreground font-mono mt-0.5">
+            <div className={cn('text-[9px]', 'text-muted-foreground', 'font-mono', 'mt-0.5')}>
               {event.startTime}–{event.endTime}
             </div>
           )}
@@ -89,16 +90,16 @@ function EventBlock({ event, colDate, handlers }) {
         <>
           <div
             onPointerDown={(e) => { e.stopPropagation(); onResizeStart(e, event); }}
-            className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className={cn('absolute', 'bottom-0', 'left-0', 'right-0', 'h-2', 'cursor-ns-resize', 'flex', 'items-center', 'justify-center', 'opacity-0', 'group-hover:opacity-100', 'transition-opacity')}
             style={{ touchAction: "none" }}
           >
-            <div className="w-8 h-0.5 rounded-full bg-foreground/30" />
+            <div className={cn('w-8', 'h-0.5', 'rounded-full', 'bg-foreground/30')} />
           </div>
           <button
             onPointerDown={(e) => { e.stopPropagation(); deleteEvent(event.id); }}
-            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity w-4 h-4 flex items-center justify-center rounded text-muted-foreground hover:text-foreground"
+            className={cn('absolute', 'top-0.5', 'right-0.5', 'opacity-0', 'group-hover:opacity-100', 'transition-opacity', 'w-4', 'h-4', 'flex', 'items-center', 'justify-center', 'rounded', 'text-muted-foreground', 'hover:text-foreground')}
           >
-            <X className="w-2.5 h-2.5" />
+            <X className={cn('w-2.5', 'h-2.5')} />
           </button>
         </>
       )}
@@ -118,10 +119,10 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers }) {
       onClick={(e) => onGridClick(e, dateStr)}
     >
       {HOURS.map(h => (
-        <div key={h} className="absolute left-0 right-0 border-t border-border/20 pointer-events-none" style={{ top: h * HOUR_PX }} />
+        <div key={h} className={cn('absolute', 'left-0', 'right-0', 'border-t', 'border-border/20', 'pointer-events-none')} style={{ top: h * HOUR_PX }} />
       ))}
       {HOURS.map(h => (
-        <div key={`h${h}`} className="absolute left-0 right-0 border-t border-border/10 pointer-events-none" style={{ top: h * HOUR_PX + HOUR_PX / 2 }} />
+        <div key={`h${h}`} className={cn('absolute', 'left-0', 'right-0', 'border-t', 'border-border/10', 'pointer-events-none')} style={{ top: h * HOUR_PX + HOUR_PX / 2 }} />
       ))}
       {dayEvents.map(ev => (
         <EventBlock key={ev.id} event={ev} colDate={colDate} handlers={handlers} />
@@ -132,6 +133,7 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers }) {
 
 export default function CalendarPanel() {
   const queryClient = useQueryClient();
+  const { profile: djangoProfile } = useDjangoAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("week");
   const [events, setEvents] = useState([]);
@@ -144,12 +146,18 @@ export default function CalendarPanel() {
   // Note: Any new backend fields must be updated in Dashboard's query mapping as well.
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks", "calendar"],
-    queryFn: () => djangoFetch("/tasks/").then(data => data.results || data || []),
+    queryFn: () => djangoFetch("/tasks/").then(data => {
+      return Array.isArray(data) ? data : (data?.results || []);
+    }),
+    enabled: !!djangoProfile,
   });
 
   const { data: apiEvents = [] } = useQuery({
     queryKey: ["calendar-events"],
-    queryFn: () => djangoFetch("/calendar/events/").then(data => data.results || data || []),
+    queryFn: () => djangoFetch("/calendar/events/").then(data => {
+      return Array.isArray(data) ? data : (data?.results || []);
+    }),
+    enabled: !!djangoProfile,
   });
 
   // Sync local events state with API data when it loads
@@ -198,7 +206,7 @@ export default function CalendarPanel() {
     mutationFn: (id) => djangoFetch(`/calendar/events/${id}/`, { method: "DELETE" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] })
   });
-  
+
   const CATEGORY_COLORS = {
     STEM: "#3b82f6",
     Languages: "#00cc88",
@@ -367,13 +375,13 @@ export default function CalendarPanel() {
     const onUp = () => {
       if (dragRef.current) {
         if (dragRef.current || resizeRef.current) {
-        const evId = dragRef.current ? dragRef.current.eventId : resizeRef.current.eventId;
-        setEvents(prev => {
-          const ev = prev.find(e => e.id === evId);
-          if (ev && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
-          return prev;
-        });
-      }
+          const evId = dragRef.current ? dragRef.current.eventId : resizeRef.current.eventId;
+          setEvents(prev => {
+            const ev = prev.find(e => e.id === evId);
+            if (ev && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
+            return prev;
+          });
+        }
       }
       dragRef.current = null;
       window.removeEventListener("pointermove", onMove);
@@ -444,37 +452,37 @@ export default function CalendarPanel() {
   const currentDateStr = getLocalDateStr(currentDate);
 
   return (
-    <div className="space-y-3 select-none">
+    <div className={cn('space-y-3', 'select-none')}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <button onClick={goToPrev} className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+      <div className={cn('flex', 'items-center', 'justify-between', 'gap-3', 'flex-wrap')}>
+        <div className={cn('flex', 'items-center', 'gap-2')}>
+          <button onClick={goToPrev} className={cn('w-7', 'h-7', 'flex', 'items-center', 'justify-center', 'rounded-lg', 'border', 'border-border', 'hover:bg-accent', 'transition-colors')}>
+            <ChevronLeft className={cn('w-4', 'h-4')} />
           </button>
-          <span className="font-mono text-sm font-bold min-w-[160px] text-center">
+          <span className={cn('font-mono', 'text-sm', 'font-bold', 'min-w-[160px]', 'text-center')}>
             {view === "day"
               ? currentDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })
               : `${weekDays[0].getDate()} – ${weekDays[6].getDate()} ${currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`
             }
           </span>
-          <button onClick={goToNext} className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors">
-            <ChevronRight className="w-4 h-4" />
+          <button onClick={goToNext} className={cn('w-7', 'h-7', 'flex', 'items-center', 'justify-center', 'rounded-lg', 'border', 'border-border', 'hover:bg-accent', 'transition-colors')}>
+            <ChevronRight className={cn('w-4', 'h-4')} />
           </button>
-          <button onClick={() => setCurrentDate(new Date())} className="px-2 py-1 text-[10px] font-mono border border-border rounded hover:bg-accent transition-colors text-muted-foreground">
+          <button onClick={() => setCurrentDate(new Date())} className={cn('px-2', 'py-1', 'text-[10px]', 'font-mono', 'border', 'border-border', 'rounded', 'hover:bg-accent', 'transition-colors', 'text-muted-foreground')}>
             TODAY
           </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className={cn('flex', 'items-center', 'gap-2')}>
           <Button
             onClick={() => setShowSyncPanel(!showSyncPanel)}
             variant="outline"
             size="sm"
-            className="text-xs font-mono"
+            className={cn('text-xs', 'font-mono')}
           >
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className={cn('w-3', 'h-3')} />
             Sync Tasks
           </Button>
-          <div className="flex gap-1 border border-border rounded-lg p-1">
+          <div className={cn('flex', 'gap-1', 'border', 'border-border', 'rounded-lg', 'p-1')}>
             {["day", "week"].map(v => (
               <button key={v} onClick={() => setView(v)}
                 className={`px-3 py-1 text-xs font-mono rounded transition-colors ${view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
@@ -483,9 +491,9 @@ export default function CalendarPanel() {
           </div>
           <button
             onClick={() => { setEditingEvent(null); setNewEvent({ title: "", description: "", date: currentDateStr, startTime: "09:00", endTime: "10:00", color: "#3b82f6" }); setShowForm(true); }}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+            className={cn('flex', 'items-center', 'gap-1', 'px-3', 'py-1.5', 'text-xs', 'font-mono', 'bg-primary', 'text-primary-foreground', 'rounded-lg', 'hover:opacity-90', 'transition-opacity')}
           >
-            <Plus className="w-3.5 h-3.5" /> Event
+            <Plus className={cn('w-3.5', 'h-3.5')} /> Event
           </button>
         </div>
       </div>
@@ -501,22 +509,22 @@ export default function CalendarPanel() {
         </motion.div>
       )}
 
-      <p className="text-[10px] font-mono text-muted-foreground/40 text-center">Drag events · Double-click to edit · Drag bottom edge to resize</p>
+      <p className={cn('text-[10px]', 'font-mono', 'text-muted-foreground/40', 'text-center')}>Drag events · Double-click to edit · Drag bottom edge to resize</p>
 
       {/* Grid */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className={cn('rounded-xl', 'border', 'border-border', 'bg-card', 'overflow-hidden')}>
         <div className="overflow-y-auto" style={{ maxHeight: "70vh" }} ref={scrollRef}>
           {view === "day" && (
-            <div className="flex relative">
+            <div className={cn('flex', 'relative')}>
               {/* Hour labels */}
-              <div className="w-14 shrink-0 relative" style={{ height: HOUR_PX * 24 }}>
+              <div className={cn('w-14', 'shrink-0', 'relative')} style={{ height: HOUR_PX * 24 }}>
                 {HOURS.map(h => (
-                  <div key={h} className="absolute text-[9px] font-mono text-muted-foreground/50 text-right pr-2 w-full" style={{ top: h * HOUR_PX - 6 }}>
+                  <div key={h} className={cn('absolute', 'text-[9px]', 'font-mono', 'text-muted-foreground/50', 'text-right', 'pr-2', 'w-full')} style={{ top: h * HOUR_PX - 6 }}>
                     {String(h).padStart(2, "0")}:00
                   </div>
                 ))}
               </div>
-              <div className="flex-1 relative" ref={gridRef}>
+              <div className={cn('flex-1', 'relative')} ref={gridRef}>
                 <DayColumn dateStr={currentDateStr} colDate={currentDateStr} getDayEvents={getDayEvents} handlers={handlers} />
               </div>
             </div>
@@ -525,14 +533,14 @@ export default function CalendarPanel() {
           {view === "week" && (
             <div>
               {/* Day headers */}
-              <div className="grid sticky top-0 z-20 bg-card border-b border-border" style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }}>
+              <div className={cn('grid', 'sticky', 'top-0', 'z-20', 'bg-card', 'border-b', 'border-border')} style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }}>
                 <div />
                 {weekDays.map((day, i) => {
                   const ds = getLocalDateStr(day);
                   const isToday = ds === todayStr;
                   return (
-                    <div key={i} className="text-center py-2 border-l border-border/30">
-                      <div className="text-[10px] font-mono text-muted-foreground">{DAYS_EN[i]}</div>
+                    <div key={i} className={cn('text-center', 'py-2', 'border-l', 'border-border/30')}>
+                      <div className={cn('text-[10px]', 'font-mono', 'text-muted-foreground')}>{DAYS_EN[i]}</div>
                       <div className={`text-sm font-bold mx-auto w-7 h-7 flex items-center justify-center rounded-full ${isToday ? "bg-primary text-primary-foreground" : "text-foreground"}`}>
                         {day.getDate()}
                       </div>
@@ -542,11 +550,11 @@ export default function CalendarPanel() {
               </div>
 
               {/* Week grid */}
-              <div className="grid relative" style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }} ref={gridRef}>
+              <div className={cn('grid', 'relative')} style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }} ref={gridRef}>
                 {/* Hour labels */}
                 <div className="relative" style={{ height: HOUR_PX * 24 }}>
                   {HOURS.map(h => (
-                    <div key={h} className="absolute text-[9px] font-mono text-muted-foreground/50 text-right pr-2 w-full" style={{ top: h * HOUR_PX - 6 }}>
+                    <div key={h} className={cn('absolute', 'text-[9px]', 'font-mono', 'text-muted-foreground/50', 'text-right', 'pr-2', 'w-full')} style={{ top: h * HOUR_PX - 6 }}>
                       {String(h).padStart(2, "0")}:00
                     </div>
                   ))}
@@ -555,7 +563,7 @@ export default function CalendarPanel() {
                 {weekDays.map((day, i) => {
                   const ds = getLocalDateStr(day);
                   return (
-                    <div key={i} className="border-l border-border/30" data-day-col={ds}>
+                    <div key={i} className={cn('border-l', 'border-border/30')} data-day-col={ds}>
                       <DayColumn dateStr={ds} colDate={ds} getDayEvents={getDayEvents} handlers={handlers} />
                     </div>
                   );
@@ -571,34 +579,34 @@ export default function CalendarPanel() {
         {showForm && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            className={cn('fixed', 'inset-0', 'z-50', 'flex', 'items-center', 'justify-center', 'bg-black/80', 'p-4')}
           >
             <motion.div
               initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
-              className="bg-card border border-border rounded-2xl p-6 max-w-md w-full space-y-4"
+              className={cn('bg-card', 'border', 'border-border', 'rounded-2xl', 'p-6', 'max-w-md', 'w-full', 'space-y-4')}
             >
-              <div className="flex items-center justify-between">
-                <h3 className="font-mono font-bold text-sm">{editingEvent ? "EDIT EVENT" : "NEW EVENT"}</h3>
-                <button onClick={() => { setShowForm(false); setEditingEvent(null); }}><X className="w-4 h-4 text-muted-foreground" /></button>
+              <div className={cn('flex', 'items-center', 'justify-between')}>
+                <h3 className={cn('font-mono', 'font-bold', 'text-sm')}>{editingEvent ? "EDIT EVENT" : "NEW EVENT"}</h3>
+                <button onClick={() => { setShowForm(false); setEditingEvent(null); }}><X className={cn('w-4', 'h-4', 'text-muted-foreground')} /></button>
               </div>
 
               <Input placeholder="Title" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} className="font-mono" autoFocus />
-              <Textarea placeholder="Description (optional)" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className="h-16 text-xs font-mono" />
+              <Textarea placeholder="Description (optional)" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} className={cn('h-16', 'text-xs', 'font-mono')} />
 
               <Input type="date" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className={cn('grid', 'grid-cols-2', 'gap-3')}>
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">START</label>
+                  <label className={cn('text-[10px]', 'font-mono', 'text-muted-foreground', 'mb-1', 'block')}>START</label>
                   <Input type="time" value={newEvent.startTime} onChange={e => setNewEvent({ ...newEvent, startTime: e.target.value })} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">END</label>
+                  <label className={cn('text-[10px]', 'font-mono', 'text-muted-foreground', 'mb-1', 'block')}>END</label>
                   <Input type="time" value={newEvent.endTime} onChange={e => setNewEvent({ ...newEvent, endTime: e.target.value })} />
                 </div>
               </div>
 
-              <div className="flex gap-2 flex-wrap">
+              <div className={cn('flex', 'gap-2', 'flex-wrap')}>
                 {EVENT_COLORS.map(c => (
                   <button key={c} onClick={() => setNewEvent({ ...newEvent, color: c })}
                     className={`w-7 h-7 rounded-full transition-all ${newEvent.color === c ? "ring-2 ring-offset-2 ring-foreground scale-110" : "hover:scale-105"}`}
@@ -607,8 +615,8 @@ export default function CalendarPanel() {
                 ))}
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={addOrUpdateEvent} className="flex-1 font-mono" disabled={!newEvent.title}>
+              <div className={cn('flex', 'gap-2')}>
+                <Button onClick={addOrUpdateEvent} className={cn('flex-1', 'font-mono')} disabled={!newEvent.title}>
                   {editingEvent ? "SAVE" : "CREATE"}
                 </Button>
                 {editingEvent && (
