@@ -2485,6 +2485,67 @@ class BuyMutatorView(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class OpenMutatorChestView(generics.GenericAPIView):
+    """
+    POST /api/mutators/chest/open/
+    Opens a mutator chest, costing 100 gold, and grants a random unowned mutator.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        from django.db import transaction
+        from api.models import UserProfile
+        from api.constants.mutators import MUTATORS_CONFIG
+        import random
+
+        cost = 100
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+            if profile.gold < cost:
+                return Response(
+                    {"error": "Not enough gold. Mutator Chest costs 100G."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            active_mutators = profile.active_mutators or {}
+            purchased = active_mutators.get("purchased", [])
+
+            # Pool of all active (non-disabled) mutators that the user doesn't already own
+            pool = [
+                m_id
+                for m_id, cfg in MUTATORS_CONFIG.items()
+                if not cfg.get("disabled", False) and m_id not in purchased
+            ]
+
+            if not pool:
+                return Response(
+                    {"error": "You already own all mutators!"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            won_mutator_id = random.choice(pool)
+
+            # Deduct gold and grant mutator
+            profile.gold = max(0, profile.gold - cost)
+            purchased.append(won_mutator_id)
+            active_mutators["purchased"] = purchased
+            profile.active_mutators = active_mutators
+            profile.save(update_fields=["gold", "active_mutators"])
+
+            from api.serializers.profile import UserProfileSerializer
+
+            return Response(
+                {
+                    "won_mutator_id": won_mutator_id,
+                    "profile": UserProfileSerializer(profile).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+
 class ToggleMutatorView(generics.GenericAPIView):
     """
     POST /api/mutators/<str:mutator_id>/toggle/

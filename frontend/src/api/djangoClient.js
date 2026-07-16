@@ -422,6 +422,7 @@ export const djangoApi = {
       method: 'POST',
       body: JSON.stringify(data || {})
     }),
+    openChest: () => djangoFetch('/mutators/chest/open/', { method: 'POST' }),
   },
 
   training: {

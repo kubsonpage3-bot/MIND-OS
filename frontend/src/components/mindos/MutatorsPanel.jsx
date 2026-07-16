@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { MUTATORS } from "@/constants/rpgData";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { djangoApi } from "@/api/djangoClient";
+import { djangoApi, getMediaUrl } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 import GameCard from "@/components/ui/GameCard";
@@ -23,6 +23,7 @@ export default function MutatorsPanel({ onSpendGold }) {
   const { t } = useTranslation();
   const [confirmIronman, setConfirmIronman] = useState(false);
   const [selectedMutator, setSelectedMutator] = useState(null);
+  const [highlightedId, setHighlightedId] = useState(null);
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
@@ -73,6 +74,36 @@ export default function MutatorsPanel({ onSpendGold }) {
     }
   });
 
+  const openChestMutation = useMutation({
+    mutationFn: () => djangoApi.mutators.openChest(),
+    onSuccess: (data) => {
+      const wonId = data.won_mutator_id;
+      setHighlightedId(wonId);
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+      refreshProfile();
+
+      showRewardToast({
+        label: `🎉 Unlocked Mutator: ${MUTATORS.find(m => m.id === wonId)?.name || wonId}!`,
+      });
+
+      // Scroll to the card
+      setTimeout(() => {
+        const el = document.getElementById(`mutator-card-${wonId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 150);
+
+      setTimeout(() => {
+        setHighlightedId(null);
+      }, 4000);
+    },
+    onError: (err) => {
+      showRewardToast({ label: `❌ Failed to open chest: ${err.message}` });
+    }
+  });
+
   const activate = (mutator) => {
     if (mutator.id === "ironman" && !isActive(mutator.id)) { setConfirmIronman(true); return; }
     if (!isPurchased(mutator.id) && mutator.cost > 0 && gold < mutator.cost) return;
@@ -103,12 +134,107 @@ export default function MutatorsPanel({ onSpendGold }) {
   const byCategory = {};
   MUTATORS.filter(m => !m.disabled).forEach(m => { if (!byCategory[m.cat]) byCategory[m.cat] = []; byCategory[m.cat].push(m); });
 
+  const activeMutatorsList = MUTATORS.filter(m => !m.disabled);
+  const totalMutators = activeMutatorsList.length;
+  const unlockedCount = purchased.filter(id => activeMutatorsList.some(m => m.id === id)).length;
+  const isAllUnlocked = unlockedCount >= totalMutators;
+
   return (
     <div className="space-y-5">
+      <style>{`
+        @keyframes pulseGlow {
+          0%, 100% {
+            box-shadow: 0 0 8px hsla(var(--primary), 0.15);
+            border-color: hsla(var(--primary), 0.3);
+          }
+          50% {
+            box-shadow: 0 0 20px hsla(var(--primary), 0.55);
+            border-color: hsla(var(--primary), 0.8);
+          }
+        }
+        @keyframes celebratePulse {
+          0%, 100% {
+            box-shadow: 0 0 10px #f0c04050;
+            border-color: #f0c040;
+          }
+          50% {
+            box-shadow: 0 0 25px #f0c040ff;
+            border-color: #ffffff;
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
+
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">{t('sidebar.sections.mutators')}</div>
         <div className="text-[10px] font-mono font-bold" style={{ color: active.length >= MAX_ACTIVE ? "#ef4444" : "#00cc88" }}>
           {t('mutators_ui.active_count', { n: active.length, max: MAX_ACTIVE })}
+        </div>
+      </div>
+
+      {/* Mutator Chest Card */}
+      <div className="p-1">
+        <div 
+          className="relative overflow-hidden p-4 rounded-xl border-[1.5px] bg-[var(--habit-panel)] flex flex-col sm:flex-row gap-4 items-center justify-between transition-all"
+          style={{
+            borderColor: "hsla(var(--primary), 0.4)",
+            boxShadow: "0 0 15px hsla(var(--primary), 0.15)",
+            animation: "pulseGlow 3s infinite ease-in-out"
+          }}
+        >
+          {/* Scanline pattern */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff 2px, #ffffff 3px)" }} />
+          
+          <div className="flex gap-4 items-center flex-1 min-w-0">
+            {/* Icon */}
+            <div 
+              className="w-16 h-16 shrink-0 border bg-black/40 flex items-center justify-center p-1 rounded-xl relative overflow-hidden"
+              style={{
+                borderColor: "hsla(var(--primary), 0.3)",
+                boxShadow: "0 0 10px hsla(var(--primary), 0.1)"
+              }}
+            >
+              <img 
+                src={getMediaUrl("/static/items/standard_cache.webp")} 
+                alt="Mutator Chest" 
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-sm font-black text-foreground tracking-wide">
+                MUTATOR CHEST
+              </div>
+              <div className="text-[11px] font-mono text-muted-foreground mt-0.5">
+                Unlock a random Mutator!
+              </div>
+              <div className="text-[10px] font-mono text-primary font-bold mt-1.5 flex items-center gap-1.5">
+                <span>📦 {unlockedCount} / {totalMutators} Unlocked</span>
+                {isAllUnlocked && <span className="text-[#00cc88] font-black">(100% COMPLETE)</span>}
+              </div>
+            </div>
+          </div>
+
+          <div className="shrink-0 w-full sm:w-auto text-right flex flex-col gap-1 items-end">
+            <button
+              onClick={() => openChestMutation.mutate()}
+              disabled={isAllUnlocked || gold < 100 || openChestMutation.isPending}
+              className={`w-full sm:w-auto px-5 py-2.5 text-xs font-mono font-bold rounded-lg border transition-all z-10 ${
+                isAllUnlocked ? "border-border bg-muted/20 text-muted-foreground/45 cursor-not-allowed" :
+                gold < 100 ? "border-red-900/40 bg-red-950/20 text-red-400/60 cursor-not-allowed" :
+                "border-primary bg-primary/10 hover:bg-primary/20 text-primary-foreground hover:shadow-[0_0_12px_hsla(var(--primary),0.3)]"
+              }`}
+            >
+              {openChestMutation.isPending ? "DECRYPTING..." : isAllUnlocked ? "ALL UNLOCKED" : "OPEN CHEST (100G)"}
+            </button>
+            {!isAllUnlocked && gold < 100 && (
+              <span className="text-[9px] font-mono text-red-500/80 mr-1 mt-0.5">
+                Requires 100G (You have {gold}G)
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -128,14 +254,20 @@ export default function MutatorsPanel({ onSpendGold }) {
                 const canActivate = active.length < MAX_ACTIVE || active_;
                 const canAfford = purchased_ || gold >= mut.cost;
                 const conflicted = !isActive(mut.id) && mut.conflicts?.some(c => isActive(c));
+                const isHighlighted = mut.id === highlightedId;
 
                 return (
                   <GameCard key={mut.id} 
-                    isActive={active_}
-                    borderColor={active_ ? "#f0c040" : purchased_ ? "hsl(var(--primary)/0.4)" : undefined}
-                    glowColor="#f0c040"
+                    id={`mutator-card-${mut.id}`}
+                    isActive={active_ || isHighlighted}
+                    borderColor={isHighlighted ? "#f0c040" : active_ ? "#f0c040" : purchased_ ? "hsl(var(--primary)/0.4)" : undefined}
+                    glowColor={isHighlighted ? "#f0c040" : "#f0c040"}
                     className={`flex flex-col text-center p-3 relative cursor-pointer ${purchased_ && !active_ ? "bg-primary/5" : ""}`}
                     onClick={() => setSelectedMutator(mut)}
+                    style={isHighlighted ? {
+                      animation: "celebratePulse 1s infinite ease-in-out",
+                      zIndex: 30
+                    } : {}}
                   >
                     {/* Badges container (Synergy / Conflict) top-right */}
                     <div className="absolute top-2 right-2 flex gap-1 z-20">

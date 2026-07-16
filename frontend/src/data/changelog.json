@@ -1,6 +1,13 @@
 [
     {
         "date": "2026-07-16",
+        "version": "1.6.8",
+        "changes": [
+            { "type": "feature", "text": "Implemented the Mutator Chest gacha system in the shop. Spend 100 gold to unlock a random unowned mutator, featuring a pulsing premium chest card and smooth card scroll-into-view celebration highlights." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
         "version": "1.6.7",
         "changes": [
             { "type": "feature", "text": "Added 10 new Balatro-style mutators: Mirror Match, Alchemist, Time Dilation, Sacrificial Altar, Twin Souls, Inversion, Gambler's Ledger, Parasite, Null Zone, and Chronomancer." },

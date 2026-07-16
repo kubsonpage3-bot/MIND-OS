@@ -51,6 +51,7 @@ from .views import (
     stripe_webhook_view,
     BuyMutatorView,
     ToggleMutatorView,
+    OpenMutatorChestView,
     DejaVuView,
     LootChestListView,
     OpenChestView,
@@ -144,6 +145,11 @@ urlpatterns = [
         "mutators/<str:mutator_id>/toggle/",
         ToggleMutatorView.as_view(),
         name="mutator-toggle",
+    ),
+    path(
+        "mutators/chest/open/",
+        OpenMutatorChestView.as_view(),
+        name="mutator-chest-open",
     ),
     path("tasks/<int:task_id>/deja-vu/", DejaVuView.as_view(), name="deja-vu"),
     # ─── Крафт ──────────────────────────────────────────────────────────────────

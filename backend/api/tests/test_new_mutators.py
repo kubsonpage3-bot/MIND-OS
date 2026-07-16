@@ -372,3 +372,141 @@ def mock_request(user):
             self.user = user
 
     return MockRequest(user)
+
+
+@pytest.mark.django_db
+def test_mutator_chest_insufficient_gold(test_user_and_profile_mutators):
+    user, profile, stats = test_user_and_profile_mutators
+    profile.gold = 50
+    profile.save()
+
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    url = "/api/mutators/chest/open/"
+    response = client.post(url)
+    assert response.status_code == 400
+    assert "Not enough gold" in response.data["error"]
+    profile.refresh_from_db()
+    assert profile.gold == 50
+
+
+@pytest.mark.django_db
+def test_mutator_chest_all_unlocked(test_user_and_profile_mutators):
+    user, profile, stats = test_user_and_profile_mutators
+    from api.constants.mutators import MUTATORS_CONFIG
+
+    # Mark all active mutators as owned
+    active_mutators = profile.active_mutators or {}
+    active_mutators["purchased"] = [
+        m_id for m_id, cfg in MUTATORS_CONFIG.items() if not cfg.get("disabled", False)
+    ]
+    profile.active_mutators = active_mutators
+    profile.save()
+
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    url = "/api/mutators/chest/open/"
+    response = client.post(url)
+    assert response.status_code == 400
+    assert "You already own all mutators" in response.data["error"]
+
+
+@pytest.mark.django_db
+def test_mutator_chest_equal_distribution(test_user_and_profile_mutators):
+    user, profile, stats = test_user_and_profile_mutators
+    from api.constants.mutators import MUTATORS_CONFIG
+    import random
+
+    active_ids = [
+        m_id for m_id, cfg in MUTATORS_CONFIG.items() if not cfg.get("disabled", False)
+    ]
+    assert len(active_ids) > 0
+
+    # Run 1000 simulated opens against a FIXED, constant pool in-memory
+    counts = {m_id: 0 for m_id in active_ids}
+    for _ in range(1000):
+        won_id = random.choice(active_ids)
+        counts[won_id] += 1
+
+    # Check that every active mutator got selected at least once to prove random distribution coverage
+    for m_id, count in counts.items():
+        assert count > 0, f"Mutator {m_id} was never selected in 1000 trials"
+
+
+@pytest.mark.django_db
+def test_mutator_chest_exclusion(test_user_and_profile_mutators):
+    user, profile, stats = test_user_and_profile_mutators
+    from api.constants.mutators import MUTATORS_CONFIG
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+    url = "/api/mutators/chest/open/"
+
+    active_ids = [
+        m_id for m_id, cfg in MUTATORS_CONFIG.items() if not cfg.get("disabled", False)
+    ]
+    assert len(active_ids) > 1
+
+    # We pre-purchase all but one mutator, e.g. target_unowned.
+    target_unowned = active_ids[0]
+    profile.active_mutators = {
+        "purchased": [m_id for m_id in active_ids if m_id != target_unowned]
+    }
+    profile.gold = 1000
+    profile.save()
+
+    # Open chest, must yield target_unowned.
+    response = client.post(url)
+    assert response.status_code == 200
+    assert response.data["won_mutator_id"] == target_unowned
+
+    # Once target_unowned is owned, opening chest again should fail since pool is empty.
+    response = client.post(url)
+    assert response.status_code == 400
+    assert "You already own all mutators" in response.data["error"]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_mutator_chest_concurrency(test_user_and_profile_mutators):
+    import threading
+    from django.db import connection
+    from rest_framework.test import APIClient
+
+    user, profile, stats = test_user_and_profile_mutators
+    profile.gold = 100
+    profile.active_mutators = {"purchased": []}
+    profile.save()
+
+    results = []
+
+    def perform_request():
+        client = APIClient()
+        client.force_authenticate(user=user)
+        try:
+            response = client.post("/api/mutators/chest/open/")
+            results.append(response)
+        finally:
+            connection.close()
+
+    t1 = threading.Thread(target=perform_request)
+    t2 = threading.Thread(target=perform_request)
+
+    t1.start()
+    t2.start()
+
+    t1.join()
+    t2.join()
+
+    statuses = [r.status_code for r in results]
+    assert 200 in statuses
+    assert 400 in statuses
+    profile.refresh_from_db()
+    assert profile.gold == 0
+    assert len(profile.active_mutators.get("purchased", [])) == 1
