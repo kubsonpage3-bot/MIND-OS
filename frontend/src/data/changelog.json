@@ -1,6 +1,22 @@
 [
     {
         "date": "2026-07-16",
+        "version": "1.6.7",
+        "changes": [
+            { "type": "feature", "text": "Added 10 new Balatro-style mutators: Mirror Match, Alchemist, Time Dilation, Sacrificial Altar, Twin Souls, Inversion, Gambler's Ledger, Parasite, Null Zone, and Chronomancer." },
+            { "type": "fix", "text": "Implemented the discount mechanics for the Miser mutator and unique subject tracking logic for Tunnel Vision." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
+        "version": "1.6.6",
+        "changes": [
+            { "type": "feature", "text": "Overhauled Johan's Rival Engine: his difficulty now dictates how many hours he logs, how well he focuses, and if he skips days, rather than artificially scaling his numbers." },
+            { "type": "balance", "text": "Removed Johan's 'catch up' cooldown completely. He is now fully independent and will not show mercy if you fall behind." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
         "version": "1.6.5",
         "changes": [
             { "type": "feature", "text": "Temporarily locked the Life OS module with a Coming Soon decryption screen while it undergoes maintenance." }

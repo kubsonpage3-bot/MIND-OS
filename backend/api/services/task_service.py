@@ -82,6 +82,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     elif task.task_type == Task.TaskType.DAILY:
         import zoneinfo
+
         try:
             user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
         except Exception:
@@ -310,6 +311,13 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     mutator_effects = apply_active_mutators(profile, context)
     passive_effects = get_passive_multipliers(profile, context)
 
+    active_list = (
+        profile.active_mutators.get("active", [])
+        if isinstance(profile.active_mutators, dict)
+        else []
+    )
+    active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+
     mutator_died = mutator_effects.get("is_dead", False)
 
     mana_gained = int(base_mana * passive_effects.get("mana_regen_mult", 1.0))
@@ -345,6 +353,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     if final_gold_mult != 1.0:
         base_gold = int(base_gold * final_gold_mult)
 
+    mirror_autocomplete_data = None
     if is_positive:
         outcome = calculate_task_outcome(
             user,
@@ -363,6 +372,37 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         if mutator_effects.get("trigger_echo") and random.random() < 0.10:
             final_xp *= 2
             final_gold *= 2
+
+        # Twin Souls split
+        active_codes = profile.active_allies or []
+        if "twin_souls" in active_ids and active_codes:
+            from api.models import RecruitedAlly
+
+            active_recruited = RecruitedAlly.objects.filter(
+                user_profile=profile, ally_code__in=active_codes
+            )
+            if active_recruited.exists():
+                least_xp_ally = active_recruited.order_by(
+                    "total_xp_received", "recruited_at"
+                ).first()
+                ally_xp_share = int(final_xp * 0.15)
+                ally_gold_share = int(final_gold * 0.15)
+
+                final_xp -= ally_xp_share
+                final_gold -= ally_gold_share
+
+                least_xp_ally.total_xp_received += ally_xp_share
+                least_xp_ally.save(update_fields=["total_xp_received"])
+
+        # Null Zone conversion
+        if "null_zone" in active_ids:
+            final_gold += int(final_xp * 0.5)
+            final_xp = 0
+
+        # The Gambler's Ledger redirect
+        if "gamblers_ledger" in active_ids:
+            profile.ledger_gold += final_gold
+            final_gold = 0
 
         if mutator_effects.get("trigger_volatile"):
             stat_list = [
@@ -478,6 +518,75 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.last_reward_data["gold_earned"] = final_gold
             task.last_reward_data["item_dropped"] = outcome.get("item_dropped")
             task.save(update_fields=["last_reward_data"])
+
+        # Mirror Match autocomplete
+        if "mirror_match" in active_ids and random.random() < 0.30:
+            other_task = (
+                Task.objects.filter(
+                    user=user,
+                    category=task.category if task.category else "Other",
+                    is_completed=False,
+                )
+                .exclude(id=task.id)
+                .order_by("?")
+                .first()
+            )
+            if other_task:
+                other_diff_reward = Task.REWARD_TABLE.get(
+                    other_task.difficulty, {"xp": 5, "gold": 3}
+                )
+                other_base_xp = int(other_diff_reward["xp"] * 0.5)
+                other_base_gold = int(other_diff_reward["gold"] * 0.5)
+
+                other_final_xp = max(0, int(other_base_xp * profile.xp_multiplier))
+                other_final_gold = max(
+                    0, int(other_base_gold * profile.gold_multiplier)
+                )
+
+                if "twin_souls" in active_ids and active_codes:
+                    active_recruited = RecruitedAlly.objects.filter(
+                        user_profile=profile, ally_code__in=active_codes
+                    )
+                    if active_recruited.exists():
+                        least_xp_ally = active_recruited.order_by(
+                            "total_xp_received", "recruited_at"
+                        ).first()
+                        other_ally_xp_share = int(other_final_xp * 0.15)
+                        other_ally_gold_share = int(other_final_gold * 0.15)
+
+                        other_final_xp -= other_ally_xp_share
+                        other_final_gold -= other_ally_gold_share
+
+                        least_xp_ally.total_xp_received += other_ally_xp_share
+                        least_xp_ally.save(update_fields=["total_xp_received"])
+
+                if "null_zone" in active_ids:
+                    other_final_gold += int(other_final_xp * 0.5)
+                    other_final_xp = 0
+
+                if "gamblers_ledger" in active_ids:
+                    profile.ledger_gold += other_final_gold
+                    other_final_gold = 0
+
+                if other_final_xp > 0:
+                    gain_xp(profile, other_final_xp)
+                    profile.rank_xp = max(0, profile.rank_xp + other_final_xp)
+                profile.gold = max(0, profile.gold + other_final_gold)
+                profile.save(update_fields=["gold", "rank_xp", "ledger_gold"])
+
+                other_task.is_completed = True
+                if not isinstance(other_task.last_reward_data, dict):
+                    other_task.last_reward_data = {}
+                other_task.last_reward_data["xp_earned"] = other_final_xp
+                other_task.last_reward_data["gold_earned"] = other_final_gold
+                other_task.save()
+
+                mirror_autocomplete_data = {
+                    "id": other_task.id,
+                    "title": other_task.title,
+                    "xp_gained": other_final_xp,
+                    "gold_gained": other_final_gold,
+                }
     else:
         # Reverting task rewards (applying exact same amounts to avoid XP/Gold farming)
         if (
@@ -720,6 +829,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         "is_dead": mutator_died,
         "died": mutator_died,
         "silent_mode": mutator_effects.get("silent_mode", False),
+        "mirror_match_autocomplete": mirror_autocomplete_data,
     }
 
 

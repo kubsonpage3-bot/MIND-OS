@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 from api.models import UserProfile, UnlockedSkill, UserStats
-from api.services.rival_service import compute_rival_data
+
 from api.services.achievement_service import check_and_grant_achievements
 from api.services.profile_service import get_humanities_rank_info
 
@@ -31,15 +31,20 @@ def profile(user):
 @pytest.mark.django_db
 def test_transcendent_will(profile):
     """
-    Tests that transcendent_will reduces Johan's daily XP gain by 10%.
-    With persistent accumulation: day2_total = day1_total + daily_xp * 0.9
+    Tests that transcendent_will reduces Johan's total XP by 10%.
     """
     from api.services.rival_service import (
-        calc_johan_daily_xp,
-        get_day_number,
+        compute_rival_data,
         JOHAN_DIFFICULTIES,
         DEFAULT_DIFFICULTY,
+        get_day_pattern,
+        generate_daily_sessions,
+        calc_johan_daily_xp,
+        get_johan_specializations,
     )
+    from datetime import datetime, timezone
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     rival_data_before = compute_rival_data(profile)
     accumulated_before = rival_data_before["johanAccumulatedXP"]
@@ -51,14 +56,53 @@ def test_transcendent_will(profile):
     rival_data_after = compute_rival_data(profile)
     johan_xp_after = rival_data_after["totalXP"]
 
-    # Expected: previous accumulated + today's daily * 0.9 (then the 0.9 applied to total)
     diff_cfg = JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
-    today_daily = calc_johan_daily_xp(profile.rank_xp or 0, get_day_number(), diff_cfg)
+
+    # Calculate what today's daily should be
+    user_id = profile.user.id
+    pattern = get_day_pattern(today, user_id, diff_cfg)
+    specializations = get_johan_specializations(user_id)
+    sessions = generate_daily_sessions(
+        today, user_id, pattern, specializations, diff_cfg
+    )
+    today_daily = calc_johan_daily_xp(sessions, diff_cfg)
+
     expected_total = max(1.0, round((accumulated_before + today_daily) * 0.9, 1))
     assert johan_xp_after == expected_total
     print(
         f"\n[test_transcendent_will] accumulated_before={accumulated_before}, after={johan_xp_after}, expected={expected_total}"
     )
+
+
+@pytest.mark.django_db
+def test_johan_session_determinism(profile):
+    """
+    Tests that for the same user_id and date, Johan generates the EXACT same pattern and sessions.
+    """
+    from api.services.rival_service import (
+        get_day_pattern,
+        generate_daily_sessions,
+        get_johan_specializations,
+        JOHAN_DIFFICULTIES,
+        DEFAULT_DIFFICULTY,
+    )
+
+    date_str = "2026-07-16"
+    user_id = profile.user.id
+    diff_cfg = JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
+
+    pattern1 = get_day_pattern(date_str, user_id, diff_cfg)
+    specs1 = get_johan_specializations(user_id)
+    sessions1 = generate_daily_sessions(date_str, user_id, pattern1, specs1, diff_cfg)
+
+    pattern2 = get_day_pattern(date_str, user_id, diff_cfg)
+    specs2 = get_johan_specializations(user_id)
+    sessions2 = generate_daily_sessions(date_str, user_id, pattern2, specs2, diff_cfg)
+
+    assert pattern1 == pattern2
+    assert specs1 == specs2
+    assert sessions1 == sessions2
+    print("\n[test_johan_session_determinism] Determinism verified.")
 
 
 @pytest.mark.django_db

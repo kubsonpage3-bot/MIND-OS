@@ -411,6 +411,9 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "newly_unlocked_achievements": result.get(
                         "newly_unlocked_achievements", []
                     ),
+                    "mirror_match_autocomplete": result.get(
+                        "mirror_match_autocomplete"
+                    ),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -430,6 +433,132 @@ class TaskViewSet(viewsets.ModelViewSet):
             logger.error(f"Task completion failed: {e}")
             return Response(
                 {"detail": "Task completion failed. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="sacrifice",
+    )
+    def sacrifice(self, request, pk=None):
+        """
+        POST /api/tasks/{id}/sacrifice/
+        Sacrifices a completed Habit or Daily in exchange for a large XP/Gold burst.
+        """
+        from datetime import timedelta
+        from django.utils import timezone
+        from django.db import transaction
+        from api.models import UserProfile, RecruitedAlly
+        from api.serializers.profile import UserProfileSerializer
+        from api.services.profile_service import gain_xp
+
+        try:
+            with transaction.atomic():
+                task = (
+                    self.get_object()
+                )  # Automatically retrieves the task of request.user or raises 404
+
+                # Check active mutators
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                active_list = (
+                    profile.active_mutators.get("active", [])
+                    if isinstance(profile.active_mutators, dict)
+                    else []
+                )
+                active_ids = [
+                    m.get("id") if isinstance(m, dict) else m for m in active_list
+                ]
+
+                if "sacrificial_altar" not in active_ids:
+                    return Response(
+                        {"detail": "Sacrificial Altar mutator is not active."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                if task.task_type not in ["habit", "daily"]:
+                    return Response(
+                        {"detail": "Only Habits and Dailies can be sacrificed."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Streak check
+                streak = task.streak if task.task_type == "daily" else task.pos_streak
+
+                # Age check
+                is_old_enough = (timezone.now() - task.created_at) >= timedelta(days=7)
+                is_high_streak = streak >= 5
+
+                if not (is_old_enough or is_high_streak):
+                    return Response(
+                        {
+                            "detail": "Task is too new or streak is too low. Must be at least 7 days old or have a streak of 5+."
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Calculate rewards
+                xp_reward = min(1000, 100 * (streak + 1))
+                gold_reward = min(500, 50 * (streak + 1))
+
+                # Twin Souls split
+                active_codes = profile.active_allies or []
+                if "twin_souls" in active_ids and active_codes:
+                    active_recruited = RecruitedAlly.objects.filter(
+                        user_profile=profile, ally_code__in=active_codes
+                    )
+                    if active_recruited.exists():
+                        least_xp_ally = active_recruited.order_by(
+                            "total_xp_received", "recruited_at"
+                        ).first()
+                        ally_xp_share = int(xp_reward * 0.15)
+                        ally_gold_share = int(gold_reward * 0.15)
+
+                        xp_reward -= ally_xp_share
+                        gold_reward -= ally_gold_share
+
+                        least_xp_ally.total_xp_received += ally_xp_share
+                        least_xp_ally.save(update_fields=["total_xp_received"])
+
+                # Null Zone conversion
+                if "null_zone" in active_ids:
+                    gold_reward += int(xp_reward * 0.5)
+                    xp_reward = 0
+
+                # The Gambler's Ledger redirect
+                if "gamblers_ledger" in active_ids:
+                    profile.ledger_gold += gold_reward
+                    gold_reward = 0
+
+                # Apply rewards to profile
+                leveled_up = False
+                if xp_reward > 0:
+                    leveled_up = gain_xp(profile, xp_reward)
+                    profile.rank_xp = max(0, profile.rank_xp + xp_reward)
+                profile.gold = max(0, profile.gold + gold_reward)
+                profile.save()
+
+                # Delete task
+                task_title = task.title
+                task.delete()
+
+                return Response(
+                    {
+                        "detail": f"Successfully sacrificed '{task_title}'!",
+                        "leveled_up": leveled_up,
+                        "xp_earned": xp_reward,
+                        "gold_earned": gold_reward,
+                        "profile": UserProfileSerializer(profile).data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Task sacrifice failed: {e}")
+            return Response(
+                {"detail": f"Sacrifice failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1173,6 +1302,7 @@ class TrainingLogView(generics.GenericAPIView):
             from api.services.mechanics import (
                 apply_active_mutators,
                 get_passive_multipliers,
+                calculate_base_training_xp,
             )
 
             context = {
@@ -1189,6 +1319,18 @@ class TrainingLogView(generics.GenericAPIView):
             passive_effects = get_passive_multipliers(profile, context)
 
             focus_rating = max(focus_rating, passive_effects.get("min_focus", 0.0))
+
+            # Inversion focus quality flip
+            active_list = (
+                profile.active_mutators.get("active", [])
+                if isinstance(profile.active_mutators, dict)
+                else []
+            )
+            active_ids = [
+                m.get("id") if isinstance(m, dict) else m for m in active_list
+            ]
+            if "inversion" in active_ids:
+                focus_rating = 11.0 - focus_rating
 
             # Combine multipliers (additive)
             xp_mult = (
@@ -1298,7 +1440,9 @@ class TrainingLogView(generics.GenericAPIView):
                 task.last_completed_at = timezone.now()
                 task.save()
             else:
-                base_xp = ((hours * focus_rating * 5) + flat_xp_bonus) * xp_mult
+                base_xp = calculate_base_training_xp(
+                    hours, focus_rating, flat_xp_bonus, xp_mult
+                )
                 base_gold = ((hours * 25)) * gold_mult
                 raw_boss_dmg = int(hours * focus_rating * 10)
 
@@ -1346,6 +1490,37 @@ class TrainingLogView(generics.GenericAPIView):
                     profile.save(update_fields=["mana"])
 
             final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
+
+            # Twin Souls split
+            active_codes = profile.active_allies or []
+            if "twin_souls" in active_ids and active_codes:
+                from api.models import RecruitedAlly
+
+                active_recruited = RecruitedAlly.objects.filter(
+                    user_profile=profile, ally_code__in=active_codes
+                )
+                if active_recruited.exists():
+                    least_xp_ally = active_recruited.order_by(
+                        "total_xp_received", "recruited_at"
+                    ).first()
+                    ally_xp_share = int(final_xp * 0.15)
+                    ally_gold_share = int(final_gold * 0.15)
+
+                    final_xp -= ally_xp_share
+                    final_gold -= ally_gold_share
+
+                    least_xp_ally.total_xp_received += ally_xp_share
+                    least_xp_ally.save(update_fields=["total_xp_received"])
+
+            # Null Zone conversion
+            if "null_zone" in active_ids:
+                final_gold += int(final_xp * 0.5)
+                final_xp = 0
+
+            # The Gambler's Ledger redirect
+            if "gamblers_ledger" in active_ids:
+                profile.ledger_gold += final_gold
+                final_gold = 0
 
             gain_xp(profile, final_xp)
             profile.rank_xp = max(0, profile.rank_xp + final_xp)

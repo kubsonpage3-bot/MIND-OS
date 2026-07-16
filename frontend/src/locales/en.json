@@ -1255,6 +1255,46 @@
       "weight_of_history": {
         "name": "Weight of History",
         "desc": "Past failures increase current difficulty."
+      },
+      "mirror_match": {
+        "name": "Mirror Match",
+        "desc": "30% chance on completion to autocomplete another task of the same category for 50% reward."
+      },
+      "alchemist": {
+        "name": "Alchemist",
+        "desc": "At daily reset, converts all unspent Mana into Gold (1 Mana = 2 Gold)."
+      },
+      "time_dilation": {
+        "name": "Time Dilation",
+        "desc": "Sessions require a minimum of 2.0 hours to submit, but grant 3.0x XP and Gold."
+      },
+      "sacrificial_altar": {
+        "name": "Sacrificial Altar",
+        "desc": "Permanently delete a completed Habit/Daily (min 7d old or streak 5+) for a large reward."
+      },
+      "twin_souls": {
+        "name": "Twin Souls",
+        "desc": "Directs 15% of all XP and Gold to the active ally with the lowest XP received."
+      },
+      "inversion": {
+        "name": "Inversion",
+        "desc": "Flips focus quality: low focus yields high rewards, high focus yields low rewards."
+      },
+      "gamblers_ledger": {
+        "name": "Gamblers Ledger",
+        "desc": "Gold from tasks is stored in a ledger and paid out at weekly reset with a +50% bonus."
+      },
+      "parasite": {
+        "name": "Parasite",
+        "desc": "Doubles the effect of all active XP and Gold mutators (bonuses and penalties)."
+      },
+      "null_zone": {
+        "name": "Null Zone",
+        "desc": "Fully disables XP gain, converting 100% of earned XP into Gold at 1 XP = 0.5 Gold."
+      },
+      "chronomancer": {
+        "name": "Chronomancer",
+        "desc": "Banks a missed day (once every 14 days) to preserve your streak and finish tasks later."
       }
     }
   },

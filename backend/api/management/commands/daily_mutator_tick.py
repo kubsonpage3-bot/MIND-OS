@@ -43,7 +43,7 @@ class Command(BaseCommand):
             ]
 
             # Check if any of the targeted mutators are active
-            target_mutators = {"loan_shark", "cursed_clock", "compound"}
+            target_mutators = {"loan_shark", "cursed_clock", "compound", "alchemist"}
             if not any(m in active_ids for m in target_mutators):
                 continue
 
@@ -93,9 +93,18 @@ class Command(BaseCommand):
                         f"+{interest}G on {p.gold - interest}G balance"
                     )
 
+                # 4. Alchemist: Convert Mana to Gold (1 Mana = 2 Gold)
+                if "alchemist" in active_ids:
+                    mana_gold = p.mana * 2
+                    p.gold += mana_gold
+                    p.mana = 0
+                    logger.info(
+                        f"Alchemist applied for {p.user.username}: converted {mana_gold // 2} Mana to +{mana_gold}G"
+                    )
+
                 # Mark cron as run
                 p.last_daily_cron_at = today
-                p.save(update_fields=["gold", "last_daily_cron_at"])
+                p.save(update_fields=["gold", "last_daily_cron_at", "mana"])
                 count += 1
 
                 self.stdout.write(
@@ -104,7 +113,5 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Finished daily mutator tick. Processed {count} users."
-            )
+            self.style.SUCCESS(f"Finished daily mutator tick. Processed {count} users.")
         )

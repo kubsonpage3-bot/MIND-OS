@@ -512,12 +512,28 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             effects["xp_mult"] -= 0.10
 
     if "tunnel_vision" in active_ids:
-        # Implemented in final_xp_mult below based on daily stats
+        stats = getattr(profile.user, "stats", None)
+        unique_today = set(get_unique_subjects_today(stats))
+        current_cat = context.get("task_category")
+        if current_cat:
+            unique_today.add(current_cat)
+        if len(unique_today) <= 1:
+            effects["xp_mult"] += 0.50
+
+    if "time_dilation" in active_ids:
+        effects["final_xp_mult"] *= 3.0
+        effects["final_gold_mult"] *= 3.0
+
+    if "inversion" in active_ids:
+        # focus_rating inversion is handled inside views.py
         pass
 
     # ── ECONOMY ──
     if "loan_shark" in active_ids:
         effects["gold_mult"] += 0.40
+
+    if "miser" in active_ids:
+        effects["shop_cost_mult"] *= 0.80
 
     if "tithe" in active_ids:
         effects["xp_mult"] += 0.15
@@ -624,11 +640,6 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         if total_hours > 0:
             effects["xp_mult"] += (total_hours // 100) * 0.01
 
-    if "tunnel_vision" in active_ids:
-        # Log ONLY one subject/day: +50% Rank XP. Log 2+: bonus lost.
-        # Handled in task_service where we check the unique subjects today
-        pass
-
     # Resonance: If 2+ active mutators share a category, +10% to ALL their effects.
     # To implement this easily without hardcoding categories, we'll give a global 10% multiplier to the final multiplier if there are duplicates in the categories
     mutator_cats = {
@@ -640,8 +651,17 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             "night_owl",
             "early_riser",
             "tunnel_vision",
+            "time_dilation",
+            "inversion",
         ],
-        "economy": ["loan_shark", "compound", "miser", "tithe"],
+        "economy": [
+            "loan_shark",
+            "compound",
+            "miser",
+            "tithe",
+            "alchemist",
+            "gamblers_ledger",
+        ],
         "streak": ["ascetic_loop", "double_nothing", "momentum"],
         "challenge": [
             "diversity_lock",
@@ -649,8 +669,16 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             "ironman",
             "glass_cannon",
             "zero_hour",
+            "null_zone",
         ],
-        "synergy": ["catalyst", "echo", "mirror", "resonance"],
+        "synergy": [
+            "catalyst",
+            "echo",
+            "mirror",
+            "resonance",
+            "mirror_match",
+            "twin_souls",
+        ],
         "wild": [
             "gambler",
             "phantom_load",
@@ -658,6 +686,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             "deja_vu",
             "volatile",
             "weight_of_history",
+            "sacrificial_altar",
+            "parasite",
+            "chronomancer",
         ],
     }
 
@@ -680,6 +711,18 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             effects["xp_mult"] = 1.0 + (effects["xp_mult"] - 1.0) * amp
         if effects["gold_mult"] > 1.0:
             effects["gold_mult"] = 1.0 + (effects["gold_mult"] - 1.0) * amp
+
+    if "parasite" in active_ids:
+        effects["xp_mult"] = 1.0 + (effects["xp_mult"] - 1.0) * 2
+        effects["gold_mult"] = 1.0 + (effects["gold_mult"] - 1.0) * 2
+        effects["flat_xp"] *= 2
+        effects["gc_flat"] *= 2
+        effects["final_xp_mult"] = max(
+            0.0, min(5.0, 1.0 + (effects["final_xp_mult"] - 1.0) * 2)
+        )
+        effects["final_gold_mult"] = max(
+            0.0, min(5.0, 1.0 + (effects["final_gold_mult"] - 1.0) * 2)
+        )
 
     return effects
 
@@ -949,3 +992,10 @@ def get_passive_multipliers(profile, context: dict):
         effects["daily_free_skill"] = True
 
     return effects
+
+
+def calculate_base_training_xp(
+    hours: float, focus_rating: float, flat_xp_bonus: int = 0, xp_mult: float = 1.0
+) -> float:
+    """Shared formula for player and rival training session base XP."""
+    return ((hours * focus_rating * 5) + flat_xp_bonus) * xp_mult

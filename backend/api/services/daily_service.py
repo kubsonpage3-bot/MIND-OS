@@ -50,24 +50,44 @@ def process_daily_login(user):
     if delta == 1:
         profile.streak += 1
     else:
-        # Check for streak_shield
-        shield = ActiveEffect.objects.filter(
-            user=user, skill_id="streak_shield"
-        ).first()
+        # Check Chronomancer first (cooldown 14 days, freezes streak)
+        chronomancer_triggered = False
+        active_list = (
+            profile.active_mutators.get("active", [])
+            if isinstance(profile.active_mutators, dict)
+            else []
+        )
+        active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+        if "chronomancer" in active_ids:
+            cooldown_passed = True
+            if profile.last_chronomancer_used:
+                cooldown_passed = (
+                    timezone.now() - profile.last_chronomancer_used
+                ).days >= 14
+            if cooldown_passed:
+                profile.chronomancer_banked_days = 1
+                profile.last_chronomancer_used = timezone.now()
+                chronomancer_triggered = True
 
-        if shield:
-            if shield.data and "uses_left" in shield.data:
-                shield.data["uses_left"] -= 1
-                if shield.data["uses_left"] <= 0:
-                    shield.delete()
+        if not chronomancer_triggered:
+            # Check for streak_shield
+            shield = ActiveEffect.objects.filter(
+                user=user, skill_id="streak_shield"
+            ).first()
+
+            if shield:
+                if shield.data and "uses_left" in shield.data:
+                    shield.data["uses_left"] -= 1
+                    if shield.data["uses_left"] <= 0:
+                        shield.delete()
+                    else:
+                        shield.save()
                 else:
-                    shield.save()
+                    shield.delete()
+                # Act as if they didn't miss (increment streak)
+                profile.streak += 1
             else:
-                shield.delete()
-            # Act as if they didn't miss (increment streak)
-            profile.streak += 1
-        else:
-            profile.streak = 1
+                profile.streak = 1
 
     profile.last_login_date = today
 
@@ -81,6 +101,12 @@ def process_daily_login(user):
         weekly_mana = passives.get("weekly_free_mana", 0)
         if weekly_mana > 0:
             profile.mana = min(profile.mana_max, profile.mana + weekly_mana)
+
+        # Gambler's Ledger weekly payout (+50% bonus)
+        if profile.ledger_gold > 0:
+            payout = int(profile.ledger_gold * 1.5)
+            profile.gold += payout
+            profile.ledger_gold = 0
 
     # fortunes_favor (Gain 100G daily)
     if UnlockedSkill.objects.filter(
@@ -98,6 +124,15 @@ def process_daily_login(user):
         profile.gold += 200
 
     profile.save(
-        update_fields=["last_login_date", "streak", "gold", "last_weekly_reset", "mana"]
+        update_fields=[
+            "last_login_date",
+            "streak",
+            "gold",
+            "last_weekly_reset",
+            "mana",
+            "ledger_gold",
+            "last_chronomancer_used",
+            "chronomancer_banked_days",
+        ]
     )
     return profile

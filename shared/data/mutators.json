@@ -300,5 +300,105 @@
     "conflicts": [],
     "permanent_lock": false,
     "disabled": false
+  },
+  {
+    "id": "mirror_match",
+    "cost": 400,
+    "cat": "synergy",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "alchemist",
+    "cost": 500,
+    "cat": "economy",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "time_dilation",
+    "cost": 600,
+    "cat": "amplifier",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "sacrificial_altar",
+    "cost": 700,
+    "cat": "wild",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "twin_souls",
+    "cost": 450,
+    "cat": "synergy",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "inversion",
+    "cost": 300,
+    "cat": "amplifier",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "gamblers_ledger",
+    "cost": 500,
+    "cat": "economy",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "parasite",
+    "cost": 800,
+    "cat": "wild",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "null_zone",
+    "cost": 400,
+    "cat": "challenge",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
+  },
+  {
+    "id": "chronomancer",
+    "cost": 750,
+    "cat": "wild",
+    "durationDays": null,
+    "synergy": null,
+    "conflicts": [],
+    "permanent_lock": false,
+    "disabled": false
   }
 ]

@@ -107,6 +107,17 @@ class UserProfile(models.Model):
     # Уровень престижа
     prestige_count = models.PositiveIntegerField(default=0, verbose_name="Престиж")
 
+    # New Mutator fields
+    ledger_gold = models.PositiveIntegerField(
+        default=0, verbose_name="Золото в сейфе (Gambler's Ledger)"
+    )
+    last_chronomancer_used = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последнее использование Chronomancer"
+    )
+    chronomancer_banked_days = models.PositiveIntegerField(
+        default=0, verbose_name="Запасные дни Chronomancer"
+    )
+
     # Премиум-подписка (Stripe)
     is_premium = models.BooleanField(default=False, verbose_name="Премиум статус")
     stripe_customer_id = models.CharField(
@@ -1160,6 +1171,9 @@ class RecruitedAlly(models.Model):
     ally_code = models.CharField(max_length=100, verbose_name="Код союзника")
     level = models.PositiveIntegerField(default=1, verbose_name="Уровень союзника")
     recruited_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата найма")
+    total_xp_received = models.PositiveIntegerField(
+        default=0, verbose_name="Получено опыта (Twin Souls)"
+    )
 
     class Meta:
         verbose_name = "Нанятый союзник"

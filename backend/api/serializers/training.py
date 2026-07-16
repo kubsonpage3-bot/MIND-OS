@@ -70,6 +70,19 @@ class TrainingLogSerializer(serializers.Serializer):
         today = timezone.now().date()
 
         hours = data.get("hours", 0.0)
+
+        # Enforce Time Dilation floor (2.0 hours)
+        active_mutators = profile.active_mutators or {}
+        active_list = (
+            active_mutators.get("active", [])
+            if isinstance(active_mutators, dict)
+            else []
+        )
+        active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+        if "time_dilation" in active_ids and hours < 2.0:
+            raise serializers.ValidationError(
+                {"hours": "Time Dilation requires a minimum of 2.0 hours per session."}
+            )
         focus = data.get("focus_rating", 7)
         activity = data.get("activity", "other")
         client_eff = data.get("efficiency", 1.0)
