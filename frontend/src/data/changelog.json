@@ -1,5 +1,13 @@
 [
     {
+        "date": "2026-07-16",
+        "version": "1.6.3",
+        "changes": [
+            { "type": "content", "text": "Replaced temporary item placeholders with high-quality 16-bit dark fantasy pixel-art icons." },
+            { "type": "content", "text": "Regenerated 9 existing chest item icons to fit a consistent Elden Ring-inspired dark fantasy aesthetic." }
+        ]
+    },
+    {
         "date": "2026-07-15",
         "version": "1.6.2",
         "changes": [

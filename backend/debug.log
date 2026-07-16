@@ -2033,3 +2033,23 @@ WARNING 2026-07-15 01:53:19,346 log 19912 18160 Bad Request: /api/tasks/
 WARNING 2026-07-15 01:53:38,967 log 9172 24964 Unauthorized: /api/tasks/
 ERROR 2026-07-15 21:01:37,353 task_service 25768 25160 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 ERROR 2026-07-15 21:02:10,692 task_service 25768 25160 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-16 08:42:06,749 log 8620 15852 Unauthorized: /api/analytics/event/
+WARNING 2026-07-16 08:42:10,406 log 8620 15852 Bad Request: /api/analytics/event/
+WARNING 2026-07-16 08:42:18,878 log 8620 15852 Bad Request: /api/auth/register/
+WARNING 2026-07-16 08:42:24,753 log 8620 15852 Bad Request: /api/profile/
+WARNING 2026-07-16 08:42:28,037 log 8620 15852 Forbidden: /api/calendar/events/
+WARNING 2026-07-16 08:43:13,955 log 8620 15852 Forbidden: /api/party/members/2630/profile/
+WARNING 2026-07-16 08:43:16,254 log 8620 15852 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-16 08:43:21,782 task_service 8620 15852 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-16 08:43:55,556 task_service 8620 15852 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-16 08:44:07,544 log 8620 15852 Bad Request: /api/profile/
+WARNING 2026-07-16 08:55:56,821 log 3668 22596 Unauthorized: /api/analytics/event/
+WARNING 2026-07-16 08:55:59,392 log 3668 22596 Bad Request: /api/analytics/event/
+WARNING 2026-07-16 08:56:04,639 log 3668 22596 Bad Request: /api/auth/register/
+WARNING 2026-07-16 08:56:08,947 log 3668 22596 Bad Request: /api/profile/
+WARNING 2026-07-16 08:56:11,484 log 3668 22596 Forbidden: /api/calendar/events/
+WARNING 2026-07-16 08:56:50,087 log 3668 22596 Forbidden: /api/party/members/2728/profile/
+WARNING 2026-07-16 08:56:52,059 log 3668 22596 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-16 08:56:57,906 task_service 3668 22596 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-16 08:57:31,850 task_service 3668 22596 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-16 08:57:42,400 log 3668 22596 Bad Request: /api/profile/
