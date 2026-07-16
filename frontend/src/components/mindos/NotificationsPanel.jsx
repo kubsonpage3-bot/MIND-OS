@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
+import { LocalNotificationsService } from "@/utils/localNotifications";
 
 const NOTIFICATION_TYPE_KEYS = [
   { id: "streak_risk", labelKey: "streak_risk", icon: "🔥", default: true },
@@ -48,7 +49,11 @@ export default function NotificationsPanel() {
       setNotifications(profile.notification_preferences);
       if (profile.notification_preferences.reminderTime) {
         setReminderTime(profile.notification_preferences.reminderTime);
+        const [hour, minute] = profile.notification_preferences.reminderTime.split(":");
+        LocalNotificationsService.scheduleDailyReminder(hour, minute);
       }
+      const streakRiskEnabled = profile.notification_preferences.streak_risk !== false;
+      LocalNotificationsService.scheduleStreakWarning(21, 0, streakRiskEnabled);
       if (profile.notification_preferences.channel) {
         setChannel(profile.notification_preferences.channel);
       }
@@ -71,35 +76,33 @@ export default function NotificationsPanel() {
   });
 
   const subscribeToPush = async () => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      console.warn("Push notifications are not supported by the browser.");
-      return;
-    }
     try {
-      const permission = await Notification.requestPermission();
+      const permission = await LocalNotificationsService.requestPermission();
       if (permission !== "granted") {
         console.warn("Push permission denied.");
         return;
       }
-      const registration = await navigator.serviceWorker.ready;
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        const applicationServerKey = urlB64ToUint8Array(VAPID_PUBLIC_KEY);
-        if (!applicationServerKey) {
-          console.error("VITE_VAPID_PUBLIC_KEY is not defined in env.");
-          return;
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          const applicationServerKey = urlB64ToUint8Array(VAPID_PUBLIC_KEY);
+          if (!applicationServerKey) {
+            console.error("VITE_VAPID_PUBLIC_KEY is not defined in env.");
+            return;
+          }
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: applicationServerKey
+          });
         }
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: applicationServerKey
+        const subJSON = subscription.toJSON();
+        await djangoApi.post("/notifications/subscribe/", {
+          endpoint: subJSON.endpoint,
+          keys: subJSON.keys
         });
+        console.log("Successfully subscribed to push notifications");
       }
-      const subJSON = subscription.toJSON();
-      await djangoApi.post("/notifications/subscribe/", {
-        endpoint: subJSON.endpoint,
-        keys: subJSON.keys
-      });
-      console.log("Successfully subscribed to push notifications");
     } catch (err) {
       console.error("Failed to subscribe to push notifications", err);
     }
@@ -125,6 +128,9 @@ export default function NotificationsPanel() {
     const newNotifs = { ...notifications, [typeId]: enabled };
     setNotifications(newNotifs);
     updatePrefsMutation.mutate(newNotifs);
+    if (typeId === "streak_risk") {
+      LocalNotificationsService.scheduleStreakWarning(21, 0, enabled);
+    }
     if (enabled) {
       await subscribeToPush();
     } else if (typeId === "streak_risk") {
@@ -137,6 +143,8 @@ export default function NotificationsPanel() {
     const newNotifs = { ...notifications, reminderTime: time };
     setNotifications(newNotifs);
     updatePrefsMutation.mutate(newNotifs);
+    const [hour, minute] = time.split(":");
+    LocalNotificationsService.scheduleDailyReminder(hour, minute);
   };
 
   const updateChannel = (newChannel) => {

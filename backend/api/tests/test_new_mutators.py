@@ -262,14 +262,15 @@ def test_gamblers_ledger(test_user_and_profile_mutators):
     user, profile, stats = test_user_and_profile_mutators
 
     # Get baseline gold reward first
-    task_dummy = Task.objects.create(
-        user=user,
-        title="Dummy Task",
-        task_type=Task.TaskType.TODO,
-        difficulty="medium",
-    )
-    res_dummy = complete_task(user, task_dummy.id)
-    baseline_gold = res_dummy["rewards"]["gold"]
+    with mock.patch("random.random", return_value=0.9):
+        task_dummy = Task.objects.create(
+            user=user,
+            title="Dummy Task",
+            task_type=Task.TaskType.TODO,
+            difficulty="medium",
+        )
+        res_dummy = complete_task(user, task_dummy.id)
+        baseline_gold = res_dummy["rewards"]["gold"]
 
     # Reset profile gold/mutators
     profile.gold = 1000
@@ -282,7 +283,8 @@ def test_gamblers_ledger(test_user_and_profile_mutators):
         task_type=Task.TaskType.TODO,
         difficulty="medium",
     )
-    res = complete_task(user, task.id)
+    with mock.patch("random.random", return_value=0.9):
+        res = complete_task(user, task.id)
     assert res["rewards"]["gold"] == 0
     profile.refresh_from_db()
     assert profile.ledger_gold == baseline_gold

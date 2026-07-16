@@ -8,6 +8,7 @@ import { usePomodoro } from '@/hooks/usePomodoro';
 import { useProfileSync } from '@/hooks/useProfileSync';
 import { computeEfficiency, ACTIVITIES, CATEGORY_COEFFICIENTS, CATEGORY_ICONS } from "@/lib/cognitiveEngine";
 import toast from 'react-hot-toast';
+import { LocalNotificationsService } from '@/utils/localNotifications';
 
 const PRESETS = [
   { id: 'classic', label: 'Classic', work: 25, break: 5, longBreak: 15, cycles: 4 },
@@ -260,6 +261,19 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
       label: currentLabel,
       completed: true,
     });
+
+    // Send native local notification
+    if (currentMode === 'work') {
+      LocalNotificationsService.sendInstant(
+        "🍅 Pomodoro Session Complete!",
+        "Excellent focus! Take a break to recover your energy."
+      );
+    } else {
+      LocalNotificationsService.sendInstant(
+        "⚡ Break Complete!",
+        "Time to get back to work. Focus mode active."
+      );
+    }
 
     // Advance the cycle state
     if (currentMode === 'work') {

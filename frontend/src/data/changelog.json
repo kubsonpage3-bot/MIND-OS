@@ -1,6 +1,13 @@
 [
     {
         "date": "2026-07-16",
+        "version": "1.7.0",
+        "changes": [
+            { "type": "feature", "text": "Integrated native local notifications using @capacitor/local-notifications for daily session reminders, Pomodoro completion alerts, and streak risk warnings." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
         "version": "1.6.9",
         "changes": [
             { "type": "balance", "text": "Shifted Mutator acquisition model to chest-only gacha. Individual mutators are no longer directly purchasable for gold, displaying a disabled 'Chest Only' label instead." }
