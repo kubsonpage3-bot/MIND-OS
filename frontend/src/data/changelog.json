@@ -1,6 +1,13 @@
 [
     {
         "date": "2026-07-16",
+        "version": "1.6.5",
+        "changes": [
+            { "type": "feature", "text": "Temporarily locked the Life OS module with a Coming Soon decryption screen while it undergoes maintenance." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
         "version": "1.6.4",
         "changes": [
             { "type": "feature", "text": "Johan rival AI now remembers XP day-over-day — no more teleporting backward or forward after big grind sessions." },

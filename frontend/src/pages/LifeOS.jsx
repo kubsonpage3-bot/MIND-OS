@@ -1,24 +1,68 @@
-import { useState, useEffect, useCallback } from "react";
-import { loadState, saveState, checkMidnightReset, defaultState, equipItem } from "@/lib/lifeOS";
-import LifeOSSetup from "@/components/lifeos/LifeOSSetup";
-import CharacterPanel from "@/components/lifeos/CharacterPanel";
-import HabitsColumn from "@/components/lifeos/HabitsColumn";
-import DailiesColumn from "@/components/lifeos/DailiesColumn";
-import TodosColumn from "@/components/lifeos/TodosColumn";
-import RewardsPanel from "@/components/lifeos/RewardsPanel";
-import ActivityFeed from "@/components/lifeos/ActivityFeed";
-import { Sparkles, Shield, Gift, ScrollText, Swords } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { loadState, saveState, checkMidnightReset, defaultState, equipItem } from '@/lib/lifeOS';
+import LifeOSSetup from '@/components/lifeos/LifeOSSetup';
+import CharacterPanel from '@/components/lifeos/CharacterPanel';
+import HabitsColumn from '@/components/lifeos/HabitsColumn';
+import DailiesColumn from '@/components/lifeos/DailiesColumn';
+import TodosColumn from '@/components/lifeos/TodosColumn';
+import RewardsPanel from '@/components/lifeos/RewardsPanel';
+import ActivityFeed from '@/components/lifeos/ActivityFeed';
+import { Sparkles, Shield, Gift, ScrollText, Swords, Lock, ArrowLeft, Terminal, Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TABS = [
-  { id: "tasks", label: "Tasks", icon: Swords },
-  { id: "rewards", label: "Rewards", icon: Gift },
-  { id: "inventory", label: "Inventory", icon: Shield },
-  { id: "feed", label: "Log", icon: ScrollText },
+  { id: 'tasks', label: 'Tasks', icon: Swords },
+  { id: 'rewards', label: 'Rewards', icon: Gift },
+  { id: 'inventory', label: 'Inventory', icon: Shield },
+  { id: 'feed', label: 'Log', icon: ScrollText },
 ];
 
 export default function LifeOS() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [fakeProgress, setFakeProgress] = useState(12);
+  const [logLines, setLogLines] = useState([
+    '> INITIALIZING LIFE MODULE...',
+  ]);
+
+  useEffect(() => {
+    const logs = [
+      '> SCANNING AVATAR ASSETS... SUCCESS',
+      '> SYNCING REAL-WORLD METRICS... CALIBRATED',
+      '> DECRYPTING QUEST LOG ENGINE... UNSTABLE',
+      '> WARNING: TEMPORAL ANOMALY DETECTED',
+      '> LOCKING MODULE FOR MAINTENANCE...',
+      '> STATUS: COMING SOON...',
+    ];
+
+    let currentLogIndex = 0;
+    const logInterval = setInterval(() => {
+      if (currentLogIndex < logs.length) {
+        setLogLines(prev => [...prev, logs[currentLogIndex]]);
+        currentLogIndex++;
+      } else {
+        clearInterval(logInterval);
+      }
+    }, 1200);
+
+    const progressInterval = setInterval(() => {
+      setFakeProgress(prev => {
+        if (prev >= 42) {
+          clearInterval(progressInterval);
+          return 42;
+        }
+        return prev + Math.floor(Math.random() * 5) + 1;
+      });
+    }, 400);
+
+    return () => {
+      clearInterval(logInterval);
+      clearInterval(progressInterval);
+    };
+  }, []);
+
   const [gs, setGs] = useState(() => checkMidnightReset(loadState()));
 
   const [isMobile, setIsMobile] = useState(false);
@@ -43,8 +87,88 @@ export default function LifeOS() {
     const interval = setInterval(() => {
       update(s => checkMidnightReset(s));
     }, 60000);
-    return () => clearInterval(interval);
   }, [update]);
+
+  return (
+    <div className='min-h-[90vh] flex items-center justify-center p-4' style={{ background: 'var(--habit-bg)' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className='w-full max-w-lg p-6 rounded-2xl border border-purple-900/60 bg-[#120524]/80 backdrop-blur-md relative overflow-hidden shadow-[0_0_30px_rgba(123,97,255,0.15)]'
+      >
+        <div className='absolute -top-24 -left-24 w-48 h-48 rounded-full bg-purple-600/10 blur-3xl pointer-events-none' />
+        <div className='absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-purple-500/10 blur-3xl pointer-events-none' />
+
+        <div className='flex justify-center mb-6'>
+          <div className='relative'>
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+              className='w-16 h-16 rounded-2xl bg-purple-950/60 border border-purple-500/40 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.2)]'
+            >
+              <Sparkles className='w-8 h-8 text-purple-400' />
+            </motion.div>
+            <div className='absolute -bottom-1.5 -right-1.5 bg-purple-900 border border-purple-400 text-purple-200 p-1 rounded-md'>
+              <Lock className='w-3.5 h-3.5' />
+            </div>
+          </div>
+        </div>
+
+        <div className='text-center space-y-2 mb-6'>
+          <h1 className='text-2xl font-bold tracking-widest text-purple-200' style={{ fontFamily: "'Nunito', sans-serif" }}>
+            LIFE OS
+          </h1>
+          <motion.div
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+            className='inline-block px-3 py-1 rounded bg-purple-950/80 border border-purple-500/30 text-[10px] font-mono tracking-widest text-purple-400 font-bold uppercase'
+          >
+            Coming Soon...
+          </motion.div>
+        </div>
+
+        <p className='text-xs text-center text-purple-300/80 leading-relaxed font-mono mb-6 max-w-sm mx-auto'>
+          The legendary RPG Habit Tracker module is undergoing encryption and architectural alignment. Prepare your quest log, hero!
+        </p>
+
+        <div className='p-4 rounded-lg bg-black/60 border border-purple-950 font-mono text-[10px] text-purple-400/90 space-y-1 h-36 overflow-y-auto mb-6 scrollbar-thin'>
+          <div className='flex items-center gap-1.5 border-b border-purple-950/80 pb-1.5 mb-2 text-purple-500'>
+            <Terminal className='w-3.5 h-3.5' />
+            <span>DECRYPT_LOGGER.LOG</span>
+          </div>
+          {logLines.map((line, idx) => (
+            <div key={idx} className='flex items-start gap-1'>
+              <span className='text-purple-600 select-none'>&gt;&gt;</span>
+              <span className={line.includes('WARNING') || line.includes('COMING SOON') ? 'text-purple-300 font-semibold' : ''}>{line}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className='space-y-1.5 mb-6'>
+          <div className='flex items-center justify-between text-[10px] font-mono text-purple-400/80'>
+            <span className='flex items-center gap-1'><Activity className='w-3 h-3 animate-pulse' /> MODULE DECRYPTION</span>
+            <span>{fakeProgress}%</span>
+          </div>
+          <div className='h-1.5 w-full bg-purple-950 rounded-full overflow-hidden border border-purple-900/30'>
+            <motion.div
+              className='h-full bg-gradient-to-r from-purple-600 to-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]'
+              style={{ width: `${fakeProgress}%` }}
+              transition={{ ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={() => navigate('/?app=mind')}
+          className='w-full py-3 px-4 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-300 font-mono text-xs font-bold hover:bg-purple-500/25 hover:border-purple-500/50 hover:text-white transition-all flex items-center justify-center gap-2 group cursor-pointer'
+        >
+          <ArrowLeft className='w-4 h-4 group-hover:-translate-x-0.5 transition-transform' />
+          RETURN TO MIND OS
+        </button>
+      </motion.div>
+    </div>
+  );
 
   if (!gs.initialized) {
     return (
