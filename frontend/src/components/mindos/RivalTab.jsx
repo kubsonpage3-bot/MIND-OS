@@ -27,14 +27,18 @@ function hashSelect(arr, seedStr) {
   return arr[Math.abs(h) % arr.length];
 }
 
-function getDayPattern(dateStr) {
-  const h = hashSelect([0, 1, 2, 3], dateStr + "pattern");
-  if (h === 0) return { type: "surge" };
-  if (h === 1) return { type: "weak" };
-  return { type: "normal" };
-}
 
 // ─── TAUNT POOLS (static — Johan name injected at call site) ────────────────
+// Escalating taunts by behindDays counter
+const PRESSURE_TAUNTS = [
+  `${"RIVAL"} is calculating your endpoint.`,
+  "Day 4. The gap is structural now.",
+  "Johan doesn't plateau. You do.",
+  "Stop. Recalculate. Then grind.",
+  "Every session you skip becomes Johan's lead.",
+  "This is a streak he will not break.",
+];
+
 const AHEAD_TAUNTS = [
   "The gap closes when you stop.",
   "Johan doesn't take rest days.",
@@ -65,7 +69,7 @@ const DEFAULT_TAUNTS = [
 // ─── DYNAMIC MESSAGE SYSTEM ───────────────────────────────────────────────────
 function calcJohanMessage(
   playerRankXP, johanXP, playerTodayHours, johanTodayHours,
-  playerStreak, johanStreak, logs, dayNumber, rivalName
+  playerStreak, johanStreak, logs, dayNumber, rivalName, behindDays
 ) {
   const nowH = new Date().getHours();
   const diff = Math.abs(johanXP - playerRankXP);
@@ -82,6 +86,12 @@ function calcJohanMessage(
       color: "#f59e0b",
       category: "slacking",
     };
+  }
+
+  // Escalate pressure when behind many days
+  if (behindDays >= 6) {
+    const taunt = hashSelect(PRESSURE_TAUNTS, hourSeed);
+    return { text: `[Day ${behindDays}] ${taunt}`, color: "#ef4444", category: "pressure", pulse: true };
   }
 
   if (pctAhead > 0.05) {
@@ -328,7 +338,8 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   const msgObj = calcJohanMessage(
     playerRankXP, johanXP, playerTodayHours, rivalTodayHours,
-    playerStreak, johanStreak, logs, getDayNumber(), RIVAL_NAME
+    playerStreak, johanStreak, logs, getDayNumber(), RIVAL_NAME,
+    rivalData.behindDays || 0
   );
 
   const johanWeekHours = rivalData.johanWeekHours || 0;
@@ -454,7 +465,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
             <div className="mt-1 text-xs font-mono italic" style={{ color: msgObj.color, minHeight: 18 }}>
               {isTyping ? <TypingDots /> : `"${msgObj.text}"`}
             </div>
-            <div className="mt-1.5 flex items-center gap-2">
+            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
               <span className="font-mono font-bold text-xs px-2 py-0.5 rounded"
                 style={{ color: rivalRank.color, background: `${rivalRank.color}22`, border: `1px solid ${rivalRank.color}44` }}>
                 {rivalRank.id}
@@ -467,6 +478,9 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
               )}
               {rivalData.currentPattern === "weak" && (
                 <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid #94a3b844" }}>{t('rivalTab.light')}</span>
+              )}
+              {(rivalData.johanCooldownDays || 0) > 0 && (
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded animate-pulse" style={{ background: "rgba(0,204,136,0.15)", color: "#00cc88", border: "1px solid #00cc8844" }}>⚡ RECOVERY WINDOW</span>
               )}
             </div>
           </div>
@@ -701,7 +715,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
               const pct = h / maxBarH;
               const d = new Date(day.date);
               const label = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-              const dayPattern = getDayPattern(day.date);
+              const pt = historyView === "johan" ? (day.patternType || "normal") : null;
               return (
                 <div key={day.date} className="flex items-center gap-2">
                   <div className="w-20 shrink-0" style={{ fontFamily: "'Nunito'", fontSize: 10, color: "var(--habit-dim)" }}>{label}</div>
@@ -709,14 +723,14 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
                     <div className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${pct * 100}%`,
-                        background: historyView === "you" ? "#7B61FF" : (dayPattern.type === "surge" ? "#ef4444" : dayPattern.type === "weak" ? "#94a3b8" : "#00e5ff"),
-                        boxShadow: historyView === "you" ? "0 0 4px rgba(123,97,255,0.4)" : (dayPattern.type === "surge" ? "0 0 4px rgba(239,68,68,0.5)" : "0 0 4px rgba(0,229,255,0.4)"),
+                        background: historyView === "you" ? "#7B61FF" : (pt === "surge" ? "#ef4444" : pt === "weak" ? "#94a3b8" : "#00e5ff"),
+                        boxShadow: historyView === "you" ? "0 0 4px rgba(123,97,255,0.4)" : (pt === "surge" ? "0 0 4px rgba(239,68,68,0.5)" : "0 0 4px rgba(0,229,255,0.4)"),
                       }} />
                   </div>
                   <div className="w-8 text-right" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 10, color: "#878190" }}>
                     {h.toFixed(1)}h
                   </div>
-                  {historyView === "johan" && dayPattern.type === "surge" && (
+                  {historyView === "johan" && pt === "surge" && (
                     <span style={{ fontFamily: "'Nunito'", fontSize: 8, color: "#ef4444" }}>⚡</span>
                   )}
                 </div>

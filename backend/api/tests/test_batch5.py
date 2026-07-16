@@ -1,11 +1,9 @@
 import pytest
 from django.contrib.auth.models import User
-from api.models import UserProfile, UnlockedSkill, UserStats, UserAchievement, Task
-from api.services.rival_service import compute_rival_data, calc_johan_xp
+from api.models import UserProfile, UnlockedSkill, UserStats
+from api.services.rival_service import compute_rival_data
 from api.services.achievement_service import check_and_grant_achievements
 from api.services.profile_service import get_humanities_rank_info
-from django.utils import timezone
-from datetime import datetime
 
 
 @pytest.fixture
@@ -33,10 +31,18 @@ def profile(user):
 @pytest.mark.django_db
 def test_transcendent_will(profile):
     """
-    Tests that transcendent_will multiplies Johan's generated XP by 0.9.
+    Tests that transcendent_will reduces Johan's daily XP gain by 10%.
+    With persistent accumulation: day2_total = day1_total + daily_xp * 0.9
     """
+    from api.services.rival_service import (
+        calc_johan_daily_xp,
+        get_day_number,
+        JOHAN_DIFFICULTIES,
+        DEFAULT_DIFFICULTY,
+    )
+
     rival_data_before = compute_rival_data(profile)
-    johan_xp_before = rival_data_before["totalXP"]
+    accumulated_before = rival_data_before["johanAccumulatedXP"]
 
     profile.rival_data["lastUpdated"] = "1999-01-01"
     profile.save()
@@ -45,10 +51,13 @@ def test_transcendent_will(profile):
     rival_data_after = compute_rival_data(profile)
     johan_xp_after = rival_data_after["totalXP"]
 
-    expected = max(1.0, round(johan_xp_before * 0.9, 1))
-    assert johan_xp_after == expected
+    # Expected: previous accumulated + today's daily * 0.9 (then the 0.9 applied to total)
+    diff_cfg = JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
+    today_daily = calc_johan_daily_xp(profile.rank_xp or 0, get_day_number(), diff_cfg)
+    expected_total = max(1.0, round((accumulated_before + today_daily) * 0.9, 1))
+    assert johan_xp_after == expected_total
     print(
-        f"\n[test_transcendent_will] johan_xp before={johan_xp_before}, after={johan_xp_after}"
+        f"\n[test_transcendent_will] accumulated_before={accumulated_before}, after={johan_xp_after}, expected={expected_total}"
     )
 
 
@@ -106,8 +115,6 @@ def test_godmind_and_cross_training(user, profile):
     Tests that godmind adds (gf+gc+ps+vm)*0.5 to Rank XP.
     Tests that cross_training adds 0.3 * hours to humanities_xp for language sessions.
     """
-    from api.services.mechanics import calculate_task_outcome
-
     # We will simulate the same math views.py does
     unlocked_skills = {"godmind", "cross_training"}
     UnlockedSkill.objects.create(user_profile=profile, skill_code="godmind")

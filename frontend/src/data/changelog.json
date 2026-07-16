@@ -1,6 +1,19 @@
 [
     {
         "date": "2026-07-16",
+        "version": "1.6.4",
+        "changes": [
+            { "type": "feature", "text": "Johan rival AI now remembers XP day-over-day — no more teleporting backward or forward after big grind sessions." },
+            { "type": "feature", "text": "Johan's streak is now calculated from real day patterns instead of a random number." },
+            { "type": "feature", "text": "Johan has a personality now — he specializes in 3 subjects seeded to your account, doing them 60% of sessions." },
+            { "type": "feature", "text": "Added escalating taunt messages: the longer Johan is ahead, the more aggressive his messages become." },
+            { "type": "feature", "text": "Added Comeback Arc: after Johan stays ahead for too long, he enters a 3-day cooldown giving you a recovery window." },
+            { "type": "fix", "text": "Weekly history chart no longer retroactively rewrites past data — each day's snapshot is now locked." },
+            { "type": "feature", "text": "Added Johan Difficulty setting in Gameplay settings: Easy, Normal, Hard, Extreme — controls how fast Johan accumulates XP." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
         "version": "1.6.3",
         "changes": [
             { "type": "content", "text": "Replaced temporary item placeholders with high-quality 16-bit dark fantasy pixel-art icons." },

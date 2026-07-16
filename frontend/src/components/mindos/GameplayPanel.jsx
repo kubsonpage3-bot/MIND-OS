@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Calendar, Timer, Swords, ChevronDown, UserCog, Lock, Globe } from "lucide-react";
+import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { AnimatePresence } from "framer-motion";
 import PremiumUpgradeModal from "./PremiumUpgradeModal";
@@ -18,11 +18,11 @@ const WEEK_START_OPTIONS = [
 
 
 
-const BOSS_DIFFICULTIES = [
-  { id: "easy", label: "Easy", hp: 500, reward: 0.8 },
-  { id: "normal", label: "Normal", hp: 1000, reward: 1.0 },
-  { id: "hard", label: "Hard", hp: 2000, reward: 1.5 },
-  { id: "extreme", label: "Extreme", hp: 5000, reward: 2.5 },
+const JOHAN_DIFFICULTIES = [
+  { id: "EASY",    label: "Easy",    desc: "Johan trains slow.",      xp_mult: "×0.6 XP",  color: "#00cc88" },
+  { id: "NORMAL",  label: "Normal",  desc: "Balanced challenge.",      xp_mult: "×0.9 XP",  color: "#00e5ff" },
+  { id: "HARD",    label: "Hard",    desc: "Johan pushes hard.",       xp_mult: "×1.2 XP",  color: "#f59e0b" },
+  { id: "EXTREME", label: "Extreme", desc: "No mercy. No catch-up.",  xp_mult: "×1.6 XP",  color: "#ef4444" },
 ];
 
 
@@ -56,14 +56,20 @@ export default function GameplayPanel() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   
-  const difficultyMutation = useMutation({
+  const rivalDiffMutation = useMutation({
     /**
-     * @param {string} diffId
+     * @param {string} diffId - one of EASY | NORMAL | HARD | EXTREME
      */
-    mutationFn: (diffId) => djangoApi.profile.update({ boss_difficulty: diffId.toUpperCase() }),
+    mutationFn: (diffId) => {
+      const current = profile?.rival_data || {};
+      return djangoApi.profile.update({
+        rival_data: { ...current, rivalDifficulty: diffId, lastUpdated: null },
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["rival"] });
+    },
   });
 
   const tzMutation = useMutation({
@@ -205,38 +211,43 @@ export default function GameplayPanel() {
 
 
 
-      {/* Boss Difficulty */}
-      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3 relative overflow-hidden" style={{ borderColor: "rgba(240,192,64,0.3)", background: "linear-gradient(to bottom, rgba(15,10,20,0.5), rgba(10,5,15,0.8))" }}>
+      {/* Johan Rival Difficulty */}
+      <div className="p-4 rounded-xl border space-y-3 relative overflow-hidden"
+        style={{ borderColor: "rgba(0,229,255,0.25)", background: "linear-gradient(to bottom, rgba(0,10,20,0.6), rgba(5,10,18,0.9))" }}
+      >
         <div className="flex items-center gap-2">
-          <Swords className="w-4 h-4" style={{ color: "#f0c040" }} />
-          <span className="font-mono text-xs font-bold">{t('settings.bossDifficulty')}</span>
+          <Ghost className="w-4 h-4" style={{ color: "#00e5ff" }} />
+          <span className="font-mono text-xs font-bold" style={{ color: "#00e5ff" }}>RIVAL — JOHAN DIFFICULTY</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/70 font-mono italic">{t('settings.bossDifficultyDesc')}</p>
+        <p className="text-[10px] font-mono italic" style={{ color: "rgba(0,229,255,0.5)" }}>Controls how fast Johan accumulates XP and how aggressive his surge days are.</p>
         <div className="grid grid-cols-2 gap-3">
-          {BOSS_DIFFICULTIES.map(diff => {
-            const backendDiff = profile?.boss_difficulty || "NORMAL";
-            const isActive = backendDiff === diff.id.toUpperCase();
+          {JOHAN_DIFFICULTIES.map(diff => {
+            const current = profile?.rival_data?.rivalDifficulty || "NORMAL";
+            const isActive = current === diff.id;
             return (
               <button
                 key={diff.id}
-                onClick={() => difficultyMutation.mutate(diff.id)}
-                className="py-3 px-2 text-xs font-mono rounded-lg border transition-all relative"
+                onClick={() => rivalDiffMutation.mutate(diff.id)}
+                className="py-3 px-2 text-xs font-mono rounded-lg border transition-all text-left"
                 style={{
-                  borderColor: isActive ? "#dc2626" : "rgba(255,255,255,0.1)",
-                  background: isActive ? "rgba(220,38,38,0.1)" : "rgba(0,0,0,0.4)",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.5)",
-                  boxShadow: isActive ? "0 0 12px rgba(220,38,38,0.2)" : "none",
+                  borderColor: isActive ? diff.color : "rgba(255,255,255,0.08)",
+                  background: isActive ? `${diff.color}18` : "rgba(0,0,0,0.4)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  boxShadow: isActive ? `0 0 14px ${diff.color}33` : "none",
                 }}
               >
-                <div className="font-bold tracking-wider mb-1" style={{ color: isActive ? "#f87171" : "inherit" }}>{diff.label.toUpperCase()}</div>
+                <div className="font-bold tracking-wider mb-1" style={{ color: isActive ? diff.color : "inherit" }}>{diff.label.toUpperCase()}</div>
                 <div className="flex flex-col gap-0.5 text-[9px] opacity-80">
-                  <span>{diff.hp} HP</span>
-                  <span style={{ color: isActive ? "#fcd34d" : "inherit" }}>×{diff.reward.toFixed(1)} {t('settings.rewards')}</span>
+                  <span style={{ color: isActive ? diff.color : "inherit" }}>{diff.xp_mult}</span>
+                  <span>{diff.desc}</span>
                 </div>
               </button>
             );
           })}
         </div>
+        {rivalDiffMutation.isPending && (
+          <div className="text-[9px] font-mono text-center" style={{ color: "rgba(0,229,255,0.4)" }}>Syncing with Johan...</div>
+        )}
       </div>
 
       {/* Change Class */}
