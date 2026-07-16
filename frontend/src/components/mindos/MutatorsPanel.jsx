@@ -76,7 +76,7 @@ export default function MutatorsPanel({ onSpendGold }) {
 
   const openChestMutation = useMutation({
     mutationFn: () => djangoApi.mutators.openChest(),
-    onSuccess: (data) => {
+    onSuccess: (/** @type {{ won_mutator_id: string }} */ data) => {
       const wonId = data.won_mutator_id;
       setHighlightedId(wonId);
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });

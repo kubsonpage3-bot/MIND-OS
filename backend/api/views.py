@@ -511,14 +511,15 @@ class TaskViewSet(viewsets.ModelViewSet):
                         least_xp_ally = active_recruited.order_by(
                             "total_xp_received", "recruited_at"
                         ).first()
-                        ally_xp_share = int(xp_reward * 0.15)
-                        ally_gold_share = int(gold_reward * 0.15)
+                        if least_xp_ally:
+                            ally_xp_share = int(xp_reward * 0.15)
+                            ally_gold_share = int(gold_reward * 0.15)
 
-                        xp_reward -= ally_xp_share
-                        gold_reward -= ally_gold_share
+                            xp_reward -= ally_xp_share
+                            gold_reward -= ally_gold_share
 
-                        least_xp_ally.total_xp_received += ally_xp_share
-                        least_xp_ally.save(update_fields=["total_xp_received"])
+                            least_xp_ally.total_xp_received += ally_xp_share
+                            least_xp_ally.save(update_fields=["total_xp_received"])
 
                 # Null Zone conversion
                 if "null_zone" in active_ids:
@@ -1503,14 +1504,15 @@ class TrainingLogView(generics.GenericAPIView):
                     least_xp_ally = active_recruited.order_by(
                         "total_xp_received", "recruited_at"
                     ).first()
-                    ally_xp_share = int(final_xp * 0.15)
-                    ally_gold_share = int(final_gold * 0.15)
+                    if least_xp_ally:
+                        ally_xp_share = int(final_xp * 0.15)
+                        ally_gold_share = int(final_gold * 0.15)
 
-                    final_xp -= ally_xp_share
-                    final_gold -= ally_gold_share
+                        final_xp -= ally_xp_share
+                        final_gold -= ally_gold_share
 
-                    least_xp_ally.total_xp_received += ally_xp_share
-                    least_xp_ally.save(update_fields=["total_xp_received"])
+                        least_xp_ally.total_xp_received += ally_xp_share
+                        least_xp_ally.save(update_fields=["total_xp_received"])
 
             # Null Zone conversion
             if "null_zone" in active_ids:

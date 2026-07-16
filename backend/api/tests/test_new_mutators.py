@@ -15,7 +15,7 @@ def test_user_and_profile_mutators():
     # Use unique username to avoid conflicts, delete to clear previous runs
     User.objects.filter(username="test_mutator_user_new").delete()
     user = User.objects.create(username="test_mutator_user_new")
-    profile = user.profile
+    profile = user.profile  # type: ignore
     profile.gold = 1000
     profile.xp_multiplier = 1.0
     profile.gold_multiplier = 1.0
