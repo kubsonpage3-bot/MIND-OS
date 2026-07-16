@@ -510,3 +510,24 @@ def test_mutator_chest_concurrency(test_user_and_profile_mutators):
     profile.refresh_from_db()
     assert profile.gold == 0
     assert len(profile.active_mutators.get("purchased", [])) == 1
+
+
+@pytest.mark.django_db
+def test_buy_mutator_view_disabled(test_user_and_profile_mutators):
+    user, profile, stats = test_user_and_profile_mutators
+    profile.gold = 1000
+    profile.active_mutators = {"purchased": []}
+    profile.save()
+
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    url = "/api/mutators/bloodwork/buy/"
+    response = client.post(url)
+    assert response.status_code == 400
+    assert "Direct purchases are disabled" in response.data["error"]
+    profile.refresh_from_db()
+    assert profile.gold == 1000
+    assert "bloodwork" not in profile.active_mutators.get("purchased", [])

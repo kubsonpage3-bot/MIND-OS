@@ -105,19 +105,14 @@ export default function MutatorsPanel({ onSpendGold }) {
   });
 
   const activate = (mutator) => {
+    if (!isPurchased(mutator.id)) return;
     if (mutator.id === "ironman" && !isActive(mutator.id)) { setConfirmIronman(true); return; }
-    if (!isPurchased(mutator.id) && mutator.cost > 0 && gold < mutator.cost) return;
     if (active.length >= MAX_ACTIVE && !isActive(mutator.id)) return;
 
     // Conflict check
     if (!isActive(mutator.id) && mutator.conflicts) {
       const hasConflict = mutator.conflicts.some(c => isActive(c));
       if (hasConflict) return;
-    }
-
-    if (!isPurchased(mutator.id) && mutator.cost > 0) {
-      buyMutatorMutation.mutate(mutator.id);
-      return;
     }
 
     if (isActive(mutator.id) && mutator.permanent_lock) return; // ironman cannot toggle off
@@ -127,7 +122,7 @@ export default function MutatorsPanel({ onSpendGold }) {
   };
 
   const confirmIronmanActivate = () => {
-    buyMutatorMutation.mutate("ironman");
+    toggleMutatorMutation.mutate({ id: "ironman", duration: null });
     setConfirmIronman(false);
   };
 
@@ -300,16 +295,20 @@ export default function MutatorsPanel({ onSpendGold }) {
                     </div>
 
                     <button
-                      onClick={(e) => { e.stopPropagation(); activate(mut); }}
-                      disabled={(!canAfford && !purchased_) || (!canActivate && !active_) || conflicted}
+                      onClick={(e) => {
+                        if (!purchased_) return;
+                        e.stopPropagation();
+                        activate(mut);
+                      }}
+                      disabled={!purchased_ || (!canActivate && !active_) || conflicted}
                       className={`w-full shrink-0 py-1.5 mt-auto text-[10px] font-mono font-bold rounded border transition-all relative z-10 ${
                         active_ ? "border-[#f0c040] bg-[#f0c040] text-black" :
-                        canAfford && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
-                        "border-border/50 text-muted-foreground/40 bg-transparent"
+                        purchased_ && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
+                        "border-border/30 text-muted-foreground/30 bg-transparent cursor-not-allowed"
                       }`}
                       style={{ opacity: conflicted ? 0.4 : 1 }}
                     >
-                      {active_ ? (mut.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED" : `${mut.cost}G - BUY`}
+                      {active_ ? (mut.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED" : "🎁 Chest Only"}
                     </button>
                   </GameCard>
                 );
@@ -387,21 +386,24 @@ export default function MutatorsPanel({ onSpendGold }) {
             const active_ = isActive(selectedMutator.id);
             const purchased_ = isPurchased(selectedMutator.id);
             const canActivate = active.length < MAX_ACTIVE || active_;
-            const canAfford = purchased_ || gold >= selectedMutator.cost;
             const conflicted = !isActive(selectedMutator.id) && selectedMutator.conflicts?.some(c => isActive(c));
 
             return (
               <button
-                onClick={() => { activate(selectedMutator); setSelectedMutator(null); }}
-                disabled={(!canAfford && !purchased_) || (!canActivate && !active_) || conflicted}
-                className={`w-full py-3 text-xs font-mono font-black rounded transition-all ${
+                onClick={() => {
+                  if (!purchased_) return;
+                  activate(selectedMutator);
+                  setSelectedMutator(null);
+                }}
+                disabled={!purchased_ || (!canActivate && !active_) || conflicted}
+                className={`w-full py-3 text-xs font-mono font-black rounded transition-all border ${
                   active_ ? "border-[#f0c040] bg-[#f0c040] text-black" :
-                  canAfford && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10 border" :
-                  "border-border/50 text-muted-foreground/40 bg-transparent border"
+                  purchased_ && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
+                  "border-border/30 text-muted-foreground/30 bg-transparent cursor-not-allowed"
                 }`}
                 style={{ opacity: conflicted ? 0.4 : 1 }}
               >
-                {active_ ? (selectedMutator.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED BY CONFLICT" : `${selectedMutator.cost}G - BUY`}
+                {active_ ? (selectedMutator.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED BY CONFLICT" : "🎁 Chest Only"}
               </button>
             );
           })()

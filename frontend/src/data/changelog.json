@@ -1,6 +1,13 @@
 [
     {
         "date": "2026-07-16",
+        "version": "1.6.9",
+        "changes": [
+            { "type": "balance", "text": "Shifted Mutator acquisition model to chest-only gacha. Individual mutators are no longer directly purchasable for gold, displaying a disabled 'Chest Only' label instead." }
+        ]
+    },
+    {
+        "date": "2026-07-16",
         "version": "1.6.8",
         "changes": [
             { "type": "feature", "text": "Implemented the Mutator Chest gacha system in the shop. Spend 100 gold to unlock a random unowned mutator, featuring a pulsing premium chest card and smooth card scroll-into-view celebration highlights." }
