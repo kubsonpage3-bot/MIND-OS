@@ -12,6 +12,9 @@ MAPPING = {
     "media__1784313765755.jpg": "ally_15.webp",  # Vivian
     "media__1784313765877.png": "ally_11.webp",  # Meldor
     "media__1784313765967.png": "ally_10.webp",  # Lyra
+    "media__1784314374225.jpg": "ally_9.webp",   # Grier
+    "media__1784314374136.jpg": "ally_12.webp",  # Kage
+    "media__1784314374259.jpg": "ally_14.webp",  # Bran
 }
 
 
