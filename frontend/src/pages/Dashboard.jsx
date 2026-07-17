@@ -35,6 +35,7 @@ import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
 import { useProfileMount } from "@/utils/perf";
+import { getFeatureLocks } from "@/lib/featureLock";
 
 import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
 import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
@@ -832,14 +833,25 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           </div>
         )}
 
-        {sectionToRender === "character" && (
-          <>
-            <PillTabBar tabs={CHARACTER_TABS.map(tab => ({ ...tab, label: t(tab.label) }))} activeTab={activeSubItem || "overview"} onChange={onSubItemChange} />
-            <div className="py-2">
-              <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
-            </div>
-          </>
-        )}
+        {sectionToRender === "character" && (() => {
+          const { skillsLocked } = getFeatureLocks(profile);
+          return (
+            <>
+              <PillTabBar
+                tabs={CHARACTER_TABS.map(tab => ({
+                  ...tab,
+                  label: t(tab.label),
+                  locked: tab.id === "skills" && skillsLocked
+                }))}
+                activeTab={activeSubItem || "overview"}
+                onChange={onSubItemChange}
+              />
+              <div className="py-2">
+                <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
+              </div>
+            </>
+          );
+        })()}
 
         {sectionToRender === "rival" && (
           <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>

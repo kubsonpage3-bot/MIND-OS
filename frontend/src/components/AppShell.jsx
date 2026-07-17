@@ -258,6 +258,7 @@ export default function AppShell({ defaultTab = "mind" }) {
         setCollapsed={setSidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
         setMobileOpen={setMobileSidebarOpen}
+        profile={djangoProfile}
       />
 
       {/* Peek layer (mobile only) */}

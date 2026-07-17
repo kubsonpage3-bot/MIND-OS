@@ -1840,5 +1840,16 @@
       "description": "Check out the Rival tab to see how you stack up against Johan.",
       "cta": "View Rival"
     }
+  },
+  "feature_lock": {
+    "title": "Feature Locked",
+    "locked_suffix": "Locked",
+    "subtitle": "Reach Rank {{rank}} to unlock the {{feature}}.",
+    "current_rank": "Current Rank",
+    "remaining": "{{xp}} XP remaining until Rank {{rank}}",
+    "hint": "Complete tasks and focus sessions to gain Rank XP",
+    "skills_name": "Skill Tree",
+    "allies_name": "Allies Panel",
+    "mutators_name": "Mutators Panel"
   }
 }

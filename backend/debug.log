@@ -2192,3 +2192,79 @@ ERROR 2026-07-17 20:35:39,210 task_service 25272 24748 complete_task failed: [Er
 ERROR 2026-07-17 20:36:17,050 task_service 25272 24748 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
 WARNING 2026-07-17 20:36:38,331 log 25272 24748 Bad Request: /api/profile/
 WARNING 2026-07-17 20:36:40,489 log 25272 26984 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 20:58:13,914 log 25480 20016 Unauthorized: /api/analytics/event/
+WARNING 2026-07-17 20:58:17,325 log 25480 20016 Bad Request: /api/analytics/event/
+WARNING 2026-07-17 20:58:21,379 log 25480 20016 Bad Request: /api/auth/register/
+WARNING 2026-07-17 20:59:17,521 log 25480 20016 Bad Request: /api/profile/
+WARNING 2026-07-17 20:59:19,825 log 25480 20016 Forbidden: /api/calendar/events/
+WARNING 2026-07-17 20:59:42,439 log 25480 20016 Bad Request: /api/tasks/1842/sacrifice/
+ERROR 2026-07-17 20:59:45,111 task_service 25480 20016 complete_task failed: cannot access local variable 'RecruitedAlly' where it is not associated with a value
+WARNING 2026-07-17 20:59:52,326 log 25480 20016 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 20:59:52,742 log 25480 20016 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 20:59:53,849 log 25480 20016 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 20:59:54,176 log 25480 20016 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-17 21:00:11,945 log 25480 20016 Forbidden: /api/party/members/4849/profile/
+WARNING 2026-07-17 21:00:13,522 log 25480 20016 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-17 21:00:19,757 task_service 25480 20016 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-17 21:00:55,928 task_service 25480 20016 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-17 21:01:16,090 log 25480 20016 Bad Request: /api/profile/
+WARNING 2026-07-17 21:01:18,205 log 25480 28268 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:02:25,433 log 19468 28540 Unauthorized: /api/analytics/event/
+WARNING 2026-07-17 21:02:28,726 log 19468 28540 Bad Request: /api/analytics/event/
+WARNING 2026-07-17 21:02:32,888 log 19468 28540 Bad Request: /api/auth/register/
+WARNING 2026-07-17 21:03:29,178 log 19468 28540 Bad Request: /api/profile/
+WARNING 2026-07-17 21:03:31,558 log 19468 28540 Forbidden: /api/calendar/events/
+WARNING 2026-07-17 21:03:53,871 log 19468 28540 Bad Request: /api/tasks/1900/sacrifice/
+ERROR 2026-07-17 21:03:56,428 task_service 19468 28540 complete_task failed: cannot access local variable 'RecruitedAlly' where it is not associated with a value
+WARNING 2026-07-17 21:04:03,538 log 19468 28540 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:04:03,949 log 19468 28540 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:04:05,035 log 19468 28540 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:04:05,360 log 19468 28540 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-17 21:04:22,604 log 19468 28540 Forbidden: /api/party/members/4990/profile/
+WARNING 2026-07-17 21:04:24,117 log 19468 28540 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-17 21:04:30,169 task_service 19468 28540 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-17 21:05:06,081 task_service 19468 28540 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-17 21:05:25,805 log 19468 28540 Bad Request: /api/profile/
+WARNING 2026-07-17 21:05:28,085 log 19468 26820 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:09:19,253 log 26040 6800 Unauthorized: /api/analytics/event/
+WARNING 2026-07-17 21:09:22,473 log 26040 6800 Bad Request: /api/analytics/event/
+WARNING 2026-07-17 21:09:26,416 log 26040 6800 Bad Request: /api/auth/register/
+WARNING 2026-07-17 21:10:20,623 log 26040 6800 Bad Request: /api/profile/
+WARNING 2026-07-17 21:10:22,947 log 26040 6800 Forbidden: /api/calendar/events/
+WARNING 2026-07-17 21:10:44,163 log 26040 6800 Bad Request: /api/tasks/1958/sacrifice/
+WARNING 2026-07-17 21:10:54,824 log 26040 6800 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:10:55,243 log 26040 6800 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:10:56,351 log 26040 6800 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:10:56,681 log 26040 6800 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-17 21:11:13,920 log 26040 6800 Forbidden: /api/party/members/5131/profile/
+WARNING 2026-07-17 21:11:15,560 log 26040 6800 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-17 21:11:21,764 task_service 26040 6800 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-17 21:11:58,329 task_service 26040 6800 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-17 21:12:18,450 log 26040 6800 Bad Request: /api/profile/
+WARNING 2026-07-17 21:12:20,732 log 26040 26528 Bad Request: /api/mutators/chest/open/
+ERROR 2026-07-17 21:15:20,004 task_service 23296 28456 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-17 21:15:57,597 task_service 23296 28456 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-17 21:18:29,731 log 25268 8524 Bad Request: /api/tasks/2035/sacrifice/
+WARNING 2026-07-17 21:18:40,441 log 25268 8524 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:18:40,853 log 25268 8524 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:18:41,938 log 25268 8524 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:18:42,263 log 25268 8524 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-17 21:18:48,178 log 25268 12072 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:19:45,484 log 24312 25420 Unauthorized: /api/analytics/event/
+WARNING 2026-07-17 21:19:47,479 log 24312 25420 Bad Request: /api/analytics/event/
+WARNING 2026-07-17 21:19:51,394 log 24312 25420 Bad Request: /api/auth/register/
+WARNING 2026-07-17 21:20:50,201 log 24312 25420 Bad Request: /api/profile/
+WARNING 2026-07-17 21:20:52,667 log 24312 25420 Forbidden: /api/calendar/events/
+WARNING 2026-07-17 21:21:14,817 log 24312 25420 Bad Request: /api/tasks/2072/sacrifice/
+WARNING 2026-07-17 21:21:25,085 log 24312 25420 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:21:25,486 log 24312 25420 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:21:26,530 log 24312 25420 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-17 21:21:26,844 log 24312 25420 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-17 21:21:43,824 log 24312 25420 Forbidden: /api/party/members/5340/profile/
+WARNING 2026-07-17 21:21:45,341 log 24312 25420 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-17 21:21:50,938 task_service 24312 25420 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-17 21:22:25,442 task_service 24312 25420 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-17 21:22:45,048 log 24312 25420 Bad Request: /api/profile/
+WARNING 2026-07-17 21:22:47,050 log 24312 22212 Bad Request: /api/mutators/chest/open/
+ERROR 2026-07-17 21:38:07,351 task_service 23084 26608 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-17 21:38:40,528 task_service 23084 26608 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]

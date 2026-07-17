@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-17",
+    "version": "1.7.5",
+    "changes": [
+      { "type": "feature", "text": "Implemented a rank-gated feature lock system for the Skill Tree, Allies, and Mutators panels to simplify the interface for new players." }
+    ]
+  },
+  {
+    "date": "2026-07-17",
     "version": "1.7.4",
     "changes": [
       { "type": "feature", "text": "Added three new allies—Zephyr, Vivian, and Rhea—with gravity deadlines, active skills, custom combat buffs, and permanent max HP adjustments." }

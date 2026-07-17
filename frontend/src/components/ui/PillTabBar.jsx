@@ -42,11 +42,13 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;
           const Icon = tab.icon;
+          const isLocked = tab.locked;
           return (
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
               className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-all duration-200"
+              style={{ opacity: isLocked ? 0.6 : 1 }}
             >
               {Icon && (
                 <Icon
@@ -55,9 +57,10 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
                 />
               )}
               <span
-                className="font-mono text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-all duration-200"
+                className="font-mono text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-all duration-200 flex items-center gap-0.5"
                 style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
               >
+                {isLocked && "🔒"}
                 {t(`sidebar.sections.${tab.id}`, tab.label || tab.id)}
               </span>
             </button>

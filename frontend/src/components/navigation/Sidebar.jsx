@@ -7,6 +7,7 @@ import { prefetchTab } from "@/lib/prefetch";
 import { hapticLight } from "@/hooks/useHaptic";
 import { djangoApi } from "@/api/djangoClient";
 import { useTranslation } from "react-i18next";
+import { getFeatureLocks } from "@/lib/featureLock";
 
 function haptic() {
   hapticLight();
@@ -61,9 +62,10 @@ function NavContent({
   activeApp, onAppChange, activeSection, activeSubItem,
   onNavigate, collapsed, setCollapsed,
   expandedSection, setExpandedSection,
-  onClose, isMobile,
+  onClose, isMobile, profile,
 }) {
   const { t } = useTranslation();
+  const { skillsLocked } = getFeatureLocks(profile);
   const handleSectionNavigate = (section) => {
     haptic(10);
     if (section.subItems?.length > 0) {
@@ -286,6 +288,7 @@ function NavContent({
                               const subActive =
                                 (section.id === "tools" && activeSection === sub.id) ||
                                 (section.id !== "tools" && activeSubItem === sub.id);
+                              const isSubLocked = sub.id === "skills" && skillsLocked;
                               return (
                                 <motion.button
                                   key={sub.id}
@@ -304,6 +307,7 @@ function NavContent({
                                     margin: "2px 4px",
                                     width: "calc(100% - 8px)",
                                     transition: "background 0.12s, color 0.12s",
+                                    opacity: isSubLocked ? 0.6 : 1,
                                   }}
                                   whileTap={{ scale: 0.96 }}
                                   transition={{ type: "spring", stiffness: 600, damping: 28 }}
@@ -318,7 +322,10 @@ function NavContent({
                                       transition: "background 0.12s, border 0.12s",
                                     }}
                                   />
-                                  {t(`sidebar.sections.${sub.id}`)}
+                                  <span>
+                                    {isSubLocked && "🔒 "}
+                                    {t(`sidebar.sections.${sub.id}`)}
+                                  </span>
                                 </motion.button>
                               );
                             })}
@@ -350,6 +357,7 @@ export default function Sidebar({
   setCollapsed,
   mobileOpen: propMobileOpen,
   setMobileOpen: propSetMobileOpen,
+  profile,
 }) {
   const [expandedSection, setExpandedSection] = useState("tasks");
   const [localMobileOpen, setLocalMobileOpen] = useState(false);
@@ -375,6 +383,7 @@ export default function Sidebar({
           collapsed={collapsed} setCollapsed={setCollapsed}
           expandedSection={expandedSection} setExpandedSection={setExpandedSection}
           isMobile={false}
+          profile={profile}
         />
       </aside>
 
@@ -414,6 +423,7 @@ export default function Sidebar({
                 expandedSection={expandedSection} setExpandedSection={setExpandedSection}
                 onClose={() => setMobileOpen(false)}
                 isMobile={true}
+                profile={profile}
               />
             </motion.div>
           </>

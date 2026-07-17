@@ -33,6 +33,8 @@ import InventoryPanel from "./InventoryPanel";
 import ChestPanel from "./ChestPanel";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
+import { getFeatureLocks } from "@/lib/featureLock";
+import FeatureLockScreen from "@/components/ui/FeatureLockScreen";
 
 // Unified stat system: Final = Base (5) + Stat Points + Class Bonus + Equipment
 const STAT_CONFIG = {
@@ -54,6 +56,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   useProfileMount("CharacterTab");
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { skillsLocked, alliesLocked, mutatorsLocked, skillsUnlockRank, alliesUnlockRank, mutatorsUnlockRank } = getFeatureLocks(profile);
   const subTab = externalSubTab || "overview";
   const [shopTab, setShopTab] = useState(() => {
     if (typeof window !== "undefined") {
@@ -598,16 +601,20 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
 
       {/* SKILLS */}
       {subTab === "skills" && (
-        <div className="space-y-4">
-          <SkillPanel classId={classData.chosen} />
-          <TabGuideModal guideId="skill_tree" profile={profile} />
-          <SkillTreePanel
-            skillTree={profile?.unlocked_skills || []}
-            onUpdate={handleSkillTreeUpdate}
-            gold={gold}
-            onSpendGold={spendGold}
-          />
-        </div>
+        skillsLocked ? (
+          <FeatureLockScreen feature="skills" requiredRank={skillsUnlockRank} profile={profile} />
+        ) : (
+          <div className="space-y-4">
+            <SkillPanel classId={classData.chosen} />
+            <TabGuideModal guideId="skill_tree" profile={profile} />
+            <SkillTreePanel
+              skillTree={profile?.unlocked_skills || []}
+              onUpdate={handleSkillTreeUpdate}
+              gold={gold}
+              onSpendGold={spendGold}
+            />
+          </div>
+        )
       )}
 
       {/* ACHIEVEMENTS */}
@@ -697,18 +704,25 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             );
           })()}
           <div className="flex gap-1 flex-wrap">
-            {["gear", "consumables", "scrolls", "chests", "inventory", "allies", "mutators"].map(tab => (
-              <button key={tab} onClick={() => setShopTab(tab)}
-                className="px-3 py-1 text-[10px] font-mono uppercase rounded transition-all"
-                style={{
-                  borderWidth: 1,
-                  borderStyle: "solid",
-                  borderColor: shopTab === tab ? "var(--habit-purple)" : "var(--habit-border)",
-                  color: shopTab === tab ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
-                  background: shopTab === tab ? "var(--habit-purple-light)" : "transparent",
-                }}
-              >{t(`shop_tabs.${tab}`, tab)}</button>
-            ))}
+            {["gear", "consumables", "scrolls", "chests", "inventory", "allies", "mutators"].map(tab => {
+              const isTabLocked = (tab === "allies" && alliesLocked) || (tab === "mutators" && mutatorsLocked);
+              return (
+                <button key={tab} onClick={() => setShopTab(tab)}
+                  className="px-3 py-1 text-[10px] font-mono uppercase rounded transition-all flex items-center gap-1"
+                  style={{
+                    borderWidth: 1,
+                    borderStyle: "solid",
+                    borderColor: shopTab === tab ? "var(--habit-purple)" : "var(--habit-border)",
+                    color: isTabLocked ? "var(--habit-dim)" : (shopTab === tab ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)"),
+                    background: shopTab === tab ? "var(--habit-purple-light)" : "transparent",
+                    opacity: isTabLocked ? 0.6 : 1,
+                  }}
+                >
+                  {isTabLocked && "🔒 "}
+                  {t(`shop_tabs.${tab}`, tab)}
+                </button>
+              );
+            })}
           </div>
           {shopTab === "scrolls" && (
             <ScrollsPanel gold={gold} onSpendGold={spendGold} />
@@ -720,16 +734,24 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => { }} onToggleEquip={equipItem} />
           )}
           {shopTab === "allies" && (
-            <>
-              <TabGuideModal guideId="allies" profile={profile} />
-              <AlliesPanel onSpendGold={spendGold} />
-            </>
+            alliesLocked ? (
+              <FeatureLockScreen feature="allies" requiredRank={alliesUnlockRank} profile={profile} />
+            ) : (
+              <>
+                <TabGuideModal guideId="allies" profile={profile} />
+                <AlliesPanel onSpendGold={spendGold} />
+              </>
+            )
           )}
           {shopTab === "mutators" && (
-            <>
-              <TabGuideModal guideId="mutators" profile={profile} />
-              <MutatorsPanel onSpendGold={spendGold} />
-            </>
+            mutatorsLocked ? (
+              <FeatureLockScreen feature="mutators" requiredRank={mutatorsUnlockRank} profile={profile} />
+            ) : (
+              <>
+                <TabGuideModal guideId="mutators" profile={profile} />
+                <MutatorsPanel onSpendGold={spendGold} />
+              </>
+            )
           )}
           <div className={`${shopTab === "gear" || shopTab === "consumables" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1" : "space-y-2"}`}>
             {(shopTab === "scrolls" || shopTab === "chests" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
