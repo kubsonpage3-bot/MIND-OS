@@ -461,6 +461,10 @@ class UserProfile(models.Model):
     def save(self, *args, **kwargs):
         if hasattr(self, "_cached_passives"):
             delattr(self, "_cached_passives")
+        if "total_stats" in self.__dict__:
+            del self.__dict__["total_stats"]
+        if "equip_stats" in self.__dict__:
+            del self.__dict__["equip_stats"]
         # Enforce minimum IQ metrics to fix legacy accounts
         if self.gf < 100.0:
             self.gf = 100.0  # type: ignore
@@ -470,6 +474,15 @@ class UserProfile(models.Model):
             self.ps = 100.0  # type: ignore
         if self.vm < 100.0:
             self.vm = 100.0  # type: ignore
+
+        # Auto-sync computed mana_max to the database field
+        self.mana_max = self.max_mana
+        if "update_fields" in kwargs and kwargs["update_fields"] is not None:
+            fields = list(kwargs["update_fields"])
+            if "mana_max" not in fields:
+                fields.append("mana_max")
+            kwargs["update_fields"] = fields
+
         super().save(*args, **kwargs)
 
     def get_cached_passives(self) -> dict:
@@ -477,6 +490,8 @@ class UserProfile(models.Model):
         Returns a cached dict of passive multipliers.
         Avoids redundant DB queries on property hot-paths.
         """
+        if self.pk is None:
+            return {}
         if not hasattr(self, "_cached_passives"):
             from api.services.mechanics import get_passive_multipliers
 
@@ -499,13 +514,22 @@ class UserProfile(models.Model):
     @property
     def max_mana(self) -> int:
         """
-        Computed max mana. Base 100, +15% per prestige + Yuki Level 2 bonus (if active).
+        Computed max mana. Base depends on class, +15% per prestige + level-up bonus + Yuki Level 2 bonus (if active).
         """
-        BASE_MANA = 100
+        class_key = str(self.character_class).lower().strip()
+        if class_key.startswith("the "):
+            class_key = class_key[4:]
+
+        from api.services.skill_service import CLASS_DEFS
+
+        class_def = CLASS_DEFS.get(class_key, {})
+        base_mana = class_def.get("max_mana", 100)
+
+        level_bonus = max(0, (self.level - 1) * 5)
         multiplier = 1.0 + (0.15 * float(self.prestige_count))
         passives = self.get_cached_passives()
         bonus = passives.get("max_mana_bonus", 0)
-        return int(BASE_MANA * multiplier) + bonus
+        return int(base_mana * multiplier) + level_bonus + bonus
 
     @property
     def streak_title(self) -> str:

@@ -833,6 +833,94 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     return effects
 
 
+def resolve_mastery_category(
+    activity: str = None, task_category: str = None, task_mastery_category: str = None
+) -> str:
+    """
+    Resolves an activity key, task category, and/or task mastery category
+    to one of the 5 canonical Mastery Radar categories:
+    'body', 'sciences', 'languages', 'spirit', 'humanities'.
+    Returns empty string if no category matches.
+    """
+    if task_mastery_category:
+        cat = str(task_mastery_category).lower().strip()
+        if cat in {"body", "sciences", "languages", "spirit", "humanities"}:
+            return cat
+
+    if activity:
+        activity = str(activity).lower().strip()
+        if activity in {"exercise", "running", "cold_shower", "nutrition", "sleep"}:
+            return "body"
+        if activity in {
+            "mathematics",
+            "physics",
+            "chemistry",
+            "biology",
+            "computer_science",
+            "coding",
+        }:
+            return "sciences"
+        if activity in {"english", "german", "other_languages", "languages"}:
+            return "languages"
+        if activity in {
+            "prayer_meditation",
+            "prayer",
+            "meditation",
+            "mindfulness",
+            "reading_philosophy",
+        }:
+            return "spirit"
+        if activity in {"reading", "philosophy", "history", "humanities", "writing"}:
+            return "humanities"
+
+    if task_category:
+        tc = str(task_category).lower().strip()
+        if tc in {
+            "body",
+            "health & fitness",
+            "exercise",
+            "running",
+            "cold_shower",
+            "nutrition",
+            "sleep",
+        }:
+            return "body"
+        if tc in {
+            "sciences",
+            "stem",
+            "math",
+            "physics",
+            "chemistry",
+            "biology",
+            "computer_science",
+            "coding",
+        }:
+            return "sciences"
+        if tc in {"languages", "english", "german", "other_languages"}:
+            return "languages"
+        if tc in {
+            "spirit",
+            "prayer_meditation",
+            "prayer",
+            "meditation",
+            "mindfulness",
+            "reading_philosophy",
+        }:
+            return "spirit"
+        if tc in {
+            "humanities",
+            "reading",
+            "philosophy",
+            "history",
+            "humanities & arts",
+            "reading & writing",
+            "writing",
+        }:
+            return "humanities"
+
+    return ""
+
+
 def get_passive_multipliers(profile, context: dict):
     from django.utils import timezone
 
@@ -1213,6 +1301,30 @@ def get_passive_multipliers(profile, context: dict):
     if rhea_level >= 5:
         effects["rhea_singularity"] = True
         effects["max_hp_bonus"] -= int(30 * ally_mult)
+
+    # Apply class-specific passive XP bonus (+20% XP for matching mastery category)
+    char_class = getattr(profile, "character_class", "")
+    if char_class:
+        class_key = char_class.lower().strip()
+        CLASS_MASTERY_MAP = {
+            "linguist": "languages",
+            "architect": "sciences",
+            "warlord": "body",
+            "ascetic": "spirit",
+        }
+        if class_key in CLASS_MASTERY_MAP:
+            target_mastery = CLASS_MASTERY_MAP[class_key]
+            activity = context.get("activity")
+            task_category = context.get("task_category")
+            task_mastery_category = context.get("task_mastery_category")
+
+            resolved_cat = resolve_mastery_category(
+                activity=activity,
+                task_category=task_category,
+                task_mastery_category=task_mastery_category,
+            )
+            if resolved_cat == target_mastery:
+                effects["xp_mult"] += 0.20
 
     return effects
 

@@ -1148,7 +1148,7 @@ def test_war_cry_stun_negates_damage(user, profile):
 @pytest.mark.django_db
 def test_allies_perk_fixes(user, profile):
     import unittest.mock as mock
-    from api.models import RecruitedAlly, Task, UnlockedSkill, InventoryItem, Item
+    from api.models import RecruitedAlly, Task, UnlockedSkill
     from api.services.mechanics import get_passive_multipliers, calculate_task_outcome
     from api.services.task_service import complete_task
 
@@ -1224,8 +1224,9 @@ def test_allies_perk_fixes(user, profile):
         daily_task_2.streak = 5
         daily_task_2.save()
 
+        profile.refresh_from_db()
         initial_mana = profile.mana
-        res_daily_2 = complete_task(user, daily_task_2.id)
+        complete_task(user, daily_task_2.id)
         profile.refresh_from_db()
         assert profile.mana == min(
             profile.total_stats.get("mana_max", 100), initial_mana + 3 + 5
@@ -1289,9 +1290,7 @@ def test_allies_perk_fixes(user, profile):
 
         # 7. Nene L5 weekly mana reset (restores to max mana instead of +1)
         RecruitedAlly.objects.filter(user_profile=profile, ally_code="yuki").delete()
-        nene = RecruitedAlly.objects.create(
-            user_profile=profile, ally_code="nene", level=5
-        )
+        RecruitedAlly.objects.create(user_profile=profile, ally_code="nene", level=5)
         profile.active_allies = ["nene"]
         profile.mana = 10
         profile.last_weekly_reset = "2020-W01"

@@ -105,7 +105,7 @@ export const CLASSES = {
     id: "architect",
     name: "THE ARCHITECT",
     color: "#00e5ff",
-    lore: "Builds systems. Thinks in structures. Never improvises.",
+    lore: "Builds systems. Thinks in structures. Never improvises. Passive: +20% XP on Sciences category sessions.",
     stats: { pwr: 3, def: 4, foc: 12, mem: 10, spd: 5, lck: 6 },
     maxMana: 120,
     skills: [
@@ -118,7 +118,7 @@ export const CLASSES = {
     id: "ascetic",
     name: "THE ASCETIC",
     color: "#9944ff",
-    lore: "Forges the will through suffering. Pain is the teacher.",
+    lore: "Forges the will through suffering. Pain is the teacher. Passive: +20% XP on Spirit category sessions.",
     stats: { pwr: 7, def: 8, foc: 7, mem: 10, spd: 7, lck: 6 },
     maxMana: 100,
     skills: [
@@ -131,7 +131,7 @@ export const CLASSES = {
     id: "linguist",
     name: "THE LINGUIST",
     color: "#00cc88",
-    lore: "Languages are keys. Every key opens a different mind.",
+    lore: "Languages are keys. Every key opens a different mind. Passive: +20% XP on Languages category sessions.",
     stats: { pwr: 5, def: 5, foc: 10, mem: 11, spd: 9, lck: 5 },
     maxMana: 110,
     skills: [
@@ -144,7 +144,7 @@ export const CLASSES = {
     id: "warlord",
     name: "THE WARLORD",
     color: "#ff3355",
-    lore: "The body is the weapon. Discipline is the ammunition.",
+    lore: "The body is the weapon. Discipline is the ammunition. Passive: +20% XP on Body category sessions.",
     stats: { pwr: 14, def: 10, foc: 5, mem: 4, spd: 10, lck: 7 },
     maxMana: 110,
     skills: [

@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from api.models import (
     Task,
-    Item,
     UserStats,
     RecruitedAlly,
     ActiveEffect,
@@ -12,7 +11,6 @@ from api.models import (
     BossEncounter,
 )
 from api.services.task_service import complete_task, process_missed_tasks
-from api.services.mechanics import get_passive_multipliers
 from api.views import TrainingLogView
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -69,9 +67,7 @@ def test_grier_l1_and_l3_effects(test_user_and_profile):
 
     # L3 Stat check: Max HP +40, SPD -4
     # Recruit Grier
-    grier = RecruitedAlly.objects.create(
-        user_profile=profile, ally_code="grier", level=3
-    )
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="grier", level=3)
     profile.active_allies = ["grier"]
     profile.save()
 
@@ -112,9 +108,7 @@ def test_grier_l2_shield_slam(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
     # L2: Prevents 50% HP damage on failure, deals it to boss for 5 Mana
-    grier = RecruitedAlly.objects.create(
-        user_profile=profile, ally_code="grier", level=2
-    )
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="grier", level=2)
     profile.active_allies = ["grier"]
     profile.hp = 100
     profile.mana = 10
@@ -127,7 +121,7 @@ def test_grier_l2_shield_slam(test_user_and_profile):
         difficulty="hard",  # higher difficulty means more damage
     )
 
-    res = complete_task(user, task.id, is_positive=False)
+    complete_task(user, task.id, is_positive=False)
     profile.refresh_from_db()
 
     # Verify HP lost is halved (base damage for hard habit is 75 * def_mult)
@@ -140,9 +134,7 @@ def test_grier_l4_revenge_mark(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
     # L4: Failed task adds charge, next completion consumes for +50% boss dmg each
-    grier = RecruitedAlly.objects.create(
-        user_profile=profile, ally_code="grier", level=4
-    )
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="grier", level=4)
     profile.active_allies = ["grier"]
     profile.save()
 
@@ -170,7 +162,7 @@ def test_grier_l4_revenge_mark(test_user_and_profile):
     task_todo = Task.objects.create(
         user=user, title="Todo", task_type=Task.TaskType.TODO, difficulty="easy"
     )
-    res = complete_task(user, task_todo.id, is_positive=True)
+    complete_task(user, task_todo.id, is_positive=True)
     profile.refresh_from_db()
     assert profile.grier_revenge_charges == 0
 
@@ -179,19 +171,17 @@ def test_grier_l4_revenge_mark(test_user_and_profile):
 def test_grier_l5_unbreakable_will(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
-    grier = RecruitedAlly.objects.create(
-        user_profile=profile, ally_code="grier", level=5
-    )
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="grier", level=5)
     profile.active_allies = ["grier"]
     profile.hp = 10  # < 20% of max HP
     profile.mana = 10
     profile.save()
 
     # Missed daily damage should be 0
-    task_daily = Task.objects.create(
+    Task.objects.create(
         user=user, title="Daily", task_type=Task.TaskType.DAILY, is_completed=False
     )
-    res = process_missed_tasks(user)
+    process_missed_tasks(user)
     profile.refresh_from_db()
     # HP shouldn't change (protected by Unbreakable Will)
     assert profile.hp == 10
@@ -200,7 +190,7 @@ def test_grier_l5_unbreakable_will(test_user_and_profile):
     task_todo = Task.objects.create(
         user=user, title="Todo", task_type=Task.TaskType.TODO, difficulty="easy"
     )
-    res = complete_task(user, task_todo.id, is_positive=True)
+    complete_task(user, task_todo.id, is_positive=True)
     profile.refresh_from_db()
     assert profile.mana == 10  # 0 mana gained
 
@@ -209,7 +199,7 @@ def test_grier_l5_unbreakable_will(test_user_and_profile):
 def test_lyra_l1_and_l3_and_l4_effects(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
-    lyra = RecruitedAlly.objects.create(user_profile=profile, ally_code="lyra", level=4)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="lyra", level=4)
     profile.active_allies = ["lyra"]
     profile.save()
 
@@ -258,7 +248,7 @@ def test_lyra_l1_and_l3_and_l4_effects(test_user_and_profile):
 def test_lyra_l2_revert_failure(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
-    lyra = RecruitedAlly.objects.create(user_profile=profile, ally_code="lyra", level=2)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="lyra", level=2)
     profile.active_allies = ["lyra"]
     profile.save()
 
@@ -269,7 +259,6 @@ def test_lyra_l2_revert_failure(test_user_and_profile):
     # Fail habit -> HP drops
     complete_task(user, task.id, is_positive=False)
     profile.refresh_from_db()
-    hp_after_fail = profile.hp
 
     # Call revert-failure endpoint
     factory = APIRequestFactory()
@@ -290,7 +279,7 @@ def test_lyra_l2_revert_failure(test_user_and_profile):
 def test_lyra_l5_time_paradox(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
-    lyra = RecruitedAlly.objects.create(user_profile=profile, ally_code="lyra", level=5)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="lyra", level=5)
     profile.active_allies = ["lyra"]
     profile.mana = 100
     profile.save()
@@ -302,7 +291,7 @@ def test_lyra_l5_time_paradox(test_user_and_profile):
     complete_task(user, task_daily.id, is_positive=True)
     profile.refresh_from_db()
 
-    assert profile.mana == 50
+    assert profile.mana == 55
     assert profile.time_paradox_charges == 3
 
     # Complete Todo -> consumes charge, duplicates rewards

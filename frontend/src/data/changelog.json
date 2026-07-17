@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-17",
+    "version": "1.7.6",
+    "changes": [
+      { "type": "feature", "text": "Added a passive +20% XP bonus for each class to their corresponding specialty mastery category." }
+    ]
+  },
+  {
+    "date": "2026-07-17",
     "version": "1.7.5",
     "changes": [
       { "type": "feature", "text": "Implemented a rank-gated feature lock system for the Skill Tree, Allies, and Mutators panels to simplify the interface for new players." }

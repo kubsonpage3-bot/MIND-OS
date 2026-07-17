@@ -217,7 +217,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             # Fetch active allies level
             active_codes = profile.active_allies or []
 
-
             recruited_allies = {
                 a.ally_code: a.level
                 for a in profile.recruited_allies.filter(ally_code__in=active_codes)
@@ -388,7 +387,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     mutator_died = mutator_effects.get("is_dead", False)
 
-    mana_gained = int(base_mana * passive_effects.get("mana_regen_mult", 1.0))
+    mana_gained = int(
+        base_mana * passive_effects.get("mana_regen_mult", 1.0)
+    ) + passive_effects.get("mana_flat_bonus", 0)
 
     battle_fury_active = ActiveEffect.objects.filter(
         user=user, skill_id="battle_fury"
@@ -552,7 +553,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             is_crit = outcome.get("is_crit", False)
             if is_crit:
                 profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 8)
-                profile.mana = min(profile.mana_max, profile.mana + 8)
+                profile.mana = min(profile.max_mana, profile.mana + 8)
             else:
                 profile.hp = max(0, profile.hp - 1)
                 check_death(profile)
@@ -567,7 +568,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         leveled_up = gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
         profile.gold = max(0, profile.gold + final_gold)
-        profile.mana = min(profile.mana_max, profile.mana + mana_gained)
+        profile.mana = min(profile.max_mana, profile.mana + mana_gained)
 
         # Group 3 Mutator stats
         profile.tasks_completed_today += 1
@@ -784,7 +785,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             # Fetch active allies level
             active_codes = profile.active_allies or []
-
 
             recruited_allies = {
                 a.ally_code: a.level

@@ -1390,6 +1390,9 @@ class TrainingLogView(generics.GenericAPIView):
                 "task_type": "training",
                 "hours": hours,
                 "focus_rating": focus_rating,
+                "activity": activity,
+                "task_category": task_category,
+                "task_mastery_category": task.mastery_category if task else "",
             }
 
             mutator_effects = apply_active_mutators(profile, context)
@@ -1631,7 +1634,7 @@ class TrainingLogView(generics.GenericAPIView):
             if is_language:
                 mana_bonus = passive_effects.get("language_mana_bonus", 0)
                 if mana_bonus > 0:
-                    profile.mana = min(profile.mana_max, profile.mana + mana_bonus)
+                    profile.mana = min(profile.max_mana, profile.mana + mana_bonus)
 
                 if "cross_training" in unlocked_skills:
                     profile.humanities_xp += (
@@ -2293,7 +2296,7 @@ class ResetDataView(generics.GenericAPIView):
                 if reset_type in ["stats", "nuclear"]:
                     InventoryItem.objects.filter(user_profile=profile).delete()
                     profile.mana = 0
-                    profile.mana_max = 100
+                    profile.mana_max = 100  # Will auto-sync in save()
                     profile.gold = 0
                     profile.level = 1
                     profile.xp = 0

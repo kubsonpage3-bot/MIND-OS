@@ -20,6 +20,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     recruited_allies = serializers.SerializerMethodField()
     max_hp = serializers.SerializerMethodField()
     hp_max = serializers.SerializerMethodField()
+    mana_max = serializers.SerializerMethodField()
     unlocked_achievements = serializers.SerializerMethodField()
     prestige_xp_required = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
@@ -132,6 +133,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_hp_max(self, obj) -> int:
         return obj.max_hp
+
+    def get_mana_max(self, obj) -> int:
+        return obj.total_stats.get("mana_max", obj.max_mana)
 
     def get_prestige_xp_required(self, obj) -> int:
         return get_prestige_xp_required(obj.prestige_count)

@@ -107,8 +107,18 @@ export default function ProjectionTable({ profile, logs, tasks = [] }) {
     const subjectStats = SUBJECT_CATS.map(cat => {
       const catLogs = logs.filter(l => getActivityMasteryCategory(l.activity_key) === cat.id);
       const recentCatLogs = recentLogs.filter(l => getActivityMasteryCategory(l.activity_key) === cat.id);
-      const totalHours = catLogs.reduce((s, l) => s + (l.hours || 0), 0);
-      const weekHours = recentCatLogs.reduce((s, l) => s + (l.hours || 0), 0);
+
+      const CLASS_MASTERY_MAP = {
+        linguist: "languages",
+        architect: "sciences",
+        warlord: "body",
+        ascetic: "spirit",
+      };
+      const charClass = profile?.character_class?.toLowerCase().trim();
+      const multiplier = CLASS_MASTERY_MAP[charClass] === cat.id ? 1.2 : 1.0;
+
+      const totalHours = catLogs.reduce((s, l) => s + (l.hours || 0) * multiplier, 0);
+      const weekHours = recentCatLogs.reduce((s, l) => s + (l.hours || 0) * multiplier, 0);
       const dailyRate = weekHours / 7;
       // Estimate % toward a notional "mastery" of 500 hours
       const MASTERY = 500;

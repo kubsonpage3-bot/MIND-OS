@@ -795,19 +795,19 @@
     "classes": {
       "architect": {
         "name": "Architect",
-        "lore": "Builds systems. Thinks in structures. Never improvises."
+        "lore": "Builds systems. Thinks in structures. Never improvises. Passive: +20% XP on Sciences category sessions."
       },
       "ascetic": {
         "name": "Ascetic",
-        "lore": "Forges the will through suffering. Pain is the teacher."
+        "lore": "Forges the will through suffering. Pain is the teacher. Passive: +20% XP on Spirit category sessions."
       },
       "linguist": {
         "name": "Linguist",
-        "lore": "Languages are keys. Every key opens a different mind."
+        "lore": "Languages are keys. Every key opens a different mind. Passive: +20% XP on Languages category sessions."
       },
       "warlord": {
         "name": "Warlord",
-        "lore": "The body is the weapon. Discipline is the ammunition."
+        "lore": "The body is the weapon. Discipline is the ammunition. Passive: +20% XP on Body category sessions."
       }
     },
     "skills": {

@@ -408,8 +408,8 @@ def _create_effect(skill_id, profile):
         return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
 
     if skill_id == "tactical_retreat":
-        mana_restore = math.floor(profile.mana_max * 0.25)
-        profile.mana = min(profile.mana_max, profile.mana + mana_restore)
+        mana_restore = math.floor(profile.max_mana * 0.25)
+        profile.mana = min(profile.max_mana, profile.mana + mana_restore)
         profile.save(update_fields=["mana"])
         encounter = BossEncounter.objects.filter(
             user=profile.user, is_defeated=False
