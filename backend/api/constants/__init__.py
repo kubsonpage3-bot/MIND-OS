@@ -632,13 +632,203 @@ ALLIES_CONFIG = {
                 "cognitive_metric_multiplier": 0.10,
                 "desc": "All cognitive metric gains +10%",
             },
+        },
+    },
+    "grier": {
+        "name": "GRIER",
+        "title": "The Iron Warden",
+        "lore": "True progress is forged in absolute resilience.",
+        "image_url": "/images/webp/ally_9.webp",
+        "color": "#6b7280",
+        "rank": "A",
+        "recruit_cost": 2800,
+        "upgrade_costs": [1800, 3500, 6000, 12000],
+        "levels": {
+            1: {"desc": "Focus >= 9.0 restores +2 HP but gives -25% Gold"},
+            2: {
+                "desc": "Failed tasks trigger Shield Slam (prevents 50% HP damage, deals that damage to boss for 5 Mana)"
+            },
+            3: {
+                "max_hp_bonus": 40,
+                "desc": "Increases Max HP by 40, but reduces Speed (SPD) by 4 permanently",
+            },
+            4: {
+                "desc": "Failed tasks add Revenge charges (max 3); next completion consumes charges to deal +50% boss damage each"
+            },
             5: {
-                "meditation_rank_xp_multiplier": 0.15,
-                "triple_subject_gold_bonus": 30,
-                "daily_hp_regen": 2,
-                "cognitive_metric_multiplier": 0.10,
-                "weekly_free_mana": True,
-                "desc": "Once per week: full mana restoration for free",
+                "desc": "Below 20% HP: immune to missed daily HP damage, double task boss damage, but disables mana regeneration"
+            },
+        },
+    },
+    "lyra": {
+        "name": "LYRA",
+        "title": "The Chrono-Weaver",
+        "lore": "She weaves strands of time to extend perfect concentration.",
+        "image_url": "/images/webp/ally_10.webp",
+        "color": "#a855f7",
+        "rank": "S",
+        "recruit_cost": 6000,
+        "upgrade_costs": [4000, 8000, 16000, 32000],
+        "levels": {
+            1: {
+                "desc": "Focus sessions >2h give +30% Rank XP, but <30m give 0 rewards"
+            },
+            2: {
+                "desc": "Once per day: Revert a task to restore HP lost without losing XP/Gold"
+            },
+            3: {
+                "desc": "Logging focus session forces Focus = 10.0 for first 30m, decays by 1.5 every 15m"
+            },
+            4: {
+                "desc": "Reduces active skill cooldowns by 1h per 1.0h of logged focus sessions"
+            },
+            5: {
+                "desc": "Once per day: Completing a Daily duplicates rewards and boss damage of next 3 completed Todos at cost of 50% current Mana"
+            },
+        },
+    },
+    "meldor": {
+        "name": "MELDOR",
+        "title": "The Plague Doctor",
+        "lore": "He turns failures and waste into hazardous mutagenic power.",
+        "image_url": "/images/webp/ally_11.webp",
+        "color": "#10b981",
+        "rank": "B",
+        "recruit_cost": 1600,
+        "upgrade_costs": [1000, 2000, 3200, 6500],
+        "levels": {
+            1: {
+                "desc": "Completing a Todo has 10% chance to drop random ingredient but costs 2 HP"
+            },
+            2: {
+                "desc": "Increases active mutators' effects/penalties by +25% flat (+100% and +25% flat stacked with Parasite, max 5x cap)"
+            },
+            3: {
+                "desc": "Salvaging/selling items has a 10% chance to yield a crafting ingredient instead of gold"
+            },
+            4: {
+                "desc": "Active mutator expiration deals 200 boss damage at cost of 15 Mana"
+            },
+            5: {
+                "desc": "Completing a Hard task has 15% chance to duplicate item dropped, but item sales yield 0 Gold"
+            },
+        },
+    },
+    "kage": {
+        "name": "KAGE",
+        "title": "The Shadow Stalker",
+        "lore": "He strikes from the blind spots of your habits.",
+        "image_url": "/images/webp/ally_12.webp",
+        "color": "#ef4444",
+        "rank": "A",
+        "recruit_cost": 2600,
+        "upgrade_costs": [1600, 3200, 5500, 11000],
+        "levels": {
+            1: {
+                "desc": "Critical hit damage increased to x3.0, but base critical chance is halved"
+            },
+            2: {"desc": "Completing a Todo deals +40 boss damage but yields 0 Gold"},
+            3: {
+                "desc": "Critical hits restore +8 HP/MP, but normal hits deal 1 HP damage to you"
+            },
+            4: {
+                "desc": "When HP drops to 0: prevents death, restores 20 HP, and stuns boss for 4h (24h cooldown)"
+            },
+            5: {
+                "desc": "5x damage to boss below 15% HP, but task failure deals 50% more damage to you"
+            },
+        },
+    },
+    "zephyr": {
+        "name": "ZEPHYR",
+        "title": "The Wandering Bard",
+        "lore": "His melodies synchronize with your focus cycles.",
+        "image_url": "/images/webp/ally_13.webp",
+        "color": "#f59e0b",
+        "rank": "C",
+        "recruit_cost": 850,
+        "upgrade_costs": [550, 1000, 1700, 3400],
+        "levels": {
+            1: {"desc": "Logging different focus subject gives +20% Rank XP"},
+            2: {"desc": "Streak of 10+ days increases all core stats by +2"},
+            3: {
+                "desc": "Boosts all other active allies' perks by +15% (ally_stat_mult +0.15)"
+            },
+            4: {
+                "desc": "Every 4th task completed in a day grants a free chest, but tasks 1-3 yield -15% gold"
+            },
+            5: {
+                "desc": "Completing all active Dailies in a day deals 600 boss damage and restores full mana"
+            },
+        },
+    },
+    "bran": {
+        "name": "BRAN",
+        "title": "The Scrap Tinker",
+        "lore": "He cobbles scrap metal into mechanical wonders.",
+        "image_url": "/images/webp/ally_14.webp",
+        "color": "#84cc16",
+        "rank": "B",
+        "recruit_cost": 1500,
+        "upgrade_costs": [900, 1800, 3000, 6000],
+        "levels": {
+            1: {"desc": "+8% item drop chance on tasks, but -10% Rank XP gains"},
+            2: {"desc": "Reduces gold cost of all shop items and loot chests by 15%"},
+            3: {
+                "desc": "Salvaging/selling equipment yields double gold and 20% ingredient drop chance"
+            },
+            4: {
+                "desc": "+30% equipped gear stat bonuses, but lose 1 HP for every skill activated"
+            },
+            5: {
+                "desc": "Opening a Loot Chest has a 12% chance to refund its Gold cost entirely"
+            },
+        },
+    },
+    "vivian": {
+        "name": "VIVIAN",
+        "title": "The Blood Priestess",
+        "lore": "She converts your vital blood into raw magical energy.",
+        "image_url": "/images/webp/ally_15.webp",
+        "color": "#ec4899",
+        "rank": "S",
+        "recruit_cost": 6000,
+        "upgrade_costs": [4000, 8000, 15000, 30000],
+        "levels": {
+            1: {
+                "desc": "Activate skills using HP instead of Mana (1 HP = 2 Mana), but disables healing from shop potions"
+            },
+            2: {"desc": "Lose 15 HP to reset a random skill cooldown (12h cooldown)"},
+            3: {"desc": "Task completion heals +2 HP per 10% missing health"},
+            4: {"desc": "Task completion heals you for 10% of damage dealt to the boss"},
+            5: {
+                "desc": "At exactly 1 HP: 100% critical hit chance and double XP gains"
+            },
+        },
+    },
+    "rhea": {
+        "name": "RHEA",
+        "title": "The Void Explorer",
+        "lore": "She maps space that does not exist.",
+        "image_url": "/images/webp/ally_16.webp",
+        "color": "#3b82f6",
+        "rank": "S",
+        "recruit_cost": 6000,
+        "upgrade_costs": [4000, 8000, 15000, 30000],
+        "levels": {
+            1: {"desc": "With active mutator: shuffles stats every hour (+20% sum)"},
+            2: {
+                "desc": "Once per day: Swap an active mutator with a random one from the pool"
+            },
+            3: {
+                "desc": "Gravity Well: extends daily deadline by 4h (to 4 AM) but missing them deals +30% HP damage"
+            },
+            4: {
+                "desc": "Task completion pulls boss HP down by 1.5% max HP at cost of 2 Mana"
+            },
+            5: {
+                "max_hp_bonus": -30,
+                "desc": "Increases max active mutators limit from 3 to 4, at cost of -30 permanent Max HP",
             },
         },
     },

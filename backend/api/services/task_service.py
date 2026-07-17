@@ -3,7 +3,7 @@ import random
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
-from api.models import Task, UserProfile, Item, InventoryItem
+from api.models import Task, UserProfile, Item, InventoryItem, RecruitedAlly
 from api.services.skill_service import apply_effects_on_task_complete
 from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
@@ -216,7 +216,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             # Fetch active allies level
             active_codes = profile.active_allies or []
-            from api.models import RecruitedAlly
+
 
             recruited_allies = {
                 a.ally_code: a.level
@@ -784,7 +784,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             # Fetch active allies level
             active_codes = profile.active_allies or []
-            from api.models import RecruitedAlly
+
 
             recruited_allies = {
                 a.ally_code: a.level
