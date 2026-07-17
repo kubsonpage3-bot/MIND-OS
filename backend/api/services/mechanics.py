@@ -204,7 +204,9 @@ def calculate_task_outcome(
 
         # Focus (FOC): Grants a "Critical Focus" chance. Formula: FOC * 0.5% chance. If triggered, multiply final XP and Gold by 2.  # noqa: E501
         crit_chance = foc * 0.005 + passive_effects.get("crit_chance_bonus", 0.0)
-        if random.random() < crit_chance:
+        if passive_effects.get("kage_halve_crit", False):
+            crit_chance *= 0.5
+        if passive_effects.get("always_crit", False) or random.random() < crit_chance:
             result["is_crit"] = True
             crit_mult = passive_effects.get("crit_damage_mult", 2.0)
             final_xp *= crit_mult
@@ -227,14 +229,22 @@ def calculate_task_outcome(
         result["gold_earned"] = int(final_gold)
         result["damage_dealt"] = int(damage_dealt)
     else:
-        # Check if boss is stunned via war_cry
+        # Check if boss is stunned via war_cry or decoy shadow
         from api.models import ActiveEffect
+        from django.db.models import Q
 
         war_cry_active = ActiveEffect.objects.filter(
             user=user, skill_id="war_cry"
         ).exists()
-        if war_cry_active:
-            print("[Mechanics] Boss is stunned by War Cry! Nullifying base HP lost.")
+
+        decoy_shadow_stun = (
+            ActiveEffect.objects.filter(user=user, skill_id="decoy_shadow_stun")
+            .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now()))
+            .exists()
+        )
+
+        if war_cry_active or decoy_shadow_stun:
+            print("[Mechanics] Boss is stunned! Nullifying base HP lost.")
             base_hp_lost = 0
 
         # For negative habits/missed dailies: DEF reduces HP damage taken by (100 / (100 + DEF))  # noqa: E501
@@ -262,6 +272,13 @@ def calculate_task_outcome(
                 if random.random() < 0.30:
                     result["xp_earned"] += int(final_hp_lost)
                     final_hp_lost = 0
+
+        # Grier L2: Shield slam
+        grier_ally = profile.recruited_allies.filter(ally_code="grier").first()
+        if grier_ally and grier_ally.level >= 2 and profile.mana >= 5:
+            result["grier_shield_slam"] = True
+            result["grier_shield_slam_dmg"] = int(final_hp_lost)
+            final_hp_lost = int(final_hp_lost * 0.5)
 
         result["hp_lost"] = int(final_hp_lost)
 
@@ -416,12 +433,68 @@ def revert_boss_damage(user, encounter_id, damage_to_heal):
         pass
 
 
+def check_and_expire_mutators(profile):
+    """
+    Checks if active mutators have expired based on their durationDays.
+    If yes, removes them. If Meldor L4 is active, deals 200 boss damage at cost of 15 mana.
+    """
+    import time
+
+    active_mutators = profile.active_mutators or {}
+    active_list = (
+        active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
+    )
+
+    if not active_list:
+        return
+
+    active_codes = profile.active_allies or []
+    recruited_allies = {
+        a.ally_code: a.level
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+    }
+    meldor_level = recruited_allies.get("meldor", 0)
+
+    now_ms = time.time() * 1000
+    new_active_list = []
+    mutators_changed = False
+
+    for m in active_list:
+        if not isinstance(m, dict):
+            new_active_list.append(m)
+            continue
+
+        activated_at = m.get("activatedAt")
+        duration_days = m.get("duration")
+
+        if activated_at is not None and duration_days is not None:
+            duration_ms = duration_days * 24 * 3600 * 1000
+            if now_ms - activated_at >= duration_ms:
+                mutators_changed = True
+                if meldor_level >= 4 and profile.mana >= 15:
+                    profile.mana -= 15
+                    from api.services.mechanics import apply_boss_damage
+
+                    apply_boss_damage(profile.user, 200)
+                continue
+
+        new_active_list.append(m)
+
+    if mutators_changed:
+        active_mutators["active"] = new_active_list
+        profile.active_mutators = active_mutators
+        profile.save(update_fields=["active_mutators", "mana"])
+
+
 def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = True):
     """
     Applies active mutators on the profile and handles immediate drawbacks like Tithe.
     Returns a dictionary with multipliers and flags.
     context keys: is_science (bool), is_language (bool), hours (float), task_category (str)
     """
+    if trigger_side_effects:
+        check_and_expire_mutators(profile)
+
     from api.services.profile_service import check_death
     import random
     from django.utils import timezone
@@ -722,16 +795,39 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         if effects["gold_mult"] > 1.0:
             effects["gold_mult"] = 1.0 + (effects["gold_mult"] - 1.0) * amp
 
+    active_codes = profile.active_allies or []
+    recruited_allies = {
+        a.ally_code: a.level
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+    }
+    meldor_level = recruited_allies.get("meldor", 0)
+
+    mutator_amp = 1.0
     if "parasite" in active_ids:
-        effects["xp_mult"] = 1.0 + (effects["xp_mult"] - 1.0) * 2
-        effects["gold_mult"] = 1.0 + (effects["gold_mult"] - 1.0) * 2
-        effects["flat_xp"] *= 2
-        effects["gc_flat"] *= 2
+        mutator_amp += 1.0
+    if meldor_level >= 2:
+        mutator_amp += 0.25
+
+    if mutator_amp > 1.0:
+        effects["xp_mult"] = max(
+            0.0, min(5.0, 1.0 + (effects["xp_mult"] - 1.0) * mutator_amp)
+        )
+        effects["gold_mult"] = max(
+            0.0, min(5.0, 1.0 + (effects["gold_mult"] - 1.0) * mutator_amp)
+        )
+        effects["flat_xp"] = int(effects["flat_xp"] * mutator_amp)
+        effects["gc_flat"] = effects["gc_flat"] * mutator_amp
         effects["final_xp_mult"] = max(
-            0.0, min(5.0, 1.0 + (effects["final_xp_mult"] - 1.0) * 2)
+            0.0, min(5.0, 1.0 + (effects["final_xp_mult"] - 1.0) * mutator_amp)
         )
         effects["final_gold_mult"] = max(
-            0.0, min(5.0, 1.0 + (effects["final_gold_mult"] - 1.0) * 2)
+            0.0, min(5.0, 1.0 + (effects["final_gold_mult"] - 1.0) * mutator_amp)
+        )
+        effects["shop_cost_mult"] = max(
+            0.0, min(5.0, 1.0 + (effects["shop_cost_mult"] - 1.0) * mutator_amp)
+        )
+        effects["damage_taken_mult"] = max(
+            0.0, min(5.0, 1.0 + (effects["damage_taken_mult"] - 1.0) * mutator_amp)
         )
 
     return effects
@@ -776,6 +872,10 @@ def get_passive_multipliers(profile, context: dict):
         "max_mana_bonus": 0,
         "always_crit": False,
         "habit_shield": False,
+        "rhea_cosmic_shuffle": False,
+        "rhea_gravity_well": False,
+        "rhea_void_pull": False,
+        "rhea_singularity": False,
         "science_threshold_reduction": 0.0,
         "language_threshold_reduction": 0.0,
         "triple_subject_gold_bonus": 0,
@@ -793,6 +893,23 @@ def get_passive_multipliers(profile, context: dict):
         "skill_mana_cost_reduction": 0,
         "skill_boss_damage": 0,
         "daily_free_skill": False,
+        "prestige_bonus": 0.0,
+        "skill_cost_reduction": 0.0,
+        "prestige_start_rank": "F",
+        "daily_gold_mult": 1.0,
+        "daily_completed_hp_heal": 0,
+        "streak_xp_mult": 0.0,
+        "mana_flat_bonus": 0,
+        "pwr_stat_bonus": 0,
+        "def_stat_bonus": 0,
+        "foc_stat_bonus": 0,
+        "mem_stat_bonus": 0,
+        "spd_stat_bonus": 0,
+        "lck_stat_bonus": 0,
+        "double_sell_gold": False,
+        "bran_ingredient_chance": 0.0,
+        "meldor_salvage_ingredient_chance": 0.0,
+        "shop_cost_mult": 1.0,
     }
 
     focus_rating = context.get("focus_rating", 0.0)
@@ -911,12 +1028,12 @@ def get_passive_multipliers(profile, context: dict):
         effects["gf_flat_bonus"] += 0.002 * ally_mult
     if kira_level >= 4 and is_science:
         effects["always_crit"] = True
-    if kira_level >= 5 and is_science:
+    if kira_level >= 5:
         effects["science_threshold_reduction"] += 0.10 * ally_mult
 
     neko_level = recruited_allies.get("neko", 0)
     if neko_level >= 1:
-        effects["gold_mult"] += 0.05 * ally_mult
+        effects["daily_gold_mult"] += 0.05 * ally_mult
     if neko_level >= 2:
         effects["streak_xp_mult"] += 0.08 * ally_mult
     if neko_level >= 3:
@@ -947,7 +1064,7 @@ def get_passive_multipliers(profile, context: dict):
     if luna_level >= 2:
         effects["missed_daily_hp_reduction"] += 0.10 * ally_mult
     if luna_level >= 3:
-        effects["daily_hp_regen"] += 1.0 * ally_mult
+        effects["daily_completed_hp_heal"] += int(1.0 * ally_mult)
     if luna_level >= 4:
         effects["boss_kill_hp_heal"] += int(5 * ally_mult)
     if luna_level >= 5:
@@ -962,7 +1079,7 @@ def get_passive_multipliers(profile, context: dict):
         effects["vm_mult"] += 0.10 * ally_mult
     if sakura_level >= 4:
         effects["xp_mult"] += 0.08 * ally_mult
-    if sakura_level >= 5 and is_language:
+    if sakura_level >= 5:
         effects["language_threshold_reduction"] += 0.20 * ally_mult
 
     # YUKI
@@ -971,6 +1088,12 @@ def get_passive_multipliers(profile, context: dict):
         effects["xp_mult"] += 0.08 * ally_mult
     if yuki_level >= 2:
         effects["max_mana_bonus"] += int(20 * ally_mult)
+    if yuki_level >= 3:
+        effects["prestige_bonus"] += 0.05 * ally_mult
+    if yuki_level >= 4:
+        effects["skill_cost_reduction"] += 0.25 * ally_mult
+    if yuki_level >= 5:
+        effects["prestige_start_rank"] = "C"
 
     # NENE
     nene_level = recruited_allies.get("nene", 0)
@@ -1000,6 +1123,96 @@ def get_passive_multipliers(profile, context: dict):
         effects["cooldown_reduction"] += 0.20 * ally_mult
     if hex_level >= 5:
         effects["daily_free_skill"] = True
+
+    # GRIER
+    grier_level = recruited_allies.get("grier", 0)
+    if grier_level >= 1:
+        if focus_rating >= 9.0:
+            effects["grier_l1_heal"] = True
+            effects["gold_mult"] -= 0.25 * ally_mult
+    if grier_level >= 3:
+        effects["max_hp_bonus"] += int(40 * ally_mult)
+        effects["spd_stat_bonus"] -= int(4 * ally_mult)
+    if grier_level >= 5:
+        effects["grier_unbreakable_will"] = True
+
+    # LYRA
+    lyra_level = recruited_allies.get("lyra", 0)
+    if lyra_level >= 3:
+        effects["decaying_focus"] = True
+    if lyra_level >= 4:
+        effects["reduce_cooldowns_by_hours"] = True
+    if lyra_level >= 5:
+        effects["lyra_time_paradox"] = True
+
+    # MELDOR
+    meldor_level = recruited_allies.get("meldor", 0)
+    if meldor_level >= 3:
+        effects["meldor_salvage_ingredient_chance"] = 0.10 * ally_mult
+
+    # KAGE
+    kage_level = recruited_allies.get("kage", 0)
+    if kage_level >= 1:
+        effects["crit_damage_mult"] = 3.0
+        effects["kage_halve_crit"] = True
+    if kage_level >= 3:
+        effects["kage_flesh_rip"] = True
+    if kage_level >= 5:
+        effects["kage_executioner"] = True
+
+    # ZEPHYR
+    zephyr_level = recruited_allies.get("zephyr", 0)
+    if zephyr_level >= 2:
+        if profile.streak >= 10:
+            effects["pwr_stat_bonus"] += int(2 * ally_mult)
+            effects["def_stat_bonus"] += int(2 * ally_mult)
+            effects["foc_stat_bonus"] += int(2 * ally_mult)
+            effects["mem_stat_bonus"] += int(2 * ally_mult)
+            effects["spd_stat_bonus"] += int(2 * ally_mult)
+            effects["lck_stat_bonus"] += int(2 * ally_mult)
+    if zephyr_level >= 3:
+        effects["ally_stat_mult"] += 0.15 * ally_mult
+    if zephyr_level >= 5:
+        effects["zephyr_grand_finale"] = True
+
+    # BRAN
+    bran_level = recruited_allies.get("bran", 0)
+    if bran_level >= 1:
+        effects["drop_chance_bonus"] += 0.08 * ally_mult
+        effects["xp_mult"] -= 0.10 * ally_mult
+    if bran_level >= 2:
+        effects["shop_cost_mult"] -= 0.15 * ally_mult
+    if bran_level >= 3:
+        effects["double_sell_gold"] = True
+        effects["bran_ingredient_chance"] = 0.20 * ally_mult
+    if bran_level >= 4:
+        effects["bran_overdrive"] = True
+    if bran_level >= 5:
+        effects["bran_jackpot"] = True
+
+    # VIVIAN
+    vivian_level = recruited_allies.get("vivian", 0)
+    if vivian_level >= 1:
+        effects["vivian_blood_magic"] = True
+    if vivian_level >= 3:
+        effects["vivian_crimson_surge"] = True
+    if vivian_level >= 4:
+        effects["vivian_life_drain"] = True
+    if vivian_level >= 5 and profile.hp == 1:
+        effects["always_crit"] = True
+        effects["xp_mult"] += 1.0 * ally_mult
+
+    # RHEA
+    rhea_level = recruited_allies.get("rhea", 0)
+    if rhea_level >= 1:
+        effects["rhea_cosmic_shuffle"] = True
+    if rhea_level >= 3:
+        effects["rhea_gravity_well"] = True
+    if rhea_level >= 4:
+        effects["rhea_void_pull"] = True
+    if rhea_level >= 5:
+        effects["rhea_singularity"] = True
+        effects["max_hp_bonus"] -= int(30 * ally_mult)
 
     return effects
 

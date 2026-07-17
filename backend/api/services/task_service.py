@@ -22,6 +22,40 @@ def is_daily_scheduled_for_date(task, date_val) -> bool:
     return (repeat_weekdays & weekday_flag) > 0
 
 
+def award_free_chest(profile, chest_type):
+    from api.models import LootChest, Item, InventoryItem
+    import random
+
+    chest = LootChest.objects.filter(chest_type=chest_type).first()
+    if not chest:
+        return None
+    drop_rates = chest.drop_rates
+    classes = list(drop_rates.keys())
+    weights = [float(drop_rates[c]) for c in classes]
+    rolled_class = random.choices(classes, weights=weights, k=1)[0]
+
+    eligible_items = list(
+        Item.objects.filter(gear_class=rolled_class, item_type=Item.ItemType.EQUIPMENT)
+    )
+    if not eligible_items:
+        eligible_items = list(
+            Item.objects.filter(gear_class="E", item_type=Item.ItemType.EQUIPMENT)
+        )
+    if not eligible_items:
+        return None
+    won_item = random.choice(eligible_items)
+
+    inv_item, created = InventoryItem.objects.get_or_create(
+        user_profile=profile,
+        item=won_item,
+        defaults={"quantity": 1, "is_equipped": False},
+    )
+    if not created:
+        inv_item.quantity += 1
+        inv_item.save(update_fields=["quantity"])
+    return won_item
+
+
 def complete_task(user, task_id, is_positive=True):
     try:
         with transaction.atomic():
@@ -180,6 +214,28 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             )
             final_damage = outcome["hp_lost"]
 
+            # Fetch active allies level
+            active_codes = profile.active_allies or []
+            from api.models import RecruitedAlly
+
+            recruited_allies = {
+                a.ally_code: a.level
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+            }
+
+            # Grier Level 2 Shield Slam
+            if outcome.get("grier_shield_slam") and profile.mana >= 5:
+                profile.mana = max(0, profile.mana - 5)
+                from api.services.mechanics import apply_boss_damage
+
+                apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+
+            # Grier Level 4 Revenge Mark: failed habit adds charge
+            if recruited_allies.get("grier", 0) >= 4:
+                profile.grier_revenge_charges = min(
+                    3, profile.grier_revenge_charges + 1
+                )
+
             xp_gained = outcome.get("xp_earned", 0)
             leveled_up = False
             if xp_gained > 0:
@@ -210,10 +266,22 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 profile.gold = max(0, int(profile.gold * 0.90))
 
             profile.save(
-                update_fields=["hp", "gold", "rank_xp", "level", "total_overdue_tasks"]
+                update_fields=[
+                    "hp",
+                    "gold",
+                    "rank_xp",
+                    "level",
+                    "total_overdue_tasks",
+                    "mana",
+                    "grier_revenge_charges",
+                ]
             )
 
             died = check_death(profile)
+
+            if not isinstance(task.last_reward_data, dict):
+                task.last_reward_data = {}
+            task.last_reward_data["hp_lost"] = final_damage
 
             task.save()
             return {
@@ -369,15 +437,47 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
         final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+        active_codes = profile.active_allies or []
+
+        recruited_allies = {
+            a.ally_code: a.level
+            for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        }
+
+        # Meldor Level 1: Todo completion has 10% chance to drop ingredient but costs 2 HP
+        meldor_level = recruited_allies.get("meldor", 0)
+        if task.task_type == Task.TaskType.TODO and meldor_level >= 1:
+            profile.hp = max(0, profile.hp - 2)
+            check_death(profile)
+            if random.random() < 0.10:
+                eligible_materials = list(Item.objects.filter(item_type="material"))
+                if eligible_materials:
+                    dropped_material = random.choice(eligible_materials)
+                    inv_item, created = InventoryItem.objects.get_or_create(
+                        user_profile=profile, item=dropped_material
+                    )
+                    if not created:
+                        inv_item.quantity += 1
+                        inv_item.save()
+                    outcome["item_dropped"] = dropped_material.code
+
+        # Zephyr Level 4: Syncopation
+        zephyr_level = recruited_allies.get("zephyr", 0)
+        if zephyr_level >= 4:
+            current_task_num = profile.tasks_completed_today + 1
+            if current_task_num % 4 == 0:
+                won_item = award_free_chest(profile, "standard")
+                if won_item:
+                    outcome["item_dropped"] = won_item.code
+            else:
+                final_gold = int(final_gold * 0.85)
+
         if mutator_effects.get("trigger_echo") and random.random() < 0.10:
             final_xp *= 2
             final_gold *= 2
 
         # Twin Souls split
-        active_codes = profile.active_allies or []
         if "twin_souls" in active_ids and active_codes:
-            from api.models import RecruitedAlly
-
             active_recruited = RecruitedAlly.objects.filter(
                 user_profile=profile, ally_code__in=active_codes
             )
@@ -420,6 +520,49 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             else:
                 setattr(profile, stat_choice, max(0, current_val - 1))
             profile.save(update_fields=[stat_choice])
+
+        # Lyra Level 5 Time Paradox Activation on completing a Daily
+        lyra_level = recruited_allies.get("lyra", 0)
+        if task.task_type == Task.TaskType.DAILY and lyra_level >= 5:
+            today = timezone.now().date()
+            if profile.last_time_paradox_used != today:
+                profile.last_time_paradox_used = today
+                profile.mana = max(0, int(profile.mana * 0.5))
+                profile.time_paradox_charges = 3
+
+        # Lyra Level 5 Time Paradox Reward duplication on Todo
+        if task.task_type == Task.TaskType.TODO and profile.time_paradox_charges > 0:
+            final_xp *= 2
+            final_gold *= 2
+            profile.time_paradox_charges = max(0, profile.time_paradox_charges - 1)
+
+        # Grier Level 5: disable mana regen below 20% HP
+        grier_l5_active = passive_effects.get("grier_unbreakable_will", False)
+        below_20_hp = profile.hp < profile.total_stats.get("hp_max", 100) * 0.20
+        if grier_l5_active and below_20_hp:
+            mana_gained = 0
+
+        # Kage Level 2 Silent Strike: yields 0 Gold on Todo
+        kage_level = recruited_allies.get("kage", 0)
+        if kage_level >= 2 and task.task_type == Task.TaskType.TODO:
+            final_gold = 0
+
+        # Kage Level 3 Flesh Rip: crit heals, normal hit damages
+        if kage_level >= 3:
+            is_crit = outcome.get("is_crit", False)
+            if is_crit:
+                profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 8)
+                profile.mana = min(profile.mana_max, profile.mana + 8)
+            else:
+                profile.hp = max(0, profile.hp - 1)
+                check_death(profile)
+
+        if task.task_type == Task.TaskType.DAILY:
+            completed_heal = passive_effects.get("daily_completed_hp_heal", 0)
+            if completed_heal > 0:
+                profile.hp = min(
+                    profile.total_stats.get("hp_max", 100), profile.hp + completed_heal
+                )
 
         leveled_up = gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
@@ -639,6 +782,28 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             )
             gamification_result = outcome
 
+            # Fetch active allies level
+            active_codes = profile.active_allies or []
+            from api.models import RecruitedAlly
+
+            recruited_allies = {
+                a.ally_code: a.level
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+            }
+
+            # Grier Level 2 Shield Slam
+            if outcome.get("grier_shield_slam") and profile.mana >= 5:
+                profile.mana = max(0, profile.mana - 5)
+                from api.services.mechanics import apply_boss_damage
+
+                apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+
+            # Grier Level 4 Revenge Mark: failed task/habit adds charge
+            if recruited_allies.get("grier", 0) >= 4:
+                profile.grier_revenge_charges = min(
+                    3, profile.grier_revenge_charges + 1
+                )
+
             final_xp_lost = max(
                 0, int(outcome.get("xp_lost", 0) * profile.xp_multiplier)
             )
@@ -789,6 +954,80 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 * battle_fury_mult
             ),
         )
+
+        # Grier Level 4 Revenge Mark
+        grier_level = recruited_allies.get("grier", 0)
+        if grier_level >= 4 and profile.grier_revenge_charges > 0:
+            grier_dmg_mult = 1.0 + (0.50 * profile.grier_revenge_charges)
+            final_damage_dealt = int(final_damage_dealt * grier_dmg_mult)
+            profile.grier_revenge_charges = 0
+
+        # Rhea Level 4: Void Pull
+        rhea_level = recruited_allies.get("rhea", 0)
+        if rhea_level >= 4 and profile.mana >= 2:
+            from api.models import BossEncounter
+
+            active_encounter = BossEncounter.objects.filter(
+                user=user, is_defeated=False
+            ).first()
+            if active_encounter:
+                profile.mana -= 2
+                void_pull_dmg = int(active_encounter.boss.hp_max * 0.015)
+                final_damage_dealt += void_pull_dmg
+
+        # Zephyr Level 5: Grand Finale
+        if zephyr_level >= 5 and task.task_type == Task.TaskType.DAILY:
+            import zoneinfo
+
+            try:
+                user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+            except Exception:
+                user_tz = zoneinfo.ZoneInfo("UTC")
+            local_now = timezone.now().astimezone(user_tz)
+            local_today = local_now.date()
+
+            all_dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
+            scheduled_dailies = [
+                d for d in all_dailies if is_daily_scheduled_for_date(d, local_today)
+            ]
+
+            all_completed = True
+            for d in scheduled_dailies:
+                if d.id == task.id:
+                    continue
+                is_done = False
+                if d.is_completed:
+                    is_done = True
+                if d.last_completed_at:
+                    d_completed_local = d.last_completed_at.astimezone(user_tz).date()
+                    if d_completed_local == local_today:
+                        is_done = True
+                if not is_done:
+                    all_completed = False
+                    break
+
+            if all_completed:
+                final_damage_dealt += 600
+                profile.mana = profile.total_stats.get("mana_max", 100)
+
+        # Vivian Level 4: Life Drain
+        vivian_level = recruited_allies.get("vivian", 0)
+        if vivian_level >= 4 and final_damage_dealt > 0:
+            life_drain_heal = int(final_damage_dealt * 0.10)
+            if life_drain_heal > 0:
+                profile.hp = min(
+                    profile.total_stats.get("hp_max", 100), profile.hp + life_drain_heal
+                )
+
+        # Vivian Level 3: Crimson Surge
+        if vivian_level >= 3:
+            max_hp = profile.total_stats.get("hp_max", 100)
+            missing_hp = max(0, max_hp - profile.hp)
+            pct_missing = missing_hp / max_hp
+            heal_amount = int(pct_missing * 10) * 2
+            if heal_amount > 0:
+                profile.hp = min(max_hp, profile.hp + heal_amount)
+
         is_crit = gamification_result.get("is_crit", False)
 
         combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
@@ -809,6 +1048,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             boss_rewards = combat_result.get("rewards", {})
             rewards["xp"] += boss_rewards.get("boss_xp", 0)
             rewards["gold"] += boss_rewards.get("boss_gold", 0)
+
+        profile.save()
 
         # Check achievements at the very end
         unlocked_achievements = check_and_grant_achievements(user)
@@ -865,7 +1106,16 @@ def process_missed_tasks(user):
     except Exception:
         user_tz = zoneinfo.ZoneInfo("UTC")
 
-    local_today = timezone.now().astimezone(user_tz).date()
+    from api.services.mechanics import get_passive_multipliers
+
+    passive_effects = get_passive_multipliers(profile, {})
+
+    # Rhea Level 3: Gravity Well (4h daily deadline extension)
+    adjusted_now = timezone.now()
+    if passive_effects.get("rhea_gravity_well", False):
+        adjusted_now -= timezone.timedelta(hours=4)
+
+    local_today = adjusted_now.astimezone(user_tz).date()
 
     # Если крон еще не запускался или сегодня новый день по локальному времени
     if profile.last_daily_cron_at is None:
@@ -967,6 +1217,52 @@ def process_missed_tasks(user):
                 mutator_effects=mutator_effects,
             )
             final_dmg = outcome["hp_lost"]
+
+            active_codes = profile.active_allies or []
+
+            recruited_allies = {
+                a.ally_code: a.level
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+            }
+
+            # Rhea Level 3: Gravity Well +30% HP damage penalty on miss
+            if passive_effects.get("rhea_gravity_well", False):
+                final_dmg = int(final_dmg * 1.30)
+
+            # Kage Level 5 Executioner: failed daily when boss < 15% HP deals 50% more HP damage
+            kage_level = recruited_allies.get("kage", 0)
+            if kage_level >= 5:
+                from api.models import BossEncounter
+
+                active_encounter = BossEncounter.objects.filter(
+                    user=user, is_defeated=False
+                ).first()
+                if (
+                    active_encounter
+                    and active_encounter.hp_current
+                    < active_encounter.boss.hp_max * 0.15
+                ):
+                    final_dmg = int(final_dmg * 1.5)
+
+            # Grier Level 5 Unbreakable Will: below 20% HP, prevents all HP damage from missed dailies
+            grier_l5_active = passive_effects.get("grier_unbreakable_will", False)
+            below_20_hp = profile.hp < profile.total_stats.get("hp_max", 100) * 0.20
+            if grier_l5_active and below_20_hp:
+                final_dmg = 0
+
+            # Grier Level 2 Shield Slam
+            if outcome.get("grier_shield_slam") and profile.mana >= 5:
+                profile.mana = max(0, profile.mana - 5)
+                from api.services.mechanics import apply_boss_damage
+
+                apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+
+            # Grier Level 4 Revenge Mark: failed daily adds charge
+            if recruited_allies.get("grier", 0) >= 4:
+                profile.grier_revenge_charges = min(
+                    3, profile.grier_revenge_charges + 1
+                )
+
             total_dmg += final_dmg
             task.is_completed = False
             if not transcendence_active:
@@ -1021,6 +1317,8 @@ def process_missed_tasks(user):
             "level",
             "tasks_completed_today",
             "total_overdue_tasks",
+            "mana",
+            "grier_revenge_charges",
         ]
     )
 

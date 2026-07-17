@@ -30,6 +30,8 @@ from .views import (
     RespecSkillView,
     RecruitAllyView,
     AlliesConfigView,
+    VivianDarkSacrificeView,
+    RheaChaosControlView,
     CombatSyncView,
     ResetDataView,
     RivalView,
@@ -138,6 +140,16 @@ urlpatterns = [
     path("skills/respec/", RespecSkillView.as_view(), name="skill-respec"),
     path("allies/recruit/", RecruitAllyView.as_view(), name="ally-recruit"),
     path("allies/config/", AlliesConfigView.as_view(), name="allies-config"),
+    path(
+        "allies/vivian/dark-sacrifice/",
+        VivianDarkSacrificeView.as_view(),
+        name="vivian-dark-sacrifice",
+    ),
+    path(
+        "allies/rhea/chaos-control/",
+        RheaChaosControlView.as_view(),
+        name="rhea-chaos-control",
+    ),
     path(
         "mutators/<str:mutator_id>/buy/", BuyMutatorView.as_view(), name="mutator-buy"
     ),

@@ -1,6 +1,27 @@
 [
   {
     "date": "2026-07-17",
+    "version": "1.7.4",
+    "changes": [
+      { "type": "feature", "text": "Added three new allies—Zephyr, Vivian, and Rhea—with gravity deadlines, active skills, custom combat buffs, and permanent max HP adjustments." }
+    ]
+  },
+  {
+    "date": "2026-07-17",
+    "version": "1.7.3",
+    "changes": [
+      { "type": "feature", "text": "Added five new allies—Grier, Lyra, Kage, Meldor, and Bran—with unique leveling paths, shop discounts, chest purchase refunds, and custom combat effects." }
+    ]
+  },
+  {
+    "date": "2026-07-17",
+    "version": "1.7.2",
+    "changes": [
+      { "type": "fix", "text": "Fixed several broken or inactive ally perks including Kira Level 4/5, Neko Level 1/2/3, Luna Level 3/5, Yuki Level 2/3/4/5, and Nene Level 5." }
+    ]
+  },
+  {
+    "date": "2026-07-17",
     "version": "1.7.1",
     "changes": [
       { "type": "balance", "text": "Replaced the Ascetic class's Contemplate skill with Meditation: other skills cost 50% less mana, and the next 3 focus sessions get a +30% Focus Rating boost." },

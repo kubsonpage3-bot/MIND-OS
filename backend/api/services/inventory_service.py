@@ -27,6 +27,12 @@ def consume_item(user, item_code: str):
 
     # Apply Immediate Effects (Healing)
     if item.hp_boost > 0:
+        from api.services.mechanics import get_passive_multipliers
+
+        passive_effects = get_passive_multipliers(profile, {})
+        if passive_effects.get("vivian_blood_magic", False):
+            return False, "Blood Magic disables healing from shop potions", profile
+
         if item.code == "elixir":
             profile.hp = profile.max_hp
             # 10 min immunity

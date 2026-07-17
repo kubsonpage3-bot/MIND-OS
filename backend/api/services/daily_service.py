@@ -98,9 +98,9 @@ def process_daily_login(user):
         from api.services.mechanics import get_passive_multipliers
 
         passives = get_passive_multipliers(profile, {})
-        weekly_mana = passives.get("weekly_free_mana", 0)
-        if weekly_mana > 0:
-            profile.mana = min(profile.mana_max, profile.mana + weekly_mana)
+        weekly_free_mana = passives.get("weekly_free_mana", False)
+        if weekly_free_mana:
+            profile.mana = profile.total_stats.get("mana_max", 100)
 
         # Gambler's Ledger weekly payout (+50% bonus)
         if profile.ledger_gold > 0:

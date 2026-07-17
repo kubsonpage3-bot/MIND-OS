@@ -25,13 +25,29 @@ def open_chest(user, chest_type: str) -> Tuple[bool, str, dict]:
     except LootChest.DoesNotExist:
         raise GameLogicError(f"Chest type '{chest_type}' does not exist.")
 
-    if profile.gold < chest.cost_gold:
+    from api.services.mechanics import apply_active_mutators, get_passive_multipliers
+
+    mutator_effects = apply_active_mutators(profile, {}, trigger_side_effects=False)
+    passive_effects = get_passive_multipliers(profile, {})
+    shop_mult = mutator_effects.get("shop_cost_mult", 1.0) * passive_effects.get(
+        "shop_cost_mult", 1.0
+    )
+    actual_cost = int(chest.cost_gold * shop_mult)
+
+    if profile.gold < actual_cost:
         raise GameLogicError(
-            f"Not enough gold. Need {chest.cost_gold}G, have {profile.gold}G."
+            f"Not enough gold. Need {actual_cost}G, have {profile.gold}G."
         )
 
     # Deduct gold
-    profile.gold = max(0, profile.gold - chest.cost_gold)
+    profile.gold = max(0, profile.gold - actual_cost)
+
+    # Bran L5 chest refund
+    is_refunded = False
+    if passive_effects.get("bran_jackpot", False) and random.random() < 0.12:
+        profile.gold += actual_cost
+        is_refunded = True
+
     profile.save(update_fields=["gold"])
 
     # Roll gear_class using weighted random
@@ -87,8 +103,9 @@ def open_chest(user, chest_type: str) -> Tuple[bool, str, dict]:
             },
             "rolled_class": rolled_class,
             "chest_type": chest_type,
-            "gold_spent": chest.cost_gold,
+            "gold_spent": 0 if is_refunded else actual_cost,
             "gold_remaining": profile.gold,
             "is_new": created,
+            "is_refunded": is_refunded,
         },
     )

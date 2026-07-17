@@ -18,9 +18,23 @@ from django.dispatch import receiver
 from django.utils.functional import cached_property
 from datetime import date
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Профиль персонажа
 # ─────────────────────────────────────────────────────────────────────────────
+def distribute_sum(total_sum, num_bins, rng):
+    # Ensure each bin gets at least 1
+    bins = [1] * num_bins
+    remaining = total_sum - num_bins
+    if remaining > 0:
+        # Generate random dividers
+        dividers = sorted(rng.sample(range(1, total_sum), num_bins - 1))
+        prev = 0
+        for idx, val in enumerate(dividers):
+            bins[idx] = val - prev
+            prev = val
+        bins[-1] = total_sum - prev
+    return bins
 
 
 class UserProfile(models.Model):
@@ -259,6 +273,29 @@ class UserProfile(models.Model):
     weekly_xp = models.PositiveIntegerField(default=0)
     weekly_xp_reset_week = models.CharField(max_length=10, null=True, blank=True)
 
+    # Ally tracking fields
+    grier_revenge_charges = models.PositiveIntegerField(
+        default=0, verbose_name="Заряды возмездия Гриера"
+    )
+    last_temporal_rewind_used = models.DateField(
+        null=True, blank=True, verbose_name="Последнее использование Temporal Rewind"
+    )
+    last_time_paradox_used = models.DateField(
+        null=True, blank=True, verbose_name="Последнее использование Time Paradox"
+    )
+    time_paradox_charges = models.PositiveIntegerField(
+        default=0, verbose_name="Заряды временного парадокса"
+    )
+    last_decoy_shadow_used = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последнее использование Decoy Shadow"
+    )
+    last_dark_sacrifice_used = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последнее использование Dark Sacrifice"
+    )
+    last_chaos_control_used = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последнее использование Chaos Control"
+    )
+
     class Meta:
         verbose_name = "Профиль персонажа"
         verbose_name_plural = "Профили персонажей"
@@ -336,26 +373,80 @@ class UserProfile(models.Model):
         equip = self.equip_stats
         cls_stats = self.class_stats
         prestige_mult = 1.0 + (0.10 * float(self.prestige_count))
+        passives = self.get_cached_passives()
+
+        pwr_bonus = passives.get("pwr_stat_bonus", 0)
+        def_bonus = passives.get("def_stat_bonus", 0)
+        foc_bonus = passives.get("foc_stat_bonus", 0)
+        mem_bonus = passives.get("mem_stat_bonus", 0)
+        spd_bonus = passives.get("spd_stat_bonus", 0)
+        lck_bonus = passives.get("lck_stat_bonus", 0)
+
+        has_rhea_l1 = passives.get("rhea_cosmic_shuffle", False)
+        active_muts = (
+            self.active_mutators.get("active", [])
+            if isinstance(self.active_mutators, dict)
+            else []
+        )
+
+        if has_rhea_l1 and active_muts:
+            total_sum = (
+                self.base_pwr
+                + self.base_foc
+                + self.base_spd
+                + self.base_lck
+                + self.base_def
+                + self.base_mem
+            )
+            new_sum = int(total_sum * 1.20)
+
+            from django.utils import timezone
+            import random
+
+            current_hour = int(timezone.now().timestamp() // 3600)
+            rng = random.Random(current_hour + self.id)
+
+            shuffled_vals = distribute_sum(new_sum, 6, rng)
+
+            shuffled_pwr = shuffled_vals[0]
+            shuffled_foc = shuffled_vals[1]
+            shuffled_spd = shuffled_vals[2]
+            shuffled_lck = shuffled_vals[3]
+            shuffled_def = shuffled_vals[4]
+            shuffled_mem = shuffled_vals[5]
+        else:
+            shuffled_pwr = self.base_pwr
+            shuffled_foc = self.base_foc
+            shuffled_spd = self.base_spd
+            shuffled_lck = self.base_lck
+            shuffled_def = self.base_def
+            shuffled_mem = self.base_mem
 
         return {
             "pwr": int(
-                (self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * prestige_mult
-            ),
+                (shuffled_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * prestige_mult
+            )
+            + pwr_bonus,
             "foc": int(
-                (self.base_foc + cls_stats["foc"] + equip.get("foc", 0)) * prestige_mult
-            ),
+                (shuffled_foc + cls_stats["foc"] + equip.get("foc", 0)) * prestige_mult
+            )
+            + foc_bonus,
             "spd": int(
-                (self.base_spd + cls_stats["spd"] + equip.get("spd", 0)) * prestige_mult
-            ),
+                (shuffled_spd + cls_stats["spd"] + equip.get("spd", 0)) * prestige_mult
+            )
+            + spd_bonus,
             "lck": int(
-                (self.base_lck + cls_stats["lck"] + equip.get("lck", 0)) * prestige_mult
-            ),
+                (shuffled_lck + cls_stats["lck"] + equip.get("lck", 0)) * prestige_mult
+            )
+            + lck_bonus,
             "def": int(
-                (self.base_def + cls_stats["def"] + equip.get("def", 0)) * prestige_mult
-            ),
+                (shuffled_def + cls_stats["def"] + equip.get("def", 0)) * prestige_mult
+            )
+            + def_bonus,
             "mem": int(
-                (self.base_mem + cls_stats["mem"] + equip.get("mem", 0)) * prestige_mult
-            ),
+                (shuffled_mem + cls_stats["mem"] + equip.get("mem", 0)) * prestige_mult
+            )
+            + mem_bonus,
             "damage_multiplier": float(
                 round(self.damage_multiplier + equip["damage_boost"], 4)
             ),
@@ -368,6 +459,8 @@ class UserProfile(models.Model):
         }
 
     def save(self, *args, **kwargs):
+        if hasattr(self, "_cached_passives"):
+            delattr(self, "_cached_passives")
         # Enforce minimum IQ metrics to fix legacy accounts
         if self.gf < 100.0:
             self.gf = 100.0  # type: ignore
@@ -379,50 +472,39 @@ class UserProfile(models.Model):
             self.vm = 100.0  # type: ignore
         super().save(*args, **kwargs)
 
+    def get_cached_passives(self) -> dict:
+        """
+        Returns a cached dict of passive multipliers.
+        Avoids redundant DB queries on property hot-paths.
+        """
+        if not hasattr(self, "_cached_passives"):
+            from api.services.mechanics import get_passive_multipliers
+
+            self._cached_passives = get_passive_multipliers(self, {})
+        return self._cached_passives
+
     @property
     def max_hp(self) -> int:
         """
         Computed max HP — derived from prestige level, never stored directly.
-        Formula: 100 + (prestige_count × 50)
+        Formula: 100 + (prestige_count × 50) + Luna Level 5 bonus (if active)
         This is the SSOT for HP maximum.
         """
         BASE_HP = 100
         HP_PER_PRESTIGE = 50
-        bonus = 0
-
-        if self.active_allies and "luna" in self.active_allies:
-            try:
-                luna = next(
-                    (a for a in self.recruited_allies.all() if a.ally_code == "luna"),
-                    None,
-                )
-                if luna and luna.level >= 5:
-                    bonus += 20
-            except Exception:
-                pass
-
+        passives = self.get_cached_passives()
+        bonus = passives.get("max_hp_bonus", 0)
         return BASE_HP + (self.prestige_count * HP_PER_PRESTIGE) + bonus
 
     @property
     def max_mana(self) -> int:
         """
-        Computed max mana. Base 100, +15% per prestige.
+        Computed max mana. Base 100, +15% per prestige + Yuki Level 2 bonus (if active).
         """
         BASE_MANA = 100
         multiplier = 1.0 + (0.15 * float(self.prestige_count))
-        bonus = 0
-
-        if self.active_allies and "yuki" in self.active_allies:
-            try:
-                yuki = next(
-                    (a for a in self.recruited_allies.all() if a.ally_code == "yuki"),
-                    None,
-                )
-                if yuki and yuki.level >= 2:
-                    bonus += 20
-            except Exception:
-                pass
-
+        passives = self.get_cached_passives()
+        bonus = passives.get("max_mana_bonus", 0)
         return int(BASE_MANA * multiplier) + bonus
 
     @property

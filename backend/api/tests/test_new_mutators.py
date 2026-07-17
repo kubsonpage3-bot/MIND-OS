@@ -187,54 +187,55 @@ def test_sacrificial_altar(test_user_and_profile_mutators):
 def test_twin_souls_split(test_user_and_profile_mutators):
     user, profile, stats = test_user_and_profile_mutators
 
-    # 1. Establish baseline reward without mutator
-    task_dummy = Task.objects.create(
-        user=user,
-        title="Dummy Task",
-        task_type=Task.TaskType.TODO,
-        difficulty="medium",
-    )
-    res_dummy = complete_task(user, task_dummy.id)
-    baseline_xp = res_dummy["rewards"]["xp"]
+    with mock.patch("random.random", return_value=0.9):
+        # 1. Establish baseline reward without mutator
+        task_dummy = Task.objects.create(
+            user=user,
+            title="Dummy Task",
+            task_type=Task.TaskType.TODO,
+            difficulty="medium",
+        )
+        res_dummy = complete_task(user, task_dummy.id)
+        baseline_xp = res_dummy["rewards"]["xp"]
 
-    # Reset profile
-    profile.xp = 0
-    profile.rank_xp = 0
-    profile.active_mutators = {"active": [{"id": "twin_souls"}]}
-    profile.save()
+        # Reset profile
+        profile.xp = 0
+        profile.rank_xp = 0
+        profile.active_mutators = {"active": [{"id": "twin_souls"}]}
+        profile.save()
 
-    # Recruit ally
-    ally = RecruitedAlly.objects.create(
-        user_profile=profile, ally_code="kira", level=1, total_xp_received=0
-    )
-    profile.active_allies = ["kira"]
-    profile.save()
+        # Recruit ally
+        ally = RecruitedAlly.objects.create(
+            user_profile=profile, ally_code="kira", level=1, total_xp_received=0
+        )
+        profile.active_allies = ["kira"]
+        profile.save()
 
-    # Complete a task
-    task = Task.objects.create(
-        user=user,
-        title="Twin Soul Test Task",
-        task_type=Task.TaskType.TODO,
-        difficulty="medium",
-    )
-    res = complete_task(user, task.id)
+        # Complete a task
+        task = Task.objects.create(
+            user=user,
+            title="Twin Soul Test Task",
+            task_type=Task.TaskType.TODO,
+            difficulty="medium",
+        )
+        res = complete_task(user, task.id)
 
-    # Player gets 85%, ally gets 15%
-    ally.refresh_from_db()
-    assert ally.total_xp_received > 0
-    assert res["rewards"]["xp"] < baseline_xp  # reduced because of split
+        # Player gets 85%, ally gets 15%
+        ally.refresh_from_db()
+        assert ally.total_xp_received > 0
+        assert res["rewards"]["xp"] < baseline_xp  # reduced because of split
 
-    # Fallback to 100% when no active allies
-    profile.active_allies = []
-    profile.save()
-    task_2 = Task.objects.create(
-        user=user,
-        title="Twin Soul Fallback Task",
-        task_type=Task.TaskType.TODO,
-        difficulty="medium",
-    )
-    res2 = complete_task(user, task_2.id)
-    assert res2["rewards"]["xp"] == baseline_xp
+        # Fallback to 100% when no active allies
+        profile.active_allies = []
+        profile.save()
+        task_2 = Task.objects.create(
+            user=user,
+            title="Twin Soul Fallback Task",
+            task_type=Task.TaskType.TODO,
+            difficulty="medium",
+        )
+        res2 = complete_task(user, task_2.id)
+        assert res2["rewards"]["xp"] == baseline_xp
 
 
 @pytest.mark.django_db

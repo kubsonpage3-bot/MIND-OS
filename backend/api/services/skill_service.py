@@ -184,11 +184,22 @@ def activate_skill(user, skill_id):
             effective_mana_cost = 0
             used_hex_free_skill = True
 
-    # Проверка маны
-    if profile.mana < effective_mana_cost:
+    # Проверка ресурсов (Vivian Level 1 Blood Magic mana fallback to HP)
+    hp_cost = 0
+    mana_to_deduct = effective_mana_cost
+
+    if (
+        passive_effects.get("vivian_blood_magic", False)
+        and profile.mana < effective_mana_cost
+    ):
+        missing_mana = effective_mana_cost - profile.mana
+        hp_cost = math.ceil(missing_mana / 2.0)
+        mana_to_deduct = profile.mana
+
+    if profile.mana < mana_to_deduct or (hp_cost > 0 and profile.hp < hp_cost):
         return (
             False,
-            f"Not enough mana: requires {effective_mana_cost}, available {profile.mana}",
+            f"Not enough mana: requires {effective_mana_cost} Mana (or equivalent HP)",
             None,
             None,
         )
@@ -199,15 +210,24 @@ def activate_skill(user, skill_id):
         remaining = cd.cooldown_until - timezone.now()
         return False, f"Cooldown: {_fmt_td(remaining)} remaining", None, None
 
-    # Списываем ману
-    if effective_mana_cost > 0:
-        profile.mana -= effective_mana_cost
+    # Списываем ресурсы
+    if mana_to_deduct > 0:
+        profile.mana -= mana_to_deduct
+
+    if hp_cost > 0:
+        profile.hp = max(0, profile.hp - hp_cost)
+        from api.services.profile_service import check_death
+
+        check_death(profile)
+    save_fields = ["mana"]
+    if hp_cost > 0:
+        save_fields.append("hp")
 
     if used_void_clarity:
         profile.void_clarity_last_used = timezone.now()
-        profile.save(update_fields=["mana", "void_clarity_last_used"])
-    else:
-        profile.save(update_fields=["mana"])
+        save_fields.append("void_clarity_last_used")
+
+    profile.save(update_fields=save_fields)
 
     # Ставим кулдаун
     effective_cooldown_h = skill_def["cooldown_h"]
@@ -249,6 +269,14 @@ def activate_skill(user, skill_id):
                 "expires_at": get_midnight(),
             },
         )
+
+    # Bran Level 4: lose 1 HP for every skill activated
+    if passive_effects.get("bran_overdrive", False):
+        profile.hp = max(0, profile.hp - 1)
+        from api.services.profile_service import check_death
+
+        check_death(profile)
+        profile.save(update_fields=["hp"])
 
     skill_boss_damage = passive_effects.get("skill_boss_damage", 0)
     if skill_boss_damage > 0:

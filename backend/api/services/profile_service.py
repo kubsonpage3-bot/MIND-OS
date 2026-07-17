@@ -125,6 +125,38 @@ def check_death(profile: UserProfile) -> bool:
     """
     has_died = False
     if profile.hp <= 0:
+        # Check Kage Level 4 active
+        active_codes = profile.active_allies or []
+        kage_ally = profile.recruited_allies.filter(ally_code="kage").first()
+        if "kage" in active_codes and kage_ally and kage_ally.level >= 4:
+            from django.utils import timezone
+
+            cooldown_active = False
+            if profile.last_decoy_shadow_used:
+                cooldown_active = (
+                    timezone.now()
+                    < profile.last_decoy_shadow_used + timezone.timedelta(hours=24)
+                )
+            if not cooldown_active:
+                profile.last_decoy_shadow_used = timezone.now()
+                profile.hp = 20
+                profile.save(update_fields=["hp", "last_decoy_shadow_used"])
+
+                from api.models import ActiveEffect
+
+                ActiveEffect.objects.filter(
+                    user=profile.user, skill_id="decoy_shadow_stun"
+                ).delete()
+                ActiveEffect.objects.create(
+                    user=profile.user,
+                    skill_id="decoy_shadow_stun",
+                    expires_at=timezone.now() + timezone.timedelta(hours=4),
+                )
+                print(
+                    "[KAGE L4] Decoy Shadow triggered! Death prevented, HP set to 20, boss stunned."
+                )
+                return False
+
         print(
             f"[DEATH HANDLER] {profile.user.username} died! HP dropped to {profile.hp}."
         )

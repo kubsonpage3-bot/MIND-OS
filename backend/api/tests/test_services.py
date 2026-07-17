@@ -1143,3 +1143,165 @@ def test_war_cry_stun_negates_damage(user, profile):
         user, "habit", base_hp_lost=20, is_positive=False
     )
     assert outcome_stunned["hp_lost"] == 0
+
+
+@pytest.mark.django_db
+def test_allies_perk_fixes(user, profile):
+    import unittest.mock as mock
+    from api.models import RecruitedAlly, Task, UnlockedSkill, InventoryItem, Item
+    from api.services.mechanics import get_passive_multipliers, calculate_task_outcome
+    from api.services.task_service import complete_task
+
+    with mock.patch("random.random", return_value=0.99):
+        # 1. Kira L4: always_crit
+        kira = RecruitedAlly.objects.create(
+            user_profile=profile, ally_code="kira", level=4
+        )
+        profile.active_allies = ["kira"]
+        profile.save()
+
+        # Outcome of a science task should always crit
+        context = {"is_science": True}
+        passives = get_passive_multipliers(profile, context)
+        assert passives.get("always_crit") is True
+
+        outcome = calculate_task_outcome(
+            user,
+            "todo",
+            base_xp=10,
+            base_gold=10,
+            is_positive=True,
+            passive_effects=passives,
+        )
+        assert outcome["is_crit"] is True
+
+        # 2. Kira L5: science_threshold_reduction with empty context
+        kira.level = 5
+        kira.save()
+        passives_empty = get_passive_multipliers(profile, {})
+        assert passives_empty.get("science_threshold_reduction") == 0.10
+
+        # 3. Neko L1: daily_gold_mult (only affects Daily tasks)
+        RecruitedAlly.objects.filter(user_profile=profile, ally_code="kira").delete()
+        neko = RecruitedAlly.objects.create(
+            user_profile=profile, ally_code="neko", level=1
+        )
+        profile.active_allies = ["neko"]
+        profile.mana_max = 100
+        profile.save()
+
+        todo_task = Task.objects.create(
+            user=user,
+            title="Todo Task",
+            task_type=Task.TaskType.TODO,
+            difficulty=Task.Difficulty.EASY,
+        )
+        daily_task = Task.objects.create(
+            user=user,
+            title="Daily Task",
+            task_type=Task.TaskType.DAILY,
+            difficulty=Task.Difficulty.EASY,
+        )
+
+        # complete Todo - gold multiplier should be base (1.0)
+        res_todo = complete_task(user, todo_task.id)
+
+        # complete Daily - gold multiplier should have +5% bonus
+        res_daily = complete_task(user, daily_task.id)
+        assert res_daily["rewards"]["gold"] >= res_todo["rewards"]["gold"]
+        passives_neko = get_passive_multipliers(profile, {})
+        assert passives_neko.get("daily_gold_mult") == 1.05
+
+        # Let's verify neko level 2 (streak_xp_mult) and level 3 (mana_flat_bonus)
+        neko.level = 3
+        neko.save()
+        daily_task_2 = Task.objects.create(
+            user=user,
+            title="Daily Task 2",
+            task_type=Task.TaskType.DAILY,
+            difficulty=Task.Difficulty.HARD,
+        )
+        daily_task_2.streak = 5
+        daily_task_2.save()
+
+        initial_mana = profile.mana
+        res_daily_2 = complete_task(user, daily_task_2.id)
+        profile.refresh_from_db()
+        assert profile.mana == min(
+            profile.total_stats.get("mana_max", 100), initial_mana + 3 + 5
+        )
+
+        # 4. Luna L3: daily_completed_hp_heal (HP healed on daily completion)
+        RecruitedAlly.objects.filter(user_profile=profile, ally_code="neko").delete()
+        luna = RecruitedAlly.objects.create(
+            user_profile=profile, ally_code="luna", level=3
+        )
+        profile.active_allies = ["luna"]
+        profile.hp = 50
+        profile.save()
+
+        daily_task_3 = Task.objects.create(
+            user=user,
+            title="Daily Task 3",
+            task_type=Task.TaskType.DAILY,
+            difficulty=Task.Difficulty.EASY,
+        )
+        complete_task(user, daily_task_3.id)
+        profile.refresh_from_db()
+        assert profile.hp == 51  # healed by 1 HP
+
+        # 5. Luna L5 and Yuki L2 dynamic scaling in models properties
+        luna.level = 5
+        luna.save()
+        if hasattr(profile, "_cached_passives"):
+            delattr(profile, "_cached_passives")
+        profile.refresh_from_db()
+        # Base max HP is 100. With Luna L5, it should be 120.
+        assert profile.max_hp == 120
+
+        # With aura_of_focus skill (+10% ally_stat_mult), Luna L5 bonus should be 20 * 1.1 = 22 -> max_hp = 122
+        UnlockedSkill.objects.create(user_profile=profile, skill_code="aura_of_focus")
+        if hasattr(profile, "_cached_passives"):
+            delattr(profile, "_cached_passives")
+        assert profile.max_hp == 122
+
+        # Yuki L2
+        RecruitedAlly.objects.filter(user_profile=profile, ally_code="luna").delete()
+        yuki = RecruitedAlly.objects.create(
+            user_profile=profile, ally_code="yuki", level=2
+        )
+        profile.active_allies = ["yuki"]
+        profile.save()
+        if hasattr(profile, "_cached_passives"):
+            delattr(profile, "_cached_passives")
+        # Base max mana is 100. Yuki L2 gives +20. With aura_of_focus (+10%), it should be +22 -> 122 max mana.
+        assert profile.max_mana == 122
+
+        # 6. Yuki L3, L4, L5 multipliers populated in get_passive_multipliers
+        yuki.level = 5
+        yuki.save()
+        if hasattr(profile, "_cached_passives"):
+            delattr(profile, "_cached_passives")
+        passives_yuki = get_passive_multipliers(profile, {})
+        assert passives_yuki.get("prestige_bonus") == pytest.approx(0.055)
+        assert passives_yuki.get("skill_cost_reduction") == pytest.approx(0.275)
+        assert passives_yuki.get("prestige_start_rank") == "C"
+
+        # 7. Nene L5 weekly mana reset (restores to max mana instead of +1)
+        RecruitedAlly.objects.filter(user_profile=profile, ally_code="yuki").delete()
+        nene = RecruitedAlly.objects.create(
+            user_profile=profile, ally_code="nene", level=5
+        )
+        profile.active_allies = ["nene"]
+        profile.mana = 10
+        profile.last_weekly_reset = "2020-W01"
+        from django.utils import timezone
+
+        profile.last_login_date = timezone.now().date() - timezone.timedelta(days=1)
+        profile.save()
+
+        from api.services.daily_service import process_daily_login
+
+        process_daily_login(user)
+        profile.refresh_from_db()
+        assert profile.mana == profile.total_stats.get("mana_max", 100)

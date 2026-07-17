@@ -660,6 +660,82 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
 
     @action(
+        detail=True,
+        methods=["post"],
+        url_path="revert-failure",
+    )
+    def revert_failure(self, request, pk=None):
+        """
+        POST /api/tasks/{id}/revert-failure/
+        Reverts a task failure to restore lost HP (Lyra Level 2 perk).
+        """
+        from django.utils import timezone
+        from django.db import transaction
+        from api.models import UserProfile
+        from api.serializers.profile import UserProfileSerializer
+
+        try:
+            with transaction.atomic():
+                task = self.get_object()
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+                # Check Lyra Level 2
+                active_codes = profile.active_allies or []
+                lyra_ally = profile.recruited_allies.filter(ally_code="lyra").first()
+                if "lyra" not in active_codes or not lyra_ally or lyra_ally.level < 2:
+                    return Response(
+                        {"detail": "Lyra (Level 2+) must be recruited and active."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Check daily cooldown
+                today = timezone.now().date()
+                if profile.last_temporal_rewind_used == today:
+                    return Response(
+                        {"detail": "You have already used Temporal Rewind today."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Check hp_lost in last_reward_data
+                reward_data = task.last_reward_data or {}
+                hp_lost = reward_data.get("hp_lost", 0)
+                if hp_lost <= 0:
+                    return Response(
+                        {"detail": "No failure damage found to revert for this task."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Restore HP and save
+                profile.hp = min(
+                    profile.total_stats.get("hp_max", 100), profile.hp + hp_lost
+                )
+                profile.last_temporal_rewind_used = today
+                profile.save(update_fields=["hp", "last_temporal_rewind_used"])
+
+                # Clear hp_lost so it cannot be double reverted
+                reward_data["hp_lost"] = 0
+                task.last_reward_data = reward_data
+                task.save(update_fields=["last_reward_data"])
+
+                return Response(
+                    {
+                        "detail": f"Temporal Rewind activated! Restored {hp_lost} HP.",
+                        "profile": UserProfileSerializer(profile).data,
+                        "task": TaskSerializer(task).data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Revert failure failed: {e}")
+            return Response(
+                {"detail": "Failed to revert failure. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(
         detail=False,
         methods=["post"],
         url_path="reorder",
@@ -1319,9 +1395,6 @@ class TrainingLogView(generics.GenericAPIView):
             mutator_effects = apply_active_mutators(profile, context)
             passive_effects = get_passive_multipliers(profile, context)
 
-            focus_rating = max(focus_rating, passive_effects.get("min_focus", 0.0))
-
-            # Inversion focus quality flip
             active_list = (
                 profile.active_mutators.get("active", [])
                 if isinstance(profile.active_mutators, dict)
@@ -1330,6 +1403,30 @@ class TrainingLogView(generics.GenericAPIView):
             active_ids = [
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
+            active_codes = profile.active_allies or []
+            recruited_allies = {
+                a.ally_code: a.level
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+            }
+
+            # Lyra Level 3 Decaying Focus
+            if passive_effects.get("decaying_focus", False) and hours > 0:
+                # Divide into 15-minute chunks (0.25h)
+                chunks = max(1, int(hours / 0.25))
+                total_focus = 0.0
+                for c in range(chunks):
+                    t_start = c * 0.25
+                    if t_start < 0.5:
+                        val = 10.0
+                    else:
+                        decay_steps = int((t_start - 0.5) / 0.25) + 1
+                        val = max(1.0, 10.0 - 1.5 * decay_steps)
+                    total_focus += val
+                focus_rating = total_focus / chunks
+            else:
+                focus_rating = max(focus_rating, passive_effects.get("min_focus", 0.0))
+
+            # Inversion focus quality flip
             if "inversion" in active_ids:
                 focus_rating = 11.0 - focus_rating
 
@@ -1347,6 +1444,43 @@ class TrainingLogView(generics.GenericAPIView):
             flat_xp_bonus += mutator_effects.get("flat_xp", 0) + passive_effects.get(
                 "flat_xp", 0
             )
+
+            # Lyra Level 1 duration requirements
+            lyra_level = recruited_allies.get("lyra", 0)
+            lyra_zero_rewards = False
+            if lyra_level >= 1:
+                if hours > 2.0:
+                    xp_mult += 0.30
+                elif hours < 0.5:
+                    lyra_zero_rewards = True
+                    xp_mult = 0.0
+                    gold_mult = 0.0
+                    flat_xp_bonus = 0
+
+            # Zephyr Level 1: different focus subject gives +20% Rank XP
+            zephyr_level = recruited_allies.get("zephyr", 0)
+            if zephyr_level >= 1:
+                from api.models import TrainingSession
+
+                last_session = (
+                    TrainingSession.objects.filter(user_profile=profile)
+                    .order_by("-created_at")
+                    .first()
+                )
+                is_different_subject = True
+                if last_session and last_session.activity_key == activity:
+                    is_different_subject = False
+                if is_different_subject:
+                    xp_mult += 0.20
+
+            # Lyra Level 4 active skill cooldowns reduction
+            if lyra_level >= 4 and hours > 0:
+                from api.models import SkillCooldown
+
+                cooldowns = SkillCooldown.objects.filter(user=profile.user)
+                for cd in cooldowns:
+                    cd.cooldown_until -= timezone.timedelta(hours=hours)
+                    cd.save(update_fields=["cooldown_until"])
 
             gf_mult = passive_effects.get("gf_mult", 1.0)
             gc_mult = passive_effects.get("gc_mult", 1.0)
@@ -1383,6 +1517,8 @@ class TrainingLogView(generics.GenericAPIView):
             # Update cognitive stats using backend calculation
             eff_total = float(data.get("efficiency", 1.0))
             gains = calculate_cognitive_gains(activity, hours, eff_total, profile)
+            if lyra_zero_rewards:
+                gains = {k: 0.0 for k in gains}
 
             from api.models import ActiveEffect
 
@@ -1470,6 +1606,8 @@ class TrainingLogView(generics.GenericAPIView):
             )
 
             final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
+            if lyra_zero_rewards:
+                final_xp = 0
 
             if "godmind" in unlocked_skills:
                 godmind_bonus = int(
@@ -1504,6 +1642,8 @@ class TrainingLogView(generics.GenericAPIView):
                     profile.save(update_fields=["mana"])
 
             final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
+            if lyra_zero_rewards:
+                final_gold = 0
 
             # Twin Souls split
             active_codes = profile.active_allies or []
@@ -1569,6 +1709,10 @@ class TrainingLogView(generics.GenericAPIView):
                 ps_gain=ps_gain,
                 vm_gain=vm_gain,
             )
+
+            # Grier Level 1: Focus >= 9.0 restores +2 HP
+            if passive_effects.get("grier_l1_heal", False):
+                profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 2)
 
             profile.save()
 
@@ -1764,6 +1908,214 @@ class RecruitAllyView(generics.GenericAPIView):
                 },
                 status=status.HTTP_200_OK,
             )
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VivianDarkSacrificeView(generics.GenericAPIView):
+    """
+    POST /api/allies/vivian/dark-sacrifice/
+    Vivian L2: Lose 15 HP to instantly reset the cooldown of one random skill (12h cooldown).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.models import UserProfile, SkillCooldown
+        from api.services.profile_service import check_death
+        from django.db import transaction
+        from django.utils import timezone
+        import random
+
+        try:
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                active_codes = profile.active_allies or []
+
+                vivian_recruited = profile.recruited_allies.filter(
+                    ally_code="vivian"
+                ).first()
+                if (
+                    "vivian" not in active_codes
+                    or not vivian_recruited
+                    or vivian_recruited.level < 2
+                ):
+                    return Response(
+                        {
+                            "detail": "Vivian Level 2 must be recruited and active to use Dark Sacrifice."
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                if profile.last_dark_sacrifice_used:
+                    cooldown_until = (
+                        profile.last_dark_sacrifice_used + timezone.timedelta(hours=12)
+                    )
+                    if timezone.now() < cooldown_until:
+                        remaining = cooldown_until - timezone.now()
+                        hours, remainder = divmod(remaining.seconds, 3600)
+                        minutes, _ = divmod(remainder, 60)
+                        return Response(
+                            {
+                                "detail": f"Dark Sacrifice is on cooldown: {hours}h {minutes}m remaining."
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                active_cooldowns = list(
+                    SkillCooldown.objects.filter(
+                        user=request.user, cooldown_until__gt=timezone.now()
+                    )
+                )
+                if not active_cooldowns:
+                    return Response(
+                        {"detail": "No skills are currently on cooldown."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                profile.hp = max(0, profile.hp - 15)
+                is_dead = check_death(profile)
+                profile.last_dark_sacrifice_used = timezone.now()
+                profile.save(update_fields=["hp", "last_dark_sacrifice_used"])
+
+                reset_skill = None
+                if not is_dead:
+                    target_cd = random.choice(active_cooldowns)
+                    reset_skill = target_cd.skill_id
+                    target_cd.delete()
+
+                from api.serializers.profile import UserProfileSerializer
+
+                profile_data = UserProfileSerializer(profile).data
+
+                msg = "Dark Sacrifice activated! Lost 15 HP."
+                if reset_skill:
+                    msg += f" Reset cooldown for skill '{reset_skill}'."
+                if is_dead:
+                    msg += " You have died."
+
+                return Response(
+                    {
+                        "detail": msg,
+                        "reset_skill": reset_skill,
+                        "is_dead": is_dead,
+                        "profile": profile_data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RheaChaosControlView(generics.GenericAPIView):
+    """
+    POST /api/allies/rhea/chaos-control/
+    Rhea L2: Once per day: Swap an active Mutator with a random one from the entire pool, ignoring lock status.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.models import UserProfile
+        from api.constants.mutators import MUTATORS_CONFIG
+        from django.db import transaction
+        from django.utils import timezone
+        import random
+        import time
+
+        try:
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                active_codes = profile.active_allies or []
+
+                rhea_recruited = profile.recruited_allies.filter(
+                    ally_code="rhea"
+                ).first()
+                if (
+                    "rhea" not in active_codes
+                    or not rhea_recruited
+                    or rhea_recruited.level < 2
+                ):
+                    return Response(
+                        {
+                            "detail": "Rhea Level 2 must be recruited and active to use Chaos Control."
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                if profile.last_chaos_control_used:
+                    cooldown_until = (
+                        profile.last_chaos_control_used + timezone.timedelta(hours=24)
+                    )
+                    if timezone.now() < cooldown_until:
+                        remaining = cooldown_until - timezone.now()
+                        hours, remainder = divmod(remaining.seconds, 3600)
+                        minutes, _ = divmod(remainder, 60)
+                        return Response(
+                            {
+                                "detail": f"Chaos Control is on cooldown: {hours}h {minutes}m remaining."
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                active_mutators = profile.active_mutators or {}
+                active_list = active_mutators.get("active", [])
+
+                if not active_list:
+                    return Response(
+                        {"detail": "No active mutators to swap."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                all_ids = list(MUTATORS_CONFIG.keys())
+                active_ids = [
+                    m.get("id") if isinstance(m, dict) else m for m in active_list
+                ]
+                available_ids = [mid for mid in all_ids if mid not in active_ids]
+
+                if not available_ids:
+                    return Response(
+                        {"detail": "No other mutators available to swap."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Swap a random active mutator
+                target_idx = random.randint(0, len(active_list) - 1)
+                old_mutator = active_list[target_idx]
+                old_id = (
+                    old_mutator.get("id")
+                    if isinstance(old_mutator, dict)
+                    else old_mutator
+                )
+
+                new_mutator_id = random.choice(available_ids)
+                duration = MUTATORS_CONFIG[new_mutator_id].get("durationDays", None)
+                active_list[target_idx] = {
+                    "id": new_mutator_id,
+                    "activatedAt": int(time.time() * 1000),
+                    "duration": duration,
+                }
+
+                active_mutators["active"] = active_list
+                profile.active_mutators = active_mutators
+                profile.last_chaos_control_used = timezone.now()
+                profile.save(
+                    update_fields=["active_mutators", "last_chaos_control_used"]
+                )
+
+                from api.serializers.profile import UserProfileSerializer
+
+                profile_data = UserProfileSerializer(profile).data
+
+                return Response(
+                    {
+                        "detail": f"Chaos Control activated! Swapped mutator '{old_id}' with '{new_mutator_id}'.",
+                        "old_mutator": old_id,
+                        "new_mutator": new_mutator_id,
+                        "profile": profile_data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
         except GameLogicError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -2577,9 +2929,13 @@ class ToggleMutatorView(generics.GenericAPIView):
                     if (m.get("id") if isinstance(m, dict) else m) != mutator_id
                 ]
             else:
-                if len(active_list) >= 3:
+                from api.services.mechanics import get_passive_multipliers
+
+                passive_effects = get_passive_multipliers(profile, {})
+                max_active = 4 if passive_effects.get("rhea_singularity", False) else 3
+                if len(active_list) >= max_active:
                     return Response(
-                        {"error": "Maximum of 3 active mutators allowed."},
+                        {"error": f"Maximum of {max_active} active mutators allowed."},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 duration = MUTATORS_CONFIG[mutator_id].get("durationDays", None)
