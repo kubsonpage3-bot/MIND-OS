@@ -221,21 +221,31 @@ def calculate_task_outcome(
             items = list(Item.objects.all())
             if items:
                 dropped_item = random.choice(items)
-                result["item_dropped"] = dropped_item.code
+                result["item_dropped"] = dropped_item.code  # type: ignore
 
         result["xp_earned"] = int(final_xp)
         result["gold_earned"] = int(final_gold)
         result["damage_dealt"] = int(damage_dealt)
     else:
+        # Check if boss is stunned via war_cry
+        from api.models import ActiveEffect
+
+        war_cry_active = ActiveEffect.objects.filter(
+            user=user, skill_id="war_cry"
+        ).exists()
+        if war_cry_active:
+            print("[Mechanics] Boss is stunned by War Cry! Nullifying base HP lost.")
+            base_hp_lost = 0
+
         # For negative habits/missed dailies: DEF reduces HP damage taken by (100 / (100 + DEF))  # noqa: E501
         def_multiplier = 100.0 / (100.0 + def_stat)
 
         # Check unlocked skills and recruited allies for HP loss reduction
         hp_loss_reduction = 1.0
-        if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():
+        if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
             hp_loss_reduction -= 0.25  # 25% reduction
 
-        luna_ally = profile.recruited_allies.filter(ally_code="luna").first()
+        luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
         if luna_ally and luna_ally.level >= 2:
             hp_loss_reduction -= 0.10  # 10% reduction
 
@@ -305,7 +315,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
 
     # Check apex_predator passive
     profile = UserProfile.objects.select_for_update().get(user=user)
-    if profile.unlocked_skills.filter(skill_code="apex_predator").exists():
+    if profile.unlocked_skills.filter(skill_code="apex_predator").exists():  # type: ignore
         boss_dmg_mult += 0.30
 
     final_damage_dealt = int(final_damage_dealt * boss_dmg_mult)
@@ -322,7 +332,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
 
     boss = active_encounter.boss
     rewards = {}
-    if boss_defeated and boss:
+    if boss_defeated and boss is not None:
         profile = UserProfile.objects.select_for_update().get(user=user)
         xp_reward = int(boss.reward_xp * active_encounter.reward_multiplier)
         gold_reward = int(boss.reward_gold * active_encounter.reward_multiplier)
@@ -370,7 +380,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         "damage_dealt": final_damage_dealt,
         "boss_hp_remaining": active_encounter.hp_current,
         "boss_defeated": boss_defeated,
-        "boss_name": boss.name if boss else None,
+        "boss_name": boss.name if boss is not None else None,
         "rewards": rewards,
     }
 
@@ -482,7 +492,7 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         penalty_until_str = data.get("penalty_until")
         penalty_active = False
         if penalty_until_str:
-            from dateutil.parser import parse
+            from dateutil.parser import parse  # type: ignore
 
             try:
                 penalty_until = parse(penalty_until_str)

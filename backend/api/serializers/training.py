@@ -83,7 +83,16 @@ class TrainingLogSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {"hours": "Time Dilation requires a minimum of 2.0 hours per session."}
             )
-        focus = data.get("focus_rating", 7)
+        focus = float(data.get("focus_rating", 7))
+        from api.models import ActiveEffect
+
+        meditation_effect = ActiveEffect.objects.filter(
+            user=profile.user, skill_id="meditation"
+        ).first()
+        if meditation_effect and meditation_effect.data.get("sessionsRemaining", 0) > 0:
+            focus = min(10.0, focus * 1.30)
+            data["focus_rating"] = focus
+
         activity = data.get("activity", "other")
         client_eff = data.get("efficiency", 1.0)
         streak_days = profile.streak

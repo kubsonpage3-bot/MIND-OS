@@ -39,7 +39,7 @@ CLASS_DEFS = {
         "max_mana": 100,
         "skills": [
             {"id": "iron_fast", "name": "IRON FAST", "mana": 35, "cooldown_h": 24},
-            {"id": "contemplate", "name": "CONTEMPLATE", "mana": 60, "cooldown_h": 24},
+            {"id": "meditation", "name": "MEDITATION", "mana": 60, "cooldown_h": 24},
             {
                 "id": "transcendence",
                 "name": "TRANSCENDENCE",
@@ -122,11 +122,13 @@ def activate_skill(user, skill_id):
         return False, "Silence mutator is active. Cannot use skills.", None, None
 
     char_class = profile.character_class
-    class_def = CLASS_DEFS.get(char_class)
+    from typing import Any
+
+    class_def: Any = CLASS_DEFS.get(char_class)
     if not class_def:
         return False, f"Unknown class: {char_class}", None, None
 
-    skill_def = next((s for s in class_def["skills"] if s["id"] == skill_id), None)
+    skill_def: Any = next((s for s in class_def["skills"] if s["id"] == skill_id), None)
     if not skill_def:
         return (
             False,
@@ -143,8 +145,22 @@ def activate_skill(user, skill_id):
         user_profile=profile, skill_code="mindguard"
     ).exists()
 
+    print(
+        f"[Skill Activation] User '{user.username}' is activating skill '{skill_id}'. Base mana cost: {skill_def['mana']}."
+    )
+
     effective_mana_cost = skill_def["mana"]
     used_void_clarity = False
+
+    # Meditation active effect: reduces mana cost of other skills by 50%
+    has_meditation = ActiveEffect.objects.filter(
+        user=profile.user, skill_id="meditation"
+    ).exists()
+    if has_meditation and skill_id != "meditation":
+        effective_mana_cost = math.floor(effective_mana_cost * 0.5)
+        print(
+            f"[Skill Activation] Meditation active. Reducing mana cost by 50% to: {effective_mana_cost}."
+        )
 
     if has_void_clarity:
         now = timezone.now()
@@ -286,7 +302,11 @@ def _create_effect(skill_id, profile):
             {"healingPerTask": 5, "noDailyPenalty": True},
             now + timedelta(hours=24),
         ),
-        "contemplate": ("contemplate_effect", {}, None),  # мгновенный
+        "meditation": (
+            "meditation_effect",
+            {"sessionsRemaining": 3, "focusBoost": 0.3},
+            now + timedelta(hours=12),
+        ),
         "transcendence": (
             "transcendence_effect",
             {"streakCannotBreak": True, "rivalXPFrozen": True},
@@ -333,13 +353,6 @@ def _create_effect(skill_id, profile):
     from api.models import BossEncounter
 
     # Мгновенные эффекты
-    if skill_id == "contemplate":
-        profile.gf = (profile.gf or 100.0) + 3
-        profile.gc = (profile.gc or 100.0) + 3
-        profile.ps = (profile.ps or 100.0) + 3
-        profile.vm = (profile.vm or 100.0) + 3
-        profile.save(update_fields=["gf", "gc", "ps", "vm"])
-        return None
 
     if skill_id == "polyglot_surge":
         from api.services.mechanics import calculate_cognitive_gains

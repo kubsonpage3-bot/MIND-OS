@@ -123,7 +123,7 @@ export const CLASSES = {
     maxMana: 100,
     skills: [
       { id: "iron_fast", name: "IRON FAST", mana: 35, cooldownH: 24, desc: "For 24h: each task restores 5 HP. Missed dailies deal 0 HP damage." },
-      { id: "contemplate", name: "CONTEMPLATE", mana: 60, cooldownH: 24, desc: "Instantly gain +3 to all Gf/Gc/Ps/Vm as if a 1h perfect session." },
+      { id: "meditation", name: "MEDITATION", mana: 60, cooldownH: 24, desc: "For 12h: other skills cost 50% less mana, next 3 focus sessions get +30% Focus Rating." },
       { id: "transcendence", name: "TRANSCENDENCE", mana: 90, cooldownH: 24, desc: "For 48h: streak cannot break. Rival XP frozen." },
     ],
   },

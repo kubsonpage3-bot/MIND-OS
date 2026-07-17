@@ -1058,9 +1058,88 @@ def test_open_loot_chest(user, profile):
     ]
     won_item_db = Item.objects.get(code=result["item"]["code"])
     expected_stats = {
-        effect.effect_name: effect.effect_value for effect in won_item_db.effects.all()
+        effect.effect_name: effect.effect_value for effect in won_item_db.effects.all()  # type: ignore
     }
     assert result["item"]["stats"] == expected_stats
 
     # Verify inventory item created for the rolled item
     assert InventoryItem.objects.filter(user_profile=profile, item=won_item_db).exists()
+
+
+@pytest.mark.django_db
+def test_meditation_skill_activation_and_mana_discount(user, profile):
+    from api.models import ActiveEffect
+
+    # Setup Ascetic profile
+    profile.character_class = "ascetic"
+    profile.mana = 100
+    profile.save()
+
+    # Activate meditation (costs 60 mana)
+    success, message, class_data, effects = activate_skill(user, "meditation")
+    assert success is True
+    profile.refresh_from_db()
+    assert profile.mana == 40  # 100 - 60
+
+    # Verify active effect was created
+    med_effect = ActiveEffect.objects.filter(user=user, skill_id="meditation").first()
+    assert med_effect is not None
+    assert med_effect.data.get("sessionsRemaining") == 3
+    assert med_effect.data.get("focusBoost") == 0.3
+
+    # Now activate iron_fast (base cost: 35)
+    # Since meditation is active, it should get a 50% discount: floor(35 * 0.5) = 17 mana
+    success2, message2, class_data2, effects2 = activate_skill(user, "iron_fast")
+    assert success2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 23  # 40 - 17
+
+
+@pytest.mark.django_db
+def test_meditation_focus_boost_validation(user, profile):
+    from api.serializers.training import TrainingLogSerializer
+
+    profile.character_class = "ascetic"
+    profile.mana = 100
+    profile.save()
+
+    # Activate meditation
+    activate_skill(user, "meditation")
+
+    # Verify serializer applies 30% focus rating boost (7.0 -> 9.1)
+    data = {
+        "hours": 1.0,
+        "focus_rating": 7.0,
+        "efficiency": 1.391,
+        "activity": "coding",
+        "flat_xp_bonus": 0,
+    }
+    serializer = TrainingLogSerializer(
+        data=data, context={"request": type("Request", (), {"user": user})()}
+    )
+
+    # We trigger validation
+    assert serializer.is_valid() is True
+    assert serializer.validated_data["focus_rating"] == 9.1
+
+
+@pytest.mark.django_db
+def test_war_cry_stun_negates_damage(user, profile):
+    from api.services.mechanics import calculate_task_outcome
+
+    profile.character_class = "warlord"
+    profile.save()
+
+    # Initially, check that non-stunned failed task deals damage
+    outcome = calculate_task_outcome(user, "habit", base_hp_lost=20, is_positive=False)
+    assert outcome["hp_lost"] > 0
+
+    # Activate war_cry (stun boss)
+    success, message, class_data, effects = activate_skill(user, "war_cry")
+    assert success is True
+
+    # Check that failed task now deals 0 damage because boss is stunned
+    outcome_stunned = calculate_task_outcome(
+        user, "habit", base_hp_lost=20, is_positive=False
+    )
+    assert outcome_stunned["hp_lost"] == 0

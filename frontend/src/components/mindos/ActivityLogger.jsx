@@ -3,7 +3,7 @@ import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, CATEGORY_COEF
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Zap, Trash2, RotateCcw } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import EfficiencyMeter from "./EfficiencyMeter";
 import SubjectRankBadge from "./SubjectRankBadge";
@@ -80,8 +80,19 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
   const isQuestionsMode = selectedActivity && allActivities[selectedActivity]?.inputType === "questions";
   const logValue = isQuestionsMode ? questions : hours;
 
+  const { data: effectsData } = useQuery({
+    queryKey: ["active_effects"],
+    queryFn: djangoApi.skills.getActiveEffects,
+    enabled: !!profile,
+  });
+  const activeEffects = effectsData?.active_effects || [];
+  const meditationEffect = activeEffects.find(e => e.skill_id === "meditation");
+  const hasMeditationSessions = meditationEffect && (meditationEffect.data?.sessionsRemaining > 0);
+
+  const effectiveFocus = hasMeditationSessions ? Math.min(10, focusRating * 1.3) : focusRating;
+
   const efficiency = computeEfficiency({
-    focus: focusRating,
+    focus: effectiveFocus,
     streakDays: profile?.streak || 0,
     hoursToday,
     subjectHoursToday,
@@ -100,9 +111,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
   const confirmLog = () => {
     if (!selectedActivity) return;
 
-    let effectiveFocus = focusRating;
-
-    onLog(selectedActivity, logValue, effectiveFocus, efficiency, (msg) => {
+    onLog(selectedActivity, logValue, focusRating, efficiency, (msg) => {
       setFeedbackMsg(msg);
       setTimeout(() => setFeedbackMsg(null), 4000);
     });

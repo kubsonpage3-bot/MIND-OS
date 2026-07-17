@@ -35,9 +35,9 @@
         "name": "IRON FAST",
         "desc": "For 24h: each task restores 5 HP. Missed dailies deal 0 HP damage."
       },
-      "contemplate": {
-        "name": "CONTEMPLATE",
-        "desc": "Instantly gain +3 to all Gf/Gc/Ps/Vm as if a 1h perfect session."
+      "meditation": {
+        "name": "MEDITATION",
+        "desc": "For 12h: other skills cost 50% less mana, next 3 focus sessions get +30% Focus Rating."
       },
       "transcendence": {
         "name": "TRANSCENDENCE",

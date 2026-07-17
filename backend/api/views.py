@@ -1386,6 +1386,19 @@ class TrainingLogView(generics.GenericAPIView):
 
             from api.models import ActiveEffect
 
+            meditation_effect = ActiveEffect.objects.filter(
+                user=request.user, skill_id="meditation"
+            ).first()
+            if (
+                meditation_effect
+                and meditation_effect.data.get("sessionsRemaining", 0) > 0
+            ):
+                meditation_effect.data["sessionsRemaining"] -= 1
+                meditation_effect.save(update_fields=["data"])
+                print(
+                    f"[Training View] Meditation active. Focus rating boosted. Remaining sessions: {meditation_effect.data['sessionsRemaining']}."
+                )
+
             if ActiveEffect.objects.filter(
                 user=request.user, skill_id="infinite_loop"
             ).exists():

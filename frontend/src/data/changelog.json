@@ -1,11 +1,19 @@
 [
-    {
-        "date": "2026-07-16",
-        "version": "1.7.0",
-        "changes": [
-            { "type": "feature", "text": "Integrated native local notifications using @capacitor/local-notifications for daily session reminders, Pomodoro completion alerts, and streak risk warnings." }
-        ]
-    },
+  {
+    "date": "2026-07-17",
+    "version": "1.7.1",
+    "changes": [
+      { "type": "balance", "text": "Replaced the Ascetic class's Contemplate skill with Meditation: other skills cost 50% less mana, and the next 3 focus sessions get a +30% Focus Rating boost." },
+      { "type": "fix", "text": "Fixed the Warlord's War Cry stun effect to correctly prevent HP damage from failed habits and missed dailies while the boss is stunned." }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "1.7.0",
+    "changes": [
+      { "type": "feature", "text": "Integrated native local notifications using @capacitor/local-notifications for daily session reminders, Pomodoro completion alerts, and streak risk warnings." }
+    ]
+  },
     {
         "date": "2026-07-16",
         "version": "1.6.9",
