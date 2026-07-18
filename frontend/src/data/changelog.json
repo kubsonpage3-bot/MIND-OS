@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.18",
+    "changes": [
+      { "type": "fix", "text": "Fixed native mobile API origin URL fallback to Render backend; reverted onboarding to direct class selection and description with smooth mobile scroll." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.17",
     "changes": [
       { "type": "feature", "text": "Enabled multi-device concurrent sessions: PC and Mobile can now remain logged in simultaneously without invalidating each other's tokens." }

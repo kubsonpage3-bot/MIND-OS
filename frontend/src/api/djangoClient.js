@@ -1,5 +1,12 @@
 import { secureStorage } from '@/utils/secureStorage';
-export const API_ORIGIN = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { Capacitor } from '@capacitor/core';
+
+const RENDER_PROD_URL = 'https://mindos-growth.onrender.com';
+
+export const API_ORIGIN = (
+  import.meta.env.VITE_API_URL ||
+  (Capacitor.isNativePlatform() ? RENDER_PROD_URL : 'http://localhost:8000')
+);
 // HOST_ORIGIN is always the bare scheme+host — never includes /api.
 // Guards against VITE_API_URL being set to 'https://host/api' in Cloudflare Pages,
 // which would produce /api/api/health/ double-path bugs.
