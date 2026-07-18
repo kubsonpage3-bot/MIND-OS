@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.15",
+    "changes": [
+      { "type": "fix", "text": "Fixed Title Selector modal viewport z-index collision and body scroll locking; added full English and Russian i18n localization for all 52 playstyle titles and categories." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.14",
     "changes": [
       { "type": "feature", "text": "Added 52 dynamic Playstyle Titles based on user habits (Night Owl, Marathoner, Alchemist, Bookworm, Boss Slayer) displayed on Dashboard and Character views with an interactive title selector modal." }

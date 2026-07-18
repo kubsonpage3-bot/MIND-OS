@@ -1851,5 +1851,234 @@
     "skills_name": "Skill Tree",
     "allies_name": "Allies Panel",
     "mutators_name": "Mutators Panel"
+  },
+  "titles": {
+    "title_modal": "CHARACTER TITLES",
+    "title_modal_subtitle": "Equip a unique playstyle title based on your behavioral habits or leave auto-selection enabled.",
+    "current_title": "Current Title",
+    "unlocked": "UNLOCKED",
+    "equipped": "EQUIPPED",
+    "equip": "EQUIP",
+    "reset_auto": "Reset to auto-selection",
+    "categories": {
+      "all": "All",
+      "time": "Time",
+      "streak": "Streaks",
+      "spec": "Disciplines",
+      "craft": "Crafting",
+      "combat": "Bosses",
+      "focus": "Pomodoro",
+      "social": "Party",
+      "wealth": "Wealth",
+      "rank": "Ranks"
+    },
+    "night_owl": {
+      "name": "Night Owl",
+      "desc": "Complete 5+ night tasks (23:00 – 05:00)"
+    },
+    "early_bird": {
+      "name": "Early Bird",
+      "desc": "Complete 5+ morning tasks (05:00 – 08:00)"
+    },
+    "noonday_sentinel": {
+      "name": "Noonday Sentinel",
+      "desc": "Complete 10+ lunchtime tasks (12:00 – 14:00)"
+    },
+    "twilight_hunter": {
+      "name": "Twilight Hunter",
+      "desc": "Complete 15+ evening tasks (18:00 – 21:00)"
+    },
+    "weekend_warrior": {
+      "name": "Weekend Warrior",
+      "desc": "Complete 10+ weekend tasks"
+    },
+    "midnight_alchemist": {
+      "name": "Midnight Alchemist",
+      "desc": "Complete a task or session right at midnight (00:00 - 01:00)"
+    },
+    "ignited": {
+      "name": "Ignited",
+      "desc": "Maintain a daily streak for 7+ days"
+    },
+    "marathoner": {
+      "name": "Marathoner",
+      "desc": "Maintain a daily streak for 30+ days"
+    },
+    "iron_will": {
+      "name": "Iron Will",
+      "desc": "Maintain a daily streak for 60+ days"
+    },
+    "unbroken": {
+      "name": "Unbroken",
+      "desc": "Maintain a daily streak for 90+ days"
+    },
+    "time_legend": {
+      "name": "Time Legend",
+      "desc": "Maintain a daily streak for 180+ days"
+    },
+    "phoenix": {
+      "name": "Phoenix",
+      "desc": "Protect or restore a streak using streak shield"
+    },
+    "bookworm": {
+      "name": "Bookworm",
+      "desc": "Earn 100+ Gc (Language/Humanities) XP in a week"
+    },
+    "polyglot": {
+      "name": "Polyglot",
+      "desc": "Reach Gc (Crystallized Intellect) rating ≥ 115"
+    },
+    "architect_mind": {
+      "name": "Mind Architect",
+      "desc": "Earn 100+ Gf (Science/Logic) XP in a week"
+    },
+    "neuro_surgeon": {
+      "name": "Neuro-Surgeon",
+      "desc": "Reach Processing Speed (Ps) rating ≥ 115"
+    },
+    "archive_keeper": {
+      "name": "Archive Keeper",
+      "desc": "Reach Verbal Memory (Vm) rating ≥ 115"
+    },
+    "ascetic_scholar": {
+      "name": "Ascetic Scholar",
+      "desc": "Choose Ascetic class and complete 10+ tasks"
+    },
+    "linguist_sovereign": {
+      "name": "Linguist Sovereign",
+      "desc": "Choose Linguist class and complete 25+ tasks"
+    },
+    "warlord_guard": {
+      "name": "Warlord Guard",
+      "desc": "Choose Warlord class and land 10+ boss damage attacks"
+    },
+    "alchemist": {
+      "name": "Alchemist",
+      "desc": "Unlock 3+ mutators"
+    },
+    "grand_alchemist": {
+      "name": "Grand Alchemist",
+      "desc": "Unlock 7+ mutators"
+    },
+    "experimentalist": {
+      "name": "Experimentalist",
+      "desc": "Enable 2+ active mutators simultaneously"
+    },
+    "rune_smith": {
+      "name": "Rune Smith",
+      "desc": "Craft 3+ items in the forge"
+    },
+    "potion_master": {
+      "name": "Potion Master",
+      "desc": "Consume 5+ potions from inventory"
+    },
+    "relic_collector": {
+      "name": "Relic Collector",
+      "desc": "Own 5+ inventory items"
+    },
+    "boss_slayer": {
+      "name": "Boss Slayer",
+      "desc": "Defeat at least 1 raid boss"
+    },
+    "giant_executioner": {
+      "name": "Giant Executioner",
+      "desc": "Defeat 5+ raid bosses"
+    },
+    "critical_striker": {
+      "name": "Critical Striker",
+      "desc": "Land 10+ critical hits"
+    },
+    "darkness_bane": {
+      "name": "Bane of Darkness",
+      "desc": "Deal 500+ total damage to bosses"
+    },
+    "tactician": {
+      "name": "Battle Tactician",
+      "desc": "Use an active combat skill"
+    },
+    "dark_receptionist": {
+      "name": "Dark Reaper",
+      "desc": "Use Vivian's Dark Sacrifice skills"
+    },
+    "chaos_lord": {
+      "name": "Chaos Lord",
+      "desc": "Activate Rhea's Chaos Control skills"
+    },
+    "deep_work_master": {
+      "name": "Deep Work Master",
+      "desc": "Complete 5+ Pomodoro sessions"
+    },
+    "zen_meditator": {
+      "name": "Zen Meditator",
+      "desc": "Complete 20+ Pomodoro sessions"
+    },
+    "chronomancer": {
+      "name": "Chronomancer",
+      "desc": "Log 25+ hours of focused tasks"
+    },
+    "sprint_champion": {
+      "name": "Sprint Champion",
+      "desc": "Complete 5+ tasks in a single day"
+    },
+    "unstoppable": {
+      "name": "Unstoppable",
+      "desc": "Complete 15+ tasks in a single day"
+    },
+    "squad_commander": {
+      "name": "Squad Commander",
+      "desc": "Join or create a Party"
+    },
+    "ally_patron": {
+      "name": "Ally Patron",
+      "desc": "Recruit at least 1 companion"
+    },
+    "beast_master": {
+      "name": "Beast Master",
+      "desc": "Recruit 3+ companions"
+    },
+    "inspiring_leader": {
+      "name": "Inspiring Leader",
+      "desc": "Apply party buffs or reactions"
+    },
+    "dynamic_duo": {
+      "name": "Dynamic Duo",
+      "desc": "Be in a Party with 2+ members"
+    },
+    "gold_digger": {
+      "name": "Gold Digger",
+      "desc": "Earn 250+ gold lifetime"
+    },
+    "tycoon": {
+      "name": "MIND OS Tycoon",
+      "desc": "Earn 1,500+ gold lifetime"
+    },
+    "big_spender": {
+      "name": "Big Spender",
+      "desc": "Purchase 5+ items from the shop"
+    },
+    "treasure_hunter": {
+      "name": "Treasure Hunter",
+      "desc": "Open at least 1 loot chest"
+    },
+    "awakened_one": {
+      "name": "Awakened One",
+      "desc": "Complete MIND OS profile setup"
+    },
+    "mind_over_matter": {
+      "name": "Mind Over Matter",
+      "desc": "Complete 50+ total tasks"
+    },
+    "pioneer": {
+      "name": "Pioneer",
+      "desc": "Reach Rank C or higher"
+    },
+    "grandmaster": {
+      "name": "Grandmaster",
+      "desc": "Reach Rank S or higher"
+    },
+    "apex_sovereign": {
+      "name": "Apex Sovereign",
+      "desc": "Perform at least 1 Prestige reset"
+    }
   }
 }

@@ -3,11 +3,13 @@ import BossPanel from "@/components/mindos/BossPanel";
 import { CLASSES } from "@/constants/rpgData";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 
 export default function CharacterHub({ rankXP, currentRankId, onBossDamage, externalDamage }) {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const classData = {
     chosen: profile?.character_class !== "Wanderer" ? profile?.character_class : null,
@@ -41,7 +43,8 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{userName || "Hero"}</div>
         <div style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>
         {(() => {
-          const activeTitle = profile?.playstyle_info?.active_title || { name: profile?.streak_title || "Пробуждённый", icon: "✨", color: "#a855f7" };
+          const activeTitle = profile?.playstyle_info?.active_title || { id: "awakened_one", name: "Awakened One", icon: "✨", color: "#a855f7" };
+          const translatedName = t(`titles.${activeTitle.id}.name`, activeTitle.name);
           return (
             <div
               className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold border shadow-xs"
@@ -52,7 +55,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
               }}
             >
               <span>{activeTitle.icon || "👑"}</span>
-              <span>{activeTitle.name}</span>
+              <span>{translatedName}</span>
             </div>
           );
         })()}

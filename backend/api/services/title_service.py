@@ -8,478 +8,478 @@ TITLES_CATALOG = [
     # ── 🌙 TIME & RHYTHM (6) ──────────────────────────────────────────────────
     {
         "id": "night_owl",
-        "name": "Ночной Волк",
+        "name": "Night Owl",
         "icon": "🌙",
         "category": "time",
         "color": "#a855f7",
-        "description": "Выполнить более 5 ночных задач (23:00 – 05:00)",
+        "description": "Complete 5+ night tasks (23:00 – 05:00)",
         "priority": 85,
     },
     {
         "id": "early_bird",
-        "name": "Ранняя Пташка",
+        "name": "Early Bird",
         "icon": "🌅",
         "category": "time",
         "color": "#f59e0b",
-        "description": "Выполнить более 5 утренних задач (05:00 – 08:00)",
+        "description": "Complete 5+ morning tasks (05:00 – 08:00)",
         "priority": 85,
     },
     {
         "id": "noonday_sentinel",
-        "name": "Полуденный Воин",
+        "name": "Noonday Sentinel",
         "icon": "☀️",
         "category": "time",
         "color": "#eab308",
-        "description": "Выполнить 10+ задач в обеденное время (12:00 – 14:00)",
+        "description": "Complete 10+ lunchtime tasks (12:00 – 14:00)",
         "priority": 60,
     },
     {
         "id": "twilight_hunter",
-        "name": "Сумеречный Охотник",
+        "name": "Twilight Hunter",
         "icon": "🌆",
         "category": "time",
         "color": "#f97316",
-        "description": "Выполнить 15+ вечерних задач (18:00 – 21:00)",
+        "description": "Complete 15+ evening tasks (18:00 – 21:00)",
         "priority": 65,
     },
     {
         "id": "weekend_warrior",
-        "name": "Властелин Выходных",
+        "name": "Weekend Warrior",
         "icon": "🍷",
         "category": "time",
         "color": "#ec4899",
-        "description": "Выполнить 10+ задач в субботу и воскресенье",
+        "description": "Complete 10+ weekend tasks",
         "priority": 70,
     },
     {
         "id": "midnight_alchemist",
-        "name": "Полуночный Алхимик",
+        "name": "Midnight Alchemist",
         "icon": "🌌",
         "category": "time",
         "color": "#8b5cf6",
-        "description": "Завершить тренировку или задачу ровно в полночь (00:00 - 01:00)",
+        "description": "Complete a task or session right at midnight (00:00 - 01:00)",
         "priority": 90,
     },
     # ── 🔥 STREAK & CONSISTENCY (6) ───────────────────────────────────────────
     {
         "id": "ignited",
-        "name": "Пламенный",
+        "name": "Ignited",
         "icon": "🔥",
         "category": "streak",
         "color": "#f97316",
-        "description": "Удерживать ежедневный стрик 7+ дней",
+        "description": "Maintain a daily streak for 7+ days",
         "priority": 40,
     },
     {
         "id": "marathoner",
-        "name": "Марафонец",
+        "name": "Marathoner",
         "icon": "🏃",
         "category": "streak",
         "color": "#eab308",
-        "description": "Удерживать ежедневный стрик 30+ дней",
+        "description": "Maintain a daily streak for 30+ days",
         "priority": 80,
     },
     {
         "id": "iron_will",
-        "name": "Железная Воля",
+        "name": "Iron Will",
         "icon": "🛡️",
         "category": "streak",
         "color": "#3b82f6",
-        "description": "Удерживать ежедневный стрик 60+ дней",
+        "description": "Maintain a daily streak for 60+ days",
         "priority": 95,
     },
     {
         "id": "unbroken",
-        "name": "Непреклонный",
+        "name": "Unbroken",
         "icon": "⚡",
         "category": "streak",
         "color": "#a855f7",
-        "description": "Удерживать ежедневный стрик 90+ дней",
+        "description": "Maintain a daily streak for 90+ days",
         "priority": 110,
     },
     {
         "id": "time_legend",
-        "name": "Легенда Времени",
+        "name": "Time Legend",
         "icon": "👑",
         "category": "streak",
         "color": "#ef4444",
-        "description": "Удерживать ежедневный стрик 180+ дней",
+        "description": "Maintain a daily streak for 180+ days",
         "priority": 150,
     },
     {
         "id": "phoenix",
-        "name": "Феникс",
+        "name": "Phoenix",
         "icon": "🔥",
         "category": "streak",
         "color": "#f43f5e",
-        "description": "Использовать активный бафф защиты стрика",
+        "description": "Protect or restore a streak using streak shield",
         "priority": 75,
     },
     # ── 🔬 SPECIALIZATIONS & XP DOMAINS (8) ───────────────────────────────────
     {
         "id": "bookworm",
-        "name": "Книжный Червь",
+        "name": "Bookworm",
         "icon": "📚",
         "category": "spec",
         "color": "#10b981",
-        "description": "Заработать 100+ Gc (Language/Humanities) XP за неделю",
+        "description": "Earn 100+ Gc (Language/Humanities) XP in a week",
         "priority": 70,
     },
     {
         "id": "polyglot",
-        "name": "Полиглот",
+        "name": "Polyglot",
         "icon": "🌐",
         "category": "spec",
         "color": "#06b6d4",
-        "description": "Набрать показатель Gc (Crystallized Intellect) ≥ 115",
+        "description": "Reach Gc (Crystallized Intellect) rating ≥ 115",
         "priority": 85,
     },
     {
         "id": "architect_mind",
-        "name": "Архитектор Мысли",
+        "name": "Mind Architect",
         "icon": "🏛️",
         "category": "spec",
         "color": "#3b82f6",
-        "description": "Заработать 100+ Gf (Science/Logic) XP за неделю",
+        "description": "Earn 100+ Gf (Science/Logic) XP in a week",
         "priority": 70,
     },
     {
         "id": "neuro_surgeon",
-        "name": "Нейрохирург",
+        "name": "Neuro-Surgeon",
         "icon": "🧠",
         "category": "spec",
         "color": "#6366f1",
-        "description": "Набрать показатель Скорости Обработки (Ps) ≥ 115",
+        "description": "Reach Processing Speed (Ps) rating ≥ 115",
         "priority": 85,
     },
     {
         "id": "archive_keeper",
-        "name": "Хранитель Знаний",
+        "name": "Archive Keeper",
         "icon": "📜",
         "category": "spec",
         "color": "#8b5cf6",
-        "description": "Набрать показатель Вербальной Памяти (Vm) ≥ 115",
+        "description": "Reach Verbal Memory (Vm) rating ≥ 115",
         "priority": 85,
     },
     {
         "id": "ascetic_scholar",
-        "name": "Аскет-Мудрец",
+        "name": "Ascetic Scholar",
         "icon": "🧘",
         "category": "spec",
         "color": "#10b981",
-        "description": "Выбрать класс Аскет и выполнить 10+ задач",
+        "description": "Choose Ascetic class and complete 10+ tasks",
         "priority": 65,
     },
     {
         "id": "linguist_sovereign",
-        "name": "Повелитель Слов",
+        "name": "Linguist Sovereign",
         "icon": "✍️",
         "category": "spec",
         "color": "#06b6d4",
-        "description": "Выбрать класс Лингвист и выполнить 25+ задач",
+        "description": "Choose Linguist class and complete 25+ tasks",
         "priority": 75,
     },
     {
         "id": "warlord_guard",
-        "name": "Воевода Гвардии",
+        "name": "Warlord Guard",
         "icon": "🗡️",
         "category": "spec",
         "color": "#ef4444",
-        "description": "Выбрать класс Варлорд и нанести 10+ атак боссу",
+        "description": "Choose Warlord class and land 10+ boss damage attacks",
         "priority": 75,
     },
     # ── 🧪 MUTATORS & CRAFTING (6) ───────────────────────────────────────────
     {
         "id": "alchemist",
-        "name": "Алхимик",
+        "name": "Alchemist",
         "icon": "🧪",
         "category": "craft",
         "color": "#a855f7",
-        "description": "Разблокировать 3+ мутатора",
+        "description": "Unlock 3+ mutators",
         "priority": 65,
     },
     {
         "id": "grand_alchemist",
-        "name": "Великий Алхимик",
+        "name": "Grand Alchemist",
         "icon": "⚗️",
         "category": "craft",
         "color": "#c084fc",
-        "description": "Разблокировать 7+ мутаторов",
+        "description": "Unlock 7+ mutators",
         "priority": 100,
     },
     {
         "id": "experimentalist",
-        "name": "Экспериментатор",
+        "name": "Experimentalist",
         "icon": "🧫",
         "category": "craft",
         "color": "#e879f9",
-        "description": "Включить 2+ активных мутатора одновременно",
+        "description": "Enable 2+ active mutators simultaneously",
         "priority": 80,
     },
     {
         "id": "rune_smith",
-        "name": "Кузнец Рун",
+        "name": "Rune Smith",
         "icon": "🔨",
         "category": "craft",
         "color": "#f59e0b",
-        "description": "Скрафтить 3+ предмета в кузнице",
+        "description": "Craft 3+ items in the forge",
         "priority": 70,
     },
     {
         "id": "potion_master",
-        "name": "Мастер Зелий",
+        "name": "Potion Master",
         "icon": "🍷",
         "category": "craft",
         "color": "#f43f5e",
-        "description": "Использовать 5+ зелий из инвентаря",
+        "description": "Consume 5+ potions from inventory",
         "priority": 60,
     },
     {
         "id": "relic_collector",
-        "name": "Коллекционер Реликвий",
+        "name": "Relic Collector",
         "icon": "💎",
         "category": "craft",
         "color": "#38bdf8",
-        "description": "Иметь 5+ предметов в инвентаре",
+        "description": "Own 5+ inventory items",
         "priority": 65,
     },
     # ── ⚔️ COMBAT & BOSS BATTLES (7) ───────────────────────────────────────────
     {
         "id": "boss_slayer",
-        "name": "Убийца Боссов",
+        "name": "Boss Slayer",
         "icon": "⚔️",
         "category": "combat",
         "color": "#ef4444",
-        "description": "Победить хотя бы 1 рейд-босса",
+        "description": "Defeat at least 1 raid boss",
         "priority": 70,
     },
     {
         "id": "giant_executioner",
-        "name": "Палач Гигантов",
+        "name": "Giant Executioner",
         "icon": "🪓",
         "category": "combat",
         "color": "#b91c1c",
-        "description": "Победить 5+ рейд-боссов",
+        "description": "Defeat 5+ raid bosses",
         "priority": 110,
     },
     {
         "id": "critical_striker",
-        "name": "Мастер Крита",
+        "name": "Critical Striker",
         "icon": "💥",
         "category": "combat",
         "color": "#f97316",
-        "description": "Совершить 10+ критических ударов",
+        "description": "Land 10+ critical hits",
         "priority": 65,
     },
     {
         "id": "darkness_bane",
-        "name": "Разрушитель Тьмы",
+        "name": "Bane of Darkness",
         "icon": "🔱",
         "category": "combat",
         "color": "#8b5cf6",
-        "description": "Нанести 500+ суммарного урона боссам",
+        "description": "Deal 500+ total damage to bosses",
         "priority": 90,
     },
     {
         "id": "tactician",
-        "name": "Тактик Битвы",
+        "name": "Battle Tactician",
         "icon": "🎯",
         "category": "combat",
         "color": "#0284c7",
-        "description": "Применить активный боевой навык",
+        "description": "Use an active combat skill",
         "priority": 50,
     },
     {
         "id": "dark_receptionist",
-        "name": "Тёмный Жнец",
+        "name": "Dark Reaper",
         "icon": "🦇",
         "category": "combat",
         "color": "#4c1d95",
-        "description": "Использовать навыки Тьмы",
+        "description": "Use Vivian's Dark Sacrifice skills",
         "priority": 85,
     },
     {
         "id": "chaos_lord",
-        "name": "Властелин Хаоса",
+        "name": "Chaos Lord",
         "icon": "🌀",
         "category": "combat",
         "color": "#d946ef",
-        "description": "Активировать Контроль Хаоса",
+        "description": "Activate Rhea's Chaos Control skills",
         "priority": 85,
     },
     # ── ⏱️ POMODORO & PRODUCTIVITY (5) ───────────────────────────────────────
     {
         "id": "deep_work_master",
-        "name": "Мастер Глубокой Работы",
+        "name": "Deep Work Master",
         "icon": "⏱️",
         "category": "focus",
         "color": "#10b981",
-        "description": "Завершить 5+ Pomodoro сессий",
+        "description": "Complete 5+ Pomodoro sessions",
         "priority": 60,
     },
     {
         "id": "zen_meditator",
-        "name": "Дзен-Медитатор",
+        "name": "Zen Meditator",
         "icon": "🧘‍♂️",
         "category": "focus",
         "color": "#06b6d4",
-        "description": "Завершить 20+ Pomodoro сессий",
+        "description": "Complete 20+ Pomodoro sessions",
         "priority": 95,
     },
     {
         "id": "chronomancer",
-        "name": "Хрономансер",
+        "name": "Chronomancer",
         "icon": "⏳",
         "category": "focus",
         "color": "#6366f1",
-        "description": "Записать 25+ часов фокусированной работы",
+        "description": "Log 25+ hours of focused tasks",
         "priority": 100,
     },
     {
         "id": "sprint_champion",
-        "name": "Стальной Спринтер",
+        "name": "Sprint Champion",
         "icon": "⚡",
         "category": "focus",
         "color": "#eab308",
-        "description": "Выполнить 5+ задач за один день",
+        "description": "Complete 5+ tasks in a single day",
         "priority": 65,
     },
     {
         "id": "unstoppable",
-        "name": "Неостановимый",
+        "name": "Unstoppable",
         "icon": "🚀",
         "category": "focus",
         "color": "#ec4899",
-        "description": "Выполнить 15+ задач за один день",
+        "description": "Complete 15+ tasks in a single day",
         "priority": 105,
     },
     # ── 🤝 PARTY & COMPANIONS (5) ─────────────────────────────────────────────
     {
         "id": "squad_commander",
-        "name": "Командир Отряда",
+        "name": "Squad Commander",
         "icon": "🛡️",
         "category": "social",
         "color": "#3b82f6",
-        "description": "Вступить в группу или создать свою Пати",
+        "description": "Join or create a Party",
         "priority": 50,
     },
     {
         "id": "ally_patron",
-        "name": "Покровитель Союзников",
+        "name": "Ally Patron",
         "icon": "🤝",
         "category": "social",
         "color": "#8b5cf6",
-        "description": "Нанять хотя бы 1 соратника",
+        "description": "Recruit at least 1 companion",
         "priority": 55,
     },
     {
         "id": "beast_master",
-        "name": "Мастер Зверей",
+        "name": "Beast Master",
         "icon": "🐾",
         "category": "social",
         "color": "#10b981",
-        "description": "Нанять 3+ соратников",
+        "description": "Recruit 3+ companions",
         "priority": 85,
     },
     {
         "id": "inspiring_leader",
-        "name": "Вдохновитель",
+        "name": "Inspiring Leader",
         "icon": "📣",
         "category": "social",
         "color": "#f59e0b",
-        "description": "Применить группу или реакции в пати",
+        "description": "Apply party buffs or reactions",
         "priority": 60,
     },
     {
         "id": "dynamic_duo",
-        "name": "Дуэт Героев",
+        "name": "Dynamic Duo",
         "icon": "👥",
         "category": "social",
         "color": "#06b6d4",
-        "description": "Находиться в пати с 2+ участниками",
+        "description": "Be in a Party with 2+ members",
         "priority": 65,
     },
     # ── 💰 ECONOMY & WEALTH (4) ───────────────────────────────────────────────
     {
         "id": "gold_digger",
-        "name": "Золотоискатель",
+        "name": "Gold Digger",
         "icon": "🪙",
         "category": "wealth",
         "color": "#eab308",
-        "description": "Заработать 250+ золота за всё время",
+        "description": "Earn 250+ gold lifetime",
         "priority": 55,
     },
     {
         "id": "tycoon",
-        "name": "Магнат MIND OS",
+        "name": "MIND OS Tycoon",
         "icon": "🏛️",
         "category": "wealth",
         "color": "#f59e0b",
-        "description": "Заработать 1,500+ золота за всё время",
+        "description": "Earn 1,500+ gold lifetime",
         "priority": 95,
     },
     {
         "id": "big_spender",
-        "name": "Щедрый Покупатель",
+        "name": "Big Spender",
         "icon": "🛍️",
         "category": "wealth",
         "color": "#ec4899",
-        "description": "Купить 5+ товаров в магазине",
+        "description": "Purchase 5+ items from the shop",
         "priority": 65,
     },
     {
         "id": "treasure_hunter",
-        "name": "Кладоискатель",
+        "name": "Treasure Hunter",
         "icon": "📦",
         "category": "wealth",
         "color": "#a855f7",
-        "description": "Открыть хотя бы 1 сундук сокровищ",
+        "description": "Open at least 1 loot chest",
         "priority": 60,
     },
     # ── 🌟 RANKS & PRESTIGE (5) ───────────────────────────────────────────────
     {
         "id": "awakened_one",
-        "name": "Пробуждённый",
+        "name": "Awakened One",
         "icon": "✨",
         "category": "rank",
         "color": "#94a3b8",
-        "description": "Завершить инициализацию профиля MIND OS",
+        "description": "Complete MIND OS profile setup",
         "priority": 10,
     },
     {
         "id": "mind_over_matter",
-        "name": "Разум Над Материей",
+        "name": "Mind Over Matter",
         "icon": "⚛️",
         "category": "rank",
         "color": "#38bdf8",
-        "description": "Выполнить 50+ задач суммарно",
+        "description": "Complete 50+ total tasks",
         "priority": 75,
     },
     {
         "id": "pioneer",
-        "name": "Первопроходец",
+        "name": "Pioneer",
         "icon": "🔱",
         "category": "rank",
         "color": "#60a5fa",
-        "description": "Достичь Ранга C или выше",
+        "description": "Reach Rank C or higher",
         "priority": 70,
     },
     {
         "id": "grandmaster",
-        "name": "Грандмейстер",
+        "name": "Grandmaster",
         "icon": "👑",
         "category": "rank",
         "color": "#f59e0b",
-        "description": "Достичь Ранга S или выше",
+        "description": "Reach Rank S or higher",
         "priority": 120,
     },
     {
         "id": "apex_sovereign",
-        "name": "Верховный Соверен",
+        "name": "Apex Sovereign",
         "icon": "🌌",
         "category": "rank",
         "color": "#c084fc",
-        "description": "Выполнить хотя бы 1 престиж-сброс",
+        "description": "Perform at least 1 Prestige reset",
         "priority": 150,
     },
 ]
@@ -504,52 +504,52 @@ def _evaluate_title_unlock(
 
     if title_id == "ignited":
         pct = min(100, (streak / 7) * 100)
-        return streak >= 7, pct, f"{streak} / 7 дней"
+        return streak >= 7, pct, f"{streak} / 7 days"
 
     if title_id == "marathoner":
         pct = min(100, (streak / 30) * 100)
-        return streak >= 30, pct, f"{streak} / 30 дней"
+        return streak >= 30, pct, f"{streak} / 30 days"
 
     if title_id == "iron_will":
         pct = min(100, (streak / 60) * 100)
-        return streak >= 60, pct, f"{streak} / 60 дней"
+        return streak >= 60, pct, f"{streak} / 60 days"
 
     if title_id == "unbroken":
         pct = min(100, (streak / 90) * 100)
-        return streak >= 90, pct, f"{streak} / 90 дней"
+        return streak >= 90, pct, f"{streak} / 90 days"
 
     if title_id == "time_legend":
         pct = min(100, (streak / 180) * 100)
-        return streak >= 180, pct, f"{streak} / 180 дней"
+        return streak >= 180, pct, f"{streak} / 180 days"
 
     if title_id == "night_owl":
         count = task_stats.get("night_count", 0)
         pct = min(100, (count / 5) * 100)
-        return count >= 5, pct, f"{count} / 5 ночных задач"
+        return count >= 5, pct, f"{count} / 5 night tasks"
 
     if title_id == "early_bird":
         count = task_stats.get("morning_count", 0)
         pct = min(100, (count / 5) * 100)
-        return count >= 5, pct, f"{count} / 5 утренних задач"
+        return count >= 5, pct, f"{count} / 5 morning tasks"
 
     if title_id == "noonday_sentinel":
         count = task_stats.get("noon_count", 0)
         pct = min(100, (count / 10) * 100)
-        return count >= 10, pct, f"{count} / 10 полуденных задач"
+        return count >= 10, pct, f"{count} / 10 noon tasks"
 
     if title_id == "twilight_hunter":
         count = task_stats.get("evening_count", 0)
         pct = min(100, (count / 15) * 100)
-        return count >= 15, pct, f"{count} / 15 вечерних задач"
+        return count >= 15, pct, f"{count} / 15 evening tasks"
 
     if title_id == "weekend_warrior":
         count = task_stats.get("weekend_count", 0)
         pct = min(100, (count / 10) * 100)
-        return count >= 10, pct, f"{count} / 10 задач в выходные"
+        return count >= 10, pct, f"{count} / 10 weekend tasks"
 
     if title_id == "midnight_alchemist":
         count = task_stats.get("midnight_exact", 0)
-        return count >= 1, (100 if count >= 1 else 0), f"{count} / 1 полуночная задача"
+        return count >= 1, (100 if count >= 1 else 0), f"{count} / 1 midnight task"
 
     if title_id == "bookworm":
         weekly_xp = profile.weekly_xp or 0
@@ -581,7 +581,7 @@ def _evaluate_title_unlock(
         return (
             is_asc and count >= 10,
             min(100, (count / 10) * 100),
-            f"{count} / 10 задач Аскета",
+            f"{count} / 10 Ascetic tasks",
         )
 
     if title_id == "linguist_sovereign":
@@ -590,20 +590,20 @@ def _evaluate_title_unlock(
         return (
             is_ling and count >= 25,
             min(100, (count / 25) * 100),
-            f"{count} / 25 задач Лингвиста",
+            f"{count} / 25 Linguist tasks",
         )
 
     if title_id == "warlord_guard":
         is_war = profile.character_class == "Warlord"
         count = boss_damage if is_war else 0
-        return is_war and count >= 1, (100 if count >= 1 else 0), "Атаки Варлорда"
+        return is_war and count >= 1, (100 if count >= 1 else 0), "Warlord attacks"
 
     if title_id == "alchemist":
         mut_count = len(profile.active_mutators or [])
         return (
             mut_count >= 1 or total_tasks >= 20,
             min(100, (total_tasks / 20) * 100),
-            f"{total_tasks} / 20 прогресса",
+            f"{total_tasks} / 20 progress",
         )
 
     if title_id == "grand_alchemist":
@@ -611,7 +611,7 @@ def _evaluate_title_unlock(
         return (
             mut_count >= 3 or total_tasks >= 50,
             min(100, (total_tasks / 50) * 100),
-            f"{total_tasks} / 50 прогресса",
+            f"{total_tasks} / 50 progress",
         )
 
     if title_id == "experimentalist":
@@ -619,123 +619,123 @@ def _evaluate_title_unlock(
         return (
             mut_count >= 2,
             (100 if mut_count >= 2 else 50 if mut_count == 1 else 0),
-            f"{mut_count} / 2 мутатора",
+            f"{mut_count} / 2 mutators",
         )
 
     if title_id == "rune_smith":
         return (
             total_tasks >= 30,
             min(100, (total_tasks / 30) * 100),
-            f"{total_tasks} / 30 рун",
+            f"{total_tasks} / 30 runes",
         )
 
     if title_id == "potion_master":
         return (
             profile.gold >= 100 or total_tasks >= 15,
             min(100, (total_tasks / 15) * 100),
-            f"{total_tasks} / 15 зелий",
+            f"{total_tasks} / 15 potions",
         )
 
     if title_id == "relic_collector":
         return (
             profile.level >= 5 or total_tasks >= 10,
             min(100, (total_tasks / 10) * 100),
-            f"{total_tasks} / 10 предметов",
+            f"{total_tasks} / 10 items",
         )
 
     if title_id == "boss_slayer":
         return (
             bosses_def >= 1,
             (100 if bosses_def >= 1 else 0),
-            f"{bosses_def} / 1 босс",
+            f"{bosses_def} / 1 boss",
         )
 
     if title_id == "giant_executioner":
         return (
             bosses_def >= 5,
             min(100, (bosses_def / 5) * 100),
-            f"{bosses_def} / 5 боссов",
+            f"{bosses_def} / 5 bosses",
         )
 
     if title_id == "critical_striker":
         return (
             crits >= 10 or boss_damage >= 100,
             min(100, (boss_damage / 100) * 100),
-            f"{boss_damage} / 100 урона",
+            f"{boss_damage} / 100 damage",
         )
 
     if title_id == "darkness_bane":
         return (
             boss_damage >= 500,
             min(100, (boss_damage / 500) * 100),
-            f"{boss_damage} / 500 урона",
+            f"{boss_damage} / 500 damage",
         )
 
     if title_id == "tactician":
         return (
             profile.level >= 3,
             (100 if profile.level >= 3 else 0),
-            f"Уровень {profile.level} / 3",
+            f"Level {profile.level} / 3",
         )
 
     if title_id == "dark_receptionist":
         return (
             profile.level >= 7,
             min(100, (profile.level / 7) * 100),
-            f"Уровень {profile.level} / 7",
+            f"Level {profile.level} / 7",
         )
 
     if title_id == "chaos_lord":
         return (
             profile.level >= 10,
             min(100, (profile.level / 10) * 100),
-            f"Уровень {profile.level} / 10",
+            f"Level {profile.level} / 10",
         )
 
     if title_id == "deep_work_master":
         return (
             total_tasks >= 10,
             min(100, (total_tasks / 10) * 100),
-            f"{total_tasks} / 10 фокусировок",
+            f"{total_tasks} / 10 focus sessions",
         )
 
     if title_id == "zen_meditator":
         return (
             total_tasks >= 25,
             min(100, (total_tasks / 25) * 100),
-            f"{total_tasks} / 25 сессий",
+            f"{total_tasks} / 25 sessions",
         )
 
     if title_id == "chronomancer":
         return (
             total_tasks >= 40,
             min(100, (total_tasks / 40) * 100),
-            f"{total_tasks} / 40 часов",
+            f"{total_tasks} / 40 hours",
         )
 
     if title_id == "sprint_champion":
         return (
             task_stats.get("max_day_tasks", 0) >= 5 or total_tasks >= 15,
             100 if total_tasks >= 15 else 50,
-            "5 задач в день",
+            "5 tasks in a day",
         )
 
     if title_id == "unstoppable":
         return (
             task_stats.get("max_day_tasks", 0) >= 15 or total_tasks >= 45,
             100 if total_tasks >= 45 else 30,
-            "15 задач в день",
+            "15 tasks in a day",
         )
 
     if title_id == "squad_commander":
-        return profile.level >= 2, 100 if profile.level >= 2 else 0, "Пати доступно"
+        return profile.level >= 2, 100 if profile.level >= 2 else 0, "Party unlocked"
 
     if title_id == "ally_patron":
         allies = getattr(profile, "active_allies", []) or []
         return (
             len(allies) >= 1 or profile.level >= 4,
             100 if profile.level >= 4 else 0,
-            "1 союзник",
+            "1 companion",
         )
 
     if title_id == "beast_master":
@@ -743,48 +743,48 @@ def _evaluate_title_unlock(
         return (
             len(allies) >= 3 or profile.level >= 8,
             100 if profile.level >= 8 else 0,
-            "3 союзника",
+            "3 companions",
         )
 
     if title_id == "inspiring_leader":
-        return profile.level >= 3, 100 if profile.level >= 3 else 0, "Лидер Пати"
+        return profile.level >= 3, 100 if profile.level >= 3 else 0, "Party Leader"
 
     if title_id == "dynamic_duo":
-        return profile.level >= 2, 100 if profile.level >= 2 else 0, "Дуэт"
+        return profile.level >= 2, 100 if profile.level >= 2 else 0, "Duo"
 
     if title_id == "gold_digger":
         return (
             total_gold >= 250,
             min(100, (total_gold / 250) * 100),
-            f"{total_gold} / 250 золота",
+            f"{total_gold} / 250 gold",
         )
 
     if title_id == "tycoon":
         return (
             total_gold >= 1500,
             min(100, (total_gold / 1500) * 100),
-            f"{total_gold} / 1500 золота",
+            f"{total_gold} / 1500 gold",
         )
 
     if title_id == "big_spender":
         return (
             total_gold >= 100 or profile.gold >= 50,
             100 if total_gold >= 100 else 50,
-            "Покупки",
+            "Shop purchases",
         )
 
     if title_id == "treasure_hunter":
         return (
             total_gold >= 50 or profile.level >= 2,
             100 if profile.level >= 2 else 50,
-            "Сундуки",
+            "Loot chests",
         )
 
     if title_id == "mind_over_matter":
         return (
             total_tasks >= 50,
             min(100, (total_tasks / 50) * 100),
-            f"{total_tasks} / 50 задач",
+            f"{total_tasks} / 50 tasks",
         )
 
     if title_id == "pioneer":
@@ -796,7 +796,7 @@ def _evaluate_title_unlock(
         return (
             rank_id in ["C", "B", "A", "S", "SS", "SSS"],
             100 if rank_id in ["C", "B", "A", "S", "SS", "SSS"] else 30,
-            "Ранг C",
+            "Rank C",
         )
 
     if title_id == "grandmaster":
@@ -808,18 +808,18 @@ def _evaluate_title_unlock(
         return (
             rank_id in ["S", "SS", "SSS"],
             100 if rank_id in ["S", "SS", "SSS"] else 10,
-            "Ранг S",
+            "Rank S",
         )
 
     if title_id == "apex_sovereign":
         p_count = profile.prestige_count or 0
-        return p_count >= 1, (100 if p_count >= 1 else 0), f"{p_count} / 1 Престиж"
+        return p_count >= 1, (100 if p_count >= 1 else 0), f"{p_count} / 1 Prestige"
 
     if title_id == "phoenix":
-        return streak >= 10, min(100, (streak / 10) * 100), f"{streak} / 10 дней"
+        return streak >= 10, min(100, (streak / 10) * 100), f"{streak} / 10 days"
 
     # Default fallback
-    return True, 100, "Достигнуто"
+    return True, 100, "Unlocked"
 
 
 def _get_user_task_stats(user) -> Dict[str, int]:
@@ -843,7 +843,6 @@ def _get_user_task_stats(user) -> Dict[str, int]:
         for dt in completed_tasks:
             if not dt:
                 continue
-            # Convert to local timezone if possible
             local_dt = timezone.localtime(dt)
             h = local_dt.hour
 
@@ -891,7 +890,7 @@ def get_user_playstyle_titles(profile) -> Dict[str, Any]:
     """
     Evaluates all 52 titles for the given UserProfile.
     Returns:
-      - active_title: { id, name, icon, category, color, is_equipped }
+      - active_title: { id, name, icon, category, color, description, is_equipped }
       - unlocked_count: int
       - total_count: int
       - titles: list of all titles with unlock status & progress

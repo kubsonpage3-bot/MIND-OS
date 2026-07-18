@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { djangoApi } from "@/api/djangoClient";
 import { motion, AnimatePresence } from "framer-motion";
 import TitleSelectorModal from "@/components/mindos/TitleSelectorModal";
@@ -7,6 +8,7 @@ import TitleSelectorModal from "@/components/mindos/TitleSelectorModal";
 const XP_PER_LEVEL = 500;
 
 export default function StatsPanel({ profile, logs }) {
+  const { t } = useTranslation();
   const [showTitleModal, setShowTitleModal] = useState(false);
 
   const weekAgo = new Date(Date.now() - 7 * 86400000);
@@ -76,15 +78,14 @@ export default function StatsPanel({ profile, logs }) {
           onClick={() => setShowTitleModal(true)}
           className="rounded-xl p-3 text-center flex flex-col items-center justify-between gap-1 transition-all hover:scale-[1.02] cursor-pointer group relative overflow-hidden"
           style={{ background: `${titleColor}15`, border: `1.5px solid ${titleColor}40` }}
-          title="Нажмите, чтобы выбрать или посмотреть титулы"
         >
           <span className="text-xl group-hover:scale-110 transition-transform">{activeTitle.icon || "👑"}</span>
           
           <div
-            className="truncate max-w-full px-1"
-            style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: "0.85rem", color: titleColor }}
+            className="truncate max-w-full px-1 font-bold"
+            style={{ fontFamily: "'Nunito'", fontSize: "0.85rem", color: titleColor }}
           >
-            {activeTitle.name}
+            {t(`titles.${activeTitle.id}.name`, activeTitle.name)}
           </div>
 
           <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "#878190", textTransform: "uppercase", letterSpacing: "0.08em" }}>
