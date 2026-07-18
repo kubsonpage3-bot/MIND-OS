@@ -1,6 +1,9 @@
+import logging
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import User
 from django.db.models import Q
+
+logger = logging.getLogger(__name__)
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
@@ -21,11 +24,23 @@ class CaseInsensitiveModelBackend(ModelBackend):
                 Q(username__iexact=username) | Q(email__iexact=username)
             ).first()
             if not user:
+                logger.warning(f"[AUTH] No user found for identifier: '{username}'")
                 raise User.DoesNotExist
         except User.DoesNotExist:
             # Run the default password hasher once to reduce timing differences
             User().set_password(password)
         else:
-            if user.check_password(password) and self.user_can_authenticate(user):
+            logger.info(
+                f"[AUTH] Found user '{user.username}' (is_active={user.is_active}) for identifier '{username}'"
+            )
+            pw_ok = user.check_password(password)
+            logger.info(f"[AUTH] Password check result for '{user.username}': {pw_ok}")
+            if pw_ok and self.user_can_authenticate(user):
                 return user
+            elif not pw_ok:
+                logger.warning(f"[AUTH] Wrong password for user '{user.username}'")
+            elif not self.user_can_authenticate(user):
+                logger.warning(
+                    f"[AUTH] User '{user.username}' is inactive (is_active=False)"
+                )
         return None
