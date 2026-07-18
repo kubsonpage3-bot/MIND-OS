@@ -637,68 +637,92 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
 
           {/* ── Daily Featured Deal ── */}
           {(() => {
-            const today = new Date().toDateString();
-            const seed = today.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+            const d = new Date();
+            const year = d.getFullYear();
+            const start = new Date(year, 0, 0);
+            const diff = d - start;
+            const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const seed = Math.abs((year * 366 + dayOfYear * 31 + d.getMonth() * 7) ^ 0x5F3759DF);
+
             const allItems = shopItems.length > 0 ? [...shopItems] : [{ id: "placeholder", label: "Loading...", cost: 100, tier: "Common", consumable: true }];
             const featuredItem = allItems[seed % allItems.length];
-            const discountPct = 20 + (seed % 3) * 10; // 20%, 30%, or 40%
+            const discountPct = 25 + (seed % 4) * 5; // 25%, 30%, 35%, or 40%
             const discountedCost = Math.max(1, Math.round(featuredItem.cost * (1 - discountPct / 100)));
-            const canAfford = gold >= discountedCost;
-            const tierColor = getTierColor(featuredItem.tier);
-            const isOwned = !featuredItem.consumable && (inventory || []).some(i => i.id === featuredItem.id);
-            // Bonus unique items not in regular shop (only in featured slot)
+
             const bonusPool = [
-              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 0, consumable: true, effect: "+100% XP for 2h", icon_url: "/static/items/daily_xp_surge.webp" },
+              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 140, consumable: true, effect: "+100% XP gain for 2h", icon_url: "/static/items/daily_xp_surge.webp" },
+              { id: "daily_gold_rush", label: "Gold Rush Token", tier: "Rare", cost: 110, consumable: true, effect: "Instantly grants +200 Gold", icon_url: "/static/items/daily_gold_rush.webp" },
+              { id: "health_potion", label: "Elixir of Vitality", tier: "Uncommon", cost: 30, consumable: true, effect: "Restores +50 HP instantly", icon_url: "/static/items/health_potion.webp" },
+              { id: "focus_scroll", label: "Scroll of Focus", tier: "Epic", cost: 160, consumable: true, effect: "Reduces cooldowns & +25% XP", icon_url: "/static/items/focus_scroll.webp" },
             ];
             const bonusItem = bonusPool[seed % bonusPool.length];
-            const isBonusDay = seed % 5 === 0; // every 5 days a unique bonus item appears
-            const dealItem = isBonusDay ? { ...bonusItem, cost: 150 } : { ...featuredItem, cost: discountedCost };
+            const isBonusDay = seed % 4 === 0; // Every 4 days an exclusive bonus item appears
+            const dealItem = isBonusDay ? bonusItem : { ...featuredItem, cost: discountedCost };
             const dealTierColor = getTierColor(dealItem.tier);
+            const isOwned = !dealItem.consumable && (inventory || []).some(i => i.id === dealItem.id);
             const isBought = boughtItem === dealItem.id;
             const canBuyDeal = gold >= dealItem.cost && (!isOwned || dealItem.consumable);
 
             return (
-              <div className="rounded-xl border p-3 space-y-2 relative overflow-hidden"
-                style={{ borderColor: "rgba(240,192,64,0.35)", background: "linear-gradient(135deg,rgba(30,22,8,0.95),rgba(20,15,5,0.98))" }}>
-                {/* Shimmer */}
+              <div className="rounded-xl border px-3 py-2 relative overflow-hidden backdrop-blur-md transition-all"
+                style={{ borderColor: "rgba(240,192,64,0.3)", background: "rgba(240,192,64,0.05)", boxShadow: "0 0 12px rgba(240,192,64,0.06)" }}>
+                {/* Subtle Shimmer */}
                 <motion.div className="absolute inset-0 pointer-events-none"
                   animate={{ x: ["-100%", "200%"] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 3 }}
-                  style={{ background: "linear-gradient(90deg,transparent,rgba(240,192,64,0.08),transparent)", width: "40%" }}
+                  style={{ background: "linear-gradient(90deg,transparent,rgba(240,192,64,0.1),transparent)", width: "35%" }}
                 />
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] font-bold tracking-widest" style={{ color: "#f0c040" }}>{t('character.daily_deal')}</span>
-                  <span className="font-mono text-[8px] text-muted-foreground/40">{t('character.resets_midnight')}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded border flex items-center justify-center shrink-0 overflow-hidden"
-                    style={{ borderColor: `${dealTierColor}60`, background: "rgba(10,8,6,0.8)", imageRendering: "pixelated" }}>
-                    <img src={dealItem.icon_url || '/static/items/default.webp'} alt={dealItem.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-mono font-bold" style={{ color: dealTierColor }}>{dealItem.label}</div>
-                    <div className="text-[9px] font-mono text-muted-foreground/60">{dealItem.effect || ('stats' in dealItem && dealItem.stats ? Object.entries(dealItem.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : "")}</div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {!isBonusDay && (
-                        <span className="text-[9px] font-mono line-through text-muted-foreground/40">{featuredItem.cost}G</span>
-                      )}
-                      <span className="text-xs font-mono font-bold" style={{ color: "#f0c040" }}>{dealItem.cost}G</span>
-                      {!isBonusDay && (
-                        <span className="text-[8px] font-mono px-1 rounded" style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e" }}>-{discountPct}%</span>
-                      )}
-                      {isBonusDay && (
-                        <span className="text-[8px] font-mono px-1 rounded" style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7" }}>{t('character.exclusive')}</span>
-                      )}
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded border flex items-center justify-center shrink-0 overflow-hidden"
+                      style={{ borderColor: `${dealTierColor}60`, background: "rgba(240,192,64,0.1)", imageRendering: "pixelated" }}>
+                      <img src={dealItem.icon_url || '/static/items/default.webp'} alt={dealItem.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded" style={{ background: "rgba(240,192,64,0.15)", color: "#f0c040" }}>
+                          {t('character.daily_deal')}
+                        </span>
+                        <span className="text-xs font-mono font-bold truncate" style={{ color: dealTierColor }}>
+                          {dealItem.label}
+                        </span>
+                        {!isBonusDay && (
+                          <span className="text-[9px] font-mono px-1 rounded" style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e" }}>
+                            -{discountPct}%
+                          </span>
+                        )}
+                        {isBonusDay && (
+                          <span className="text-[9px] font-mono px-1 rounded" style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7" }}>
+                            {t('character.exclusive')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[9px] font-mono text-muted-foreground/70 truncate mt-0.5">
+                        {dealItem.effect || ('stats' in dealItem && dealItem.stats ? Object.entries(dealItem.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(" · ") : dealItem.description || "")}
+                      </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => { buyItem(dealItem); }}
-                    disabled={!canBuyDeal}
-                    className="px-3 py-1.5 text-[10px] font-mono font-bold rounded border transition-all shrink-0 disabled:opacity-30"
-                    style={{ borderColor: canBuyDeal ? "#f0c040" : "#2a2010", color: canBuyDeal ? "#f0c040" : "#4a3810", background: canBuyDeal ? "rgba(240,192,64,0.12)" : "transparent" }}
-                  >
-                    {isBought ? t('character.bought') : `${dealItem.cost}G`}
-                  </button>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-right">
+                      {!isBonusDay && (
+                        <div className="text-[9px] font-mono line-through text-muted-foreground/40 leading-none">{featuredItem.cost}G</div>
+                      )}
+                      <div className="text-xs font-mono font-bold leading-tight" style={{ color: "#f0c040" }}>{dealItem.cost}G</div>
+                    </div>
+                    <button
+                      onClick={() => { buyItem(dealItem); }}
+                      disabled={!canBuyDeal}
+                      className="px-2.5 py-1 text-[10px] font-mono font-bold rounded border transition-all shrink-0 disabled:opacity-30 flex items-center justify-center"
+                      style={{
+                        borderColor: canBuyDeal ? "#f0c040" : "rgba(240,192,64,0.2)",
+                        color: canBuyDeal ? "#f0c040" : "rgba(240,192,64,0.4)",
+                        background: canBuyDeal ? "rgba(240,192,64,0.15)" : "transparent"
+                      }}
+                    >
+                      {isBought ? t('character.bought') : `${dealItem.cost}G`}
+                    </button>
+                  </div>
                 </div>
               </div>
             );

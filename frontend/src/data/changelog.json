@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-18",
+    "version": "1.7.11",
+    "changes": [
+      { "type": "feature", "text": "Redesigned Daily Deal with a compact transparent glassmorphic layout and richer item rotation." }
+    ]
+  },
+  {
+    "date": "2026-07-18",
     "version": "1.7.10",
     "changes": [
       { "type": "fix", "text": "Fixed best streak metric to always reflect your highest login streak record." }
