@@ -368,6 +368,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         "hours": getattr(task, "estimated_hours", 0) or 0,
         "completed_near_deadline": completed_near_deadline,
         "task_category": task_category,
+        "task_mastery_category": getattr(task, "mastery_category", "") or "",
         "task_age_days": task_age_days,
         "task_streak": (
             getattr(task, "streak", 0)

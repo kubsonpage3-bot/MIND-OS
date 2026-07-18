@@ -31,15 +31,23 @@ def test_resolve_mastery_category():
     # Test activity_key mapping
     assert resolve_mastery_category(activity="exercise") == "body"
     assert resolve_mastery_category(activity="coding") == "sciences"
+    assert resolve_mastery_category(activity="chess") == "sciences"
+    assert resolve_mastery_category(activity="creative_answers") == "sciences"
     assert resolve_mastery_category(activity="english") == "languages"
+    assert resolve_mastery_category(activity="vocabulary") == "languages"
     assert resolve_mastery_category(activity="meditation") == "spirit"
     assert resolve_mastery_category(activity="history") == "humanities"
     assert resolve_mastery_category(activity="unknown") == ""
 
     # Test task_category mapping fallback
     assert resolve_mastery_category(task_category="STEM") == "sciences"
+    assert resolve_mastery_category(task_category="Work & Career") == "sciences"
     assert resolve_mastery_category(task_category="Health & Fitness") == "body"
+    assert resolve_mastery_category(task_category="Rest & Recovery") == "body"
     assert resolve_mastery_category(task_category="English") == "languages"
+    assert (
+        resolve_mastery_category(task_category="Social & Communication") == "languages"
+    )
     assert resolve_mastery_category(task_category="Mindfulness") == "spirit"
     assert resolve_mastery_category(task_category="Humanities & Arts") == "humanities"
     assert resolve_mastery_category(task_category="Random") == ""
@@ -137,3 +145,44 @@ def test_complete_task_with_class_passive(mock_random, user, profile):
     assert xp_gained_class > xp_gained_non_class
     # Since base reward is the same, xp_gained_class should be exactly 1.2x xp_gained_non_class (within integer rounding)
     assert abs(xp_gained_class - int(xp_gained_non_class * 1.2)) <= 1
+
+
+@pytest.mark.django_db
+@patch("random.random", return_value=0.99)
+def test_custom_mastery_category_class_passive(mock_random, user, profile):
+    # Setup Linguist profile (+20% on languages)
+    profile.character_class = "linguist"
+    profile.save()
+
+    # Create task with explicit mastery_category="languages"
+    task_custom_lang = Task.objects.create(
+        user=user,
+        title="Custom Japanese Activity",
+        task_type=Task.TaskType.BUTTON,
+        category="Other",
+        mastery_category="languages",
+    )
+
+    # Create task with explicit mastery_category="body"
+    task_custom_body = Task.objects.create(
+        user=user,
+        title="Custom Workout Activity",
+        task_type=Task.TaskType.BUTTON,
+        category="Other",
+        mastery_category="body",
+    )
+
+    initial_xp = profile.xp
+    complete_task(user, task_custom_body.id, True)
+    profile.refresh_from_db()
+    xp_body = profile.xp - initial_xp
+
+    profile.xp = 0
+    profile.save()
+    complete_task(user, task_custom_lang.id, True)
+    profile.refresh_from_db()
+    xp_lang = profile.xp
+
+    # Linguist gets +20% bonus on languages mastery_category
+    assert xp_lang > xp_body
+    assert abs(xp_lang - int(xp_body * 1.2)) <= 1

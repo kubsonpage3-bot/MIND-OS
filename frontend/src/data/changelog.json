@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-18",
+    "version": "1.7.9",
+    "changes": [
+      { "type": "fix", "text": "Synchronized class passive +20% XP bonuses with all 4 specialty categories, ensuring custom activities and tasks with chosen Mastery Areas correctly trigger class bonuses." }
+    ]
+  },
+  {
+    "date": "2026-07-18",
     "version": "1.7.8",
     "changes": [
       { "type": "fix", "text": "Fixed a potential crash when completing tasks before recruiting any allies." }

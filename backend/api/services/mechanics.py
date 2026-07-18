@@ -861,9 +861,17 @@ def resolve_mastery_category(
             "biology",
             "computer_science",
             "coding",
+            "chess",
+            "creative_answers",
         }:
             return "sciences"
-        if activity in {"english", "german", "other_languages", "languages"}:
+        if activity in {
+            "english",
+            "german",
+            "other_languages",
+            "languages",
+            "vocabulary",
+        }:
             return "languages"
         if activity in {
             "prayer_meditation",
@@ -881,6 +889,8 @@ def resolve_mastery_category(
         if tc in {
             "body",
             "health & fitness",
+            "rest & recovery",
+            "recovery",
             "exercise",
             "running",
             "cold_shower",
@@ -897,9 +907,17 @@ def resolve_mastery_category(
             "biology",
             "computer_science",
             "coding",
+            "work & career",
         }:
             return "sciences"
-        if tc in {"languages", "english", "german", "other_languages"}:
+        if tc in {
+            "languages",
+            "english",
+            "german",
+            "other_languages",
+            "social & communication",
+            "vocabulary",
+        }:
             return "languages"
         if tc in {
             "spirit",
