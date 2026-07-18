@@ -45,12 +45,12 @@ export default function SelectClass() {
   };
 
   return (
-    <div className="min-h-dvh w-full bg-[#05040a] text-foreground p-4 md:p-8 flex flex-col items-center justify-start overflow-y-auto overflow-x-hidden selection:bg-purple-500/30 relative">
+    <div className="h-dvh w-full bg-[#05040a] text-foreground p-4 md:p-8 overflow-y-auto overflow-x-hidden selection:bg-purple-500/30 relative touch-pan-y">
       {/* Background Effects */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.12)_0%,transparent_70%)] pointer-events-none" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.08)_0%,transparent_70%)] pointer-events-none" />
 
-      <div className="w-full max-w-xl relative z-10 py-6 my-auto">
+      <div className="w-full max-w-xl mx-auto relative z-10 pt-4 pb-28">
         <div className="text-center mb-6 space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-mono uppercase tracking-widest">
             <Sparkles className="w-3.5 h-3.5" />

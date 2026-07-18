@@ -57,8 +57,9 @@ export default function ClassSelector({ onChoose, isPremium }) {
                 }}
               onMouseEnter={() => setHovered(cls.id)}
               onMouseLeave={() => setHovered(null)}
-              className="p-4 rounded-xl border text-left transition-all space-y-2 overflow-hidden relative"
+              className="p-4 rounded-xl border text-left transition-all space-y-2 overflow-hidden relative touch-pan-y"
               style={{
+                touchAction: "pan-y",
                 borderColor: isActive ? cls.color : "#1e1a38",
                 background: isActive ? `${cls.color}15` : "#0a0818",
                 boxShadow: isSelected ? `0 0 24px ${cls.color}60, inset 0 0 12px ${cls.color}40` : (isHovered ? `0 0 20px ${cls.color}40` : "none"),
