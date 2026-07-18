@@ -1,7 +1,7 @@
 import { secureStorage } from '@/utils/secureStorage';
 import { Capacitor } from '@capacitor/core';
 
-const RENDER_PROD_URL = 'https://mindos-growth.onrender.com';
+const RENDER_PROD_URL = 'https://mind-os-d5sk.onrender.com';
 
 export const API_ORIGIN = (
   import.meta.env.VITE_API_URL ||
