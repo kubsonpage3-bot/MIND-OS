@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import IQDisplay from "@/components/mindos/IQDisplay";
 import MetricBar from "@/components/mindos/MetricBar";
 import StatsPanel from "@/components/mindos/StatsPanel";
-import SetupModal from "@/components/mindos/SetupModal";
 import RankUpFlash from "@/components/mindos/RankUpFlash";
 import TabErrorBoundary from "@/components/mindos/TabErrorBoundary";
 import FlyingReward from "@/components/mindos/FlyingReward";
@@ -661,10 +660,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   });
 
 
-  const handleSetup = (data) => {
-    // Rely exclusively on API update.
-    updateProfile.mutate({ id: djangoProfile?.id, data });
-  };
 
   const handleXpGain = useCallback((xp) => {
     // Backend complete_task already handles XP gain and updates database.
@@ -771,10 +766,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         <div className="w-8 h-8 border-2 border-muted border-t-primary rounded-full animate-spin" />
       </div>
     );
-  }
-
-  if (!profile || !profile.initialized) {
-    return <SetupModal onSave={handleSetup} />;
   }
 
   const renderSectionContent = (sectionToRender) => {

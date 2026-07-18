@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-18",
+    "version": "1.7.13",
+    "changes": [
+      { "type": "feature", "text": "Unified first-launch character creation into a seamless 3-step onboarding wizard (Call-Sign identity, Cognitive Baseline metrics assessment, and Neural Class selection)." }
+    ]
+  },
+  {
+    "date": "2026-07-18",
     "version": "1.7.12",
     "changes": [
       { "type": "feature", "text": "Added full GDPR/CCPA compliance: updated Privacy Policy with data deletion request form and a new backend endpoint to process data removal and export requests within 30 days." }
