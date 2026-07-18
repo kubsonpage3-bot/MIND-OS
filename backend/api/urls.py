@@ -57,6 +57,7 @@ from .views import (
     DejaVuView,
     LootChestListView,
     OpenChestView,
+    GdprDeleteRequestView,
 )
 from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
 from .views_pomodoro import PomodoroSessionViewSet
@@ -203,5 +204,11 @@ urlpatterns = [
         "cron/streak-warnings/",
         CronStreakWarningView.as_view(),
         name="cron-streak-warnings",
+    ),
+    # ——— GDPR / Data Deletion (public, no auth) ———————————————————
+    path(
+        "gdpr/delete-request/",
+        GdprDeleteRequestView.as_view(),
+        name="gdpr-delete-request",
     ),
 ]

@@ -3077,3 +3077,139 @@ class OpenChestView(generics.GenericAPIView):
             )
 
         return Response({"detail": message, **result}, status=status.HTTP_200_OK)
+
+
+# ——— GDPR / Data Deletion Request ————————————————————————————————
+
+
+class GdprDeleteRequestView(APIView):
+    """
+    POST /api/gdpr/delete-request/
+    Public endpoint (no auth required) for GDPR/CCPA data deletion and export requests.
+    Required by Google Play policies and GDPR Article 17.
+    Sends a confirmation email to the requester and notifies the admin.
+    """
+
+    permission_classes = []  # Public — no authentication required
+
+    VALID_REQUEST_TYPES = {
+        "delete_account",
+        "export_data",
+        "data_access",
+        "stop_analytics",
+        "other",
+    }
+
+    def post(self, request):
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        email = (request.data.get("email") or "").strip().lower()
+        request_type = (request.data.get("request_type") or "").strip()
+        username = (request.data.get("username") or "").strip()
+        notes = (request.data.get("notes") or "").strip()[:2000]
+
+        if not email or "@" not in email:
+            return Response(
+                {"error": "A valid email address is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if request_type not in self.VALID_REQUEST_TYPES:
+            return Response(
+                {
+                    "error": f"Invalid request_type. Must be one of: {', '.join(self.VALID_REQUEST_TYPES)}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        request_type_labels = {
+            "delete_account": "Delete Account and All Data",
+            "export_data": "Export Data (JSON)",
+            "data_access": "Access Data Copy",
+            "stop_analytics": "Stop Analytics Processing",
+            "other": "Other Privacy Request",
+        }
+        request_label = request_type_labels.get(request_type, request_type)
+
+        # Log the request for audit trail
+        logger.info(
+            f"[GDPR] {request_type} request from email={email} username={username!r}"
+        )
+
+        # Try to find the user account for audit purposes (non-blocking)
+        from django.contrib.auth.models import User
+
+        matched_user = None
+        try:
+            matched_user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            pass
+        except Exception:
+            pass
+
+        account_info = (
+            f"Matched account: {matched_user.username} (id={matched_user.id})"
+            if matched_user
+            else "No matching account found for this email."
+        )
+
+        # Send admin notification email
+        try:
+            admin_email = getattr(settings, "GDPR_ADMIN_EMAIL", "kubsonpage3@gmail.com")
+            admin_message = (
+                f"GDPR/CCPA Data Request Received\n"
+                f"{'=' * 50}\n\n"
+                f"Request Type : {request_label}\n"
+                f"Email        : {email}\n"
+                f"Username     : {username or '(not provided)'}\n"
+                f"Notes        : {notes or '(none)'}\n"
+                f"Account Info : {account_info}\n\n"
+                f"ACTION REQUIRED: Process this request within 30 days as required by GDPR Article 12.\n"
+                f"For delete_account requests: use the Nuclear Reset in admin or delete the User object.\n"
+            )
+            send_mail(
+                subject=f"[MIND OS GDPR] {request_label} request from {email}",
+                message=admin_message,
+                from_email=getattr(
+                    settings, "DEFAULT_FROM_EMAIL", "noreply@mindos.app"
+                ),
+                recipient_list=[admin_email],
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.error(f"[GDPR] Failed to send admin notification: {e}")
+
+        # Send user confirmation email
+        try:
+            user_message = (
+                f"Hello,\n\n"
+                f"We have received your data request for MIND OS.\n\n"
+                f"Request Type: {request_label}\n"
+                f"Email: {email}\n\n"
+                f"We will process your request within 30 days as required by GDPR Article 12.\n\n"
+                f"If you requested account deletion, you can also delete your data immediately "
+                f"inside the app: Settings -> Account -> Reset -> Nuclear Reset.\n\n"
+                f"If you have any questions, reply to this email or contact us at kubsonpage3@gmail.com.\n\n"
+                f"-- MIND OS Team"
+            )
+            send_mail(
+                subject="[MIND OS] Your data request has been received",
+                message=user_message,
+                from_email=getattr(
+                    settings, "DEFAULT_FROM_EMAIL", "noreply@mindos.app"
+                ),
+                recipient_list=[email],
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.error(f"[GDPR] Failed to send user confirmation: {e}")
+
+        return Response(
+            {
+                "message": "Your request has been received. We will process it within 30 days and send a confirmation to your email.",
+                "request_type": request_type,
+                "email": email,
+            },
+            status=status.HTTP_200_OK,
+        )

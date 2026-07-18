@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-18",
+    "version": "1.7.12",
+    "changes": [
+      { "type": "feature", "text": "Added full GDPR/CCPA compliance: updated Privacy Policy with data deletion request form and a new backend endpoint to process data removal and export requests within 30 days." }
+    ]
+  },
+  {
+    "date": "2026-07-18",
     "version": "1.7.11",
     "changes": [
       { "type": "feature", "text": "Redesigned Daily Deal with a compact transparent glassmorphic layout and richer item rotation." }

@@ -344,3 +344,21 @@ if not CRON_SECRET:
         "CRON_SECRET environment variable is not set. "
         "The application cannot start without it."
     )
+
+# ── Email Configuration ────────────────────────────────────────────────────
+# For GDPR requests, login notifications, and future emails.
+# Set EMAIL_BACKEND to smtp in production via environment variable.
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", "MIND OS <noreply@mindos.app>"
+)
+
+# Admin email for GDPR/data deletion notifications
+GDPR_ADMIN_EMAIL = os.environ.get("GDPR_ADMIN_EMAIL", "kubsonpage3@gmail.com")

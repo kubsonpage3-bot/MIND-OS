@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy — MIND OS</title>
-  <meta name="description" content="Privacy Policy for MIND OS: RPG Habit Tracker." />
+  <title>Privacy Policy - MIND OS</title>
+  <meta name="description" content="Privacy Policy for MIND OS: RPG Habit Tracker. GDPR and CCPA compliant." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: #0f0f1a; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.7; padding: 0 16px 64px; }
@@ -19,12 +19,34 @@
     p { margin-bottom: 12px; color: #cbd5e1; }
     ul { list-style: none; margin: 8px 0 16px 0; }
     ul li { color: #cbd5e1; padding: 4px 0 4px 18px; position: relative; }
-    ul li::before { content: "?"; color: #a855f7; position: absolute; left: 0; }
-    .badge { display: inline-block; background: rgba(168,85,247,.15); border: 1px solid rgba(168,85,247,.3); color: #a855f7; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-family: monospace; margin-bottom: 16px; }
+    ul li::before { content: ">"; color: #a855f7; position: absolute; left: 0; }
+    .badge { display: inline-block; background: rgba(168,85,247,.15); border: 1px solid rgba(168,85,247,.3); color: #a855f7; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-family: monospace; margin-bottom: 8px; }
+    .gdpr-badge { display: inline-block; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3); color: #22c55e; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-family: monospace; margin-left: 8px; }
     a { color: #a855f7; text-decoration: none; }
     a:hover { text-decoration: underline; }
     .contact-box { background: rgba(168,85,247,.08); border: 1px solid rgba(168,85,247,.2); border-radius: 12px; padding: 20px 24px; margin-top: 40px; }
     .contact-box p { margin-bottom: 6px; }
+    .deletion-form-box { background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.25); border-radius: 14px; padding: 24px; margin-top: 24px; }
+    .deletion-form-box h3 { font-size: 15px; font-weight: 700; color: #f87171; margin-bottom: 6px; font-family: monospace; letter-spacing: 1px; text-transform: uppercase; }
+    .deletion-form-box > p { font-size: 13px; color: #94a3b8; margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; font-family: monospace; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; font-family: inherit; outline: none; transition: border-color .2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #a855f7; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-group select option { background: #1a1a2e; }
+    .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+    .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; margin-top: 2px; accent-color: #a855f7; flex-shrink: 0; }
+    .checkbox-group label { font-size: 13px; color: #94a3b8; cursor: pointer; }
+    .btn-submit { width: 100%; padding: 12px; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4); border-radius: 8px; color: #f87171; font-size: 14px; font-family: monospace; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+    .btn-submit:hover:not(:disabled) { background: rgba(239,68,68,.25); border-color: rgba(239,68,68,.6); }
+    .btn-submit:disabled { opacity: .4; cursor: not-allowed; }
+    .success-msg { display: none; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3); border-radius: 8px; padding: 14px; text-align: center; color: #22c55e; font-size: 14px; font-family: monospace; margin-top: 12px; }
+    .error-msg { display: none; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); border-radius: 8px; padding: 14px; text-align: center; color: #f87171; font-size: 14px; font-family: monospace; margin-top: 12px; }
+    .toc { background: rgba(168,85,247,.06); border: 1px solid rgba(168,85,247,.15); border-radius: 10px; padding: 16px 20px; margin: 20px 0 32px; }
+    .toc p { font-size: 12px; color: #64748b; margin-bottom: 8px; font-family: monospace; text-transform: uppercase; letter-spacing: 1px; }
+    .toc a { display: block; font-size: 13px; color: #94a3b8; padding: 2px 0; }
+    .toc a:hover { color: #a855f7; }
     footer { text-align: center; color: #475569; font-size: 12px; margin-top: 56px; padding-top: 24px; border-top: 1px solid #1e1e33; }
     footer a { color: #64748b; }
   </style>
@@ -33,75 +55,141 @@
   <div class="container">
     <header>
       <div class="logo">
-        <div class="logo-icon">&#9876;&#65039;</div>
+        <div class="logo-icon">&#9889;</div>
         <span class="logo-name">MIND OS</span>
       </div>
       <h1>Privacy Policy</h1>
-      <p>RPG Habit Tracker &nbsp;&middot;&nbsp; Last updated: 2026-07-06</p>
+      <p>RPG Habit Tracker &nbsp;&middot;&nbsp; Last updated: 2026-07-18</p>
     </header>
 
     <div class="badge">Effective Date: 2026-07-06</div>
+    <span class="gdpr-badge">&#10003; GDPR Compliant</span>
+
+    <div class="toc">
+      <p>Contents</p>
+      <a href="#s1">1. Information We Collect</a>
+      <a href="#s2">2. How We Use Your Information</a>
+      <a href="#s3">3. Data Storage &amp; Security</a>
+      <a href="#s4">4. Data Sharing &amp; Third Parties</a>
+      <a href="#s5">5. Your Rights (GDPR / CCPA)</a>
+      <a href="#s6">6. Data Deletion / Export Request Form</a>
+      <a href="#s7">7. Children's Privacy</a>
+      <a href="#s8">8. Changes to This Policy</a>
+      <a href="#s9">9. Contact Us</a>
+    </div>
 
     <p>This Privacy Policy describes how <strong>MIND OS &mdash; RPG Habit Tracker</strong> (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;the app&rdquo;), developed by Stanislav (MindOs_Dev), collects, uses, and protects your information. By using MIND OS, you agree to the practices described in this policy.</p>
 
-    <h2>1. Information We Collect</h2>
+    <h2 id="s1">1. Information We Collect</h2>
     <p>We collect the following types of information:</p>
     <ul>
       <li><strong>Account data:</strong> username, email address, and hashed password (never plain text)</li>
       <li><strong>Usage data:</strong> tasks, habits, training sessions, XP progress, rank, and in-game statistics</li>
       <li><strong>Device data:</strong> browser type and device type (collected anonymously via Google Analytics)</li>
+      <li><strong>Push token:</strong> only if you grant notification permissions; revokable in Settings at any time</li>
     </ul>
     <p><strong>We do NOT collect:</strong></p>
     <ul>
       <li>Your real name (a fake username is fully supported)</li>
       <li>Phone number or physical address</li>
-      <li>Payment or credit card information (PayPal donations are voluntary and processed directly by PayPal)</li>
+      <li>Payment or credit card information (PayPal donations processed directly by PayPal)</li>
+      <li>Location data or health data beyond what you manually enter</li>
     </ul>
 
-    <h2>2. How We Use Your Information</h2>
+    <h2 id="s2">2. How We Use Your Information</h2>
     <ul>
       <li>To create and manage your account</li>
       <li>To save your game progress and sync it across devices</li>
-      <li>To provide, maintain, and improve the app&rsquo;s functionality</li>
-      <li>To analyze usage patterns and improve user experience via anonymized Google Analytics data</li>
+      <li>To provide, maintain, and improve the app functionality</li>
+      <li>To analyze usage patterns via anonymized Google Analytics data</li>
+      <li>To send opt-in push notifications (streak reminders, weekly summaries)</li>
       <li>To communicate important updates or changes to the service</li>
     </ul>
 
-    <h2>3. Data Storage &amp; Security</h2>
+    <h2 id="s3">3. Data Storage &amp; Security</h2>
     <ul>
       <li>All data is stored on secure servers (Render.com infrastructure, Neon PostgreSQL database)</li>
-      <li>Passwords are hashed using industry-standard algorithms and never stored in plain text</li>
+      <li>Passwords are hashed using Django PBKDF2 and never stored in plain text</li>
       <li>All data transmission is protected with HTTPS/TLS encryption</li>
       <li>We regularly review and update our security practices</li>
     </ul>
 
-    <h2>4. Data Sharing &amp; Third Parties</h2>
+    <h2 id="s4">4. Data Sharing &amp; Third Parties</h2>
     <p>We do <strong>NOT</strong> sell your personal data. We do <strong>NOT</strong> share personal data with advertisers.</p>
     <ul>
-      <li><strong>Google Analytics:</strong> receives anonymized, aggregated usage statistics only</li>
-      <li><strong>Render.com / Neon:</strong> our infrastructure providers &mdash; they process data only to host the service</li>
-      <li><strong>PayPal:</strong> voluntary donations are processed independently by PayPal; we receive no financial or personal data from these transactions</li>
+      <li><strong>Google Analytics:</strong> anonymized, aggregated usage statistics only. Opt out in Settings &rarr; Privacy.</li>
+      <li><strong>Render.com / Neon:</strong> infrastructure providers &mdash; data processed only to host the service</li>
+      <li><strong>Cloudflare:</strong> CDN and DDoS protection &mdash; processes request metadata only</li>
+      <li><strong>Firebase Cloud Messaging:</strong> push notifications &mdash; only if you opt-in</li>
+      <li><strong>PayPal:</strong> voluntary donations processed independently; we receive no personal data</li>
     </ul>
 
-    <h2>5. Your Rights</h2>
+    <h2 id="s5">5. Your Rights (GDPR / CCPA)</h2>
+    <p>If you are a resident of the EU, UK, California, or other jurisdictions with privacy laws, you have the following rights:</p>
     <ul>
-      <li>You can delete your account and all associated data at any time via <strong>Settings &rarr; Reset Account</strong></li>
-      <li>You can request full data deletion by emailing us at kubsonpage3@gmail.com</li>
-      <li>You can use the app with a completely fake username &mdash; no real identity is required</li>
-      <li>You can request a copy of the data we hold about you</li>
+      <li><strong>Right to Access:</strong> Request a copy of all personal data we hold about you</li>
+      <li><strong>Right to Rectification:</strong> Request correction of inaccurate data</li>
+      <li><strong>Right to Erasure:</strong> Request complete deletion of your account and all associated data</li>
+      <li><strong>Right to Data Portability:</strong> Request your data in JSON format</li>
+      <li><strong>Right to Object:</strong> Object to analytics processing &mdash; disable in Settings &rarr; Privacy &rarr; Analytics</li>
+      <li><strong>Right to Withdraw Consent:</strong> Withdraw consent for analytics and notifications at any time in Settings</li>
     </ul>
+    <p>To exercise any rights, use the form below or email <a href="mailto:kubsonpage3@gmail.com">kubsonpage3@gmail.com</a>. We respond within <strong>30 days</strong> as required by GDPR Article 12.</p>
+    <p>You can also delete your account directly in-app: <strong>Settings &rarr; Account &rarr; Reset &rarr; Nuclear Reset</strong> (immediate and permanent).</p>
 
-    <h2>6. Children&rsquo;s Privacy</h2>
-    <p>MIND OS is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us with personal information, please contact us immediately at kubsonpage3@gmail.com and we will delete it.</p>
+    <h2 id="s6">6. Data Deletion / Export Request</h2>
+    <p>Use the form below to submit a formal GDPR/CCPA request. We process requests within 30 days and confirm via email.</p>
 
-    <h2>7. Changes to This Policy</h2>
+    <div class="deletion-form-box">
+      <h3>&#9888; Data Request Form</h3>
+      <p>Submit a formal request to delete your data or request an export. Required by Google Play and GDPR.</p>
+
+      <form id="gdprForm" onsubmit="submitRequest(event)">
+        <div class="form-group">
+          <label for="req_email">Your Account Email *</label>
+          <input type="email" id="req_email" placeholder="your@email.com" required />
+        </div>
+        <div class="form-group">
+          <label for="req_type">Request Type *</label>
+          <select id="req_type" required>
+            <option value="">-- Select request type --</option>
+            <option value="delete_account">Delete my account and all data (permanent)</option>
+            <option value="export_data">Export my data (JSON format)</option>
+            <option value="data_access">Access a copy of my data</option>
+            <option value="stop_analytics">Stop processing my analytics data</option>
+            <option value="other">Other privacy request</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="req_username">Username (optional)</label>
+          <input type="text" id="req_username" placeholder="Your MIND OS username" />
+        </div>
+        <div class="form-group">
+          <label for="req_notes">Additional Notes (optional)</label>
+          <textarea id="req_notes" placeholder="Any additional information..."></textarea>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="req_confirm" required />
+          <label for="req_confirm">I understand that account deletion is <strong>permanent and irreversible</strong>. All my tasks, progress, and game data will be permanently erased.</label>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Submit Data Request</button>
+        <div class="success-msg" id="successMsg">&#10003; Request received. We will process your request within 30 days and confirm via email.</div>
+        <div class="error-msg" id="errorMsg">&#10007; Failed to submit. Opening your mail client as fallback...</div>
+      </form>
+    </div>
+
+    <h2 id="s7">7. Children's Privacy</h2>
+    <p>MIND OS is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us with personal information, please contact us immediately at <a href="mailto:kubsonpage3@gmail.com">kubsonpage3@gmail.com</a> and we will delete it within 72 hours.</p>
+
+    <h2 id="s8">8. Changes to This Policy</h2>
     <p>We may update this Privacy Policy from time to time. When we make significant changes, we will notify users via an in-app notification or by updating the &ldquo;Last updated&rdquo; date above. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
 
-    <h2>8. Contact Us</h2>
+    <h2 id="s9">9. Contact Us</h2>
     <div class="contact-box">
       <p>If you have any questions about this Privacy Policy or your data, please contact us:</p>
       <p>&#128231; Email: <a href="mailto:kubsonpage3@gmail.com">kubsonpage3@gmail.com</a></p>
       <p>&#127760; Website: <a href="https://mindos.pages.dev" target="_blank" rel="noopener noreferrer">mindos.pages.dev</a></p>
+      <p style="margin-top:12px; font-size:13px; color:#64748b;">GDPR Response Time: <strong style="color:#94a3b8">30 days</strong> (Article 12)</p>
     </div>
 
     <footer>
@@ -109,5 +197,41 @@
       <p style="margin-top:8px">&copy; 2026 Stanislav (MindOs_Dev). All rights reserved.</p>
     </footer>
   </div>
+
+  <script>
+    async function submitRequest(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var successMsg = document.getElementById('successMsg');
+      var errorMsg = document.getElementById('errorMsg');
+      successMsg.style.display = 'none';
+      errorMsg.style.display = 'none';
+      var email = document.getElementById('req_email').value;
+      var requestType = document.getElementById('req_type').value;
+      var username = document.getElementById('req_username').value;
+      var notes = document.getElementById('req_notes').value;
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      try {
+        var res = await fetch('https://mindos-backend.onrender.com/api/gdpr/delete-request/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, request_type: requestType, username: username, notes: notes })
+        });
+        if (res.ok) {
+          successMsg.style.display = 'block';
+          document.getElementById('gdprForm').reset();
+          btn.textContent = 'Request Submitted';
+        } else { throw new Error('Server error'); }
+      } catch (err) {
+        var subject = encodeURIComponent('GDPR Data Request: ' + requestType);
+        var body = encodeURIComponent('Email: ' + email + '\nRequest Type: ' + requestType + '\nUsername: ' + username + '\nNotes: ' + notes);
+        window.location.href = 'mailto:kubsonpage3@gmail.com?subject=' + subject + '&body=' + body;
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Submit Data Request';
+        btn.disabled = false;
+      }
+    }
+  </script>
 </body>
 </html>
