@@ -1,7 +1,7 @@
 # Constants for static data (like bosses)
 def get_prestige_xp_required(count: int) -> int:
     if count == 0:
-        return next((r["min"] for r in RANK_THRESHOLDS if r["id"] == "SSS"), 8000)
+        return int(next((r["min"] for r in RANK_THRESHOLDS if r["id"] == "SSS"), 8000))
     return 11000 + ((count - 1) * 1000)
 
 
@@ -800,7 +800,9 @@ ALLIES_CONFIG = {
             },
             2: {"desc": "Lose 15 HP to reset a random skill cooldown (12h cooldown)"},
             3: {"desc": "Task completion heals +2 HP per 10% missing health"},
-            4: {"desc": "Task completion heals you for 10% of damage dealt to the boss"},
+            4: {
+                "desc": "Task completion heals you for 10% of damage dealt to the boss"
+            },
             5: {
                 "desc": "At exactly 1 HP: 100% critical hit chance and double XP gains"
             },

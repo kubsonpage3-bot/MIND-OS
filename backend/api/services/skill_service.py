@@ -8,6 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from api.models import UserProfile, ActiveEffect, SkillCooldown, UnlockedSkill
+from typing import Any
 from .mechanics import get_passive_multipliers, apply_boss_damage
 
 # ─── Определения классов и скиллов (зеркало rpgSystem.js) ─────────────────
@@ -436,7 +437,7 @@ def apply_effects_on_task_complete(profile, task):
     ).delete()
 
     effects = ActiveEffect.objects.filter(user=profile.user)
-    result = {
+    result: dict[str, Any] = {
         "xp_bonus": 0,
         "hp_heal": 0,
         "effect_ids_consumed": [],

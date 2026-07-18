@@ -49,7 +49,7 @@ export default function PomodoroHistory() {
           const d = new Date(dateStr);
           d.setHours(0,0,0,0);
           
-          const diffTime = Math.abs(today - d);
+          const diffTime = Math.abs(today.getTime() - d.getTime());
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
           
           if (diffDays < cols * rows) {

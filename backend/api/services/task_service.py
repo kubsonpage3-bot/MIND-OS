@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.utils import timezone
 import random
 from django.db import transaction
@@ -219,7 +220,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             recruited_allies = {
                 a.ally_code: a.level
-                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore[attr-defined]
             }
 
             # Grier Level 2 Shield Slam
@@ -442,7 +443,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         recruited_allies = {
             a.ally_code: a.level
-            for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+            for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore[attr-defined]
         }
 
         # Meldor Level 1: Todo completion has 10% chance to drop ingredient but costs 2 HP
@@ -482,10 +483,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             active_recruited = RecruitedAlly.objects.filter(
                 user_profile=profile, ally_code__in=active_codes
             )
-            if active_recruited.exists():
-                least_xp_ally = active_recruited.order_by(
-                    "total_xp_received", "recruited_at"
-                ).first()
+            least_xp_ally = active_recruited.order_by(
+                "total_xp_received", "recruited_at"
+            ).first()
+            if least_xp_ally is not None:
                 ally_xp_share = int(final_xp * 0.15)
                 ally_gold_share = int(final_gold * 0.15)
 
@@ -691,10 +692,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                     active_recruited = RecruitedAlly.objects.filter(
                         user_profile=profile, ally_code__in=active_codes
                     )
-                    if active_recruited.exists():
-                        least_xp_ally = active_recruited.order_by(
-                            "total_xp_received", "recruited_at"
-                        ).first()
+                    least_xp_ally = active_recruited.order_by(
+                        "total_xp_received", "recruited_at"
+                    ).first()
+                    if least_xp_ally is not None:
                         other_ally_xp_share = int(other_final_xp * 0.15)
                         other_ally_gold_share = int(other_final_gold * 0.15)
 
@@ -745,15 +746,17 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             if item_dropped_code:
                 item_obj = Item.objects.filter(code=item_dropped_code).first()
                 if item_obj:
-                    inv_item = InventoryItem.objects.filter(
+                    existing_inv_item = InventoryItem.objects.filter(
                         user_profile=profile, item=item_obj
                     ).first()
-                    if inv_item:
-                        inv_item.quantity = max(0, inv_item.quantity - 1)
-                        if inv_item.quantity == 0:
-                            inv_item.delete()
+                    if existing_inv_item:
+                        existing_inv_item.quantity = max(
+                            0, existing_inv_item.quantity - 1
+                        )
+                        if existing_inv_item.quantity == 0:
+                            existing_inv_item.delete()
                         else:
-                            inv_item.save()
+                            existing_inv_item.save()
 
             # Safely revert boss damage if recorded
             damage_to_heal = task.last_reward_data.get("damage_dealt", 0)
@@ -788,7 +791,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             recruited_allies = {
                 a.ally_code: a.level
-                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore[attr-defined]
             }
 
             # Grier Level 2 Shield Slam
@@ -1113,7 +1116,7 @@ def process_missed_tasks(user):
     # Rhea Level 3: Gravity Well (4h daily deadline extension)
     adjusted_now = timezone.now()
     if passive_effects.get("rhea_gravity_well", False):
-        adjusted_now -= timezone.timedelta(hours=4)
+        adjusted_now -= timedelta(hours=4)
 
     local_today = adjusted_now.astimezone(user_tz).date()
 
@@ -1222,7 +1225,7 @@ def process_missed_tasks(user):
 
             recruited_allies = {
                 a.ally_code: a.level
-                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+                for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore[attr-defined]
             }
 
             # Rhea Level 3: Gravity Well +30% HP damage penalty on miss

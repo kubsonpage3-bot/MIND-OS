@@ -28,7 +28,7 @@ def migrate_data(apps, schema_editor):
         equipped = profile.equipped if isinstance(profile.equipped, dict) else {}
 
         # Process inventory items
-        item_counts = {}
+        item_counts: dict[str, int] = {}
         for item_data in inventory:
             item_id = item_data.get("id")
             if item_id:

@@ -411,7 +411,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
               <ChevronLeft className="w-5 h-5" />
             </button>
           )}
-          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass ? t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name) : ""}</span>
+          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : ""}</span>
           {profile?.prestige_count > 0 && (
             <span style={{ fontFamily: "'PixeloidSans'", fontSize: 8, background: "var(--habit-border)", color: "var(--habit-gold)", border: "1px solid var(--habit-border)", padding: "2px 6px", borderRadius: 4 }}>
               ×{profile?.prestige_count} PRESTIGE
@@ -453,7 +453,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
               style={{ color: currentRank.color, background: `${currentRank.color}20`, border: `1px solid ${currentRank.color}50` }}>
               {currentRank.id} — {t(`ranks.${currentRank.id}`, currentRank.label)}
             </div>
-            <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{chosenClass ? t(`rpgData.classes.${chosenClass.id}.lore`, chosenClass.lore) : ""}"</div>
+            <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.lore`, chosenClass.lore)) : ""}"</div>
           </div>
 
           {/* HP + Mana bars */}

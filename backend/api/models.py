@@ -1468,7 +1468,7 @@ class PartyEventReaction(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.username} reacted {self.emoji} to Event {self.event_id}"
+        return f"{self.user.username} reacted {self.emoji} to Event {self.event_id}"  # type: ignore
 
 
 # ─────────────────────────────────────────────────────────────────────────────

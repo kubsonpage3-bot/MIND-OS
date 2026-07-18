@@ -60,6 +60,7 @@ export default function NotificationsPanel() {
     }
   }, [profile]);
 
+  /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
   const updatePrefsMutation = useMutation({
     mutationFn: async (newPrefs) => {
       const res = await djangoApi.patch("/profile/", {

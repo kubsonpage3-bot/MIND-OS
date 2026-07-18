@@ -1,3 +1,4 @@
+from typing import Any
 from django.core.management.base import BaseCommand
 from api.models import Boss
 
@@ -181,7 +182,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         created_count = 0
-        for b in SCROLLS:
+        for b_raw in SCROLLS:
+            b: dict[str, Any] = b_raw  # type: ignore[assignment]
             boss, created = Boss.objects.update_or_create(
                 id_name=b["id"],
                 defaults={

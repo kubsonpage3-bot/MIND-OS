@@ -91,6 +91,7 @@ class ConsumablesTests(TestCase):
             user=self.user, skill_id="xp_booster"
         ).first()
         self.assertIsNotNone(effect)
+        assert effect is not None
         self.assertIn("xpBoost", effect.data)
 
         # Verify get_passive_multipliers includes it

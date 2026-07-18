@@ -302,8 +302,8 @@ function InventoryPanel({ gs, update }) {
                 >
                   <div className="text-xl mb-1">{item.icon}</div>
                   <div className="text-[10px] font-bold">{item.label}</div>
-                  <div className="text-[9px] text-purple-500 mt-0.5 capitalize">{t(`lifeos.slots.${item.slot}`, item.slot)}</div>
-                  {isEquipped && <div className="text-[9px] text-yellow-400 mt-0.5">{t("lifeos.equipped_badge", "EQUIPPED")}</div>}
+                  <div className="text-[9px] text-purple-500 mt-0.5 capitalize">{String(t(`lifeos.slots.${item.slot}`, item.slot))}</div>
+                  {isEquipped && <div className="text-[9px] text-yellow-400 mt-0.5">{String(t("lifeos.equipped_badge", "EQUIPPED"))}</div>}
                 </button>
               );
             })}

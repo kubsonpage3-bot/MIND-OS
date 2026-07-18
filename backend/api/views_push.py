@@ -61,7 +61,7 @@ class CronStreakWarningView(APIView):
     every hour to send streak warnings to users.
     """
 
-    permission_classes = []  # Custom auth via header
+    permission_classes: list = []  # Custom auth via header
 
     def post(self, request):
         auth_header = request.headers.get("Authorization")

@@ -61,7 +61,7 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
                 style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
               >
                 {isLocked && "🔒"}
-                {t(`sidebar.sections.${tab.id}`, tab.label || tab.id)}
+                {String(t(`sidebar.sections.${tab.id}`, tab.label || tab.id))}
               </span>
             </button>
           );

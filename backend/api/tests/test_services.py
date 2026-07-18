@@ -1,4 +1,5 @@
 import pytest
+from datetime import timedelta
 from django.contrib.auth.models import User
 from api.models import UserProfile, Task
 from api.services.task_service import complete_task
@@ -176,6 +177,7 @@ class ServiceMechanicsTests(TestCase):
             user_profile=updated_profile, item=self.item
         ).first()
         self.assertIsNotNone(inv_item)
+        assert inv_item is not None
         self.assertEqual(inv_item.quantity, 1)
 
     def test_level_up_mechanic(self):
@@ -1152,6 +1154,9 @@ def test_allies_perk_fixes(user, profile):
     from api.services.mechanics import get_passive_multipliers, calculate_task_outcome
     from api.services.task_service import complete_task
 
+    profile.character_class = ""
+    profile.save()
+
     with mock.patch("random.random", return_value=0.99):
         # 1. Kira L4: always_crit
         kira = RecruitedAlly.objects.create(
@@ -1296,7 +1301,7 @@ def test_allies_perk_fixes(user, profile):
         profile.last_weekly_reset = "2020-W01"
         from django.utils import timezone
 
-        profile.last_login_date = timezone.now().date() - timezone.timedelta(days=1)
+        profile.last_login_date = timezone.now().date() - timedelta(days=1)
         profile.save()
 
         from api.services.daily_service import process_daily_login

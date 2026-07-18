@@ -31,7 +31,8 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
   // Normalize to always be an array — guards against cache being temporarily
   // set to a paginated object `{ results: [...] }` which causes `.filter is not a function`
   const taskList = useMemo(() => {
-    return Array.isArray(tasks) ? tasks : (tasks?.results ?? []);
+    const rawTasks = /** @type {any} */ (tasks);
+    return Array.isArray(rawTasks) ? rawTasks : (rawTasks?.results ?? []);
   }, [tasks]);
 
   const habits = useMemo(() => taskList.filter(t => t.type === 'habit'), [taskList]);

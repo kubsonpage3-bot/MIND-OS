@@ -31,6 +31,7 @@ export default function PomodoroSettings() {
     }
   }, [profile?.pomodoro_settings]);
 
+  /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
   const profileMutation = useMutation({
     mutationFn: (newData) => djangoApi.profile.update(newData),
     onSuccess: () => {

@@ -1,4 +1,5 @@
 import random
+from typing import Any
 from django.utils import timezone
 from api.models import UserProfile, Item
 
@@ -274,7 +275,7 @@ def calculate_task_outcome(
                     final_hp_lost = 0
 
         # Grier L2: Shield slam
-        grier_ally = profile.recruited_allies.filter(ally_code="grier").first()
+        grier_ally = profile.recruited_allies.filter(ally_code="grier").first()  # type: ignore
         if grier_ally and grier_ally.level >= 2 and profile.mana >= 5:
             result["grier_shield_slam"] = True
             result["grier_shield_slam_dmg"] = int(final_hp_lost)
@@ -393,7 +394,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     stats.save(update_fields=["total_boss_damage", "total_crits", "bosses_defeated"])
 
     return {
-        "encounter_id": active_encounter.id,
+        "encounter_id": active_encounter.id,  # type: ignore
         "damage_dealt": final_damage_dealt,
         "boss_hp_remaining": active_encounter.hp_current,
         "boss_defeated": boss_defeated,
@@ -451,7 +452,7 @@ def check_and_expire_mutators(profile):
     active_codes = profile.active_allies or []
     recruited_allies = {
         a.ally_code: a.level
-        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore
     }
     meldor_level = recruited_allies.get("meldor", 0)
 
@@ -798,7 +799,7 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     active_codes = profile.active_allies or []
     recruited_allies = {
         a.ally_code: a.level
-        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore
     }
     meldor_level = recruited_allies.get("meldor", 0)
 
@@ -834,7 +835,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
 
 
 def resolve_mastery_category(
-    activity: str = None, task_category: str = None, task_mastery_category: str = None
+    activity: str | None = None,
+    task_category: str | None = None,
+    task_mastery_category: str | None = None,
 ) -> str:
     """
     Resolves an activity key, task category, and/or task mastery category
@@ -929,7 +932,7 @@ def get_passive_multipliers(profile, context: dict):
     active_codes = profile.active_allies or []
     recruited_allies = {
         a.ally_code: a.level
-        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore
     }
 
     from api.models import ActiveEffect
@@ -939,7 +942,7 @@ def get_passive_multipliers(profile, context: dict):
         user=profile.user,
     ).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now()))
 
-    effects = {
+    effects: dict[str, Any] = {
         "xp_mult": 1.0,
         "humanities_xp_mult": 1.0,
         "gold_mult": 1.0,

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from api.models import UserProfile
@@ -56,7 +57,7 @@ def get_rank_info(profile: UserProfile) -> dict:
     Uses Python-level filtering so it works from the prefetch cache (0 extra DB queries).
     """
     has_endurance = any(
-        s.skill_code == "endurance_protocol" for s in profile.unlocked_skills.all()
+        s.skill_code == "endurance_protocol" for s in profile.unlocked_skills.all()  # type: ignore
     )
     multiplier = 0.8 if has_endurance else 1.0
 
@@ -94,7 +95,7 @@ def get_humanities_rank_info(profile: UserProfile) -> dict:
     Uses Python-level filtering so it works from the prefetch cache (0 extra DB queries).
     """
     has_master = any(
-        s.skill_code == "master_of_arts" for s in profile.unlocked_skills.all()
+        s.skill_code == "master_of_arts" for s in profile.unlocked_skills.all()  # type: ignore
     )
     multiplier = 0.85 if has_master else 1.0
 
@@ -127,7 +128,7 @@ def check_death(profile: UserProfile) -> bool:
     if profile.hp <= 0:
         # Check Kage Level 4 active
         active_codes = profile.active_allies or []
-        kage_ally = profile.recruited_allies.filter(ally_code="kage").first()
+        kage_ally = profile.recruited_allies.filter(ally_code="kage").first()  # type: ignore
         if "kage" in active_codes and kage_ally and kage_ally.level >= 4:
             from django.utils import timezone
 
@@ -135,7 +136,7 @@ def check_death(profile: UserProfile) -> bool:
             if profile.last_decoy_shadow_used:
                 cooldown_active = (
                     timezone.now()
-                    < profile.last_decoy_shadow_used + timezone.timedelta(hours=24)
+                    < profile.last_decoy_shadow_used + timedelta(hours=24)
                 )
             if not cooldown_active:
                 profile.last_decoy_shadow_used = timezone.now()
@@ -150,7 +151,7 @@ def check_death(profile: UserProfile) -> bool:
                 ActiveEffect.objects.create(
                     user=profile.user,
                     skill_id="decoy_shadow_stun",
-                    expires_at=timezone.now() + timezone.timedelta(hours=4),
+                    expires_at=timezone.now() + timedelta(hours=4),
                 )
                 print(
                     "[KAGE L4] Decoy Shadow triggered! Death prevented, HP set to 20, boss stunned."

@@ -81,7 +81,7 @@ def sell_item(user, item_id: str, quantity: int = 1):
 
     recruited_allies = {
         a.ally_code: a.level
-        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore[attr-defined]
     }
     meldor_level = recruited_allies.get("meldor", 0)
     bran_level = recruited_allies.get("bran", 0)

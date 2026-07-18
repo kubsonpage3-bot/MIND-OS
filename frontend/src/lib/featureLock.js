@@ -38,7 +38,7 @@ export function isFeatureLocked(currentRank, requiredRank) {
 /**
  * Derive lock state from profile.rank_info or profile.rank.
  * @param {any} profile
- * @returns {{ currentRank: string, skillsLocked: boolean, alliesLocked: boolean, mutatorsLocked: boolean }}
+ * @returns {{ currentRank: string, skillsLocked: boolean, alliesLocked: boolean, mutatorsLocked: boolean, skillsUnlockRank: string, alliesUnlockRank: string, mutatorsUnlockRank: string }}
  */
 export function getFeatureLocks(profile) {
   const currentRank = profile?.rank_info?.current_id || profile?.rank || 'F';

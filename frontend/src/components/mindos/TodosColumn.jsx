@@ -63,11 +63,11 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
   return (
     <div
       className="flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150"
-      style={{
+      style={/** @type {any} */ ({
         background: 'var(--habit-panel)',
         border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
         ...longPressProps.style
-      }}
+      })}
       {...longPressProps}
     >
       <DragHandle />
@@ -152,7 +152,8 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
 
     queryClient.setQueryData(["tasks"], (oldTasks) => {
       if (!oldTasks) return oldTasks;
-      const normalized = Array.isArray(oldTasks) ? oldTasks : (oldTasks?.results ?? []);
+      const rawTasks = /** @type {any} */ (oldTasks);
+      const normalized = Array.isArray(rawTasks) ? rawTasks : (rawTasks?.results ?? []);
       const newTasks = [...normalized];
       const oldIndex = newTasks.findIndex(t => String(t.id) === active.id);
       const newIndex = newTasks.findIndex(t => String(t.id) === over.id);
@@ -192,11 +193,13 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     }
   });
 
+  /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
   const updateTaskMutation = useMutation({
     mutationFn: (taskData) => djangoApi.tasks.update(taskData.id, taskData),
     onSuccess: (res, taskData) => {
       queryClient.setQueryData(['tasks'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.results ?? []);
+        const rawOld = /** @type {any} */ (old);
+        const list = Array.isArray(rawOld) ? rawOld : (rawOld?.results ?? []);
         return list.map(t =>
           t.id === taskData.id
             ? {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
 

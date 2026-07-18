@@ -44,6 +44,7 @@ export function usePomodoro() {
   });
 
   // 4. Save completed session
+  /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
   const saveSessionMutation = useMutation({
     mutationFn: (sessionData) => djangoApi.pomodoro.saveSession(sessionData),
     onSuccess: () => {

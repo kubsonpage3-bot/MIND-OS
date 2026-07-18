@@ -2268,3 +2268,68 @@ WARNING 2026-07-17 21:22:45,048 log 24312 25420 Bad Request: /api/profile/
 WARNING 2026-07-17 21:22:47,050 log 24312 22212 Bad Request: /api/mutators/chest/open/
 ERROR 2026-07-17 21:38:07,351 task_service 23084 26608 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 ERROR 2026-07-17 21:38:40,528 task_service 23084 26608 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-18 12:24:58,585 log 22772 14860 Unauthorized: /api/analytics/event/
+WARNING 2026-07-18 12:25:01,253 log 22772 14860 Bad Request: /api/analytics/event/
+WARNING 2026-07-18 12:25:06,817 log 22772 14860 Bad Request: /api/auth/register/
+WARNING 2026-07-18 12:35:39,235 log 22004 22832 Unauthorized: /api/analytics/event/
+WARNING 2026-07-18 12:35:42,003 log 22004 22832 Bad Request: /api/analytics/event/
+WARNING 2026-07-18 12:35:47,796 log 22004 22832 Bad Request: /api/auth/register/
+WARNING 2026-07-18 12:36:59,316 log 22004 22832 Bad Request: /api/profile/
+WARNING 2026-07-18 12:37:02,430 log 22004 22832 Forbidden: /api/calendar/events/
+WARNING 2026-07-18 12:37:36,524 log 22004 22832 Bad Request: /api/tasks/2356/sacrifice/
+WARNING 2026-07-18 12:37:50,951 log 22004 22832 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:37:51,539 log 22004 22832 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:37:53,299 log 22004 22832 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:37:53,787 log 22004 22832 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-18 12:38:19,516 log 22004 22832 Forbidden: /api/party/members/6101/profile/
+WARNING 2026-07-18 12:38:21,663 log 22004 22832 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-18 12:38:29,237 task_service 22004 22832 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-18 12:39:17,474 task_service 22004 22832 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-18 12:39:42,880 log 22004 22832 Bad Request: /api/profile/
+WARNING 2026-07-18 12:39:45,728 log 22004 10992 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:43:24,034 log 23056 20536 Unauthorized: /api/analytics/event/
+WARNING 2026-07-18 12:43:26,923 log 23056 20536 Bad Request: /api/analytics/event/
+WARNING 2026-07-18 12:43:32,680 log 23056 20536 Bad Request: /api/auth/register/
+WARNING 2026-07-18 12:44:39,436 log 23056 20536 Bad Request: /api/profile/
+WARNING 2026-07-18 12:44:42,500 log 23056 20536 Forbidden: /api/calendar/events/
+WARNING 2026-07-18 12:45:13,855 log 23056 20536 Bad Request: /api/tasks/2420/sacrifice/
+WARNING 2026-07-18 12:45:27,640 log 23056 20536 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:45:28,214 log 23056 20536 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:45:29,589 log 23056 20536 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:45:30,071 log 23056 20536 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-18 12:45:55,361 log 23056 20536 Forbidden: /api/party/members/6245/profile/
+WARNING 2026-07-18 12:45:57,512 log 23056 20536 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-18 12:46:05,134 task_service 23056 20536 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-18 12:46:52,850 task_service 23056 20536 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-18 12:47:18,741 log 23056 20536 Bad Request: /api/profile/
+WARNING 2026-07-18 12:47:21,240 log 23056 6016 Bad Request: /api/mutators/chest/open/
+ERROR 2026-07-18 12:51:10,114 task_service 21076 23060 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-18 12:51:58,785 task_service 21076 23060 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-18 12:52:34,765 log 18892 23100 Bad Request: /api/tasks/2499/sacrifice/
+WARNING 2026-07-18 12:52:48,589 log 18892 23100 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:52:49,150 log 18892 23100 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:52:50,507 log 18892 23100 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:52:50,983 log 18892 23100 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-18 12:52:58,852 log 18892 17960 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:56:09,191 log 9652 20028 Bad Request: /api/tasks/2512/sacrifice/
+WARNING 2026-07-18 12:56:22,524 log 9652 20028 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:56:23,146 log 9652 20028 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:56:24,437 log 9652 20028 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 12:56:24,893 log 9652 20028 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-18 12:56:31,922 log 9652 20720 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 13:05:17,868 log 21444 23140 Unauthorized: /api/analytics/event/
+WARNING 2026-07-18 13:05:20,588 log 21444 23140 Bad Request: /api/analytics/event/
+WARNING 2026-07-18 13:05:26,113 log 21444 23140 Bad Request: /api/auth/register/
+WARNING 2026-07-18 13:06:33,429 log 21444 23140 Bad Request: /api/profile/
+WARNING 2026-07-18 13:06:36,530 log 21444 23140 Forbidden: /api/calendar/events/
+WARNING 2026-07-18 13:07:08,467 log 21444 23140 Bad Request: /api/tasks/2578/sacrifice/
+WARNING 2026-07-18 13:07:20,607 log 21444 23140 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 13:07:21,117 log 21444 23140 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 13:07:22,338 log 21444 23140 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-18 13:07:22,769 log 21444 23140 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-18 13:07:46,390 log 21444 23140 Forbidden: /api/party/members/6507/profile/
+WARNING 2026-07-18 13:07:48,362 log 21444 23140 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-18 13:07:55,096 task_service 21444 23140 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-18 13:08:39,687 task_service 21444 23140 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-18 13:09:04,631 log 21444 23140 Bad Request: /api/profile/
+WARNING 2026-07-18 13:09:07,279 log 21444 22760 Bad Request: /api/mutators/chest/open/

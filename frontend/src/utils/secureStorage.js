@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Secure Storage Helper for Tauri/React applications.
  * Uses `@tauri-apps/plugin-store` when running inside Tauri,

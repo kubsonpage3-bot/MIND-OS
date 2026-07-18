@@ -74,17 +74,17 @@ export default function FeatureLockScreen({ feature, requiredRank, profile }) {
 
       {/* Header */}
       <h3 className="font-mono text-lg font-bold uppercase tracking-wider mb-2 text-foreground">
-        {t(`feature_lock.${feature}_name`, feature.replace("_", " "))} {t("feature_lock.locked_suffix", "Locked")}
+        {String(t(`feature_lock.${feature}_name`, feature.replace("_", " ")))} {String(t("feature_lock.locked_suffix", "Locked"))}
       </h3>
 
       <p className="font-mono text-xs text-muted-foreground/80 max-w-sm mb-6 leading-relaxed">
-        {t("feature_lock.subtitle", { rank: targetRankData.label || requiredRank, feature: t(`feature_lock.${feature}_name`, feature) })}
+        {String(t("feature_lock.subtitle", { rank: targetRankData.label || requiredRank, feature: String(t(`feature_lock.${feature}_name`, feature)) }))}
       </p>
 
       {/* Progress Bar Container */}
       <div className="w-full max-w-xs space-y-2 mb-4 relative z-10">
         <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
-          <span>{t("feature_lock.current_rank", "Current Rank")}: <strong className="text-foreground">{currentRank}</strong></span>
+          <span>{String(t("feature_lock.current_rank", "Current Rank"))}: <strong className="text-foreground">{currentRank}</strong></span>
           <span>{currentXP} / {targetXP} XP</span>
         </div>
         

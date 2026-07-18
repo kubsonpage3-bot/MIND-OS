@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from django.contrib.auth.models import User
 from api.models import UserProfile, Task
 from api.services.mechanics import get_passive_multipliers, resolve_mastery_category
@@ -95,7 +96,8 @@ def test_class_passive_multipliers(profile):
 
 
 @pytest.mark.django_db
-def test_complete_task_with_class_passive(user, profile):
+@patch("random.random", return_value=0.99)
+def test_complete_task_with_class_passive(mock_random, user, profile):
     # Setup Architect profile
     profile.character_class = "architect"
     profile.save()

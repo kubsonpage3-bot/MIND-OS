@@ -52,7 +52,9 @@ export const LocalNotificationsService = {
               title,
               body,
               smallIcon: 'res://ic_stat_notify', // Android notification icon
-              allowWhileIdle: true
+              schedule: {
+                allowWhileIdle: true
+              }
             }
           ]
         });

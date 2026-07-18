@@ -1,3 +1,4 @@
+from typing import Any
 from api.models import UserStats, UserAchievement
 from django.db import transaction
 
@@ -98,12 +99,13 @@ def check_and_grant_achievements(user):
     total_gold_reward = 0
     total_sp_reward = 0
 
-    for ach_id, data in ACHIEVEMENTS_SSOT.items():
+    for ach_id, raw_data in ACHIEVEMENTS_SSOT.items():
         if ach_id in already_unlocked:
             continue
 
+        ach_data: dict[str, Any] = raw_data  # type: ignore[assignment]
         try:
-            passed = data["check"](stats)
+            passed = ach_data["check"](stats)
         except Exception:
             passed = False
 
@@ -113,13 +115,14 @@ def check_and_grant_achievements(user):
             )
             if created:
                 new_achievements.append(ach_id)
-                total_gold_reward += data.get("gold", 0)
-                total_sp_reward += data.get("sp", 0)
+                total_gold_reward += ach_data.get("gold", 0)
+                total_sp_reward += ach_data.get("sp", 0)
 
     if new_achievements and hasattr(user, "profile"):
         # We need to use F expressions or direct additions securely
-        user.profile.gold += total_gold_reward
-        user.profile.skill_points += total_sp_reward
+        profile = getattr(user, "profile")
+        profile.gold += total_gold_reward
+        profile.skill_points += total_sp_reward
 
         from api.models import UnlockedSkill
 

@@ -1,12 +1,11 @@
 import pytest
+from datetime import timedelta
 from django.contrib.auth.models import User
 from django.utils import timezone
 from api.models import (
     Task,
     Item,
-    UserStats,
     RecruitedAlly,
-    ActiveEffect,
     SkillCooldown,
     Boss,
     BossEncounter,
@@ -96,7 +95,7 @@ def test_zephyr_l4_and_l5(test_user_and_profile):
     task1 = Task.objects.create(
         user=user, title="Todo 1", task_type=Task.TaskType.TODO, difficulty="medium"
     )
-    res1 = complete_task(user, task1.id, is_positive=True)
+    complete_task(user, task1.id, is_positive=True)
     profile.refresh_from_db()
     assert profile.tasks_completed_today == 1
 
@@ -220,7 +219,7 @@ def test_vivian_perks(test_user_and_profile):
     SkillCooldown.objects.update_or_create(
         user=user,
         skill_id="iron_fast",
-        defaults={"cooldown_until": timezone.now() + timezone.timedelta(hours=5)},
+        defaults={"cooldown_until": timezone.now() + timedelta(hours=5)},
     )
 
     factory = APIRequestFactory()
@@ -254,14 +253,14 @@ def test_rhea_perks(test_user_and_profile):
     assert "foc" in stats1
 
     # Rhea L3: Gravity Well 4h daily extension & +30% miss damage
-    daily = Task.objects.create(
+    Task.objects.create(
         user=user, title="Daily 1", task_type=Task.TaskType.DAILY, repeat_weekdays=127
     )
-    profile.last_daily_cron_at = timezone.now().date() - timezone.timedelta(days=1)
+    profile.last_daily_cron_at = timezone.now().date() - timedelta(days=1)
     profile.hp = 100
     profile.save()
 
-    res = process_missed_tasks(user)
+    process_missed_tasks(user)
     profile.refresh_from_db()
     assert profile.hp < 100
 

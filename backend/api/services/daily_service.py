@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from api.models import UserProfile, UnlockedSkill, ActiveEffect
@@ -27,7 +28,7 @@ def process_daily_login(user):
     # Check if party streak broke
     try:
         membership = user.party_membership
-        yesterday = today - timezone.timedelta(days=1)
+        yesterday = today - timedelta(days=1)
         if (
             membership.last_daily_completed_date is None
             or membership.last_daily_completed_date < yesterday

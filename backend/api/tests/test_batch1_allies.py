@@ -1,4 +1,5 @@
 import pytest
+from datetime import timedelta
 from django.contrib.auth.models import User
 from django.utils import timezone
 from api.models import (
@@ -207,7 +208,7 @@ def test_lyra_l1_and_l3_and_l4_effects(test_user_and_profile):
     SkillCooldown.objects.create(
         user=user,
         skill_id="fireball",
-        cooldown_until=timezone.now() + timezone.timedelta(hours=5),
+        cooldown_until=timezone.now() + timedelta(hours=5),
     )
 
     # Log training session: 2.5 hours -> reduces CD by 2.5h, gives +30% Rank XP
@@ -225,7 +226,7 @@ def test_lyra_l1_and_l3_and_l4_effects(test_user_and_profile):
 
     # Verify cooldown reduced
     cd = SkillCooldown.objects.get(user=user, skill_id="fireball")
-    assert cd.cooldown_until < timezone.now() + timezone.timedelta(hours=2.6)
+    assert cd.cooldown_until < timezone.now() + timedelta(hours=2.6)
 
     # Log training session < 30m -> 0 rewards
     request_short = factory.post(

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { ANIM_CONFIG } from "@/lib/animations";

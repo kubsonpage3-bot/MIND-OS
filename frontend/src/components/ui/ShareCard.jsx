@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { CLASSES } from "@/constants/rpgData";
 import PixelCharacter from "@/components/mindos/PixelCharacter";

@@ -211,6 +211,9 @@ def summon_boss(user, boss_id):
     boss_data = SCROLL_BOSSES_DICT.get(boss_id)
     if not boss_data:
         raise GameLogicError("Unknown boss id.")
+    assert isinstance(boss_data, dict)
+    reward_data = boss_data.get("reward")
+    assert isinstance(reward_data, dict)
 
     cost = boss_data.get("price", 0)
 
@@ -231,8 +234,8 @@ def summon_boss(user, boss_id):
             "name": boss_data["name"],
             "hp_max": boss_data["bossHP"],
             "level": 1,
-            "reward_gold": boss_data["reward"]["gold"],
-            "reward_xp": boss_data["reward"]["xp"],
+            "reward_gold": reward_data["gold"],
+            "reward_xp": reward_data["xp"],
             "drop_item_id": boss_data.get("uniqueItem", ""),
         },
     )

@@ -90,12 +90,12 @@ export default function TabGuideModal({
 
             {/* Title */}
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="text-neon-cyan">{content.icon}</span> {t(`section_guides.${guideId}.title`, content.title)}
+              <span className="text-neon-cyan">{content.icon}</span> {String(t(`section_guides.${guideId}.title`, content.title))}
             </h2>
 
             {/* Content - Using whitespace-pre-line to respect newline bullet points */}
             <div className="text-white/80 space-y-4 text-sm leading-relaxed mb-6 whitespace-pre-line">
-              {t(`section_guides.${guideId}.body`, content.body)}
+              {String(t(`section_guides.${guideId}.body`, content.body))}
             </div>
 
             {/* Dismiss Button */}

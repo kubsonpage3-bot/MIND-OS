@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
+from typing import Any
 from api.models import UserProfile, InventoryItem, ActiveEffect
 
 
@@ -55,7 +56,7 @@ def consume_item(user, item_code: str):
         pass
 
     # Apply Duration / Usage Effects (Buffs)
-    buff_mapping = {
+    buff_mapping: dict[str, dict[str, Any]] = {
         "focus_stim": {
             "data": {"effect_type": "focus_stim", "uses_left": 1},
             "duration_hours": None,

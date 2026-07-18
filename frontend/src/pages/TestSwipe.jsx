@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useRef } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { IonItemSliding, IonItemOptions, IonItemOption, IonItem, IonLabel, setupIonicReact } from '@ionic/react';

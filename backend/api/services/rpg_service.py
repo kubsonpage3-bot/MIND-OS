@@ -16,6 +16,7 @@ def buy_skill_node(user, skill_code: str) -> UserProfile:
         raise GameLogicError("Skill node does not exist in backend configuration.")
 
     config = SKILL_TREE_CONFIG[skill_code]
+    assert isinstance(config, dict)
 
     # Проверка: уже разблокирован?
     if UnlockedSkill.objects.filter(
@@ -94,6 +95,7 @@ def respec_skill_nodes(user, free=False) -> UserProfile:
     for us in unlocked_skills:
         if us.skill_code in SKILL_TREE_CONFIG:
             config = SKILL_TREE_CONFIG[us.skill_code]
+            assert isinstance(config, dict)
             total_sp_refund += config.get("sp", 0)
             total_gf_ceiling_refund += config.get("gf_ceiling_bonus", 0)
 
@@ -129,6 +131,7 @@ def recruit_ally(user, ally_code: str) -> RecruitedAlly:
         raise GameLogicError("Ally does not exist in backend configuration.")
 
     config = ALLIES_CONFIG[ally_code]
+    assert isinstance(config, dict)
 
     # Получаем или создаем запись союзника с уровнем 0 (до списания)
     ally_rec, created = RecruitedAlly.objects.get_or_create(
@@ -150,18 +153,21 @@ def recruit_ally(user, ally_code: str) -> RecruitedAlly:
 
         # Trigger push notification
         from api.services.push_service import send_notification_to_user
+
         send_notification_to_user(
             user=user,
             pref_key="new_ally",
             title="New Ally Unlocked! 🤝",
             body=f"You successfully recruited {config['name']} to your party!",
-            url="/character/party"
+            url="/character/party",
         )
     else:
         # Улучшение
         if current_level >= 5:
             raise GameLogicError("Ally is already at max level (5).")
-        cost = config["upgrade_costs"][current_level - 1]
+        upgrade_costs = config.get("upgrade_costs", [])
+        assert isinstance(upgrade_costs, list)
+        cost = upgrade_costs[current_level - 1]
         if profile.gold < cost:
             raise GameLogicError("Insufficient Gold to upgrade ally.")
         profile.gold -= cost

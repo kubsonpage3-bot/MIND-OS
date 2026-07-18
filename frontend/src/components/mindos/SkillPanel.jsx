@@ -229,9 +229,9 @@ export default function SkillPanel({ classId }) {
                       className="text-[8px]"
                     >■</motion.span>
                   )}
-                  {t(`rpgData.skills.${skill.id}.name`, skill.name)}
+                  {String(t(`rpgData.skills.${skill.id}.name`, skill.name))}
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{t(`rpgData.skills.${skill.id}.desc`, skill.desc)}</div>
+                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{String(t(`rpgData.skills.${skill.id}.desc`, skill.desc))}</div>
               </div>
               <div className="shrink-0 text-right">
                 <div className="text-[10px] font-mono font-bold" style={{ color: state.hasMana ? cls.color : "#ef4444" }}>

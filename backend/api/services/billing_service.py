@@ -39,6 +39,8 @@ def create_checkout_session(user: User) -> str:
         customer_email=user.email,
     )
 
+    if not session.url:
+        raise ValueError("Stripe failed to return a checkout session URL.")
     return session.url
 
 
@@ -58,6 +60,8 @@ def create_portal_session(user: User) -> str:
         return_url=f"{FRONTEND_URL}/",
     )
 
+    if not session.url:
+        raise ValueError("Stripe failed to return a customer portal URL.")
     return session.url
 
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Theme configurations
 export const THEMES = {
   solid_light: {

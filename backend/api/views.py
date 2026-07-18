@@ -18,6 +18,7 @@ MIND OS — Views и ViewSets.
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 import logging
+from datetime import timedelta
 from django.db import transaction
 
 from rest_framework import viewsets, generics, status, filters, serializers
@@ -1482,7 +1483,7 @@ class TrainingLogView(generics.GenericAPIView):
 
                 cooldowns = SkillCooldown.objects.filter(user=profile.user)
                 for cd in cooldowns:
-                    cd.cooldown_until -= timezone.timedelta(hours=hours)
+                    cd.cooldown_until -= timedelta(hours=hours)
                     cd.save(update_fields=["cooldown_until"])
 
             gf_mult = passive_effects.get("gf_mult", 1.0)
@@ -1951,8 +1952,8 @@ class VivianDarkSacrificeView(generics.GenericAPIView):
                     )
 
                 if profile.last_dark_sacrifice_used:
-                    cooldown_until = (
-                        profile.last_dark_sacrifice_used + timezone.timedelta(hours=12)
+                    cooldown_until = profile.last_dark_sacrifice_used + timedelta(
+                        hours=12
                     )
                     if timezone.now() < cooldown_until:
                         remaining = cooldown_until - timezone.now()
@@ -2047,8 +2048,8 @@ class RheaChaosControlView(generics.GenericAPIView):
                     )
 
                 if profile.last_chaos_control_used:
-                    cooldown_until = (
-                        profile.last_chaos_control_used + timezone.timedelta(hours=24)
+                    cooldown_until = profile.last_chaos_control_used + timedelta(
+                        hours=24
                     )
                     if timezone.now() < cooldown_until:
                         remaining = cooldown_until - timezone.now()
