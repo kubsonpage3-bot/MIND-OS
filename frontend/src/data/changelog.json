@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-07-19",
+    "version": "1.7.14",
+    "changes": [
+      { "type": "feature", "text": "Added 52 dynamic Playstyle Titles based on user habits (Night Owl, Marathoner, Alchemist, Bookworm, Boss Slayer) displayed on Dashboard and Character views with an interactive title selector modal." }
+    ]
+  },
+  {
     "date": "2026-07-18",
     "version": "1.7.13",
     "changes": [

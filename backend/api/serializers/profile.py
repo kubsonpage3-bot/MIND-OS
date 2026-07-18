@@ -27,6 +27,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     streak_title = serializers.ReadOnlyField()
     offline_seconds = serializers.IntegerField(read_only=True, required=False)
     max_streak = serializers.SerializerMethodField()
+    playstyle_info = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -83,6 +84,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "seen_guides",
             "rank_info",
             "streak_title",
+            "equipped_title",
+            "playstyle_info",
             "analytics_enabled",
             "anonymous_mode",
             "rival_visibility",
@@ -192,6 +195,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return max(obj.streak or 0, stat_max or 0)
         except Exception:
             return obj.streak or 0
+
+    def get_playstyle_info(self, obj):
+        try:
+            from api.services.title_service import get_user_playstyle_titles
+
+            return get_user_playstyle_titles(obj)
+        except Exception:
+            return {
+                "active_title": {
+                    "id": "awakened_one",
+                    "name": "Пробуждённый",
+                    "icon": "✨",
+                    "category": "rank",
+                    "color": "#94a3b8",
+                    "description": "Завершить инициализацию профиля MIND OS",
+                },
+                "unlocked_count": 1,
+                "total_count": 52,
+                "titles": [],
+            }
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

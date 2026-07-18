@@ -286,6 +286,11 @@ export const djangoApi = {
       djangoFetch('/profile/prestige/', {
         method: 'POST',
       }),
+    equipTitle: (titleId) =>
+      djangoFetch('/profile/equip-title/', {
+        method: 'POST',
+        body: JSON.stringify({ title_id: titleId }),
+      }),
 
     reset: (resetType) =>
       djangoFetch('/profile/reset/', {

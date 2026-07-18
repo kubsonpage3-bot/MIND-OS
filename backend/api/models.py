@@ -72,6 +72,12 @@ class UserProfile(models.Model):
         default="",
         verbose_name="Имя персонажа",
     )
+    equipped_title = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Экипированный титул ID",
+    )
 
     # Гостевой аккаунт (без email/пароля, привязан к устройству)
     is_guest = models.BooleanField(

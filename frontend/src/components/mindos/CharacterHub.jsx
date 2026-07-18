@@ -40,9 +40,22 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{userName || "Hero"}</div>
         <div style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>
-        <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "var(--habit-purple)", marginTop: 2, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-          &lt; {profile?.streak_title || "The Forsaken"} &gt;
-        </div>
+        {(() => {
+          const activeTitle = profile?.playstyle_info?.active_title || { name: profile?.streak_title || "Пробуждённый", icon: "✨", color: "#a855f7" };
+          return (
+            <div
+              className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold border shadow-xs"
+              style={{
+                background: `${activeTitle.color}15`,
+                borderColor: `${activeTitle.color}40`,
+                color: activeTitle.color,
+              }}
+            >
+              <span>{activeTitle.icon || "👑"}</span>
+              <span>{activeTitle.name}</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* HP Bar */}

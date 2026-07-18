@@ -3213,3 +3213,60 @@ class GdprDeleteRequestView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+# ——— Playstyle Titles —————————————————───────────────────────────────
+
+
+class EquipTitleView(APIView):
+    """
+    POST /api/profile/equip-title/
+    Equips or un-equips a playstyle title for the user's profile.
+    Payload: {"title_id": "night_owl"} or {"title_id": ""}
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        title_id = (request.data.get("title_id") or "").strip()
+
+        try:
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+                if title_id != "":
+                    from api.services.title_service import get_user_playstyle_titles
+
+                    info = get_user_playstyle_titles(profile)
+                    unlocked_ids = {t["id"] for t in info["titles"] if t["unlocked"]}
+
+                    if title_id not in unlocked_ids:
+                        return Response(
+                            {
+                                "error": f"Title '{title_id}' is not unlocked for your profile."
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                profile.equipped_title = title_id
+                profile.save(update_fields=["equipped_title"])
+
+            from api.serializers.profile import UserProfileSerializer
+
+            return Response(
+                {
+                    "message": (
+                        "Title equipped successfully"
+                        if title_id
+                        else "Auto playstyle title enabled"
+                    ),
+                    "profile": UserProfileSerializer(profile).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(f"Equip title error: {e}", exc_info=True)
+            return Response(
+                {"error": "Failed to update title. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

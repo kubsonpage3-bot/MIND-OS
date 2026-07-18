@@ -58,6 +58,7 @@ from .views import (
     LootChestListView,
     OpenChestView,
     GdprDeleteRequestView,
+    EquipTitleView,
 )
 from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
 from .views_pomodoro import PomodoroSessionViewSet
@@ -211,4 +212,6 @@ urlpatterns = [
         GdprDeleteRequestView.as_view(),
         name="gdpr-delete-request",
     ),
+    # ——— Playstyle Titles —————————————————─────────────────────────
+    path("profile/equip-title/", EquipTitleView.as_view(), name="profile-equip-title"),
 ]

@@ -1,23 +1,19 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { getLevelTitle } from "@/lib/cognitiveEngine";
 import { useQuery } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
-import { motion } from "framer-motion";
-
-
+import { motion, AnimatePresence } from "framer-motion";
+import TitleSelectorModal from "@/components/mindos/TitleSelectorModal";
 
 const XP_PER_LEVEL = 500;
 
 export default function StatsPanel({ profile, logs }) {
-  const iq = profile ? (profile.gf * 0.30 + profile.gc * 0.30 + profile.ps * 0.20 + profile.vm * 0.20) : 110;
-  const level = getLevelTitle(Math.round(iq));
+  const [showTitleModal, setShowTitleModal] = useState(false);
 
   const weekAgo = new Date(Date.now() - 7 * 86400000);
   const weekLogs = logs.filter(l => new Date(l.created_at) >= weekAgo);
 
   const weeklyXP = profile?.weekly_xp || 0;
   const xpPct = (weeklyXP % XP_PER_LEVEL) / XP_PER_LEVEL * 100;
-  const streak = profile?.streak || 0;
 
   const cognitiveROI = useMemo(() => {
     const withEff = weekLogs.filter(l => l.efficiency != null);
@@ -31,55 +27,85 @@ export default function StatsPanel({ profile, logs }) {
     : cognitiveROI >= 45 ? "#f59e0b"
     : "#f74e52";
 
-  const cards = [
-    {
-      icon: "⭐",
-      value: weeklyXP,
-      label: "Weekly XP",
-      color: "#7B61FF",
-      valueStyle: { fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: "#7B61FF" },
-      bar: true,
-      barPct: xpPct,
-      barColor: "#7B61FF",
-    },
-    {
-      icon: "📈",
-      value: cognitiveROI != null ? cognitiveROI : "—",
-      label: "Cogn. ROI",
-      color: roiColor,
-      valueStyle: { fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: roiColor },
-    },
-    {
-      icon: "🏆",
-      value: level.title,
-      label: "Level",
-      color: level.color,
-      valueStyle: { fontFamily: "'Nunito'", fontWeight: 800, fontSize: "0.9rem", color: level.color },
-    },
-  ];
+  const playstyleInfo = profile?.playstyle_info || {};
+  const activeTitle = playstyleInfo.active_title || {
+    id: "awakened_one",
+    name: "Пробуждённый",
+    icon: "✨",
+    color: "#a855f7",
+  };
+  const unlockedCount = playstyleInfo.unlocked_count || 1;
+  const totalCount = playstyleInfo.total_count || 52;
+
+  const titleColor = activeTitle.color || "#a855f7";
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      <StreakCard profile={profile} />
-      {cards.map((card, i) => (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <StreakCard profile={profile} />
+
+        {/* Weekly XP */}
         <div
-          key={i}
           className="rounded-xl p-3 text-center flex flex-col items-center gap-1"
-          style={{ background: `${card.color}10`, border: `1.5px solid ${card.color}30` }}
+          style={{ background: "#7B61FF10", border: "1.5px solid #7B61FF30" }}
         >
-          <span className="text-xl">{card.icon}</span>
-          <div style={card.valueStyle}>{card.value}</div>
+          <span className="text-xl">⭐</span>
+          <div style={{ fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: "#7B61FF" }}>{weeklyXP}</div>
           <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "#878190", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            {card.label}
+            Weekly XP
           </div>
-          {card.bar && (
-            <div className="w-full h-1.5 rounded-full overflow-hidden mt-1" style={{ background: "#f0eef8" }}>
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${card.barPct}%`, background: card.barColor }} />
-            </div>
-          )}
+          <div className="w-full h-1.5 rounded-full overflow-hidden mt-1" style={{ background: "#f0eef8" }}>
+            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, background: "#7B61FF" }} />
+          </div>
         </div>
-      ))}
-    </div>
+
+        {/* Cogn. ROI */}
+        <div
+          className="rounded-xl p-3 text-center flex flex-col items-center gap-1"
+          style={{ background: `${roiColor}10`, border: `1.5px solid ${roiColor}30` }}
+        >
+          <span className="text-xl">📈</span>
+          <div style={{ fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: roiColor }}>{cognitiveROI != null ? cognitiveROI : "—"}</div>
+          <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "#878190", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Cogn. ROI
+          </div>
+        </div>
+
+        {/* Playstyle Title Card (Interactive) */}
+        <button
+          onClick={() => setShowTitleModal(true)}
+          className="rounded-xl p-3 text-center flex flex-col items-center justify-between gap-1 transition-all hover:scale-[1.02] cursor-pointer group relative overflow-hidden"
+          style={{ background: `${titleColor}15`, border: `1.5px solid ${titleColor}40` }}
+          title="Нажмите, чтобы выбрать или посмотреть титулы"
+        >
+          <span className="text-xl group-hover:scale-110 transition-transform">{activeTitle.icon || "👑"}</span>
+          
+          <div
+            className="truncate max-w-full px-1"
+            style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: "0.85rem", color: titleColor }}
+          >
+            {activeTitle.name}
+          </div>
+
+          <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "#878190", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            TITLE
+          </div>
+
+          <div className="text-[9px] font-mono text-purple-400/80 font-semibold mt-0.5">
+            🏆 {unlockedCount}/{totalCount}
+          </div>
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showTitleModal && (
+          <TitleSelectorModal
+            profile={profile}
+            onClose={() => setShowTitleModal(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
