@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.16",
+    "changes": [
+      { "type": "fix", "text": "Unified authentication backend to Render database: removed local SQLite fallback and enabled seamless login using either Username or Email." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.15",
     "changes": [
       { "type": "fix", "text": "Fixed Title Selector modal viewport z-index collision and body scroll locking; added full English and Russian i18n localization for all 52 playstyle titles and categories." }

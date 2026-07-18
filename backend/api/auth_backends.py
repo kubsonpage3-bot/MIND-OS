@@ -1,11 +1,12 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
     """
     Case-insensitive authentication backend for Django.
-    Allows users to log in regardless of username casing (e.g., 'KubsonM' vs 'kubsonm').
+    Allows users to log in with either Username or Email (case-insensitive).
     """
 
     def authenticate(self, request, username=None, password=None, **kwargs):
@@ -15,14 +16,14 @@ class CaseInsensitiveModelBackend(ModelBackend):
                 return None
 
         try:
-            # Look up user case-insensitively
-            case_insensitive_username_field = "{}__iexact".format(User.USERNAME_FIELD)
-            user = User._default_manager.get(
-                **{case_insensitive_username_field: username}
-            )
+            # Look up user case-insensitively by username or email
+            user = User._default_manager.filter(
+                Q(username__iexact=username) | Q(email__iexact=username)
+            ).first()
+            if not user:
+                raise User.DoesNotExist
         except User.DoesNotExist:
-            # Run the default password hasher once to reduce the timing
-            # difference between an existing and a nonexistent user.
+            # Run the default password hasher once to reduce timing differences
             User().set_password(password)
         else:
             if user.check_password(password) and self.user_can_authenticate(user):
