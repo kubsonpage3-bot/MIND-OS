@@ -187,9 +187,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_max_streak(self, obj):
         try:
-            return obj.user.stats.max_streak
+            stats = getattr(obj.user, "stats", None)
+            stat_max = stats.max_streak if stats else 0
+            return max(obj.streak or 0, stat_max or 0)
         except Exception:
-            return 0
+            return obj.streak or 0
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

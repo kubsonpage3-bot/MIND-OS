@@ -93,7 +93,7 @@ const getStreakTier = (streak) => {
 
 function StreakCard({ profile }) {
   const streak = profile?.streak || 0;
-  const maxStreak = profile?.max_streak || 0;
+  const maxStreak = Math.max(streak, profile?.max_streak || 0);
 
   const prevStreakRef = useRef(streak);
   const [justIncremented, setJustIncremented] = useState(false);

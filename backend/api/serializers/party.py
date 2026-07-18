@@ -51,8 +51,12 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
         return obj.max_hp
 
     def get_max_streak(self, obj) -> int:
-        # Since UserProfile doesn't store max_streak, we just return current streak or 0
-        return obj.streak
+        try:
+            stats = getattr(obj.user, "stats", None)
+            stat_max = stats.max_streak if stats else 0
+            return max(obj.streak or 0, stat_max or 0)
+        except Exception:
+            return obj.streak or 0
 
     def get_total_tasks_completed(self, obj) -> int:
         from api.models import Task

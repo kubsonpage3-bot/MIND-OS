@@ -4,6 +4,18 @@ from django.utils import timezone
 from api.models import UserProfile, UnlockedSkill, ActiveEffect
 
 
+def _sync_max_streak(user, profile):
+    try:
+        from api.models import UserStats
+
+        stats, _ = UserStats.objects.get_or_create(user=user)
+        if profile.streak > stats.max_streak:
+            stats.max_streak = profile.streak
+            stats.save(update_fields=["max_streak"])
+    except Exception:
+        pass
+
+
 @transaction.atomic
 def process_daily_login(user):
     """
@@ -17,9 +29,11 @@ def process_daily_login(user):
         profile.last_login_date = today
         profile.streak = 1
         profile.save(update_fields=["last_login_date", "streak"])
+        _sync_max_streak(user, profile)
         return profile
 
     if profile.last_login_date >= today:
+        _sync_max_streak(user, profile)
         return profile
 
     # New calendar day detected!
@@ -123,6 +137,8 @@ def process_daily_login(user):
         ).exists()
     ):
         profile.gold += 200
+
+    _sync_max_streak(user, profile)
 
     profile.save(
         update_fields=[
