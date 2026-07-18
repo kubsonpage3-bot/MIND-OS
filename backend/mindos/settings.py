@@ -221,22 +221,21 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "30/min",
         "user": "200/min",
-        "login": "5/min",
-        "register": "3/min",
+        "login": "30/min",
+        "register": "5/min",
         "guest_login": "5/min",
     },
 }
 
 # ── JWT-настройки (djangorestframework-simplejwt) ─────────────────────────
 SIMPLE_JWT = {
-    # Время жизни access-токена — 60 минут
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    # Время жизни refresh-токена — 7 дней
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    # Генерировать новый refresh при обновлении
-    "ROTATE_REFRESH_TOKENS": True,
-    # Инвалидировать старый refresh после обновления
-    "BLACKLIST_AFTER_ROTATION": True,
+    # Время жизни access-токена — 14 дней
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=14),
+    # Время жизни refresh-токена — 90 дней
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
+    # Параллельные сессии: не вращаем и не блэклистим токены при обновлении
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
     # Алгоритм подписи
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,

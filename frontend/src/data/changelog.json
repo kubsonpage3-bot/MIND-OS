@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.17",
+    "changes": [
+      { "type": "feature", "text": "Enabled multi-device concurrent sessions: PC and Mobile can now remain logged in simultaneously without invalidating each other's tokens." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.16",
     "changes": [
       { "type": "fix", "text": "Unified authentication backend to Render database: removed local SQLite fallback and enabled seamless login using either Username or Email." }
