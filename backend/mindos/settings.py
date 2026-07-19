@@ -59,7 +59,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # CsrfViewMiddleware убран: API использует JWT (Bearer токены),
+    # CSRF защита актуальна только для сессионной/cookie аутентификации.
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -165,8 +166,8 @@ CSRF_TRUSTED_ORIGINS = [
     "capacitor://localhost",
 ]
 
-# CSRF_COOKIE_HTTPONLY protects against XSS extracting the CSRF token
-CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_HTTPONLY removed: API is JWT-only, CSRF middleware is disabled.
+# HttpOnly on CSRF cookie would break JS POST requests even if middleware were re-enabled.
 
 CORS_ALLOW_METHODS = [
     "DELETE",
