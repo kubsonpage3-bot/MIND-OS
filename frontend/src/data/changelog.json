@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.20",
+    "changes": [
+      { "type": "fix", "text": "Simplified the Character Titles modal by removing category tabs, showing only unlocked titles, and updating layout for better name readability on mobile devices." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.19",
     "changes": [
       { "type": "fix", "text": "Fixed mobile login — app was sending requests to the wrong server URL, causing 'account not found' errors despite correct credentials." }
