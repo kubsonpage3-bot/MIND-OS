@@ -133,9 +133,7 @@ def test_active_allies_validation_and_representation(api_client, user, profile):
     profile_url = reverse("user-profile")
 
     # 1. Try setting active_allies with unrecruited ally
-    resp = api_client.patch(
-        profile_url, {"active_allies": ["kira"]}, format="json"
-    )
+    resp = api_client.patch(profile_url, {"active_allies": ["kira"]}, format="json")
     assert resp.status_code == 400
     assert "Cannot activate unrecruited allies" in resp.data[0]
 
@@ -143,9 +141,7 @@ def test_active_allies_validation_and_representation(api_client, user, profile):
     RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
 
     # 3. Try setting active_allies with recruited ally (should succeed)
-    resp = api_client.patch(
-        profile_url, {"active_allies": ["kira"]}, format="json"
-    )
+    resp = api_client.patch(profile_url, {"active_allies": ["kira"]}, format="json")
     assert resp.status_code == 200
     assert resp.data["active_allies"] == ["kira"]
 
@@ -162,3 +158,40 @@ def test_active_allies_validation_and_representation(api_client, user, profile):
     profile.refresh_from_db()
     assert profile.active_allies == ["kira"]
 
+
+@pytest.mark.django_db
+def test_profile_serializer_hp_boost(api_client, user, profile):
+    from api.models import Item, InventoryItem
+
+    # Authenticate
+    api_client.force_authenticate(user=user)
+
+    # Create item with hp_boost
+    item = Item.objects.create(
+        code="hp_booster",
+        name="HP Booster Item",
+        item_type="equipment",
+        cost=100,
+        hp_boost=20,
+    )
+
+    # Equip the item
+    InventoryItem.objects.create(
+        user_profile=profile,
+        item=item,
+        is_equipped=True,
+    )
+
+    # Clear cached property
+    if "total_stats" in profile.__dict__:
+        del profile.__dict__["total_stats"]
+    profile.refresh_from_db()
+
+    # Fetch profile via api
+    profile_url = reverse("user-profile")
+    resp = api_client.get(profile_url)
+    assert resp.status_code == 200
+
+    # The max HP returned by the API should be 120 (100 base + 20 boost)
+    assert resp.data["hp_max"] == 120
+    assert resp.data["max_hp"] == 120

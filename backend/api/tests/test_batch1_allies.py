@@ -21,6 +21,9 @@ def test_user_and_profile():
     # Use unique username to avoid conflicts
     user, _ = User.objects.get_or_create(username="test_allies_batch1_user")
     profile = user.profile
+    profile.level = 1
+    profile.xp = 0
+    profile.xp_to_next_level = 100
     profile.gold = 1000
     profile.rank_xp = 0
     profile.hp = 100

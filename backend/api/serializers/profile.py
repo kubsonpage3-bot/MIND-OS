@@ -127,7 +127,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
 
     def get_max_hp(self, obj) -> int:
-        return obj.max_hp
+        return obj.total_stats.get("hp_max", obj.max_hp)
 
     def get_rank_info(self, obj):
         from api.services.profile_service import get_rank_info
@@ -135,7 +135,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return get_rank_info(obj)
 
     def get_hp_max(self, obj) -> int:
-        return obj.max_hp
+        return obj.total_stats.get("hp_max", obj.max_hp)
 
     def get_mana_max(self, obj) -> int:
         return obj.total_stats.get("mana_max", obj.max_mana)

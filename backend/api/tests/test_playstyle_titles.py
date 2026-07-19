@@ -45,3 +45,19 @@ def test_equip_title(playstyle_test_user):
     info = get_user_playstyle_titles(profile)
     assert info["active_title"]["id"] == "marathoner"
     assert info["active_title"]["is_equipped"] is True
+
+
+@pytest.mark.django_db
+def test_class_title_unlocks_with_lowercase_class_name(playstyle_test_user):
+    user, profile, stats = playstyle_test_user
+    # Set lowercase class name
+    profile.character_class = "ascetic"
+    profile.save()
+
+    # Set total_tasks_completed to 10 on UserStats
+    stats.total_tasks_completed = 10
+    stats.save()
+
+    info = get_user_playstyle_titles(profile)
+    unlocked_ids = [t["id"] for t in info["titles"] if t["unlocked"]]
+    assert "ascetic_scholar" in unlocked_ids

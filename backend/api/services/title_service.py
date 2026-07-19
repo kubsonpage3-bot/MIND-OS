@@ -553,7 +553,9 @@ def _evaluate_title_unlock(
 
     if title_id == "bookworm":
         weekly_xp = profile.weekly_xp or 0
-        is_ling = profile.character_class == "Linguist" or (profile.gc >= 110)
+        is_ling = str(profile.character_class).lower().strip() == "linguist" or (
+            profile.gc >= 110
+        )
         val = weekly_xp if is_ling else min(weekly_xp, 100)
         return val >= 100, min(100, (val / 100) * 100), f"{val} / 100 Gc XP"
 
@@ -563,7 +565,9 @@ def _evaluate_title_unlock(
 
     if title_id == "architect_mind":
         weekly_xp = profile.weekly_xp or 0
-        is_arch = profile.character_class == "Architect" or (profile.gf >= 110)
+        is_arch = str(profile.character_class).lower().strip() == "architect" or (
+            profile.gf >= 110
+        )
         val = weekly_xp if is_arch else min(weekly_xp, 100)
         return val >= 100, min(100, (val / 100) * 100), f"{val} / 100 Gf XP"
 
@@ -576,7 +580,7 @@ def _evaluate_title_unlock(
         return val >= 115, min(100, ((val - 100) / 15) * 100), f"{val:.1f} / 115 Vm"
 
     if title_id == "ascetic_scholar":
-        is_asc = profile.character_class == "Ascetic"
+        is_asc = str(profile.character_class).lower().strip() == "ascetic"
         count = total_tasks if is_asc else 0
         return (
             is_asc and count >= 10,
@@ -585,7 +589,7 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "linguist_sovereign":
-        is_ling = profile.character_class == "Linguist"
+        is_ling = str(profile.character_class).lower().strip() == "linguist"
         count = total_tasks if is_ling else 0
         return (
             is_ling and count >= 25,
@@ -594,7 +598,7 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "warlord_guard":
-        is_war = profile.character_class == "Warlord"
+        is_war = str(profile.character_class).lower().strip() == "warlord"
         count = boss_damage if is_war else 0
         return is_war and count >= 1, (100 if count >= 1 else 0), "Warlord attacks"
 
@@ -827,8 +831,8 @@ def _get_user_task_stats(user) -> Dict[str, int]:
     try:
         from api.models import Task
 
-        completed_tasks = Task.objects.filter(user=user, completed=True).values_list(
-            "completed_at", flat=True
+        completed_tasks = Task.objects.filter(user=user, is_completed=True).values_list(
+            "last_completed_at", flat=True
         )
 
         night_count = 0

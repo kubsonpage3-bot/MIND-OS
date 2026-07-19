@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.24",
+    "changes": [
+      { "type": "fix", "text": "Fixed a bug where max HP from equipped gear was ignored in the UI, and resolved an issue where class-specific playstyle titles failed to unlock due to case-sensitivity check conflicts." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.23",
     "changes": [
       { "type": "feature", "text": "Overhauled the Party system: added class-based pixel art member portraits with theme-contrast borders, Owner roles with automatic transfer on leave, Owner-exclusive member kicking, and timezone-safe daily streak decay." }
