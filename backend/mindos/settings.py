@@ -313,6 +313,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
 # Only enable these if you have HTTPS (you do — Render provides it)
+# Render terminates SSL at the proxy and forwards plain HTTP to Gunicorn.
+# SECURE_PROXY_SSL_HEADER tells Django to trust the X-Forwarded-Proto header
+# so it knows the original request was HTTPS — fixes 403/redirect loops on Render.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG

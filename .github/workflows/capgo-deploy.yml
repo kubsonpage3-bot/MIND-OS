@@ -25,10 +25,7 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      - name: Capgo Deploy
-        uses: capgo/capgo-action@v1
-        with:
-          token: ${{ secrets.CAPGO_TOKEN }}
-          app_id: 'com.mindos.app'
-          channel: 'production'
-          folder: 'frontend/dist'
+      - name: Deploy to Capgo
+        run: npx @capgo/cli bundle upload --channel production --path frontend/dist
+        env:
+          CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
