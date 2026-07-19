@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -44,7 +45,7 @@ export default function TitleSelectorModal({ profile, onClose }) {
   // Only display unlocked titles
   const unlockedTitles = titles.filter((title) => title.unlocked);
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-hidden">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -176,4 +177,6 @@ export default function TitleSelectorModal({ profile, onClose }) {
       </motion.div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
 }
