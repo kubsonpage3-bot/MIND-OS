@@ -7,6 +7,14 @@ import TitleSelectorModal from "@/components/mindos/TitleSelectorModal";
 
 const XP_PER_LEVEL = 500;
 
+const RARITY_STYLES = {
+  common: { color: "#9CA3AF", glowStrength: "10px", glowOpacity: "30", borderOpacity: "60", bgOpacity: "10" },
+  uncommon: { color: "#4ADE80", glowStrength: "15px", glowOpacity: "40", borderOpacity: "70", bgOpacity: "15" },
+  rare: { color: "#60A5FA", glowStrength: "20px", glowOpacity: "50", borderOpacity: "80", bgOpacity: "15" },
+  epic: { color: "#A78BFA", glowStrength: "25px", glowOpacity: "60", borderOpacity: "90", bgOpacity: "20" },
+  legendary: { color: "#FBBF24", glowStrength: "35px", glowOpacity: "80", borderOpacity: "ff", bgOpacity: "25" }
+};
+
 export default function StatsPanel({ profile, logs }) {
   const { t } = useTranslation();
   const [showTitleModal, setShowTitleModal] = useState(false);
@@ -32,14 +40,28 @@ export default function StatsPanel({ profile, logs }) {
   const playstyleInfo = profile?.playstyle_info || {};
   const activeTitle = playstyleInfo.active_title || {
     id: "awakened_one",
-    name: "Пробуждённый",
+    name: "Awakened One",
     icon: "✨",
     color: "#a855f7",
   };
   const unlockedCount = playstyleInfo.unlocked_count || 1;
   const totalCount = playstyleInfo.total_count || 52;
 
-  const titleColor = activeTitle.color || "#a855f7";
+  // Determine rarity tier styling based on active title's priority
+  const rarityStyle = useMemo(() => {
+    const priority = activeTitle.priority || 0;
+    let rarity = "common";
+    if (activeTitle.id === "awakened_one") rarity = "rare"; // Awakened One is rare/special
+    else if (priority >= 120) rarity = "legendary";
+    else if (priority >= 95) rarity = "epic";
+    else if (priority >= 75) rarity = "rare";
+    else if (priority >= 50) rarity = "uncommon";
+    
+    return RARITY_STYLES[rarity];
+  }, [activeTitle]);
+
+  const rColor = rarityStyle.color;
+  const isLegendary = activeTitle.priority >= 120;
 
   return (
     <>
@@ -48,42 +70,52 @@ export default function StatsPanel({ profile, logs }) {
 
         {/* Weekly XP */}
         <div
-          className="rounded-xl p-3 text-center flex flex-col items-center gap-1"
+          className="rounded-xl p-3 text-center flex flex-col items-center justify-between min-h-[90px] gap-1"
           style={{ background: "#7B61FF10", border: "1.5px solid #7B61FF30" }}
         >
-          <span className="text-xl">⭐</span>
+          <span className="text-xl animate-bounce">⭐</span>
           <div style={{ fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: "#7B61FF" }}>{weeklyXP}</div>
           <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "#878190", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Weekly XP
           </div>
-          <div className="w-full h-1.5 rounded-full overflow-hidden mt-1" style={{ background: "#f0eef8" }}>
+          <div className="w-full h-1.5 rounded-full overflow-hidden mt-1" style={{ background: "#f0eef815" }}>
             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, background: "#7B61FF" }} />
           </div>
         </div>
 
         {/* Cogn. ROI */}
         <div
-          className="rounded-xl p-3 text-center flex flex-col items-center gap-1"
+          className="rounded-xl p-3 text-center flex flex-col items-center justify-between min-h-[90px] gap-1"
           style={{ background: `${roiColor}10`, border: `1.5px solid ${roiColor}30` }}
         >
           <span className="text-xl">📈</span>
-          <div style={{ fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: roiColor }}>{cognitiveROI != null ? cognitiveROI : "—"}</div>
+          {cognitiveROI != null ? (
+            <div style={{ fontFamily: "'PixeloidSans'", fontSize: "1.4rem", color: roiColor }}>{cognitiveROI}%</div>
+          ) : (
+            <div className="text-[10px] font-mono text-muted-foreground/60 uppercase font-semibold leading-tight my-1">
+              No data yet
+            </div>
+          )}
           <div style={{ fontFamily: "'Nunito'", fontSize: 10, fontWeight: 700, color: "#878190", textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Cogn. ROI
           </div>
         </div>
 
-        {/* Playstyle Title Card (Interactive) */}
+        {/* Playstyle Title Card (Interactive Rarity Border & Glow) */}
         <button
           onClick={() => setShowTitleModal(true)}
-          className="rounded-xl p-3 text-center flex flex-col items-center justify-between gap-1 transition-all hover:scale-[1.02] cursor-pointer group relative overflow-hidden"
-          style={{ background: `${titleColor}15`, border: `1.5px solid ${titleColor}40` }}
+          className={`rounded-xl p-3 text-center flex flex-col items-center justify-between min-h-[90px] gap-1 transition-all hover:scale-[1.02] cursor-pointer group relative overflow-hidden ${isLegendary ? 'legendary-shimmer-effect' : ''}`}
+          style={{
+            borderColor: `${rColor}${rarityStyle.borderOpacity}`,
+            background: `${rColor}${rarityStyle.bgOpacity}`,
+            boxShadow: `0 0 ${rarityStyle.glowStrength} ${rColor}${rarityStyle.glowOpacity}, inset 0 0 12px ${rColor}${rarityStyle.bgOpacity}`,
+          }}
         >
           <span className="text-xl group-hover:scale-110 transition-transform">{activeTitle.icon || "👑"}</span>
           
           <div
-            className="truncate max-w-full px-1 font-bold"
-            style={{ fontFamily: "'Nunito'", fontSize: "0.85rem", color: titleColor }}
+            className="truncate max-w-full px-1 font-bold leading-tight"
+            style={{ fontFamily: "'Nunito'", fontSize: "0.85rem", color: rColor }}
           >
             {t(`titles.${activeTitle.id}.name`, activeTitle.name)}
           </div>
@@ -92,7 +124,7 @@ export default function StatsPanel({ profile, logs }) {
             TITLE
           </div>
 
-          <div className="text-[9px] font-mono text-purple-400/80 font-semibold mt-0.5">
+          <div className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5 z-10">
             🏆 {unlockedCount}/{totalCount}
           </div>
         </button>

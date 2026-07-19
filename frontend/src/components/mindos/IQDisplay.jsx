@@ -22,31 +22,7 @@ function OrbitParticle({ angle, radius, color, size, delay }) {
   );
 }
 
-function GlowRing({ progress, color, size, strokeWidth = 4 }) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const safeProgress = typeof progress === "number" && !isNaN(progress) ? progress : 0;
-  const dash = safeProgress * circumference;
-
-  return (
-    <svg width={size} height={size} className="absolute inset-0 -rotate-90" style={{ top: 0, left: 0 }}>
-      {/* Track */}
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color + "22"} strokeWidth={strokeWidth} />
-      {/* Progress */}
-      <motion.circle
-        cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke={color} strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        initial={{ strokeDashoffset: circumference }}
-        animate={{ strokeDashoffset: circumference - (isNaN(dash) ? 0 : dash) }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        style={{ filter: `drop-shadow(0 0 6px ${color})` }}
-      />
-    </svg>
-  );
-}
-
+// Glow ring with gradient segments for Gf, Gc, Ps, Vm
 export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeiling, vmCeiling }) {
   const safeGf = gf || 100.0;
   const safeGc = gc || 100.0;
@@ -63,7 +39,6 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
   const level = getLevelTitle(iq);
 
   const [displayIQ, setDisplayIQ] = useState(iq);
-  const [prevIQ, setPrevIQ] = useState(iq);
   const [gained, setGained] = useState(null);
 
   useEffect(() => {
@@ -74,7 +49,8 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
     if (end > start) {
       const diff = (end - start).toFixed(2);
       setGained(`+${diff}`);
-      setTimeout(() => setGained(null), 1800);
+      const timer = setTimeout(() => setGained(null), 1800);
+      return () => clearTimeout(timer);
     }
 
     const duration = 800;
@@ -87,11 +63,20 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-    setPrevIQ(iq);
   }, [iq]);
 
-  // Progress toward max IQ
-  const progress = Math.min(1, (iq - 80) / (potentialIQ - 80 || 1));
+  // Calculate percentage of progress from 80 to ceiling for each metric
+  const gfPct = Math.max(0, Math.min(1, (safeGf - 80) / (safeGfCeiling - 80 || 1)));
+  const gcPct = Math.max(0, Math.min(1, (safeGc - 80) / (safeGcCeiling - 80 || 1)));
+  const psPct = Math.max(0, Math.min(1, (safePs - 80) / (safePsCeiling - 80 || 1)));
+  const vmPct = Math.max(0, Math.min(1, (safeVm - 80) / (safeVmCeiling - 80 || 1)));
+
+  const size = 144;
+  const strokeWidth = 5;
+  const radius = (size - strokeWidth) / 2; // (144 - 5) / 2 = 69.5
+  const circumference = 2 * Math.PI * radius; // ~436.68
+  const quadLength = circumference / 4; // ~109.17
+  const segmentLength = quadLength - 2; // small gap between quadrants
 
   const particles = [
     { angle: 0, radius: 66, color: METRIC_COLORS.gf, size: 5, delay: 0 },
@@ -108,8 +93,26 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
     <div className="flex flex-col items-center justify-center py-4 px-2">
       {/* IQ circle */}
       <div className="relative flex items-center justify-center" style={{ width: 144, height: 144 }}>
-        {/* Glow rings */}
-        <GlowRing progress={progress} color={level.color} size={144} strokeWidth={3} />
+        {/* Pulsing glow ring container (achievement style) */}
+        <motion.div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: 136,
+            height: 136,
+            border: `2px solid ${level.color}33`,
+            boxShadow: `0 0 25px ${level.color}30, inset 0 0 15px ${level.color}15`,
+          }}
+          animate={{
+            scale: [1, 1.03, 1],
+            opacity: [0.6, 0.9, 0.6],
+            boxShadow: [
+              `0 0 20px ${level.color}20, inset 0 0 10px ${level.color}10`,
+              `0 0 35px ${level.color}50, inset 0 0 20px ${level.color}25`,
+              `0 0 20px ${level.color}20, inset 0 0 10px ${level.color}10`,
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
 
         {/* Pulsing bg */}
         <motion.div
@@ -118,6 +121,84 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
           animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
         />
+
+        {/* Gradient Segment Ring SVG */}
+        <svg width={size} height={size} className="absolute inset-0 z-0">
+          <defs>
+            <linearGradient id="gf-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#1d4ed8" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#3b82f6" />
+            </linearGradient>
+            <linearGradient id="gc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#047857" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#22c55e" />
+            </linearGradient>
+            <linearGradient id="ps-grad" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#b45309" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#f59e0b" />
+            </linearGradient>
+            <linearGradient id="vm-grad" x1="100%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#7e22ce" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#a855f7" />
+            </linearGradient>
+          </defs>
+
+          {/* Underlay / Track for each segment */}
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={strokeWidth} />
+          
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#3b82f610" strokeWidth={strokeWidth} strokeDasharray={`${segmentLength} ${circumference - segmentLength}`} transform="rotate(-89 72 72)" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#22c55e10" strokeWidth={strokeWidth} strokeDasharray={`${segmentLength} ${circumference - segmentLength}`} transform="rotate(1 72 72)" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f59e0b10" strokeWidth={strokeWidth} strokeDasharray={`${segmentLength} ${circumference - segmentLength}`} transform="rotate(91 72 72)" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#a855f710" strokeWidth={strokeWidth} strokeDasharray={`${segmentLength} ${circumference - segmentLength}`} transform="rotate(181 72 72)" />
+
+          {/* Gf Segment (Top-Right: -90deg to 0deg) */}
+          <motion.circle
+            cx={size / 2} cy={size / 2} r={radius}
+            fill="none" stroke="url(#gf-grad)" strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+            initial={{ strokeDashoffset: segmentLength }}
+            animate={{ strokeDashoffset: segmentLength - (gfPct * segmentLength) }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            transform="rotate(-89 72 72)"
+          />
+
+          {/* Gc Segment (Bottom-Right: 0deg to 90deg) */}
+          <motion.circle
+            cx={size / 2} cy={size / 2} r={radius}
+            fill="none" stroke="url(#gc-grad)" strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+            initial={{ strokeDashoffset: segmentLength }}
+            animate={{ strokeDashoffset: segmentLength - (gcPct * segmentLength) }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            transform="rotate(1 72 72)"
+          />
+
+          {/* Ps Segment (Bottom-Left: 90deg to 180deg) */}
+          <motion.circle
+            cx={size / 2} cy={size / 2} r={radius}
+            fill="none" stroke="url(#ps-grad)" strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+            initial={{ strokeDashoffset: segmentLength }}
+            animate={{ strokeDashoffset: segmentLength - (psPct * segmentLength) }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            transform="rotate(91 72 72)"
+          />
+
+          {/* Vm Segment (Top-Left: 180deg to 270deg) */}
+          <motion.circle
+            cx={size / 2} cy={size / 2} r={radius}
+            fill="none" stroke="url(#vm-grad)" strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+            initial={{ strokeDashoffset: segmentLength }}
+            animate={{ strokeDashoffset: segmentLength - (vmPct * segmentLength) }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            transform="rotate(181 72 72)"
+          />
+        </svg>
 
         {/* Orbit particles */}
         {particles.map((p, i) => <OrbitParticle key={i} {...p} />)}
@@ -164,7 +245,7 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
         className="mt-3 text-center"
       >
         <div
-          className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
+          className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full animate-pulse"
           style={{
             fontFamily: "'Nunito'",
             color: level.color,
@@ -180,21 +261,8 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
       {/* Potential IQ */}
       <div className="mt-2 text-center">
         <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "#878190" }}>
-          Potential: <span style={{ color: "#2b2738", fontWeight: 700 }}>{potentialIQ.toFixed(1)}</span>
+          Potential: <span style={{ color: "#c4c2cc", fontWeight: 700 }}>{potentialIQ.toFixed(1)}</span>
         </span>
-      </div>
-
-      {/* Mini metric dots */}
-      <div className="flex gap-1.5 mt-2">
-        {Object.entries(METRIC_COLORS).map(([k, c]) => (
-          <motion.div
-            key={k}
-            className="w-2 h-2 rounded-full"
-            style={{ background: c }}
-            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Infinity, delay: Object.keys(METRIC_COLORS).indexOf(k) * 0.4 }}
-          />
-        ))}
       </div>
     </div>
   );

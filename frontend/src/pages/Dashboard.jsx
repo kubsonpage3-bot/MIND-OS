@@ -47,7 +47,7 @@ import OfflineSummaryModal from "@/components/mindos/OfflineSummaryModal";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 // Removed getRankFromXP
-import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings } from "lucide-react";
+import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, Sparkles } from "lucide-react";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
 
@@ -777,11 +777,36 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           <>
             <TabGuideModal guideId="dashboard" profile={profile} />
             {profile && (
-              <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
-                <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+              <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm relative">
+                {/* Background radial gradient emanating from the center/top */}
+                <div 
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(circle at 50% 30%, var(--habit-purple) 0%, transparent 70%)",
+                    opacity: 0.06
+                  }}
+                />
+
+                {/* Floating ambient sparkles */}
+                <motion.div
+                  className="absolute top-4 right-8 text-yellow-500/20 pointer-events-none z-10"
+                  animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.6, 0.3], rotate: [0, 90, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Sparkles className="w-4 h-4" />
+                </motion.div>
+                <motion.div
+                  className="absolute bottom-16 left-6 text-purple-500/15 pointer-events-none z-10"
+                  animate={{ scale: [1.2, 0.8, 1.2], opacity: [0.2, 0.5, 0.2], rotate: [0, -90, 0] }}
+                  transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                </motion.div>
+
+                <div className="flex items-center gap-2 px-4 pt-4 pb-2 relative z-10">
                   <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"📊 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
                 </div>
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-4 relative z-10">
                   <div className="flex flex-col md:flex-row gap-4">
                     <div className="shrink-0">
                       <IQDisplay gf={profile.gf} gc={profile.gc} ps={profile.ps} vm={profile.vm} gfCeiling={profile.gf_ceiling} gcCeiling={profile.gc_ceiling} psCeiling={profile.ps_ceiling} vmCeiling={profile.vm_ceiling} />

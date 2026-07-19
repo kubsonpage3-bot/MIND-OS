@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.22",
+    "changes": [
+      { "type": "feature", "text": "Polished the visual design of the Cognitive Metrics card on the Dashboard: implemented a gradient circular IQ gauge, custom metric progress bar gradients, ceiling ticks, and applied the rarity-tier styling system to the equipped playstyle title card." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.21",
     "changes": [
       { "type": "fix", "text": "Fixed custom task emoji loading bug; streamlined activity button creation with smart category mapping and improved mobile touch targets." }
