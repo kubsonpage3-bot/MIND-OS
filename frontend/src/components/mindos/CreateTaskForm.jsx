@@ -9,6 +9,19 @@ import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 const CATEGORIES = ["STEM", "Languages", "Humanities & Arts", "Health & Fitness", "Rest & Recovery", "Mindfulness", "Social & Communication", "Reading & Writing", "Work & Career", "Other"];
 
+const CATEGORY_TO_MASTERY = {
+  "STEM": "sciences",
+  "Languages": "languages",
+  "Humanities & Arts": "humanities",
+  "Health & Fitness": "body",
+  "Rest & Recovery": "spirit",
+  "Mindfulness": "spirit",
+  "Social & Communication": "humanities",
+  "Reading & Writing": "humanities",
+  "Work & Career": "sciences",
+  "Other": "spirit"
+};
+
 const TASK_TYPES = [
   { id: "habit", label: "Habit", desc: "Repeatable ± action" },
   { id: "daily", label: "Daily", desc: "Reset every day" },
@@ -23,26 +36,28 @@ const PRIORITIES = [
   { id: "critical", label: "Critical", color: "#a855f7" },
 ];
 
+const getInitialForm = (isButton) => ({
+  name: "",
+  icon: "⭐",
+  type: isButton ? "button" : "daily",
+  category: "Other",
+  masteryCategory: isButton ? "spirit" : "",
+  priority: "medium",
+  notes: "",
+  dueDate: "",
+  xpReward: 10,
+  goldReward: 8,
+  bossDamage: 15,
+  hpDamageOnMiss: 20,
+  defaultHours: 1,
+  defaultFocus: 7,
+});
+
 export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    icon: "⭐",
-    type: hideTypeSelector ? "button" : "daily",
-    category: "Other",
-    masteryCategory: "",
-    priority: "medium",
-    notes: "",
-    dueDate: "",
-    xpReward: 10,
-    goldReward: 8,
-    bossDamage: 15,
-    hpDamageOnMiss: 20,
-    defaultHours: 1,
-    defaultFocus: 7,
-  });
+  const [form, setForm] = useState(() => getInitialForm(hideTypeSelector));
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
@@ -75,24 +90,50 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
       djangoApi.analytics.logEvent("task_created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onCreated?.();
-      setForm({ name: "", icon: "⭐", type: hideTypeSelector ? "button" : "daily", category: "Math", masteryCategory: "", priority: "medium", notes: "", dueDate: "", xpReward: 10, goldReward: 8, bossDamage: 15, hpDamageOnMiss: 20, defaultHours: 1, defaultFocus: 7 });
+      setForm(getInitialForm(hideTypeSelector));
     } catch (e) {
       console.error("Failed to create custom task on backend:", e);
     }
+  };
+
+  const handleCategorySelect = (cat) => {
+    setForm(prev => {
+      const next = { ...prev, category: cat };
+      if (prev.type === "button" && CATEGORY_TO_MASTERY[cat]) {
+        next.masteryCategory = CATEGORY_TO_MASTERY[cat];
+      }
+      return next;
+    });
+  };
+
+  const handleTypeSelect = (typeId) => {
+    setForm(prev => {
+      const next = { ...prev, type: typeId };
+      if (typeId === "button" && prev.category && CATEGORY_TO_MASTERY[prev.category]) {
+        next.masteryCategory = CATEGORY_TO_MASTERY[prev.category];
+      }
+      return next;
+    });
   };
 
   const NumStepper = ({ label, value, onChange, min = 0, max = 9999, step = 1, color = "#3b82f6" }) => (
     <div className="space-y-1">
       <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{label}</div>
       <div className="flex items-center gap-2">
-        <button onClick={() => onChange(Math.max(min, value - step))}
-          className="w-6 h-6 rounded border border-border flex items-center justify-center hover:bg-accent text-muted-foreground">
-          <Minus className="w-3 h-3" />
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(min, value - step))}
+          className="w-10 h-10 rounded-lg border border-border flex items-center justify-center hover:bg-accent text-muted-foreground transition-colors cursor-pointer shrink-0"
+        >
+          <Minus className="w-4 h-4" />
         </button>
-        <div className="flex-1 text-center font-mono font-bold text-sm" style={{ color }}>{value}</div>
-        <button onClick={() => onChange(Math.min(max, value + step))}
-          className="w-6 h-6 rounded border border-border flex items-center justify-center hover:bg-accent text-muted-foreground">
-          <Plus className="w-3 h-3" />
+        <div className="flex-1 text-center font-mono font-bold text-sm sm:text-base" style={{ color }}>{value}</div>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(max, value + step))}
+          className="w-10 h-10 rounded-lg border border-border flex items-center justify-center hover:bg-accent text-muted-foreground transition-colors cursor-pointer shrink-0"
+        >
+          <Plus className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -101,11 +142,15 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
   return (
     <div className="space-y-5">
       {hideTypeSelector ? (
-        <div className="flex items-center gap-2 p-2.5 rounded-xl" style={{ background: 'var(--habit-purple-light)', border: '1px solid var(--habit-purple)' }}>
-          <span className="text-sm">🔘</span>
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-purple-500/30 bg-purple-500/5">
+          <span className="text-lg">🔘</span>
           <div>
-            <div className="text-[11px] font-mono font-bold" style={{ color: 'var(--habit-purple)' }}>Training Activity Button</div>
-            <div className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>Appears in the Activities grid — tap to log a session instantly</div>
+            <div className="text-xs font-mono font-bold text-purple-300">
+              {t("task_form.types.button", "Training Activity Button")}
+            </div>
+            <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+              {t("task_form.types.button_desc_short", "Appears in the Activities grid — tap to log a session instantly")}
+            </div>
           </div>
         </div>
       ) : (
@@ -117,8 +162,9 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.task_name", "Task Name")}</div>
         <div className="flex gap-2 relative">
           <button
+            type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="w-10 h-10 shrink-0 rounded-md border border-border/60 bg-muted/20 flex items-center justify-center text-lg hover:bg-muted/40 transition-colors"
+            className="w-11 h-11 shrink-0 rounded-md border border-border/60 bg-muted/20 flex items-center justify-center text-xl hover:bg-muted/40 transition-colors cursor-pointer"
           >
             {form.icon}
           </button>
@@ -127,7 +173,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
             value={form.name}
             onChange={e => set("name", e.target.value)}
             placeholder={t("task_form.placeholder_name", "Enter task name...")}
-            className="font-mono text-sm bg-muted/20 border-border/60 flex-1 h-10"
+            className="font-mono text-sm bg-muted/20 border-border/60 flex-1 h-11"
           />
         </div>
         
@@ -154,8 +200,8 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
           <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.type", "Type")}</div>
           <div className="grid grid-cols-2 gap-2">
             {TASK_TYPES.map(tType => (
-              <button key={tType.id} onClick={() => set("type", tType.id)}
-                className="p-2.5 rounded-lg border text-center transition-all"
+              <button key={tType.id} type="button" onClick={() => handleTypeSelect(tType.id)}
+                className="p-2.5 rounded-lg border text-center transition-all cursor-pointer"
                 style={{
                   borderColor: form.type === tType.id ? "var(--habit-purple)" : "var(--habit-border)",
                   background: form.type === tType.id ? "var(--habit-purple-light)" : "transparent",
@@ -173,8 +219,8 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.category", "Category")}</div>
         <div className="flex flex-wrap gap-1.5">
           {CATEGORIES.map(c => (
-            <button key={c} onClick={() => set("category", c)}
-              className="px-2.5 py-1 text-[10px] font-mono rounded-lg border transition-all"
+            <button key={c} type="button" onClick={() => handleCategorySelect(c)}
+              className="px-2.5 py-1.5 text-[10px] font-mono rounded-lg border transition-all cursor-pointer"
               style={{
                 borderColor: form.category === c ? "var(--habit-purple)" : "var(--habit-border)",
                 color: form.category === c ? "var(--habit-purple)" : "var(--habit-dim)",
@@ -202,7 +248,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
               { id: "humanities", label: "Humanities", icon: "📚", color: "#f0c040" },
             ].map(m => (
               <button key={m.id} type="button" onClick={() => set("masteryCategory", m.id)}
-                className="p-1.5 rounded-lg border text-center flex flex-col items-center justify-center transition-all"
+                className="p-1.5 rounded-lg border text-center flex flex-col items-center justify-center transition-all cursor-pointer"
                 style={{
                   borderColor: form.masteryCategory === m.id ? m.color : "var(--habit-border)",
                   background: form.masteryCategory === m.id ? `${m.color}20` : "transparent",
@@ -222,8 +268,8 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.priority", "Priority")}</div>
         <div className="grid grid-cols-4 gap-2">
           {PRIORITIES.map(p => (
-            <button key={p.id} onClick={() => set("priority", p.id)}
-              className="py-1.5 text-[10px] font-mono font-bold rounded-lg border transition-all"
+            <button key={p.id} type="button" onClick={() => set("priority", p.id)}
+              className="py-1.5 text-[10px] font-mono font-bold rounded-lg border transition-all cursor-pointer"
               style={{
                 borderColor: form.priority === p.id ? p.color : "var(--habit-border)",
                 color: form.priority === p.id ? p.color : "var(--habit-dim)",
@@ -235,25 +281,36 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         </div>
       </div>
 
-      {/* Rewards */}
-      <div className="rounded-xl border border-border/40 bg-muted/10 p-4 space-y-4">
-        <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.completion_rewards", "Completion Rewards")}</div>
-        <div className="grid grid-cols-3 gap-4">
-          <NumStepper label={t("task_form.xp_reward", "XP Reward")} value={form.xpReward} onChange={v => set("xpReward", v)} min={1} step={5} color="#3b82f6" />
-          <NumStepper label={t("task_form.gold_reward", "Gold Reward")} value={form.goldReward} onChange={v => set("goldReward", v)} min={1} step={5} color="#f0c040" />
-          <NumStepper label={t("task_form.boss_dmg", "Boss DMG")} value={form.bossDamage} onChange={v => set("bossDamage", v)} min={1} step={5} color="#ef4444" />
-        </div>
-      </div>
-
-      {/* Button: default hours + focus */}
-      {form.type === "button" && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4">
-          <div className="text-[10px] font-mono text-primary/60 uppercase tracking-wider">{t("task_form.session_defaults", "Session Defaults")}</div>
-          <div className="grid grid-cols-2 gap-4">
+      {/* Unified Session Settings (for Buttons) or Rewards Box (for other Tasks) */}
+      {form.type === "button" ? (
+        <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 space-y-4">
+          <div className="text-[10px] font-mono text-purple-400 uppercase tracking-wider">
+            {t("task_form.activity_settings", "Rewards & Session Defaults")}
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <NumStepper label={t("task_form.xp_reward", "XP Reward")} value={form.xpReward} onChange={v => set("xpReward", v)} min={1} step={5} color="#3b82f6" />
+            <NumStepper label={t("task_form.gold_reward", "Gold Reward")} value={form.goldReward} onChange={v => set("goldReward", v)} min={1} step={5} color="#f0c040" />
+            <NumStepper label={t("task_form.boss_dmg", "Boss DMG")} value={form.bossDamage} onChange={v => set("bossDamage", v)} min={1} step={5} color="#ef4444" />
             <NumStepper label={t("task_form.default_hours", "Default Hours")} value={form.defaultHours} onChange={v => set("defaultHours", v)} min={0.5} max={12} step={0.5} color="#3b82f6" />
             <NumStepper label={t("task_form.default_focus", "Default Focus (1-10)")} value={form.defaultFocus} onChange={v => set("defaultFocus", v)} min={1} max={10} step={1} color="#a855f7" />
           </div>
-          <div className="text-[9px] font-mono text-muted-foreground/40">{t("task_form.button_desc", "When you press this button it logs the session with these defaults. You can adjust before confirming.")}</div>
+          
+          <div className="text-[9px] font-mono text-slate-400/80 border-t border-purple-500/10 pt-2 leading-relaxed">
+            {t("task_form.button_desc", "When you press this button it logs the session with these defaults. You can adjust before confirming.")}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/40 bg-muted/10 p-4 space-y-4">
+          <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+            {t("task_form.completion_rewards", "Completion Rewards")}
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4">
+            <NumStepper label={t("task_form.xp_reward", "XP Reward")} value={form.xpReward} onChange={v => set("xpReward", v)} min={1} step={5} color="#3b82f6" />
+            <NumStepper label={t("task_form.gold_reward", "Gold Reward")} value={form.goldReward} onChange={v => set("goldReward", v)} min={1} step={5} color="#f0c040" />
+            <NumStepper label={t("task_form.boss_dmg", "Boss DMG")} value={form.bossDamage} onChange={v => set("bossDamage", v)} min={1} step={5} color="#ef4444" />
+          </div>
         </div>
       )}
 
@@ -287,21 +344,23 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
           <span className="text-blue-400">+{form.xpReward} XP</span>
           <span className="text-yellow-400">+{form.goldReward}G</span>
           <span className="text-red-400">⚔ {form.bossDamage} DMG</span>
-          {form.type !== "todo" && <span className="text-red-600">💔 -{form.hpDamageOnMiss} HP {t("task_form.on_miss", "on miss")}</span>}
+          {form.type !== "todo" && form.type !== "button" && (
+            <span className="text-red-600">💔 -{form.hpDamageOnMiss} HP {t("task_form.on_miss", "on miss")}</span>
+          )}
         </div>
       </div>
 
       <button
         onClick={create}
         disabled={isSubmitDisabled}
-        className="w-full py-3 rounded-xl font-mono font-bold text-sm transition-all"
+        className="w-full py-3.5 rounded-xl font-mono font-bold text-sm transition-all"
         style={{
           background: !isSubmitDisabled ? "var(--habit-purple)" : "var(--habit-bg)",
           color: !isSubmitDisabled ? "white" : "var(--habit-dim)",
           cursor: !isSubmitDisabled ? "pointer" : "not-allowed",
         }}
       >
-        {t("task_form.create_btn", "CREATE TASK")}
+        {form.type === "button" ? t("task_form.create_activity_btn", "CREATE ACTIVITY") : t("task_form.create_btn", "CREATE TASK")}
       </button>
     </div>
   );

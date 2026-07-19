@@ -430,6 +430,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         id: dt.id,
         type: dt.task_type || 'todo',
         name: dt.title || 'Task',
+        icon: dt.icon || '',
         category: dt.category || 'Other',
         difficulty: dt.difficulty || 'medium',
         notes: dt.notes || '',
