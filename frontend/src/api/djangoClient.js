@@ -460,6 +460,11 @@ export const djangoApi = {
         body: JSON.stringify({ invite_code }),
       }),
     leave: () => djangoFetch('/party/leave/', { method: 'POST' }),
+    kick: (userId) =>
+      djangoFetch('/party/kick/', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: userId }),
+      }),
     feed: () => djangoFetch('/party/feed/'),
     react: (eventId, emoji) => djangoFetch(`/party/feed/${eventId}/react/`, {
         method: 'POST',

@@ -1396,6 +1396,12 @@ class PartyMembership(models.Model):
         verbose_name="Party",
     )
     joined_at = models.DateTimeField(auto_now_add=True)
+    role = models.CharField(
+        max_length=10,
+        choices=(("OWNER", "Owner"), ("MEMBER", "Member")),
+        default="MEMBER",
+        verbose_name="Role",
+    )
 
     # Party Enhancements v1
     last_daily_completed_date = models.DateField(null=True, blank=True)

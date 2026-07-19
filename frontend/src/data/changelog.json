@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-19",
+    "version": "1.7.23",
+    "changes": [
+      { "type": "feature", "text": "Overhauled the Party system: added class-based pixel art member portraits with theme-contrast borders, Owner roles with automatic transfer on leave, Owner-exclusive member kicking, and timezone-safe daily streak decay." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
     "version": "1.7.22",
     "changes": [
       { "type": "feature", "text": "Polished the visual design of the Cognitive Metrics card on the Dashboard: implemented a gradient circular IQ gauge, custom metric progress bar gradients, ceiling ticks, and applied the rarity-tier styling system to the equipped playstyle title card." }

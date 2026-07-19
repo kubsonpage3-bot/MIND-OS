@@ -25,6 +25,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     rank_info = serializers.SerializerMethodField()
     max_streak = serializers.SerializerMethodField()
     total_tasks_completed = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -44,6 +45,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "total_tasks_completed",
             "max_streak",
             "weekly_xp",
+            "role",
         )
         read_only_fields = fields
 
@@ -83,6 +85,12 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "ascendant_level": info.get("ascendant_level", 1),
         }
 
+    def get_role(self, obj) -> str:
+        try:
+            return obj.user.party_membership.role
+        except Exception:
+            return "MEMBER"
+
 
 class PartySerializer(serializers.ModelSerializer):
     """
@@ -91,10 +99,23 @@ class PartySerializer(serializers.ModelSerializer):
 
     members = serializers.SerializerMethodField()
     member_count = serializers.SerializerMethodField()
+    created_by = serializers.IntegerField(source="created_by.id", read_only=True)
+    created_by_username = serializers.CharField(
+        source="created_by.username", read_only=True
+    )
 
     class Meta:
         model = Party
-        fields = ("id", "name", "invite_code", "created_at", "member_count", "members")
+        fields = (
+            "id",
+            "name",
+            "invite_code",
+            "created_at",
+            "member_count",
+            "members",
+            "created_by",
+            "created_by_username",
+        )
         read_only_fields = fields
 
     def get_members(self, obj):
@@ -119,7 +140,7 @@ class PartyEventReactionSerializer(serializers.ModelSerializer):
 
 
 class PartyEventSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="member.user.username", read_only=True)
+    username = serializers.SerializerMethodField()
     content = serializers.CharField(source="message", read_only=True)
     reactions = PartyEventReactionSerializer(many=True, read_only=True)
     user_reacted = serializers.SerializerMethodField()
@@ -138,6 +159,11 @@ class PartyEventSerializer(serializers.ModelSerializer):
             "user_reacted",
         )
         read_only_fields = fields
+
+    def get_username(self, obj) -> str:
+        if obj.member and obj.member.user:
+            return obj.member.user.username
+        return obj.metadata.get("username", "Unknown Member")
 
     def get_user_reacted(self, obj):
         request = self.context.get("request")

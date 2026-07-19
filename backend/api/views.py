@@ -2513,6 +2513,37 @@ class PartyMembersView(generics.GenericAPIView):
         return Response(PartySerializer(party).data, status=status.HTTP_200_OK)
 
 
+class PartyKickView(generics.GenericAPIView):
+    """
+    POST /api/party/kick/
+    Body: {"user_id": <id>}
+    Kicks a user from the current user's party. Only the OWNER can do this.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user_id = request.data.get("user_id")
+        if not user_id:
+            return Response(
+                {"error": "user_id is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from api.services.party_service import kick_member
+
+        try:
+            kick_member(request.user, user_id)
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error("Party kick error: %s", str(e), exc_info=True)
+            return Response(
+                {"error": "Internal server error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class MarkGuideSeenView(generics.GenericAPIView):
     """
     POST /api/profile/mark-guide-seen/

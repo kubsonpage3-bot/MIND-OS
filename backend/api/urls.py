@@ -39,6 +39,7 @@ from .views import (
     PartyJoinView,
     PartyLeaveView,
     PartyMembersView,
+    PartyKickView,
     PartyFeedView,
     PartyEventReactView,
     PartyBuffView,
@@ -177,6 +178,7 @@ urlpatterns = [
     path("party/join/", PartyJoinView.as_view(), name="party-join"),
     path("party/leave/", PartyLeaveView.as_view(), name="party-leave"),
     path("party/members/", PartyMembersView.as_view(), name="party-members"),
+    path("party/kick/", PartyKickView.as_view(), name="party-kick"),
     path("party/feed/", PartyFeedView.as_view(), name="party-feed"),
     path(
         "party/feed/<int:event_id>/react/",

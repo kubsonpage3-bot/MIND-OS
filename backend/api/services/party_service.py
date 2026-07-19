@@ -30,7 +30,7 @@ def create_party(user, name: str):
 
         yesterday = timezone.now().date() - datetime.timedelta(days=1)
         PartyMembership.objects.create(
-            user=user, party=party, last_daily_completed_date=yesterday
+            user=user, party=party, last_daily_completed_date=yesterday, role="OWNER"
         )
         logger.info(
             "Party '%s' created by %s [code=%s]", name, user.username, party.invite_code
@@ -65,7 +65,7 @@ def join_party(user, invite_code: str):
 
         yesterday = timezone.now().date() - datetime.timedelta(days=1)
         PartyMembership.objects.create(
-            user=user, party=party, last_daily_completed_date=yesterday
+            user=user, party=party, last_daily_completed_date=yesterday, role="MEMBER"
         )
         logger.info("%s joined party '%s'", user.username, party.name)
         return party
@@ -75,6 +75,7 @@ def leave_party(user) -> None:
     """
     Remove the user from their current party.
     If the party becomes empty after leaving, the party itself is deleted.
+    If the owner leaves, ownership is automatically transferred to the next oldest member.
     Raises GameLogicError if user is not in any party.
     """
     from api.models import PartyMembership
@@ -86,12 +87,86 @@ def leave_party(user) -> None:
             raise GameLogicError("You are not in any party.")
 
         party = membership.party
+        is_owner = membership.role == "OWNER"
         membership.delete()
         logger.info("%s left party '%s'", user.username, party.name)
 
-        if party.memberships.count() == 0:
+        remaining_memberships = party.memberships.all()
+        if remaining_memberships.count() == 0:
             logger.info("Party '%s' is empty — deleting.", party.name)
             party.delete()
+        elif is_owner:
+            next_owner_membership = remaining_memberships.order_by(
+                "joined_at", "id"
+            ).first()
+            if next_owner_membership:
+                next_owner_membership.role = "OWNER"
+                next_owner_membership.save(update_fields=["role"])
+
+                party.created_by = next_owner_membership.user
+                party.save(update_fields=["created_by"])
+
+                logger.info(
+                    "Ownership of party '%s' transferred to %s",
+                    party.name,
+                    next_owner_membership.user.username,
+                )
+
+                from api.models import PartyEvent
+
+                PartyEvent.objects.create(
+                    party=party,
+                    event_type="milestone",
+                    message="became the new Party Owner.",
+                    metadata={"username": next_owner_membership.user.username},
+                )
+
+
+def kick_member(owner, user_id: int):
+    """
+    Kicks a member from the party. Only the OWNER of the party can do this.
+    The OWNER cannot kick themselves.
+    """
+    from api.models import PartyMembership
+
+    with transaction.atomic():
+        try:
+            owner_membership = PartyMembership.objects.get(user=owner)
+        except PartyMembership.DoesNotExist:
+            raise GameLogicError("You are not in a party.")
+
+        if owner_membership.role != "OWNER":
+            raise GameLogicError("Only the Party Owner can kick members.")
+
+        if owner.id == user_id:
+            raise GameLogicError("You cannot kick yourself.")
+
+        try:
+            target_membership = PartyMembership.objects.select_for_update().get(
+                user_id=user_id, party=owner_membership.party
+            )
+        except PartyMembership.DoesNotExist:
+            raise GameLogicError("User is not in your party.")
+
+        party = target_membership.party
+        target_username = target_membership.user.username
+        target_membership.delete()
+
+        logger.info(
+            "User %s kicked from party '%s' by Owner %s",
+            target_username,
+            party.name,
+            owner.username,
+        )
+
+        from api.models import PartyEvent
+
+        PartyEvent.objects.create(
+            party=party,
+            event_type="milestone",
+            message="was kicked from the party by the Owner.",
+            metadata={"username": target_username},
+        )
 
 
 def get_party_with_members(user):

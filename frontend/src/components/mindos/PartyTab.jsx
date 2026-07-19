@@ -8,13 +8,42 @@ import { Copy, Check, Users, LogOut, UserPlus, Swords } from 'lucide-react';
 import { Crown, MessageSquare, Zap } from 'lucide-react';
 import PartyMemberProfileSheet from './PartyMemberProfileSheet';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
+import { CLASSES, CLASS_SPRITES } from '@/constants/rpgData';
 
 // ─── Member Card ─────────────────────────────────────────────────────────────
 
-function MemberCard({ member, onBuff, onClick }) {
+const FALLBACK_SPRITES = {
+  F:   "/images/webp/993830219_generated_image.webp",
+  D:   "/images/webp/993830219_generated_image.webp",
+  C:   "/images/webp/82c35d837_generated_image.webp",
+  B:   "/images/webp/032923fd3_generated_image.webp",
+  A:   "/images/webp/c1bdfbb0c_generated_image.webp",
+  S:   "/images/webp/f6d9c9d1e_generated_image.webp",
+  SS:  "/images/webp/f6d9c9d1e_generated_image.webp",
+  SSS: "/images/webp/c5c7fecf4_generated_image.webp",
+};
+
+function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
   const hpPct = member.max_hp > 0 ? Math.min((member.hp / member.max_hp) * 100, 100) : 0;
   const [showBuffs, setShowBuffs] = useState(false);
+
+  const charClass = member.character_class?.toLowerCase();
+  const rankId = member.rank_info?.current_id || 'F';
+  const classInfo = CLASSES[charClass] || null;
+  const classColor = classInfo?.color || '#878190';
+
+  let spriteUrl = null;
+  if (member.character_image) {
+    spriteUrl = getMediaUrl(member.character_image);
+  } else if (charClass && CLASS_SPRITES[charClass]) {
+    const rawClassSprite = CLASS_SPRITES[charClass];
+    spriteUrl = typeof rawClassSprite === 'object'
+      ? (rawClassSprite[rankId] || rawClassSprite['F'])
+      : rawClassSprite;
+  } else {
+    spriteUrl = FALLBACK_SPRITES[rankId] || FALLBACK_SPRITES['F'];
+  }
 
   return (
     <motion.div
@@ -26,9 +55,20 @@ function MemberCard({ member, onBuff, onClick }) {
     >
       <div className="flex items-center gap-3">
         {/* Portrait */}
-        <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border" style={{ background: 'var(--habit-bg)', borderColor: 'var(--habit-border)' }}>
-          {member.character_image ? (
-            <img src={getMediaUrl(member.character_image)} alt={member.username} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+        <div
+          className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ring-1 ring-black/20 dark:ring-white/10 shadow-sm"
+          style={{
+            background: 'var(--habit-panel)',
+            borderColor: classColor,
+          }}
+        >
+          {spriteUrl ? (
+            <img
+              src={spriteUrl}
+              alt={member.username}
+              className="w-full h-full object-cover"
+              style={{ imageRendering: 'pixelated' }}
+            />
           ) : (
             <span className="font-mono font-black text-sm uppercase" style={{ color: 'var(--habit-dim)' }}>
               {member.username?.charAt(0) || '?'}
@@ -46,6 +86,9 @@ function MemberCard({ member, onBuff, onClick }) {
               >
                 {member.username}
               </span>
+              {isOwner && (
+                <Crown className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 shrink-0" />
+              )}
               <span
                 className="text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0"
                 style={{ background: 'var(--habit-border)', color: 'var(--habit-dim)' }}
@@ -60,14 +103,30 @@ function MemberCard({ member, onBuff, onClick }) {
                 {rank.id === 'ASC' ? rank.label : rank.id}
               </span>
             </div>
-            {onBuff && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowBuffs(!showBuffs); }}
-                className="p-1 rounded-md transition-all hover:bg-white/10"
-              >
-                <Zap className="w-3.5 h-3.5 text-yellow-500" />
-              </button>
-            )}
+            <div className="flex items-center gap-1">
+              {onBuff && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowBuffs(!showBuffs); }}
+                  className="p-1 rounded-md transition-all hover:bg-white/10"
+                >
+                  <Zap className="w-3.5 h-3.5 text-yellow-500" />
+                </button>
+              )}
+              {showKick && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to kick ${member.username} from the party?`)) {
+                      onKick();
+                    }
+                  }}
+                  className="p-1 rounded-md transition-all hover:bg-red-500/10 text-red-400 shrink-0"
+                  title="Kick Member"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 mt-0.5">
@@ -569,6 +628,7 @@ function PartyLeaderboardView() {
 
 function PartyView({ party }) {
   const queryClient = useQueryClient();
+  const { profile } = useDjangoAuth();
   const [activeTab, setActiveTab] = useState('members');
   const [leaveError, setLeaveError] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -577,6 +637,17 @@ function PartyView({ party }) {
     mutationFn: () => djangoApi.party.leave(),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['party', 'members'] }),
     onError: (/** @type {any} */ err) => setLeaveError(err?.data?.error || err?.message || 'Failed to leave party.'),
+  });
+
+  const kickMutation = useMutation({
+    mutationFn: (userId) => djangoApi.party.kick(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
+      queryClient.invalidateQueries({ queryKey: ['party', 'feed'] });
+    },
+    onError: (/** @type {any} */ err) => {
+      alert(err?.data?.error || err?.message || 'Failed to kick member.');
+    }
   });
 
   const buffMutation = useMutation({
@@ -591,6 +662,9 @@ function PartyView({ party }) {
     setLeaveError('');
     leaveMutation.mutate();
   };
+
+  const currentUsername = profile?.username;
+  const isCurrentUserOwner = party.created_by_username === currentUsername;
 
   return (
     <div className="space-y-4">
@@ -682,6 +756,9 @@ function PartyView({ party }) {
                 <MemberCard
                   key={member.username}
                   member={member}
+                  isOwner={member.role === 'OWNER'}
+                  showKick={isCurrentUserOwner && member.username !== currentUsername}
+                  onKick={() => kickMutation.mutate(member.user_id)}
                   onBuff={(code) => buffMutation.mutate({ username: member.username, code })}
                   onClick={() => setSelectedMember(member)}
                 />

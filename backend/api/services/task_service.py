@@ -1152,6 +1152,9 @@ def process_missed_tasks(user):
 
     passive_effects = get_passive_multipliers(profile, {})
 
+    has_scheduled_dailies = False
+    has_missed_scheduled_daily = False
+
     for task in dailies:
         # If the task is not scheduled for the day that just ended, skip penalty
         if not is_daily_scheduled_for_date(task, profile.last_daily_cron_at):
@@ -1160,6 +1163,8 @@ def process_missed_tasks(user):
                 task.last_completed_at = None
                 task.save()
             continue
+
+        has_scheduled_dailies = True
 
         # Проверяем, был ли дейлик выполнен вчера
         # Если last_completed_at равен дате последнего крона (или позже, но до сегодня) в локальном времени
@@ -1177,6 +1182,7 @@ def process_missed_tasks(user):
             log.append({"type": "daily_done", "id": task.id, "title": task.title})
         else:
             # Missed daily
+            has_missed_scheduled_daily = True
             profile.total_overdue_tasks += 1
 
             active_mutators = profile.active_mutators or {}
@@ -1304,6 +1310,26 @@ def process_missed_tasks(user):
             )
 
         task.save()
+
+    # Timezone-Safe Party Streak Decay
+    if has_scheduled_dailies and has_missed_scheduled_daily:
+        if hasattr(user, "party_membership"):
+            membership = user.party_membership
+            party = membership.party
+            if party.streak > 0:
+                party.streak = 0
+                party.last_streak_update_date = local_today
+                party.save(update_fields=["streak", "last_streak_update_date"])
+
+                from api.models import PartyEvent
+
+                PartyEvent.objects.create(
+                    party=party,
+                    member=membership,
+                    event_type="milestone",
+                    message="streak was broken because they missed a Daily task.",
+                    metadata={"username": user.username},
+                )
 
     daily_regen = passive_effects.get("daily_hp_regen", 0.0)
 
