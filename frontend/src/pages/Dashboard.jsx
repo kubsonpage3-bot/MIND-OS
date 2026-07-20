@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react"
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence, useMotionValue, animate } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, animate, useSpring, useTransform } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
 
@@ -152,6 +152,46 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
 
 function loadRankXP() {
   return { rankXP: 0, currentRank: "E", rankHistory: [] };
+}
+
+function MetricPanel3D({ children }) {
+  const ref = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 120, damping: 25 });
+  const springY = useSpring(y, { stiffness: 120, damping: 25 });
+  const rotateX = useTransform(springY, [-0.5, 0.5], ["2.2deg", "-2.2deg"]);
+  const rotateY = useTransform(springX, [-0.5, 0.5], ["-2.2deg", "2.2deg"]);
+
+  const handleMouseMove = (e) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <div style={{ perspective: "1500px" }} className="w-full">
+      <motion.div
+        ref={ref}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          willChange: "transform",
+        }}
+        className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-md relative transition-shadow duration-300 hover:shadow-xl"
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
 }
 
 const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
@@ -779,7 +819,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           <>
             <TabGuideModal guideId="dashboard" profile={profile} />
             {profile && (
-              <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm relative">
+              <MetricPanel3D>
                 {/* Background radial gradient emanating from the center/top */}
                 <div 
                   className="absolute inset-0 z-0 pointer-events-none"
@@ -823,7 +863,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                     <StatsPanel profile={profile} logs={logs} />
                   </div>
                 </div>
-              </div>
+              </MetricPanel3D>
             )}
 
             <DailyQuoteWidget />

@@ -36,8 +36,8 @@ function Card3D({ children, style, className = "", onClick }) {
   const y = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 200, damping: 25 });
   const springY = useSpring(y, { stiffness: 200, damping: 25 });
-  const rotateX = useTransform(springY, [-0.5, 0.5], ["8deg", "-8deg"]);
-  const rotateY = useTransform(springX, [-0.5, 0.5], ["-8deg", "8deg"]);
+  const rotateX = useTransform(springY, [-0.5, 0.5], ["9deg", "-9deg"]);
+  const rotateY = useTransform(springX, [-0.5, 0.5], ["-9deg", "9deg"]);
 
   const handleMouseMove = (e) => {
     const rect = ref.current?.getBoundingClientRect();
@@ -50,7 +50,7 @@ function Card3D({ children, style, className = "", onClick }) {
   const Tag = onClick ? motion.button : motion.div;
 
   return (
-    <div style={{ perspective: "600px" }} className={className}>
+    <div style={{ perspective: "800px" }} className={className}>
       <Tag
         ref={ref}
         onMouseMove={handleMouseMove}
@@ -63,25 +63,25 @@ function Card3D({ children, style, className = "", onClick }) {
           willChange: "transform",
           ...style,
         }}
-        className="relative rounded-xl p-3 text-center flex flex-col items-center justify-between min-h-[100px] gap-1 w-full overflow-hidden cursor-default"
-        whileHover={{ scale: 1.03, z: 20 }}
+        className="relative rounded-2xl p-3.5 text-center flex flex-col items-center justify-between h-[142px] w-full overflow-hidden cursor-default select-none border"
+        whileHover={{ scale: 1.03, z: 25 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
         {/* Inner shine layer (3D depth illusion) */}
         <div
-          className="absolute inset-0 rounded-xl pointer-events-none"
+          className="absolute inset-0 rounded-2xl pointer-events-none"
           style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(0,0,0,0.15) 100%)",
             zIndex: 1,
           }}
         />
         {/* Top-edge highlight */}
         <div
           className="absolute top-0 left-4 right-4 h-px pointer-events-none"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)", zIndex: 2 }}
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)", zIndex: 2 }}
         />
-        {/* Content sits above layers */}
-        <div className="relative z-10 flex flex-col items-center gap-1 w-full h-full">
+        {/* Content sits above layers with 3D preserve context */}
+        <div className="relative z-10 flex flex-col items-center justify-between w-full h-full" style={{ transformStyle: "preserve-3d" }}>
           {children}
         </div>
       </Tag>
@@ -108,7 +108,7 @@ function ArcProgress({ pct, color, size = 52 }) {
         initial={{ strokeDashoffset: circ }}
         animate={{ strokeDashoffset: offset }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+        style={{ filter: `drop-shadow(0 0 5px ${color})` }}
       />
     </svg>
   );
@@ -116,29 +116,27 @@ function ArcProgress({ pct, color, size = 52 }) {
 
 // ─── Mini heatmap dots (7 days) ───────────────────────────────────────────────
 function MiniHeatmap({ streak, tier }) {
-  const today = new Date();
-  // Simulated: last N days active based on streak
   const days = Array.from({ length: 7 }, (_, i) => {
     const dayOffset = 6 - i;
     const isActive = dayOffset < streak;
-    const intensity = isActive ? Math.max(0.3, 1 - (dayOffset / Math.max(streak, 1)) * 0.6) : 0;
+    const intensity = isActive ? Math.max(0.3, 1 - (dayOffset / Math.max(streak, 1)) * 0.5) : 0;
     return { isActive, intensity };
   });
 
   return (
-    <div className="flex gap-1 items-center justify-center mt-1">
+    <div className="flex gap-1 items-center justify-center">
       {days.map((d, i) => (
         <motion.div
           key={i}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: i * 0.04, type: "spring", stiffness: 300 }}
+          transition={{ delay: i * 0.03, type: "spring", stiffness: 300 }}
           style={{
             width: 8,
             height: 8,
             borderRadius: 2,
-            background: d.isActive ? tier.color : "rgba(255,255,255,0.07)",
-            opacity: d.isActive ? d.intensity : 0.3,
+            background: d.isActive ? tier.color : "rgba(255,255,255,0.08)",
+            opacity: d.isActive ? d.intensity : 0.25,
             boxShadow: d.isActive ? `0 0 6px ${tier.glow}` : "none",
           }}
         />
@@ -204,15 +202,16 @@ export default function StatsPanel({ profile, logs }) {
         {/* ── WEEKLY XP ────────────────────────────────── */}
         <Card3D
           style={{
-            background: `linear-gradient(145deg, ${xpTier.color}12, ${xpTier.color}06)`,
-            border: `1.5px solid ${xpTier.color}35`,
-            boxShadow: `0 4px 24px ${xpTier.glow}, 0 1px 0 rgba(255,255,255,0.06) inset, 0 -1px 0 rgba(0,0,0,0.3) inset`,
+            background: `linear-gradient(145deg, ${xpTier.color}10, ${xpTier.color}04)`,
+            borderColor: `${xpTier.color}35`,
+            boxShadow: `0 4px 24px ${xpTier.glow}, 0 1px 0 rgba(255,255,255,0.06) inset`,
           }}
         >
           <motion.span
             className="text-2xl"
             animate={{ scale: [1, 1.1, 1], rotate: [0, 8, -8, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            style={{ transform: "translateZ(30px)" }}
           >⭐</motion.span>
 
           <motion.div
@@ -223,19 +222,20 @@ export default function StatsPanel({ profile, logs }) {
               fontFamily: "'PixeloidSans'",
               fontSize: "1.5rem",
               color: xpTier.color,
-              textShadow: `0 0 20px ${xpTier.glow}, 0 0 40px ${xpTier.glow}`,
+              textShadow: `0 0 20px ${xpTier.glow}`,
               lineHeight: 1,
+              transform: "translateZ(40px)",
             }}
           >
             {weeklyXP}
           </motion.div>
 
-          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
             Weekly XP
           </div>
 
           {/* Segmented XP bar */}
-          <div className="w-full mt-1 relative h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+          <div className="w-full mt-1 relative h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", transform: "translateZ(20px)" }}>
             <motion.div
               className="absolute inset-y-0 left-0 rounded-full"
               animate={{ width: `${xpPct}%` }}
@@ -258,12 +258,12 @@ export default function StatsPanel({ profile, logs }) {
         {/* ── COGN. ROI ────────────────────────────────── */}
         <Card3D
           style={{
-            background: `linear-gradient(145deg, ${roiColor}12, ${roiColor}05)`,
-            border: `1.5px solid ${roiColor}35`,
+            background: `linear-gradient(145deg, ${roiColor}10, ${roiColor}04)`,
+            borderColor: `${roiColor}35`,
             boxShadow: `0 4px 24px ${roiColor}40, 0 1px 0 rgba(255,255,255,0.06) inset`,
           }}
         >
-          <div className="relative flex items-center justify-center" style={{ width: 52, height: 52 }}>
+          <div className="relative flex items-center justify-center" style={{ width: 52, height: 52, transform: "translateZ(30px)" }}>
             <ArcProgress pct={cognitiveROI} color={roiColor} size={52} />
             <div className="absolute inset-0 flex items-center justify-center">
               {cognitiveROI != null ? (
@@ -276,6 +276,7 @@ export default function StatsPanel({ profile, logs }) {
                     fontSize: "0.8rem",
                     color: roiColor,
                     textShadow: `0 0 12px ${roiColor}`,
+                    transform: "translateZ(10px)",
                   }}
                 >
                   {cognitiveROI}%
@@ -286,12 +287,12 @@ export default function StatsPanel({ profile, logs }) {
             </div>
           </div>
 
-          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
             Cogn. ROI
           </div>
 
           {/* ROI status pill */}
-          {cognitiveROI != null && (
+          {cognitiveROI != null ? (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
@@ -304,10 +305,13 @@ export default function StatsPanel({ profile, logs }) {
                 fontWeight: 700,
                 color: roiColor,
                 letterSpacing: "0.05em",
+                transform: "translateZ(20px)",
               }}
             >
               {cognitiveROI >= 70 ? "OPTIMAL" : cognitiveROI >= 45 ? "MODERATE" : "LOW"}
             </motion.div>
+          ) : (
+            <div className="h-5" />
           )}
         </Card3D>
 
@@ -315,8 +319,8 @@ export default function StatsPanel({ profile, logs }) {
         <Card3D
           onClick={() => setShowTitleModal(true)}
           style={{
-            background: `linear-gradient(145deg, ${rColor}18, ${rColor}06)`,
-            border: `1.5px solid ${rColor}${rarityStyle.borderOpacity}`,
+            background: `linear-gradient(145deg, ${rColor}15, ${rColor}05)`,
+            borderColor: `${rColor}${rarityStyle.borderOpacity}`,
             boxShadow: `0 4px 28px ${rColor}${rarityStyle.glowOpacity}, 0 1px 0 rgba(255,255,255,0.08) inset`,
             cursor: "pointer",
           }}
@@ -336,6 +340,7 @@ export default function StatsPanel({ profile, logs }) {
             className="text-2xl"
             whileHover={{ scale: 1.2, rotate: 10 }}
             transition={{ type: "spring", stiffness: 400 }}
+            style={{ transform: "translateZ(30px)" }}
           >
             {activeTitle.icon || "👑"}
           </motion.span>
@@ -347,12 +352,13 @@ export default function StatsPanel({ profile, logs }) {
               fontSize: "0.82rem",
               color: rColor,
               textShadow: `0 0 14px ${rColor}80`,
+              transform: "translateZ(40px)",
             }}
           >
             {t(`titles.${activeTitle.id}.name`, activeTitle.name)}
           </div>
 
-          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
             TITLE
           </div>
 
@@ -362,6 +368,7 @@ export default function StatsPanel({ profile, logs }) {
               background: `${rColor}18`,
               border: `1px solid ${rColor}30`,
               color: rColor,
+              transform: "translateZ(20px)",
             }}
           >
             🏆 {unlockedCount}/{totalCount}
@@ -416,105 +423,102 @@ function StreakCard({ profile }) {
     remaining = tier.next - streak;
   }
 
-  const flameScale = streak >= 30 ? 1.4 : streak >= 15 ? 1.25 : streak >= 8 ? 1.12 : streak >= 4 ? 1.05 : 0.9;
+  const flameScale = streak >= 30 ? 1.35 : streak >= 15 ? 1.25 : streak >= 8 ? 1.12 : streak >= 4 ? 1.05 : 0.9;
 
   return (
-    <div style={{ perspective: "600px" }}>
+    <Card3D
+      style={{
+        background: `linear-gradient(145deg, ${tier.bg}, rgba(0,0,0,0.25))`,
+        borderColor: tier.border,
+        boxShadow: `0 4px 28px ${tier.glow}, 0 1px 0 rgba(255,255,255,0.07) inset`,
+      }}
+    >
+      {/* Radial glow bg */}
       <motion.div
-        className="relative rounded-xl p-3 text-center flex flex-col items-center justify-between overflow-hidden"
+        className="absolute inset-0 rounded-xl pointer-events-none"
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: streak >= 8 ? 1.5 : 3, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          background: `linear-gradient(145deg, ${tier.bg}, rgba(0,0,0,0.2))`,
-          border: `1.5px solid ${tier.border}`,
-          boxShadow: `0 4px 28px ${tier.glow}, 0 1px 0 rgba(255,255,255,0.07) inset`,
-          minHeight: 100,
-          transformStyle: "preserve-3d",
-          willChange: "transform",
+          background: `radial-gradient(ellipse at 50% 0%, ${tier.glow} 0%, transparent 70%)`,
+          zIndex: 0,
         }}
-        whileHover={{ scale: 1.03, rotateY: 3, rotateX: -2 }}
-        transition={{ type: "spring", stiffness: 250, damping: 22 }}
-      >
-        {/* Radial glow bg */}
-        <motion.div
-          className="absolute inset-0 rounded-xl pointer-events-none"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: streak >= 8 ? 1.5 : 3, repeat: Infinity, ease: "easeInOut" }}
-          style={{
-            background: `radial-gradient(ellipse at 50% 0%, ${tier.glow} 0%, transparent 70%)`,
-            zIndex: 0,
-          }}
-        />
-        {/* Top shine */}
-        <div className="absolute top-0 left-4 right-4 h-px pointer-events-none"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)", zIndex: 2 }} />
+      />
 
-        {/* Shield badge */}
-        {isProtected && (
-          <div className="absolute top-1.5 right-1.5 z-20" title="Streak Protected!">
-            <span className="text-sm drop-shadow-md">🛡️</span>
-          </div>
-        )}
-
-        {/* Flame */}
-        <motion.div
-          animate={justIncremented
-            ? { scale: [1, 1.8, flameScale], rotate: [0, -15, 15, 0] }
-            : { scale: [flameScale, flameScale * 1.06, flameScale], opacity: [0.85, 1, 0.85] }
-          }
-          transition={justIncremented
-            ? { duration: 0.7, type: "spring" }
-            : { duration: 2.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
-          }
-          className="text-2xl z-10 drop-shadow-lg"
-          style={{ filter: streak >= 15 ? `drop-shadow(0 0 8px ${tier.color})` : "none" }}
-        >
-          🔥
-        </motion.div>
-
-        {/* Streak number */}
-        <motion.div
-          key={streak}
-          initial={justIncremented ? { scale: 0.5, opacity: 0 } : {}}
-          animate={{ scale: 1, opacity: 1 }}
-          style={{
-            fontFamily: "'PixeloidSans'",
-            fontSize: "1.5rem",
-            color: tier.color,
-            zIndex: 10,
-            lineHeight: 1,
-            textShadow: `0 0 20px ${tier.glow}, 0 0 40px ${tier.glow}`,
-          }}
-        >
-          {streak}
-        </motion.div>
-
-        {/* Label */}
-        <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", zIndex: 10 }}>
-          DAY STREAK
+      {/* Shield badge */}
+      {isProtected && (
+        <div className="absolute top-1.5 right-1.5 z-20 animate-pulse" title="Streak Protected!">
+          <span className="text-sm drop-shadow-md">🛡️</span>
         </div>
+      )}
 
-        {/* Tier badge */}
-        <motion.div
-          className="px-2 py-0.5 rounded-full z-10"
-          style={{
-            background: `${tier.color}20`,
-            border: `1px solid ${tier.color}40`,
-            fontSize: 7,
-            fontFamily: "'Nunito'",
-            fontWeight: 800,
-            color: tier.color,
-            letterSpacing: "0.07em",
-            textShadow: `0 0 8px ${tier.glow}`,
-          }}
-        >
-          {tier.label} · Best: {maxStreak}
-        </motion.div>
+      {/* Flame */}
+      <motion.div
+        animate={justIncremented
+          ? { scale: [1, 1.8, flameScale], rotate: [0, -15, 15, 0] }
+          : { scale: [flameScale, flameScale * 1.06, flameScale], opacity: [0.85, 1, 0.85] }
+        }
+        transition={justIncremented
+          ? { duration: 0.7, type: "spring" }
+          : { duration: 2.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
+        }
+        className="text-2xl z-10 drop-shadow-lg"
+        style={{
+          filter: streak >= 15 ? `drop-shadow(0 0 8px ${tier.color})` : "none",
+          transform: "translateZ(30px)",
+        }}
+      >
+        🔥
+      </motion.div>
 
-        {/* Mini heatmap */}
+      {/* Streak number */}
+      <motion.div
+        key={streak}
+        initial={justIncremented ? { scale: 0.5, opacity: 0 } : {}}
+        animate={{ scale: 1, opacity: 1 }}
+        style={{
+          fontFamily: "'PixeloidSans'",
+          fontSize: "1.4rem",
+          color: tier.color,
+          zIndex: 10,
+          lineHeight: 1,
+          textShadow: `0 0 20px ${tier.glow}`,
+          transform: "translateZ(40px)",
+        }}
+      >
+        {streak}
+      </motion.div>
+
+      {/* Label */}
+      <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", zIndex: 10, transform: "translateZ(15px)" }}>
+        DAY STREAK
+      </div>
+
+      {/* Tier badge */}
+      <motion.div
+        className="px-2 py-0.5 rounded-full z-10"
+        style={{
+          background: `${tier.color}20`,
+          border: `1px solid ${tier.color}40`,
+          fontSize: 7,
+          fontFamily: "'Nunito'",
+          fontWeight: 850,
+          color: tier.color,
+          letterSpacing: "0.07em",
+          textShadow: `0 0 8px ${tier.glow}`,
+          transform: "translateZ(20px)",
+        }}
+      >
+        {tier.label} · Best: {maxStreak}
+      </motion.div>
+
+      {/* Spaced Heatmap and Progress wrapper to ensure zero overlap */}
+      <div className="w-full space-y-1.5 mt-auto flex flex-col items-center justify-end z-10" style={{ transform: "translateZ(25px)" }}>
+        {/* Heatmap */}
         <MiniHeatmap streak={streak} tier={tier} />
 
-        {/* Progress to next tier */}
+        {/* Progress bar to next tier */}
         {tier.next ? (
-          <div className="w-full z-10 relative h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+          <div className="w-full relative h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
             <motion.div
               className="absolute inset-y-0 left-0 rounded-full"
               initial={{ width: 0 }}
@@ -527,7 +531,7 @@ function StreakCard({ profile }) {
             />
           </div>
         ) : (
-          <div className="w-full z-10 flex items-center justify-center h-1.5">
+          <div className="w-full flex items-center justify-center h-1">
             <motion.span
               animate={{ opacity: [0.6, 1, 0.6] }}
               transition={{ duration: 1.5, repeat: Infinity }}
@@ -537,7 +541,7 @@ function StreakCard({ profile }) {
             </motion.span>
           </div>
         )}
-      </motion.div>
-    </div>
+      </div>
+    </Card3D>
   );
 }
