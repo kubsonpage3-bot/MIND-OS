@@ -69,7 +69,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
         from api.services.profile_service import get_rank_info
 
         info = get_rank_info(obj)
-        current_id = info.get("current_id", "F")
+        current_id = info.get("current_id", "E")
         thresholds = info.get("thresholds", [])
 
         next_t = None

@@ -338,12 +338,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     deleteMutation.mutate(id);
   };
 
-  // Сортировка: просроченные вверху
-  const sortedActive = [...activeTodos].sort((a, b) => {
-    const aOver = isOverdue(a) ? -1 : 0;
-    const bOver = isOverdue(b) ? -1 : 0;
-    return aOver - bOver;
-  });
+  const sortedActive = activeTodos;
 
   return (
     <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">

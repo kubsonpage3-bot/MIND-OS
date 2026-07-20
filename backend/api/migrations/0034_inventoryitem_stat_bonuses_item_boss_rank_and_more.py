@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 choices=[
-                    ("F", "F"),
+                    ("E", "E"),
                     ("D", "D"),
                     ("C", "C"),
                     ("B", "B"),

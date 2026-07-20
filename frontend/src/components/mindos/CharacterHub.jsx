@@ -25,7 +25,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
 
   const classInfo = classData.chosen ? CLASSES[classData.chosen] : null;
   const classColor = classInfo?.color || "#3b82f6";
-  const rankInfo = getRankDisplayData(profile?.rank_info?.current_id || "F", profile);
+  const rankInfo = getRankDisplayData(profile?.rank_info?.current_id || "E", profile);
   const rankId = currentRankId || rankInfo.id;
 
   const hpPct = Math.max(0, Math.min(100, charMaxHp > 0 ? (charHp / charMaxHp) * 100 : 0));

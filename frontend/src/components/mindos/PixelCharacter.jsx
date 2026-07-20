@@ -5,7 +5,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 // Rank background scenes (pixel-art anime style descriptions → we use CSS + emoji layers)
 const RANK_CONFIG = {
-  F: {
+  E: {
     label: "PAUPER",
     frameColor: "#7c6a4a",
     frameGlow: "#5a4a30",
@@ -82,7 +82,7 @@ const RANK_CONFIG = {
 };
 
 const RANK_SPRITES = {
-  F:   { url: "/images/webp/993830219_generated_image.webp" },
+  E:   { url: "/images/webp/993830219_generated_image.webp" },
   D:   { url: "/images/webp/993830219_generated_image.webp" },
   C:   { url: "/images/webp/82c35d837_generated_image.webp" },
   B:   { url: "/images/webp/032923fd3_generated_image.webp" },
@@ -160,8 +160,8 @@ function PixelBackground({ cfg }) {
 }
 
 export default function PixelCharacter({ rankId, rankColor, size = 140, hideLabel = false }) {
-  const cfg = RANK_CONFIG[rankId] || RANK_CONFIG["F"];
-  const sprite = RANK_SPRITES[rankId] || RANK_SPRITES["F"];
+  const cfg = RANK_CONFIG[rankId] || RANK_CONFIG["E"];
+  const sprite = RANK_SPRITES[rankId] || RANK_SPRITES["E"];
 
   const { profile } = useDjangoAuth();
   const chosenClass = profile?.character_class && profile.character_class !== "Wanderer"
@@ -171,13 +171,13 @@ export default function PixelCharacter({ rankId, rankColor, size = 140, hideLabe
 
   const rawClassSprite = chosenClass ? CLASS_SPRITES[chosenClass] : null;
   const isObjectSprite = rawClassSprite && typeof rawClassSprite === 'object';
-  const classSprite = isObjectSprite ? (rawClassSprite[rankId] || rawClassSprite["F"]) : rawClassSprite;
+  const classSprite = isObjectSprite ? (rawClassSprite[rankId] || rawClassSprite["E"]) : rawClassSprite;
   
   // If it's an object sprite, we don't apply the CSS rankFilter because the image is already rank-specific
-  const rankFilter = isObjectSprite ? "none" : (RANK_CHARACTER_FILTERS[rankId] || RANK_CHARACTER_FILTERS["F"]);
+  const rankFilter = isObjectSprite ? "none" : (RANK_CHARACTER_FILTERS[rankId] || RANK_CHARACTER_FILTERS["E"]);
   const isGod = rankId === "SSS";
   const isSS = rankId === "SS";
-  const particleCount = rankId === "F" ? 4 : rankId === "D" ? 6 : rankId === "C" ? 8 : rankId === "B" ? 10 : rankId === "A" ? 12 : rankId === "S" ? 14 : rankId === "SS" ? 16 : 20;
+  const particleCount = rankId === "E" ? 4 : rankId === "D" ? 6 : rankId === "C" ? 8 : rankId === "B" ? 10 : rankId === "A" ? 12 : rankId === "S" ? 14 : rankId === "SS" ? 16 : 20;
 
   return (
     <div className="flex flex-col items-center gap-1" style={{ imageRendering: "pixelated" }}>

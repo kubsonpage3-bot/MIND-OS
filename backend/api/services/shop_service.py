@@ -40,6 +40,13 @@ def buy_item(user, item_id: str):
 
     profile.save()
 
+    # Track stat for title unlock
+    from api.models import UserStats
+
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    stats.items_purchased = max(0, stats.items_purchased) + 1
+    stats.save(update_fields=["items_purchased"])
+
     return True, "Item purchased successfully", profile
 
 

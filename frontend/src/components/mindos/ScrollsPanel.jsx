@@ -96,7 +96,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
     staleTime: 5000,
   });
 
-  const currentRankId = profile?.rank_info?.current_id || "F";
+  const currentRankId = profile?.rank_info?.current_id || "E";
 
   // Находим активного босса
   const activeEncounter = encounters.find(e => !e.is_defeated);

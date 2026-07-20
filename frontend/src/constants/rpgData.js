@@ -38,7 +38,7 @@ import warlordSpriteSSS from "/images/webp/warlord_sss.webp";
 // Character sprites per class (used in ClassSelector and PixelCharacter)
 export const CLASS_SPRITES = {
   architect: {
-    F: architectSpriteF,
+    E: architectSpriteF,
     D: architectSpriteD,
     C: architectSpriteC,
     B: architectSpriteB,
@@ -48,7 +48,7 @@ export const CLASS_SPRITES = {
     SSS: architectSpriteSSS,
   },
   ascetic: {
-    F: asceticSpriteF,
+    E: asceticSpriteF,
     D: asceticSpriteD,
     C: asceticSpriteC,
     B: asceticSpriteB,
@@ -58,7 +58,7 @@ export const CLASS_SPRITES = {
     SSS: asceticSpriteSSS,
   },
   linguist: {
-    F: linguistSpriteF,
+    E: linguistSpriteF,
     D: linguistSpriteD,
     C: linguistSpriteC,
     B: linguistSpriteB,
@@ -68,7 +68,7 @@ export const CLASS_SPRITES = {
     SSS: linguistSpriteSSS,
   },
   warlord: {
-    F: warlordSpriteF,
+    E: warlordSpriteF,
     D: warlordSpriteD,
     C: warlordSpriteC,
     B: warlordSpriteB,
@@ -82,8 +82,8 @@ export const CLASS_SPRITES = {
 // Rank→character progression using class sprites with visual filters by rank
 // F = faded/starving, D→C = awakening, B→A = sharpened, S→SS = apex, SSS = king
 export const RANK_CHARACTER_FILTERS = {
-  // F: starving beggar — washed out, dark, barely visible
-  F:   "grayscale(90%) brightness(0.35) contrast(0.7) sepia(40%)",
+  // E: starving beggar — washed out, dark, barely visible
+  E:   "grayscale(90%) brightness(0.35) contrast(0.7) sepia(40%)",
   // D: awakening from poverty — still grey, slightly brighter
   D:   "grayscale(65%) brightness(0.55) contrast(0.85)",
   // C: grinding commoner — desaturated but present

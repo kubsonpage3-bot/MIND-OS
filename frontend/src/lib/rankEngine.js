@@ -2,7 +2,7 @@
 // Note: Actual xp calculations and thresholds are now computed on the backend (SSOT)
 
 export const RANKS = [
-  { id: "F",   label: "DORMANT",   hoursEst: "—",      color: "#64748b", glow: "rgba(100,116,139,0.15)", desc: "Cast thy burden upon the Lord, and he shall sustain thee. — Ps. 55:22" },
+  { id: "E",   label: "DORMANT",   hoursEst: "—",      color: "#64748b", glow: "rgba(100,116,139,0.15)", desc: "Cast thy burden upon the Lord, and he shall sustain thee. — Ps. 55:22" },
   { id: "D",   label: "AWAKENING", hoursEst: "~5h",    color: "#ef4444", glow: "rgba(239,68,68,0.15)",   desc: "I can do all things through Christ which strengtheneth me. — Phil. 4:13" },
   { id: "C",   label: "GRINDING",  hoursEst: "~15h",   color: "#f97316", glow: "rgba(249,115,22,0.15)",  desc: "Be strong and of a good courage; be not afraid, neither be thou dismayed: for the Lord thy God is with thee. — Josh. 1:9" },
   { id: "B",   label: "SHARPENED", hoursEst: "~30h",   color: "#eab308", glow: "rgba(234,179,8,0.15)",   desc: "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee. — Isa. 41:10" },

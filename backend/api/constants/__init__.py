@@ -195,7 +195,7 @@ SCROLL_BOSSES_DICT = {b["id"]: b for b in SCROLL_BOSSES}
 
 
 RANK_THRESHOLDS = [
-    {"id": "F", "min": 0},
+    {"id": "E", "min": 0},
     {"id": "D", "min": 200},
     {"id": "C", "min": 600},
     {"id": "B", "min": 1200},
@@ -206,7 +206,7 @@ RANK_THRESHOLDS = [
 ]
 
 HUMANITIES_RANK_THRESHOLDS = [
-    {"id": "F", "min": 0},
+    {"id": "E", "min": 0},
     {"id": "D", "min": 200},
     {"id": "C", "min": 600},
     {"id": "B", "min": 1200},

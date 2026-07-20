@@ -9,7 +9,7 @@ src_dir = (
 dest_dir = r"c:\coder\mind-os-growth\frontend\public\images\webp"
 
 images_map = {
-    "F": "warlord_f_1783019189659.png",
+    "E": "warlord_f_1783019189659.png",
     "D": "warlord_d_1783019197715.png",
     "C": "warlord_c_1783019205263.png",
     "B": "warlord_b_1783019213359.png",

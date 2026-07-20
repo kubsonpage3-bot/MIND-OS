@@ -316,12 +316,12 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
   const isClosing = rivalAhead && pctDiff < 0.10;
 
   const thresholds = profile?.rank_info?.thresholds || [];
-  let johanRankId = "F";
+  let johanRankId = "E";
   for (const thr of thresholds) {
     if (johanXP >= thr.min) johanRankId = thr.id;
   }
   const rivalRank = getRankDisplayData(johanRankId);
-  const playerRank = getRankDisplayData(profile?.rank_info?.current_id || "F", profile);
+  const playerRank = getRankDisplayData(profile?.rank_info?.current_id || "E", profile);
 
   const visibleSessions = todaySessions.filter(s => {
     const [h, m] = s.scheduledTime.split(":").map(Number);

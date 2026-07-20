@@ -1004,7 +1004,7 @@ def get_passive_multipliers(profile, context: dict):
         "daily_free_skill": False,
         "prestige_bonus": 0.0,
         "skill_cost_reduction": 0.0,
-        "prestige_start_rank": "F",
+        "prestige_start_rank": "E",
         "daily_gold_mult": 1.0,
         "daily_completed_hp_heal": 0,
         "streak_xp_mult": 0.0,

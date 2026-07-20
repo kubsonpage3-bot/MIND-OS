@@ -53,4 +53,11 @@ def craft_item(user, recipe_code: str):
         result_inv_item.quantity += 1
         result_inv_item.save(update_fields=["quantity"])
 
+    # Track stat for title unlock
+    from api.models import UserStats
+
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    stats.items_crafted = max(0, stats.items_crafted) + 1
+    stats.save(update_fields=["items_crafted"])
+
     return recipe.result_item

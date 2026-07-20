@@ -14,7 +14,7 @@ from api.exceptions import GameLogicError
 import random
 
 BOSS_RANK_STATS = {
-    "F": {"count": 1, "min": 1, "max": 1},
+    "E": {"count": 1, "min": 1, "max": 1},
     "D": {"count": 1, "min": 1, "max": 2},
     "C": {"count": 2, "min": 2, "max": 2},
     "B": {"count": 2, "min": 2, "max": 3},

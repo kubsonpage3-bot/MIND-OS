@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 export default function RankUpFlash({ newRankId, onDone }) {
   const { t } = useTranslation();
   const rankObj = newRankId
     ? [
-        { id: "F", color: "#64748b", label: "DORMANT" },
+        { id: "E", color: "#64748b", label: "DORMANT" },
         { id: "D", color: "#ef4444", label: "AWAKENING" },
         { id: "C", color: "#f97316", label: "GRINDING" },
         { id: "B", color: "#eab308", label: "SHARPENED" },

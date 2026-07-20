@@ -47,7 +47,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
   const { t } = useTranslation();
 
   const thresholds = profile?.rank_info?.thresholds || [];
-  const currentRankId = profile?.rank_info?.current_id || "F";
+  const currentRankId = profile?.rank_info?.current_id || "E";
   const currentRank = getRankDisplayData(currentRankId, profile);
 
   const currentIdx = thresholds.findIndex(t => t.id === currentRankId);

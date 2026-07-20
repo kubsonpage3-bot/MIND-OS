@@ -177,7 +177,7 @@ export default function AppShell({ defaultTab = "mind" }) {
   };
 
   const rankXP = djangoProfile?.rank_xp || 0;
-  const currentRank = djangoProfile?.rank_info?.current_id || "F";
+  const currentRank = djangoProfile?.rank_info?.current_id || "E";
 
   const mainScrollRef = useRef(null);
 

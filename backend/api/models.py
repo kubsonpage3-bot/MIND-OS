@@ -615,6 +615,10 @@ class UserStats(models.Model):
     unique_subjects_today = models.JSONField(default=list, blank=True)
     highest_subject_rank = models.PositiveIntegerField(default=0)
     prayer_rank = models.PositiveIntegerField(default=0)
+    items_purchased = models.PositiveIntegerField(default=0)
+    chests_opened = models.PositiveIntegerField(default=0)
+    potions_consumed = models.PositiveIntegerField(default=0)
+    items_crafted = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = "Статистика пользователя"
@@ -1106,7 +1110,7 @@ class Item(models.Model):
     boss_rank = models.CharField(
         max_length=5,
         choices=[
-            ("F", "F"),
+            ("E", "E"),
             ("D", "D"),
             ("C", "C"),
             ("B", "B"),

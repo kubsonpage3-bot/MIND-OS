@@ -151,7 +151,7 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
 }
 
 function loadRankXP() {
-  return { rankXP: 0, currentRank: "F", rankHistory: [] };
+  return { rankXP: 0, currentRank: "E", rankHistory: [] };
 }
 
 const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
@@ -454,6 +454,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         show_in_calendar: dt.show_in_calendar || false,
         repeat_weekdays: dt.repeat_weekdays !== undefined ? dt.repeat_weekdays : 127,
         mastery_category: dt.mastery_category || '',
+        order: dt.order !== undefined ? dt.order : 0,
+        due_date: dt.due_date || null,
       }));
       return mapped;
     },
@@ -498,10 +500,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     if (!djangoProfile || djangoProfile.rank_xp === undefined) return;
 
     setRankXPData(prev => {
-      const newRankId = djangoProfile.rank_info?.current_id || "F";
-      const oldRankId = prev.currentRank || "F";
+      const newRankId = djangoProfile.rank_info?.current_id || "E";
+      const oldRankId = prev.currentRank || "E";
 
-      const RANK_ORDER = ["F", "D", "C", "B", "A", "S", "SS", "SSS"];
+      const RANK_ORDER = ["E", "D", "C", "B", "A", "S", "SS", "SSS"];
       const prevIdx = RANK_ORDER.indexOf(oldRankId);
       const newIdx = RANK_ORDER.indexOf(newRankId);
 
@@ -551,7 +553,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   useEffect(() => {
     if (profile) {
       const thresholds = profile.rank_info?.thresholds || [];
-      const currentRankId = profile.rank_info?.current_id || "F";
+      const currentRankId = profile.rank_info?.current_id || "E";
       const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
       const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
       const nextMin = (currentIdx >= 0 && currentIdx < thresholds.length - 1)
@@ -622,8 +624,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
       refreshProfile();
 
-      const oldRankId = djangoProfile?.rank_info?.current_id || "F";
-      const newRankId = res.profile?.rank_info?.current_id || "F";
+      const oldRankId = djangoProfile?.rank_info?.current_id || "E";
+      const newRankId = res.profile?.rank_info?.current_id || "E";
       if (newRankId !== oldRankId && (res.profile?.rank_xp || 0) > (djangoProfile?.rank_xp || 0)) {
         setRankUpNotif(newRankId);
         playSound('rank_up');

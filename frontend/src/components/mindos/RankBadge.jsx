@@ -10,7 +10,7 @@ const pixelBox = (color) => ({
 });
 
 function getRankBarColor(rankId) {
-  if (["F", "D"].includes(rankId)) return "#64748b";
+  if (["E", "D"].includes(rankId)) return "#64748b";
   if (["C", "B"].includes(rankId)) return "#3b82f6";
   if (["A", "S"].includes(rankId)) return "#a855f7";
   return "#f59e0b";
@@ -21,7 +21,7 @@ export default function RankBadge({ rankXP = 0, compact = false }) {
   const { t } = useTranslation();
   
   const thresholds = profile?.rank_info?.thresholds || [];
-  const currentRankId = profile?.rank_info?.current_id || "F";
+  const currentRankId = profile?.rank_info?.current_id || "E";
   const rank = getRankDisplayData(currentRankId, profile);
   
   const currentIdx = thresholds.findIndex(t => t.id === currentRankId);

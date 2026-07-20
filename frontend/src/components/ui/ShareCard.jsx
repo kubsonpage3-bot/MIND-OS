@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 
 export default function ShareCard({ profile }) {
   const { t } = useTranslation();
-  const currentRankIdValue = profile?.rank_info?.current_id || "F";
+  const currentRankIdValue = profile?.rank_info?.current_id || "E";
   const currentRank = getRankDisplayData(currentRankIdValue, profile);
 
   const chosenClass = profile?.character_class && profile.character_class !== "Wanderer" 

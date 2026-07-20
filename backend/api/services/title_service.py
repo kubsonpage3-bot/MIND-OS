@@ -605,17 +605,17 @@ def _evaluate_title_unlock(
     if title_id == "alchemist":
         mut_count = len(profile.active_mutators or [])
         return (
-            mut_count >= 1 or total_tasks >= 20,
-            min(100, (total_tasks / 20) * 100),
-            f"{total_tasks} / 20 progress",
+            mut_count >= 3,
+            min(100, (mut_count / 3) * 100),
+            f"{mut_count} / 3 mutators",
         )
 
     if title_id == "grand_alchemist":
         mut_count = len(profile.active_mutators or [])
         return (
-            mut_count >= 3 or total_tasks >= 50,
-            min(100, (total_tasks / 50) * 100),
-            f"{total_tasks} / 50 progress",
+            mut_count >= 7,
+            min(100, (mut_count / 7) * 100),
+            f"{mut_count} / 7 mutators",
         )
 
     if title_id == "experimentalist":
@@ -627,24 +627,29 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "rune_smith":
+        crafted = stats.items_crafted if stats else 0
         return (
-            total_tasks >= 30,
-            min(100, (total_tasks / 30) * 100),
-            f"{total_tasks} / 30 runes",
+            crafted >= 3,
+            min(100, (crafted / 3) * 100),
+            f"{crafted} / 3 crafted",
         )
 
     if title_id == "potion_master":
+        consumed = stats.potions_consumed if stats else 0
         return (
-            profile.gold >= 100 or total_tasks >= 15,
-            min(100, (total_tasks / 15) * 100),
-            f"{total_tasks} / 15 potions",
+            consumed >= 5,
+            min(100, (consumed / 5) * 100),
+            f"{consumed} / 5 potions",
         )
 
     if title_id == "relic_collector":
+        from api.models import InventoryItem
+
+        inv_count = InventoryItem.objects.filter(user_profile=profile).count()
         return (
-            profile.level >= 5 or total_tasks >= 10,
-            min(100, (total_tasks / 10) * 100),
-            f"{total_tasks} / 10 items",
+            inv_count >= 5,
+            min(100, (inv_count / 5) * 100),
+            f"{inv_count} / 5 items",
         )
 
     if title_id == "boss_slayer":
@@ -676,85 +681,137 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "tactician":
+        from api.models import SkillCooldown
+
+        used_skill = SkillCooldown.objects.filter(user=user).exists()
         return (
-            profile.level >= 3,
-            (100 if profile.level >= 3 else 0),
-            f"Level {profile.level} / 3",
+            used_skill,
+            100 if used_skill else 0,
+            "Use any active skill",
         )
 
     if title_id == "dark_receptionist":
+        active_codes = profile.active_allies or []
+        recruited = {
+            a.ally_code: a.level
+            for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        }
+        vivian_level = recruited.get("vivian", 0)
         return (
-            profile.level >= 7,
-            min(100, (profile.level / 7) * 100),
-            f"Level {profile.level} / 7",
+            vivian_level >= 1,
+            min(100, (vivian_level / 1) * 100),
+            "Recruit Vivian",
         )
 
     if title_id == "chaos_lord":
+        active_codes = profile.active_allies or []
+        recruited = {
+            a.ally_code: a.level
+            for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+        }
+        rhea_level = recruited.get("rhea", 0)
         return (
-            profile.level >= 10,
-            min(100, (profile.level / 10) * 100),
-            f"Level {profile.level} / 10",
+            rhea_level >= 1,
+            min(100, (rhea_level / 1) * 100),
+            "Recruit Rhea",
         )
 
     if title_id == "deep_work_master":
+        from api.models import PomodoroSession
+
+        pomo_count = PomodoroSession.objects.filter(user=user).count()
         return (
-            total_tasks >= 10,
-            min(100, (total_tasks / 10) * 100),
-            f"{total_tasks} / 10 focus sessions",
+            pomo_count >= 5,
+            min(100, (pomo_count / 5) * 100),
+            f"{pomo_count} / 5 Pomodoro sessions",
         )
 
     if title_id == "zen_meditator":
+        from api.models import PomodoroSession
+
+        pomo_count = PomodoroSession.objects.filter(user=user).count()
         return (
-            total_tasks >= 25,
-            min(100, (total_tasks / 25) * 100),
-            f"{total_tasks} / 25 sessions",
+            pomo_count >= 20,
+            min(100, (pomo_count / 20) * 100),
+            f"{pomo_count} / 20 Pomodoro sessions",
         )
 
     if title_id == "chronomancer":
+        from api.models import PomodoroSession
+        from django.db.models import Sum
+
+        total_minutes = (
+            PomodoroSession.objects.filter(user=user).aggregate(total=Sum("duration"))[
+                "total"
+            ]
+            or 0
+        )
+        total_hours = total_minutes / 60
         return (
-            total_tasks >= 40,
-            min(100, (total_tasks / 40) * 100),
-            f"{total_tasks} / 40 hours",
+            total_hours >= 25,
+            min(100, (total_hours / 25) * 100),
+            f"{total_hours:.1f} / 25 hours focused",
         )
 
     if title_id == "sprint_champion":
+        max_day = task_stats.get("max_day_tasks", 0)
         return (
-            task_stats.get("max_day_tasks", 0) >= 5 or total_tasks >= 15,
-            100 if total_tasks >= 15 else 50,
-            "5 tasks in a day",
+            max_day >= 5,
+            min(100, (max_day / 5) * 100),
+            f"{max_day} / 5 tasks in one day",
         )
 
     if title_id == "unstoppable":
+        max_day = task_stats.get("max_day_tasks", 0)
         return (
-            task_stats.get("max_day_tasks", 0) >= 15 or total_tasks >= 45,
-            100 if total_tasks >= 45 else 30,
-            "15 tasks in a day",
+            max_day >= 15,
+            min(100, (max_day / 15) * 100),
+            f"{max_day} / 15 tasks in one day",
         )
 
     if title_id == "squad_commander":
-        return profile.level >= 2, 100 if profile.level >= 2 else 0, "Party unlocked"
+        from api.models import PartyMembership
+
+        in_party = PartyMembership.objects.filter(user=user).exists()
+        return in_party, 100 if in_party else 0, "Join or create a Party"
 
     if title_id == "ally_patron":
         allies = getattr(profile, "active_allies", []) or []
         return (
-            len(allies) >= 1 or profile.level >= 4,
-            100 if profile.level >= 4 else 0,
-            "1 companion",
+            len(allies) >= 1,
+            100 if len(allies) >= 1 else 0,
+            f"{len(allies)} / 1 companion",
         )
 
     if title_id == "beast_master":
         allies = getattr(profile, "active_allies", []) or []
         return (
-            len(allies) >= 3 or profile.level >= 8,
-            100 if profile.level >= 8 else 0,
-            "3 companions",
+            len(allies) >= 3,
+            min(100, (len(allies) / 3) * 100),
+            f"{len(allies)} / 3 companions",
         )
 
     if title_id == "inspiring_leader":
-        return profile.level >= 3, 100 if profile.level >= 3 else 0, "Party Leader"
+        from api.models import PartyMembership
+
+        membership = (
+            PartyMembership.objects.filter(user=user).select_related("party").first()
+        )
+        has_buff = membership is not None and membership.last_buff_sent_at is not None
+        return has_buff, 100 if has_buff else 0, "Send a party buff"
 
     if title_id == "dynamic_duo":
-        return profile.level >= 2, 100 if profile.level >= 2 else 0, "Duo"
+        from api.models import PartyMembership
+
+        membership = (
+            PartyMembership.objects.filter(user=user).select_related("party").first()
+        )
+        member_count = membership.party.memberships.count() if membership else 0
+        return (
+            member_count >= 2,
+            min(100, (member_count / 2) * 100),
+            f"{member_count} / 2 members",
+        )
 
     if title_id == "gold_digger":
         return (
@@ -771,17 +828,19 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "big_spender":
+        purchased = stats.items_purchased if stats else 0
         return (
-            total_gold >= 100 or profile.gold >= 50,
-            100 if total_gold >= 100 else 50,
-            "Shop purchases",
+            purchased >= 5,
+            min(100, (purchased / 5) * 100),
+            f"{purchased} / 5 purchases",
         )
 
     if title_id == "treasure_hunter":
+        opened = stats.chests_opened if stats else 0
         return (
-            total_gold >= 50 or profile.level >= 2,
-            100 if profile.level >= 2 else 50,
-            "Loot chests",
+            opened >= 1,
+            100 if opened >= 1 else 0,
+            f"{opened} / 1 chest opened",
         )
 
     if title_id == "mind_over_matter":
@@ -793,9 +852,9 @@ def _evaluate_title_unlock(
 
     if title_id == "pioneer":
         rank_id = (
-            getattr(profile.rank_info, "id", "F")
+            getattr(profile.rank_info, "id", "E")
             if hasattr(profile, "rank_info")
-            else "F"
+            else "E"
         )
         return (
             rank_id in ["C", "B", "A", "S", "SS", "SSS"],
@@ -805,9 +864,9 @@ def _evaluate_title_unlock(
 
     if title_id == "grandmaster":
         rank_id = (
-            getattr(profile.rank_info, "id", "F")
+            getattr(profile.rank_info, "id", "E")
             if hasattr(profile, "rank_info")
-            else "F"
+            else "E"
         )
         return (
             rank_id in ["S", "SS", "SSS"],
@@ -820,7 +879,9 @@ def _evaluate_title_unlock(
         return p_count >= 1, (100 if p_count >= 1 else 0), f"{p_count} / 1 Prestige"
 
     if title_id == "phoenix":
-        return streak >= 10, min(100, (streak / 10) * 100), f"{streak} / 10 days"
+        consumed = stats.potions_consumed if stats else 0
+        shield_used = consumed >= 1 and streak >= 1
+        return shield_used, 100 if shield_used else 0, "Use streak shield item"
 
     # Default fallback
     return True, 100, "Unlocked"

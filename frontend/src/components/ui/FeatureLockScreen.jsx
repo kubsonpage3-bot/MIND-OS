@@ -6,12 +6,12 @@ import { getRankDisplayData } from "@/lib/rankEngine";
 export default function FeatureLockScreen({ feature, requiredRank, profile }) {
   const { t } = useTranslation();
 
-  const currentRank = profile?.rank_info?.current_id || profile?.rank || "F";
+  const currentRank = profile?.rank_info?.current_id || profile?.rank || "E";
   const currentXP = profile?.rank_xp || 0;
 
   // Find target XP threshold from rank_info thresholds, or fallback to standard defaults
   const thresholds = profile?.rank_info?.thresholds || [
-    { id: "F", min: 0 },
+    { id: "E", min: 0 },
     { id: "D", min: 200 },
     { id: "C", min: 600 },
   ];

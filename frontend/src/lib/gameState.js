@@ -8,7 +8,7 @@ export const BOSSES = [
     lore: "The absence of thought given form.",
     attack: "Mental Fog",
     attackEffect: "missed daily = −5 weekly XP",
-    requiredRank: "F",
+    requiredRank: "E",
     color: "#00e5ff",
   },
   {
@@ -85,7 +85,7 @@ export const getGearClassColor = (gearClass) => GEAR_CLASS_COLORS[gearClass] || 
 const TIER_COLORS = { Common: '#94a3b8', Uncommon: '#22c55e', Rare: '#3b82f6', Epic: '#a855f7', Legendary: '#f59e0b' };
 export const getTierColor = (tier) => TIER_COLORS[tier] || '#94a3b8';
 
-const RANK_ORDER = ["F","D","C","B","A","S","SS","SSS"];
+const RANK_ORDER = ["E","D","C","B","A","S","SS","SSS"];
 export function rankMeetsReq(currentRankId, reqRank) {
   if (!reqRank) return true;
   return RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(reqRank);

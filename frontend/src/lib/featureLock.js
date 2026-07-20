@@ -6,12 +6,12 @@
  * because it compares the FINAL computed rank string, not raw XP.
  *
  * Unlock thresholds:
- *  - Skills: Unlocks at Rank D or higher (current_id !== "F")
- *  - Allies: Unlocks at Rank C or higher (current_id !== "F" && current_id !== "D")
- *  - Mutators: Unlocks at Rank C or higher (current_id !== "F" && current_id !== "D")
+ *  - Skills: Unlocks at Rank D or higher (current_id !== "E")
+ *  - Allies: Unlocks at Rank C or higher (current_id !== "E" && current_id !== "D")
+ *  - Mutators: Unlocks at Rank C or higher (current_id !== "E" && current_id !== "D")
  */
 
-const RANK_ORDER = ['F', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'ASC'];
+const RANK_ORDER = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'ASC'];
 
 /**
  * Returns -1, 0, or 1 like a comparator.
@@ -28,7 +28,7 @@ function compareRanks(rankA, rankB) {
 
 /**
  * Returns true if currentRank is strictly lower than requiredRank.
- * @param {string} currentRank - e.g. "F"
+ * @param {string} currentRank - e.g. "E"
  * @param {string} requiredRank - e.g. "D"
  */
 export function isFeatureLocked(currentRank, requiredRank) {
@@ -41,7 +41,7 @@ export function isFeatureLocked(currentRank, requiredRank) {
  * @returns {{ currentRank: string, skillsLocked: boolean, alliesLocked: boolean, mutatorsLocked: boolean, skillsUnlockRank: string, alliesUnlockRank: string, mutatorsUnlockRank: string }}
  */
 export function getFeatureLocks(profile) {
-  const currentRank = profile?.rank_info?.current_id || profile?.rank || 'F';
+  const currentRank = profile?.rank_info?.current_id || profile?.rank || 'E';
 
   return {
     currentRank,

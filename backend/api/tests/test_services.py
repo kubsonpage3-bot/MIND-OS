@@ -795,11 +795,11 @@ def test_endurance_protocol_reduces_rank_thresholds(user, profile):
     assert info["thresholds"][1]["id"] == "D"
     assert info["thresholds"][1]["min"] == 200
 
-    # Give profile 160 XP. Without passive, this is Rank F
+    # Give profile 160 XP. Without passive, this is Rank E
     profile.rank_xp = 160
     profile.save()
     info = get_rank_info(profile)
-    assert info["current_id"] == "F"
+    assert info["current_id"] == "E"
 
     # Unlock endurance_protocol
     from api.models import UnlockedSkill

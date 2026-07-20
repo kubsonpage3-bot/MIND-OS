@@ -110,4 +110,11 @@ def consume_item(user, item_code: str):
 
     profile.save(update_fields=["hp", "gc"])
 
+    # Track stat for title unlock
+    from api.models import UserStats
+
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    stats.potions_consumed = max(0, stats.potions_consumed) + 1
+    stats.save(update_fields=["potions_consumed"])
+
     return True, f"Used {item.name}", profile

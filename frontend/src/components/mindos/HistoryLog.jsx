@@ -31,7 +31,7 @@ export default function HistoryLog({ logs, tasks = [] }) {
       
       const xp = score * 10;
       const thresholds = profile?.rank_info?.thresholds || [];
-      let rankId = "F";
+      let rankId = "E";
       for (const t of thresholds) {
         if (xp >= t.min) rankId = t.id;
       }

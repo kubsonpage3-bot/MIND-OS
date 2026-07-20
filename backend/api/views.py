@@ -1243,7 +1243,7 @@ class PrestigeView(generics.GenericAPIView):
             profile.mana = profile.max_mana
 
             # Start rank
-            start_rank = passive_effects.get("prestige_start_rank", "F")
+            start_rank = passive_effects.get("prestige_start_rank", "E")
             if start_rank == "C":
                 profile.rank_xp = 600
             else:
@@ -2819,7 +2819,7 @@ class PartyMemberProfileView(generics.GenericAPIView):
                 ),
                 "character_class": profile.character_class,
                 "level": profile.level,
-                "rank": rank_info.get("current_id", "F"),
+                "rank": rank_info.get("current_id", "E"),
                 "rank_info": rank_info,
                 "rank_xp": profile.rank_xp,
                 "hp": profile.hp,

@@ -10,7 +10,7 @@ def backfill_boss_drops(apps, schema_editor):
     InventoryItem = apps.get_model("api", "InventoryItem")
 
     RANK_TO_LEVEL = {
-        1: "F",
+        1: "E",
         2: "D",
         3: "C",
         4: "B",
@@ -21,7 +21,7 @@ def backfill_boss_drops(apps, schema_editor):
     }
 
     BOSS_RANK_STATS = {
-        "F": {"count": 1, "min": 1, "max": 1},
+        "E": {"count": 1, "min": 1, "max": 1},
         "D": {"count": 1, "min": 1, "max": 2},
         "C": {"count": 2, "min": 2, "max": 2},
         "B": {"count": 2, "min": 2, "max": 3},
@@ -46,7 +46,7 @@ def backfill_boss_drops(apps, schema_editor):
             item = Item.objects.get(code=boss.drop_item_id)
             item.is_purchasable = False
             item.source = "boss_drop"
-            rank = RANK_TO_LEVEL.get(boss.level, "F")
+            rank = RANK_TO_LEVEL.get(boss.level, "E")
             item.boss_rank = rank
             item.save()
 

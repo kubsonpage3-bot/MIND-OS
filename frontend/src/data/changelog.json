@@ -1,5 +1,20 @@
 [
   {
+    "date": "2026-07-20",
+    "version": "1.7.26",
+    "changes": [
+      { "type": "fix", "text": "Fixed the rank naming: the starting rank is now correctly called 'E' (not 'F') — alphabetical order is now E, D, C, B, A, S, SS, SSS." }
+    ]
+  },
+  {
+    "date": "2026-07-19",
+    "version": "1.7.25",
+    "changes": [
+      { "type": "fix", "text": "Fixed 20 title unlock conditions that were triggering off fake proxies (level, total tasks, gold balance) instead of what they actually describe — shop purchases, chest opens, potions used, items crafted, party membership, and real Pomodoro sessions now properly unlock their respective titles." },
+      { "type": "fix", "text": "Tasks no longer jump position when completed or uncompleted — your drag-to-reorder layout is now fully preserved across any action." }
+    ]
+  },
+  {
     "date": "2026-07-19",
     "version": "1.7.24",
     "changes": [

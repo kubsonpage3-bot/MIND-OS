@@ -85,6 +85,13 @@ def open_chest(user, chest_type: str) -> Tuple[bool, str, dict]:
         inv_item.quantity += 1
         inv_item.save(update_fields=["quantity"])
 
+    # Track stat for title unlock
+    from api.models import UserStats
+
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    stats.chests_opened = max(0, stats.chests_opened) + 1
+    stats.save(update_fields=["chests_opened"])
+
     return (
         True,
         f"You obtained [{rolled_class}] {won_item.name}!",

@@ -208,7 +208,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   });
 
   // Use currentRankId prop if provided for sync with header character icon
-  const currentRankIdValue = currentRankId || profile?.rank_info?.current_id || "F";
+  const currentRankIdValue = currentRankId || profile?.rank_info?.current_id || "E";
   const currentRank = getRankDisplayData(currentRankIdValue, profile);
   const charHp = profile?.hp !== undefined ? profile.hp : 100;
   const charMaxHp = profile?.hp_max || 100;

@@ -25,7 +25,7 @@ export default function AppearancePanel() {
       const profile = queryClient.getQueryData(["userprofile"]);
       if (profile) {
         const thresholds = profile.rank_info?.thresholds || [];
-        const currentRankId = profile.rank_info?.current_id || "F";
+        const currentRankId = profile.rank_info?.current_id || "E";
         const currentIdx = thresholds.findIndex(t => t.id === currentRankId);
         const currentMin = currentIdx >= 0 ? thresholds[currentIdx].min : 0;
         const nextMin = (currentIdx >= 0 && currentIdx < thresholds.length - 1)
