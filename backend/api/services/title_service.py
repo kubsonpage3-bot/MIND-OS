@@ -552,11 +552,20 @@ def _evaluate_title_unlock(
         return count >= 1, (100 if count >= 1 else 0), f"{count} / 1 midnight task"
 
     if title_id == "bookworm":
-        weekly_xp = profile.weekly_xp or 0
-        is_ling = str(profile.character_class).lower().strip() == "linguist" or (
-            profile.gc >= 110
+        from django.utils import timezone
+        from datetime import timedelta
+        from api.models import TrainingSession
+        from api.services.mechanics import resolve_mastery_category
+
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        sessions = TrainingSession.objects.filter(
+            user_profile=profile, created_at__gte=seven_days_ago
         )
-        val = weekly_xp if is_ling else min(weekly_xp, 100)
+        val = 0
+        for s in sessions:
+            cat = resolve_mastery_category(activity=s.activity_key)
+            if cat in ("languages", "humanities"):
+                val += s.xp_earned or 0
         return val >= 100, min(100, (val / 100) * 100), f"{val} / 100 Gc XP"
 
     if title_id == "polyglot":
@@ -564,11 +573,20 @@ def _evaluate_title_unlock(
         return val >= 115, min(100, ((val - 100) / 15) * 100), f"{val:.1f} / 115 Gc"
 
     if title_id == "architect_mind":
-        weekly_xp = profile.weekly_xp or 0
-        is_arch = str(profile.character_class).lower().strip() == "architect" or (
-            profile.gf >= 110
+        from django.utils import timezone
+        from datetime import timedelta
+        from api.models import TrainingSession
+        from api.services.mechanics import resolve_mastery_category
+
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        sessions = TrainingSession.objects.filter(
+            user_profile=profile, created_at__gte=seven_days_ago
         )
-        val = weekly_xp if is_arch else min(weekly_xp, 100)
+        val = 0
+        for s in sessions:
+            cat = resolve_mastery_category(activity=s.activity_key)
+            if cat == "sciences":
+                val += s.xp_earned or 0
         return val >= 100, min(100, (val / 100) * 100), f"{val} / 100 Gf XP"
 
     if title_id == "neuro_surgeon":
@@ -599,11 +617,20 @@ def _evaluate_title_unlock(
 
     if title_id == "warlord_guard":
         is_war = str(profile.character_class).lower().strip() == "warlord"
-        count = boss_damage if is_war else 0
-        return is_war and count >= 1, (100 if count >= 1 else 0), "Warlord attacks"
+        count = stats.boss_attacks_count if stats else 0
+        return (
+            is_war and count >= 10,
+            min(100, (count / 10) * 100),
+            f"{count} / 10 attacks",
+        )
 
     if title_id == "alchemist":
-        mut_count = len(profile.active_mutators or [])
+        purchased = (
+            profile.active_mutators.get("purchased", [])
+            if isinstance(profile.active_mutators, dict)
+            else []
+        )
+        mut_count = len(purchased)
         return (
             mut_count >= 3,
             min(100, (mut_count / 3) * 100),
@@ -611,7 +638,12 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "grand_alchemist":
-        mut_count = len(profile.active_mutators or [])
+        purchased = (
+            profile.active_mutators.get("purchased", [])
+            if isinstance(profile.active_mutators, dict)
+            else []
+        )
+        mut_count = len(purchased)
         return (
             mut_count >= 7,
             min(100, (mut_count / 7) * 100),
@@ -619,7 +651,12 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "experimentalist":
-        mut_count = len(profile.active_mutators or [])
+        active_list = (
+            profile.active_mutators.get("active", [])
+            if isinstance(profile.active_mutators, dict)
+            else []
+        )
+        mut_count = len(active_list)
         return (
             mut_count >= 2,
             (100 if mut_count >= 2 else 50 if mut_count == 1 else 0),
@@ -776,19 +813,19 @@ def _evaluate_title_unlock(
         return in_party, 100 if in_party else 0, "Join or create a Party"
 
     if title_id == "ally_patron":
-        allies = getattr(profile, "active_allies", []) or []
+        count = profile.recruited_allies.count()
         return (
-            len(allies) >= 1,
-            100 if len(allies) >= 1 else 0,
-            f"{len(allies)} / 1 companion",
+            count >= 1,
+            100 if count >= 1 else 0,
+            f"{count} / 1 companion",
         )
 
     if title_id == "beast_master":
-        allies = getattr(profile, "active_allies", []) or []
+        count = profile.recruited_allies.count()
         return (
-            len(allies) >= 3,
-            min(100, (len(allies) / 3) * 100),
-            f"{len(allies)} / 3 companions",
+            count >= 3,
+            min(100, (count / 3) * 100),
+            f"{count} / 3 companions",
         )
 
     if title_id == "inspiring_leader":
@@ -851,11 +888,10 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "pioneer":
-        rank_id = (
-            getattr(profile.rank_info, "id", "E")
-            if hasattr(profile, "rank_info")
-            else "E"
-        )
+        from api.services.profile_service import get_rank_info
+
+        rank_info = get_rank_info(profile)
+        rank_id = rank_info.get("current_id", "E")
         return (
             rank_id in ["C", "B", "A", "S", "SS", "SSS"],
             100 if rank_id in ["C", "B", "A", "S", "SS", "SSS"] else 30,
@@ -863,11 +899,10 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "grandmaster":
-        rank_id = (
-            getattr(profile.rank_info, "id", "E")
-            if hasattr(profile, "rank_info")
-            else "E"
-        )
+        from api.services.profile_service import get_rank_info
+
+        rank_info = get_rank_info(profile)
+        rank_id = rank_info.get("current_id", "E")
         return (
             rank_id in ["S", "SS", "SSS"],
             100 if rank_id in ["S", "SS", "SSS"] else 10,
@@ -964,14 +999,24 @@ def get_user_playstyle_titles(profile) -> Dict[str, Any]:
     stats = getattr(user, "stats", None)
     task_stats = _get_user_task_stats(user)
 
+    # Option B: Permanent unlock list
+    unlocked_list = list(profile.unlocked_playstyle_titles or [])
+    newly_unlocked = False
+
     evaluated_titles = []
     unlocked_unpinned = []
 
     for item in TITLES_CATALOG:
         t_id = item["id"]
-        unlocked, progress_pct, progress_text = _evaluate_title_unlock(
-            user, t_id, stats, profile, task_stats
-        )
+        if t_id in unlocked_list:
+            unlocked, progress_pct, progress_text = True, 100.0, "Unlocked"
+        else:
+            unlocked, progress_pct, progress_text = _evaluate_title_unlock(
+                user, t_id, stats, profile, task_stats
+            )
+            if unlocked:
+                unlocked_list.append(t_id)
+                newly_unlocked = True
 
         t_obj = {
             "id": t_id,
@@ -990,6 +1035,10 @@ def get_user_playstyle_titles(profile) -> Dict[str, Any]:
 
         if unlocked:
             unlocked_unpinned.append(t_obj)
+
+    if newly_unlocked:
+        profile.unlocked_playstyle_titles = unlocked_list
+        profile.save(update_fields=["unlocked_playstyle_titles"])
 
     # Sort unlocked by priority descending to pick the auto playstyle title
     unlocked_unpinned.sort(key=lambda x: x["priority"], reverse=True)

@@ -176,6 +176,10 @@ class UserProfile(models.Model):
     active_allies = models.JSONField(
         default=list, blank=True, verbose_name="Активные союзники"
     )
+    # Список разблокированных титулов (Option B)
+    unlocked_playstyle_titles = models.JSONField(
+        default=list, blank=True, verbose_name="Разблокированные титулы"
+    )
 
     # Просмотренные гайды (первый визит на вкладку)
     seen_guides = models.JSONField(
@@ -605,6 +609,9 @@ class UserStats(models.Model):
     total_tasks_completed = models.PositiveIntegerField(default=0)
     max_streak = models.PositiveIntegerField(default=0)
     total_boss_damage = models.PositiveIntegerField(default=0)
+    boss_attacks_count = models.PositiveIntegerField(
+        default=0, verbose_name="Количество атак на боссов"
+    )
     bosses_defeated = models.PositiveIntegerField(default=0)
     total_gold_earned = models.PositiveIntegerField(default=0)
     prayer_sessions = models.PositiveIntegerField(default=0)

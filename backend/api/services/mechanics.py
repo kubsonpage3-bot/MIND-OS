@@ -28,29 +28,30 @@ def add_unique_subject_today(stats, subject):
 
 
 COGNITIVE_COEFFICIENTS = {
-    "mathematics": {"gf": 0.08, "ps": 0.04, "gc": 0.01, "vm": 0},
-    "physics": {"gf": 0.07, "ps": 0.05, "gc": 0.01, "vm": 0},
-    "chemistry": {"gf": 0.05, "ps": 0.05, "gc": 0.03, "vm": 0},
-    "biology": {"gf": 0.03, "ps": 0.02, "gc": 0.06, "vm": 0.04},
-    "history": {"gf": 0.01, "ps": 0, "gc": 0.09, "vm": 0.02},
-    "english": {"gf": 0, "ps": 0.02, "gc": 0.07, "vm": 0.10},
-    "philosophy": {"gf": 0.02, "ps": 0, "gc": 0.08, "vm": 0.04},
-    "vocabulary": {"gf": 0, "ps": 0, "gc": 0.05, "vm": 0.12},
-    "languages": {"gf": 0, "ps": 0.03, "gc": 0.06, "vm": 0.07},
-    "chess": {"gf": 0.09, "ps": 0.06, "gc": 0, "vm": 0},
-    "coding": {"gf": 0.07, "ps": 0.08, "gc": 0.01, "vm": 0},
-    "creative_answers": {"gf": 0.015, "gc": 0.010, "vm": 0.008, "ps": 0.005},
-    "exercise": {"gf": 0.02, "ps": 0.05, "gc": 0, "vm": 0},
-    "running": {"gf": 0.04, "ps": 0.05, "gc": 0, "vm": 0},
-    "prayer": {"gf": 0, "ps": 0, "gc": 0.06, "vm": 0.06},
-    "mindfulness": {"gf": 0, "ps": 0, "gc": 0.06, "vm": 0.06},
-    "sleep": {"gf": 0.01, "ps": 0.01, "gc": 0.01, "vm": 0.01},
-    "nutrition": {"gf": 0.01, "ps": 0.02, "gc": 0.02, "vm": 0.01},
-    "reading": {"gf": 0.01, "ps": 0, "gc": 0.07, "vm": 0.05},
-    "social": {"gf": 0.01, "ps": 0.03, "gc": 0.03, "vm": 0.05},
-    "music": {"gf": 0.03, "ps": 0.04, "gc": 0.03, "vm": 0.03},
-    "art": {"gf": 0.04, "ps": 0.03, "gc": 0.03, "vm": 0.02},
-    "other": {"gf": 0.02, "ps": 0.02, "gc": 0.02, "vm": 0.02},
+    "mathematics": {"gf": 1.60, "ps": 0.80, "gc": 0.20, "vm": 0.0},
+    "physics": {"gf": 1.40, "ps": 1.00, "gc": 0.20, "vm": 0.0},
+    "chemistry": {"gf": 1.00, "ps": 1.00, "gc": 0.60, "vm": 0.0},
+    "biology": {"gf": 0.60, "ps": 0.40, "gc": 1.20, "vm": 0.80},
+    "history": {"gf": 0.20, "ps": 0.00, "gc": 1.80, "vm": 0.40},
+    "english": {"gf": 0.00, "ps": 0.40, "gc": 1.40, "vm": 2.00},
+    "philosophy": {"gf": 0.40, "ps": 0.00, "gc": 1.60, "vm": 0.80},
+    "vocabulary": {"gf": 0.00, "ps": 0.00, "gc": 1.00, "vm": 2.40},
+    "languages": {"gf": 0.00, "ps": 0.60, "gc": 1.20, "vm": 1.40},
+    "german": {"gf": 0.00, "ps": 0.60, "gc": 1.20, "vm": 1.40},
+    "chess": {"gf": 1.80, "ps": 1.20, "gc": 0.00, "vm": 0.00},
+    "coding": {"gf": 1.40, "ps": 1.60, "gc": 0.20, "vm": 0.00},
+    "creative_answers": {"gf": 0.30, "gc": 0.20, "ps": 0.10, "vm": 0.16},
+    "exercise": {"gf": 0.40, "ps": 1.00, "gc": 0.00, "vm": 0.00},
+    "running": {"gf": 0.80, "ps": 1.00, "gc": 0.00, "vm": 0.00},
+    "prayer": {"gf": 0.00, "ps": 0.00, "gc": 1.20, "vm": 1.20},
+    "mindfulness": {"gf": 0.00, "ps": 0.00, "gc": 1.20, "vm": 1.20},
+    "sleep": {"gf": 0.20, "ps": 0.20, "gc": 0.20, "vm": 0.20},
+    "nutrition": {"gf": 0.20, "ps": 0.40, "gc": 0.40, "vm": 0.20},
+    "reading": {"gf": 0.20, "ps": 0.00, "gc": 1.40, "vm": 1.00},
+    "social": {"gf": 0.20, "ps": 0.60, "gc": 0.60, "vm": 1.00},
+    "music": {"gf": 0.60, "ps": 0.80, "gc": 0.60, "vm": 0.60},
+    "art": {"gf": 0.80, "ps": 0.60, "gc": 0.60, "vm": 0.40},
+    "other": {"gf": 0.40, "ps": 0.40, "gc": 0.40, "vm": 0.40},
 }
 
 
@@ -391,7 +392,11 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         stats.total_crits += 1
     if boss_defeated:
         stats.bosses_defeated += 1
-    stats.save(update_fields=["total_boss_damage", "total_crits", "bosses_defeated"])
+    update_fields = ["total_boss_damage", "total_crits", "bosses_defeated"]
+    if final_damage_dealt > 0:
+        stats.boss_attacks_count += 1
+        update_fields.append("boss_attacks_count")
+    stats.save(update_fields=update_fields)
 
     return {
         "encounter_id": active_encounter.id,  # type: ignore

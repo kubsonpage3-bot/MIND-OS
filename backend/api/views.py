@@ -2225,7 +2225,11 @@ class CombatSyncView(generics.GenericAPIView):
 
             stats.total_boss_damage += damage_dealt
             stats.total_crits += crits
-            stats.save(update_fields=["total_boss_damage", "total_crits"])
+            update_fields = ["total_boss_damage", "total_crits"]
+            if damage_dealt > 0:
+                stats.boss_attacks_count += 1
+                update_fields.append("boss_attacks_count")
+            stats.save(update_fields=update_fields)
 
             unlocked_achievements = check_and_grant_achievements(request.user)
             profile.refresh_from_db()
