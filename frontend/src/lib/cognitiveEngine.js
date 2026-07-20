@@ -180,12 +180,12 @@ export function getFatigueMultiplier(hoursLoggedToday) {
   return 0.5;
 }
 
-// subjectHoursToday = hours already logged today for this specific subject
 export function getSubjectDiminishingMultiplier(subjectHoursToday) {
   if (subjectHoursToday < 1) return 1.0;
-  if (subjectHoursToday < 2) return 0.8;
-  if (subjectHoursToday < 3) return 0.5;
-  return 0.2;
+  if (subjectHoursToday < 2) return 0.9;
+  if (subjectHoursToday < 3) return 0.8;
+  if (subjectHoursToday < 6) return 0.75;
+  return 0.5;
 }
 
 
@@ -240,12 +240,14 @@ export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursT
 
   // Category-based diminishing returns (starts after 2.0 hours)
   let categoryDiminMult = 1.0;
-  if (categoryHoursToday >= 4) {
-    categoryDiminMult = 0.2;
-  } else if (categoryHoursToday >= 3) {
+  if (categoryHoursToday >= 8) {
     categoryDiminMult = 0.5;
-  } else if (categoryHoursToday >= 2) {
+  } else if (categoryHoursToday >= 4) {
+    categoryDiminMult = 0.75;
+  } else if (categoryHoursToday >= 3) {
     categoryDiminMult = 0.8;
+  } else if (categoryHoursToday >= 2) {
+    categoryDiminMult = 0.9;
   }
 
   const finalDiminMult = Math.min(diminMult, categoryDiminMult);

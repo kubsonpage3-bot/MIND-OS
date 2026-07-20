@@ -109,21 +109,25 @@ def calculate_training_efficiency(
     if subject_hours_today < 1:
         dimin_mult = 1.0
     elif subject_hours_today < 2:
-        dimin_mult = 0.8
+        dimin_mult = 0.9
     elif subject_hours_today < 3:
-        dimin_mult = 0.5
+        dimin_mult = 0.8
+    elif subject_hours_today < 6:
+        dimin_mult = 0.75
     else:
-        dimin_mult = 0.2
+        dimin_mult = 0.5
 
     # Diminishing Returns (category - softer limit starting after 2 hours)
     if category_hours_today < 2:
         cat_dimin_mult = 1.0
     elif category_hours_today < 3:
-        cat_dimin_mult = 0.8
+        cat_dimin_mult = 0.9
     elif category_hours_today < 4:
-        cat_dimin_mult = 0.5
+        cat_dimin_mult = 0.8
+    elif category_hours_today < 8:
+        cat_dimin_mult = 0.75
     else:
-        cat_dimin_mult = 0.2
+        cat_dimin_mult = 0.5
 
     final_dimin_mult = min(dimin_mult, cat_dimin_mult)
 
