@@ -1,6 +1,20 @@
 [
   {
     "date": "2026-07-20",
+    "version": "0.7.3",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed missing item icon images for several gear drops and shop consumables, including Eclipse Eye, Blade of Final Dusk, Throne Seal, Misted Hood, Gold Rush Token, and XP Surge Scroll."
+      },
+      {
+        "type": "fix",
+        "text": "Implemented the missing active effect for the Gold Rush Token, allowing it to correctly award +200 Gold upon consumption."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-20",
     "version": "0.7.2",
     "changes": [
       {

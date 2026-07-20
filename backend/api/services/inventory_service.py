@@ -55,6 +55,10 @@ def consume_item(user, item_code: str):
         # Profile fields need saving
         pass
 
+    # Apply Daily Gold Rush (Instant +200 Gold)
+    if item.code == "daily_gold_rush":
+        profile.gold = max(0, profile.gold + 200)
+
     # Apply Duration / Usage Effects (Buffs)
     buff_mapping: dict[str, dict[str, Any]] = {
         "focus_stim": {
@@ -108,7 +112,7 @@ def consume_item(user, item_code: str):
     else:
         inv_item.save(update_fields=["quantity"])
 
-    profile.save(update_fields=["hp", "gc"])
+    profile.save(update_fields=["hp", "gc", "gold"])
 
     # Track stat for title unlock
     from api.models import UserStats

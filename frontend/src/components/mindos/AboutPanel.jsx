@@ -2,7 +2,7 @@ import { Info, Book, MessageSquare, ExternalLink, Shield, Zap, FileText } from "
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
-const APP_VERSION = "0.7.2";
+const APP_VERSION = "0.7.3";
 const BUILD_DATE = "2026-07-20";
 
 function getPlatform() {

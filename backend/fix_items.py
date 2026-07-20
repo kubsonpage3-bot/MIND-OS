@@ -25,6 +25,7 @@ daily_items = [
         "description": "Instantly grants +200 Gold.",
         "item_type": "consumable",
         "cost": 150,
+        "icon_url": "/static/items/daily_gold_rush.webp",
         "hp_boost": 0,
         "damage_boost": 0.0,
         "gold_boost": 0.0,
@@ -37,6 +38,7 @@ daily_items = [
         "description": "+100% XP gain for 2 hours.",
         "item_type": "consumable",
         "cost": 150,
+        "icon_url": "/static/items/daily_xp_surge.webp",
         "hp_boost": 0,
         "damage_boost": 0.0,
         "gold_boost": 0.0,
@@ -47,9 +49,12 @@ daily_items = [
 
 for data in daily_items:
     obj, created = Item.objects.get_or_create(code=data["code"], defaults=data)
-    if created:
-        print(f"Created: {obj.code}")
+    if not created:
+        for k, v in data.items():
+            setattr(obj, k, v)
+        obj.save()
+        print(f"Updated: {obj.code}")
     else:
-        print(f"Already exists: {obj.code}")
+        print(f"Created: {obj.code}")
 
 print("Done!")
