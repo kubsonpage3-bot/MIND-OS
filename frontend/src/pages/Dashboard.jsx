@@ -35,6 +35,7 @@ import PillTabBar from "@/components/ui/PillTabBar";
 import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
 import { useProfileMount } from "@/utils/perf";
 import { getFeatureLocks } from "@/lib/featureLock";
+import { getValidSubTab } from "@/lib/navigation";
 
 import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
 import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
@@ -894,6 +895,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
         {sectionToRender === "character" && (() => {
           const { skillsLocked } = getFeatureLocks(profile);
+          const currentSub = getValidSubTab("character", activeSubItem);
           return (
             <>
               <PillTabBar
@@ -902,11 +904,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                   label: t(tab.label),
                   locked: tab.id === "skills" && skillsLocked
                 }))}
-                activeTab={activeSubItem || "overview"}
+                activeTab={currentSub}
                 onChange={onSubItemChange}
               />
               <div className="py-2">
-                <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={activeSubItem} />
+                <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={currentSub} />
               </div>
             </>
           );
@@ -946,11 +948,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           </TabPanel>
         )}
 
-        {sectionToRender === "settings" && (
-          <div className="py-2">
-            <SettingsPanel activeSubTab={activeSubItem || "appearance"} />
-          </div>
-        )}
+        {sectionToRender === "settings" && (() => {
+          const currentSub = getValidSubTab("settings", activeSubItem);
+          return (
+            <div className="py-2">
+              <SettingsPanel activeSubTab={currentSub} />
+            </div>
+          );
+        })()}
       </>
     );
   };

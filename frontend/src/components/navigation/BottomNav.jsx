@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { LayoutDashboard, Swords, User, BarChart2, Settings } from "lucide-react";
 import { hapticLight } from "@/hooks/useHaptic";
 import { useTranslation } from "react-i18next";
+import { getValidSubTab } from "@/lib/navigation";
 
 function haptic() {
   hapticLight();
@@ -20,9 +21,8 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
 
   const handleTap = (item) => {
     haptic(12);
-    if (item.id === "character") onNavigate(item.navTarget, activeSubItem || "overview");
-    else if (item.id === "settings") onNavigate(item.navTarget, "appearance");
-    else onNavigate(item.navTarget, null);
+    const targetSub = getValidSubTab(item.navTarget, activeSubItem);
+    onNavigate(item.navTarget, targetSub);
   };
 
   const activeIndex = MOBILE_SECTIONS.findIndex((item) =>

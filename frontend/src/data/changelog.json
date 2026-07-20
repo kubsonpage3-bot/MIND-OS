@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-20",
+    "version": "1.7.32",
+    "changes": [
+      { "type": "fix", "text": "Fixed a bug where switching to the Hero or Settings tabs would occasionally show an empty screen on both mobile and desktop due to invalid sub-tab propagation." }
+    ]
+  },
+  {
+    "date": "2026-07-20",
     "version": "1.7.31",
     "changes": [
       { "type": "feature", "text": "Added Category-Specific Diminishing Returns, calculating daily limits by activity category (Sciences, Humanities, Languages, Body, Spirit) rather than individual subjects." },

@@ -35,6 +35,7 @@ import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { ANIM_CONFIG } from "@/lib/animations";
 import { getFeatureLocks } from "@/lib/featureLock";
 import FeatureLockScreen from "@/components/ui/FeatureLockScreen";
+import { getValidSubTab } from "@/lib/navigation";
 
 // Unified stat system: Final = Base (5) + Stat Points + Class Bonus + Equipment
 const STAT_CONFIG = {
@@ -57,7 +58,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { skillsLocked, alliesLocked, mutatorsLocked, skillsUnlockRank, alliesUnlockRank, mutatorsUnlockRank } = getFeatureLocks(profile);
-  const subTab = externalSubTab || "overview";
+  const subTab = getValidSubTab("character", externalSubTab);
   const [shopTab, setShopTab] = useState(() => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
