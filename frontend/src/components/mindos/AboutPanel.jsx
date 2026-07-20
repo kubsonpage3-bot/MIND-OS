@@ -2,8 +2,8 @@ import { Info, Book, MessageSquare, ExternalLink, Shield, Zap, FileText } from "
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
-const APP_VERSION = "1.1.9";
-const BUILD_DATE = "2026-07-06";
+const APP_VERSION = "0.7.2";
+const BUILD_DATE = "2026-07-20";
 
 function getPlatform() {
   if (window.matchMedia("(display-mode: standalone)").matches) return "PWA (Installed)";

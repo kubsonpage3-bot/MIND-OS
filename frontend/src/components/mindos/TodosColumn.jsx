@@ -311,6 +311,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
+      queryClient.invalidateQueries({ queryKey: ['active_effects'] });
       if (itemDropped || !isCompleting) {
           queryClient.invalidateQueries({ queryKey: ['inventory'] });
       }

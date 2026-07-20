@@ -663,6 +663,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
       queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
+      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
       refreshProfile();
 
       const oldRankId = djangoProfile?.rank_info?.current_id || "E";

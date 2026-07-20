@@ -336,6 +336,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
+      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
     },
     onError: (error, variables, context) => {
       console.error('Django habit complete failed:', error);

@@ -935,7 +935,6 @@ class ActiveEffect(models.Model):
     )
     effect_id = models.CharField(
         max_length=80,
-        unique=True,
         verbose_name="ID эффекта",
         help_text="Уникальный идентификатор: blueprint_effect, iron_fast_effect...",
     )
@@ -958,6 +957,7 @@ class ActiveEffect(models.Model):
         verbose_name = "Активный эффект"
         verbose_name_plural = "Активные эффекты"
         ordering = ["-created_at"]
+        unique_together = ("user", "effect_id")
         indexes = [
             models.Index(fields=["user", "skill_id"]),
         ]

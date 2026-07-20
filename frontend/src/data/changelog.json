@@ -1,2292 +1,2510 @@
 [
   {
     "date": "2026-07-20",
-    "version": "1.7.34",
+    "version": "0.7.2",
     "changes": [
-      { "type": "feature", "text": "Replaced the abstract 'Cogn ROI' indicator on the dashboard with a Daily Energy Battery widget, which drains dynamically throughout the day as you complete habits, tasks, dailies, and training sessions." }
+      {
+        "type": "fix",
+        "text": "Fixed a database issue where only one user at a time could have an active skill effect (like Meditation or Blueprint) globally, causing request failures for subsequent users."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a synchronization bug where active skill effects did not update in the user interface after completing tasks or logging training, causing Meditation charges to desync and study logs to fail."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.33",
+    "version": "0.7.1",
     "changes": [
-      { "type": "balance", "text": "Softened daily study limits (Diminishing Returns) for both individual subjects and categories, allowing longer sessions before efficiency penalty begins, and capping the maximum penalty to 50% instead of 80%." }
+      {
+        "type": "feature",
+        "text": "Replaced the abstract 'Cogn ROI' indicator on the dashboard with a Daily Energy Battery widget, which drains dynamically throughout the day as you complete habits, tasks, dailies, and training sessions."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.32",
+    "version": "0.7.0",
     "changes": [
-      { "type": "fix", "text": "Fixed a bug where switching to the Hero or Settings tabs would occasionally show an empty screen on both mobile and desktop due to invalid sub-tab propagation." }
+      {
+        "type": "balance",
+        "text": "Softened daily study limits (Diminishing Returns) for both individual subjects and categories, allowing longer sessions before efficiency penalty begins, and capping the maximum penalty to 50% instead of 80%."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.31",
+    "version": "0.6.35",
     "changes": [
-      { "type": "feature", "text": "Added Category-Specific Diminishing Returns, calculating daily limits by activity category (Sciences, Humanities, Languages, Body, Spirit) rather than individual subjects." },
-      { "type": "feature", "text": "Introduced independent Category Streaks, giving +5% efficiency bonus specifically to the category where you maintain a daily streak." }
+      {
+        "type": "fix",
+        "text": "Fixed a bug where switching to the Hero or Settings tabs would occasionally show an empty screen on both mobile and desktop due to invalid sub-tab propagation."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.30",
+    "version": "0.6.34",
     "changes": [
-      { "type": "balance", "text": "Rebalanced the cognitive IQ metrics progression curve by 20x, reducing the time to reach the 105.0 cap from 13,000 hours to a realistic 500-800 hours of balanced training." },
-      { "type": "fix", "text": "Synchronized frontend and backend training coefficients, and fixed German language training falling back to generic gains." }
+      {
+        "type": "feature",
+        "text": "Added Category-Specific Diminishing Returns, calculating daily limits by activity category (Sciences, Humanities, Languages, Body, Spirit) rather than individual subjects."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced independent Category Streaks, giving +5% efficiency bonus specifically to the category where you maintain a daily streak."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.29",
+    "version": "0.6.33",
     "changes": [
-      { "type": "fix", "text": "Implemented permanent unlock persistence for all 52 Playstyle Titles, ensuring they are never lost once earned." },
-      { "type": "fix", "text": "Fixed several titles that were broken and failed to unlock: Alchemist, Grand Alchemist, Experimentalist, Pioneer, Grandmaster, Bookworm, Mind Architect, Warlord Guard, Ally Patron, and Beast Master." }
+      {
+        "type": "balance",
+        "text": "Rebalanced the cognitive IQ metrics progression curve by 20x, reducing the time to reach the 105.0 cap from 13,000 hours to a realistic 500-800 hours of balanced training."
+      },
+      {
+        "type": "fix",
+        "text": "Synchronized frontend and backend training coefficients, and fixed German language training falling back to generic gains."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.28",
+    "version": "0.6.32",
     "changes": [
-      { "type": "fix", "text": "Fixed rank progression roadmap displaying 'F' instead of 'E' as the starting rank." }
+      {
+        "type": "fix",
+        "text": "Implemented permanent unlock persistence for all 52 Playstyle Titles, ensuring they are never lost once earned."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed several titles that were broken and failed to unlock: Alchemist, Grand Alchemist, Experimentalist, Pioneer, Grandmaster, Bookworm, Mind Architect, Warlord Guard, Ally Patron, and Beast Master."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.27",
+    "version": "0.6.31",
     "changes": [
-      { "type": "feature", "text": "Added 3D interactive depth to the metrics board panel, unified stats card sizes, and fixed the day streak heatmap overlapping the progress bar." }
+      {
+        "type": "fix",
+        "text": "Fixed rank progression roadmap displaying 'F' instead of 'E' as the starting rank."
+      }
     ]
   },
   {
     "date": "2026-07-20",
-    "version": "1.7.26",
+    "version": "0.6.30",
     "changes": [
-      { "type": "fix", "text": "Fixed the rank naming: the starting rank is now correctly called 'E' (not 'F') — alphabetical order is now E, D, C, B, A, S, SS, SSS." }
+      {
+        "type": "feature",
+        "text": "Added 3D interactive depth to the metrics board panel, unified stats card sizes, and fixed the day streak heatmap overlapping the progress bar."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-20",
+    "version": "0.6.29",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed the rank naming: the starting rank is now correctly called 'E' (not 'F') — alphabetical order is now E, D, C, B, A, S, SS, SSS."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.25",
+    "version": "0.6.28",
     "changes": [
-      { "type": "fix", "text": "Fixed 20 title unlock conditions that were triggering off fake proxies (level, total tasks, gold balance) instead of what they actually describe — shop purchases, chest opens, potions used, items crafted, party membership, and real Pomodoro sessions now properly unlock their respective titles." },
-      { "type": "fix", "text": "Tasks no longer jump position when completed or uncompleted — your drag-to-reorder layout is now fully preserved across any action." }
+      {
+        "type": "fix",
+        "text": "Fixed 20 title unlock conditions that were triggering off fake proxies (level, total tasks, gold balance) instead of what they actually describe — shop purchases, chest opens, potions used, items crafted, party membership, and real Pomodoro sessions now properly unlock their respective titles."
+      },
+      {
+        "type": "fix",
+        "text": "Tasks no longer jump position when completed or uncompleted — your drag-to-reorder layout is now fully preserved across any action."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.24",
+    "version": "0.6.27",
     "changes": [
-      { "type": "fix", "text": "Fixed a bug where max HP from equipped gear was ignored in the UI, and resolved an issue where class-specific playstyle titles failed to unlock due to case-sensitivity check conflicts." }
+      {
+        "type": "fix",
+        "text": "Fixed a bug where max HP from equipped gear was ignored in the UI, and resolved an issue where class-specific playstyle titles failed to unlock due to case-sensitivity check conflicts."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.23",
+    "version": "0.6.26",
     "changes": [
-      { "type": "feature", "text": "Overhauled the Party system: added class-based pixel art member portraits with theme-contrast borders, Owner roles with automatic transfer on leave, Owner-exclusive member kicking, and timezone-safe daily streak decay." }
+      {
+        "type": "feature",
+        "text": "Overhauled the Party system: added class-based pixel art member portraits with theme-contrast borders, Owner roles with automatic transfer on leave, Owner-exclusive member kicking, and timezone-safe daily streak decay."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.22",
+    "version": "0.6.25",
     "changes": [
-      { "type": "feature", "text": "Polished the visual design of the Cognitive Metrics card on the Dashboard: implemented a gradient circular IQ gauge, custom metric progress bar gradients, ceiling ticks, and applied the rarity-tier styling system to the equipped playstyle title card." }
+      {
+        "type": "feature",
+        "text": "Polished the visual design of the Cognitive Metrics card on the Dashboard: implemented a gradient circular IQ gauge, custom metric progress bar gradients, ceiling ticks, and applied the rarity-tier styling system to the equipped playstyle title card."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.21",
+    "version": "0.6.24",
     "changes": [
-      { "type": "fix", "text": "Fixed custom task emoji loading bug; streamlined activity button creation with smart category mapping and improved mobile touch targets." }
+      {
+        "type": "fix",
+        "text": "Fixed custom task emoji loading bug; streamlined activity button creation with smart category mapping and improved mobile touch targets."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.20",
+    "version": "0.6.23",
     "changes": [
-      { "type": "fix", "text": "Simplified the Character Titles modal by removing category tabs, showing only unlocked titles, and updating layout for better name readability on mobile devices." }
+      {
+        "type": "fix",
+        "text": "Simplified the Character Titles modal by removing category tabs, showing only unlocked titles, and updating layout for better name readability on mobile devices."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.19",
+    "version": "0.6.22",
     "changes": [
-      { "type": "fix", "text": "Fixed mobile login — app was sending requests to the wrong server URL, causing 'account not found' errors despite correct credentials." }
+      {
+        "type": "fix",
+        "text": "Fixed mobile login — app was sending requests to the wrong server URL, causing 'account not found' errors despite correct credentials."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.18",
+    "version": "0.6.21",
     "changes": [
-      { "type": "fix", "text": "Fixed native mobile API origin URL fallback to Render backend; reverted onboarding to direct class selection and description with smooth mobile scroll." }
+      {
+        "type": "fix",
+        "text": "Fixed native mobile API origin URL fallback to Render backend; reverted onboarding to direct class selection and description with smooth mobile scroll."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.17",
+    "version": "0.6.20",
     "changes": [
-      { "type": "feature", "text": "Enabled multi-device concurrent sessions: PC and Mobile can now remain logged in simultaneously without invalidating each other's tokens." }
+      {
+        "type": "feature",
+        "text": "Enabled multi-device concurrent sessions: PC and Mobile can now remain logged in simultaneously without invalidating each other's tokens."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.16",
+    "version": "0.6.19",
     "changes": [
-      { "type": "fix", "text": "Unified authentication backend to Render database: removed local SQLite fallback and enabled seamless login using either Username or Email." }
+      {
+        "type": "fix",
+        "text": "Unified authentication backend to Render database: removed local SQLite fallback and enabled seamless login using either Username or Email."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.15",
+    "version": "0.6.18",
     "changes": [
-      { "type": "fix", "text": "Fixed Title Selector modal viewport z-index collision and body scroll locking; added full English and Russian i18n localization for all 52 playstyle titles and categories." }
+      {
+        "type": "fix",
+        "text": "Fixed Title Selector modal viewport z-index collision and body scroll locking; added full English and Russian i18n localization for all 52 playstyle titles and categories."
+      }
     ]
   },
   {
     "date": "2026-07-19",
-    "version": "1.7.14",
+    "version": "0.6.17",
     "changes": [
-      { "type": "feature", "text": "Added 52 dynamic Playstyle Titles based on user habits (Night Owl, Marathoner, Alchemist, Bookworm, Boss Slayer) displayed on Dashboard and Character views with an interactive title selector modal." }
+      {
+        "type": "feature",
+        "text": "Added 52 dynamic Playstyle Titles based on user habits (Night Owl, Marathoner, Alchemist, Bookworm, Boss Slayer) displayed on Dashboard and Character views with an interactive title selector modal."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.13",
+    "version": "0.6.16",
     "changes": [
-      { "type": "feature", "text": "Unified first-launch character creation into a seamless 3-step onboarding wizard (Call-Sign identity, Cognitive Baseline metrics assessment, and Neural Class selection)." }
+      {
+        "type": "feature",
+        "text": "Unified first-launch character creation into a seamless 3-step onboarding wizard (Call-Sign identity, Cognitive Baseline metrics assessment, and Neural Class selection)."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.12",
+    "version": "0.6.15",
     "changes": [
-      { "type": "feature", "text": "Added full GDPR/CCPA compliance: updated Privacy Policy with data deletion request form and a new backend endpoint to process data removal and export requests within 30 days." }
+      {
+        "type": "feature",
+        "text": "Added full GDPR/CCPA compliance: updated Privacy Policy with data deletion request form and a new backend endpoint to process data removal and export requests within 30 days."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.11",
+    "version": "0.6.14",
     "changes": [
-      { "type": "feature", "text": "Redesigned Daily Deal with a compact transparent glassmorphic layout and richer item rotation." }
+      {
+        "type": "feature",
+        "text": "Redesigned Daily Deal with a compact transparent glassmorphic layout and richer item rotation."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.10",
+    "version": "0.6.13",
     "changes": [
-      { "type": "fix", "text": "Fixed best streak metric to always reflect your highest login streak record." }
+      {
+        "type": "fix",
+        "text": "Fixed best streak metric to always reflect your highest login streak record."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.9",
+    "version": "0.6.12",
     "changes": [
-      { "type": "fix", "text": "Synchronized class passive +20% XP bonuses with all 4 specialty categories, ensuring custom activities and tasks with chosen Mastery Areas correctly trigger class bonuses." }
+      {
+        "type": "fix",
+        "text": "Synchronized class passive +20% XP bonuses with all 4 specialty categories, ensuring custom activities and tasks with chosen Mastery Areas correctly trigger class bonuses."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.8",
+    "version": "0.6.11",
     "changes": [
-      { "type": "fix", "text": "Fixed a potential crash when completing tasks before recruiting any allies." }
+      {
+        "type": "fix",
+        "text": "Fixed a potential crash when completing tasks before recruiting any allies."
+      }
     ]
   },
   {
     "date": "2026-07-18",
-    "version": "1.7.7",
+    "version": "0.6.10",
     "changes": [
-      { "type": "fix", "text": "Fixed native local notifications to reliably fire during device idle and doze states." }
+      {
+        "type": "fix",
+        "text": "Fixed native local notifications to reliably fire during device idle and doze states."
+      }
     ]
   },
   {
     "date": "2026-07-17",
-    "version": "1.7.6",
+    "version": "0.6.9",
     "changes": [
-      { "type": "feature", "text": "Added a passive +20% XP bonus for each class to their corresponding specialty mastery category." }
+      {
+        "type": "feature",
+        "text": "Added a passive +20% XP bonus for each class to their corresponding specialty mastery category."
+      }
     ]
   },
   {
     "date": "2026-07-17",
-    "version": "1.7.5",
+    "version": "0.6.8",
     "changes": [
-      { "type": "feature", "text": "Implemented a rank-gated feature lock system for the Skill Tree, Allies, and Mutators panels to simplify the interface for new players." }
+      {
+        "type": "feature",
+        "text": "Implemented a rank-gated feature lock system for the Skill Tree, Allies, and Mutators panels to simplify the interface for new players."
+      }
     ]
   },
   {
     "date": "2026-07-17",
-    "version": "1.7.4",
+    "version": "0.6.7",
     "changes": [
-      { "type": "feature", "text": "Added three new allies—Zephyr, Vivian, and Rhea—with gravity deadlines, active skills, custom combat buffs, and permanent max HP adjustments." }
+      {
+        "type": "feature",
+        "text": "Added three new allies—Zephyr, Vivian, and Rhea—with gravity deadlines, active skills, custom combat buffs, and permanent max HP adjustments."
+      }
     ]
   },
   {
     "date": "2026-07-17",
-    "version": "1.7.3",
+    "version": "0.6.6",
     "changes": [
-      { "type": "feature", "text": "Added five new allies—Grier, Lyra, Kage, Meldor, and Bran—with unique leveling paths, shop discounts, chest purchase refunds, and custom combat effects." }
+      {
+        "type": "feature",
+        "text": "Added five new allies—Grier, Lyra, Kage, Meldor, and Bran—with unique leveling paths, shop discounts, chest purchase refunds, and custom combat effects."
+      }
     ]
   },
   {
     "date": "2026-07-17",
-    "version": "1.7.2",
+    "version": "0.6.5",
     "changes": [
-      { "type": "fix", "text": "Fixed several broken or inactive ally perks including Kira Level 4/5, Neko Level 1/2/3, Luna Level 3/5, Yuki Level 2/3/4/5, and Nene Level 5." }
+      {
+        "type": "fix",
+        "text": "Fixed several broken or inactive ally perks including Kira Level 4/5, Neko Level 1/2/3, Luna Level 3/5, Yuki Level 2/3/4/5, and Nene Level 5."
+      }
     ]
   },
   {
     "date": "2026-07-17",
-    "version": "1.7.1",
+    "version": "0.6.4",
     "changes": [
-      { "type": "balance", "text": "Replaced the Ascetic class's Contemplate skill with Meditation: other skills cost 50% less mana, and the next 3 focus sessions get a +30% Focus Rating boost." },
-      { "type": "fix", "text": "Fixed the Warlord's War Cry stun effect to correctly prevent HP damage from failed habits and missed dailies while the boss is stunned." }
+      {
+        "type": "balance",
+        "text": "Replaced the Ascetic class's Contemplate skill with Meditation: other skills cost 50% less mana, and the next 3 focus sessions get a +30% Focus Rating boost."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed the Warlord's War Cry stun effect to correctly prevent HP damage from failed habits and missed dailies while the boss is stunned."
+      }
     ]
   },
   {
     "date": "2026-07-16",
-    "version": "1.7.0",
+    "version": "0.6.3",
     "changes": [
-      { "type": "feature", "text": "Integrated native local notifications using @capacitor/local-notifications for daily session reminders, Pomodoro completion alerts, and streak risk warnings." }
+      {
+        "type": "feature",
+        "text": "Integrated native local notifications using @capacitor/local-notifications for daily session reminders, Pomodoro completion alerts, and streak risk warnings."
+      }
     ]
   },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.9",
-        "changes": [
-            { "type": "balance", "text": "Shifted Mutator acquisition model to chest-only gacha. Individual mutators are no longer directly purchasable for gold, displaying a disabled 'Chest Only' label instead." }
-        ]
-    },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.8",
-        "changes": [
-            { "type": "feature", "text": "Implemented the Mutator Chest gacha system in the shop. Spend 100 gold to unlock a random unowned mutator, featuring a pulsing premium chest card and smooth card scroll-into-view celebration highlights." }
-        ]
-    },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.7",
-        "changes": [
-            { "type": "feature", "text": "Added 10 new Balatro-style mutators: Mirror Match, Alchemist, Time Dilation, Sacrificial Altar, Twin Souls, Inversion, Gambler's Ledger, Parasite, Null Zone, and Chronomancer." },
-            { "type": "fix", "text": "Implemented the discount mechanics for the Miser mutator and unique subject tracking logic for Tunnel Vision." }
-        ]
-    },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.6",
-        "changes": [
-            { "type": "feature", "text": "Overhauled Johan's Rival Engine: his difficulty now dictates how many hours he logs, how well he focuses, and if he skips days, rather than artificially scaling his numbers." },
-            { "type": "balance", "text": "Removed Johan's 'catch up' cooldown completely. He is now fully independent and will not show mercy if you fall behind." }
-        ]
-    },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.5",
-        "changes": [
-            { "type": "feature", "text": "Temporarily locked the Life OS module with a Coming Soon decryption screen while it undergoes maintenance." }
-        ]
-    },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.4",
-        "changes": [
-            { "type": "feature", "text": "Johan rival AI now remembers XP day-over-day — no more teleporting backward or forward after big grind sessions." },
-            { "type": "feature", "text": "Johan's streak is now calculated from real day patterns instead of a random number." },
-            { "type": "feature", "text": "Johan has a personality now — he specializes in 3 subjects seeded to your account, doing them 60% of sessions." },
-            { "type": "feature", "text": "Added escalating taunt messages: the longer Johan is ahead, the more aggressive his messages become." },
-            { "type": "feature", "text": "Added Comeback Arc: after Johan stays ahead for too long, he enters a 3-day cooldown giving you a recovery window." },
-            { "type": "fix", "text": "Weekly history chart no longer retroactively rewrites past data — each day's snapshot is now locked." },
-            { "type": "feature", "text": "Added Johan Difficulty setting in Gameplay settings: Easy, Normal, Hard, Extreme — controls how fast Johan accumulates XP." }
-        ]
-    },
-    {
-        "date": "2026-07-16",
-        "version": "1.6.3",
-        "changes": [
-            { "type": "content", "text": "Replaced temporary item placeholders with high-quality 16-bit dark fantasy pixel-art icons." },
-            { "type": "content", "text": "Regenerated 9 existing chest item icons to fit a consistent Elden Ring-inspired dark fantasy aesthetic." }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.6.2",
-        "changes": [
-            { "type": "fix", "text": "Fixed a crash when trying to buy or decrypt a chest that caused the character tab to fail with a ReferenceError." },
-            { "type": "feature", "text": "Updated the Decryptor Shop cards to beautifully display the retro pixel-art images of Standard and Quantum caches." },
-            { "type": "fix", "text": "Fixed a critical bug where equipped items could not be unequipped from their respective slots in the character overview." },
-            { "type": "fix", "text": "Restored and cleaned transparent backgrounds for all mutator icons, resolving blocky/solid color frame issues on the mutator selection panel." }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.6.1",
-        "changes": [
-            { "type": "feature", "text": "Added the Decryptor Shop page inside the character tab shop to decrypt Standard and Quantum caches." },
-            { "type": "feature", "text": "Designed a high-tech hacker decryption terminal sequence animation before chest reveal." },
-            { "type": "feature", "text": "Added an interactive won-item reveal screen showing full cyberware stats, description, and direct equip options." },
-            { "type": "content", "text": "Generated and integrated unique 16-bit retro pixel-art visual assets for all 30 new Elden Ring-style items and the 2 new loot chests." }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.6.0",
-        "changes": [
-            { "type": "feature", "text": "All gear now has a class rating from E (Scrap) to S (Anomaly), shown as a coloured badge in your inventory." },
-            { "type": "feature", "text": "30 new items added across all classes — Elden Ring-inspired names and lore descriptions." },
-            { "type": "feature", "text": "Two loot chests available: Standard Cache (500g) and Quantum Safe (3000g), each with different drop rates per class." },
-            { "type": "feature", "text": "New backend endpoints: GET /api/chests/ to list chests, POST /api/chests/{type}/open/ to open one." }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.5.9",
-        "changes": [
-            {
-                "text": "Fixed a layout inflation crash causing the stats home screen widget to display an error screen on some Android launchers.",
-                "type": "fix"
-            }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.5.8",
-        "changes": [
-            {
-                "text": "Enhanced the native RPG stats home screen widget: added dynamic theme wallpapers, rank-specific avatar background scenes, and retro pixel-art typography.",
-                "type": "feature"
-            }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.5.7",
-        "changes": [
-            {
-                "text": "Fixed a bug where the native RPG stats home screen widget displayed a placeholder default avatar instead of the player's custom character.",
-                "type": "fix"
-            }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.5.6",
-        "changes": [
-            {
-                "text": "Added a native Android home screen widget displaying player stats (HP, MP, XP) and avatar.",
-                "type": "feature"
-            }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.5.5",
-        "changes": [
-            {
-                "text": "Optimized the mobile swipe carousel with lazy-load keep-alive logic to prevent stutter and lag when swiping between tabs.",
-                "type": "fix"
-            },
-            {
-                "text": "Reduced main bundle size by 57% through code-splitting and dynamic imports of heavy dashboard panels.",
-                "type": "feature"
-            },
-            {
-                "text": "Replaced the continuous 1-second storage polling loop with an event-driven sync system to reduce idle battery usage.",
-                "type": "fix"
-            },
-            {
-                "text": "Enhanced carousel transitions with hardware-accelerated GPU promotion styling to eliminate rendering lag on mobile devices.",
-                "type": "polish"
-            }
-        ]
-    },
-    {
-        "date": "2026-07-15",
-        "version": "1.5.4",
-        "changes": [
-            {
-                "text": "Fixed a bug where native haptic feedback (vibration) was completely disabled on Android/iOS native builds.",
-                "type": "fix"
-            }
-        ]
-    },
-    {
-        "date": "2026-07-14",
-        "version": "1.5.3",
-        "changes": [
-            {
-                "text": "Fixed a bug where the main content area (Settings and Character Overview panels) was horizontally shifted and clipped on desktop viewports.",
-                "type": "fix"
-            }
-        ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.5.2",
-        "changes":  [
-                        {
-                            "text":  "Fixed system status bar collision on Android by adding top safe-area padding. Configured native status bar styling to adapt dynamically to all 8 themes.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.5.1",
-        "changes":  [
-                        {
-                            "text":  "Fixed a bug where the Class Selection screen was locked and not scrollable on mobile viewports.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.5.0",
-        "changes":  [
-                        {
-                            "text":  "Fixed visual cutoff at the bottom of all tabs. Added a comfortable layout buffer on mobile viewports so that the last elements are fully scrollable and visible above the bottom navigation bar.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.99",
-        "changes":  [
-                        {
-                            "text":  "Corrected the horizontal tab scroll wrapper to resolve cutoff issues and prevent empty vertical stretching. Integrated a debug HUD to assist with layout verification.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.98",
-        "changes":  [
-                        {
-                            "text":  "Fixed an issue where some screens (Home, Hero, Settings) got cut off at the bottom on Android devices. Also cleaned up the extra spacing on the Tasks and Character tabs so they look perfectly sleek again!",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.97",
-        "date":  "2026-07-14",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Standardized the bottom navigation bar height across all mobile tabs and added native safe-area insets to prevent the UI from overlapping with system notches or home indicators."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.96",
-        "date":  "2026-07-14",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Integrated Capgo Live Updates (OTA) into the Android app. Future UI and React updates will now be delivered automatically over-the-air upon app launch without requiring a new APK download."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.95",
-        "date":  "2026-07-14",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed the Android app being stuck on the loading screen â€” the backend URL was not baked into the mobile build, so the app could never connect."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "The Android app icon is now a glowing pixel-art brain â€” no more default placeholder."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.94",
-        "date":  "2026-07-14",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Completely revamped the mobile dashboard with a fluid, Habitica-style swipeable carousel for seamless navigation between tabs."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a mobile \u0027micro-jump\u0027 issue when swiping horizontally across nested scrollable lists like Tasks."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.93",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug on Android where pressing the hardware back button would occasionally leave modal dialogs stuck on screen without closing them."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Integrated native haptic feedback (vibration) and dynamic system status bar coloring for the upcoming Android app."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.92",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Swipe now responds to quick flicks — a fast short swipe completes the tab change even if you didn\u0027t drag far. Distance OR velocity threshold triggers navigation (whichever comes first)."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.91",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed swipe glitch where the page would flicker or stay stuck after a swipe — rewrote the drag system to use Framer Motion\u0027s native MotionValue, eliminating all transform conflicts."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed the app freezing on the STATS tab — swipe listeners no longer re-register on every tab change, removing the race condition that caused the freeze."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added iOS-style rubber-band snap-back: short swipes now bounce back smoothly with a spring animation instead of accidentally switching tabs."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.90",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed content being clipped at the bottom on various devices — padding now correctly adapts to your screen\u0027s safe area (notch, home indicator)."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed extra empty space appearing at the bottom after swiping between tabs — old and new screens no longer share layout space during transitions."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Tab transitions now slide in from the full screen edge (iOS-style), making the swipe feel natural and responsive."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a gesture conflict between pull-to-refresh and left/right swipe — a horizontal swipe now immediately cancels any accidental pull state."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-14",
-        "version":  "1.4.89",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "The \u0027Time you were away\u0027 offline summary modal will now only appear if you have an active boss and actual passive damage was dealt, preventing annoying popups when not engaged in a boss fight."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.88",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed horizontal swipes not working anywhere on the Stats page — the swipe listener now covers the entire screen instead of just the content area."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.87",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a layout bug where the empty space at the bottom of short pages (like History or Settings) would not respond to horizontal swipes."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.86",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical touch conflict where scrolling horizontally on tables or quickly dragging tasks would accidentally swipe the whole page."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Subtabs in Hero and Stats are now much easier to press, ignoring minor finger movements that previously cancelled the click."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.85",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed unclickable top navigation tabs in Hero and Stats sections on mobile."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed infinite empty scrolling on mobile when the History or Stats page has no logged items."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.84",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where dragging a task to reorder it would accidentally mark it as completed."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.83",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Top navigation tabs in Tasks, Hero, and Stats now use a sleek segmented style with a smooth sliding indicator — matching the Pomodoro panel design."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.82",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "The mobile bottom navigation bar now has a sleek segmented design with per-tab accent colors and a smooth animated indicator — just like the Pomodoro tabs."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.81",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "The Pomodoro Activity Heatmap is now fully responsive on mobile devices — perfectly fitting the screen without annoying horizontal scrolling."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.80",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed tasks disappearing from the list after editing a habit, daily, or todo — they now update instantly without any flicker."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.79",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a crash after editing a habit or task that caused the screen to go blank with \u0027filter is not a function\u0027 error."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.78",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added the ability to long-press on any task, habit, or daily to open the edit modal, allowing you to easily update titles, categories, and difficulties without needing to recreate them."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.77",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Migrated Pomodoro settings from local storage to the Django backend database (SSOT), ensuring your timer settings are synced across all your devices."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.76",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug in Pomodoro settings where inputs could not be fully cleared/deleted without falling back to 1."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.75",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Redesigned Pomodoro tab bar: compact full-width segmented control with a spring-animated sliding indicator and per-tab accent colors — no more horizontal scrolling on mobile or desktop."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.74",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed Pomodoro tabs (Stats, History, Settings) not appearing on desktop — they were using a mobile-only nav component."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Restored Premium gate on Pomodoro and Calendar: mobile shows a \u0027Visit mindos.pages.dev\u0027 notice, desktop shows an upgrade button plus a clickable link to the site."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.73",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed mobile swipe gesture targets to remain active during tab transitions."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Removed Premium Gate restrictions from the Pomodoro Panel, allowing all users to access the timer."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.72",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed mobile swipe navigation to be extremely responsive and smooth. Vertical scrolling on mobile no longer cancels horizontal swipes."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.71",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Upgraded the Pomodoro tool with inner tab navigation (Timer, Stats, History, Settings), a GitHub-style activity heatmap, and synchronized backend session storage."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.70",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed swipe navigation between bottom bar tabs on mobile — swipes left/right now reliably switch sections without conflicting with task drag-and-drop."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.69",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed positioning and visibility of equipment selection and item detail modals on mobile devices by portalling them to the root document body."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.68",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed internal data structures and type stability issues to prevent potential display glitches with achievements, daily tasks, and boss medals."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.67",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Fully localized all 31 in-game achievements to Russian, updated reward titles, and aligned descriptions and rewards with backend configurations."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.66",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Redesigned the Organic Skill Tree on mobile to use a vertical accordion layout. Branches are now collapsible cards, and nodes are stacked vertically with native vertical scrolling, while keeping desktop view auto-scaled."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.65",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Upgraded the Organic Skill Tree to automatically scale to fit any viewport size on load and resize, eliminating the need for manual scrolling or panning, while keeping node hitboxes extra large for easy tapping."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.64",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Completed full Russian localization for the Organic Skill Tree, all active skills, class details, and skill action notifications."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.63",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Enabled calendar event dragging and resizing on mobile devices, with precise touch-offset alignment and sync guards to prevent disappearing events."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed tab navigation scroll resetting on stats/tools sub-tabs and expanded mobile swipe hit areas to avoid dead zones."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "Updated the anime characters in the Pomodoro module with new optimized artwork and matching dynamic color effects."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed category selector circles in the mobile Create Task modal to maintain perfect uniform sizing regardless of label length, without truncating names."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Upgraded the Organic Skill Tree to an interactive pan-and-zoom canvas. You can now pinch-to-zoom on mobile or use mouse wheel/drag on desktop to easily navigate the entire tree."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.62",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Completely replaced the underlying drag-and-drop system on mobile to finally eliminate all gesture conflicts, teleporting cards, and scrolling glitches."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.61",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Gameplay Insights are now synced across all your devices! We also reduced the frequency so they won\u0027t appear as often, giving you a 1-hour quiet period after dismissing any tip."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where clicking the \u0027X\u0027 to close an Insight didn\u0027t seem to work, making it persist on the screen. The dismissal is now instant."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical issue where clicking \u0027Open Shop\u0027 or other actions on Gameplay Insights would cause a white screen crash due to an invalid routing state."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an issue on mobile where dragging tasks would glitch or \u0027teleport\u0027 due to conflicts with the device\u0027s native scrolling."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added a retro pixel-art Pull-to-Refresh system on mobile to manually synchronize your progress."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical gesture conflict that prevented long-pressing and drag-reordering tasks on mobile devices."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.60",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added \u0027Gameplay Insights\u0027 — a smart, non-intrusive hint system that helps you discover underused mechanics and optimize your progress."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "Fully localized the onboarding tutorial and all section-specific guides into Russian."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "Fully localized the \u0027Guides\u0027 and \u0027About\u0027 sections into Russian to complete the app\u0027s interface translation."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Streamlined the settings menu by removing unused or confusing configurations (Pomodoro Duration, Streak Freeze, Auto-archive, Domain Weights, and Units)."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where tasks could not be created from the column headers, and resolved an issue where task cards would disappear or flicker when dragged."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added drag-and-drop support: you can now reorder tasks by long-pressing and dragging them. Also replaced the tiny delete button with a larger two-tap confirmation button to prevent accidental mis-clicks on mobile."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-13",
-        "version":  "1.4.57",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Consolidated task categories into 10 general categories (STEM, Languages, Humanities \u0026 Arts, Health \u0026 Fitness, Rest \u0026 Recovery, Mindfulness, Social \u0026 Communication, Reading \u0026 Writing, Work \u0026 Career, Other) with full English and Russian localization."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-12",
-        "version":  "1.4.56",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Completed a massive localization pass: all Shop Items, Ally details (names, titles, lore, and abilities), and Training Activities are now fully translated into Russian."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed several mutator calculations: \u0027Monk\u0027s Path\u0027 now correctly applies a +40% XP bonus strictly to Prayer/Meditation activities, and \u0027Iron Routine\u0027 correctly applies its +25% XP bonus."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-12",
-        "version":  "1.4.55",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Unified Weekly XP logic: Dashboard Weekly XP now accurately resets every Monday to match Party Leaderboards, instead of displaying a rolling 7-day window. All XP sources (bosses, scrolls) now correctly count towards your weekly total."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-12",
-        "version":  "1.4.54",
-        "changes":  [
-                        {
-                            "type":  "balance",
-                            "text":  "Standardized all cognitive metric ceilings to a default of 105. Existing accounts with arbitrarily higher ceilings have been reset to 105 to ensure fair progression."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-12",
-        "version":  "1.4.53",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical crash (ReferenceError: useRef is not defined) that prevented the dashboard from loading."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-12",
-        "version":  "1.4.52",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Completely visually overhauled the Skill Tree to a Minecraft-style rigid grid layout with chunky beveled node squares and chain connectors."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-12",
-        "version":  "1.4.51",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an annoying console warning (\u0027Missing Description for DialogContent\u0027) that would occasionally appear when navigating the mobile app, particularly in the Rival tab and menus."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical bug where defeating a boss would fail to drop unique loot and instead cause a server error, preventing the boss from actually being defeated."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.50",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical bug that caused the Dashboard to crash entirely (React Error #310) when returning from being offline due to a missing internal reference in the \u0027While you were away\u0027 screen."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where passive boss damage wasn\u0027t accumulating correctly while the app was open, and ensured the \u0027While you were away\u0027 screen perfectly matches the actual damage dealt."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added visual polish to idle boss damage! You\u0027ll now see floating damage numbers, ambient pulsing, and a desperate low-health state as your party chips away at the boss\u0027s HP in real-time."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed boss scrolls crashing with a 500 error when trying to summon — the database was missing the new idle-damage columns that were accidentally left unpushed."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Increased the minimum offline time required to trigger the \u0027While you were away\u0027 summary to 5 minutes."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical UX issue where offline passive boss damage was applied in the background while the \u0027While You Were Offline\u0027 modal was still open, making it look like the boss didn\u0027t take any damage."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added a visual animation to the Boss HP bar that clearly shows passive idle damage draining from the boss when returning from being offline."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.49",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added passive Boss damage! Your party now continues to attack active bosses even when you are offline, dealing steady damage up to 24 hours."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added an Offline Summary modal that appears when you return after being away for a while, showing how much boss damage and rival XP was accumulated."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.48",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Dashboard: Redesigned the Day Streak card with a game-like tier system, progress bar, personal best tracking, and protective shield indicator."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Login tokens are now stored via the secure Tauri store (encrypted) when running as a desktop app, instead of plain browser storage."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Fixed a server misconfiguration that could allow unauthenticated access to the background notification scheduler."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Applied rate limiting to billing webhook to prevent resource exhaustion."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Removed raw error details from task sync response."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Prevented duplicate account registration with the same email."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Hardened CSRF protection in production."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Stopped persisting sensitive game state in local storage for legacy features."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Security: Applied rate limiting to guest account conversion."
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.47",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added rarity-based color coding (Common, Uncommon, Rare, Epic, Legendary) to all Achievements with new glow and shimmer effects."
-                        },
-                        {
-                            "text":  "Fixed NaN and missing values in the Party Member profile modal.",
-                            "type":  "fix"
-                        },
-                        {
-                            "text":  "Added the member\u0027s Pixel Character avatar with rarity border to their Party Profile.",
-                            "type":  "feature"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.46",
-        "changes":  [
-                        {
-                            "text":  "Fixed a bug where To-Do task titles were missing from the list.",
-                            "type":  "fix"
-                        },
-                        {
-                            "text":  "Fixed invisible text in Create Task modal inputs when using dark mode.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.45",
-        "changes":  [
-                        {
-                            "text":  "Fixed a bug where text typed in the Create Task modal was invisible in the light theme.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-11",
-        "version":  "1.4.44",
-        "changes":  [
-                        {
-                            "text":  "Fixed Gear and Consumables grid layout so items are no longer cut off mid-row and the UI naturally expands to fit available screen space.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-10",
-        "version":  "1.4.43",
-        "changes":  [
-                        {
-                            "text":  "Redesigned Shop, Inventory, Mutators, Scrolls, and Allies tabs to use a responsive grid layout for a cleaner and more compact view.",
-                            "type":  "feature"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-10",
-        "version":  "1.4.42",
-        "changes":  [
-                        {
-                            "text":  "Completed a comprehensive Russian localization audit and fix. All hardcoded English text in empty states, the guest mode banner, and notification settings have been properly translated. Fixed missing translations for all 19 boss scrolls and repaired the broken mutator translations in the UI.",
-                            "type":  "content"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-09",
-        "version":  "1.4.41",
-        "changes":  [
-                        {
-                            "text":  "Fixed a critical compilation error in the Account settings panel that prevented the web application from deploying properly.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-09",
-        "version":  "1.4.40",
-        "changes":  [
-                        {
-                            "text":  "Completed settings migration to server. Privacy settings (Analytics Consent, Anonymous Mode, Rival Visibility) and Push Notification preferences are now safely backed up to the cloud instead of being stored locally on your device.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-09",
-        "version":  "1.4.39",
-        "changes":  [
-                        {
-                            "text":  "Redesigned mobile navigation tabs across Tasks, Stats, and Character screens to be more compact, horizontally scrollable, and easier to use on small screens.",
-                            "type":  "polish"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-09",
-        "version":  "1.4.38",
-        "changes":  [
-                        {
-                            "text":  "Added a custom emoji picker to the Add Activity modal, allowing you to choose your own icons for custom activities.",
-                            "type":  "feature"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-09",
-        "version":  "1.4.37",
-        "changes":  [
-                        {
-                            "text":  "Streamlined Settings navigation: Privacy settings are now merged into the Account tab. The Metrics tab has been completely removed from Settings as this data is already available on the Dashboard.",
-                            "type":  "polish"
-                        },
-                        {
-                            "text":  "Removed obsolete Skill Tree, Allies, and Mutators tabs from the mobile character navigation to reduce clutter, as they are now fully integrated into the Shop.",
-                            "type":  "polish"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-08",
-        "version":  "1.4.35",
-        "changes":  [
-                        {
-                            "text":  "Fixed Johan\u0027s Rival tab displaying 0.0h for weekly stats and added a toggle to compare your Last 7 Days against Johan\u0027s.",
-                            "type":  "fix"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-08",
-        "version":  "1.4.34",
-        "changes":  [
-                        {
-                            "text":  "Added 9 new powerful game-changing Mutators including Momentum, Tunnel Vision, and Ironman, introducing combo streaks, risk-reward penalties, and unique mechanics.",
-                            "type":  "feature"
-                        }
-                    ]
-    },
-    {
-        "date":  "2026-07-08",
-        "version":  "1.4.33",
-        "changes":  [
-                        {
-                            "text":  "Training logs are now fully validated on the server using precise efficiency formulas to prevent cheating.",
-                            "type":  "feature"
-                        },
-                        {
-                            "text":  "Fixed a bug where submitting a training log would incorrectly show a double \u0027Session Expired\u0027 error.",
-                            "type":  "fix"
-                        },
-                        {
-                            "text":  "Short streaks (1-3 days) no longer penalize your efficiency. New players are now properly rewarded for logging.",
-                            "type":  "balance"
-                        },
-                        {
-                            "text":  "The \u0027Log Training\u0027 button now shows a loading state and disables itself during submission to prevent accidental double-clicks.",
-                            "type":  "polish"
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.32",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Activated final abilities for 5 allies: Kira (Science reduction), Sakura (Language reduction \u0026 MP bonus), and Nene (Weekly MP \u0026 Triple Subject Gold)."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.31",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "balance",
-                            "text":  "Enforced the Active Allies slot limit. Passive bonuses are now only granted by your 3 equipped active allies, rather than all recruited allies."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.30",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Updated Johan (Rival) portrait with a brand new, high-quality 16-bit chibi pixel art design."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.29",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an issue where the character\u0027s class name and lore were displaying as raw system codes instead of readable text in the Hero tab."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.28",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed achievement rewards text (under the achievement name) displaying raw localization keys by ensuring they are run through the translation engine."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.27",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed missing UI text displaying as raw code (e.g. rpgData.classes...) in the Skills, Achievements, Mutators, and Boss panels by adding complete English and Russian translations."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.26",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical crash (ReferenceError: t is not defined) that prevented the Character tab from loading, and fully translated the remaining UI text (Party, Mutators, Prestige, Rankings)."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.25",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed all untranslated text shown as raw keys (e.g. \u0027privacy.rivalVisibility\u0027, \u0027rivalTab.youLabel\u0027) in Privacy, Rival, Projections, and Reset screens — all text now displays correctly in English and Russian."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.24",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed several bugs in the party UI and added missing localization for the XP Surge Scroll."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.23",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "All game text (Skills, Achievements, Boss UI, Reset Menu) is now fully translatable into Russian."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.22",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed stat tooltips showing incorrect formula labels (e.g. percentages instead of flat rates) for PWR, DEF, and MEM."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.21",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a build error in the achievement tracker and properly bundled image compression tools to ensure reliable deployment."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.20",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Added crisp, localized gear-style stat lines for all consumables (e.g. \u0027+50 HP\u0027, \u0027+30% Focus\u0027) in the Shop and Inventory for better readability."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.19",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an issue where some UI sections like Settings and Metrics incorrectly displayed raw translation keys (e.g., \u0027metrics.live_preview\u0027) instead of proper English text after switching languages."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.18",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "??????????? ???????? ??????? ???????: ?????????? ??????? ????????, ?????? ?????????????, ??????????, ???????? ??????????, ??????????, ????????? ? ??????? IQ."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.17",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Added exact gameplay descriptions for all consumables in the Shop and Inventory, detailing exactly what they do (e.g. amount of HP restored, duration of buffs)."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.16",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical bug where completing habits, dailies, and to-dos always failed with a 500 error. Root cause: a database field was too short to store the current week identifier."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.15",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a 500 error that occurred when completing habits without being in a party."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.14",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Completely resolved the \u0027Transaction error\u0027 that occurred when completing tasks. Your progress will now save reliably."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.13",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical bug where completing multiple habits or dailies too quickly would cause a \u0027Transaction error\u0027 (400 Bad Request) and fail to save your progress."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.4.12",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.8",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added the Active Party Widget to the Dashboard! Your top 3 active allies are now prominently displayed with their rank-colored borders and current active buffs."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "You can now Equip and Remove your allies directly from the Shop ? Allies tab to customize your Active Party."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.7",
-        "date":  "2026-07-07",
-        "changes":  [
-                        {
-                            "type":  "polish",
-                            "text":  "Reorganized Character screen tabs to reduce clutter: Allies and Mutators are now housed inside the Shop, and Skill Tree is seamlessly integrated into the Skills page."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.6",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual issue where unlocked achievements displayed their raw ID (e.g. FIRST_BLOOD) instead of their actual name in the notification toast."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.5",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Restored the correct pixel art portraits for Kira, Neko, Void, Luna, and Sakura after they were accidentally replaced by screenshots."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.4",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Disabled Stripe payments within the Android app to comply with Google Play Store billing policies."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where the Ascetic class was incorrectly locked for free users in the UI."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a loophole where free users could change their class without Premium via the Recalibrate feature."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.3",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Upgraded offline caching to ensure the game works reliably even without an internet connection."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added support for Android TWA deployment with dynamic maskable icons."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.2",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Implemented Google Consent Mode v2 support to comply with GDPR and privacy rules."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added a premium slide-up Consent Banner for first-time visitors to accept or decline analytics."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Integrated privacy consent choices directly into the System Settings Privacy Panel."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.1",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. \u00272m ago\u0027)."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Party Ranking shows animated XP bars, medals for top 3, and highlights your own row."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Training \u0027Create Task\u0027 tab now only creates Button-type activities — no more duplicate Habit/Daily forms."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Rival comparison replaced table with animated dual bar charts for Hours, Focus, Subjects, and Rank XP."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Rival card now pulses red when Johan is ahead of you."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.2.0",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Privacy Policy page (mindos.pages.dev/privacy-policy.html) required for Google Play Store."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added Terms of Service page (mindos.pages.dev/terms.html)."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing \u0027Tauri Desktop\u0027."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Privacy Policy and Terms of Service links in Settings now open the real pages in a new tab."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.9",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where purchasing mutators did not deduct gold."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where bosses remained on the dashboard after being defeated by task completion or training."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where training activities did not correctly show visual boss damage on the dashboard or award boss loot."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.8",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Reverted Johan to a pure rival and removed him from the Allies system."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.7",
-        "date":  "2026-07-06",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Redesigned the SS Rank sprite for the Architect class, removing the Masonic symbol from her hands."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.6",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "The Architect class is now completely free and available to all players without a Premium subscription."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where Party Members were not correctly ranked by weekly XP on the Party Leaderboard."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Johan can now be recruited as an Ally once you reach 500 Rank XP, granting a 10% Weekly XP bonus."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "The Rival Tab now displays an accurate 7-day historical chart based on your real training session data."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.5",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Prevented background audio initialization from generating console warnings and blocked autoplay errors on page load."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed Google Analytics cookie errors by setting the cookie domain to mindos.pages.dev."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.4",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Significantly reduced server load — the game now fetches your profile data in far fewer database queries."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "The daily login check no longer runs on every page load — server skips it if you already logged in today."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Added 4 database speed indexes — boss encounters, inventory, skills, and training logs load faster."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Training sessions now validate input on the server — prevents exploiting the XP formula with extreme values."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Removed a hidden extra database write that occurred on every login token refresh."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.3",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Server now handles 3x more simultaneous players — upgraded from 1 to 3 backend workers."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Added request rate limiting to protect the server from abuse (200 requests/min per user)."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a security misconfiguration that allowed any website to make requests to the API."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.2",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "content",
-                            "text":  "Replaced boss scroll icons for SS-rank, S-rank, and C-rank bosses with custom high-quality 16-bit retro pixel art versions."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.1",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Rank progression cards now have 3D hover effect with per-rank glow shadows and shine overlays."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed swipe navigation from Stats tab to Settings on mobile — the horizontal rank table was blocking the gesture."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.1.0",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Redesigned the Premium subscription block in Account Settings. Premium users now see a full gold card with their active features and a Manage Subscription button. Free users see a purple upgrade card with locked features and a direct Upgrade button."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Subscription portal errors now show a proper in-app notification with the real error message instead of a generic browser alert."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.9",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Added Timezone settings! You can now select your local timezone in Gameplay Settings to ensure daily tasks reset exactly at your local midnight."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.8",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Class Recalibration is now locked behind the Premium subscription to reflect the premium-only classes."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Status bar and decor now dynamically adapt to your active UI theme colors."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where the Party Weekly Ranking board was empty instead of displaying the top 10 players."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed Party Member Profiles displaying incorrect \u0027Joined\u0027 dates, missing portraits, and \u0027MAX\u0027 Rank XP."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Member Profiles! You can now tap on any party member\u0027s card to view their detailed stats, recruited allies, and activity history."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual issue on desktop where side panels (like Party Member Profiles) were hidden behind the main navigation sidebar."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Improved the layout of Recruited Allies in the Party Member Profile to ensure level badges no longer overlap character names."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug in the Party Member Profile where missing avatars would display as a broken image instead of a clean initial."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an issue where rank progression (F to SSS) disappeared and game crashes occurred after a player reached Ascendant prestige."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where the header XP bar displayed \u0027MAX\u0027 instead of the actual required XP values for players in the Ascendant prestige track."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual issue where rank cards (F to SSS) incorrectly displayed an \u0027Ascendant\u0027 subtitle for prestige players."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed the header XP bar to correctly display total XP vs required XP instead of capping at the prestige limit."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.7",
-        "date":  "2026-07-05",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed several data sync issues when resetting progress in Settings. Resetting your Skill Tree now properly refunds all Skill Points, and the UI now updates instantly without requiring a page reload."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Overhauled the Party System! Added a new Activity Feed to see your party members completing tasks, leveling up, and hitting milestones. You can now react to their activities with emojis."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added a Weekly Party Leaderboard! Compete with your party members based on XP earned each week. Resets every Monday."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Introduced a Party Streak system! The streak grows as long as EVERY party member completes at least one daily task each day. Don\u0027t let your party down!"
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added Party Buffs! You can now send active buffs (like Heal or Focus) to your party members once every 24 hours to help them out."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Redesigned the Party screen with new sub-tabs (Members, Feed, Ranking) to easily navigate the new social features."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.6",
-        "date":  "2026-07-04",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual issue in the Allies screen where character portraits didn\u0027t correctly match their names and lore descriptions."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a \u0027peek\u0027 effect."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Moved the Language \u0026 Region settings into the Gameplay tab on mobile to declutter the top navigation bar."
-                        },
-                        {
-                            "type":  "balance",
-                            "text":  "Reduced the XP requirement to Prestige from 9,000 XP to 8,000 XP to make the endgame loop slightly faster."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Redesigned the Prestige system with a gradual snowball effect. Each rebirth now requires progressively more XP (+1,000 per level) but grants +15% Max Mana, +15% XP/Gold Multipliers, and an extra Mutator slot."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Introduced the post-SSS \u0027Ascendant\u0027 rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style."
-                        },
-                        {
-                            "type":  "balance",
-                            "text":  "Prestige rebirths now grant a free Skill Tree reset, refunding all earned Skill Points so you can rebuild your character with the new permanent bonuses."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash \u0027Bought\u0027 but fail to actually deduct gold or add the item to your inventory."
-                        },
-                        {
-                            "type":  "balance",
-                            "text":  "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Unified Language \u0026 Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.5",
-        "date":  "2026-07-04",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical bug where calendar events and tasks failed to appear on the calendar due to a background data parsing error."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a timezone issue where calendar events were sometimes saved to the adjacent day instead of the selected local date."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.4",
-        "date":  "2026-07-04",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where the \u0027Activities\u0027 sub-tab under Tasks displayed a raw translation key instead of the correct label."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual bug where text appeared too large across the app after switching to the new font."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where swiping left/right in the mobile view would incorrectly land on the Projections screen instead of the main Stats (History) screen. Tap and swipe navigation logic is now unified."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an issue on mobile where the Stats tab (History/Pomodoro/Calendar) required horizontal scrolling; it now wraps properly to multiple lines."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Increased the font size of the HP/MP/XP, coin, and streak labels in the top status bar for better readability."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual bug where the top status bar (HP/MP) and other small UI elements used fallback fonts instead of the correct pixel fonts."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Slightly increased the global game font size to improve readability of small UI labels."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a crash on load related to missing translations."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added full Russian language support across the entire app! You can switch languages in Settings \u003e Language."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.3",
-        "date":  "2026-07-04",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Removed duplicate sub-navigation bar on the Character tab for mobile users."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Top sub-navigation tabs (Tools, Character) no longer stay pinned to the screen while scrolling on mobile, freeing up screen real estate. Tasks tab retains its pinned behavior."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Unified mobile sub-navigation: Tools and Character tabs now use the same pill-toggle style as Tasks. Character tabs wrap smoothly to multiple rows on small screens for better visibility."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Introduced Streak Titles: players now earn dynamic titles (e.g. \u0027The Defiant\u0027, \u0027Revenant\u0027) based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug on the ShareCard where Rank F players incorrectly saw the \u0027AWAKENING\u0027 rank title instead of their actual rank."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Redesigned the Skill Tree into an organic node-graph layout with interactive branches and a new detail info-panel."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added desktop mouse-drag panning to the new Skill Tree for easier navigation."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed text overflow in the Skill Tree info-panel on small mobile screens to guarantee purchase buttons are always visible."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed stiff scrolling behavior on mobile in the Skill Tree by restoring native touch momentum, separate from desktop mouse panning."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a bug where the bottom navigation \u0027Stats\u0027 button was not highlighted when viewing the Projections/Mastery Radar."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed Skill Tree node misalignment where connector lines didn\u0027t precisely hit the center of nodes."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a mobile swipe conflict where panning the new Skill Tree would accidentally trigger tab navigation."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed an issue during Class Selection where users had to click the Confirm button twice to enter the dashboard."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Wired the mobile \u0027Stats\u0027 bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., \u0027KubsonM\u0027 and \u0027kubsonm\u0027 both work for the same account)."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.2",
-        "date":  "2026-07-03",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed site crash on load — the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.1",
-        "date":  "2026-07-03",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Calendar events are now saved to the cloud — they persist across devices and sessions instead of being lost on browser clear."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Daily tasks with a scheduled time now appear on every day in the Calendar view, automatically recurring."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed duplicate \u0027Show in Calendar\u0027 field appearing twice in the task creation form."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Task creation now correctly saves the scheduled time and calendar visibility settings to the server."
-                        }
-                    ]
-    },
-    {
-        "version":  "1.0.0",
-        "date":  "2026-07-03",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Fixed a visual bug that displayed \u0027NaN\u0027 and missing XP requirements on the Rank Progression screen."
-                        }
-                    ]
-    },
-    {
-        "version":  "0.99.3",
-        "date":  "2026-07-03",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Implemented Changelog system to track user-facing game updates directly in MIND OS."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Overhauled ShareCard visual layout to resemble a highly polished trading card."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Rebuilt ShareCard layout with fixed scaling zones to permanently prevent text clipping and overlap."
-                        },
-                        {
-                            "type":  "content",
-                            "text":  "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Resolved ShareCard text clipping issues for long class titles and removed redundant status labels."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Updated Settings to show direct PayPal donation info and removed deprecated support website links."
-                        },
-                        {
-                            "type":  "fix",
-                            "text":  "Synchronized the Sidebar navigation menu with the Settings tab bar, restoring missing sections and removing dead links."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Migrated the local privacy tracking toggle into a robust, cloud-synced backend setting."
-                        }
-                    ]
-    },
-    {
-        "version":  "0.99.2",
-        "date":  "2026-07-03",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Mastery Radar display decoupled to fix connecting-line polygon bug and clipping issues."
-                        },
-                        {
-                            "type":  "feature",
-                            "text":  "Added off-screen rendering support for ShareCard to generate accurate social media stat cards."
-                        }
-                    ]
-    },
-    {
-        "version":  "0.99.1",
-        "date":  "2026-07-02",
-        "changes":  [
-                        {
-                            "type":  "fix",
-                            "text":  "Shop consumables now correctly deduct gold and apply effects synchronously with cache invalidation."
-                        },
-                        {
-                            "type":  "polish",
-                            "text":  "Standardized all panels to use consistent GameCard UI components and styling."
-                        }
-                    ]
-    },
-    {
-        "version":  "0.99",
-        "date":  "2026-07-01",
-        "changes":  [
-                        {
-                            "type":  "feature",
-                            "text":  "Skill Tree Batch 5 completion: activated final tier nodes for advanced character builds."
-                        },
-                        {
-                            "type":  "balance",
-                            "text":  "Adjusted XP curve scaling for high-level tasks to prevent runaway progression."
-                        }
-                    ]
-    }
+  {
+    "date": "2026-07-16",
+    "version": "0.6.2",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Shifted Mutator acquisition model to chest-only gacha. Individual mutators are no longer directly purchasable for gold, displaying a disabled 'Chest Only' label instead."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "0.6.1",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Implemented the Mutator Chest gacha system in the shop. Spend 100 gold to unlock a random unowned mutator, featuring a pulsing premium chest card and smooth card scroll-into-view celebration highlights."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "0.6.0",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added 10 new Balatro-style mutators: Mirror Match, Alchemist, Time Dilation, Sacrificial Altar, Twin Souls, Inversion, Gambler's Ledger, Parasite, Null Zone, and Chronomancer."
+      },
+      {
+        "type": "fix",
+        "text": "Implemented the discount mechanics for the Miser mutator and unique subject tracking logic for Tunnel Vision."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "0.5.35",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Overhauled Johan's Rival Engine: his difficulty now dictates how many hours he logs, how well he focuses, and if he skips days, rather than artificially scaling his numbers."
+      },
+      {
+        "type": "balance",
+        "text": "Removed Johan's 'catch up' cooldown completely. He is now fully independent and will not show mercy if you fall behind."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "0.5.34",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Temporarily locked the Life OS module with a Coming Soon decryption screen while it undergoes maintenance."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "0.5.33",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Johan rival AI now remembers XP day-over-day — no more teleporting backward or forward after big grind sessions."
+      },
+      {
+        "type": "feature",
+        "text": "Johan's streak is now calculated from real day patterns instead of a random number."
+      },
+      {
+        "type": "feature",
+        "text": "Johan has a personality now — he specializes in 3 subjects seeded to your account, doing them 60% of sessions."
+      },
+      {
+        "type": "feature",
+        "text": "Added escalating taunt messages: the longer Johan is ahead, the more aggressive his messages become."
+      },
+      {
+        "type": "feature",
+        "text": "Added Comeback Arc: after Johan stays ahead for too long, he enters a 3-day cooldown giving you a recovery window."
+      },
+      {
+        "type": "fix",
+        "text": "Weekly history chart no longer retroactively rewrites past data — each day's snapshot is now locked."
+      },
+      {
+        "type": "feature",
+        "text": "Added Johan Difficulty setting in Gameplay settings: Easy, Normal, Hard, Extreme — controls how fast Johan accumulates XP."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "version": "0.5.32",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Replaced temporary item placeholders with high-quality 16-bit dark fantasy pixel-art icons."
+      },
+      {
+        "type": "content",
+        "text": "Regenerated 9 existing chest item icons to fit a consistent Elden Ring-inspired dark fantasy aesthetic."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.31",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a crash when trying to buy or decrypt a chest that caused the character tab to fail with a ReferenceError."
+      },
+      {
+        "type": "feature",
+        "text": "Updated the Decryptor Shop cards to beautifully display the retro pixel-art images of Standard and Quantum caches."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where equipped items could not be unequipped from their respective slots in the character overview."
+      },
+      {
+        "type": "fix",
+        "text": "Restored and cleaned transparent backgrounds for all mutator icons, resolving blocky/solid color frame issues on the mutator selection panel."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.30",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added the Decryptor Shop page inside the character tab shop to decrypt Standard and Quantum caches."
+      },
+      {
+        "type": "feature",
+        "text": "Designed a high-tech hacker decryption terminal sequence animation before chest reveal."
+      },
+      {
+        "type": "feature",
+        "text": "Added an interactive won-item reveal screen showing full cyberware stats, description, and direct equip options."
+      },
+      {
+        "type": "content",
+        "text": "Generated and integrated unique 16-bit retro pixel-art visual assets for all 30 new Elden Ring-style items and the 2 new loot chests."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.29",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "All gear now has a class rating from E (Scrap) to S (Anomaly), shown as a coloured badge in your inventory."
+      },
+      {
+        "type": "feature",
+        "text": "30 new items added across all classes — Elden Ring-inspired names and lore descriptions."
+      },
+      {
+        "type": "feature",
+        "text": "Two loot chests available: Standard Cache (500g) and Quantum Safe (3000g), each with different drop rates per class."
+      },
+      {
+        "type": "feature",
+        "text": "New backend endpoints: GET /api/chests/ to list chests, POST /api/chests/{type}/open/ to open one."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.28",
+    "changes": [
+      {
+        "text": "Fixed a layout inflation crash causing the stats home screen widget to display an error screen on some Android launchers.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.27",
+    "changes": [
+      {
+        "text": "Enhanced the native RPG stats home screen widget: added dynamic theme wallpapers, rank-specific avatar background scenes, and retro pixel-art typography.",
+        "type": "feature"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.26",
+    "changes": [
+      {
+        "text": "Fixed a bug where the native RPG stats home screen widget displayed a placeholder default avatar instead of the player's custom character.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.25",
+    "changes": [
+      {
+        "text": "Added a native Android home screen widget displaying player stats (HP, MP, XP) and avatar.",
+        "type": "feature"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.24",
+    "changes": [
+      {
+        "text": "Optimized the mobile swipe carousel with lazy-load keep-alive logic to prevent stutter and lag when swiping between tabs.",
+        "type": "fix"
+      },
+      {
+        "text": "Reduced main bundle size by 57% through code-splitting and dynamic imports of heavy dashboard panels.",
+        "type": "feature"
+      },
+      {
+        "text": "Replaced the continuous 1-second storage polling loop with an event-driven sync system to reduce idle battery usage.",
+        "type": "fix"
+      },
+      {
+        "text": "Enhanced carousel transitions with hardware-accelerated GPU promotion styling to eliminate rendering lag on mobile devices.",
+        "type": "polish"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "version": "0.5.23",
+    "changes": [
+      {
+        "text": "Fixed a bug where native haptic feedback (vibration) was completely disabled on Android/iOS native builds.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.22",
+    "changes": [
+      {
+        "text": "Fixed a bug where the main content area (Settings and Character Overview panels) was horizontally shifted and clipped on desktop viewports.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.21",
+    "changes": [
+      {
+        "text": "Fixed system status bar collision on Android by adding top safe-area padding. Configured native status bar styling to adapt dynamically to all 8 themes.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.20",
+    "changes": [
+      {
+        "text": "Fixed a bug where the Class Selection screen was locked and not scrollable on mobile viewports.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.19",
+    "changes": [
+      {
+        "text": "Fixed visual cutoff at the bottom of all tabs. Added a comfortable layout buffer on mobile viewports so that the last elements are fully scrollable and visible above the bottom navigation bar.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.18",
+    "changes": [
+      {
+        "text": "Corrected the horizontal tab scroll wrapper to resolve cutoff issues and prevent empty vertical stretching. Integrated a debug HUD to assist with layout verification.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.17",
+    "changes": [
+      {
+        "text": "Fixed an issue where some screens (Home, Hero, Settings) got cut off at the bottom on Android devices. Also cleaned up the extra spacing on the Tasks and Character tabs so they look perfectly sleek again!",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "version": "0.5.16",
+    "date": "2026-07-14",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Standardized the bottom navigation bar height across all mobile tabs and added native safe-area insets to prevent the UI from overlapping with system notches or home indicators."
+      }
+    ]
+  },
+  {
+    "version": "0.5.15",
+    "date": "2026-07-14",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Integrated Capgo Live Updates (OTA) into the Android app. Future UI and React updates will now be delivered automatically over-the-air upon app launch without requiring a new APK download."
+      }
+    ]
+  },
+  {
+    "version": "0.5.14",
+    "date": "2026-07-14",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed the Android app being stuck on the loading screen â€” the backend URL was not baked into the mobile build, so the app could never connect."
+      },
+      {
+        "type": "feature",
+        "text": "The Android app icon is now a glowing pixel-art brain â€” no more default placeholder."
+      }
+    ]
+  },
+  {
+    "version": "0.5.13",
+    "date": "2026-07-14",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Completely revamped the mobile dashboard with a fluid, Habitica-style swipeable carousel for seamless navigation between tabs."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a mobile 'micro-jump' issue when swiping horizontally across nested scrollable lists like Tasks."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.12",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a bug on Android where pressing the hardware back button would occasionally leave modal dialogs stuck on screen without closing them."
+      },
+      {
+        "type": "polish",
+        "text": "Integrated native haptic feedback (vibration) and dynamic system status bar coloring for the upcoming Android app."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.11",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Swipe now responds to quick flicks — a fast short swipe completes the tab change even if you didn't drag far. Distance OR velocity threshold triggers navigation (whichever comes first)."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.10",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed swipe glitch where the page would flicker or stay stuck after a swipe — rewrote the drag system to use Framer Motion's native MotionValue, eliminating all transform conflicts."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed the app freezing on the STATS tab — swipe listeners no longer re-register on every tab change, removing the race condition that caused the freeze."
+      },
+      {
+        "type": "feature",
+        "text": "Added iOS-style rubber-band snap-back: short swipes now bounce back smoothly with a spring animation instead of accidentally switching tabs."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.9",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed content being clipped at the bottom on various devices — padding now correctly adapts to your screen's safe area (notch, home indicator)."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed extra empty space appearing at the bottom after swiping between tabs — old and new screens no longer share layout space during transitions."
+      },
+      {
+        "type": "fix",
+        "text": "Tab transitions now slide in from the full screen edge (iOS-style), making the swipe feel natural and responsive."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a gesture conflict between pull-to-refresh and left/right swipe — a horizontal swipe now immediately cancels any accidental pull state."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "version": "0.5.8",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "The 'Time you were away' offline summary modal will now only appear if you have an active boss and actual passive damage was dealt, preventing annoying popups when not engaged in a boss fight."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.7",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed horizontal swipes not working anywhere on the Stats page — the swipe listener now covers the entire screen instead of just the content area."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.6",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a layout bug where the empty space at the bottom of short pages (like History or Settings) would not respond to horizontal swipes."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.5",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical touch conflict where scrolling horizontally on tables or quickly dragging tasks would accidentally swipe the whole page."
+      },
+      {
+        "type": "fix",
+        "text": "Subtabs in Hero and Stats are now much easier to press, ignoring minor finger movements that previously cancelled the click."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.4",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed unclickable top navigation tabs in Hero and Stats sections on mobile."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed infinite empty scrolling on mobile when the History or Stats page has no logged items."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.3",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a bug where dragging a task to reorder it would accidentally mark it as completed."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.2",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Top navigation tabs in Tasks, Hero, and Stats now use a sleek segmented style with a smooth sliding indicator — matching the Pomodoro panel design."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.1",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "The mobile bottom navigation bar now has a sleek segmented design with per-tab accent colors and a smooth animated indicator — just like the Pomodoro tabs."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.5.0",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "The Pomodoro Activity Heatmap is now fully responsive on mobile devices — perfectly fitting the screen without annoying horizontal scrolling."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.35",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed tasks disappearing from the list after editing a habit, daily, or todo — they now update instantly without any flicker."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.34",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a crash after editing a habit or task that caused the screen to go blank with 'filter is not a function' error."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.33",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added the ability to long-press on any task, habit, or daily to open the edit modal, allowing you to easily update titles, categories, and difficulties without needing to recreate them."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.32",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Migrated Pomodoro settings from local storage to the Django backend database (SSOT), ensuring your timer settings are synced across all your devices."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.31",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a bug in Pomodoro settings where inputs could not be fully cleared/deleted without falling back to 1."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.30",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Redesigned Pomodoro tab bar: compact full-width segmented control with a spring-animated sliding indicator and per-tab accent colors — no more horizontal scrolling on mobile or desktop."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.29",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed Pomodoro tabs (Stats, History, Settings) not appearing on desktop — they were using a mobile-only nav component."
+      },
+      {
+        "type": "feature",
+        "text": "Restored Premium gate on Pomodoro and Calendar: mobile shows a 'Visit mindos.pages.dev' notice, desktop shows an upgrade button plus a clickable link to the site."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.28",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed mobile swipe gesture targets to remain active during tab transitions."
+      },
+      {
+        "type": "fix",
+        "text": "Removed Premium Gate restrictions from the Pomodoro Panel, allowing all users to access the timer."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.27",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed mobile swipe navigation to be extremely responsive and smooth. Vertical scrolling on mobile no longer cancels horizontal swipes."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.26",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Upgraded the Pomodoro tool with inner tab navigation (Timer, Stats, History, Settings), a GitHub-style activity heatmap, and synchronized backend session storage."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.25",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed swipe navigation between bottom bar tabs on mobile — swipes left/right now reliably switch sections without conflicting with task drag-and-drop."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.24",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed positioning and visibility of equipment selection and item detail modals on mobile devices by portalling them to the root document body."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.23",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed internal data structures and type stability issues to prevent potential display glitches with achievements, daily tasks, and boss medals."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.22",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Fully localized all 31 in-game achievements to Russian, updated reward titles, and aligned descriptions and rewards with backend configurations."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.21",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Redesigned the Organic Skill Tree on mobile to use a vertical accordion layout. Branches are now collapsible cards, and nodes are stacked vertically with native vertical scrolling, while keeping desktop view auto-scaled."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.20",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Upgraded the Organic Skill Tree to automatically scale to fit any viewport size on load and resize, eliminating the need for manual scrolling or panning, while keeping node hitboxes extra large for easy tapping."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.19",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Completed full Russian localization for the Organic Skill Tree, all active skills, class details, and skill action notifications."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.18",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Enabled calendar event dragging and resizing on mobile devices, with precise touch-offset alignment and sync guards to prevent disappearing events."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed tab navigation scroll resetting on stats/tools sub-tabs and expanded mobile swipe hit areas to avoid dead zones."
+      },
+      {
+        "type": "content",
+        "text": "Updated the anime characters in the Pomodoro module with new optimized artwork and matching dynamic color effects."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed category selector circles in the mobile Create Task modal to maintain perfect uniform sizing regardless of label length, without truncating names."
+      },
+      {
+        "type": "feature",
+        "text": "Upgraded the Organic Skill Tree to an interactive pan-and-zoom canvas. You can now pinch-to-zoom on mobile or use mouse wheel/drag on desktop to easily navigate the entire tree."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.17",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Completely replaced the underlying drag-and-drop system on mobile to finally eliminate all gesture conflicts, teleporting cards, and scrolling glitches."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.16",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Gameplay Insights are now synced across all your devices! We also reduced the frequency so they won't appear as often, giving you a 1-hour quiet period after dismissing any tip."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where clicking the 'X' to close an Insight didn't seem to work, making it persist on the screen. The dismissal is now instant."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical issue where clicking 'Open Shop' or other actions on Gameplay Insights would cause a white screen crash due to an invalid routing state."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue on mobile where dragging tasks would glitch or 'teleport' due to conflicts with the device's native scrolling."
+      },
+      {
+        "type": "feature",
+        "text": "Added a retro pixel-art Pull-to-Refresh system on mobile to manually synchronize your progress."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical gesture conflict that prevented long-pressing and drag-reordering tasks on mobile devices."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.15",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added 'Gameplay Insights' — a smart, non-intrusive hint system that helps you discover underused mechanics and optimize your progress."
+      },
+      {
+        "type": "content",
+        "text": "Fully localized the onboarding tutorial and all section-specific guides into Russian."
+      },
+      {
+        "type": "content",
+        "text": "Fully localized the 'Guides' and 'About' sections into Russian to complete the app's interface translation."
+      },
+      {
+        "type": "feature",
+        "text": "Streamlined the settings menu by removing unused or confusing configurations (Pomodoro Duration, Streak Freeze, Auto-archive, Domain Weights, and Units)."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where tasks could not be created from the column headers, and resolved an issue where task cards would disappear or flicker when dragged."
+      },
+      {
+        "type": "feature",
+        "text": "Added drag-and-drop support: you can now reorder tasks by long-pressing and dragging them. Also replaced the tiny delete button with a larger two-tap confirmation button to prevent accidental mis-clicks on mobile."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "version": "0.4.14",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Consolidated task categories into 10 general categories (STEM, Languages, Humanities & Arts, Health & Fitness, Rest & Recovery, Mindfulness, Social & Communication, Reading & Writing, Work & Career, Other) with full English and Russian localization."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "version": "0.4.13",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Completed a massive localization pass: all Shop Items, Ally details (names, titles, lore, and abilities), and Training Activities are now fully translated into Russian."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed several mutator calculations: 'Monk's Path' now correctly applies a +40% XP bonus strictly to Prayer/Meditation activities, and 'Iron Routine' correctly applies its +25% XP bonus."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "version": "0.4.12",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Unified Weekly XP logic: Dashboard Weekly XP now accurately resets every Monday to match Party Leaderboards, instead of displaying a rolling 7-day window. All XP sources (bosses, scrolls) now correctly count towards your weekly total."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "version": "0.4.11",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Standardized all cognitive metric ceilings to a default of 105. Existing accounts with arbitrarily higher ceilings have been reset to 105 to ensure fair progression."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "version": "0.4.10",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical crash (ReferenceError: useRef is not defined) that prevented the dashboard from loading."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "version": "0.4.9",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Completely visually overhauled the Skill Tree to a Minecraft-style rigid grid layout with chunky beveled node squares and chain connectors."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "version": "0.4.8",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed an annoying console warning ('Missing Description for DialogContent') that would occasionally appear when navigating the mobile app, particularly in the Rival tab and menus."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where defeating a boss would fail to drop unique loot and instead cause a server error, preventing the boss from actually being defeated."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.7",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug that caused the Dashboard to crash entirely (React Error #310) when returning from being offline due to a missing internal reference in the 'While you were away' screen."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where passive boss damage wasn't accumulating correctly while the app was open, and ensured the 'While you were away' screen perfectly matches the actual damage dealt."
+      },
+      {
+        "type": "feature",
+        "text": "Added visual polish to idle boss damage! You'll now see floating damage numbers, ambient pulsing, and a desperate low-health state as your party chips away at the boss's HP in real-time."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed boss scrolls crashing with a 500 error when trying to summon — the database was missing the new idle-damage columns that were accidentally left unpushed."
+      },
+      {
+        "type": "feature",
+        "text": "Increased the minimum offline time required to trigger the 'While you were away' summary to 5 minutes."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical UX issue where offline passive boss damage was applied in the background while the 'While You Were Offline' modal was still open, making it look like the boss didn't take any damage."
+      },
+      {
+        "type": "feature",
+        "text": "Added a visual animation to the Boss HP bar that clearly shows passive idle damage draining from the boss when returning from being offline."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.6",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added passive Boss damage! Your party now continues to attack active bosses even when you are offline, dealing steady damage up to 24 hours."
+      },
+      {
+        "type": "feature",
+        "text": "Added an Offline Summary modal that appears when you return after being away for a while, showing how much boss damage and rival XP was accumulated."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.5",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Dashboard: Redesigned the Day Streak card with a game-like tier system, progress bar, personal best tracking, and protective shield indicator."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Login tokens are now stored via the secure Tauri store (encrypted) when running as a desktop app, instead of plain browser storage."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Fixed a server misconfiguration that could allow unauthenticated access to the background notification scheduler."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Applied rate limiting to billing webhook to prevent resource exhaustion."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Removed raw error details from task sync response."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Prevented duplicate account registration with the same email."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Hardened CSRF protection in production."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Stopped persisting sensitive game state in local storage for legacy features."
+      },
+      {
+        "type": "fix",
+        "text": "Security: Applied rate limiting to guest account conversion."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.4",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added rarity-based color coding (Common, Uncommon, Rare, Epic, Legendary) to all Achievements with new glow and shimmer effects."
+      },
+      {
+        "text": "Fixed NaN and missing values in the Party Member profile modal.",
+        "type": "fix"
+      },
+      {
+        "text": "Added the member's Pixel Character avatar with rarity border to their Party Profile.",
+        "type": "feature"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.3",
+    "changes": [
+      {
+        "text": "Fixed a bug where To-Do task titles were missing from the list.",
+        "type": "fix"
+      },
+      {
+        "text": "Fixed invisible text in Create Task modal inputs when using dark mode.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.2",
+    "changes": [
+      {
+        "text": "Fixed a bug where text typed in the Create Task modal was invisible in the light theme.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "version": "0.4.1",
+    "changes": [
+      {
+        "text": "Fixed Gear and Consumables grid layout so items are no longer cut off mid-row and the UI naturally expands to fit available screen space.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-10",
+    "version": "0.4.0",
+    "changes": [
+      {
+        "text": "Redesigned Shop, Inventory, Mutators, Scrolls, and Allies tabs to use a responsive grid layout for a cleaner and more compact view.",
+        "type": "feature"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-10",
+    "version": "0.3.35",
+    "changes": [
+      {
+        "text": "Completed a comprehensive Russian localization audit and fix. All hardcoded English text in empty states, the guest mode banner, and notification settings have been properly translated. Fixed missing translations for all 19 boss scrolls and repaired the broken mutator translations in the UI.",
+        "type": "content"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "version": "0.3.34",
+    "changes": [
+      {
+        "text": "Fixed a critical compilation error in the Account settings panel that prevented the web application from deploying properly.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "version": "0.3.33",
+    "changes": [
+      {
+        "text": "Completed settings migration to server. Privacy settings (Analytics Consent, Anonymous Mode, Rival Visibility) and Push Notification preferences are now safely backed up to the cloud instead of being stored locally on your device.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "version": "0.3.32",
+    "changes": [
+      {
+        "text": "Redesigned mobile navigation tabs across Tasks, Stats, and Character screens to be more compact, horizontally scrollable, and easier to use on small screens.",
+        "type": "polish"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "version": "0.3.31",
+    "changes": [
+      {
+        "text": "Added a custom emoji picker to the Add Activity modal, allowing you to choose your own icons for custom activities.",
+        "type": "feature"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "version": "0.3.30",
+    "changes": [
+      {
+        "text": "Streamlined Settings navigation: Privacy settings are now merged into the Account tab. The Metrics tab has been completely removed from Settings as this data is already available on the Dashboard.",
+        "type": "polish"
+      },
+      {
+        "text": "Removed obsolete Skill Tree, Allies, and Mutators tabs from the mobile character navigation to reduce clutter, as they are now fully integrated into the Shop.",
+        "type": "polish"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-08",
+    "version": "0.3.29",
+    "changes": [
+      {
+        "text": "Fixed Johan's Rival tab displaying 0.0h for weekly stats and added a toggle to compare your Last 7 Days against Johan's.",
+        "type": "fix"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-08",
+    "version": "0.3.28",
+    "changes": [
+      {
+        "text": "Added 9 new powerful game-changing Mutators including Momentum, Tunnel Vision, and Ironman, introducing combo streaks, risk-reward penalties, and unique mechanics.",
+        "type": "feature"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-08",
+    "version": "0.3.27",
+    "changes": [
+      {
+        "text": "Training logs are now fully validated on the server using precise efficiency formulas to prevent cheating.",
+        "type": "feature"
+      },
+      {
+        "text": "Fixed a bug where submitting a training log would incorrectly show a double 'Session Expired' error.",
+        "type": "fix"
+      },
+      {
+        "text": "Short streaks (1-3 days) no longer penalize your efficiency. New players are now properly rewarded for logging.",
+        "type": "balance"
+      },
+      {
+        "text": "The 'Log Training' button now shows a loading state and disables itself during submission to prevent accidental double-clicks.",
+        "type": "polish"
+      }
+    ]
+  },
+  {
+    "version": "0.3.26",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Activated final abilities for 5 allies: Kira (Science reduction), Sakura (Language reduction & MP bonus), and Nene (Weekly MP & Triple Subject Gold)."
+      }
+    ]
+  },
+  {
+    "version": "0.3.25",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Enforced the Active Allies slot limit. Passive bonuses are now only granted by your 3 equipped active allies, rather than all recruited allies."
+      }
+    ]
+  },
+  {
+    "version": "0.3.24",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Updated Johan (Rival) portrait with a brand new, high-quality 16-bit chibi pixel art design."
+      }
+    ]
+  },
+  {
+    "version": "0.3.23",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed an issue where the character's class name and lore were displaying as raw system codes instead of readable text in the Hero tab."
+      }
+    ]
+  },
+  {
+    "version": "0.3.22",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed achievement rewards text (under the achievement name) displaying raw localization keys by ensuring they are run through the translation engine."
+      }
+    ]
+  },
+  {
+    "version": "0.3.21",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed missing UI text displaying as raw code (e.g. rpgData.classes...) in the Skills, Achievements, Mutators, and Boss panels by adding complete English and Russian translations."
+      }
+    ]
+  },
+  {
+    "version": "0.3.20",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical crash (ReferenceError: t is not defined) that prevented the Character tab from loading, and fully translated the remaining UI text (Party, Mutators, Prestige, Rankings)."
+      }
+    ]
+  },
+  {
+    "version": "0.3.19",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed all untranslated text shown as raw keys (e.g. 'privacy.rivalVisibility', 'rivalTab.youLabel') in Privacy, Rival, Projections, and Reset screens — all text now displays correctly in English and Russian."
+      }
+    ]
+  },
+  {
+    "version": "0.3.18",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed several bugs in the party UI and added missing localization for the XP Surge Scroll."
+      }
+    ]
+  },
+  {
+    "version": "0.3.17",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "All game text (Skills, Achievements, Boss UI, Reset Menu) is now fully translatable into Russian."
+      }
+    ]
+  },
+  {
+    "version": "0.3.16",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed stat tooltips showing incorrect formula labels (e.g. percentages instead of flat rates) for PWR, DEF, and MEM."
+      }
+    ]
+  },
+  {
+    "version": "0.3.15",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a build error in the achievement tracker and properly bundled image compression tools to ensure reliable deployment."
+      }
+    ]
+  },
+  {
+    "version": "0.3.14",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Added crisp, localized gear-style stat lines for all consumables (e.g. '+50 HP', '+30% Focus') in the Shop and Inventory for better readability."
+      }
+    ]
+  },
+  {
+    "version": "0.3.13",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed an issue where some UI sections like Settings and Metrics incorrectly displayed raw translation keys (e.g., 'metrics.live_preview') instead of proper English text after switching languages."
+      }
+    ]
+  },
+  {
+    "version": "0.3.12",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "??????????? ???????? ??????? ???????: ?????????? ??????? ????????, ?????? ?????????????, ??????????, ???????? ??????????, ??????????, ????????? ? ??????? IQ."
+      }
+    ]
+  },
+  {
+    "version": "0.3.11",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Added exact gameplay descriptions for all consumables in the Shop and Inventory, detailing exactly what they do (e.g. amount of HP restored, duration of buffs)."
+      }
+    ]
+  },
+  {
+    "version": "0.3.10",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where completing habits, dailies, and to-dos always failed with a 500 error. Root cause: a database field was too short to store the current week identifier."
+      }
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a 500 error that occurred when completing habits without being in a party."
+      }
+    ]
+  },
+  {
+    "version": "0.3.8",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Completely resolved the 'Transaction error' that occurred when completing tasks. Your progress will now save reliably."
+      }
+    ]
+  },
+  {
+    "version": "0.3.7",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where completing multiple habits or dailies too quickly would cause a 'Transaction error' (400 Bad Request) and fail to save your progress."
+      }
+    ]
+  },
+  {
+    "version": "0.3.6",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.3.5",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.3.4",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.3.3",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.3.2",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.3.1",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.2.36",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.2.35",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      }
+    ]
+  },
+  {
+    "version": "0.2.34",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added the Active Party Widget to the Dashboard! Your top 3 active allies are now prominently displayed with their rank-colored borders and current active buffs."
+      },
+      {
+        "type": "feature",
+        "text": "You can now Equip and Remove your allies directly from the Shop ? Allies tab to customize your Active Party."
+      }
+    ]
+  },
+  {
+    "version": "0.2.33",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "polish",
+        "text": "Reorganized Character screen tabs to reduce clutter: Allies and Mutators are now housed inside the Shop, and Skill Tree is seamlessly integrated into the Skills page."
+      }
+    ]
+  },
+  {
+    "version": "0.2.32",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a visual issue where unlocked achievements displayed their raw ID (e.g. FIRST_BLOOD) instead of their actual name in the notification toast."
+      }
+    ]
+  },
+  {
+    "version": "0.2.31",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Restored the correct pixel art portraits for Kira, Neko, Void, Luna, and Sakura after they were accidentally replaced by screenshots."
+      }
+    ]
+  },
+  {
+    "version": "0.2.30",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Disabled Stripe payments within the Android app to comply with Google Play Store billing policies."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the Ascetic class was incorrectly locked for free users in the UI."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a loophole where free users could change their class without Premium via the Recalibrate feature."
+      },
+      {
+        "type": "content",
+        "text": "Replaced placeholder portraits for Kira, Neko, Void, Luna, and Sakura with new high-quality pixel art images."
+      }
+    ]
+  },
+  {
+    "version": "0.2.29",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Upgraded offline caching to ensure the game works reliably even without an internet connection."
+      },
+      {
+        "type": "feature",
+        "text": "Added support for Android TWA deployment with dynamic maskable icons."
+      }
+    ]
+  },
+  {
+    "version": "0.2.28",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Implemented Google Consent Mode v2 support to comply with GDPR and privacy rules."
+      },
+      {
+        "type": "feature",
+        "text": "Added a premium slide-up Consent Banner for first-time visitors to accept or decline analytics."
+      },
+      {
+        "type": "fix",
+        "text": "Integrated privacy consent choices directly into the System Settings Privacy Panel."
+      }
+    ]
+  },
+  {
+    "version": "0.2.27",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Party Feed now shows event icons, color-coded banners, and relative timestamps (e.g. '2m ago')."
+      },
+      {
+        "type": "feature",
+        "text": "Party Ranking shows animated XP bars, medals for top 3, and highlights your own row."
+      },
+      {
+        "type": "fix",
+        "text": "Training 'Create Task' tab now only creates Button-type activities — no more duplicate Habit/Daily forms."
+      },
+      {
+        "type": "feature",
+        "text": "Rival comparison replaced table with animated dual bar charts for Hours, Focus, Subjects, and Rank XP."
+      },
+      {
+        "type": "feature",
+        "text": "Rival card now pulses red when Johan is ahead of you."
+      }
+    ]
+  },
+  {
+    "version": "0.2.26",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Privacy Policy page (mindos.pages.dev/privacy-policy.html) required for Google Play Store."
+      },
+      {
+        "type": "feature",
+        "text": "Added Terms of Service page (mindos.pages.dev/terms.html)."
+      },
+      {
+        "type": "fix",
+        "text": "About section now shows your actual platform (Android, PWA, iOS, or Web Browser) instead of always showing 'Tauri Desktop'."
+      },
+      {
+        "type": "fix",
+        "text": "Privacy Policy and Terms of Service links in Settings now open the real pages in a new tab."
+      }
+    ]
+  },
+  {
+    "version": "0.2.25",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a bug where purchasing mutators did not deduct gold."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where bosses remained on the dashboard after being defeated by task completion or training."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where training activities did not correctly show visual boss damage on the dashboard or award boss loot."
+      }
+    ]
+  },
+  {
+    "version": "0.2.24",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Reverted Johan to a pure rival and removed him from the Allies system."
+      }
+    ]
+  },
+  {
+    "version": "0.2.23",
+    "date": "2026-07-06",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Redesigned the SS Rank sprite for the Architect class, removing the Masonic symbol from her hands."
+      }
+    ]
+  },
+  {
+    "version": "0.2.22",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "content",
+        "text": "The Architect class is now completely free and available to all players without a Premium subscription."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where Party Members were not correctly ranked by weekly XP on the Party Leaderboard."
+      },
+      {
+        "type": "feature",
+        "text": "Johan can now be recruited as an Ally once you reach 500 Rank XP, granting a 10% Weekly XP bonus."
+      },
+      {
+        "type": "content",
+        "text": "The Rival Tab now displays an accurate 7-day historical chart based on your real training session data."
+      }
+    ]
+  },
+  {
+    "version": "0.2.21",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Prevented background audio initialization from generating console warnings and blocked autoplay errors on page load."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Google Analytics cookie errors by setting the cookie domain to mindos.pages.dev."
+      }
+    ]
+  },
+  {
+    "version": "0.2.20",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Significantly reduced server load — the game now fetches your profile data in far fewer database queries."
+      },
+      {
+        "type": "fix",
+        "text": "The daily login check no longer runs on every page load — server skips it if you already logged in today."
+      },
+      {
+        "type": "fix",
+        "text": "Added 4 database speed indexes — boss encounters, inventory, skills, and training logs load faster."
+      },
+      {
+        "type": "fix",
+        "text": "Training sessions now validate input on the server — prevents exploiting the XP formula with extreme values."
+      },
+      {
+        "type": "fix",
+        "text": "Removed a hidden extra database write that occurred on every login token refresh."
+      }
+    ]
+  },
+  {
+    "version": "0.2.19",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Server now handles 3x more simultaneous players — upgraded from 1 to 3 backend workers."
+      },
+      {
+        "type": "fix",
+        "text": "Added request rate limiting to protect the server from abuse (200 requests/min per user)."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a security misconfiguration that allowed any website to make requests to the API."
+      }
+    ]
+  },
+  {
+    "version": "0.2.18",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Replaced boss scroll icons for SS-rank, S-rank, and C-rank bosses with custom high-quality 16-bit retro pixel art versions."
+      }
+    ]
+  },
+  {
+    "version": "0.2.17",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Rank progression cards now have 3D hover effect with per-rank glow shadows and shine overlays."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed swipe navigation from Stats tab to Settings on mobile — the horizontal rank table was blocking the gesture."
+      }
+    ]
+  },
+  {
+    "version": "0.2.16",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Redesigned the Premium subscription block in Account Settings. Premium users now see a full gold card with their active features and a Manage Subscription button. Free users see a purple upgrade card with locked features and a direct Upgrade button."
+      },
+      {
+        "type": "fix",
+        "text": "Subscription portal errors now show a proper in-app notification with the real error message instead of a generic browser alert."
+      }
+    ]
+  },
+  {
+    "version": "0.2.15",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added Timezone settings! You can now select your local timezone in Gameplay Settings to ensure daily tasks reset exactly at your local midnight."
+      }
+    ]
+  },
+  {
+    "version": "0.2.14",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Class Recalibration is now locked behind the Premium subscription to reflect the premium-only classes."
+      },
+      {
+        "type": "feature",
+        "text": "Status bar and decor now dynamically adapt to your active UI theme colors."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the Party Weekly Ranking board was empty instead of displaying the top 10 players."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Party Member Profiles displaying incorrect 'Joined' dates, missing portraits, and 'MAX' Rank XP."
+      },
+      {
+        "type": "feature",
+        "text": "Added Party Member Profiles! You can now tap on any party member's card to view their detailed stats, recruited allies, and activity history."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a visual issue on desktop where side panels (like Party Member Profiles) were hidden behind the main navigation sidebar."
+      },
+      {
+        "type": "polish",
+        "text": "Improved the layout of Recruited Allies in the Party Member Profile to ensure level badges no longer overlap character names."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug in the Party Member Profile where missing avatars would display as a broken image instead of a clean initial."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue where rank progression (F to SSS) disappeared and game crashes occurred after a player reached Ascendant prestige."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the header XP bar displayed 'MAX' instead of the actual required XP values for players in the Ascendant prestige track."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a visual issue where rank cards (F to SSS) incorrectly displayed an 'Ascendant' subtitle for prestige players."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed the header XP bar to correctly display total XP vs required XP instead of capping at the prestige limit."
+      }
+    ]
+  },
+  {
+    "version": "0.2.13",
+    "date": "2026-07-05",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed several data sync issues when resetting progress in Settings. Resetting your Skill Tree now properly refunds all Skill Points, and the UI now updates instantly without requiring a page reload."
+      },
+      {
+        "type": "feature",
+        "text": "Overhauled the Party System! Added a new Activity Feed to see your party members completing tasks, leveling up, and hitting milestones. You can now react to their activities with emojis."
+      },
+      {
+        "type": "feature",
+        "text": "Added a Weekly Party Leaderboard! Compete with your party members based on XP earned each week. Resets every Monday."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced a Party Streak system! The streak grows as long as EVERY party member completes at least one daily task each day. Don't let your party down!"
+      },
+      {
+        "type": "feature",
+        "text": "Added Party Buffs! You can now send active buffs (like Heal or Focus) to your party members once every 24 hours to help them out."
+      },
+      {
+        "type": "polish",
+        "text": "Redesigned the Party screen with new sub-tabs (Members, Feed, Ranking) to easily navigate the new social features."
+      }
+    ]
+  },
+  {
+    "version": "0.2.12",
+    "date": "2026-07-04",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a visual issue in the Allies screen where character portraits didn't correctly match their names and lore descriptions."
+      },
+      {
+        "type": "polish",
+        "text": "Added a smooth, tactile swipe gesture for navigating between mobile tabs, complete with physics, scaling, and a 'peek' effect."
+      },
+      {
+        "type": "polish",
+        "text": "Moved the Language & Region settings into the Gameplay tab on mobile to declutter the top navigation bar."
+      },
+      {
+        "type": "balance",
+        "text": "Reduced the XP requirement to Prestige from 9,000 XP to 8,000 XP to make the endgame loop slightly faster."
+      },
+      {
+        "type": "feature",
+        "text": "Redesigned the Prestige system with a gradual snowball effect. Each rebirth now requires progressively more XP (+1,000 per level) but grants +15% Max Mana, +15% XP/Gold Multipliers, and an extra Mutator slot."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced the post-SSS 'Ascendant' rank tiers with Roman numeral progression (Ascendant I, Ascendant II, etc.) and a unique gold visual style."
+      },
+      {
+        "type": "balance",
+        "text": "Prestige rebirths now grant a free Skill Tree reset, refunding all earned Skill Points so you can rebuild your character with the new permanent bonuses."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug in the Shop where buying items (Gear, Consumables) would flash 'Bought' but fail to actually deduct gold or add the item to your inventory."
+      },
+      {
+        "type": "balance",
+        "text": "Shifted the Prestige threshold formula: the first rebirth now unlocks exactly at the SSS rank threshold (8,000 XP), with the snowball scaling starting on subsequent rebirths."
+      },
+      {
+        "type": "feature",
+        "text": "Added Trusted Web Activity (TWA) verification to support the official MIND OS native Android app installation."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced MIND OS Premium subscription, unlocking advanced classes (Architect, Linguist, Warlord) and integrated productivity tools (Pomodoro, Calendar)."
+      },
+      {
+        "type": "polish",
+        "text": "Unified Language & Region settings into the Gameplay tab on desktop to match the mobile layout and declutter the sidebar."
+      }
+    ]
+  },
+  {
+    "version": "0.2.11",
+    "date": "2026-07-04",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a critical bug where calendar events and tasks failed to appear on the calendar due to a background data parsing error."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a timezone issue where calendar events were sometimes saved to the adjacent day instead of the selected local date."
+      }
+    ]
+  },
+  {
+    "version": "0.2.10",
+    "date": "2026-07-04",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the 'Activities' sub-tab under Tasks displayed a raw translation key instead of the correct label."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a visual bug where text appeared too large across the app after switching to the new font."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where character portraits were being cut off at the top and bottom in the Dashboard and header."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where swiping left/right in the mobile view would incorrectly land on the Projections screen instead of the main Stats (History) screen. Tap and swipe navigation logic is now unified."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue on mobile where the Stats tab (History/Pomodoro/Calendar) required horizontal scrolling; it now wraps properly to multiple lines."
+      },
+      {
+        "type": "fix",
+        "text": "Increased the font size of the HP/MP/XP, coin, and streak labels in the top status bar for better readability."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a visual bug where the top status bar (HP/MP) and other small UI elements used fallback fonts instead of the correct pixel fonts."
+      },
+      {
+        "type": "fix",
+        "text": "Slightly increased the global game font size to improve readability of small UI labels."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a crash on load related to missing translations."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a critical rendering crash on the Character tab caused by a missing translation dependency."
+      },
+      {
+        "type": "feature",
+        "text": "Added full Russian language support across the entire app! You can switch languages in Settings > Language."
+      },
+      {
+        "type": "content",
+        "text": "All RPG terms, Classes, Ranks, and Bosses have been fully localized into Russian."
+      }
+    ]
+  },
+  {
+    "version": "0.2.9",
+    "date": "2026-07-04",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Removed duplicate sub-navigation bar on the Character tab for mobile users."
+      },
+      {
+        "type": "polish",
+        "text": "Top sub-navigation tabs (Tools, Character) no longer stay pinned to the screen while scrolling on mobile, freeing up screen real estate. Tasks tab retains its pinned behavior."
+      },
+      {
+        "type": "polish",
+        "text": "Unified mobile sub-navigation: Tools and Character tabs now use the same pill-toggle style as Tasks. Character tabs wrap smoothly to multiple rows on small screens for better visibility."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced Streak Titles: players now earn dynamic titles (e.g. 'The Defiant', 'Revenant') based on their consecutive daily login streaks, displayed on the Dashboard and ShareCard."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug on the ShareCard where Rank F players incorrectly saw the 'AWAKENING' rank title instead of their actual rank."
+      },
+      {
+        "type": "feature",
+        "text": "Redesigned the Skill Tree into an organic node-graph layout with interactive branches and a new detail info-panel."
+      },
+      {
+        "type": "feature",
+        "text": "Added desktop mouse-drag panning to the new Skill Tree for easier navigation."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed text overflow in the Skill Tree info-panel on small mobile screens to guarantee purchase buttons are always visible."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed stiff scrolling behavior on mobile in the Skill Tree by restoring native touch momentum, separate from desktop mouse panning."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a bug where the bottom navigation 'Stats' button was not highlighted when viewing the Projections/Mastery Radar."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Skill Tree node misalignment where connector lines didn't precisely hit the center of nodes."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a mobile swipe conflict where panning the new Skill Tree would accidentally trigger tab navigation."
+      },
+      {
+        "type": "polish",
+        "text": "Hid redundant horizontal Settings tab bar on desktop screens for a cleaner layout, as navigation is already handled by the sidebar."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue during Class Selection where users had to click the Confirm button twice to enter the dashboard."
+      },
+      {
+        "type": "fix",
+        "text": "Wired the mobile 'Stats' bottom navigation button to correctly open the Tools section (History, Pomodoro, Calendar) with the new Pill-style sub-navigation."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed login and registration issues on mobile devices caused by automatic keyboard capitalization. Usernames are now completely case-insensitive (e.g., 'KubsonM' and 'kubsonm' both work for the same account)."
+      }
+    ]
+  },
+  {
+    "version": "0.2.8",
+    "date": "2026-07-03",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed site crash on load — the server wake-up check was hitting the wrong URL (/api/api/health/ instead of /api/health/), causing the app to get stuck on the loading screen forever."
+      }
+    ]
+  },
+  {
+    "version": "0.2.7",
+    "date": "2026-07-03",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Calendar events are now saved to the cloud — they persist across devices and sessions instead of being lost on browser clear."
+      },
+      {
+        "type": "feature",
+        "text": "Daily tasks with a scheduled time now appear on every day in the Calendar view, automatically recurring."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed duplicate 'Show in Calendar' field appearing twice in the task creation form."
+      },
+      {
+        "type": "fix",
+        "text": "Task creation now correctly saves the scheduled time and calendar visibility settings to the server."
+      }
+    ]
+  },
+  {
+    "version": "0.2.6",
+    "date": "2026-07-03",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a visual bug that displayed 'NaN' and missing XP requirements on the Rank Progression screen."
+      }
+    ]
+  },
+  {
+    "version": "0.2.5",
+    "date": "2026-07-03",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Implemented Changelog system to track user-facing game updates directly in MIND OS."
+      },
+      {
+        "type": "polish",
+        "text": "Overhauled ShareCard visual layout to resemble a highly polished trading card."
+      },
+      {
+        "type": "fix",
+        "text": "Rebuilt ShareCard layout with fixed scaling zones to permanently prevent text clipping and overlap."
+      },
+      {
+        "type": "content",
+        "text": "Redesigned ShareCard to focus purely on the portrait, class, and rank in a minimalist bracketed style."
+      },
+      {
+        "type": "fix",
+        "text": "Resolved ShareCard text clipping issues for long class titles and removed redundant status labels."
+      },
+      {
+        "type": "feature",
+        "text": "Updated Settings to show direct PayPal donation info and removed deprecated support website links."
+      },
+      {
+        "type": "fix",
+        "text": "Synchronized the Sidebar navigation menu with the Settings tab bar, restoring missing sections and removing dead links."
+      },
+      {
+        "type": "feature",
+        "text": "Migrated the local privacy tracking toggle into a robust, cloud-synced backend setting."
+      }
+    ]
+  },
+  {
+    "version": "0.2.4",
+    "date": "2026-07-03",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Mastery Radar display decoupled to fix connecting-line polygon bug and clipping issues."
+      },
+      {
+        "type": "feature",
+        "text": "Added off-screen rendering support for ShareCard to generate accurate social media stat cards."
+      }
+    ]
+  },
+  {
+    "version": "0.2.3",
+    "date": "2026-07-02",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Shop consumables now correctly deduct gold and apply effects synchronously with cache invalidation."
+      },
+      {
+        "type": "polish",
+        "text": "Standardized all panels to use consistent GameCard UI components and styling."
+      }
+    ]
+  },
+  {
+    "version": "0.2.2",
+    "date": "2026-07-01",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Skill Tree Batch 5 completion: activated final tier nodes for advanced character builds."
+      },
+      {
+        "type": "balance",
+        "text": "Adjusted XP curve scaling for high-level tasks to prevent runaway progression."
+      }
+    ]
+  }
 ]
