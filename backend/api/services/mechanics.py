@@ -56,7 +56,14 @@ COGNITIVE_COEFFICIENTS = {
 
 
 def calculate_training_efficiency(
-    profile, focus, hours, streak_days, hours_today, subject_hours_today
+    profile,
+    focus,
+    hours,
+    streak_days,
+    hours_today,
+    subject_hours_today,
+    category_hours_today=0.0,
+    category_streak_days=0,
 ):
     """
     Computes the training efficiency on the server, replicating cognitiveEngine.js.
@@ -98,7 +105,7 @@ def calculate_training_efficiency(
     else:
         raw_fatigue = 0.5
 
-    # Diminishing Returns
+    # Diminishing Returns (individual)
     if subject_hours_today < 1:
         dimin_mult = 1.0
     elif subject_hours_today < 2:
@@ -108,6 +115,21 @@ def calculate_training_efficiency(
     else:
         dimin_mult = 0.2
 
+    # Diminishing Returns (category - softer limit starting after 2 hours)
+    if category_hours_today < 2:
+        cat_dimin_mult = 1.0
+    elif category_hours_today < 3:
+        cat_dimin_mult = 0.8
+    elif category_hours_today < 4:
+        cat_dimin_mult = 0.5
+    else:
+        cat_dimin_mult = 0.2
+
+    final_dimin_mult = min(dimin_mult, cat_dimin_mult)
+
+    # Category streak bonus (+5% if category streak >= 2)
+    category_streak_mult = 1.05 if category_streak_days >= 2 else 1.0
+
     # Stat boosts
     foc_stat_bonus = 1.0 + (stat_foc - 5) * 0.01
     mem_fatigue_bonus = 1.0 + (stat_mem - 5) * 0.015
@@ -115,7 +137,13 @@ def calculate_training_efficiency(
     focus_mult = focus_mult * foc_stat_bonus
     fatigue_mult = min(1.0, raw_fatigue * mem_fatigue_bonus)
 
-    total = focus_mult * streak_mult * fatigue_mult * dimin_mult
+    total = (
+        focus_mult
+        * streak_mult
+        * fatigue_mult
+        * final_dimin_mult
+        * category_streak_mult
+    )
     return round(total, 3)
 
 

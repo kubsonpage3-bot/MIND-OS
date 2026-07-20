@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-07-20",
+    "version": "1.7.31",
+    "changes": [
+      { "type": "feature", "text": "Added Category-Specific Diminishing Returns, calculating daily limits by activity category (Sciences, Humanities, Languages, Body, Spirit) rather than individual subjects." },
+      { "type": "feature", "text": "Introduced independent Category Streaks, giving +5% efficiency bonus specifically to the category where you maintain a daily streak." }
+    ]
+  },
+  {
+    "date": "2026-07-20",
     "version": "1.7.30",
     "changes": [
       { "type": "balance", "text": "Rebalanced the cognitive IQ metrics progression curve by 20x, reducing the time to reach the 105.0 cap from 13,000 hours to a realistic 500-800 hours of balanced training." },

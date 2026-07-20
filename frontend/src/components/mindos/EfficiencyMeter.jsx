@@ -1,7 +1,7 @@
 import { computeEfficiency, getEfficiencyColor } from "@/lib/cognitiveEngine";
 
-export default function EfficiencyMeter({ focus, streakDays, hoursToday, subjectHoursToday, statFoc, statMem }) {
-  const eff = computeEfficiency({ focus, streakDays, hoursToday, subjectHoursToday, statFoc, statMem });
+export default function EfficiencyMeter({ focus, streakDays, hoursToday, subjectHoursToday, categoryHoursToday = 0, categoryStreakDays = 0, statFoc, statMem }) {
+  const eff = computeEfficiency({ focus, streakDays, hoursToday, subjectHoursToday, categoryHoursToday, categoryStreakDays, statFoc, statMem });
   const color = getEfficiencyColor(eff.total);
 
   const rows = [

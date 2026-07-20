@@ -111,8 +111,79 @@ class TrainingLogSerializer(serializers.Serializer):
             or 0.0
         )
 
+        # Resolve category
+        from api.services.mechanics import resolve_mastery_category
+
+        current_category = ""
+        if activity.startswith("custom_task_"):
+            try:
+                from api.models import Task
+
+                task_id = int(activity.replace("custom_task_", ""))
+                task = Task.objects.filter(id=task_id).first()
+                if task:
+                    current_category = resolve_mastery_category(
+                        task_category=task.category,
+                        task_mastery_category=task.mastery_category,
+                    )
+            except Exception:
+                pass
+        else:
+            current_category = resolve_mastery_category(activity=activity)
+
+        category_hours_today = 0.0
+        if current_category:
+            sessions_today = TrainingSession.objects.filter(
+                user_profile=profile, created_at__date=today
+            )
+            for s in sessions_today:
+                s_cat = ""
+                if s.activity_key.startswith("custom_task_"):
+                    try:
+                        from api.models import Task
+
+                        t_id = int(s.activity_key.replace("custom_task_", ""))
+                        task_obj = Task.objects.filter(id=t_id).first()
+                        if task_obj:
+                            s_cat = resolve_mastery_category(
+                                task_category=task_obj.category,
+                                task_mastery_category=task_obj.mastery_category,
+                            )
+                    except Exception:
+                        pass
+                else:
+                    s_cat = resolve_mastery_category(activity=s.activity_key)
+                if s_cat == current_category:
+                    category_hours_today += s.hours
+
+        category_streak_days = 0
+        if current_category and profile.category_streaks:
+            streaks = profile.category_streaks or {}
+            cat_data = streaks.get(current_category)
+            if isinstance(cat_data, dict):
+                last_active_str = cat_data.get("last_active_date")
+                if last_active_str:
+                    from datetime import datetime, timedelta
+
+                    try:
+                        last_active_date = datetime.strptime(
+                            last_active_str, "%Y-%m-%d"
+                        ).date()
+                        yesterday = today - timedelta(days=1)
+                        if last_active_date == today or last_active_date == yesterday:
+                            category_streak_days = cat_data.get("days", 0)
+                    except Exception:
+                        pass
+
         computed_eff = calculate_training_efficiency(
-            profile, focus, hours, streak_days, hours_today, subject_hours_today
+            profile,
+            focus,
+            hours,
+            streak_days,
+            hours_today,
+            subject_hours_today,
+            category_hours_today,
+            category_streak_days,
         )
 
         if abs(client_eff - computed_eff) > 0.02:

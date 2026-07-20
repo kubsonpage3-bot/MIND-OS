@@ -180,6 +180,10 @@ class UserProfile(models.Model):
     unlocked_playstyle_titles = models.JSONField(
         default=list, blank=True, verbose_name="Разблокированные титулы"
     )
+    # Стрики по категориям (Sciences/Humanities/Languages/Body/Spirit)
+    category_streaks = models.JSONField(
+        default=dict, blank=True, verbose_name="Стрики по категориям"
+    )
 
     # Просмотренные гайды (первый визит на вкладку)
     seen_guides = models.JSONField(

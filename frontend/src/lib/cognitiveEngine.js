@@ -190,7 +190,42 @@ export function getSubjectDiminishingMultiplier(subjectHoursToday) {
 
 
 
-export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursToday, statFoc = 5, statMem = 5 }) {
+export function resolveMasteryCategory(activityKey, customTaskCategory) {
+  if (customTaskCategory) {
+    const cat = customTaskCategory.toLowerCase().trim();
+    if (["body", "sciences", "languages", "spirit", "humanities"].includes(cat)) {
+      return cat;
+    }
+    if (cat === "health & fitness") return "body";
+    if (cat === "rest & recovery") return "body";
+    if (cat === "stem") return "sciences";
+    if (cat === "reading & writing") return "humanities";
+    if (cat === "social & communication") return "languages";
+    if (cat === "work & career") return "sciences";
+  }
+
+  if (!activityKey) return "";
+  const key = activityKey.toLowerCase().trim();
+  
+  if (["exercise", "running", "cold_shower", "nutrition", "sleep"].includes(key)) {
+    return "body";
+  }
+  if (["mathematics", "physics", "chemistry", "biology", "computer_science", "coding", "chess", "creative_answers"].includes(key)) {
+    return "sciences";
+  }
+  if (["english", "german", "other_languages", "languages", "vocabulary"].includes(key)) {
+    return "languages";
+  }
+  if (["prayer_meditation", "prayer", "meditation", "mindfulness", "reading_philosophy"].includes(key)) {
+    return "spirit";
+  }
+  if (["reading", "philosophy", "history", "humanities", "writing"].includes(key)) {
+    return "humanities";
+  }
+  return "";
+}
+
+export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursToday, categoryHoursToday = 0, categoryStreakDays = 0, statFoc = 5, statMem = 5 }) {
   // FOC stat boosts focus multiplier: each point above 5 = +1% bonus
   const focStatBonus = 1 + (statFoc - 5) * 0.01;
   // MEM stat reduces fatigue penalty: each point above 5 = 1.5% less fatigue penalty
@@ -202,12 +237,28 @@ export function computeEfficiency({ focus, streakDays, hoursToday, subjectHoursT
   // MEM boosts fatigue — moves it closer to 1.0
   const fatigueMult = Math.min(1.0, rawFatigue * memFatigueBonus);
   const diminMult = getSubjectDiminishingMultiplier(subjectHoursToday);
-  const total = focusMult * streakMult * fatigueMult * diminMult;
+
+  // Category-based diminishing returns (starts after 2.0 hours)
+  let categoryDiminMult = 1.0;
+  if (categoryHoursToday >= 4) {
+    categoryDiminMult = 0.2;
+  } else if (categoryHoursToday >= 3) {
+    categoryDiminMult = 0.5;
+  } else if (categoryHoursToday >= 2) {
+    categoryDiminMult = 0.8;
+  }
+
+  const finalDiminMult = Math.min(diminMult, categoryDiminMult);
+
+  // Category streak bonus: +5% if category streak is active (days >= 2)
+  const categoryStreakMult = categoryStreakDays >= 2 ? 1.05 : 1.0;
+
+  const total = focusMult * streakMult * fatigueMult * finalDiminMult * categoryStreakMult;
   return {
     focus: Math.round(focusMult * 1000) / 1000,
     streak: streakMult,
     fatigue: Math.round(fatigueMult * 1000) / 1000,
-    diminishing: diminMult,
+    diminishing: finalDiminMult,
     total: Math.round(total * 1000) / 1000,
   };
 }

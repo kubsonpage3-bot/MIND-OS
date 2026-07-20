@@ -1309,6 +1309,7 @@ class TrainingLogView(generics.GenericAPIView):
         POST /api/training/log/
         Logs a training session, grants XP and applies boss damage.
         """
+        from datetime import datetime, timedelta
         from django.db import transaction  # type: ignore
         from django.utils import timezone  # type: ignore
         from api.models import UserProfile, Task
@@ -1717,6 +1718,50 @@ class TrainingLogView(generics.GenericAPIView):
             # Grier Level 1: Focus >= 9.0 restores +2 HP
             if passive_effects.get("grier_l1_heal", False):
                 profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 2)
+
+            # Update Category Streaks
+            from api.services.mechanics import resolve_mastery_category
+
+            current_category = ""
+            if activity.startswith("custom_task_"):
+                try:
+                    from api.models import Task
+
+                    task_id = int(activity.replace("custom_task_", ""))
+                    task_obj = Task.objects.filter(id=task_id).first()
+                    if task_obj:
+                        current_category = resolve_mastery_category(
+                            task_category=task_obj.category,
+                            task_mastery_category=task_obj.mastery_category,
+                        )
+                except Exception:
+                    pass
+            else:
+                current_category = resolve_mastery_category(activity=activity)
+
+            if current_category:
+                today_str = str(timezone.now().date())
+                streaks = dict(profile.category_streaks or {})
+                cat_data = streaks.get(current_category)
+                if not isinstance(cat_data, dict):
+                    cat_data = {"days": 1, "last_active_date": today_str}
+                else:
+                    last_active_str = cat_data.get("last_active_date")
+                    if last_active_str != today_str:
+                        try:
+                            last_active_date = datetime.strptime(
+                                last_active_str, "%Y-%m-%d"
+                            ).date()
+                            yesterday = timezone.now().date() - timedelta(days=1)
+                            if last_active_date == yesterday:
+                                cat_data["days"] = cat_data.get("days", 0) + 1
+                            else:
+                                cat_data["days"] = 1
+                        except Exception:
+                            cat_data["days"] = 1
+                        cat_data["last_active_date"] = today_str
+                streaks[current_category] = cat_data
+                profile.category_streaks = streaks
 
             profile.save()
 

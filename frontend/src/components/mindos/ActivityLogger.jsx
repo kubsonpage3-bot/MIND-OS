@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, CATEGORY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES } from "@/lib/cognitiveEngine";
+import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, CATEGORY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES, resolveMasteryCategory } from "@/lib/cognitiveEngine";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Zap, Trash2, RotateCcw } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
@@ -91,11 +91,63 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
 
   const effectiveFocus = hasMeditationSessions ? Math.min(10, focusRating * 1.3) : focusRating;
 
+  const category = useMemo(() => {
+    if (!selectedActivity) return "";
+    const act = allActivities[selectedActivity];
+    if (act?.isCustom) {
+      return resolveMasteryCategory(null, act.category);
+    }
+    return resolveMasteryCategory(selectedActivity);
+  }, [selectedActivity, allActivities]);
+
+  const categoryStreakDays = useMemo(() => {
+    if (!category || !profile?.category_streaks) return 0;
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    
+    const todayStr = today.toISOString().split("T")[0];
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+    
+    const streakData = profile.category_streaks[category];
+    if (streakData && typeof streakData === "object") {
+      const lastActive = streakData.last_active_date;
+      if (lastActive === todayStr || lastActive === yesterdayStr) {
+        return streakData.days || 0;
+      }
+    }
+    return 0;
+  }, [category, profile]);
+
+  const categoryHoursToday = useMemo(() => {
+    if (!category) return 0;
+    const today = new Date().toDateString();
+    const todayLogs = logs.filter(l => new Date(l.created_at).toDateString() === today);
+    return todayLogs.reduce((sum, l) => {
+      let logCat = "";
+      if (l.activity_key.startsWith("custom_task_")) {
+        const taskId = l.activity_key.replace("custom_task_", "");
+        const task = tasks.find(t => String(t.id) === String(taskId));
+        if (task) {
+          logCat = resolveMasteryCategory(null, task.category);
+        }
+      } else {
+        logCat = resolveMasteryCategory(l.activity_key);
+      }
+      if (logCat === category) {
+        return sum + (l.hours || 0);
+      }
+      return sum;
+    }, 0);
+  }, [category, logs, tasks]);
+
   const efficiency = computeEfficiency({
     focus: effectiveFocus,
     streakDays: profile?.streak || 0,
     hoursToday,
     subjectHoursToday,
+    categoryHoursToday,
+    categoryStreakDays,
     statFoc: profile?.total_stats?.foc || 5,
     statMem: profile?.total_stats?.mem || 5,
   });
@@ -377,10 +429,12 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             </div>
 
             <EfficiencyMeter
-              focus={focusRating}
+              focus={effectiveFocus}
               streakDays={profile?.streak || 0}
               hoursToday={hoursToday}
               subjectHoursToday={subjectHoursToday}
+              categoryHoursToday={categoryHoursToday}
+              categoryStreakDays={categoryStreakDays}
               statFoc={profile?.total_stats?.foc || 5}
               statMem={profile?.total_stats?.mem || 5}
             />
