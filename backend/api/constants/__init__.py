@@ -835,3 +835,10 @@ ALLIES_CONFIG = {
         },
     },
 }
+
+BATTERY_WEIGHTS = {
+    "habit": 5,
+    "todo": 5,
+    "daily": 5,
+    "hour": 6,
+}

@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-20",
+    "version": "1.7.34",
+    "changes": [
+      { "type": "feature", "text": "Replaced the abstract 'Cogn ROI' indicator on the dashboard with a Daily Energy Battery widget, which drains dynamically throughout the day as you complete habits, tasks, dailies, and training sessions." }
+    ]
+  },
+  {
+    "date": "2026-07-20",
     "version": "1.7.33",
     "changes": [
       { "type": "balance", "text": "Softened daily study limits (Diminishing Returns) for both individual subjects and categories, allowing longer sessions before efficiency penalty begins, and capping the maximum penalty to 50% instead of 80%." }

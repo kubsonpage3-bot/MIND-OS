@@ -219,6 +219,15 @@ class UserProfile(models.Model):
     tasks_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено задач сегодня (momentum)"
     )
+    habits_completed_today = models.PositiveIntegerField(
+        default=0, verbose_name="Выполнено привычек сегодня"
+    )
+    todos_completed_today = models.PositiveIntegerField(
+        default=0, verbose_name="Выполнено тудушек сегодня"
+    )
+    dailies_completed_today = models.PositiveIntegerField(
+        default=0, verbose_name="Выполнено дейликов сегодня"
+    )
     last_completed_category = models.CharField(
         max_length=50,
         blank=True,

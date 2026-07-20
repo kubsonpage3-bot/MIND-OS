@@ -28,12 +28,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
     offline_seconds = serializers.IntegerField(read_only=True, required=False)
     max_streak = serializers.SerializerMethodField()
     playstyle_info = serializers.SerializerMethodField()
+    battery_info = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
         fields = (
             "id",
             "user",
+            "battery_info",
             "hp",
             "hp_max",
             "mana",
@@ -215,6 +217,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 "total_count": 52,
                 "titles": [],
             }
+
+    def get_battery_info(self, obj):
+        from api.services.mechanics import calculate_battery_level
+
+        return calculate_battery_level(obj)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { djangoApi } from "@/api/djangoClient";
@@ -89,28 +89,30 @@ function Card3D({ children, style, className = "", onClick }) {
   );
 }
 
-// ─── Circular arc progress (Cogn. ROI) ───────────────────────────────────────
-function ArcProgress({ pct, color, size = 52 }) {
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - (pct || 0) / 100);
+// ─── Battery indicator (Daily Energy) ─────────────────────────────────────────
+function BatteryIndicator({ level, color }) {
+  const roundedLevel = Math.round(level || 0);
 
   return (
-    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={5} />
-      <motion.circle
-        cx={size/2} cy={size/2} r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth={5}
-        strokeLinecap="round"
-        strokeDasharray={circ}
-        initial={{ strokeDashoffset: circ }}
-        animate={{ strokeDashoffset: offset }}
+    <div className="relative w-12 h-6 border-[1.5px] rounded p-[1.5px] flex items-center bg-black/30" style={{ borderColor: `${color}40`, transform: "translateZ(10px)" }}>
+      {/* Battery body filling */}
+      <motion.div 
+        className="h-full rounded-[1px] origin-left"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: roundedLevel / 100 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        style={{ filter: `drop-shadow(0 0 5px ${color})` }}
+        style={{ 
+          width: "100%",
+          backgroundColor: color,
+          boxShadow: `0 0 8px ${color}80`
+        }} 
       />
-    </svg>
+      {/* Battery tip */}
+      <div 
+        className="absolute -right-[4px] w-[2.5px] h-2.5 rounded-r-[1px] opacity-70"
+        style={{ backgroundColor: color }} 
+      />
+    </div>
   );
 }
 
@@ -159,19 +161,10 @@ export default function StatsPanel({ profile, logs }) {
     : weeklyXP >= 200  ? { color: "#7B61FF", glow: "rgba(123,97,255,0.45)" }
     : { color: "#6d5bd0", glow: "rgba(109,91,208,0.35)" };
 
-  const weekAgo = new Date(Date.now() - 7 * 86400000);
-  const weekLogs = logs.filter(l => new Date(l.created_at) >= weekAgo);
-
-  const cognitiveROI = useMemo(() => {
-    const withEff = weekLogs.filter(l => l.efficiency != null);
-    if (withEff.length === 0) return null;
-    const avg = withEff.reduce((s, l) => s + l.efficiency, 0) / withEff.length;
-    return Math.round(Math.min((avg / 1.5) * 100, 100));
-  }, [weekLogs]);
-
-  const roiColor = cognitiveROI == null ? "#64748b"
-    : cognitiveROI >= 70 ? "#22c55e"
-    : cognitiveROI >= 45 ? "#f59e0b"
+  const batteryInfo = profile?.battery_info || { level: 100, habits: 0, todos: 0, dailies: 0, hours: 0 };
+  const batteryLevel = batteryInfo.level;
+  const batteryColor = batteryLevel >= 60 ? "#22c55e"
+    : batteryLevel >= 25 ? "#f59e0b"
     : "#f74e52";
 
   const playstyleInfo = profile?.playstyle_info || {};
@@ -255,64 +248,51 @@ export default function StatsPanel({ profile, logs }) {
           </div>
         </Card3D>
 
-        {/* ── COGN. ROI ────────────────────────────────── */}
+        {/* ── ENERGY BATTERY ────────────────────────────── */}
         <Card3D
           style={{
-            background: `linear-gradient(145deg, ${roiColor}10, ${roiColor}04)`,
-            borderColor: `${roiColor}35`,
-            boxShadow: `0 4px 24px ${roiColor}40, 0 1px 0 rgba(255,255,255,0.06) inset`,
+            background: `linear-gradient(145deg, ${batteryColor}10, ${batteryColor}04)`,
+            borderColor: `${batteryColor}35`,
+            boxShadow: `0 4px 24px ${batteryColor}40, 0 1px 0 rgba(255,255,255,0.06) inset`,
           }}
         >
-          <div className="relative flex items-center justify-center" style={{ width: 52, height: 52, transform: "translateZ(30px)" }}>
-            <ArcProgress pct={cognitiveROI} color={roiColor} size={52} />
-            <div className="absolute inset-0 flex items-center justify-center">
-              {cognitiveROI != null ? (
-                <motion.span
-                  key={cognitiveROI}
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  style={{
-                    fontFamily: "'PixeloidSans'",
-                    fontSize: "0.8rem",
-                    color: roiColor,
-                    textShadow: `0 0 12px ${roiColor}`,
-                    transform: "translateZ(10px)",
-                  }}
-                >
-                  {cognitiveROI}%
-                </motion.span>
-              ) : (
-                <span style={{ fontSize: 18 }}>📈</span>
-              )}
-            </div>
+          <div className="relative flex items-center justify-center gap-2 h-[52px]" style={{ transform: "translateZ(30px)" }}>
+            <BatteryIndicator level={batteryLevel} color={batteryColor} />
+            <motion.span
+              key={batteryLevel}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                fontFamily: "'PixeloidSans'",
+                fontSize: "0.8rem",
+                color: batteryColor,
+                textShadow: `0 0 12px ${batteryColor}`,
+                transform: "translateZ(10px)",
+              }}
+            >
+              {batteryLevel}%
+            </motion.span>
           </div>
 
           <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
-            Cogn. ROI
+            Energy
           </div>
 
-          {/* ROI status pill */}
-          {cognitiveROI != null ? (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="px-2 py-0.5 rounded-full"
-              style={{
-                background: `${roiColor}20`,
-                border: `1px solid ${roiColor}40`,
-                fontSize: 8,
-                fontFamily: "'Nunito'",
-                fontWeight: 700,
-                color: roiColor,
-                letterSpacing: "0.05em",
-                transform: "translateZ(20px)",
-              }}
-            >
-              {cognitiveROI >= 70 ? "OPTIMAL" : cognitiveROI >= 45 ? "MODERATE" : "LOW"}
-            </motion.div>
-          ) : (
-            <div className="h-5" />
-          )}
+          {/* Battery breakdown */}
+          <div 
+            className="text-[8.5px] text-center opacity-80"
+            style={{
+              fontFamily: "'Nunito'",
+              fontWeight: 600,
+              color: "#a39fb0",
+              transform: "translateZ(20px)",
+              lineHeight: "1.2",
+              maxWidth: "95%",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {`${batteryInfo.habits} hab · ${batteryInfo.todos} tod · ${batteryInfo.dailies} day · ${batteryInfo.hours} hr`}
+          </div>
         </Card3D>
 
         {/* ── TITLE CARD ───────────────────────────────── */}

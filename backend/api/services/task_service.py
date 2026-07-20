@@ -574,6 +574,13 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         # Group 3 Mutator stats
         profile.tasks_completed_today += 1
+        if task.task_type == Task.TaskType.HABIT:
+            profile.habits_completed_today += 1
+        elif task.task_type == Task.TaskType.TODO:
+            profile.todos_completed_today += 1
+        elif task.task_type == Task.TaskType.DAILY:
+            profile.dailies_completed_today += 1
+
         if task_category:
             if profile.last_completed_category == task_category:
                 profile.same_category_streak += 1
@@ -821,6 +828,13 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         profile.mana = max(0, profile.mana - mana_gained)
         rewards["xp"] = final_xp_lost
         rewards["gold"] = final_gold_lost
+
+        if task.task_type == Task.TaskType.TODO:
+            profile.todos_completed_today = max(0, profile.todos_completed_today - 1)
+        elif task.task_type == Task.TaskType.DAILY:
+            profile.dailies_completed_today = max(
+                0, profile.dailies_completed_today - 1
+            )
 
     profile.save()
 
@@ -1131,6 +1145,9 @@ def process_missed_tasks(user):
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
     profile.tasks_completed_today = 0
+    profile.habits_completed_today = 0
+    profile.todos_completed_today = 0
+    profile.dailies_completed_today = 0
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
     total_dmg = 0
     log = []
@@ -1346,6 +1363,9 @@ def process_missed_tasks(user):
             "rank_xp",
             "level",
             "tasks_completed_today",
+            "habits_completed_today",
+            "todos_completed_today",
+            "dailies_completed_today",
             "total_overdue_tasks",
             "mana",
             "grier_revenge_charges",

@@ -187,6 +187,56 @@ def calculate_cognitive_gains(activity, hours, eff_total, profile):
     }
 
 
+def calculate_battery_level(profile):
+    import zoneinfo
+    from django.utils import timezone
+    from django.db.models import Sum
+    from api.models import TrainingSession
+    from api.constants import BATTERY_WEIGHTS
+
+    try:
+        user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+    except Exception:
+        user_tz = zoneinfo.ZoneInfo("UTC")
+
+    local_today = timezone.now().astimezone(user_tz).date()
+
+    # 1. Total training hours today
+    hours_today = (
+        TrainingSession.objects.filter(
+            user_profile=profile, created_at__date=local_today
+        ).aggregate(Sum("hours"))["hours__sum"]
+        or 0.0
+    )
+
+    # 2. Get specific counts from profile daily counters
+    habits = profile.habits_completed_today
+    todos = profile.todos_completed_today
+    dailies = profile.dailies_completed_today
+
+    # 3. Calculate drain
+    w_habit = BATTERY_WEIGHTS.get("habit", 5)
+    w_todo = BATTERY_WEIGHTS.get("todo", 5)
+    w_daily = BATTERY_WEIGHTS.get("daily", 5)
+    w_hour = BATTERY_WEIGHTS.get("hour", 6)
+
+    drain = (
+        (habits * w_habit)
+        + (todos * w_todo)
+        + (dailies * w_daily)
+        + (hours_today * w_hour)
+    )
+    battery_level = max(0, min(100, int(100 - drain)))
+
+    return {
+        "level": battery_level,
+        "habits": habits,
+        "todos": todos,
+        "dailies": dailies,
+        "hours": round(hours_today, 1),
+    }
+
+
 def calculate_task_outcome(
     user,
     task_type,
