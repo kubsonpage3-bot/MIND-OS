@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-07-20",
+    "version": "1.7.28",
+    "changes": [
+      { "type": "fix", "text": "Fixed rank progression roadmap displaying 'F' instead of 'E' as the starting rank." }
+    ]
+  },
+  {
+    "date": "2026-07-20",
     "version": "1.7.27",
     "changes": [
       { "type": "feature", "text": "Added 3D interactive depth to the metrics board panel, unified stats card sizes, and fixed the day streak heatmap overlapping the progress bar." }

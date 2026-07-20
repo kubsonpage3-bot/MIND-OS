@@ -10,7 +10,7 @@ const toRoman = (n) =>
   ['', 'I','II','III','IV','V','VI','VII','VIII','IX','X'][n] ?? `${n}`;
 
 const RANK_COLORS = {
-  F: "#475569",
+  E: "#475569",
   D: "#ef4444",
   C: "#f97316",
   B: "#d97706",
@@ -21,7 +21,7 @@ const RANK_COLORS = {
 };
 
 const RANK_GLOWS = {
-  F: "rgba(71,85,105,0.25)",
+  E: "rgba(71,85,105,0.25)",
   D: "rgba(239,68,68,0.30)",
   C: "rgba(249,115,22,0.30)",
   B: "rgba(217,119,6,0.30)",
@@ -32,7 +32,7 @@ const RANK_GLOWS = {
 };
 
 const RANK_BG = {
-  F: "rgba(71,85,105,0.07)",
+  E: "rgba(71,85,105,0.07)",
   D: "rgba(239,68,68,0.07)",
   C: "rgba(249,115,22,0.07)",
   B: "rgba(217,119,6,0.07)",

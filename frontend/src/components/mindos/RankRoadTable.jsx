@@ -41,7 +41,7 @@ export default function RankRoadTable({ rankXP = 0 }) {
               const displayData = getRankDisplayData(row.id, profile);
               // color from RANKS
               const rankColors = {
-                F: "#64748b", D: "#ef4444", C: "#f97316", B: "#eab308",
+                E: "#64748b", D: "#ef4444", C: "#f97316", B: "#eab308",
                 A: "#22c55e", S: "#3b82f6", SS: "#a855f7", SSS: "#f59e0b"
               };
               const color = rankColors[row.id] || "#64748b";
