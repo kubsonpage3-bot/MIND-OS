@@ -92,27 +92,34 @@ function Card3D({ children, style, className = "", onClick }) {
 
 // ─── Battery indicator (Daily Energy) ─────────────────────────────────────────
 function BatteryIndicator({ level, color }) {
-  const roundedLevel = Math.round(level || 0);
+  const roundedLevel = Math.max(0, Math.min(100, Math.round(level || 0)));
 
   return (
-    <div className="relative w-12 h-6 border-[1.5px] rounded p-[1.5px] flex items-center bg-black/30" style={{ borderColor: `${color}40`, transform: "translateZ(10px)" }}>
-      {/* Battery body filling */}
-      <motion.div 
-        className="h-full rounded-[1px] origin-left"
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: roundedLevel / 100 }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          width: "100%",
-          backgroundColor: color,
-          boxShadow: `0 0 8px ${color}80`
-        }} 
+    <div className="relative w-14 h-7 flex items-center justify-center shrink-0" style={{ transform: "translateZ(10px)" }}>
+      {/* Empty battery frame */}
+      <img
+        src="/images/webp/pixel_battery_empty.webp"
+        alt="Battery Frame"
+        className="absolute inset-0 w-full h-full object-contain"
+        style={{ imageRendering: "pixelated" }}
       />
-      {/* Battery tip */}
-      <div 
-        className="absolute -right-[4px] w-[2.5px] h-2.5 rounded-r-[1px] opacity-70"
-        style={{ backgroundColor: color }} 
-      />
+      {/* Filled battery bars clipped dynamically by roundedLevel % */}
+      <div
+        className="absolute inset-0 w-full h-full overflow-hidden transition-all duration-700 ease-out"
+        style={{
+          clipPath: `inset(0 ${100 - roundedLevel}% 0 0)`,
+        }}
+      >
+        <img
+          src="/images/webp/pixel_battery_full.webp"
+          alt="Battery Level"
+          className="w-full h-full object-contain"
+          style={{
+            imageRendering: "pixelated",
+            filter: roundedLevel < 25 ? "hue-rotate(-100deg) drop-shadow(0 0 4px #f74e52)" : roundedLevel < 60 ? "hue-rotate(-50deg) drop-shadow(0 0 4px #f59e0b)" : "drop-shadow(0 0 6px #22c55e)",
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -201,12 +208,19 @@ export default function StatsPanel({ profile, logs }) {
             boxShadow: `0 4px 24px ${xpTier.glow}, 0 1px 0 rgba(255,255,255,0.06) inset`,
           }}
         >
-          <motion.span
-            className="text-2xl"
+          <motion.div
+            className="w-8 h-8 flex items-center justify-center shrink-0"
             animate={{ scale: [1, 1.1, 1], rotate: [0, 8, -8, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             style={{ transform: "translateZ(30px)" }}
-          >⭐</motion.span>
+          >
+            <img
+              src="/images/webp/pixel_star.webp"
+              alt="Weekly XP Star"
+              className="w-7 h-7 object-contain"
+              style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 8px ${xpTier.glow})` }}
+            />
+          </motion.div>
 
           <motion.div
             key={weeklyXP}
@@ -442,13 +456,20 @@ function StreakCard({ profile }) {
           ? { duration: 0.7, type: "spring" }
           : { duration: 2.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
         }
-        className="text-2xl z-10 drop-shadow-lg"
+        className="z-10 flex items-center justify-center"
         style={{
-          filter: streak >= 15 ? `drop-shadow(0 0 8px ${tier.color})` : "none",
           transform: "translateZ(30px)",
         }}
       >
-        🔥
+        <img
+          src="/images/webp/pixel_flame.webp"
+          alt="Streak Flame"
+          className="w-7 h-9 object-contain"
+          style={{
+            imageRendering: "pixelated",
+            filter: streak >= 15 ? `drop-shadow(0 0 10px ${tier.color})` : `drop-shadow(0 0 4px ${tier.color}80)`,
+          }}
+        />
       </motion.div>
 
       {/* Streak number */}

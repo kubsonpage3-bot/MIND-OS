@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-21",
+    "version": "0.8.0",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Upgraded Dashboard cards with high-definition, background-cropped pixel art icons for Day Streak, Weekly XP, and a dynamic pixel battery that visually reflects your exact Energy charge."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-21",
     "version": "0.7.9",
     "changes": [
       {
