@@ -550,7 +550,7 @@ function PartyLeaderboardView() {
           </motion.div>
         )}
         {leaderboard.map((mem, i) => {
-          const isMe = mem.username === currentUsername;
+          const isMe = mem.user_id === profile?.user_id || mem.raw_username === currentUsername || mem.username === currentUsername;
           const pct = Math.min(100, ((mem.weekly_xp || 0) / totalXP) * 100);
           const medal = MEDALS[i];
           const medalColor = MEDAL_COLORS[i] || 'var(--habit-dim)';

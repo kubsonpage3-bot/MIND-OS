@@ -322,3 +322,32 @@ def test_party_streak_decay_skips_unscheduled(user_a):
 
     party.refresh_from_db()
     assert party.streak == 5  # Unchanged!
+
+
+@pytest.mark.django_db
+def test_party_leaderboard_uses_user_profile_weekly_xp(user_a, user_b):
+    """Party leaderboard reads weekly_xp from UserProfile and orders members correctly."""
+    from rest_framework.test import APIClient
+    from api.models import UserProfile
+    from api.services.profile_service import gain_xp
+
+    party = create_party(user_a, "Leaderboard Squad")
+    join_party(user_b, party.invite_code)
+
+    profile_a = UserProfile.objects.get(user=user_a)
+    profile_b = UserProfile.objects.get(user=user_b)
+
+    gain_xp(profile_a, 150)
+    gain_xp(profile_b, 300)
+
+    client = APIClient()
+    client.force_authenticate(user=user_a)
+    response = client.get("/api/party/leaderboard/")
+
+    assert response.status_code == 200
+    leaderboard = response.data.get("leaderboard", [])
+    assert len(leaderboard) == 2
+    assert leaderboard[0]["username"] == user_b.username
+    assert leaderboard[0]["weekly_xp"] == 300
+    assert leaderboard[1]["username"] == user_a.username
+    assert leaderboard[1]["weekly_xp"] == 150

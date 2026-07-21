@@ -2763,29 +2763,35 @@ class PartyLeaderboardView(generics.GenericAPIView):
 
         memberships = party.memberships.select_related("user__profile").all()
         for mem in memberships:
-            if mem.weekly_xp_reset_week != current_iso_week:
-                mem.weekly_xp = 0
-                mem.weekly_xp_reset_week = current_iso_week
-                mem.save(update_fields=["weekly_xp", "weekly_xp_reset_week"])
+            profile = mem.user.profile
+            if profile.weekly_xp_reset_week != current_iso_week:
+                profile.weekly_xp = 0
+                profile.weekly_xp_reset_week = current_iso_week
+                profile.save(update_fields=["weekly_xp", "weekly_xp_reset_week"])
 
-        memberships = memberships.order_by("-weekly_xp")
+        # Sort members by profile weekly_xp descending
+        memberships = sorted(
+            memberships, key=lambda m: m.user.profile.weekly_xp, reverse=True
+        )
 
         # Serialize list
         data = []
         for mem in memberships:
-            # Reusing parts of PartyMembershipSerializer, or just a simple dict
-            display_name = mem.user.profile.character_name or mem.user.username
-            if mem.user.profile.anonymous_mode:
+            profile = mem.user.profile
+            display_name = profile.character_name or mem.user.username
+            if profile.anonymous_mode:
                 display_name = "Anonymous Wanderer"
 
             data.append(
                 {
+                    "user_id": mem.user.id,
                     "username": display_name,
-                    "weekly_xp": mem.weekly_xp,
-                    "level": mem.user.profile.level,
+                    "raw_username": mem.user.username,
+                    "weekly_xp": profile.weekly_xp,
+                    "level": profile.level,
                     "avatar": (
-                        mem.user.profile.avatar.url
-                        if mem.user.profile.avatar and mem.user.profile.avatar.name
+                        profile.avatar.url
+                        if profile.avatar and profile.avatar.name
                         else None
                     ),
                 }
