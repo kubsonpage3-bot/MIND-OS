@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { djangoApi } from "@/api/djangoClient";
 import { X, Check, Sparkles } from "lucide-react";
+import TitleIcon from "@/components/mindos/TitleIcon";
 
 export default function TitleSelectorModal({ profile, onClose }) {
   const { t } = useTranslation();
@@ -57,10 +58,10 @@ export default function TitleSelectorModal({ profile, onClose }) {
         <div className="p-4 sm:p-5 border-b border-purple-500/20 flex items-center justify-between shrink-0 bg-slate-950/40">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-md shrink-0 select-none"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md shrink-0"
               style={{ background: `${activeTitle.color}20`, border: `1px solid ${activeTitle.color}50` }}
             >
-              {activeTitle.icon || "👑"}
+              <TitleIcon title={activeTitle} className="w-6 h-6" />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -140,7 +141,7 @@ export default function TitleSelectorModal({ profile, onClose }) {
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="text-xl sm:text-2xl shrink-0 select-none">{title.icon}</span>
+                    <TitleIcon title={title} className="w-7 h-7 sm:w-8 sm:h-8" />
                     <div className="min-w-0 flex-1">
                       <div className="text-xs sm:text-sm font-bold font-mono break-words leading-tight" style={{ color: title.color }}>
                         {translatedName}

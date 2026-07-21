@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { djangoApi } from "@/api/djangoClient";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import TitleSelectorModal from "@/components/mindos/TitleSelectorModal";
+import TitleIcon from "@/components/mindos/TitleIcon";
 
 const XP_PER_LEVEL = 500;
 
@@ -316,14 +317,14 @@ export default function StatsPanel({ profile, logs }) {
             />
           )}
 
-          <motion.span
-            className="text-2xl"
+          <motion.div
+            className="w-8 h-8 flex items-center justify-center"
             whileHover={{ scale: 1.2, rotate: 10 }}
             transition={{ type: "spring", stiffness: 400 }}
             style={{ transform: "translateZ(30px)" }}
           >
-            {activeTitle.icon || "👑"}
-          </motion.span>
+            <TitleIcon title={activeTitle} className="w-8 h-8" />
+          </motion.div>
 
           <div
             className="truncate max-w-full px-1 font-bold leading-tight"

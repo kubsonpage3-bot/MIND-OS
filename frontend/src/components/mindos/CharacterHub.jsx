@@ -1,4 +1,5 @@
 import PixelCharacter from "@/components/mindos/PixelCharacter";
+import TitleIcon from "@/components/mindos/TitleIcon";
 import BossPanel from "@/components/mindos/BossPanel";
 import { CLASSES } from "@/constants/rpgData";
 import { getRankDisplayData } from "@/lib/rankEngine";
@@ -54,7 +55,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
                 color: activeTitle.color,
               }}
             >
-              <span>{activeTitle.icon || "👑"}</span>
+              <TitleIcon title={activeTitle} className="w-3.5 h-3.5" />
               <span>{translatedName}</span>
             </div>
           );

@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-21",
+    "version": "0.7.8",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Introduced premium 16-bit dark fantasy/gothic style title icons featuring custom-minted gold coins inside ornate filigree frames."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-21",
     "version": "0.7.7",
     "changes": [
       {
