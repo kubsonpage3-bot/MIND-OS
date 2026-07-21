@@ -44,6 +44,19 @@ def main():
         "ally_patron",
         "bookworm",
         "chronomancer",
+        "tycoon",
+        "noonday_sentinel",
+        "twilight_hunter",
+        "weekend_warrior",
+        "midnight_alchemist",
+        "ignited",
+        "marathoner",
+        "iron_will",
+        "unbroken",
+        "time_legend",
+        "phoenix",
+        "polyglot",
+        "architect_mind",
     ]
 
     print(f"Processing {len(title_names)} title icons...")
