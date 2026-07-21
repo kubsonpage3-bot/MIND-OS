@@ -886,20 +886,44 @@ class Task(models.Model):
         status = "✓" if self.is_completed else "○"
         return f"[{status}] {self.get_task_type_display()}: {self.title} ({self.user.username})"  # noqa: E501
 
-    # ── Таблица наград по сложности ───────────────────────────────────────
-    REWARD_TABLE = {
-        Difficulty.TRIVIAL: {"xp": 1, "gold": 1},
-        Difficulty.EASY: {"xp": 5, "gold": 3},
-        Difficulty.MEDIUM: {"xp": 15, "gold": 7},
-        Difficulty.HARD: {"xp": 40, "gold": 15},
-    }
+    def save(self, *args, **kwargs):
+        from api.services.rewards_service import task_rewards
+
+        diff = (
+            self.difficulty
+            if self.difficulty in ["trivial", "easy", "medium", "hard"]
+            else "medium"
+        )
+        rewards = task_rewards(diff)
+        self.xp_reward = rewards["xp"]
+        self.gold_reward = rewards["gold"]
+        self.boss_damage = rewards["dmg"]
+
+        # Enforce training session defaults on Training Activity (button)
+        if self.task_type == self.TaskType.BUTTON:
+            if not self.default_hours or self.default_hours <= 0:
+                self.default_hours = 1.0
+            if not self.default_focus or self.default_focus <= 0:
+                self.default_focus = 7
+
+        super().save(*args, **kwargs)
+
+    @property
+    def hp_damage_on_miss(self) -> int:
+        from api.services.rewards_service import MISS_PENALTY
+
+        diff = (
+            self.difficulty
+            if self.difficulty in ["trivial", "easy", "medium", "hard"]
+            else "medium"
+        )
+        return MISS_PENALTY.get(diff, 20)
 
     def get_rewards(self) -> dict:
         """
         Возвращает словарь с наградами за выполнение задачи.
         Учитывает числовой множитель value.
         """
-        base = self.REWARD_TABLE.get(self.difficulty, {"xp": 10, "gold": 5})
         task_value = self.value
         if task_value < 0:
             value_mod = 1.0 + abs(float(task_value)) * 0.05
@@ -907,8 +931,8 @@ class Task(models.Model):
             scale = 0.06 if self.task_type == self.TaskType.TODO else 0.04
             value_mod = max(0.1, 1.0 - float(task_value) * scale)
 
-        xp_reward = round(base["xp"] * value_mod)
-        gold_reward = round(base["gold"] * value_mod)
+        xp_reward = round(self.xp_reward * value_mod)
+        gold_reward = round(self.gold_reward * value_mod)
 
         return {
             "xp": max(0, xp_reward),

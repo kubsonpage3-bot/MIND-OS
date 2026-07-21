@@ -50,6 +50,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "xp_reward",
             "gold_reward",
             "boss_damage",
+            "hp_damage_on_miss",
             "created_at",
             "updated_at",
         )
@@ -63,6 +64,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "pos_streak",
             "neg_streak",
             "rewards",
+            "hp_damage_on_miss",
             "created_at",
             "updated_at",
         )
@@ -84,17 +86,31 @@ class TaskSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        scheduled_time = attrs.get("scheduled_time", getattr(self.instance, "scheduled_time", None) if self.instance else None)
-        scheduled_end_time = attrs.get("scheduled_end_time", getattr(self.instance, "scheduled_end_time", None) if self.instance else None)
+        scheduled_time = attrs.get(
+            "scheduled_time",
+            getattr(self.instance, "scheduled_time", None) if self.instance else None,
+        )
+        scheduled_end_time = attrs.get(
+            "scheduled_end_time",
+            (
+                getattr(self.instance, "scheduled_end_time", None)
+                if self.instance
+                else None
+            ),
+        )
 
         if scheduled_time and scheduled_end_time:
             if scheduled_end_time <= scheduled_time:
                 raise serializers.ValidationError(
-                    {"scheduled_end_time": "Scheduled end time must be after start time."}
+                    {
+                        "scheduled_end_time": "Scheduled end time must be after start time."
+                    }
                 )
         if scheduled_end_time and not scheduled_time:
             raise serializers.ValidationError(
-                {"scheduled_time": "Scheduled start time is required if end time is set."}
+                {
+                    "scheduled_time": "Scheduled start time is required if end time is set."
+                }
             )
         return attrs
 

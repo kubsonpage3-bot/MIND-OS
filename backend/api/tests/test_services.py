@@ -1309,3 +1309,89 @@ def test_allies_perk_fixes(user, profile):
         process_daily_login(user)
         profile.refresh_from_db()
         assert profile.mana == profile.total_stats.get("mana_max", 100)
+
+
+@pytest.mark.django_db
+def test_task_rewards_ratio_constant():
+    from api.services.rewards_service import task_rewards, TIER_MULTIPLIER
+
+    for tier in TIER_MULTIPLIER:
+        rewards = task_rewards(tier)
+        assert rewards["dmg"] / rewards["xp"] == pytest.approx(3.33, abs=0.05)
+        assert rewards["gold"] / rewards["xp"] == pytest.approx(0.5, abs=0.20)
+
+
+@pytest.mark.django_db
+def test_training_over_task_ratio_constant():
+    from api.services.rewards_service import (
+        task_rewards,
+        training_rewards,
+        TIER_MULTIPLIER,
+    )
+
+    for tier in TIER_MULTIPLIER:
+        for hours, focus in [(1.0, 7.0), (3.0, 9.0)]:
+            t_rewards = training_rewards(tier, hours, focus)
+            t_base = task_rewards(tier)
+            focus_factor = max(0.7, min(1.3, focus / 10.0))
+            scale = 2.5 * hours * focus_factor
+            assert t_rewards["xp"] == pytest.approx(round(t_base["xp"] * scale), abs=1)
+            assert t_rewards["gold"] == pytest.approx(
+                round(t_base["gold"] * scale), abs=1
+            )
+            assert t_rewards["dmg"] == pytest.approx(
+                round(t_base["dmg"] * scale), abs=1
+            )
+
+
+@pytest.mark.django_db
+def test_task_spoofed_rewards_ignored(user):
+    from api.services.rewards_service import task_rewards
+
+    task = Task.objects.create(
+        user=user,
+        title="Test Task",
+        task_type=Task.TaskType.HABIT,
+        difficulty=Task.Difficulty.MEDIUM,
+        xp_reward=99999,
+        gold_reward=99999,
+        boss_damage=99999,
+    )
+    expected = task_rewards("medium")
+    assert task.xp_reward == expected["xp"]
+    assert task.gold_reward == expected["gold"]
+    assert task.boss_damage == expected["dmg"]
+
+
+@pytest.mark.django_db
+def test_training_hours_clamped():
+    from api.services.rewards_service import training_rewards
+
+    r_normal = training_rewards("medium", 16.0, 10.0)
+    r_high = training_rewards("medium", 999.0, 10.0)
+    r_neg = training_rewards("medium", -5.0, 10.0)
+    r_zero = training_rewards("medium", 0.0, 10.0)
+
+    assert r_high["xp"] == r_normal["xp"]
+    assert r_neg["xp"] == r_zero["xp"]
+
+
+@pytest.mark.django_db
+def test_training_focus_clamped():
+    from api.services.rewards_service import training_rewards
+
+    r_max = training_rewards("medium", 1.0, 13.0)
+    r_over = training_rewards("medium", 1.0, 500.0)
+    r_min = training_rewards("medium", 1.0, 7.0)
+    r_under = training_rewards("medium", 1.0, 0.0)
+
+    assert r_over["xp"] == r_max["xp"]
+    assert r_under["xp"] == r_min["xp"]
+
+
+@pytest.mark.django_db
+def test_unknown_tier_raises():
+    from api.services.rewards_service import task_rewards
+
+    with pytest.raises(ValueError):
+        task_rewards("nonsense")

@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-21",
+    "version": "0.7.6",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Balanced and unified task and activity rewards using a secure server-enforced math formula, capping training sessions to 16 hours, and simplifying the task creation UI."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-21",
     "version": "0.7.5",
     "changes": [
       {

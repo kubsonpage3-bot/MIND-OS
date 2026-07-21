@@ -14,6 +14,31 @@ function loadHiddenActivities() {
 }
 function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
 
+const TIER_MULTIPLIER = {
+  trivial: 1,
+  easy: 3,
+  medium: 5,
+  hard: 10,
+};
+
+function getTrainingRewards(tier, hours, focus) {
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+  const clampedHours = clamp(hours, 0, 16.0);
+  const focusFactor = clamp(focus / 10.0, 0.7, 1.3);
+  
+  const mult = TIER_MULTIPLIER[tier] || 5;
+  const xpBase = 3 * mult;
+  const goldBase = Math.round(xpBase * 0.5);
+  const dmgBase = Math.round(xpBase * 3.33);
+
+  const scale = 2.5 * clampedHours * focusFactor;
+  return {
+    xp: Math.round(xpBase * scale),
+    gold: Math.round(goldBase * scale),
+    dmg: Math.round(dmgBase * scale),
+  };
+}
+
 export default function ActivityLogger({ onLog, isLogging, profile, logs = [], tasks = [] }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -52,7 +77,8 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
           defaultHours: t.defaultHours || 1,
           defaultFocus: t.defaultFocus || 7,
           isCustom: true,
-          taskId: t.id
+          taskId: t.id,
+          difficulty: t.difficulty || "medium"
         };
       }
     });
@@ -159,6 +185,13 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
     recentFocusRatings,
     tasks,
   });
+
+  const previewRewards = useMemo(() => {
+    if (!selectedActivity) return null;
+    const act = allActivities[selectedActivity];
+    const tier = act?.difficulty || "medium";
+    return getTrainingRewards(tier, hours, focusRating);
+  }, [selectedActivity, hours, focusRating, allActivities]);
 
   const confirmLog = () => {
     if (!selectedActivity) return;
@@ -397,7 +430,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                   <div className="font-pixel text-4xl text-foreground">{hours}</div>
                   <div className="text-xs text-muted-foreground">{t('training.hours')}</div>
                 </div>
-                <button onClick={() => setHours(hours + 0.5)}
+                <button onClick={() => setHours(Math.min(16, hours + 0.5))}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent">
                   <Plus className="w-3 h-3" />
                 </button>
@@ -459,34 +492,34 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
               })}
             </div>
 
-            {/* Gold preview */}
-            {(() => {
-              let mult = 1;
+            {/* Expected Rewards preview */}
+            {previewRewards && (() => {
               const stats = profile?.total_stats || {};
-              const spd = stats.spd || 0;
-              const lck = stats.lck || 0;
               const goldMultStats = stats.gold_multiplier || 1.0;
+              const xpMultStats = profile?.xp_multiplier || 1.0;
+              const dmgMultStats = profile?.damage_multiplier || 1.0;
               
-              let skillMult = 1.0;
-              const skills = profile?.unlocked_skills || [];
-              if (skills.some(s => (s.skill_code || s) === "resource_awareness")) skillMult += 0.10;
-              
-              const act = allActivities[selectedActivity];
-              let base_gold = (logValue * 25) * mult * skillMult;
-              if (act.isCustom) {
-                const defHours = act.defaultHours || 1;
-                const defFocus = act.defaultFocus || 7;
-                const scale = (hours / defHours) * (focusRating / defFocus);
-                base_gold = (scale * (act.goldReward || 0)) * mult * skillMult;
-              }
-              
-              const spdBonus = spd * 0.5;
-              const expectedGold = Math.floor((base_gold + spdBonus) * (1 + lck / 100.0));
-              const total = Math.max(0, Math.floor(expectedGold * goldMultStats));
+              const expectedXp = Math.max(0, Math.round(previewRewards.xp * xpMultStats));
+              const expectedGold = Math.max(0, Math.round(previewRewards.gold * goldMultStats));
+              const expectedDmg = Math.max(0, Math.round(previewRewards.dmg * dmgMultStats));
 
               return (
-                <div className="text-2xl font-pixel text-center" style={{ color: "var(--habit-gold)" }}>
-                  +{total}G {t('training.gold_on_completion')}{mult > 1 && <span className="text-green-400 ml-1">({t('training.gold_booster', { mult })})</span>}
+                <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-xs space-y-2">
+                  <div className="text-muted-foreground/50 uppercase text-[9px] tracking-wider">{t('training.expected_rewards', 'Expected Rewards')}</div>
+                  <div className="flex justify-around gap-4 text-center">
+                    <div>
+                      <div className="text-blue-400 font-pixel text-lg">+{expectedXp} XP</div>
+                      <div className="text-[8.5px] text-muted-foreground mt-0.5">Experience</div>
+                    </div>
+                    <div>
+                      <div className="text-yellow-500 font-pixel text-lg">+{expectedGold}G</div>
+                      <div className="text-[8.5px] text-muted-foreground mt-0.5">Gold</div>
+                    </div>
+                    <div>
+                      <div className="text-red-400 font-pixel text-lg">⚔ {expectedDmg}</div>
+                      <div className="text-[8.5px] text-muted-foreground mt-0.5">Boss DMG</div>
+                    </div>
+                  </div>
                 </div>
               );
             })()}

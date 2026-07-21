@@ -1381,7 +1381,6 @@ class TrainingLogView(generics.GenericAPIView):
             from api.services.mechanics import (
                 apply_active_mutators,
                 get_passive_multipliers,
-                calculate_base_training_xp,
             )
 
             context = {
@@ -1576,30 +1575,21 @@ class TrainingLogView(generics.GenericAPIView):
             vm_gain = gains["vm"]
             profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
 
+            # Calculate training rewards using service formulas
+            from api.services.rewards_service import training_rewards
+
+            tier = task.difficulty if task else "medium"
+            rewards = training_rewards(tier, hours, focus_rating)
+
+            base_xp = (rewards["xp"] + flat_xp_bonus) * xp_mult
+            base_gold = rewards["gold"] * gold_mult
+            raw_boss_dmg = rewards["dmg"]
+
             if task:
-                # [CRITICAL SAFETY CONDITIONS] Check against ZeroDivisionError
-                def_hours = task.default_hours if task.default_hours else 1.0
-                if def_hours <= 0:
-                    def_hours = 1.0
-                def_focus = float(task.default_focus) if task.default_focus else 7.0
-                if def_focus <= 0:
-                    def_focus = 7.0
-
-                scale = (hours / def_hours) * (focus_rating / def_focus)
-                base_xp = ((scale * task.xp_reward) + flat_xp_bonus) * xp_mult
-                base_gold = ((scale * task.gold_reward)) * gold_mult
-                raw_boss_dmg = int(scale * task.boss_damage)
-
                 # Increment completion stats for custom button tasks
                 task.completion_count += 1
                 task.last_completed_at = timezone.now()
                 task.save()
-            else:
-                base_xp = calculate_base_training_xp(
-                    hours, focus_rating, flat_xp_bonus, xp_mult
-                )
-                base_gold = ((hours * 25)) * gold_mult
-                raw_boss_dmg = int(hours * focus_rating * 10)
 
             outcome = calculate_task_outcome(
                 request.user,

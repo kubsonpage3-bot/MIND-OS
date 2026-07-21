@@ -936,9 +936,17 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         # Урон от статов
         damage_dealt = gamification_result.get("damage_dealt", 0)
 
-        # Базовый урон от сложности (Easy, Medium, Hard)
-        base_dmg_map = {"trivial": 15, "easy": 25, "medium": 50, "hard": 75}
-        base_dmg = base_dmg_map.get(task.difficulty, 25)
+        # Базовый урон от сложности
+        base_dmg = (
+            task.boss_damage
+            if (task.boss_damage is not None and task.boss_damage > 0)
+            else {
+                "trivial": 15,
+                "easy": 25,
+                "medium": 50,
+                "hard": 75,
+            }.get(task.difficulty, 25)
+        )
 
         task_type = getattr(task, "task_type", "habit")
 
