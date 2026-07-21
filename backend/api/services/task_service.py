@@ -226,9 +226,11 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             # Grier Level 2 Shield Slam
             if outcome.get("grier_shield_slam") and profile.mana >= 5:
                 profile.mana = max(0, profile.mana - 5)
+                profile.save()
                 from api.services.mechanics import apply_boss_damage
 
                 apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+                profile.refresh_from_db()
 
             # Grier Level 4 Revenge Mark: failed habit adds charge
             if recruited_allies.get("grier", 0) >= 4:
@@ -805,9 +807,11 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             # Grier Level 2 Shield Slam
             if outcome.get("grier_shield_slam") and profile.mana >= 5:
                 profile.mana = max(0, profile.mana - 5)
+                profile.save()
                 from api.services.mechanics import apply_boss_damage
 
                 apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+                profile.refresh_from_db()
 
             # Grier Level 4 Revenge Mark: failed task/habit adds charge
             if recruited_allies.get("grier", 0) >= 4:
@@ -1048,7 +1052,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         is_crit = gamification_result.get("is_crit", False)
 
+        profile.save()
         combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
+        profile.refresh_from_db()
 
         if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
             if not isinstance(task.last_reward_data, dict):
@@ -1280,9 +1286,11 @@ def process_missed_tasks(user):
             # Grier Level 2 Shield Slam
             if outcome.get("grier_shield_slam") and profile.mana >= 5:
                 profile.mana = max(0, profile.mana - 5)
+                profile.save()
                 from api.services.mechanics import apply_boss_damage
 
                 apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+                profile.refresh_from_db()
 
             # Grier Level 4 Revenge Mark: failed daily adds charge
             if recruited_allies.get("grier", 0) >= 4:
