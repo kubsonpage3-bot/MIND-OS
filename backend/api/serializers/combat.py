@@ -21,6 +21,7 @@ class BossSerializer(serializers.ModelSerializer):
 class BossEncounterSerializer(serializers.ModelSerializer):
     boss = BossSerializer(read_only=True)
     idle_damage_applied = serializers.IntegerField(read_only=True, required=False)
+    idle_dps = serializers.SerializerMethodField()
 
     class Meta:
         model = BossEncounter
@@ -35,8 +36,14 @@ class BossEncounterSerializer(serializers.ModelSerializer):
             "expires_at",
             "last_idle_tick_at",
             "idle_damage_applied",
+            "idle_dps",
         )
         read_only_fields = fields
+
+    def get_idle_dps(self, obj):
+        from api.services.combat_service import get_user_idle_dps
+
+        return get_user_idle_dps(obj.user.profile)
 
 
 class BossSummonSerializer(serializers.Serializer):

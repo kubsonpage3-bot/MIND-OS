@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { SCROLLS, SCROLL_BOSS_IMAGES } from "./ScrollsPanel";
@@ -21,7 +21,8 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   const [open, setOpen] = useState(true);
   const [displayHP, setDisplayHP] = useState(0);
   const [idleDamageFloats, setIdleDamageFloats] = useState([]);
-  const [idleShake, setIdleShake] = useState(false);
+  const bossSpriteControls = useAnimation();
+
 
   // Preserve initial drain state across React Query refetches
   const initialDrainRef = useRef({
@@ -73,13 +74,34 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
 
     setDamageFloat({ value: amount, critical, id: Date.now() });
     setTimeout(() => setDamageFloat(null), critical ? 1800 : 1000);
-  }, []);
+
+    bossSpriteControls.start({
+      x: critical ? [-8, 8, -6, 6, -4, 4, 0] : [-4, 4, -2, 2, 0],
+      scale: critical ? [1, 1.1, 0.95, 1.05, 1] : [1, 1.05, 0.98, 1],
+      filter: critical 
+        ? ["brightness(2) contrast(1.5)", "brightness(1)"]
+        : ["brightness(1.5)", "brightness(1)"],
+      transition: { duration: critical ? 0.6 : 0.3, ease: "easeOut" }
+    });
+  }, [bossSpriteControls]);
 
   // Handle external damage from session log / tasks
   useEffect(() => {
     if (!externalDamage || !activeBossTemplate) return;
     dealDamage(externalDamage.amount, externalDamage.isCritical, activeBossTemplate.color);
   }, [externalDamage, dealDamage, activeBossTemplate]);
+
+  // Format remaining time to victory
+  const formatETA = (seconds) => {
+    if (seconds <= 0 || !isFinite(seconds)) return "Final Blow Required!";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    
+    if (h > 0) return `~${h}h ${m}m`;
+    if (m > 0) return `~${m}m ${s}s`;
+    return `~${s}s`;
+  };
 
   // Idle HP tick effect
   useEffect(() => {
@@ -89,6 +111,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     const minHP = Math.max(0, Math.floor(maxHP * 0.05));
     const serverHP = activeEncounter.hp_current;
     const serverTime = activeEncounter.last_idle_tick_at ? new Date(activeEncounter.last_idle_tick_at).getTime() : Date.now();
+    const dps = activeEncounter.idle_dps || 0.1;
 
     // Lock in the initial drain state if we have offline damage and aren't already draining it
     if (!initialDrainRef.current.active && (activeEncounter.idle_damage_applied || 0) > 0) {
@@ -107,7 +130,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
 
     const updateHP = () => {
       const elapsedSeconds = Math.max(0, (Date.now() - serverTime) / 1000);
-      const idleDamage = elapsedSeconds * 0.1;
+      const idleDamage = elapsedSeconds * dps;
       const newDisplayHP = Math.floor(Math.max(minHP, serverHP - idleDamage));
       
       if (window.isOfflineModalOpen) {
@@ -135,18 +158,20 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             return nextHP;
         }
 
-        // Normal 10s idle ticks
+        // Normal idle ticks
         if (prev !== 0 && newDisplayHP < prev && !isInitialDrain) {
           const damageAmt = prev - newDisplayHP;
           const id = Date.now();
           setIdleDamageFloats(curr => [...curr, { id, value: damageAmt }]);
-          setIdleShake(true);
-          playSound('boss_idle_tick');
           
-          setTimeout(() => setIdleShake(false), 150);
-          setTimeout(() => {
-            setIdleDamageFloats(curr => curr.filter(item => item.id !== id));
-          }, 1000);
+          bossSpriteControls.start({
+            x: [0, -3, 3, -1, 1, 0],
+            scale: [1, 1.02, 0.99, 1],
+            filter: ["brightness(1.2)", "brightness(1)"],
+            transition: { duration: 0.25, ease: "easeOut" }
+          });
+          
+          playSound('boss_idle_tick');
         }
         return newDisplayHP;
       });
@@ -156,7 +181,8 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     // Use requestAnimationFrame style interval for the fast drain, or just stick to 100ms if draining, otherwise 1000ms
     const interval = setInterval(updateHP, 100);
     return () => clearInterval(interval);
-  }, [activeEncounter, activeBossTemplate]);
+  }, [activeEncounter, activeBossTemplate, bossSpriteControls]);
+
 
   // Если нет активного босса, показываем заглушку "Призвать"
   if (!activeEncounter || !activeBossTemplate) {
@@ -181,6 +207,8 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
 
   const bossHP = activeEncounter.is_defeated ? 0 : (displayHP || activeEncounter.hp_current);
   const hpPercent = Math.max(0, (bossHP / maxHP) * 100);
+  const dps = activeEncounter.idle_dps || 0.1;
+  const crackOpacity = Math.max(0, 0.7 * (1 - hpPercent / 100));
   const isNearlyDefeated = bossHP <= minHP && !activeEncounter.is_defeated && bossHP > 0;
   const imgUrl = SCROLL_BOSS_IMAGES[activeEncounter.boss.id_name] || SCROLL_BOSS_IMAGES.misted_wanderer;
 
@@ -250,18 +278,10 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             {/* Boss sprite */}
             <motion.div
               className="relative"
-              animate={flash ? {
-                x: isCritical ? [-8, 8, -6, 6, -4, 4, 0] : [-4, 4, -2, 2, 0],
-                filter: isCritical
-                  ? [`drop-shadow(0 0 30px ${color}) brightness(1.5)`, `drop-shadow(0 0 8px ${color}40) brightness(1)`]
-                  : [`drop-shadow(0 0 18px ${color}) brightness(1.3)`, `drop-shadow(0 0 8px ${color}40) brightness(1)`],
-              } : idleShake ? {
-                x: [-2, 2, -1, 1, 0],
-                filter: `drop-shadow(0 0 12px ${color}60)`,
-              } : { 
+              animate={{ 
                 filter: [`drop-shadow(0 0 4px ${color}20)`, `drop-shadow(0 0 16px ${color}60)`, `drop-shadow(0 0 4px ${color}20)`] 
               }}
-              transition={flash ? { duration: isCritical ? 0.5 : 0.25 } : idleShake ? { duration: 0.15 } : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             >
               <AnimatePresence>
                 {flash && isCritical && (
@@ -273,26 +293,34 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                   />
                 )}
               </AnimatePresence>
-              <OptimizedImage
-                src={imgUrl}
-                alt={activeBossTemplate.boss}
-                className="rounded-xl object-cover transition-all duration-1000"
-                style={{ 
-                  width: 180, 
-                  height: 220, 
-                  imageRendering: "pixelated", 
-                  filter: isNearlyDefeated ? `grayscale(0.6) sepia(0.3) hue-rotate(-30deg) drop-shadow(0 0 16px ${color}80)` : `drop-shadow(0 0 16px ${color}80)` 
-                }}
-              />
+              <motion.div
+                animate={bossSpriteControls}
+                initial={{ x: 0, scale: 1 }}
+              >
+                <OptimizedImage
+                  src={imgUrl}
+                  alt={activeBossTemplate.boss}
+                  className="rounded-xl object-cover transition-all duration-1000"
+                  style={{ 
+                    width: 180, 
+                    height: 220, 
+                    imageRendering: "pixelated", 
+                    filter: isNearlyDefeated ? `grayscale(0.6) sepia(0.3) hue-rotate(-30deg)` : "" 
+                  }}
+                />
+              </motion.div>
               {/* Idle Damage floats */}
               <AnimatePresence>
                 {idleDamageFloats.map((float) => (
                   <motion.div
                     key={float.id}
-                    initial={{ opacity: 0, y: 0, scale: 0.8 }}
-                    animate={{ opacity: [0, 1, 0.8, 0], y: -40, scale: 1 }}
+                    initial={{ opacity: 1, y: 0, scale: 0.8 }}
+                    animate={{ opacity: 0, y: -40, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 1.0, ease: "easeOut" }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    onAnimationComplete={() => {
+                      setIdleDamageFloats(curr => curr.filter(item => item.id !== float.id));
+                    }}
                     className="absolute font-mono font-black pointer-events-none text-center z-10"
                     style={{
                       top: `${30 + Math.random() * 20}%`, // Randomize start position slightly
@@ -356,6 +384,24 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                     background: isNearlyDefeated ? { duration: 1, repeat: Infinity, ease: "easeInOut" } : { duration: 0 }
                   }}
                 />
+                
+                {/* Crack Overlay */}
+                <motion.svg
+                  className="absolute inset-0 w-full h-full pointer-events-none mix-blend-overlay"
+                  animate={{ opacity: crackOpacity }}
+                  transition={{ duration: 0.5 }}
+                  viewBox="0 0 100 8"
+                  preserveAspectRatio="none"
+                  fill="none"
+                >
+                  <path d="M10 0L15 4L20 2M30 8L35 4L42 7M60 0L63 5L68 3M85 8L88 3L95 5" stroke="black" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+                </motion.svg>
+              </div>
+              
+              {/* Idle Stats Bar */}
+              <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground/60 border-t border-border/30 pt-1.5 mt-1">
+                <span>⚡ Idle DPS: {dps.toFixed(2)} ({ (dps * 3600).toFixed(0) }/hr)</span>
+                <span>⏱️ ETA: {formatETA((bossHP - minHP) / dps)}</span>
               </div>
               <div className="flex justify-between items-end">
                 <div>

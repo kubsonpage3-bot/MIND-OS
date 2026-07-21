@@ -26,6 +26,14 @@ BOSS_RANK_STATS = {
 POSSIBLE_STATS = ["pwr", "def", "foc", "mem", "spd", "lck"]
 
 
+def get_user_idle_dps(profile):
+    """
+    Calculates the current idle DPS for a user profile.
+    Currently returns a base rate of 0.1 DPS (no streak or ally bonuses).
+    """
+    return 0.1
+
+
 def apply_idle_damage(encounter):
     """
     Applies idle damage based on elapsed time since last calculation.
@@ -41,8 +49,8 @@ def apply_idle_damage(encounter):
     # Cap at 24 hours
     elapsed_seconds = min(elapsed_seconds, 24 * 3600)
 
-    # 1 damage per 10 seconds (0.1 DPS)
-    idle_damage = int(elapsed_seconds * 0.1)
+    dps = get_user_idle_dps(encounter.user.profile)
+    idle_damage = int(elapsed_seconds * dps)
 
     if idle_damage <= 0:
         # DO NOT reset last_idle_tick_at if no damage was applied, otherwise we lose fractional seconds!
@@ -62,7 +70,7 @@ def apply_idle_damage(encounter):
     # Advance the tick only by the consumed time to preserve remainder
     from datetime import timedelta
 
-    consumed_seconds = idle_damage * 10
+    consumed_seconds = idle_damage / dps
     encounter.last_idle_tick_at = last_tick + timedelta(seconds=consumed_seconds)
 
     return damage_applied

@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-07-21",
+    "version": "0.7.4",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added visual polish to the idle boss combat screen, introducing dynamic health bar cracks, custom sprite shaking, real-time floating damage numbers, and a live DPS and remaining time calculator."
+      }
+    ]
+  },
+  {
     "date": "2026-07-20",
     "version": "0.7.3",
     "changes": [
