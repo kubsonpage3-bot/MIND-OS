@@ -25,6 +25,10 @@ const TUTORIAL_STEPS = [
   {
     icon: "🏆",
     id: "ranks"
+  },
+  {
+    icon: "📚",
+    id: "explore"
   }
 ];
 
@@ -175,7 +179,7 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
                       boxShadow: "0 0 10px var(--habit-purple-glow)"
                     }}
                   >
-                    {currentStep === TUTORIAL_STEPS.length - 1 ? t('onboarding_tour.start') : t('onboarding_tour.next')}
+                    {currentStep === TUTORIAL_STEPS.length - 1 ? t('onboarding_tour.finish') : t('onboarding_tour.next')}
                     {currentStep < TUTORIAL_STEPS.length - 1 && <ChevronRight size={14} className="-mr-1" />}
                   </button>
                 </div>

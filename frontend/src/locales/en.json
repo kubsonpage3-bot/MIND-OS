@@ -1728,6 +1728,7 @@
     "skip": "Skip",
     "next": "Next",
     "start": "Start",
+    "finish": "Finish",
     "steps": {
       "tasks": {
         "title": "Complete Tasks",
@@ -1753,11 +1754,17 @@
         "title": "Climb the Ranks",
         "description": "Stay consistent to rank up from F to SSS and prestige for permanent bonuses.",
         "refersTo": "Dashboard Rank Progression"
+      },
+      "explore": {
+        "title": "MORE TO EXPLORE",
+        "description": "Want more detail on any section? Revisit in-depth guides anytime in Settings → Guides.",
+        "refersTo": "SETTINGS → GUIDES"
       }
     }
   },
   "section_guides": {
     "gotIt": "GOT IT",
+    "subtitle": "SETTINGS GUIDE",
     "dashboard": {
       "title": "Cognitive Metrics",
       "body": "Intelligence research has long treated 'IQ' as a single number, but the modern view (Cattell-Horn-Carroll theory, the current mainstream model) breaks it into distinct abilities that grow somewhat independently. This app tracks four of them:\n• Gf (Fluid Intelligence) — reasoning through new problems you haven't seen before.\n• Gc (Crystallized Intelligence) — accumulated knowledge you can recall and apply.\n• Ps (Processing Speed) — how fast you execute routine mental work.\n• Vm (Verbal Memory) — holding and retrieving language-based information.\nEach one responds to different activities (Math trains Gf, Reading trains Gc), and each has a ceiling with diminishing returns as you approach it — real skill growth slows the better you get, so consistency beats intensity."

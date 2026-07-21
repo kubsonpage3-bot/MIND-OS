@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-21",
+    "version": "0.7.7",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Unified the Settings guides design with the premium onboarding tooltip styling, and added a 6th step to the onboarding flow pointing to detailed Settings guides."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-21",
     "version": "0.7.6",
     "changes": [
       {
