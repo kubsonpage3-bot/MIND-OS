@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-22",
+    "version": "0.8.7",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Completed 100% of all 52 playstyle title icons in 16-Bit Gothic style (Royal Filigree Corners + Minted Gold Coin badges)."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
     "version": "0.8.6",
     "changes": [
       {
