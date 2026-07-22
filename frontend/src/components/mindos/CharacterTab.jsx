@@ -171,17 +171,47 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   // Map inventory and equipment from profile
   const rawInventory = profile?.inventory || [];
   const inventory = Array.isArray(rawInventory) ? rawInventory.map(ri => {
-    const found = shopItems.find(i => i.id === ri.id);
+    const found = shopItems.find(i => i.id === ri.id || i.id === ri.code);
     return found ? { ...found, ...ri } : ri;
   }) : [];
 
-  const rawEquipped = profile?.equipped || [];
   const equipped = {};
+  inventory.forEach(invItem => {
+    if (invItem.is_equipped && invItem.slot) {
+      const itemTier = invItem.gear_class || invItem.tier;
+      const itemName = invItem.label || invItem.name || invItem.code || "Item";
+      equipped[invItem.slot] = {
+        ...invItem,
+        id: invItem.id || invItem.code,
+        code: invItem.code || invItem.id,
+        label: itemName,
+        name: itemName,
+        tier: itemTier,
+        gear_class: itemTier,
+        slot: invItem.slot,
+      };
+    }
+  });
+
+  // Fallback check for profile.equipped array
+  const rawEquipped = profile?.equipped || [];
   if (Array.isArray(rawEquipped)) {
     rawEquipped.forEach(eq => {
-      const found = shopItems.find(i => i.id === eq.code);
-      if (found && found.slot) {
-        equipped[found.slot] = found;
+      const itemCode = eq.code || eq.id;
+      const found = inventory.find(i => i.id === itemCode || i.code === itemCode) || shopItems.find(i => i.id === itemCode);
+      if (found && found.slot && !equipped[found.slot]) {
+        const itemTier = found.gear_class || found.tier;
+        const itemName = found.label || found.name || found.code || "Item";
+        equipped[found.slot] = {
+          ...found,
+          id: itemCode,
+          code: itemCode,
+          label: itemName,
+          name: itemName,
+          tier: itemTier,
+          gear_class: itemTier,
+          slot: found.slot,
+        };
       }
     });
   }
@@ -327,21 +357,27 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
     /** @type {any} */
     const prevProfile = queryClient.getQueryData(["userprofile"]);
     if (prevProfile) {
-      // Toggle logic for optimistic update
+      const targetId = item.id || item.code;
+      const targetSlot = item.slot;
+      const willBeEquipped = !item.is_equipped;
+
       const newInventory = (Array.isArray(prevProfile.inventory) ? prevProfile.inventory : []).map(i => {
-        if (i.id === item.id) return { ...i, is_equipped: !i.is_equipped };
-        const foundItem = shopItems.find(s => s.id === i.id);
-        if (foundItem && foundItem.slot === item.slot && !item.is_equipped) return { ...i, is_equipped: false };
+        const itemId = i.id || i.code;
+        if (itemId === targetId) return { ...i, is_equipped: willBeEquipped };
+        if (willBeEquipped && i.slot === targetSlot) return { ...i, is_equipped: false };
         return i;
       });
       queryClient.setQueryData(["userprofile"], { ...prevProfile, inventory: newInventory });
     }
 
-    djangoApi.inventory.equip(item.id).then(() => {
+    const itemCode = item.code || item.id;
+    djangoApi.inventory.equip(itemCode).then(() => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
     }).catch(err => {
       console.error("Failed to equip item", err);
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
     });
     setActiveSlot(null);
   };
@@ -349,10 +385,15 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   const unequip = (slot) => {
     playSound('click');
     const eq = equipped[slot];
-    const eqId = eq?.id;
-    if (eqId) {
-      djangoApi.inventory.equip(eqId).then(() => {
+    const eqCode = eq?.code || eq?.id;
+    if (eqCode) {
+      djangoApi.inventory.equip(eqCode).then(() => {
         queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      }).catch(err => {
+        console.error("Failed to unequip item", err);
+        queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory"] });
       });
     }
     setActiveSlot(null);
@@ -577,17 +618,54 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             <div className="grid grid-cols-4 gap-2">
               {SLOT_KEYS.map((slot) => {
                 const eq = equipped[slot];
-                const label = t(`slots.${slot}`, slot.toUpperCase());
+                const slotLabel = t(`slots.${slot}`, slot.toUpperCase().replace('_', ' '));
+                const tierColor = eq ? getTierColor(eq.tier || eq.gear_class) : null;
+                const itemName = eq ? (eq.label || eq.name || eq.code) : null;
+
                 return (
-                  <div key={slot} onClick={() => setActiveSlot(slot)}
-                    className="aspect-square rounded-xl border border-border bg-muted/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all p-1.5">
+                  <div
+                    key={slot}
+                    onClick={() => setActiveSlot(slot)}
+                    title={eq ? `${itemName} (${slotLabel})` : slotLabel}
+                    className="aspect-square rounded-xl border flex flex-col items-center justify-center relative cursor-pointer hover:scale-[1.02] transition-all p-1 overflow-hidden"
+                    style={{
+                      background: eq ? `${tierColor}10` : "var(--muted, rgba(255,255,255,0.03))",
+                      borderColor: eq ? `${tierColor}70` : "var(--habit-border, rgba(255,255,255,0.1))",
+                      boxShadow: eq ? `0 0 10px ${tierColor}20` : "none",
+                    }}
+                  >
                     {eq ? (
                       <>
-                        <span className="text-[9px] font-mono text-center" style={{ color: getTierColor(eq.tier) }}>{eq.label.substring(0, 8)}</span>
-                        <button onClick={e => { e.stopPropagation(); unequip(slot); }} className="text-[8px] text-muted-foreground/40 hover:text-red-400">✕</button>
+                        {/* Unequip button top-right */}
+                        <button
+                          onClick={e => { e.stopPropagation(); unequip(slot); }}
+                          title="Unequip item"
+                          className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/60 hover:bg-red-500/80 text-white/70 hover:text-white flex items-center justify-center text-[9px] font-bold z-10 transition-colors"
+                        >
+                          ✕
+                        </button>
+
+                        {/* Item Icon / Graphic */}
+                        <div className="w-8 h-8 rounded border overflow-hidden flex items-center justify-center bg-black/40 mb-0.5 shrink-0"
+                          style={{ borderColor: `${tierColor}50`, imageRendering: 'pixelated' }}>
+                          {eq.icon_url ? (
+                            <img src={getMediaUrl(eq.icon_url)} alt={itemName} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+                          ) : (
+                            <span className="font-mono text-xs font-black" style={{ color: tierColor }}>{itemName[0]}</span>
+                          )}
+                        </div>
+
+                        {/* Item Name */}
+                        <span className="text-[8px] font-mono font-bold text-center truncate w-full px-0.5" style={{ color: tierColor }}>
+                          {itemName}
+                        </span>
                       </>
                     ) : (
-                      <span className="text-[9px] font-mono text-muted-foreground/30 text-center">{label}</span>
+                      <>
+                        <span className="text-[8px] font-mono font-bold text-muted-foreground/40 text-center uppercase tracking-wider">
+                          {slotLabel}
+                        </span>
+                      </>
                     )}
                   </div>
                 );
