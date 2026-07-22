@@ -18,12 +18,12 @@ const RARITY_STYLES = {
 
 // ─── Streak heatmap tiers ──────────────────────────────────────────────────────
 const STREAK_TIERS = [
-  { min: 30, label: "LEGENDARY", color: "#FBBF24", glow: "rgba(251,191,36,0.7)",   bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.5)", next: null },
-  { min: 15, label: "EPIC",      color: "#A78BFA", glow: "rgba(167,139,250,0.6)",  bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.4)", next: 30 },
-  { min: 8,  label: "RARE",      color: "#60A5FA", glow: "rgba(96,165,250,0.55)",  bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.35)", next: 15 },
-  { min: 4,  label: "UNCOMMON",  color: "#4ADE80", glow: "rgba(74,222,128,0.5)",   bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.3)", next: 8 },
-  { min: 1,  label: "COMMON",    color: "#f97316", glow: "rgba(249,115,22,0.45)",  bg: "rgba(249,115,22,0.07)", border: "rgba(249,115,22,0.28)", next: 4 },
-  { min: 0,  label: "COLD",      color: "#64748b", glow: "rgba(100,116,139,0.3)",  bg: "rgba(100,116,139,0.05)", border: "rgba(100,116,139,0.2)", next: 1 },
+  { min: 30, label: "LEGENDARY", color: "#FBBF24", glow: "rgba(251,191,36,0.7)",   bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.5)" },
+  { min: 15, label: "EPIC",      color: "#A78BFA", glow: "rgba(167,139,250,0.6)",  bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.4)" },
+  { min: 8,  label: "RARE",      color: "#60A5FA", glow: "rgba(96,165,250,0.55)",  bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.35)" },
+  { min: 4,  label: "UNCOMMON",  color: "#4ADE80", glow: "rgba(74,222,128,0.5)",   bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.3)" },
+  { min: 1,  label: "COMMON",    color: "#f97316", glow: "rgba(249,115,22,0.45)",  bg: "rgba(249,115,22,0.07)", border: "rgba(249,115,22,0.28)" },
+  { min: 0,  label: "COLD",      color: "#64748b", glow: "rgba(100,116,139,0.3)",  bg: "rgba(100,116,139,0.05)", border: "rgba(100,116,139,0.2)" },
 ];
 
 function getStreakTier(streak) {
@@ -90,12 +90,12 @@ function Card3D({ children, style, className = "", onClick }) {
   );
 }
 
-// ─── Battery indicator (Daily Energy) ─────────────────────────────────────────
+// ─── Battery indicator (Daily Energy - Scaled focal point) ───────────────────
 function BatteryIndicator({ level, color }) {
   const roundedLevel = Math.max(0, Math.min(100, Math.round(level || 0)));
 
   return (
-    <div className="relative w-14 h-7 flex items-center justify-center shrink-0" style={{ transform: "translateZ(10px)" }}>
+    <div className="relative w-20 h-10 flex items-center justify-center shrink-0" style={{ transform: "translateZ(10px)" }}>
       {/* Empty battery frame */}
       <img
         src="/images/webp/pixel_battery_empty.webp"
@@ -116,41 +116,10 @@ function BatteryIndicator({ level, color }) {
           className="w-full h-full object-contain"
           style={{
             imageRendering: "pixelated",
-            filter: roundedLevel < 25 ? "hue-rotate(-100deg) drop-shadow(0 0 4px #f74e52)" : roundedLevel < 60 ? "hue-rotate(-50deg) drop-shadow(0 0 4px #f59e0b)" : "drop-shadow(0 0 6px #22c55e)",
+            filter: roundedLevel < 25 ? "hue-rotate(-100deg) drop-shadow(0 0 6px #f74e52)" : roundedLevel < 60 ? "hue-rotate(-50deg) drop-shadow(0 0 6px #f59e0b)" : "drop-shadow(0 0 8px #22c55e)",
           }}
         />
       </div>
-    </div>
-  );
-}
-
-// ─── Mini heatmap dots (7 days) ───────────────────────────────────────────────
-function MiniHeatmap({ streak, tier }) {
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const dayOffset = 6 - i;
-    const isActive = dayOffset < streak;
-    const intensity = isActive ? Math.max(0.3, 1 - (dayOffset / Math.max(streak, 1)) * 0.5) : 0;
-    return { isActive, intensity };
-  });
-
-  return (
-    <div className="flex gap-1 items-center justify-center">
-      {days.map((d, i) => (
-        <motion.div
-          key={i}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: i * 0.03, type: "spring", stiffness: 300 }}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 2,
-            background: d.isActive ? tier.color : "rgba(255,255,255,0.08)",
-            opacity: d.isActive ? d.intensity : 0.25,
-            boxShadow: d.isActive ? `0 0 6px ${tier.glow}` : "none",
-          }}
-        />
-      ))}
     </div>
   );
 }
@@ -197,7 +166,7 @@ export default function StatsPanel({ profile, logs }) {
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {/* ── STREAK CARD ──────────────────────────────── */}
+        {/* ── STREAK CARD (Clean & simplified) ─────────── */}
         <StreakCard profile={profile} />
 
         {/* ── WEEKLY XP ────────────────────────────────── */}
@@ -271,7 +240,7 @@ export default function StatsPanel({ profile, logs }) {
             boxShadow: `0 4px 24px ${batteryColor}40, 0 1px 0 rgba(255,255,255,0.06) inset`,
           }}
         >
-          <div className="relative flex items-center justify-center gap-2 h-[52px]" style={{ transform: "translateZ(30px)" }}>
+          <div className="relative flex items-center justify-center gap-2 h-[48px]" style={{ transform: "translateZ(30px)" }}>
             <BatteryIndicator level={batteryLevel} color={batteryColor} />
             <motion.span
               key={batteryLevel}
@@ -279,9 +248,9 @@ export default function StatsPanel({ profile, logs }) {
               animate={{ scale: 1, opacity: 1 }}
               style={{
                 fontFamily: "'PixeloidSans'",
-                fontSize: "0.8rem",
+                fontSize: "1.1rem",
                 color: batteryColor,
-                textShadow: `0 0 12px ${batteryColor}`,
+                textShadow: `0 0 14px ${batteryColor}`,
                 transform: "translateZ(10px)",
               }}
             >
@@ -310,11 +279,11 @@ export default function StatsPanel({ profile, logs }) {
           </div>
         </Card3D>
 
-        {/* ── TITLE CARD ───────────────────────────────── */}
+        {/* ── TITLE CARD (Elevated Medallion Centerpiece) ─── */}
         <Card3D
           onClick={() => setShowTitleModal(true)}
           style={{
-            background: `linear-gradient(145deg, ${rColor}15, ${rColor}05)`,
+            background: `linear-gradient(145deg, ${rColor}18, ${rColor}06)`,
             borderColor: `${rColor}${rarityStyle.borderOpacity}`,
             boxShadow: `0 4px 28px ${rColor}${rarityStyle.glowOpacity}, 0 1px 0 rgba(255,255,255,0.08) inset`,
             cursor: "pointer",
@@ -332,12 +301,16 @@ export default function StatsPanel({ profile, logs }) {
           )}
 
           <motion.div
-            className="w-8 h-8 flex items-center justify-center"
-            whileHover={{ scale: 1.2, rotate: 10 }}
+            className="w-12 h-12 flex items-center justify-center rounded-xl p-1 relative"
+            whileHover={{ scale: 1.15, rotate: 6 }}
             transition={{ type: "spring", stiffness: 400 }}
-            style={{ transform: "translateZ(30px)" }}
+            style={{
+              background: `radial-gradient(circle, ${rColor}25 0%, transparent 75%)`,
+              boxShadow: `0 0 14px ${rColor}60`,
+              transform: "translateZ(30px)",
+            }}
           >
-            <TitleIcon title={activeTitle} className="w-8 h-8" />
+            <TitleIcon title={activeTitle} className="w-11 h-11" />
           </motion.div>
 
           <div
@@ -380,7 +353,7 @@ export default function StatsPanel({ profile, logs }) {
   );
 }
 
-// ─── STREAK CARD (standalone, full heatmap treatment) ─────────────────────────
+// ─── STREAK CARD (Clean & simplified) ─────────────────────────
 function StreakCard({ profile }) {
   const streak = profile?.streak || 0;
   const maxStreak = Math.max(streak, profile?.max_streak || 0);
@@ -406,17 +379,6 @@ function StreakCard({ profile }) {
 
   const activeEffects = effectsData?.active_effects || [];
   const isProtected = activeEffects.some(e => e.skill_id === "transcendence" || e.skill_id === "streak_shield");
-
-  let progressPct = 100;
-  let remaining = 0;
-  if (tier.next) {
-    const thresholds = [1, 4, 8, 15, 30];
-    const curIdx = thresholds.indexOf(tier.min);
-    const prevThreshold = curIdx > 0 ? thresholds[curIdx] : 0;
-    const range = tier.next - tier.min;
-    progressPct = Math.max(5, Math.min(100, ((streak - tier.min) / range) * 100));
-    remaining = tier.next - streak;
-  }
 
   const flameScale = streak >= 30 ? 1.35 : streak >= 15 ? 1.25 : streak >= 8 ? 1.12 : streak >= 4 ? 1.05 : 0.9;
 
@@ -456,7 +418,7 @@ function StreakCard({ profile }) {
           ? { duration: 0.7, type: "spring" }
           : { duration: 2.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
         }
-        className="z-10 flex items-center justify-center"
+        className="z-10 flex items-center justify-center mt-1"
         style={{
           transform: "translateZ(30px)",
         }}
@@ -479,7 +441,7 @@ function StreakCard({ profile }) {
         animate={{ scale: 1, opacity: 1 }}
         style={{
           fontFamily: "'PixeloidSans'",
-          fontSize: "1.4rem",
+          fontSize: "1.45rem",
           color: tier.color,
           zIndex: 10,
           lineHeight: 1,
@@ -497,11 +459,11 @@ function StreakCard({ profile }) {
 
       {/* Tier badge */}
       <motion.div
-        className="px-2 py-0.5 rounded-full z-10"
+        className="px-2 py-0.5 rounded-full z-10 mb-1"
         style={{
           background: `${tier.color}20`,
           border: `1px solid ${tier.color}40`,
-          fontSize: 7,
+          fontSize: 7.5,
           fontFamily: "'Nunito'",
           fontWeight: 850,
           color: tier.color,
@@ -512,38 +474,6 @@ function StreakCard({ profile }) {
       >
         {tier.label} · Best: {maxStreak}
       </motion.div>
-
-      {/* Spaced Heatmap and Progress wrapper to ensure zero overlap */}
-      <div className="w-full space-y-1.5 mt-auto flex flex-col items-center justify-end z-10" style={{ transform: "translateZ(25px)" }}>
-        {/* Heatmap */}
-        <MiniHeatmap streak={streak} tier={tier} />
-
-        {/* Progress bar to next tier */}
-        {tier.next ? (
-          <div className="w-full relative h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <motion.div
-              className="absolute inset-y-0 left-0 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPct}%` }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                background: `linear-gradient(90deg, ${tier.color}80, ${tier.color})`,
-                boxShadow: `0 0 6px ${tier.glow}`,
-              }}
-            />
-          </div>
-        ) : (
-          <div className="w-full flex items-center justify-center h-1">
-            <motion.span
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              style={{ fontSize: 7, color: tier.color, fontWeight: 800, fontFamily: "'Nunito'" }}
-            >
-              ✦ MAX TIER ✦
-            </motion.span>
-          </div>
-        )}
-      </div>
     </Card3D>
   );
 }

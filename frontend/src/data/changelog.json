@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-22",
+    "version": "0.8.8",
+    "changes": [
+      {
+        "type": "visual",
+        "text": "Refined Dashboard Stat Cards: simplified Streak card, enlarged Energy battery icon, and elevated Title card medallion presentation."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
     "version": "0.8.7",
     "changes": [
       {
