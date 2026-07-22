@@ -199,12 +199,14 @@ def calculate_battery_level(profile):
     except Exception:
         user_tz = zoneinfo.ZoneInfo("UTC")
 
-    local_today = timezone.now().astimezone(user_tz).date()
+    now_dt = timezone.now().astimezone(user_tz)
+    start_of_day = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = now_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
 
     # 1. Total training hours today
     hours_today = (
         TrainingSession.objects.filter(
-            user_profile=profile, created_at__date=local_today
+            user_profile=profile, created_at__range=(start_of_day, end_of_day)
         ).aggregate(Sum("hours"))["hours__sum"]
         or 0.0
     )
