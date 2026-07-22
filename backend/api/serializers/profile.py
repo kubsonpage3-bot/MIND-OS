@@ -151,27 +151,39 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return int((obj.xp / obj.xp_to_next_level) * 100)
 
     def get_inventory(self, obj):
-        return [
-            {
-                "id": inv.item.code,
-                "name": inv.item.name,
-                "description": inv.item.description,
-                "slot": inv.item.slot_type,
-                "icon_url": inv.item.icon_url,
-                "consumable": inv.item.item_type == "consumable",
-                "quantity": inv.quantity,
-                "is_equipped": inv.is_equipped,
-                "stat_bonuses": inv.stat_bonuses,
-                "gear_class": inv.item.gear_class,
-                "stats": {
-                    effect.effect_name: effect.effect_value
-                    for effect in inv.item.effects.all()
-                },
-            }
-            for inv in obj.inventory_items.select_related("item")
+        res = []
+        for inv in (
+            obj.inventory_items.select_related("item")
             .prefetch_related("item__effects")
             .all()
-        ]
+        ):
+            stats = inv.stat_bonuses or {
+                effect.effect_name: (
+                    int(effect.effect_value)
+                    if effect.effect_value.is_integer()
+                    else effect.effect_value
+                )
+                for effect in inv.item.effects.all()
+            }
+            res.append(
+                {
+                    "id": inv.item.code,
+                    "code": inv.item.code,
+                    "name": inv.item.name,
+                    "label": inv.item.name,
+                    "description": inv.item.description,
+                    "slot": inv.item.slot_type,
+                    "tier": inv.item.gear_class or inv.item.tier,
+                    "icon_url": inv.item.icon_url,
+                    "consumable": inv.item.item_type == "consumable",
+                    "quantity": inv.quantity,
+                    "is_equipped": inv.is_equipped,
+                    "stat_bonuses": stats,
+                    "gear_class": inv.item.gear_class,
+                    "stats": stats,
+                }
+            )
+        return res
 
     def get_equipped(self, obj):
         return [

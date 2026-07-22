@@ -148,39 +148,51 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                   style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff 2px, #ffffff 3px)" }} />
 
                 {/* Icon */}
-                <div className="mx-auto shrink-0 w-12 h-12 rounded-none border overflow-hidden bg-gray-100 dark:bg-gray-800/50 mb-2 relative"
-                  style={{ imageRendering: "pixelated", borderColor: `${tierColor}60` }}>
-                  {item.icon_url
-                    ? <img src={getMediaUrl(item.icon_url)} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
-                    : <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>{item.label[0]}</div>
-                  }
-                </div>
+                {(() => {
+                  const itemName = item.label || item.name || item.code || "Item";
+                  const statsObj = item.stats || item.stat_bonuses;
+                  const statsFormatted = statsObj && Object.keys(statsObj).length > 0
+                    ? Object.entries(statsObj).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(' · ')
+                    : item.effect || "No stats";
 
-                <div className="flex-1 min-w-0 flex flex-col justify-start">
-                  <div className="flex items-center justify-center gap-1 px-1">
-                    {item.gear_class && (
-                      <span
-                        className="text-[8px] font-mono font-black px-1 rounded shrink-0"
-                        style={{ background: `${tierColor}25`, color: tierColor, border: `1px solid ${tierColor}50` }}
-                      >
-                        {item.gear_class}
-                      </span>
-                    )}
-                    <div className="font-mono text-[11px] font-bold text-gray-900 dark:text-gray-200 truncate" style={{ color: tierColor }}>
-                      {item.label}
-                    </div>
-                  </div>
-                  {equipped_now && <div className="mt-1"><span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: `${tierColor}30`, color: tierColor }}>EQUIPPED</span></div>}
-                  <div className="text-[9px] font-mono text-muted-foreground/50 mt-1 truncate px-1">
-                    {item.stats ? Object.entries(item.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(' · ') : item.effect}
-                  </div>
-                  {item.gear_class && (
-                    <div className="text-[8px] font-mono mt-0.5 tracking-wider" style={{ color: `${tierColor}80` }}>
-                      {GEAR_CLASS_NAMES[item.gear_class]}
-                    </div>
-                  )}
-                  <div className="text-[8px] font-mono text-muted-foreground/30 uppercase tracking-wider mt-0.5">{item.slot?.replace('_', ' ')}</div>
-                </div>
+                  return (
+                    <>
+                      <div className="mx-auto shrink-0 w-12 h-12 rounded-none border overflow-hidden bg-gray-100 dark:bg-gray-800/50 mb-2 relative"
+                        style={{ imageRendering: "pixelated", borderColor: `${tierColor}60` }}>
+                        {item.icon_url
+                          ? <img src={getMediaUrl(item.icon_url)} alt={itemName} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                          : <div className="w-full h-full flex items-center justify-center font-mono text-xs font-black text-gray-900 dark:text-gray-200" style={{ color: tierColor === '#ffffff' ? undefined : tierColor }}>{itemName[0]}</div>
+                        }
+                      </div>
+
+                      <div className="flex-1 min-w-0 flex flex-col justify-start">
+                        <div className="flex items-center justify-center gap-1 px-1">
+                          {item.gear_class && (
+                            <span
+                              className="text-[8px] font-mono font-black px-1 rounded shrink-0"
+                              style={{ background: `${tierColor}25`, color: tierColor, border: `1px solid ${tierColor}50` }}
+                            >
+                              {item.gear_class}
+                            </span>
+                          )}
+                          <div className="font-mono text-[11px] font-bold text-gray-900 dark:text-gray-200 truncate" style={{ color: tierColor }}>
+                            {itemName}
+                          </div>
+                        </div>
+                        {equipped_now && <div className="mt-1"><span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: `${tierColor}30`, color: tierColor }}>EQUIPPED</span></div>}
+                        <div className="text-[9px] font-mono text-muted-foreground/80 font-semibold mt-1 truncate px-1" style={{ color: `${tierColor}d0` }}>
+                          {statsFormatted}
+                        </div>
+                        {item.gear_class && (
+                          <div className="text-[8px] font-mono mt-0.5 tracking-wider" style={{ color: `${tierColor}80` }}>
+                            {GEAR_CLASS_NAMES[item.gear_class]}
+                          </div>
+                        )}
+                        <div className="text-[8px] font-mono text-muted-foreground/40 uppercase tracking-wider mt-0.5">{item.slot?.replace('_', ' ')}</div>
+                      </div>
+                    </>
+                  );
+                })()}
 
                 <div className="mt-3 shrink-0 flex flex-col gap-1 z-10 relative">
                   {!equipped_now ? (
