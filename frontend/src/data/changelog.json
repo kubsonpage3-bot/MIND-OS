@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-22",
+    "version": "0.8.4",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Expanded 16-bit Gothic playstyle title icon library to 47 processed WebP badges featuring custom minted coins."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
     "version": "0.8.3",
     "changes": [
       {
