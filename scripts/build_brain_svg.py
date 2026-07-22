@@ -1,6 +1,5 @@
 import numpy as np
 from PIL import Image
-from skimage.feature import canny
 from skimage.measure import find_contours, approximate_polygon
 from skimage.morphology import closing, disk
 import json
@@ -42,7 +41,7 @@ def process_brain_image():
 
     for i, name in enumerate(names):
         mask = (closest_idx == i) & (~is_bg)
-        closed_mask = closing(mask, disk(3))
+        closed_mask = closing(mask, disk(4))
 
         contours = find_contours(closed_mask.astype(float), 0.5)
         if not contours:
@@ -68,26 +67,28 @@ def process_brain_image():
             "wrinkles": [],
         }
 
-    # Canny edge detection for internal wrinkles
+    # Extract dark fold lines per lobe relative to lobe background fill
     gray = np.mean(crop, axis=2)
-    edges = canny(gray, sigma=1.2, low_threshold=12, high_threshold=35)
-    edges[is_bg] = False
-
-    edge_contours = find_contours(edges.astype(float), 0.5)
-
     wrinkles_by_lobe = {n: [] for n in names}
-    for c in edge_contours:
-        if len(c) < 6 or len(c) > 120:
+
+    for i, name in enumerate(names):
+        lobe_mask = (closest_idx == i) & (~is_bg)
+        if not np.any(lobe_mask):
             continue
 
-        simplified = approximate_polygon(c, tolerance=1.0)
-        if len(simplified) < 3:
-            continue
+        # Mean brightness of this lobe fill
+        mean_bright = np.mean(gray[lobe_mask])
+        # Dark lines inside this lobe are significantly darker than the fill
+        dark_lobe_mask = (gray < (mean_bright - 22)) & lobe_mask
 
-        mid_pt = simplified[len(simplified) // 2]
-        r_idx, c_idx = int(mid_pt[0]), int(mid_pt[1])
-        if 0 <= r_idx < h and 0 <= c_idx < w and not is_bg[r_idx, c_idx]:
-            lobe_name = names[closest_idx[r_idx, c_idx]]
+        c_list = find_contours(dark_lobe_mask.astype(float), 0.5)
+        for c in c_list:
+            if len(c) < 10 or len(c) > 200:
+                continue
+
+            simplified = approximate_polygon(c, tolerance=1.1)
+            if len(simplified) < 3:
+                continue
 
             path_cmds = []
             for idx, pt in enumerate(simplified):
@@ -96,11 +97,10 @@ def process_brain_image():
                 cmd = "M" if idx == 0 else "L"
                 path_cmds.append(f"{cmd} {svg_x} {svg_y}")
 
-            wrinkles_by_lobe[lobe_name].append(" ".join(path_cmds))
+            wrinkles_by_lobe[name].append(" ".join(path_cmds))
 
     for name in names:
         if name in lobe_paths:
-            # Sort wrinkles by length and pick best 12 per lobe
             sorted_w = sorted(
                 wrinkles_by_lobe[name], key=lambda w_str: len(w_str), reverse=True
             )
@@ -109,7 +109,7 @@ def process_brain_image():
     with open(r"c:\coder\mind-os-growth\scripts\traced_brain_paths.json", "w") as f:
         json.dump(lobe_paths, f, indent=2)
 
-    print("Updated traced_brain_paths.json successfully!")
+    print("Extracted high-contrast wrinkles for all 5 lobes successfully!")
 
 
 if __name__ == "__main__":

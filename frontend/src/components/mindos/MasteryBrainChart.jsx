@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * MasteryBrainChart
- * Replaces the radar chart with an interactive 5-lobe SVG Brain visualization traced directly 
- * from the reference anatomical drawing.
+ * Interactive 5-lobe SVG Brain visualization with high contrast, continuous organic sulci (wrinkles),
+ * and distinct category lobe tinting for immediate visual recognition.
  * 
- * Lobe Mapping:
- * - sciences   : Frontal Lobe (Top-Left)
- * - body       : Parietal Lobe (Top-Right)
- * - languages  : Temporal Lobe (Center / Middle)
- * - spirit     : Occipital Lobe (Back-Right)
- * - humanities : Cerebellum (Bottom)
+ * Category Lobe Mapping:
+ * - sciences   : Frontal Lobe (Top-Left / Green on ref)
+ * - body       : Parietal Lobe (Top-Right / Blue on ref)
+ * - languages  : Temporal Lobe (Center / Purple on ref)
+ * - spirit     : Occipital Lobe (Back-Right / Orange on ref)
+ * - humanities : Cerebellum (Bottom / Yellow on ref)
  */
 
 const LOBE_PATHS = {
@@ -60,13 +60,7 @@ const LOBE_PATHS = {
       "M 186.2 205.2 L 185.1 200.0 L 186.2 205.2",
       "M 309.6 241.6 L 308.5 234.3 L 310.1 235.8 L 309.6 241.6",
       "M 303.2 236.4 L 300.5 234.8 L 301.1 233.2 L 303.2 236.4",
-      "M 234.0 228.1 L 229.8 228.1 L 229.3 226.5 L 234.0 228.1",
-      "M 302.1 191.7 L 304.3 186.5 L 302.1 191.7",
-      "M 339.4 188.6 L 338.3 186.5 L 339.4 188.6",
-      "M 222.3 325.7 L 221.3 323.6 L 222.3 325.7",
-      "M 264.9 318.4 L 263.8 316.4 L 264.9 318.4",
-      "M 252.1 318.4 L 251.1 316.4 L 252.1 318.4",
-      "M 248.9 318.4 L 247.9 316.4 L 248.9 318.4"
+      "M 234.0 228.1 L 229.8 228.1 L 229.3 226.5 L 234.0 228.1"
     ]
   },
   "spirit": {
@@ -138,19 +132,19 @@ export default function MasteryBrainChart({
 
   return (
     <div className={`relative w-full flex items-center justify-center select-none ${className}`} style={{ height }}>
-      {/* Background ambient radial glow */}
+      {/* Dynamic ambient radial glow */}
       <div 
-        className="absolute inset-0 pointer-events-none rounded-full blur-3xl opacity-25 transition-all duration-700"
+        className="absolute inset-0 pointer-events-none rounded-full blur-3xl opacity-30 transition-all duration-500"
         style={{
           background: hoveredCategory && statsMap[hoveredCategory]
             ? `radial-gradient(circle, ${statsMap[hoveredCategory].color} 0%, transparent 70%)`
-            : "radial-gradient(circle, rgba(147, 51, 234, 0.35) 0%, rgba(59, 130, 246, 0.2) 50%, transparent 80%)"
+            : "radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, rgba(59, 130, 246, 0.25) 50%, transparent 85%)"
         }}
       />
 
       <svg
         viewBox="0 0 500 400"
-        className="w-full h-full max-h-full overflow-visible drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]"
+        className="w-full h-full max-h-full overflow-visible drop-shadow-[0_6px_24px_rgba(0,0,0,0.8)]"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
@@ -159,9 +153,9 @@ export default function MasteryBrainChart({
             const color = cat?.color || "#3b82f6";
             return (
               <filter key={`glow-${catId}`} id={`brain-glow-${catId}`} x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="5" result="blur" />
+                <feGaussianBlur stdDeviation="6" result="blur" />
                 <feComponentTransfer in="blur" result="glow">
-                  <feFuncA type="linear" slope="0.8" />
+                  <feFuncA type="linear" slope="0.9" />
                 </feComponentTransfer>
                 <feMerge>
                   <feMergeNode in="glow" />
@@ -185,13 +179,13 @@ export default function MasteryBrainChart({
           const isHovered = hoveredCategory === catId;
           const isHighest = highestCatId === catId && pct > 0;
           
-          const baseGray = "#1f212d";
           const activeColor = cat.color || "#3b82f6";
           
-          const fillOpacity = pct > 0 ? Math.min(0.9, 0.3 + (pct / 100) * 0.6) : 0.2;
-          const strokeOpacity = pct > 0 ? 0.95 : 0.45;
-          const strokeColor = pct > 0 ? activeColor : "#4b5563";
-          const fillColor = pct > 0 ? activeColor : baseGray;
+          // High-contrast lobe styling:
+          // Distinct 22% color fill tint at 0% baseline so all 5 lobes are clearly distinguishable at a glance
+          const fillOpacity = pct > 0 ? Math.min(0.92, 0.35 + (pct / 100) * 0.55) : 0.22;
+          const strokeOpacity = isHovered || isHighest ? 1.0 : (pct > 0 ? 0.95 : 0.80);
+          const strokeColor = pct > 0 ? activeColor : activeColor; // Use category tint for borders even at 0%
 
           return (
             <g
@@ -204,61 +198,79 @@ export default function MasteryBrainChart({
               {/* Traced Lobe Main Boundary */}
               <motion.path
                 d={lobe.d}
-                fill={fillColor}
+                fill={activeColor}
                 fillOpacity={isHovered ? Math.min(1, fillOpacity + 0.25) : fillOpacity}
                 stroke={strokeColor}
-                strokeWidth={isHovered || isHighest ? 2.5 : 1.6}
+                strokeWidth={isHovered || isHighest ? 2.8 : 2.0}
                 strokeOpacity={strokeOpacity}
                 strokeLinejoin="round"
                 strokeLinecap="round"
                 style={{
                   filter: isHovered || isHighest ? `url(#brain-glow-${catId})` : undefined,
-                  transition: "fill 0.4s ease, stroke 0.4s ease, fill-opacity 0.4s ease",
+                  transition: "fill 0.4s ease, stroke 0.4s ease, fill-opacity 0.4s ease, stroke-width 0.2s ease",
                 }}
                 animate={{
-                  scale: isHovered ? 1.025 : 1,
+                  scale: isHovered ? 1.03 : 1,
                 }}
                 transition={{ duration: 0.15 }}
               />
 
-              {/* Traced Internal Sulci & Gyri (Brain Fold Lines) */}
+              {/* Traced Continuous Organic Sulci & Gyri (Brain Wrinkles) */}
               {lobe.wrinkles.map((wD, idx) => (
                 <path
                   key={idx}
                   d={wD}
                   fill="none"
-                  stroke={pct > 0 ? activeColor : "#6b7280"}
-                  strokeWidth="1.4"
-                  strokeOpacity={pct > 0 ? 0.6 : 0.3}
+                  stroke={activeColor}
+                  strokeWidth={isHovered ? "2.2" : "1.8"}
+                  strokeOpacity={isHovered ? 0.95 : (pct > 0 ? 0.85 : 0.70)}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="pointer-events-none"
+                  style={{
+                    filter: isHovered ? `drop-shadow(0 0 3px ${activeColor})` : undefined,
+                    transition: "stroke-opacity 0.3s ease, stroke-width 0.3s ease"
+                  }}
                 />
               ))}
 
-              {/* Lobe Text Label & Percentage Indicator */}
+              {/* High-contrast Lobe Category Label & Percentage Indicator */}
               <g transform={`translate(${lobe.labelPos.x}, ${lobe.labelPos.y})`} className="pointer-events-none">
+                {/* Background pill badge for label legibility */}
+                <rect
+                  x="-42"
+                  y="-12"
+                  width="84"
+                  height="26"
+                  rx="6"
+                  fill="#0d0e15"
+                  fillOpacity="0.85"
+                  stroke={activeColor}
+                  strokeWidth="1"
+                  strokeOpacity={isHovered ? "1" : "0.5"}
+                />
                 <text
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fill={pct > 0 ? activeColor : "#9ca3af"}
-                  fontSize="11"
+                  fill={activeColor}
+                  fontSize="10.5"
                   fontFamily="'PixeloidSans', monospace"
-                  fontWeight={isHovered ? "bold" : "normal"}
-                  className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
+                  fontWeight="bold"
+                  dy="-3"
+                  className="drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
                 >
                   {cat.label}
                 </text>
                 <text
-                  y="14"
+                  y="8"
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fill={pct > 0 ? "#ffffff" : "#6b7280"}
+                  fill="#ffffff"
                   fontSize="9"
                   fontFamily="monospace"
                   fontWeight="bold"
-                  opacity={pct > 0 || isHovered ? 1 : 0.7}
-                  className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
+                  opacity={pct > 0 || isHovered ? 1 : 0.85}
+                  className="drop-shadow-[0_1px_2px_rgba(0,0,0,1)]"
                 >
                   {pct.toFixed(1)}%
                 </text>
