@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-22",
+    "version": "0.8.3",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Upgraded Mastery Brain SVG chart with exact computer-vision traced anatomical lobe contours and organic sulci fold lines."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
     "version": "0.8.2",
     "changes": [
       {
