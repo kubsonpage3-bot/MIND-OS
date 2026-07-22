@@ -255,7 +255,7 @@ def test_inversion_focus_flip(test_user_and_profile_mutators):
         {"hours": 2.0, "focus_rating": 9, "efficiency": 1.0, "activity": "coding"},
     )
     assert response.status_code == 200
-    assert response.data["xp_earned"] < 40  # significantly lower than 90 XP!
+    assert response.data["xp_earned"] < 65  # significantly lower than 135 XP!
 
 
 @pytest.mark.django_db
@@ -344,7 +344,7 @@ def test_null_zone_conversion(test_user_and_profile_mutators):
     )
     res = complete_task(user, task.id)
     assert res["rewards"]["xp"] == 0
-    assert res["rewards"]["gold"] == 17
+    assert res["rewards"]["gold"] == 19
 
 
 @pytest.mark.django_db

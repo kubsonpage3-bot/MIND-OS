@@ -5,6 +5,7 @@ from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 from api.models import Task, UserProfile, Item, InventoryItem, RecruitedAlly
+from api.services.rewards_service import task_rewards
 from api.services.skill_service import apply_effects_on_task_complete
 from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
@@ -687,9 +688,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 .first()
             )
             if other_task:
-                other_diff_reward = Task.REWARD_TABLE.get(
-                    other_task.difficulty, {"xp": 5, "gold": 3}
-                )
+                other_diff_reward = task_rewards(other_task.difficulty)
                 other_base_xp = int(other_diff_reward["xp"] * 0.5)
                 other_base_gold = int(other_diff_reward["gold"] * 0.5)
 
