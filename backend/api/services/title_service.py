@@ -598,7 +598,7 @@ def _evaluate_title_unlock(
         return val >= 115, min(100, ((val - 100) / 15) * 100), f"{val:.1f} / 115 Vm"
 
     if title_id == "ascetic_scholar":
-        is_asc = str(profile.character_class).lower().strip() == "ascetic"
+        is_asc = "ascetic" in str(profile.character_class).lower()
         count = total_tasks if is_asc else 0
         return (
             is_asc and count >= 10,
@@ -607,7 +607,7 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "linguist_sovereign":
-        is_ling = str(profile.character_class).lower().strip() == "linguist"
+        is_ling = "linguist" in str(profile.character_class).lower()
         count = total_tasks if is_ling else 0
         return (
             is_ling and count >= 25,
@@ -616,7 +616,7 @@ def _evaluate_title_unlock(
         )
 
     if title_id == "warlord_guard":
-        is_war = str(profile.character_class).lower().strip() == "warlord"
+        is_war = "warlord" in str(profile.character_class).lower()
         count = stats.boss_attacks_count if stats else 0
         return (
             is_war and count >= 10,
