@@ -1,16 +1,6 @@
 [
   {
     "date": "2026-07-22",
-    "version": "0.8.4",
-    "changes": [
-      {
-        "type": "feature",
-        "text": "Enhanced Mastery Brain visualization with high-contrast category lobe color tinting, 1.8px bright organic sulci fold lines, and readable label badges."
-      }
-    ]
-  },
-  {
-    "date": "2026-07-22",
     "version": "0.8.3",
     "changes": [
       {
