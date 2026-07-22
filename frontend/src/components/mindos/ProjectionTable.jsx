@@ -7,7 +7,7 @@ import { ANIM_CONFIG } from "@/lib/animations";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
-import MasteryRadar from "./MasteryRadar";
+import MasteryBrainChart from "./MasteryBrainChart";
 
 const SUBJECT_CATS = [
   { id: "body", label: "BODY", color: "#ff4400", icon: "💪", activities: ["exercise", "running", "cold_shower", "nutrition", "sleep"] },
@@ -201,16 +201,13 @@ export default function ProjectionTable({ profile, logs, tasks = [] }) {
         </table>
       </div>
 
-      {/* Radar Chart */}
+      {/* Brain Chart */}
       <div className="border-t border-border pt-5 space-y-4">
-        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">📊 MASTERY RADAR</div>
+        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">🧠 MASTERY BRAIN</div>
         <div className="h-[250px] w-full">
-          <MasteryRadar
+          <MasteryBrainChart
             subjectStats={subjectStats}
-            outerRadius="65%"
-            fontSize={10}
-            dotRadius={5}
-            showIcons={false}
+            height="250px"
           />
         </div>
       </div>

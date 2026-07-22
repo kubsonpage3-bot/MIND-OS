@@ -36,27 +36,67 @@ def main():
 
     # Get the title PNGs we copied
     title_names = [
-        "grandmaster",
-        "awakened_one",
-        "boss_slayer",
+        # Time & Rhythm
         "night_owl",
         "early_bird",
-        "ally_patron",
-        "bookworm",
-        "chronomancer",
-        "tycoon",
         "noonday_sentinel",
         "twilight_hunter",
         "weekend_warrior",
         "midnight_alchemist",
+        # Streak & Consistency
         "ignited",
         "marathoner",
         "iron_will",
         "unbroken",
         "time_legend",
         "phoenix",
+        # Specializations & XP Domains
+        "bookworm",
         "polyglot",
         "architect_mind",
+        "neuro_surgeon",
+        "archive_keeper",
+        "ascetic_scholar",
+        "linguist_sovereign",
+        "warlord_guard",
+        # Mutators & Crafting
+        "alchemist",
+        "grand_alchemist",
+        "experimentalist",
+        "rune_smith",
+        "potion_master",
+        "relic_collector",
+        # Combat & Boss Battles
+        "boss_slayer",
+        "giant_executioner",
+        "critical_striker",
+        "darkness_bane",
+        "tactician",
+        "dark_receptionist",
+        "chaos_lord",
+        # Pomodoro & Focus
+        "deep_work_master",
+        "zen_meditator",
+        "chronomancer",
+        "sprint_champion",
+        "unstoppable",
+        # Party & Social
+        "squad_commander",
+        "ally_patron",
+        "beast_master",
+        "inspiring_leader",
+        "dynamic_duo",
+        # Economy & Wealth
+        "gold_digger",
+        "tycoon",
+        "big_spender",
+        "treasure_hunter",
+        # Ranks & Prestige
+        "awakened_one",
+        "mind_over_matter",
+        "pioneer",
+        "grandmaster",
+        "apex_sovereign",
     ]
 
     print(f"Processing {len(title_names)} title icons...")

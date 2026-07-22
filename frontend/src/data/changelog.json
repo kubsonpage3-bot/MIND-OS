@@ -1,5 +1,25 @@
 [
   {
+    "date": "2026-07-22",
+    "version": "0.8.2",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Replaced the Mastery Radar pentagon chart with an interactive 5-lobe SVG brain visualization that dynamically colors and glows as your category mastery progresses."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
+    "version": "0.8.1",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Expanded 16-bit Gothic playstyle title icons with custom-minted gold coins and royal filigree badge styling."
+      }
+    ]
+  },
+  {
     "date": "2026-07-21",
     "version": "0.8.0",
     "changes": [
