@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-22",
+    "version": "0.8.6",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Upgraded Mastery Brain chart with precision SVG clipPath liquid fill level, 0% tinted outlines, dark glass label chips, and 3D glass specular depth."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
     "version": "0.8.5",
     "changes": [
       {
