@@ -1,6 +1,24 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.15",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Firefox browser extension companion launched — block distracting websites, pay gold to temporarily unblock them, and run a Pomodoro timer — all synced with your MIND OS account in real time."
+      },
+      {
+        "type": "feature",
+        "text": "New 'Extension' tab in Settings: generate a pairing code to connect the Firefox extension in one click, or disconnect it at any time."
+      },
+      {
+        "type": "feature",
+        "text": "Site blocklist is per-site customizable — set a different gold cost and unlock duration for each blocked domain."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.14",
     "changes": [
       {

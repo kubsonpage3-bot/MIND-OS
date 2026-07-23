@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { Settings, Palette, Bell, User, Gamepad2, RotateCcw, Info, ChevronLeft, BookOpen } from "lucide-react";
+import { Settings, Palette, Bell, User, Gamepad2, RotateCcw, Info, ChevronLeft, BookOpen, Puzzle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useProfileMount } from "@/utils/perf";
 
@@ -11,6 +11,7 @@ import ResetPanel from "@/components/mindos/ResetPanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
 import GuidesPanel from "@/components/mindos/GuidesPanel";
 import ChangelogPanel from "@/components/mindos/ChangelogPanel";
+import ExtensionPanel from "@/components/mindos/ExtensionPanel";
 import changelogData from "@/data/changelog.json";
 
 export const SETTINGS_TABS = [
@@ -18,6 +19,7 @@ export const SETTINGS_TABS = [
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "account", label: "Account", icon: User },
   { id: "gameplay", label: "Gameplay", icon: Gamepad2 },
+  { id: "extension", label: "Extension", icon: Puzzle },
   { id: "guides", label: "Guides", icon: BookOpen },
   { id: "changelog", label: "Updates", icon: Info },
   { id: "reset", label: "Reset", icon: RotateCcw },
@@ -111,6 +113,9 @@ function SettingsPanel({ activeSubTab, onBack = undefined }) {
 
       {/* CHANGELOG */}
       {showDataTab === "changelog" && <ChangelogPanel />}
+
+      {/* EXTENSION */}
+      {showDataTab === "extension" && <ExtensionPanel />}
 
       {/* RESET */}
       {showDataTab === "reset" && <ResetPanel />}

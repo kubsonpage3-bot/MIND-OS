@@ -31,6 +31,8 @@ urlpatterns = [
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     # ── Наше API (приложение api/) ─────────────────────────────────────────
     path("api/", include("api.urls")),
+    # ── Firefox Extension API ──────────────────────────────────────────────
+    path("api/extension/", include("extension.urls")),
     # ── OpenAPI Документация ───────────────────────────────────────────────
     # Доступна только в DEBUG-режиме
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

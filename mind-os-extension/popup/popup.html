@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIND OS Companion</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── HEADER ─────────────────────────────────────────── -->
+    <header class="header">
+      <div class="logo">
+        <img src="../icons/icon-48.png" alt="MIND OS" class="logo-icon" />
+        <span class="logo-text">MIND OS</span>
+        <span class="logo-sub">Companion</span>
+      </div>
+      <div class="stats-bar" id="statsBar">
+        <span class="stat" id="goldStat">
+          <span class="stat-icon">🪙</span>
+          <span id="goldValue">—</span>
+        </span>
+        <span class="stat" id="hpStat">
+          <span class="stat-icon">❤️</span>
+          <span id="hpValue">—</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- ── PAIR SCREEN (hidden when paired) ──────────────── -->
+    <div id="pairScreen" class="screen">
+      <div class="pair-card">
+        <div class="pair-icon">🔗</div>
+        <h2>Connect to MIND OS</h2>
+        <p class="pair-hint">Open <strong>MIND OS → Settings → Extension</strong> to get a pairing code, then enter it below.</p>
+        <input type="text" id="pairCodeInput" class="code-input" placeholder="MINDOS-XXXXXX" maxlength="16" autocomplete="off" spellcheck="false" />
+        <button id="pairBtn" class="btn btn-primary">Connect</button>
+        <p id="pairError" class="error-msg hidden"></p>
+      </div>
+    </div>
+
+    <!-- ── MAIN UI (hidden until paired) ─────────────────── -->
+    <div id="mainUI" class="hidden">
+      <!-- Tabs -->
+      <nav class="tabs">
+        <button class="tab active" data-tab="timer">⏱ Timer</button>
+        <button class="tab" data-tab="blocklist">🛡 Blocklist</button>
+        <button class="tab" data-tab="settings">⚙ Settings</button>
+      </nav>
+
+      <!-- ── TIMER TAB ─────────────────────────────────────── -->
+      <div id="tab-timer" class="tab-content">
+        <div class="pomodoro-box">
+          <div class="pomodoro-ring">
+            <svg viewBox="0 0 100 100" class="ring-svg">
+              <circle cx="50" cy="50" r="44" class="ring-bg" />
+              <circle cx="50" cy="50" r="44" class="ring-progress" id="ringProgress" />
+            </svg>
+            <div class="ring-center">
+              <div id="timerDisplay" class="timer-display">25:00</div>
+              <div id="timerLabel" class="timer-label">FOCUS</div>
+            </div>
+          </div>
+          <div class="timer-controls">
+            <button id="timerStartBtn" class="btn btn-primary btn-lg">▶ Start</button>
+            <button id="timerResetBtn" class="btn btn-ghost">↺</button>
+          </div>
+        </div>
+        <div class="pomo-stats">
+          <div class="pomo-stat">
+            <span id="todayPomos">—</span>
+            <label>Today</label>
+          </div>
+          <div class="pomo-stat">
+            <span id="totalHours">—</span>
+            <label>Hours</label>
+          </div>
+          <div class="pomo-stat">
+            <span id="totalPomos">—</span>
+            <label>Total</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BLOCKLIST TAB ──────────────────────────────────── -->
+      <div id="tab-blocklist" class="tab-content hidden">
+        <!-- Current tab quick-add -->
+        <div class="quick-add-bar">
+          <div class="quick-add-info">
+            <span class="quick-site-icon">🌐</span>
+            <span id="currentTabDomain" class="quick-domain">loading...</span>
+          </div>
+          <button id="blockCurrentBtn" class="btn btn-sm btn-danger">Block</button>
+        </div>
+
+        <!-- Site list -->
+        <div id="blocklist-container" class="blocklist-container">
+          <div class="empty-state" id="blocklistEmpty">
+            <span>🏰</span>
+            <p>No sites blocked yet.<br/>Click "Block" to add the current site.</p>
+          </div>
+          <ul id="blocklist-ul" class="site-list"></ul>
+        </div>
+
+        <!-- Add manually -->
+        <div class="add-manual">
+          <input type="text" id="manualDomainInput" placeholder="example.com" class="domain-input" />
+          <button id="addManualBtn" class="btn btn-sm btn-primary">+ Add</button>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS TAB ───────────────────────────────────── -->
+      <div id="tab-settings" class="tab-content hidden">
+        <div class="settings-section">
+          <h3 class="section-title">Default Unlock</h3>
+          <div class="setting-row">
+            <label>Cost (Gold)</label>
+            <input type="number" id="defaultCostInput" class="mini-input" min="1" max="9999" value="111" />
+          </div>
+          <div class="setting-row">
+            <label>Duration (min)</label>
+            <input type="number" id="defaultDurationInput" class="mini-input" min="1" max="480" value="30" />
+          </div>
+          <button id="saveDefaultsBtn" class="btn btn-primary btn-sm">Save Defaults</button>
+          <p id="defaultsSaved" class="success-msg hidden">✓ Saved!</p>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">Connection</h3>
+          <p class="conn-info">Synced with <strong>MIND OS</strong></p>
+          <button id="disconnectBtn" class="btn btn-danger btn-sm">Disconnect Extension</button>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">Sync</h3>
+          <button id="syncNowBtn" class="btn btn-ghost btn-sm">↺ Sync Now</button>
+          <p id="lastSync" class="dim-text"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SITE EDIT MODAL ─────────────────────────────────── -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Edit Site Rule</h3>
+      <p id="editDomain" class="modal-domain"></p>
+      <div class="setting-row">
+        <label>Unlock Cost 🪙</label>
+        <input type="number" id="editCostInput" class="mini-input" min="1" />
+      </div>
+      <div class="setting-row">
+        <label>Duration (min)</label>
+        <input type="number" id="editDurationInput" class="mini-input" min="1" />
+      </div>
+      <div class="modal-actions">
+        <button id="editSaveBtn" class="btn btn-primary">Save</button>
+        <button id="editCancelBtn" class="btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── UNLOCK MODAL ───────────────────────────────────── -->
+  <div id="unlockModal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="unlock-icon">🔓</div>
+      <h3>Unlock Site?</h3>
+      <p id="unlockModalDomain" class="modal-domain"></p>
+      <p class="unlock-cost-text">
+        Cost: <strong id="unlockModalCost">—</strong> 🪙 &nbsp;|&nbsp; 
+        Duration: <strong id="unlockModalDuration">—</strong> min
+      </p>
+      <p class="gold-current">Your gold: <strong id="unlockModalGold">—</strong></p>
+      <div class="modal-actions">
+        <button id="unlockConfirmBtn" class="btn btn-primary">Pay & Unlock</button>
+        <button id="unlockCancelBtn" class="btn btn-ghost">Cancel</button>
+      </div>
+      <p id="unlockError" class="error-msg hidden"></p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

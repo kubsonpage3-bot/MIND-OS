@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "drf_spectacular",  # Автодокументация OpenAPI
     # --- Наши приложения ---
     "api",  # Основное API-приложение
+    "extension",  # Firefox browser extension companion
 ]
 
 # ── Middleware ────────────────────────────────────────────────────────────
