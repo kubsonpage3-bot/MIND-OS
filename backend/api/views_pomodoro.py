@@ -242,17 +242,68 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
 
             # Award Gold and XP directly to UserProfile
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            gold_earned = max(10, duration * 2)
-            xp_earned = max(15, duration * 3)
+            hours = round(duration / 60.0, 2)
+            gold_earned = max(10, int(duration * 2))
+            xp_earned = max(15, int(duration * 3))
+
+            training_session = None
+            if activity_key:
+                # Look up custom task if applicable
+                from api.models import Task, TrainingSession
+                task = None
+                if isinstance(activity_key, str) and activity_key.startswith("custom_task_"):
+                    try:
+                        task_id = int(activity_key.replace("custom_task_", ""))
+                        task = Task.objects.filter(
+                            id=task_id, user=request.user, task_type=Task.TaskType.BUTTON
+                        ).first()
+                    except (ValueError, AttributeError):
+                        pass
+
+                if task:
+                    task.completion_count += 1
+                    task.last_completed_at = timezone.now()
+                    task.save(update_fields=["completion_count", "last_completed_at"])
+
+                from api.services.mechanics import calculate_cognitive_gains
+
+                eff_total = min(1.0, rating / 5.0)
+                gains = calculate_cognitive_gains(activity_key, hours, eff_total, profile)
+
+                gf_gain = gains.get("gf", 0.0)
+                gc_gain = gains.get("gc", 0.0)
+                ps_gain = gains.get("ps", 0.0)
+                vm_gain = gains.get("vm", 0.0)
+
+                profile.gf = min(profile.gf_ceiling, profile.gf + gf_gain)
+                profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain)
+                profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain)
+                profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain)
+
+                training_session = TrainingSession.objects.create(
+                    user_profile=profile,
+                    activity_key=activity_key,
+                    hours=hours,
+                    focus_rating=float(rating),
+                    efficiency=eff_total,
+                    xp_earned=xp_earned,
+                    gf_gain=gf_gain,
+                    gc_gain=gc_gain,
+                    ps_gain=ps_gain,
+                    vm_gain=vm_gain,
+                )
+
             profile.gold += gold_earned
             profile.xp += xp_earned
-            profile.save(update_fields=["gold", "xp"])
+            profile.save(update_fields=["gold", "xp", "gf", "gc", "ps", "vm"])
 
         return Response(
             {
                 "success": True,
                 "session_id": session.id,
+                "training_session_id": training_session.id if training_session else None,
                 "gold_earned": gold_earned,
                 "xp_earned": xp_earned,
+                "hours_logged": hours,
             }
         )

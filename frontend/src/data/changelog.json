@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.20",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Pomodoro Linked Activity completion now automatically logs half-hour (0.5h) or one-hour (1.0h) training sessions to the MIND OS Training tab, updating activity cards, cognitive stats, and custom task counters."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.19",
     "changes": [
       {
