@@ -1,7 +1,10 @@
 // MIND OS Companion — popup.js
 // All DOM manipulation lives here. Background worker handles all API calls.
 
-const API_BASE = 'https://api.mindosgrowth.org';
+async function getApiBase() {
+  const { apiBaseUrl } = await browser.storage.local.get('apiBaseUrl');
+  return apiBaseUrl || 'http://localhost:8000';
+}
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
 
@@ -236,7 +239,8 @@ async function openPomodoroSession() {
   try {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
-    const res = await fetch(`${API_BASE}/api/pomodoro/sessions/`, {
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/api/pomodoro/sessions/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -262,7 +266,8 @@ async function completePomodoroSession() {
   try {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
-    await fetch(`${API_BASE}/api/pomodoro/sessions/${pomodoroSessionId}/complete/`, {
+    const apiBase = await getApiBase();
+    await fetch(`${apiBase}/api/pomodoro/sessions/${pomodoroSessionId}/complete/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -281,7 +286,8 @@ async function loadPomodoroStats() {
   try {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
-    const res = await fetch(`${API_BASE}/api/pomodoro/sessions/stats/`, {
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/api/pomodoro/sessions/stats/`, {
       headers: { Authorization: `Bearer ${extensionToken}` },
     });
     if (!res.ok) return;
@@ -520,7 +526,8 @@ async function loadHistoryStats() {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
 
-    const res = await fetch(`${API_BASE}/api/pomodoro/sessions/stats/`, {
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/api/pomodoro/sessions/stats/`, {
       headers: { Authorization: `Bearer ${extensionToken}` },
     });
     if (!res.ok) return;

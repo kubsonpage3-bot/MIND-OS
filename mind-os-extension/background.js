@@ -1,7 +1,10 @@
 // MIND OS Companion — background.js (service worker)
 // Handles: token auth, blocklist sync, declarativeNetRequest rules, alarm-based re-blocking
 
-const API_BASE = 'https://api.mindosgrowth.org';
+async function getApiBase() {
+  const { apiBaseUrl } = await browser.storage.local.get('apiBaseUrl');
+  return apiBaseUrl || 'http://localhost:8000';
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -12,12 +15,13 @@ async function getToken() {
 
 async function apiFetch(path, opts = {}) {
   const token = await getToken();
+  const apiBase = await getApiBase();
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...opts.headers,
   };
-  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
+  const res = await fetch(`${apiBase}${path}`, { ...opts, headers });
   return res;
 }
 
@@ -134,7 +138,8 @@ browser.runtime.onMessage.addListener(async (msg) => {
 
     case 'PAIR': {
       // Exchange OTP code for token
-      const res = await fetch(`${API_BASE}/api/extension/pair/`, {
+      const apiBase = await getApiBase();
+      const res = await fetch(`${apiBase}/api/extension/pair/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: msg.code }),
