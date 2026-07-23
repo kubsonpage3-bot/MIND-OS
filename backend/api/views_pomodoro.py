@@ -97,6 +97,19 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
             else:
                 break
 
+        # Best streak (all-time longest consecutive days)
+        all_dates = list(qs.values_list("date", flat=True).distinct().order_by("date"))
+        best_streak = 0
+        current_run = 0
+        prev_date = None
+        for d in all_dates:
+            if prev_date and (d - prev_date).days == 1:
+                current_run += 1
+            else:
+                current_run = 1
+            best_streak = max(best_streak, current_run)
+            prev_date = d
+
         return Response(
             {
                 "total_pomodoros": total_pomodoros,
@@ -105,5 +118,6 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 "today_hours": today_hours,
                 "active_days": active_days,
                 "current_streak": streak,
+                "best_streak": best_streak,
             }
         )

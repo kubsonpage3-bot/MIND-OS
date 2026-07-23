@@ -280,14 +280,31 @@ export default function ChestPanel() {
               {/* Rarity Drop Rates */}
               <div className="mt-4 p-2 bg-black/45 border border-white/5 rounded">
                 <span className="font-mono text-[9px] text-muted-foreground/50 tracking-widest uppercase">Decryption Matrix</span>
-                <div className="grid grid-cols-6 gap-1 mt-2 text-[10px] font-mono">
-                  {['E', 'D', 'C', 'B', 'A', 'S'].map(cls => {
-                    const rate = chest.drop_rates[cls];
+                <div className="grid gap-1 mt-2 text-[10px] font-mono" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(32px, 1fr))' }}>
+                  {Object.entries(chest.drop_rates).map(([cls, rate]) => {
                     const color = getGearClassColor(cls);
                     if (!rate || parseFloat(rate) === 0) return null;
+                    const isSSSClass = cls === 'SSS';
+                    const isSSClass = cls === 'SS';
                     return (
                       <div key={cls} className="flex flex-col items-center border border-white/[0.03] py-1 bg-white/[0.01]">
-                        <span className="font-black px-1 rounded text-[9px]" style={{ color, background: `${color}15` }}>
+                        <span
+                          className={`font-black px-1 rounded text-[9px]${isSSSClass ? ' animate-pulse' : ''}`}
+                          style={{
+                            color: isSSSClass ? undefined : color,
+                            background: `${color}15`,
+                            ...(isSSSClass && {
+                              background: 'linear-gradient(90deg,#ff0080,#ff8c00,#FFD700,#00ff88,#00cfff,#CC00FF)',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                              backgroundClip: 'text',
+                              filter: 'drop-shadow(0 0 4px #CC00FF)',
+                            }),
+                            ...(isSSClass && {
+                              textShadow: `0 0 8px ${color}`,
+                            }),
+                          }}
+                        >
                           {cls}
                         </span>
                         <span className="text-white/60 mt-1 text-[8px] font-bold">{rate}%</span>

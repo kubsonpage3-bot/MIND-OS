@@ -1,5 +1,49 @@
 [
   {
+    "date": "2026-07-23",
+    "version": "0.8.14",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Pomodoro Stats tab now shows a weekly bar chart (last 7 days), Best Streak record, and a 30-day consistency score with color-coded progress bar."
+      },
+      {
+        "type": "feature",
+        "text": "Pomodoro History tab upgraded: heatmap now shows month labels, day-of-week labels, and a hover tooltip with date and session count."
+      },
+      {
+        "type": "feature",
+        "text": "Pomodoro History tab now shows a weekly breakdown chart (8 weeks), peak focus time window, and a list of your last 10 completed sessions."
+      },
+      {
+        "type": "feature",
+        "text": "Pomodoro Settings tab now has Quick Preset buttons (Classic 25/5, Short 15/3, Deep 50/10) that auto-fill timer fields in one tap."
+      },
+      {
+        "type": "feature",
+        "text": "Pomodoro Settings: added Sound selector (None / Beep / Bell via browser audio) and Browser Notifications toggle with animated switch."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
+    "version": "0.8.13",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Added 10 SS (Transcendent) and 10 SSS (Singularity) tier gear items with insane stats — available only from the Quantum Safe chest."
+      },
+      {
+        "type": "feature",
+        "text": "Quantum Safe now has a 0.11% chance to drop SS gear and a 0.01% chance to drop SSS gear (1 in 10,000 opens)."
+      },
+      {
+        "type": "feature",
+        "text": "SS rank displays in shimmering gold, SSS rank displays with a rainbow ultra-violet glow in the Decryption Matrix and inventory."
+      }
+    ]
+  },
+  {
     "date": "2026-07-22",
     "version": "0.8.12",
     "changes": [

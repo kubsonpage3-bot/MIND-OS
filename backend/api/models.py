@@ -1103,6 +1103,8 @@ class Item(models.Model):
         B = "B", "Advanced"
         A = "A", "Elite"
         S = "S", "Anomaly"
+        SS = "SS", "Transcendent"
+        SSS = "SSS", "Singularity"
 
     code = models.CharField(
         max_length=100, unique=True, verbose_name="Уникальный код (напр. misted_hood)"
@@ -1123,12 +1125,12 @@ class Item(models.Model):
         verbose_name="Слот экипировки (напр. headware, ring1)",
     )
     gear_class = models.CharField(
-        max_length=1,
+        max_length=3,
         choices=GearClass.choices,
         default=GearClass.E,
         blank=True,
         null=True,
-        verbose_name="Gear Class (E–S): Scrap/Integrated/Enhanced/Advanced/Elite/Anomaly",
+        verbose_name="Gear Class (E–SSS): Scrap/Integrated/Enhanced/Advanced/Elite/Anomaly/Transcendent/Singularity",
     )
 
     damage_boost = models.FloatField(default=0.0, verbose_name="Множитель урона (+%)")

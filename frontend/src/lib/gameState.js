@@ -54,14 +54,16 @@ export const BOSSES = [
 ];
 
 
-// ── Gear Class System (E→S) ────────────────────────────────────────────
+// ── Gear Class System (E→SSS) ──────────────────────────────────────────
 export const GEAR_CLASS_COLORS = {
-  E: '#6b7280', // Scrap — grey
-  D: '#22c55e', // Integrated — green
-  C: '#3b82f6', // Enhanced — blue
-  B: '#a855f7', // Advanced — purple
-  A: '#f59e0b', // Elite — gold
-  S: '#ef4444', // Anomaly — red
+  E: '#6b7280',   // Scrap — grey
+  D: '#22c55e',   // Integrated — green
+  C: '#3b82f6',   // Enhanced — blue
+  B: '#a855f7',   // Advanced — purple
+  A: '#f59e0b',   // Elite — gold
+  S: '#ef4444',   // Anomaly — red
+  SS: '#FFD700',  // Transcendent — shimmering gold
+  SSS: '#CC00FF', // Singularity — ultra-violet / rainbow
 };
 
 export const GEAR_CLASS_NAMES = {
@@ -71,14 +73,17 @@ export const GEAR_CLASS_NAMES = {
   B: 'ADVANCED',
   A: 'ELITE',
   S: 'ANOMALY',
+  SS: 'TRANSCENDENT',
+  SSS: 'SINGULARITY',
 };
 
 export const GEAR_CLASS_STAT_BUDGETS = {
   E: '2–3 pts', D: '4–5 pts', C: '6–8 pts',
   B: '9–11 pts', A: '12–15 pts', S: '16–20 pts',
+  SS: '25–45 pts', SSS: '50–80 pts',
 };
 
-/** @param {string} gearClass - 'E'|'D'|'C'|'B'|'A'|'S' */
+/** @param {string} gearClass - 'E'|'D'|'C'|'B'|'A'|'S'|'SS'|'SSS' */
 export const getGearClassColor = (gearClass) => GEAR_CLASS_COLORS[gearClass] || '#6b7280';
 
 // Backward-compat alias (old tier strings may still exist in boss drops)
