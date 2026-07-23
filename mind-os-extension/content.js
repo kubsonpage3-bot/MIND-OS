@@ -15,15 +15,16 @@
 
     const { domain, unlockCost, unlockDuration, gold } = res;
 
-    // Prevent page from loading background resources / scrolling while blocked
-    document.documentElement.style.overflow = 'hidden';
+    // Safe DOM mount helper
+    const mountOverlay = () => {
+      if (document.getElementById('mindos-overlay-host')) return;
+      document.documentElement.style.overflow = 'hidden';
 
-    // Create Shadow DOM host to prevent target page CSS leaks
-    const host = document.createElement('div');
-    host.id = 'mindos-overlay-host';
-    document.documentElement.appendChild(host);
+      const host = document.createElement('div');
+      host.id = 'mindos-overlay-host';
+      (document.body || document.documentElement).appendChild(host);
 
-    const shadow = host.attachShadow({ mode: 'open' });
+      const shadow = host.attachShadow({ mode: 'open' });
 
     // Inject styles into shadow DOM
     const styleEl = document.createElement('style');

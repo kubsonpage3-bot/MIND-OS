@@ -53,19 +53,17 @@ async function applyBlockRules(blockedSites) {
     .filter((s) => !unlockedDomains.has(s.domain))
     .map((s) => {
       const cleanDomain = s.domain.toLowerCase().trim().replace(/^www\./, '');
-      const escDomain = cleanDomain.replace(/\./g, '\\.');
-      const redirectUrl = browser.runtime.getURL(`popup/blocked.html?domain=${encodeURIComponent(cleanDomain)}`);
       return {
         id: domainToRuleId(cleanDomain),
         priority: 1,
         action: {
           type: 'redirect',
           redirect: {
-            regexSubstitution: redirectUrl,
+            extensionPath: '/popup/blocked.html',
           },
         },
         condition: {
-          regexFilter: `^https?://(?:www\\.)?${escDomain}(?:/.*)?$`,
+          urlFilter: `||${cleanDomain}^`,
           resourceTypes: ['main_frame'],
         },
       };

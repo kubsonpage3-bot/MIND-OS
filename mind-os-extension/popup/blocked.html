@@ -327,22 +327,26 @@
       document.getElementById('quoteText').textContent = `"${q.text}"`;
       document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
 
-      // Get domain from URL param
+      // Get domain from URL param or referrer
       const params = new URLSearchParams(window.location.search);
       let domain = params.get('domain');
       if (!domain) {
         try { domain = new URL(document.referrer).hostname.replace(/^www\./, ''); } catch {}
       }
-      if (!domain || domain === 'null') domain = 'blocked-site';
-      document.getElementById('blockedDomain').textContent = domain;
 
       // Load state from local storage
-      const { gold, blockedSites } = await browser.storage.local.get(['gold', 'blockedSites']);
+      const { gold, blockedSites = [] } = await browser.storage.local.get(['gold', 'blockedSites']);
       if (gold !== undefined) {
         document.getElementById('userGoldVal').textContent = gold.toLocaleString();
       }
 
-      const site = (blockedSites || []).find((s) => s.domain === domain);
+      if (!domain || domain === 'null' || domain === 'blocked-site') {
+        const siteMatch = (blockedSites || [])[0];
+        domain = siteMatch ? siteMatch.domain : 'blocked-site';
+      }
+      document.getElementById('blockedDomain').textContent = domain;
+
+      const site = (blockedSites || []).find((s) => s.domain.toLowerCase().trim().replace(/^www\./, '') === domain.toLowerCase().trim().replace(/^www\./, ''));
       const cost = site ? site.unlock_cost : 100;
       const duration = site ? site.unlock_duration_minutes : 30;
 
