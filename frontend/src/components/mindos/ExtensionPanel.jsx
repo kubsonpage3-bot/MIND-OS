@@ -6,9 +6,9 @@ import { djangoFetch } from '@/api/djangoClient';
 
 // ── API functions ──────────────────────────────────────────────────────────
 
-const generateCode  = () => djangoFetch('extension/generate-code/', { method: 'POST' }).then((r) => r.json());
+const generateCode  = () => djangoFetch('extension/generate-code/', { method: 'POST' });
 const revokeToken   = () => djangoFetch('extension/revoke/', { method: 'DELETE' });
-const fetchStatus   = () => djangoFetch('extension/web-status/').then((r) => r.json());
+const fetchStatus   = () => djangoFetch('extension/web-status/');
 
 // ── Component ──────────────────────────────────────────────────────────────
 
@@ -54,14 +54,6 @@ export default function ExtensionPanel() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div
-        className="flex items-center gap-2 px-1"
-        style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em' }}
-      >
-        <Puzzle className="w-4 h-4" style={{ color: 'var(--habit-purple)' }} />
-        <span style={{ color: 'var(--habit-text)' }}>BROWSER EXTENSION</span>
-      </div>
 
       {/* Status card */}
       <div
