@@ -2,128 +2,412 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Site Blocked — MIND OS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Blocked — MIND OS Guardian</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Press+Start+2P&display=swap');
+
     :root {
-      --bg: #0d0d14; --purple: #7c3aed; --purple-glow: rgba(124,58,237,0.35);
-      --gold: #f59e0b; --text: #e2e2f0; --dim: #6b6b8f; --border: #2a2a42;
+      --bg: #090912;
+      --bg-card: #111120;
+      --purple: #7c3aed;
+      --purple-glow: rgba(124, 58, 237, 0.45);
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.35);
+      --danger: #ef4444;
+      --green: #22c55e;
+      --text: #e2e2f5;
+      --text-bright: #ffffff;
+      --dim: #64648c;
+      --border: #24243a;
+      --radius: 16px;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: var(--bg); color: var(--text);
+      background: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.12) 0%, transparent 60%),
+        linear-gradient(to bottom, rgba(0,0,0,0.6), var(--bg));
+      color: var(--text);
       font-family: 'Nunito', sans-serif;
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
+
+    .pixel-text {
+      font-family: 'Press Start 2P', monospace;
+      letter-spacing: 0.04em;
+      image-rendering: pixelated;
+    }
+
     .card {
-      text-align: center; max-width: 420px; width: 90%;
-      background: #13131f; border: 1px solid var(--border);
-      border-radius: 16px; padding: 48px 36px;
+      text-align: center;
+      max-width: 440px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 32px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 20px rgba(124, 58, 237, 0.15);
+      position: relative;
+      overflow: hidden;
+      animation: cardAppear 0.4s ease-out;
     }
-    .shield { font-size: 72px; display: block; margin-bottom: 16px;
-      filter: drop-shadow(0 0 20px var(--purple-glow)); }
-    h1 { font-size: 24px; font-weight: 900; color: #f8f8ff; margin-bottom: 8px; }
-    .domain { font-size: 16px; font-weight: 700; color: var(--purple); margin-bottom: 16px; }
-    .motivation {
-      font-size: 14px; color: var(--dim); line-height: 1.7;
-      background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);
-      border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;
+
+    @keyframes cardAppear {
+      from { opacity: 0; transform: scale(0.94) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
-    .stats { display: flex; gap: 12px; justify-content: center; margin-bottom: 28px; }
-    .stat {
-      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
-      border-radius: 10px; padding: 12px 20px; text-align: center;
+
+    /* Top decorative glow bar */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--purple), var(--gold), transparent);
     }
-    .stat-val { font-size: 22px; font-weight: 900; color: var(--gold); display: block; }
-    .stat-lbl { font-size: 11px; color: var(--dim); font-weight: 700; text-transform: uppercase; }
+
+    /* Shield Icon */
+    .shield-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .shield-icon {
+      font-size: 64px;
+      display: block;
+      filter: drop-shadow(0 0 16px var(--purple-glow));
+      animation: shieldPulse 3s infinite ease-in-out;
+    }
+    @keyframes shieldPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 16px var(--purple-glow)); }
+      50% { transform: scale(1.06); filter: drop-shadow(0 0 28px var(--purple-glow)) drop-shadow(0 0 10px var(--gold-glow)); }
+    }
+
+    .header-badge {
+      font-size: 8px;
+      color: var(--purple);
+      background: rgba(124, 58, 237, 0.12);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 15px;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .domain-box {
+      background: #0b0b16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .domain-icon { font-size: 14px; }
+    .domain-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--purple);
+    }
+
+    /* Quote box */
+    .quote-box {
+      font-size: 12px;
+      color: #a0a0c8;
+      line-height: 1.6;
+      background: rgba(18, 18, 32, 0.7);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--purple);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      text-align: left;
+      font-style: italic;
+    }
+    .quote-author {
+      display: block;
+      font-style: normal;
+      font-size: 9px;
+      color: var(--dim);
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    /* Price & Balance Banner */
+    .rule-card {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.35);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 24px;
+    }
+    .rule-title {
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .rule-details {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 10px;
+    }
+    .rule-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .rule-val {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text-bright);
+    }
+    .rule-lbl {
+      font-size: 9px;
+      color: var(--dim);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .balance-tag {
+      font-size: 8px;
+      color: var(--dim);
+      margin-top: 10px;
+    }
+    .balance-amount {
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .btn {
-      padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer;
-      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px;
-      margin: 4px;
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
-    .btn-unlock { background: var(--purple); color: #fff; box-shadow: 0 0 20px var(--purple-glow); }
-    .btn-unlock:hover { filter: brightness(1.15); }
-    .btn-back { background: #1a1a2e; color: var(--dim); border: 1px solid var(--border); }
-    .btn-back:hover { color: var(--text); }
-    .cost-hint { font-size: 12px; color: var(--dim); margin-top: 12px; }
+
+    .btn-unlock {
+      background: linear-gradient(135deg, var(--purple), #9333ea);
+      color: #ffffff;
+      box-shadow: 0 0 18px var(--purple-glow);
+    }
+    .btn-unlock:hover:not(:disabled) {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+      box-shadow: 0 0 26px var(--purple-glow);
+    }
+    .btn-unlock:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-back {
+      background: #161626;
+      color: var(--dim);
+      border: 1px solid var(--border);
+    }
+    .btn-back:hover {
+      color: var(--text);
+      border-color: var(--purple);
+    }
+
+    .status-msg {
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 12px;
+      min-height: 18px;
+    }
+    .status-msg.error { color: var(--danger); }
+    .status-msg.success { color: var(--green); }
+
+    .shake {
+      animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <span class="shield">🛡</span>
-    <h1>Site Blocked</h1>
-    <p class="domain" id="blockedDomain">—</p>
-    <div class="motivation">
-      <strong>Stay focused, Hero.</strong><br/>
-      You blocked this site to protect your productivity.<br/>
-      Your tasks await. Your rewards are waiting.
+  <div class="card" id="card">
+    <div class="shield-wrapper">
+      <span class="shield-icon">🛡️</span>
     </div>
-    <div class="stats" id="statsRow" style="display:none">
-      <div class="stat">
-        <span class="stat-val" id="goldStat">—</span>
-        <span class="stat-lbl">🪙 Gold</span>
+
+    <div class="header-badge pixel-text">MIND OS GUARDIAN</div>
+    <h1 class="pixel-text">ACCESS RESTRICTED</h1>
+
+    <div class="domain-box">
+      <span class="domain-icon">🌐</span>
+      <span class="domain-name" id="blockedDomain">loading...</span>
+    </div>
+
+    <div class="quote-box">
+      <p id="quoteText">"The Void claims those who succumb to distraction. Stay focused, Adventurer!"</p>
+      <span class="quote-author" id="quoteAuthor">— MIND OS Chronicles</span>
+    </div>
+
+    <div class="rule-card" id="ruleCard">
+      <div class="rule-title pixel-text">TEMPORARY PASS UNLOCK</div>
+      <div class="rule-details">
+        <div class="rule-item">
+          <span class="rule-val pixel-text" id="unlockCostVal">111</span>
+          <span class="rule-lbl">🪙 GOLD COST</span>
+        </div>
+        <div style="font-size: 18px; color: var(--dim);">•</div>
+        <div class="rule-item">
+          <span class="rule-val pixel-text" id="unlockDurationVal">30</span>
+          <span class="rule-lbl">⏱️ MINUTES</span>
+        </div>
       </div>
-      <div class="stat">
-        <span class="stat-val" id="hpStat">—</span>
-        <span class="stat-lbl">❤️ HP</span>
+      <div class="balance-tag pixel-text">
+        YOUR GOLD: <span class="balance-amount" id="userGoldVal">—</span> 🪙
       </div>
     </div>
-    <div>
-      <button class="btn btn-unlock" id="unlockBtn" style="display:none">
-        🔓 Unlock for <span id="unlockCostLabel">—</span> 🪙
+
+    <div class="actions">
+      <button class="btn btn-unlock pixel-text" id="unlockBtn">
+        🔓 UNLOCK (<span id="btnCost">111</span> 🪙)
       </button>
-      <button class="btn btn-back" onclick="history.back()">← Go Back</button>
+      <button class="btn btn-back pixel-text" id="backBtn">
+        🛡️ RETURN TO WORK
+      </button>
     </div>
-    <p class="cost-hint" id="costHint"></p>
+
+    <p class="status-msg" id="statusMsg"></p>
   </div>
 
   <script>
+    const QUOTES = [
+      { text: "The Void claims those who succumb to distraction. Stay focused, Adventurer!", author: "Beatrix" },
+      { text: "Is scrolling worth losing your hard-earned daily streak?", author: "Chronomancer" },
+      { text: "Distractions are temporary. XP and Gold are eternal.", author: "MIND OS Codex" },
+      { text: "Your companions are waiting for your return to the battlefield!", author: "Party Leader" },
+      { text: "A true master governs their attention, not their impulses.", author: "Grandmaster" },
+    ];
+
     async function init() {
-      // Get blocked domain from URL param or referrer
+      // Pick random quote
+      const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+      document.getElementById('quoteText').textContent = `"${q.text}"`;
+      document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
+
+      // Get domain from URL param
       const params = new URLSearchParams(window.location.search);
       let domain = params.get('domain');
       if (!domain) {
         try { domain = new URL(document.referrer).hostname.replace(/^www\./, ''); } catch {}
       }
-      if (domain) document.getElementById('blockedDomain').textContent = domain;
+      if (!domain || domain === 'null') domain = 'blocked-site';
+      document.getElementById('blockedDomain').textContent = domain;
 
-      // Load state from extension storage
-      const { extensionToken, gold, hp, maxHp, blockedSites } =
-        await browser.storage.local.get(['extensionToken', 'gold', 'hp', 'maxHp', 'blockedSites']);
-
+      // Load state from local storage
+      const { gold, blockedSites } = await browser.storage.local.get(['gold', 'blockedSites']);
       if (gold !== undefined) {
-        document.getElementById('goldStat').textContent = gold.toLocaleString();
-        document.getElementById('hpStat').textContent   = `${hp}/${maxHp}`;
-        document.getElementById('statsRow').style.display = 'flex';
+        document.getElementById('userGoldVal').textContent = gold.toLocaleString();
       }
 
       const site = (blockedSites || []).find((s) => s.domain === domain);
-      if (site && extensionToken) {
-        document.getElementById('unlockCostLabel').textContent = site.unlock_cost;
-        document.getElementById('unlockBtn').style.display = 'inline-block';
-        document.getElementById('costHint').textContent =
-          `Unlocks for ${site.unlock_duration_minutes} minutes`;
+      const cost = site ? site.unlock_cost : 111;
+      const duration = site ? site.unlock_duration_minutes : 30;
 
-        document.getElementById('unlockBtn').addEventListener('click', async () => {
-          document.getElementById('unlockBtn').disabled = true;
-          document.getElementById('unlockBtn').textContent = 'Unlocking…';
+      document.getElementById('unlockCostVal').textContent = cost;
+      document.getElementById('unlockDurationVal').textContent = duration;
+      document.getElementById('btnCost').textContent = cost;
 
+      // Unlock button handler
+      const unlockBtn = document.getElementById('unlockBtn');
+      const statusMsg = document.getElementById('statusMsg');
+      const card = document.getElementById('card');
+
+      unlockBtn.addEventListener('click', async () => {
+        unlockBtn.disabled = true;
+        unlockBtn.textContent = 'PROCESSING...';
+        statusMsg.className = 'status-msg';
+        statusMsg.textContent = '';
+
+        try {
           const res = await browser.runtime.sendMessage({ type: 'UNLOCK_SITE', domain });
           if (res.ok) {
-            document.getElementById('costHint').textContent =
-              `✓ Unlocked! Reloading…`;
-            setTimeout(() => window.location.reload(), 800);
+            statusMsg.className = 'status-msg success';
+            statusMsg.textContent = '✓ UNLOCKED! RETURNING IN 3...';
+            document.getElementById('userGoldVal').textContent = res.gold.toLocaleString();
+
+            let cnt = 3;
+            const timer = setInterval(() => {
+              cnt--;
+              if (cnt > 0) {
+                statusMsg.textContent = `✓ UNLOCKED! RETURNING IN ${cnt}...`;
+              } else {
+                clearInterval(timer);
+                window.location.href = 'https://' + domain;
+              }
+            }, 700);
           } else {
-            const msg = res.error === 'insufficient_gold'
-              ? `Not enough gold (have ${res.gold ?? 0} 🪙)`
-              : 'Unlock failed. Try again.';
-            document.getElementById('costHint').textContent = msg;
-            document.getElementById('unlockBtn').disabled = false;
-            document.getElementById('unlockBtn').textContent =
-              `🔓 Unlock for ${site.unlock_cost} 🪙`;
+            unlockBtn.disabled = false;
+            unlockBtn.innerHTML = `🔓 UNLOCK (<span id="btnCost">${cost}</span> 🪙)`;
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 400);
+
+            statusMsg.className = 'status-msg error';
+            if (res.error === 'insufficient_gold') {
+              statusMsg.textContent = `Not enough gold! You have ${res.gold ?? 0} 🪙`;
+            } else {
+              statusMsg.textContent = 'Unlock failed. Check connection.';
+            }
           }
-        });
-      }
+        } catch (e) {
+          console.error('Unlock error:', e);
+          unlockBtn.disabled = false;
+          unlockBtn.innerHTML = `🔓 UNLOCK (${cost} 🪙)`;
+          statusMsg.className = 'status-msg error';
+          statusMsg.textContent = 'Network error. Try again.';
+        }
+      });
+
+      // Back button handler
+      document.getElementById('backBtn').addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = 'https://mind-os-d5sk.onrender.com';
+        }
+      });
     }
 
     init();

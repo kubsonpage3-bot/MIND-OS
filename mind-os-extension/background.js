@@ -51,15 +51,25 @@ async function applyBlockRules(blockedSites) {
 
   const addRules = blockedSites
     .filter((s) => !unlockedDomains.has(s.domain))
-    .map((s) => ({
-      id: domainToRuleId(s.domain),
-      priority: 1,
-      action: { type: 'redirect', redirect: { extensionPath: '/popup/blocked.html' } },
-      condition: {
-        urlFilter: `||${s.domain}^`,
-        resourceTypes: ['main_frame'],
-      },
-    }));
+    .map((s) => {
+      const cleanDomain = s.domain.toLowerCase().trim().replace(/^www\./, '');
+      const escDomain = cleanDomain.replace(/\./g, '\\.');
+      const redirectUrl = browser.runtime.getURL(`popup/blocked.html?domain=${encodeURIComponent(cleanDomain)}`);
+      return {
+        id: domainToRuleId(cleanDomain),
+        priority: 1,
+        action: {
+          type: 'redirect',
+          redirect: {
+            regexSubstitution: redirectUrl,
+          },
+        },
+        condition: {
+          regexFilter: `^https?://(?:www\\.)?${escDomain}(?:/.*)?$`,
+          resourceTypes: ['main_frame'],
+        },
+      };
+    });
 
   await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules });
   console.log('[MIND OS] Block rules applied:', addRules.length, 'sites blocked.');

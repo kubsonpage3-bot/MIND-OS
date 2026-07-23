@@ -1,6 +1,24 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.24",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Overhauled site blocking page (blocked.html) with 16-bit pixel RPG aesthetic, animated neon shield, live Gold balance, clear pricing card, and RPG productivity quotes."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed site blocking redirect in extension — blocked domain is now properly passed to blocked.html so unlock cost and duration are always accurately displayed."
+      },
+      {
+        "type": "fix",
+        "text": "Unlocking a blocked site with gold now automatically countdowns and redirects your browser directly back to the unlocked website."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.23",
     "changes": [
       {
