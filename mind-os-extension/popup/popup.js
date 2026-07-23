@@ -3,7 +3,7 @@
 
 async function getApiBase() {
   const { apiBaseUrl } = await browser.storage.local.get('apiBaseUrl');
-  return apiBaseUrl || 'http://localhost:8000';
+  return apiBaseUrl || 'https://mind-os-d5sk.onrender.com';
 }
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
@@ -503,11 +503,25 @@ editSaveBtn.addEventListener('click', async () => {
 
 // ─── SETTINGS TAB ────────────────────────────────────────────────────────────
 
-function loadStoredDefaults() {
+const serverUrlSelect = $('serverUrlSelect');
+
+async function loadStoredDefaults() {
   const cost = localStorage.getItem('mindos_default_cost');
   const dur  = localStorage.getItem('mindos_default_duration');
   if (cost) defaultCostInput.value = cost;
   if (dur)  defaultDurationInput.value = dur;
+
+  if (serverUrlSelect) {
+    const { apiBaseUrl } = await browser.storage.local.get('apiBaseUrl');
+    serverUrlSelect.value = apiBaseUrl || 'https://mind-os-d5sk.onrender.com';
+  }
+}
+
+if (serverUrlSelect) {
+  serverUrlSelect.addEventListener('change', async () => {
+    await browser.storage.local.set({ apiBaseUrl: serverUrlSelect.value });
+    syncAndRender();
+  });
 }
 
 saveDefaultsBtn.addEventListener('click', () => {

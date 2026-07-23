@@ -3,7 +3,7 @@
 
 async function getApiBase() {
   const { apiBaseUrl } = await browser.storage.local.get('apiBaseUrl');
-  return apiBaseUrl || 'http://localhost:8000';
+  return apiBaseUrl || 'https://mind-os-d5sk.onrender.com';
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
