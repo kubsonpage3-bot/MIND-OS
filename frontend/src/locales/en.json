@@ -45,7 +45,8 @@
       "guides": "Guides",
       "changelog": "Updates",
       "reset": "Reset",
-      "about": "About"
+      "about": "About",
+      "extension": "Extension"
     },
     "menu": "MENU"
   },

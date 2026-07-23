@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X, Crown, Star, Lock, Calendar, RefreshCw, Sparkles } from "lucide-react";
+import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X, Crown, Star, Lock, Calendar, RefreshCw, Sparkles, Puzzle } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Eye, UserX, BarChart3, Loader2 } from "lucide-react";
 import { useMutation } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
+import ExtensionPanel from '@/components/mindos/ExtensionPanel';
 
 export default function AccountPanel() {
   const { profile, logout } = useDjangoAuth();
@@ -339,6 +340,13 @@ export default function AccountPanel() {
           <LogOut className="w-3 h-3" /> {t('settings.logout')}
         </button>
       </div>
+
+      {/* ── BROWSER EXTENSION ── */}
+      <div className="flex items-center gap-2 mt-6 mb-3">
+        <Puzzle className="w-4 h-4 text-muted-foreground" />
+        <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Browser Extension</span>
+      </div>
+      <ExtensionPanel />
 
       {/* Danger Zone */}
       <div className="p-4 rounded-xl border border-red-700/30 bg-red-700/5 space-y-3">
