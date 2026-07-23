@@ -236,6 +236,29 @@ browser.runtime.onMessage.addListener(async (msg) => {
       return { ok: true, gold: data.gold, unlocked_until: data.unlocked_until };
     }
 
+    case 'CHECK_BLOCKED': {
+      const targetDomain = (msg.domain || '').toLowerCase().trim().replace(/^www\./, '');
+      const { blockedSites = [], activeUnlocks = [], gold = 0 } =
+        await browser.storage.local.get(['blockedSites', 'activeUnlocks', 'gold']);
+      const now = new Date();
+      const isUnlocked = activeUnlocks.some(
+        (u) => u.domain === targetDomain && new Date(u.unlocked_until) > now
+      );
+      const site = blockedSites.find(
+        (s) => s.domain.toLowerCase().trim().replace(/^www\./, '') === targetDomain
+      );
+      if (site && !isUnlocked) {
+        return {
+          isBlocked: true,
+          domain: targetDomain,
+          unlockCost: site.unlock_cost,
+          unlockDuration: site.unlock_duration_minutes,
+          gold,
+        };
+      }
+      return { isBlocked: false };
+    }
+
     case 'GET_CURRENT_TAB_DOMAIN': {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!tab?.url) return { domain: null };

@@ -1,6 +1,20 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.25",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added in-page Content Script Blocker Overlay matching pixel art design: translucent blurred background, gold Press Start 2P top banner ('You're trying to Access...'), center 16-bit RPG guardian sprite, and glowing 'Pay To Pass' button."
+      },
+      {
+        "type": "feature",
+        "text": "Unlocking directly from the in-page overlay smoothly unmounts the overlay and instantly restores page access without page reload."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.24",
     "changes": [
       {
