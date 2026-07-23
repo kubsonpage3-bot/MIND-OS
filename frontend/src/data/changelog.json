@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.22",
+    "changes": [
+      {
+        "type": "content",
+        "text": "Generated and deployed high-definition 16-bit pixel art WebP graphics for all SS and SSS rank Transcendent & Singularity gear items."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.21",
     "changes": [
       {
