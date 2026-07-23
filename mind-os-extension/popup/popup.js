@@ -511,6 +511,76 @@ saveDefaultsBtn.addEventListener('click', () => {
   setTimeout(() => defaultsSaved.classList.add('hidden'), 2000);
 });
 
+// ─── HISTORY TAB ─────────────────────────────────────────────────────────────
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+async function loadHistoryStats() {
+  try {
+    const { extensionToken } = await browser.storage.local.get('extensionToken');
+    if (!extensionToken) return;
+
+    const res = await fetch(`${API_BASE}/api/pomodoro/sessions/stats/`, {
+      headers: { Authorization: `Bearer ${extensionToken}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // 4 stat cards
+    $('histTodayPomos').textContent  = data.today_pomodoros ?? '0';
+    $('histTotalHours').textContent  = data.total_hours ? Number(data.total_hours).toFixed(1) : '0';
+    $('histTotalPomos').textContent  = data.total_pomodoros ?? '0';
+    $('histBestStreak').textContent  = (data.best_streak ?? '0') + 'd';
+
+    // Weekly bar chart from heatmap_data (last 7 days)
+    renderWeeklyBars(data.heatmap_data || {});
+  } catch (e) {
+    console.error('[MIND OS] loadHistoryStats error:', e);
+  }
+}
+
+function renderWeeklyBars(heatmapData) {
+  const weeklyBarsEl = $('weeklyBars');
+  if (!weeklyBarsEl) return;
+  weeklyBarsEl.innerHTML = '';
+
+  // Build last 7 days array (oldest → newest)
+  const days = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+    days.push({ key, label: DAY_LABELS[d.getDay()], isToday: i === 0 });
+  }
+
+  // Find max for scaling
+  const counts = days.map((d) => heatmapData[d.key] || 0);
+  const max = Math.max(...counts, 1);
+
+  days.forEach(({ key, label, isToday }, idx) => {
+    const count = counts[idx];
+    const heightPct = Math.max(8, (count / max) * 100); // min 8% so bar is visible
+
+    const col = document.createElement('div');
+    col.className = 'weekly-bar-col';
+    col.innerHTML = `
+      <div class="weekly-bar ${count > 0 ? 'has-data' : ''} ${isToday ? 'today' : ''}"
+           style="height: ${heightPct}%"
+           title="${label}: ${count} session${count !== 1 ? 's' : ''}">
+      </div>
+      <span class="weekly-bar-label">${label.slice(0, 1)}</span>
+    `;
+    weeklyBarsEl.appendChild(col);
+  });
+}
+
+// Load history when its tab is clicked
+document.querySelector('[data-tab="history"]')?.addEventListener('click', loadHistoryStats);
+
+const histRefreshBtn = $('histRefreshBtn');
+if (histRefreshBtn) histRefreshBtn.addEventListener('click', loadHistoryStats);
+
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 
 updateTimerDisplay(); // show 25:00 immediately

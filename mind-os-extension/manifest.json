@@ -14,8 +14,7 @@
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "scripts": ["background.js"],
-    "type": "module"
+    "scripts": ["background.js"]
   },
   "action": {
     "default_popup": "popup/popup.html",

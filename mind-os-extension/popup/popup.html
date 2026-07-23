@@ -45,6 +45,7 @@
       <!-- Tabs -->
       <nav class="tabs">
         <button class="tab active" data-tab="timer">⏱ Timer</button>
+        <button class="tab" data-tab="history">📊 History</button>
         <button class="tab" data-tab="blocklist">🛡 Blocklist</button>
         <button class="tab" data-tab="settings">⚙ Settings</button>
       </nav>
@@ -81,6 +82,41 @@
             <label>Total</label>
           </div>
         </div>
+      </div>
+      <!-- ── HISTORY TAB ─────────────────────────────────────── -->
+      <div id="tab-history" class="tab-content hidden">
+        <div class="history-grid">
+          <div class="history-stat-card">
+            <span class="hist-icon">🍅</span>
+            <span id="histTodayPomos" class="hist-val">—</span>
+            <label class="hist-lbl">Today</label>
+          </div>
+          <div class="history-stat-card">
+            <span class="hist-icon">⏱</span>
+            <span id="histTotalHours" class="hist-val">—</span>
+            <label class="hist-lbl">Total Hours</label>
+          </div>
+          <div class="history-stat-card">
+            <span class="hist-icon">🏆</span>
+            <span id="histTotalPomos" class="hist-val">—</span>
+            <label class="hist-lbl">All Sessions</label>
+          </div>
+          <div class="history-stat-card">
+            <span class="hist-icon">🔥</span>
+            <span id="histBestStreak" class="hist-val">—</span>
+            <label class="hist-lbl">Best Streak</label>
+          </div>
+        </div>
+        <div class="history-section-title">Last 7 Days</div>
+        <div id="weeklyBars" class="weekly-bars"></div>
+        <div class="history-section-title" style="margin-top:12px">
+          <button id="histRefreshBtn" class="btn btn-ghost btn-sm" style="float:right">↺</button>
+          Stats
+        </div>
+        <p id="histEmpty" class="empty-state" style="display:none">
+          <span>📊</span>
+          <p>Complete your first Pomodoro to see history!</p>
+        </p>
       </div>
 
       <!-- ── BLOCKLIST TAB ──────────────────────────────────── -->

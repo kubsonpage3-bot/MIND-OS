@@ -2633,3 +2633,29 @@ WARNING 2026-07-22 23:16:53,690 log 5964 13324 Bad Request: /api/profile/
 WARNING 2026-07-22 23:17:00,710 log 5964 12944 Bad Request: /api/mutators/chest/open/
 ERROR 2026-07-22 23:29:58,556 task_service 13220 11924 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 ERROR 2026-07-22 23:30:51,085 task_service 13220 11924 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-23 13:56:13,942 log 13024 18764 Unauthorized: /api/extension/pair/
+WARNING 2026-07-23 13:56:14,405 log 13024 18764 Unauthorized: /api/extension/pair/
+WARNING 2026-07-23 13:56:15,273 log 13024 18764 Unauthorized: /api/extension/pair/
+WARNING 2026-07-23 13:56:15,372 log 13024 18764 Unauthorized: /api/extension/status/
+WARNING 2026-07-23 13:56:16,312 log 13024 18764 Unauthorized: /api/extension/status/
+WARNING 2026-07-23 13:56:17,246 log 13024 18764 Unauthorized: /api/extension/unlock-site/
+WARNING 2026-07-23 13:56:18,267 log 13024 18764 Unauthorized: /api/extension/unlock-site/
+WARNING 2026-07-23 13:56:19,173 log 13024 18764 Unauthorized: /api/extension/unlock-site/
+WARNING 2026-07-23 13:56:19,963 log 13024 18764 Unauthorized: /api/extension/blocklist/
+WARNING 2026-07-23 13:56:20,828 log 13024 18764 Unauthorized: /api/extension/blocklist/3/
+WARNING 2026-07-23 13:56:21,653 log 13024 18764 Unauthorized: /api/extension/blocklist/4/
+WARNING 2026-07-23 13:57:44,832 log 12600 18224 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 13:57:45,558 log 12600 18224 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 13:57:45,646 log 12600 18224 Unauthorized: /api/extension/status/
+WARNING 2026-07-23 13:57:46,552 log 12600 18224 Unauthorized: /api/extension/status/
+WARNING 2026-07-23 13:57:47,786 log 12600 18224 Unauthorized: /api/extension/unlock-site/
+WARNING 2026-07-23 13:57:48,672 log 12600 18224 Unauthorized: /api/extension/unlock-site/
+WARNING 2026-07-23 13:57:49,542 log 12600 18224 Unauthorized: /api/extension/unlock-site/
+WARNING 2026-07-23 13:57:50,426 log 12600 18224 Unauthorized: /api/extension/blocklist/
+WARNING 2026-07-23 13:57:51,219 log 12600 18224 Unauthorized: /api/extension/blocklist/7/
+WARNING 2026-07-23 13:57:52,083 log 12600 18224 Unauthorized: /api/extension/blocklist/8/
+WARNING 2026-07-23 13:58:36,424 log 19704 18356 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 13:58:37,136 log 19704 18356 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 13:58:37,221 log 19704 18356 Forbidden: /api/extension/status/
+WARNING 2026-07-23 13:58:39,556 log 19704 18356 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 13:58:41,747 log 19704 18356 Bad Request: /api/extension/unlock-site/

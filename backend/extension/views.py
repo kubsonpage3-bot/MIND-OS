@@ -4,8 +4,12 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import UserProfile
@@ -54,6 +58,8 @@ def web_status(request):
 
 
 @api_view(["POST"])
+@authentication_classes([])
+@permission_classes([AllowAny])
 def pair(request):
     """
     Exchange OTP code for a scoped ExtensionToken.
@@ -89,6 +95,7 @@ def pair(request):
 
 
 @api_view(["GET"])
+@authentication_classes([])
 @permission_classes([IsExtensionAuthenticated])
 def status_view(request):
     """
@@ -119,6 +126,7 @@ def status_view(request):
 
 
 @api_view(["POST"])
+@authentication_classes([])
 @permission_classes([IsExtensionAuthenticated])
 def unlock_site(request):
     """
@@ -174,6 +182,7 @@ def unlock_site(request):
 
 
 @api_view(["GET", "POST"])
+@authentication_classes([])
 @permission_classes([IsExtensionAuthenticated])
 def blocklist(request):
     if request.method == "GET":
@@ -201,6 +210,7 @@ def blocklist(request):
 
 
 @api_view(["PATCH", "DELETE"])
+@authentication_classes([])
 @permission_classes([IsExtensionAuthenticated])
 def blocklist_detail(request, pk):
     try:
