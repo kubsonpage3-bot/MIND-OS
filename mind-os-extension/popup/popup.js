@@ -143,6 +143,23 @@ disconnectBtn.addEventListener('click', async () => {
 
 // ─── Sync ────────────────────────────────────────────────────────────────────
 
+function renderActivityOptions(activities) {
+  if (!extActivitySelect) return;
+  const currentVal = extActivitySelect.value;
+  extActivitySelect.innerHTML = '<option value="">-- Select Activity --</option>';
+  if (Array.isArray(activities)) {
+    activities.forEach((act) => {
+      const opt = document.createElement('option');
+      opt.value = act.key;
+      opt.textContent = `${act.icon || '🔘'} ${act.label || act.key}`;
+      extActivitySelect.appendChild(opt);
+    });
+  }
+  if (currentVal) {
+    extActivitySelect.value = currentVal;
+  }
+}
+
 async function syncAndRender() {
   const res = await browser.runtime.sendMessage({ type: 'SYNC' });
   if (!res?.ok) { showPairScreen(); return; }
@@ -152,6 +169,10 @@ async function syncAndRender() {
   state.maxHp          = res.maxHp ?? 100;
   state.blockedSites   = res.blockedSites ?? [];
   state.activeUnlocks  = res.activeUnlocks ?? [];
+
+  if (res.user_activities) {
+    renderActivityOptions(res.user_activities);
+  }
 
   if (res.active_session?.active) {
     const act = res.active_session;

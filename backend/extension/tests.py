@@ -93,6 +93,8 @@ def test_status_returns_gold_and_hp(client, user, ext_token):
     data = res.json()
     assert data["gold"] == 500
     assert data["hp"] == 80
+    assert "user_activities" in data
+    assert len(data["user_activities"]) >= 18
 
 
 # ── Unlock site ───────────────────────────────────────────────────────────────

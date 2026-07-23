@@ -99,6 +99,7 @@ async function syncBlocklist() {
       hp: data.hp,
       maxHp: data.max_hp,
       active_session: data.active_session,
+      user_activities: data.user_activities,
     });
     await applyBlockRules(data.blocked_sites);
   } catch (e) {
@@ -132,7 +133,7 @@ browser.runtime.onMessage.addListener(async (msg) => {
     case 'SYNC': {
       await syncBlocklist();
       const state = await browser.storage.local.get([
-        'gold', 'hp', 'maxHp', 'blockedSites', 'activeUnlocks', 'active_session',
+        'gold', 'hp', 'maxHp', 'blockedSites', 'activeUnlocks', 'active_session', 'user_activities',
       ]);
       return { ok: true, ...state };
     }

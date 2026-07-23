@@ -114,7 +114,7 @@ def status_view(request):
     active_unlocks = SiteUnlock.objects.filter(user=request.user)
     blocked_sites = BlockedSite.objects.filter(user=request.user)
 
-    from api.models import ActivePomodoroSession
+    from api.models import ActivePomodoroSession, Task
 
     active_pomo = ActivePomodoroSession.objects.filter(user=request.user).first()
     active_session_data = None
@@ -129,6 +129,39 @@ def status_view(request):
             "started_at": active_pomo.started_at,
         }
 
+    BASE_ACTIVITIES = [
+        {"key": "mathematics", "label": "Mathematics", "icon": "∑"},
+        {"key": "physics", "label": "Physics", "icon": "⚛"},
+        {"key": "history", "label": "History", "icon": "📜"},
+        {"key": "english", "label": "English", "icon": "✍"},
+        {"key": "philosophy", "label": "Philosophy", "icon": "φ"},
+        {"key": "vocabulary", "label": "Vocabulary", "icon": "Aa"},
+        {"key": "chess", "label": "Chess / Logic", "icon": "♟"},
+        {"key": "coding", "label": "Coding", "icon": "</>"},
+        {"key": "creative_answers", "label": "Creative Answers", "icon": "💡"},
+        {"key": "exercise", "label": "Exercise", "icon": "⚡"},
+        {"key": "prayer", "label": "Prayer / Meditation", "icon": "🕊️"},
+        {"key": "running", "label": "Running", "icon": "🏃"},
+        {"key": "reading", "label": "Reading", "icon": "📖"},
+        {"key": "german", "label": "German", "icon": "🇩🇪"},
+        {"key": "languages", "label": "Other Languages", "icon": "🌐"},
+        {"key": "psychology", "label": "Psychology", "icon": "💗"},
+        {"key": "chemistry", "label": "Chemistry", "icon": "💎"},
+        {"key": "neuroscience", "label": "Neuroscience", "icon": "🧠"},
+    ]
+
+    custom_tasks = Task.objects.filter(user=request.user, task_type="button")
+    custom_activities = [
+        {
+            "key": f"custom_task_{t.id}",
+            "label": t.title,
+            "icon": t.icon or "🔘",
+        }
+        for t in custom_tasks
+    ]
+
+    user_activities = BASE_ACTIVITIES + custom_activities
+
     return Response(
         {
             "gold": profile.gold,
@@ -137,6 +170,7 @@ def status_view(request):
             "blocked_sites": BlockedSiteSerializer(blocked_sites, many=True).data,
             "active_unlocks": SiteUnlockSerializer(active_unlocks, many=True).data,
             "active_session": active_session_data,
+            "user_activities": user_activities,
         }
     )
 

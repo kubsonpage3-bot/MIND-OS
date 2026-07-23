@@ -2732,3 +2732,27 @@ WARNING 2026-07-23 14:24:22,460 log 19896 21052 Not Found: /api/party/members/99
 ERROR 2026-07-23 14:24:31,094 task_service 23116 18640 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
 ERROR 2026-07-23 14:24:50,702 task_service 19896 21052 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 WARNING 2026-07-23 14:25:14,612 log 23116 18640 Bad Request: /api/profile/
+WARNING 2026-07-23 14:25:21,136 log 23116 18640 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:25:21,896 log 23116 18640 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:25:21,990 log 23116 18640 Forbidden: /api/extension/status/
+WARNING 2026-07-23 14:25:24,601 log 23116 18640 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:25:26,941 log 23116 18640 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:25:31,931 log 23116 16860 Bad Request: /api/mutators/chest/open/
+ERROR 2026-07-23 14:25:52,349 task_service 19896 21052 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-23 14:26:29,046 log 19896 21052 Bad Request: /api/profile/
+WARNING 2026-07-23 14:26:35,253 log 19896 21052 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:26:35,989 log 19896 21052 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:26:36,080 log 19896 21052 Forbidden: /api/extension/status/
+WARNING 2026-07-23 14:26:38,556 log 19896 21052 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:26:41,164 log 19896 21052 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:26:47,014 log 19896 15236 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:27:21,399 log 19384 22712 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:27:22,162 log 19384 22712 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:27:22,260 log 19384 22712 Forbidden: /api/extension/status/
+WARNING 2026-07-23 14:27:24,576 log 19384 22712 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:27:27,261 log 19384 22712 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:27:46,854 log 3840 22124 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:27:47,610 log 3840 22124 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 14:27:47,705 log 3840 22124 Forbidden: /api/extension/status/
+WARNING 2026-07-23 14:27:50,222 log 3840 22124 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 14:27:52,574 log 3840 22124 Bad Request: /api/extension/unlock-site/

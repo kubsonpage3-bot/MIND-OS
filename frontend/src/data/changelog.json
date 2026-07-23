@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.18",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Firefox Extension activities dropdown is now fully dynamic per-user: fetches each user's unique list of activities and custom-created button tasks directly from their account API."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.17",
     "changes": [
       {
