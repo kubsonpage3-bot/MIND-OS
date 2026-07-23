@@ -156,6 +156,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
 
   const {
     saveSession,
+    isSaving,
     activeSession,
     startActiveSession,
     pauseActiveSession,
