@@ -1,6 +1,20 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.28",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed site blocker: blocked sites now show a full-screen interactive RPG overlay instead of a blank page. Pay To Pass button works correctly with gold balance display."
+      },
+      {
+        "type": "fix",
+        "text": "Removed conflicting declarativeNetRequest redirect rules that were causing blank pages. Site blocking now uses content script in-page overlay exclusively."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.27",
     "changes": [
       {

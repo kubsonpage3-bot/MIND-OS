@@ -2771,3 +2771,8 @@ WARNING 2026-07-23 21:04:28,610 log 25436 25380 Bad Request: /api/extension/pair
 WARNING 2026-07-23 21:04:28,700 log 25436 25380 Forbidden: /api/extension/status/
 WARNING 2026-07-23 21:04:31,291 log 25436 25380 Bad Request: /api/extension/unlock-site/
 WARNING 2026-07-23 21:04:33,634 log 25436 25380 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 21:19:42,495 log 2908 1444 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 21:19:43,238 log 2908 1444 Bad Request: /api/extension/pair/
+WARNING 2026-07-23 21:19:43,330 log 2908 1444 Forbidden: /api/extension/status/
+WARNING 2026-07-23 21:19:45,779 log 2908 1444 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-23 21:19:48,082 log 2908 1444 Bad Request: /api/extension/unlock-site/

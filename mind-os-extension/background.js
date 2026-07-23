@@ -25,59 +25,24 @@ async function apiFetch(path, opts = {}) {
   return res;
 }
 
-// ─── Block / Unblock via declarativeNetRequest ───────────────────────────────
-
-function domainToRuleId(domain) {
-  // Stable integer from domain string — used as declarativeNetRequest rule id
-  let hash = 0;
-  for (let i = 0; i < domain.length; i++) {
-    hash = ((hash << 5) - hash + domain.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash) % 100000 + 1; // 1–100000, avoid 0
-}
+// ─── Block / Unblock via content.js overlay ──────────────────────────────────
+// NOTE: No DNR rules are used. Blocking is handled by content.js Shadow DOM overlay.
 
 async function applyBlockRules(blockedSites) {
-  // Remove all existing dynamic rules first, then re-add from server list
+  // Remove ALL existing dynamic DNR rules — we no longer use network-level redirect.
+  // Blocking is handled entirely by content.js in-page overlay (Shadow DOM).
+  // DNR redirect was causing blank pages by intercepting main_frame before content.js ran.
   const existing = await browser.declarativeNetRequest.getDynamicRules();
   const removeIds = existing.map((r) => r.id);
-
-  // Re-add only sites that are NOT currently unlocked
-  const { activeUnlocks = [] } = await browser.storage.local.get('activeUnlocks');
-  const unlockedDomains = new Set(
-    activeUnlocks
-      .filter((u) => new Date(u.unlocked_until) > new Date())
-      .map((u) => u.domain)
-  );
-
-  const addRules = blockedSites
-    .filter((s) => !unlockedDomains.has(s.domain))
-    .map((s) => {
-      const cleanDomain = s.domain.toLowerCase().trim().replace(/^www\./, '');
-      return {
-        id: domainToRuleId(cleanDomain),
-        priority: 1,
-        action: {
-          type: 'redirect',
-          redirect: {
-            extensionPath: '/popup/blocked.html',
-          },
-        },
-        condition: {
-          urlFilter: `||${cleanDomain}^`,
-          resourceTypes: ['main_frame'],
-        },
-      };
-    });
-
-  await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules });
-  console.log('[MIND OS] Block rules applied:', addRules.length, 'sites blocked.');
+  if (removeIds.length > 0) {
+    await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds });
+  }
+  console.log('[MIND OS] DNR rules cleared. Blocking via content.js overlay for', blockedSites.length, 'sites.');
 }
 
 async function temporarilyUnblock(domain, unlockedUntil) {
-  const ruleId = domainToRuleId(domain);
-  await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [ruleId] });
-
-  // Schedule re-block alarm
+  // No DNR rules to remove (blocking is content.js-based).
+  // Schedule re-sync alarm so content.js overlay re-appears after unlock expires.
   const delayMs = new Date(unlockedUntil).getTime() - Date.now();
   const delayMinutes = Math.max(0.1, delayMs / 60000);
   await browser.alarms.create(`reblock-${domain}`, { delayInMinutes: delayMinutes });
