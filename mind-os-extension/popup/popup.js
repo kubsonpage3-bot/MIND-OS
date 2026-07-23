@@ -250,25 +250,31 @@ if (extActivitySelect) {
   });
 }
 
-if (extDur30Btn && extDur60Btn) {
-  extDur30Btn.addEventListener('click', () => {
-    linkedExtDuration = 30;
-    extDur30Btn.classList.add('active');
-    extDur60Btn.classList.remove('active');
-    if (isLinkedMode) {
-      timerTotalSeconds = 30 * 60;
-      timerSeconds = 30 * 60;
-      updateTimerDisplay();
-    }
-  });
+const extCustomMinInput = $('extCustomMinInput');
 
-  extDur60Btn.addEventListener('click', () => {
-    linkedExtDuration = 60;
-    extDur60Btn.classList.add('active');
-    extDur30Btn.classList.remove('active');
-    if (isLinkedMode) {
-      timerTotalSeconds = 60 * 60;
-      timerSeconds = 60 * 60;
+document.querySelectorAll('.dur-preset-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (timerRunning) return;
+    document.querySelectorAll('.dur-preset-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mins = parseInt(btn.getAttribute('data-min') || '25', 10);
+    linkedExtDuration = mins;
+    timerTotalSeconds = mins * 60;
+    timerSeconds = mins * 60;
+    if (extCustomMinInput) extCustomMinInput.value = '';
+    updateTimerDisplay();
+  });
+});
+
+if (extCustomMinInput) {
+  extCustomMinInput.addEventListener('input', (e) => {
+    if (timerRunning) return;
+    const mins = parseInt(e.target.value, 10);
+    if (!isNaN(mins) && mins > 0 && mins <= 480) {
+      document.querySelectorAll('.dur-preset-btn').forEach((b) => b.classList.remove('active'));
+      linkedExtDuration = mins;
+      timerTotalSeconds = mins * 60;
+      timerSeconds = mins * 60;
       updateTimerDisplay();
     }
   });

@@ -351,16 +351,28 @@ html, body {
   width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border);
   color: #fff; border-radius: 6px; padding: 4px 8px; font-size: 11px;
 }
-.duration-btn-group { display: flex; gap: 4px; }
-.dur-btn {
+.duration-control-bar {
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 8px; overflow-x: auto; padding-bottom: 2px;
+}
+.dur-preset-btn {
   flex: 1; padding: 4px 0; font-size: 9px; font-weight: 700;
-  color: var(--dim); background: transparent; border: 1px solid var(--border);
-  border-radius: 6px; cursor: pointer;
+  color: var(--dim); background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; transition: all 0.15s ease; min-width: 28px;
 }
-.dur-btn.active {
-  background: rgba(236,72,153,0.2); color: #ec4899;
-  border-color: #ec4899;
+.dur-preset-btn.active {
+  background: rgba(124,58,237,0.25); color: var(--purple);
+  border-color: var(--purple); font-weight: 800;
 }
+.custom-min-box {
+  display: flex; align-items: center; gap: 2px; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: 6px; padding: 0 4px;
+}
+.custom-min-input {
+  width: 32px; background: transparent; border: none; color: #fff;
+  font-size: 10px; font-weight: 800; text-align: center; outline: none;
+}
+.min-unit { font-size: 9px; color: var(--dim); font-weight: 700; }
 
 .char-badge {
   display: flex; align-items: center; justify-content: center; gap: 4px;

@@ -1,6 +1,20 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.17",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Pomodoro duration selector now supports quick presets (15m, 25m, 30m, 45m, 60m) and custom minute inputs for any custom duration."
+      },
+      {
+        "type": "feature",
+        "text": "Firefox Extension Linked Activity dropdown now syncs all 18 Cognitive Engine activities (Mathematics, Physics, History, Coding, German, etc.) directly with the MIND OS Training tab."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.16",
     "changes": [
       {

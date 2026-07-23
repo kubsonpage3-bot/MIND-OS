@@ -62,15 +62,37 @@
         <div id="extActivityBox" class="activity-box hidden">
           <select id="extActivitySelect" class="activity-select">
             <option value="">-- Select Activity --</option>
-            <option value="math">🧠 Mathematics</option>
-            <option value="coding">💻 Coding</option>
-            <option value="languages">🗣 Languages</option>
-            <option value="reading">📚 Reading</option>
-            <option value="science">🔬 Science</option>
+            <option value="mathematics">∑ Mathematics</option>
+            <option value="physics">⚛ Physics</option>
+            <option value="history">📜 History</option>
+            <option value="english">✍ English</option>
+            <option value="philosophy">φ Philosophy</option>
+            <option value="vocabulary">Aa Vocabulary</option>
+            <option value="chess">♟ Chess / Logic</option>
+            <option value="coding">&lt;/&gt; Coding</option>
+            <option value="creative_answers">💡 Creative Answers</option>
+            <option value="exercise">⚡ Exercise</option>
+            <option value="prayer">🕊️ Prayer / Meditation</option>
+            <option value="running">🏃 Running</option>
+            <option value="reading">📖 Reading</option>
+            <option value="german">🇩🇪 German</option>
+            <option value="languages">🌐 Other Languages</option>
+            <option value="psychology">💗 Psychology</option>
+            <option value="chemistry">💎 Chemistry</option>
+            <option value="neuroscience">🧠 Neuroscience</option>
           </select>
-          <div class="duration-btn-group">
-            <button id="extDur30Btn" class="dur-btn active" data-min="30">30 MINS</button>
-            <button id="extDur60Btn" class="dur-btn" data-min="60">1 HOUR</button>
+        </div>
+
+        <!-- Duration Controls (Presets + Custom Input) -->
+        <div class="duration-control-bar">
+          <button class="dur-preset-btn" data-min="15">15m</button>
+          <button class="dur-preset-btn active" data-min="25">25m</button>
+          <button class="dur-preset-btn" data-min="30">30m</button>
+          <button class="dur-preset-btn" data-min="45">45m</button>
+          <button class="dur-preset-btn" data-min="60">60m</button>
+          <div class="custom-min-box">
+            <input type="number" id="extCustomMinInput" min="1" max="480" placeholder="min" class="custom-min-input" />
+            <span class="min-unit">m</span>
           </div>
         </div>
 

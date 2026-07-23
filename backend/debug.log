@@ -2707,3 +2707,28 @@ Traceback (most recent call last):
     profile = UserProfile.objects.select_for_update().get(user=request.user)
               ^^^^^^^^^^^
 NameError: name 'UserProfile' is not defined
+WARNING 2026-07-23 14:21:16,286 log 19896 21052 Unauthorized: /api/analytics/event/
+WARNING 2026-07-23 14:21:18,418 log 19896 21052 Bad Request: /api/analytics/event/
+WARNING 2026-07-23 14:21:25,738 log 23116 18640 Bad Request: /api/profile/
+WARNING 2026-07-23 14:21:27,002 log 19896 21052 Bad Request: /api/auth/register/
+WARNING 2026-07-23 14:21:29,448 log 23116 18640 Forbidden: /api/calendar/events/
+WARNING 2026-07-23 14:22:25,794 log 23116 18640 Bad Request: /api/tasks/3744/sacrifice/
+WARNING 2026-07-23 14:22:41,448 log 19896 21052 Bad Request: /api/profile/
+WARNING 2026-07-23 14:22:41,456 log 23116 18640 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:22:42,036 log 23116 18640 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:22:43,942 log 23116 18640 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:22:44,428 log 23116 18640 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-23 14:22:44,987 log 19896 21052 Forbidden: /api/calendar/events/
+WARNING 2026-07-23 14:23:15,750 log 23116 18640 Forbidden: /api/party/members/9341/profile/
+WARNING 2026-07-23 14:23:17,583 log 23116 18640 Not Found: /api/party/members/999999/profile/
+WARNING 2026-07-23 14:23:27,190 log 19896 21052 Bad Request: /api/tasks/3766/sacrifice/
+ERROR 2026-07-23 14:23:40,236 task_service 23116 18640 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-23 14:23:43,699 log 19896 21052 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:23:44,287 log 19896 21052 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:23:46,214 log 19896 21052 Bad Request: /api/mutators/chest/open/
+WARNING 2026-07-23 14:23:46,705 log 19896 21052 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-07-23 14:24:20,726 log 19896 21052 Forbidden: /api/party/members/9435/profile/
+WARNING 2026-07-23 14:24:22,460 log 19896 21052 Not Found: /api/party/members/999999/profile/
+ERROR 2026-07-23 14:24:31,094 task_service 23116 18640 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+ERROR 2026-07-23 14:24:50,702 task_service 19896 21052 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+WARNING 2026-07-23 14:25:14,612 log 23116 18640 Bad Request: /api/profile/
