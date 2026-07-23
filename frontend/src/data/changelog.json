@@ -1,6 +1,28 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Extension now shows your XP progress bar, rank badge (E through SSS), level, Mana bar, and daily streak directly in the popup header."
+      },
+      {
+        "type": "feature",
+        "text": "New 'Today' tab in the extension popup lets you view and complete your custom button-tasks directly from Firefox, with instant XP + Gold rewards shown as a toast notification."
+      },
+      {
+        "type": "feature",
+        "text": "Extension popup redesigned with Press Start 2P pixel font on timer, rank, and logo; CSS glow animations for SS/SSS ranks; ring pulse while timer is running; wider 400px layout."
+      },
+      {
+        "type": "fix",
+        "text": "Removed hardcoded activity options from extension HTML — activities now always load dynamically from your account."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.22",
     "changes": [
       {

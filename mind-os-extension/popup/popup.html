@@ -13,22 +13,37 @@
     <header class="header">
       <div class="logo">
         <img src="../icons/icon-48.png" alt="MIND OS" class="logo-icon" />
-        <span class="logo-text">MIND OS</span>
-        <span class="logo-sub">Companion</span>
+        <div class="logo-text-wrap">
+          <span class="logo-text">MIND OS</span>
+          <span class="logo-sub">COMPANION</span>
+        </div>
       </div>
-      <div class="stats-bar" id="statsBar">
-        <span class="stat" id="goldStat">
-          <span class="stat-icon">🪙</span>
-          <span id="goldValue">—</span>
-        </span>
-        <span class="stat" id="hpStat">
+      <div class="header-right" id="statsBar">
+        <div class="rank-badge" id="rankBadge">E</div>
+        <div class="stat" id="hpStat">
           <span class="stat-icon">❤️</span>
           <span id="hpValue">—</span>
-        </span>
+        </div>
+        <div class="stat" id="goldStat">
+          <span class="stat-icon">🪙</span>
+          <span id="goldValue">—</span>
+        </div>
       </div>
     </header>
 
-    <!-- ── PAIR SCREEN (hidden when paired) ──────────────── -->
+    <!-- XP Bar -->
+    <div class="xp-bar-wrap" id="xpBarWrap">
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+      </div>
+      <div class="xp-bar-label">
+        <span class="xp-bar-txt" id="xpBarLabel">LVL <span id="xpLevel">—</span></span>
+        <span class="xp-bar-txt dim" id="xpBarProgress">—/— XP</span>
+        <span class="xp-bar-txt" id="streakBadge">🔥 —</span>
+      </div>
+    </div>
+
+    <!-- ── PAIR SCREEN ──────────────────────────────────────── -->
     <div id="pairScreen" class="screen">
       <div class="pair-card">
         <div class="pair-icon">🔗</div>
@@ -40,14 +55,15 @@
       </div>
     </div>
 
-    <!-- ── MAIN UI (hidden until paired) ─────────────────── -->
+    <!-- ── MAIN UI ──────────────────────────────────────────── -->
     <div id="mainUI" class="hidden">
       <!-- Tabs -->
       <nav class="tabs">
         <button class="tab active" data-tab="timer">⏱ Timer</button>
+        <button class="tab" data-tab="today">⚡ Today</button>
         <button class="tab" data-tab="history">📊 History</button>
-        <button class="tab" data-tab="blocklist">🛡 Blocklist</button>
-        <button class="tab" data-tab="settings">⚙ Settings</button>
+        <button class="tab" data-tab="blocklist">🛡 Block</button>
+        <button class="tab" data-tab="settings">⚙ Set</button>
       </nav>
 
       <!-- ── TIMER TAB ─────────────────────────────────────── -->
@@ -62,28 +78,10 @@
         <div id="extActivityBox" class="activity-box hidden">
           <select id="extActivitySelect" class="activity-select">
             <option value="">-- Select Activity --</option>
-            <option value="mathematics">∑ Mathematics</option>
-            <option value="physics">⚛ Physics</option>
-            <option value="history">📜 History</option>
-            <option value="english">✍ English</option>
-            <option value="philosophy">φ Philosophy</option>
-            <option value="vocabulary">Aa Vocabulary</option>
-            <option value="chess">♟ Chess / Logic</option>
-            <option value="coding">&lt;/&gt; Coding</option>
-            <option value="creative_answers">💡 Creative Answers</option>
-            <option value="exercise">⚡ Exercise</option>
-            <option value="prayer">🕊️ Prayer / Meditation</option>
-            <option value="running">🏃 Running</option>
-            <option value="reading">📖 Reading</option>
-            <option value="german">🇩🇪 German</option>
-            <option value="languages">🌐 Other Languages</option>
-            <option value="psychology">💗 Psychology</option>
-            <option value="chemistry">💎 Chemistry</option>
-            <option value="neuroscience">🧠 Neuroscience</option>
           </select>
         </div>
 
-        <!-- Duration Controls (Presets + Custom Input) -->
+        <!-- Duration Controls -->
         <div class="duration-control-bar">
           <button class="dur-preset-btn" data-min="15">15m</button>
           <button class="dur-preset-btn active" data-min="25">25m</button>
@@ -150,6 +148,35 @@
           </div>
         </div>
       </div>
+
+      <!-- ── TODAY TAB ─────────────────────────────────────── -->
+      <div id="tab-today" class="tab-content hidden">
+        <div class="today-header">
+          <span class="today-title pixel-text">⚡ TODAY'S QUESTS</span>
+          <span class="today-sub" id="todayDate">—</span>
+        </div>
+        <div id="todayTaskList" class="task-list">
+          <div class="empty-state" id="todayEmpty">
+            <span>📋</span>
+            <p>No custom tasks yet.<br/>Create button-tasks in MIND OS.</p>
+          </div>
+        </div>
+        <!-- Reward Toast -->
+        <div id="rewardToast" class="reward-toast hidden">
+          <span id="rewardToastText">+15 XP • +7 🪙</span>
+        </div>
+        <!-- Mana bar -->
+        <div class="mana-section">
+          <div class="mana-label">
+            <span class="pixel-text-sm">MANA</span>
+            <span id="manaValue" class="mana-value">—/—</span>
+          </div>
+          <div class="mana-bar-track">
+            <div class="mana-bar-fill" id="manaBarFill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── HISTORY TAB ─────────────────────────────────────── -->
       <div id="tab-history" class="tab-content hidden">
         <div class="history-grid">
@@ -188,7 +215,6 @@
 
       <!-- ── BLOCKLIST TAB ──────────────────────────────────── -->
       <div id="tab-blocklist" class="tab-content hidden">
-        <!-- Current tab quick-add -->
         <div class="quick-add-bar">
           <div class="quick-add-info">
             <span class="quick-site-icon">🌐</span>
@@ -196,8 +222,6 @@
           </div>
           <button id="blockCurrentBtn" class="btn btn-sm btn-danger">Block</button>
         </div>
-
-        <!-- Site list -->
         <div id="blocklist-container" class="blocklist-container">
           <div class="empty-state" id="blocklistEmpty">
             <span>🏰</span>
@@ -205,8 +229,6 @@
           </div>
           <ul id="blocklist-ul" class="site-list"></ul>
         </div>
-
-        <!-- Add manually -->
         <div class="add-manual">
           <input type="text" id="manualDomainInput" placeholder="example.com" class="domain-input" />
           <button id="addManualBtn" class="btn btn-sm btn-primary">+ Add</button>
@@ -255,7 +277,7 @@
     </div>
   </div>
 
-  <!-- ── SITE EDIT MODAL ─────────────────────────────────── -->
+  <!-- ── SITE EDIT MODAL ───────────────────────────────── -->
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal">
       <h3>Edit Site Rule</h3>
@@ -275,19 +297,19 @@
     </div>
   </div>
 
-  <!-- ── UNLOCK MODAL ───────────────────────────────────── -->
+  <!-- ── UNLOCK MODAL ─────────────────────────────────── -->
   <div id="unlockModal" class="modal-overlay hidden">
     <div class="modal">
       <div class="unlock-icon">🔓</div>
       <h3>Unlock Site?</h3>
       <p id="unlockModalDomain" class="modal-domain"></p>
       <p class="unlock-cost-text">
-        Cost: <strong id="unlockModalCost">—</strong> 🪙 &nbsp;|&nbsp; 
+        Cost: <strong id="unlockModalCost">—</strong> 🪙 &nbsp;|&nbsp;
         Duration: <strong id="unlockModalDuration">—</strong> min
       </p>
       <p class="gold-current">Your gold: <strong id="unlockModalGold">—</strong></p>
       <div class="modal-actions">
-        <button id="unlockConfirmBtn" class="btn btn-primary">Pay & Unlock</button>
+        <button id="unlockConfirmBtn" class="btn btn-primary">Pay &amp; Unlock</button>
         <button id="unlockCancelBtn" class="btn btn-ghost">Cancel</button>
       </div>
       <p id="unlockError" class="error-msg hidden"></p>

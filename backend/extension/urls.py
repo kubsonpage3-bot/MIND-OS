@@ -22,4 +22,6 @@ urlpatterns = [
     path(
         "blocklist/<int:pk>/", views.blocklist_detail, name="extension-blocklist-detail"
     ),
+    # POST /api/extension/complete-task/ → log button-task done from extension
+    path("complete-task/", views.complete_task, name="extension-complete-task"),
 ]

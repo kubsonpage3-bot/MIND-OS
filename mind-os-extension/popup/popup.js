@@ -17,6 +17,13 @@ const pairError    = $('pairError');
 
 const goldValue    = $('goldValue');
 const hpValue      = $('hpValue');
+const rankBadge    = $('rankBadge');
+const xpBarFill    = $('xpBarFill');
+const xpLevel      = $('xpLevel');
+const xpBarProgress = $('xpBarProgress');
+const streakBadge  = $('streakBadge');
+const manaBarFill  = $('manaBarFill');
+const manaValue    = $('manaValue');
 
 const tabs         = document.querySelectorAll('.tab');
 const tabContents  = document.querySelectorAll('.tab-content');
@@ -69,8 +76,13 @@ const unlockError       = $('unlockError');
 
 let state = {
   gold: 0, hp: 0, maxHp: 100,
+  xp: 0, xpToNextLevel: 150, level: 1,
+  rank: 'E', rankProgressPct: 0,
+  mana: 0, maxMana: 100,
+  streak: 0,
   blockedSites: [],
   activeUnlocks: [],
+  todayTasks: [],
 };
 
 let editingSiteId    = null;
@@ -187,8 +199,17 @@ async function syncAndRender() {
   state.gold           = res.gold ?? 0;
   state.hp             = res.hp ?? 0;
   state.maxHp          = res.maxHp ?? 100;
+  state.xp             = res.xp ?? 0;
+  state.xpToNextLevel  = res.xp_to_next_level ?? 150;
+  state.level          = res.level ?? 1;
+  state.rank           = res.rank ?? 'E';
+  state.rankProgressPct = res.rank_progress_pct ?? 0;
+  state.mana           = res.mana ?? 0;
+  state.maxMana        = res.max_mana ?? 100;
+  state.streak         = res.streak ?? 0;
   state.blockedSites   = res.blockedSites ?? [];
   state.activeUnlocks  = res.activeUnlocks ?? [];
+  state.todayTasks     = res.today_tasks ?? [];
 
   if (res.user_activities) {
     renderActivityOptions(res.user_activities);
@@ -216,6 +237,7 @@ async function syncAndRender() {
 
   renderStats();
   renderBlocklist();
+  renderTodayTasks();
   loadPomodoroStats();
   lastSyncEl.textContent = 'Last sync: ' + new Date().toLocaleTimeString();
 }
@@ -227,6 +249,23 @@ syncNowBtn.addEventListener('click', () => syncAndRender());
 function renderStats() {
   goldValue.textContent = state.gold.toLocaleString();
   hpValue.textContent   = `${state.hp}/${state.maxHp}`;
+
+  // Rank badge
+  if (rankBadge) {
+    rankBadge.textContent = state.rank;
+    rankBadge.setAttribute('data-rank', state.rank);
+  }
+
+  // XP Bar
+  if (xpBarFill) xpBarFill.style.width = `${state.rankProgressPct}%`;
+  if (xpLevel) xpLevel.textContent = state.level;
+  if (xpBarProgress) xpBarProgress.textContent = `${state.xp}/${state.xpToNextLevel} XP`;
+  if (streakBadge) streakBadge.textContent = `🔥 ${state.streak}`;
+
+  // Mana
+  if (manaValue) manaValue.textContent = `${state.mana}/${state.maxMana}`;
+  const manaPct = state.maxMana > 0 ? Math.round((state.mana / state.maxMana) * 100) : 0;
+  if (manaBarFill) manaBarFill.style.width = `${manaPct}%`;
 }
 
 // ─── Tab nav ─────────────────────────────────────────────────────────────────
@@ -239,6 +278,97 @@ tabs.forEach((tab) => {
     $(`tab-${tab.dataset.tab}`).classList.remove('hidden');
   });
 });
+
+// ─── TODAY TAB ────────────────────────────────────────────────────────────────
+
+function renderTodayTasks() {
+  const list = $('todayTaskList');
+  const empty = $('todayEmpty');
+  const dateEl = $('todayDate');
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  if (!list) return;
+
+  const tasks = state.todayTasks || [];
+  if (!tasks.length) {
+    if (empty) empty.classList.remove('hidden');
+    list.querySelectorAll('.task-card').forEach(el => el.remove());
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  list.querySelectorAll('.task-card').forEach(el => el.remove());
+
+  tasks.forEach((task) => {
+    const card = document.createElement('div');
+    card.className = `task-card${task.completed_today ? ' completed' : ''}`;
+    card.dataset.id = task.id;
+    const actionHtml = task.completed_today
+      ? `<span class="task-done-badge">✓ DONE</span>`
+      : `<button class="task-complete-btn" data-id="${task.id}">✓ Complete</button>`;
+    card.innerHTML = `
+      <span class="task-card-icon">${task.icon || '🔘'}</span>
+      <span class="task-card-title">${task.title}</span>
+      ${actionHtml}
+    `;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('.task-complete-btn').forEach((btn) => {
+    btn.addEventListener('click', () => completeTaskFromExtension(parseInt(btn.dataset.id)));
+  });
+}
+
+async function completeTaskFromExtension(taskId) {
+  const btn = $('todayTaskList').querySelector(`.task-complete-btn[data-id="${taskId}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const { extensionToken } = await browser.storage.local.get('extensionToken');
+    if (!extensionToken) return;
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/api/extension/complete-task/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({ task_id: taskId }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      // Mark as done locally for instant feedback
+      state.todayTasks = state.todayTasks.map(t =>
+        t.id === taskId ? { ...t, completed_today: true } : t
+      );
+      renderTodayTasks();
+      showRewardToast(`+${data.xp_gained} XP  •  +${data.gold_gained} 🪙`);
+      // Re-sync to get updated gold/xp in header
+      setTimeout(syncAndRender, 800);
+    } else {
+      const errMap = {
+        already_completed_today: 'Already done today!',
+        task_not_found: 'Task not found.',
+      };
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Complete'; }
+      alert(errMap[data.error] || 'Could not complete task.');
+    }
+  } catch (e) {
+    console.error('[MIND OS] completeTaskFromExtension error:', e);
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Complete'; }
+  }
+}
+
+let _rewardToastTimeout = null;
+function showRewardToast(text) {
+  const toast = $('rewardToast');
+  const toastText = $('rewardToastText');
+  if (!toast || !toastText) return;
+  if (_rewardToastTimeout) clearTimeout(_rewardToastTimeout);
+  toastText.textContent = text;
+  toast.classList.remove('hidden');
+  _rewardToastTimeout = setTimeout(() => toast.classList.add('hidden'), 2100);
+}
 
 // ─── TIMER TAB ───────────────────────────────────────────────────────────────
 
@@ -378,6 +508,7 @@ function startTimer() {
   }
   timerRunning = true;
   timerStartBtn.textContent = '⏸ Pause';
+  if (ringProgress) ringProgress.classList.add('running');
 
   openPomodoroSession();
 
@@ -386,6 +517,7 @@ function startTimer() {
       clearInterval(timerInterval);
       timerRunning = false;
       timerStartBtn.textContent = '▶ Start';
+      if (ringProgress) ringProgress.classList.remove('running');
       
       if (isLinkedMode) {
         extRatingOverlay.classList.remove('hidden');
@@ -405,6 +537,7 @@ function startTimer() {
 function pauseTimer() {
   clearInterval(timerInterval);
   timerRunning = false;
+  if (ringProgress) ringProgress.classList.remove('running');
   timerStartBtn.textContent = '▶ Resume';
   notifyPauseSession();
 }
@@ -418,6 +551,7 @@ timerResetBtn.addEventListener('click', () => {
   timerRunning = false;
   timerSeconds = timerTotalSeconds;
   timerStartBtn.textContent = '▶ Start';
+  if (ringProgress) ringProgress.classList.remove('running');
   notifyResetSession();
   updateTimerDisplay();
 });

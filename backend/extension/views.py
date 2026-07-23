@@ -1,8 +1,7 @@
 import logging
 from datetime import timedelta
-
-from django.db import transaction
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -13,11 +12,45 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import UserProfile
+from api.constants import RANK_THRESHOLDS
 from .models import BlockedSite, ExtensionToken, PairingCode, SiteUnlock
 from .permissions import IsExtensionAuthenticated
 from .serializers import BlockedSiteSerializer, SiteUnlockSerializer
 
 logger = logging.getLogger(__name__)
+
+
+def _compute_rank(rank_xp: int) -> str:
+    current = "E"
+    for t in RANK_THRESHOLDS:
+        if rank_xp >= t["min"]:
+            current = t["id"]
+    return current
+
+
+def _rank_progress(rank_xp: int) -> dict:
+    rank = _compute_rank(rank_xp)
+    thresholds = RANK_THRESHOLDS
+    rank_ids = [t["id"] for t in thresholds]
+    idx = rank_ids.index(rank)
+    current_min = thresholds[idx]["min"]
+    next_min = (
+        thresholds[idx + 1]["min"]
+        if idx + 1 < len(thresholds)
+        else thresholds[idx]["min"]
+    )
+    in_rank = rank_xp - current_min
+    needed = max(1, next_min - current_min)
+    pct = min(100, int(in_rank / needed * 100))
+    return {
+        "rank": rank,
+        "rank_xp": rank_xp,
+        "rank_xp_in_rank": in_rank,
+        "rank_xp_to_next": max(0, next_min - rank_xp),
+        "rank_progress_pct": pct,
+        "is_max_rank": idx == len(thresholds) - 1,
+    }
+
 
 # ── Web-app endpoints (use standard JWT auth) ─────────────────────────────
 
@@ -100,15 +133,14 @@ def pair(request):
 def status_view(request):
     """
     Extension polls this on popup open.
-    Returns gold, hp, blocked sites, and active unlocks.
+    Returns gold, hp, xp, rank, mana, streak, blocked sites, active unlocks, today_tasks.
     """
     try:
-        profile = UserProfile.objects.get(user=request.user)
+        profile = UserProfile.objects.select_related("user").get(user=request.user)
     except UserProfile.DoesNotExist:
         return Response({"error": "profile_not_found"}, status=404)
 
     now = timezone.now()
-    # Clean expired unlocks
     SiteUnlock.objects.filter(user=request.user, unlocked_until__lt=now).delete()
 
     active_unlocks = SiteUnlock.objects.filter(user=request.user)
@@ -150,27 +182,56 @@ def status_view(request):
         {"key": "neuroscience", "label": "Neuroscience", "icon": "🧠"},
     ]
 
+    # Button tasks (custom activities) with today's completion status
+    today_str = now.date().isoformat()
     custom_tasks = Task.objects.filter(user=request.user, task_type="button")
-    custom_activities = [
-        {
-            "key": f"custom_task_{t.id}",
-            "label": t.title,
-            "icon": t.icon or "🔘",
-        }
-        for t in custom_tasks
-    ]
+    custom_activities = []
+    today_tasks = []
+    for t in custom_tasks:
+        task_key = f"custom_task_{t.id}"
+        completed_today = (
+            t.last_completed_at is not None
+            and t.last_completed_at.date().isoformat() == today_str
+        )
+        custom_activities.append(
+            {"key": task_key, "label": t.title, "icon": t.icon or "🔘"}
+        )
+        today_tasks.append(
+            {
+                "id": t.id,
+                "key": task_key,
+                "title": t.title,
+                "icon": t.icon or "🔘",
+                "completed_today": completed_today,
+            }
+        )
 
     user_activities = BASE_ACTIVITIES + custom_activities
 
+    rank_data = _rank_progress(profile.rank_xp)
+
     return Response(
         {
+            # Core resources
             "gold": profile.gold,
             "hp": profile.hp,
             "max_hp": profile.max_hp,
+            "mana": profile.mana,
+            "max_mana": profile.mana_max,
+            # Character progression
+            "xp": profile.xp,
+            "xp_to_next_level": profile.xp_to_next_level,
+            "level": profile.level,
+            "streak": profile.streak,
+            **rank_data,
+            # Blocklist
             "blocked_sites": BlockedSiteSerializer(blocked_sites, many=True).data,
             "active_unlocks": SiteUnlockSerializer(active_unlocks, many=True).data,
+            # Pomodoro
             "active_session": active_session_data,
+            # Activities
             "user_activities": user_activities,
+            "today_tasks": today_tasks,
         }
     )
 
@@ -278,3 +339,66 @@ def blocklist_detail(request, pk):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
+
+
+@api_view(["POST"])
+@authentication_classes([])
+@permission_classes([IsExtensionAuthenticated])
+def complete_task(request):
+    """
+    Log a button-task completion from the extension popup.
+    Awards XP + Gold based on the task's difficulty setting.
+    """
+    from api.models import Task
+    from api.services.profile_service import gain_xp
+    from api.constants import TASK_REWARD_TABLE
+
+    task_id = request.data.get("task_id")
+    if not task_id:
+        return Response({"error": "task_id_required"}, status=400)
+
+    try:
+        task = Task.objects.get(id=task_id, user=request.user, task_type="button")
+    except Task.DoesNotExist:
+        return Response({"error": "task_not_found"}, status=404)
+
+    now = timezone.now()
+    today_str = now.date().isoformat()
+
+    # Idempotency: prevent double-completing in same day
+    if (
+        task.last_completed_at
+        and task.last_completed_at.date().isoformat() == today_str
+    ):
+        return Response({"error": "already_completed_today"}, status=400)
+
+    difficulty = getattr(task, "difficulty", "easy") or "easy"
+    rewards = TASK_REWARD_TABLE.get(difficulty, TASK_REWARD_TABLE["easy"])
+    xp_gained = rewards["xp"]
+    gold_gained = rewards["gold"]
+
+    with transaction.atomic():
+        profile = UserProfile.objects.select_for_update().get(user=request.user)
+        leveled_up = gain_xp(profile, xp_gained)
+        profile.gold = max(0, profile.gold + gold_gained)
+        profile.save(update_fields=["gold"])
+        task.completion_count = (task.completion_count or 0) + 1
+        task.last_completed_at = now
+        task.save(update_fields=["completion_count", "last_completed_at"])
+
+    logger.info(
+        "Extension task complete: user=%s task_id=%s xp=%s gold=%s",
+        request.user.username,
+        task.id,
+        xp_gained,
+        gold_gained,
+    )
+    return Response(
+        {
+            "ok": True,
+            "xp_gained": xp_gained,
+            "gold_gained": gold_gained,
+            "task_id": task.id,
+            "leveled_up": leveled_up,
+        }
+    )

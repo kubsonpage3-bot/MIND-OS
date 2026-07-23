@@ -98,8 +98,17 @@ async function syncBlocklist() {
       gold: data.gold,
       hp: data.hp,
       maxHp: data.max_hp,
+      mana: data.mana,
+      max_mana: data.max_mana,
+      xp: data.xp,
+      xp_to_next_level: data.xp_to_next_level,
+      level: data.level,
+      rank: data.rank,
+      rank_progress_pct: data.rank_progress_pct,
+      streak: data.streak,
       active_session: data.active_session,
       user_activities: data.user_activities,
+      today_tasks: data.today_tasks,
     });
     await applyBlockRules(data.blocked_sites);
   } catch (e) {
@@ -133,7 +142,11 @@ browser.runtime.onMessage.addListener(async (msg) => {
     case 'SYNC': {
       await syncBlocklist();
       const state = await browser.storage.local.get([
-        'gold', 'hp', 'maxHp', 'blockedSites', 'activeUnlocks', 'active_session', 'user_activities',
+        'gold', 'hp', 'maxHp',
+        'mana', 'max_mana', 'xp', 'xp_to_next_level', 'level',
+        'rank', 'rank_progress_pct', 'streak',
+        'blockedSites', 'activeUnlocks', 'active_session',
+        'user_activities', 'today_tasks',
       ]);
       return { ok: true, ...state };
     }
