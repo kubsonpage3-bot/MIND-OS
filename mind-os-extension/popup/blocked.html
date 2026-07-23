@@ -343,7 +343,7 @@
       }
 
       const site = (blockedSites || []).find((s) => s.domain === domain);
-      const cost = site ? site.unlock_cost : 111;
+      const cost = site ? site.unlock_cost : 100;
       const duration = site ? site.unlock_duration_minutes : 30;
 
       document.getElementById('unlockCostVal').textContent = cost;

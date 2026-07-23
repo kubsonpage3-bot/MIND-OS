@@ -61,7 +61,7 @@ class BlockedSite(models.Model):
     )
     domain = models.CharField(max_length=255)
     # Per-site customizable cost & duration
-    unlock_cost = models.PositiveIntegerField(default=111)
+    unlock_cost = models.PositiveIntegerField(default=100)
     unlock_duration_minutes = models.PositiveIntegerField(default=30)
     created_at = models.DateTimeField(auto_now_add=True)
 

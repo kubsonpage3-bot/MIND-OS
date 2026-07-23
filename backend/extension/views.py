@@ -308,7 +308,7 @@ def blocklist(request):
             user=request.user,
             domain=serializer.validated_data["domain"].lower().strip(),
             defaults={
-                "unlock_cost": serializer.validated_data.get("unlock_cost", 111),
+                "unlock_cost": serializer.validated_data.get("unlock_cost", 100),
                 "unlock_duration_minutes": serializer.validated_data.get(
                     "unlock_duration_minutes", 30
                 ),

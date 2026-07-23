@@ -706,7 +706,7 @@ manualDomainInput.addEventListener('keydown', (e) => {
 });
 
 async function addSite(domain) {
-  const cost     = parseInt(defaultCostInput.value) || 111;
+  const cost     = parseInt(defaultCostInput.value) || 100;
   const duration = parseInt(defaultDurationInput.value) || 30;
   blockCurrentBtn.disabled = true;
   addManualBtn.disabled = true;
@@ -852,7 +852,7 @@ editCancelBtn.addEventListener('click', () => {
 
 editSaveBtn.addEventListener('click', async () => {
   if (!editingSiteId) return;
-  const cost     = parseInt(editCostInput.value) || 111;
+  const cost     = parseInt(editCostInput.value) || 100;
   const duration = parseInt(editDurationInput.value) || 30;
 
   editSaveBtn.disabled = true;

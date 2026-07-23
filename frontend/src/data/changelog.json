@@ -1,6 +1,20 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.26",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Synchronized default site unlock cost from 111 to 100 gold across extension settings, content script overlay, popup defaults, and Django backend models."
+      },
+      {
+        "type": "feature",
+        "text": "In-page overlay now dynamically reads and formats the exact unlock cost and duration configured in extension settings for each individual site."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.25",
     "changes": [
       {
