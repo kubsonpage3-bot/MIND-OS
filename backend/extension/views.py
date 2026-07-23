@@ -114,6 +114,21 @@ def status_view(request):
     active_unlocks = SiteUnlock.objects.filter(user=request.user)
     blocked_sites = BlockedSite.objects.filter(user=request.user)
 
+    from api.models import ActivePomodoroSession
+
+    active_pomo = ActivePomodoroSession.objects.filter(user=request.user).first()
+    active_session_data = None
+    if active_pomo:
+        active_session_data = {
+            "active": True,
+            "linked_activity_key": active_pomo.linked_activity_key,
+            "duration_minutes": active_pomo.duration_minutes,
+            "mode": active_pomo.mode,
+            "is_paused": active_pomo.is_paused,
+            "remaining_seconds": active_pomo.remaining_seconds(),
+            "started_at": active_pomo.started_at,
+        }
+
     return Response(
         {
             "gold": profile.gold,
@@ -121,6 +136,7 @@ def status_view(request):
             "max_hp": profile.max_hp,
             "blocked_sites": BlockedSiteSerializer(blocked_sites, many=True).data,
             "active_unlocks": SiteUnlockSerializer(active_unlocks, many=True).data,
+            "active_session": active_session_data,
         }
     )
 

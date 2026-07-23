@@ -1,6 +1,20 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.16",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Firefox Extension Pomodoro timer now syncs in real-time with the MIND OS Web App's Linked Activity feature — track subjects like Mathematics or Coding seamlessly across both devices with shared backend active timer state."
+      },
+      {
+        "type": "feature",
+        "text": "Added compact 1–5 star Focus Rating overlay to the Firefox extension popup upon session completion, ensuring honest cognitive efficiency metrics without max-score distortion."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.15",
     "changes": [
       {

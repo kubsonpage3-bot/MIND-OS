@@ -153,6 +153,26 @@ async function syncAndRender() {
   state.blockedSites   = res.blockedSites ?? [];
   state.activeUnlocks  = res.activeUnlocks ?? [];
 
+  if (res.active_session?.active) {
+    const act = res.active_session;
+    if (act.linked_activity_key) {
+      isLinkedMode = true;
+      selectedExtActivity = act.linked_activity_key;
+      linkedExtDuration = act.duration_minutes;
+      if (extModeLinkedBtn) extModeLinkedBtn.click();
+      if (extActivitySelect) extActivitySelect.value = act.linked_activity_key;
+    }
+    updateCharBadge(act.mode || 'work');
+    timerTotalSeconds = act.duration_minutes * 60;
+    timerSeconds = act.remaining_seconds;
+    if (!act.is_paused && act.remaining_seconds > 0 && !timerRunning) {
+      startTimer();
+    } else if (act.is_paused && timerRunning) {
+      pauseTimer();
+    }
+    updateTimerDisplay();
+  }
+
   renderStats();
   renderBlocklist();
   loadPomodoroStats();
@@ -182,22 +202,136 @@ tabs.forEach((tab) => {
 // ─── TIMER TAB ───────────────────────────────────────────────────────────────
 
 const CIRCUMFERENCE = 2 * Math.PI * 44; // 276.46
+let isLinkedMode = false;
+let selectedExtActivity = null;
+let linkedExtDuration = 30;
+let selectedStarRating = 3;
+
+const extModeStandaloneBtn = $('extModeStandaloneBtn');
+const extModeLinkedBtn     = $('extModeLinkedBtn');
+const extActivityBox       = $('extActivityBox');
+const extActivitySelect    = $('extActivitySelect');
+const extDur30Btn          = $('extDur30Btn');
+const extDur60Btn          = $('extDur60Btn');
+const extCharBadge         = $('extCharBadge');
+const extCharIcon          = $('extCharIcon');
+const extCharName          = $('extCharName');
+const extCharMode          = $('extCharMode');
+const extRatingOverlay     = $('extRatingOverlay');
+const extConfirmRatingBtn  = $('extConfirmRatingBtn');
+
+if (extModeStandaloneBtn) {
+  extModeStandaloneBtn.addEventListener('click', () => {
+    isLinkedMode = false;
+    extModeStandaloneBtn.classList.add('active');
+    extModeLinkedBtn.classList.remove('active');
+    extActivityBox.classList.add('hidden');
+    timerTotalSeconds = 25 * 60;
+    timerSeconds = 25 * 60;
+    updateTimerDisplay();
+  });
+}
+
+if (extModeLinkedBtn) {
+  extModeLinkedBtn.addEventListener('click', () => {
+    isLinkedMode = true;
+    extModeLinkedBtn.classList.add('active');
+    extModeStandaloneBtn.classList.remove('active');
+    extActivityBox.classList.remove('hidden');
+    timerTotalSeconds = linkedExtDuration * 60;
+    timerSeconds = linkedExtDuration * 60;
+    updateTimerDisplay();
+  });
+}
+
+if (extActivitySelect) {
+  extActivitySelect.addEventListener('change', (e) => {
+    selectedExtActivity = e.target.value || null;
+  });
+}
+
+if (extDur30Btn && extDur60Btn) {
+  extDur30Btn.addEventListener('click', () => {
+    linkedExtDuration = 30;
+    extDur30Btn.classList.add('active');
+    extDur60Btn.classList.remove('active');
+    if (isLinkedMode) {
+      timerTotalSeconds = 30 * 60;
+      timerSeconds = 30 * 60;
+      updateTimerDisplay();
+    }
+  });
+
+  extDur60Btn.addEventListener('click', () => {
+    linkedExtDuration = 60;
+    extDur60Btn.classList.add('active');
+    extDur30Btn.classList.remove('active');
+    if (isLinkedMode) {
+      timerTotalSeconds = 60 * 60;
+      timerSeconds = 60 * 60;
+      updateTimerDisplay();
+    }
+  });
+}
+
+// 1-5 Star Rating selection
+document.querySelectorAll('.star-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    selectedStarRating = parseInt(btn.getAttribute('data-rating') || '3', 10);
+    document.querySelectorAll('.star-btn').forEach((b) => {
+      const r = parseInt(b.getAttribute('data-rating') || '0', 10);
+      if (r <= selectedStarRating) {
+        b.classList.add('selected');
+      } else {
+        b.classList.remove('selected');
+      }
+    });
+  });
+});
+
+if (extConfirmRatingBtn) {
+  extConfirmRatingBtn.addEventListener('click', async () => {
+    extRatingOverlay.classList.add('hidden');
+    await finishSessionWithRating(selectedStarRating);
+  });
+}
+
+function updateCharBadge(modeStr) {
+  if (!extCharBadge) return;
+  extCharBadge.className = `char-badge char-${modeStr}`;
+  if (modeStr === 'break') {
+    extCharIcon.textContent = '⚡';
+    extCharName.textContent = 'LIGHTNING';
+    extCharMode.textContent = '· SHORT BREAK';
+  } else if (modeStr === 'longBreak') {
+    extCharIcon.textContent = '🔥';
+    extCharName.textContent = 'SUMMONER';
+    extCharMode.textContent = '· LONG REST';
+  } else {
+    extCharIcon.textContent = '💖';
+    extCharName.textContent = 'BEATRIX';
+    extCharMode.textContent = '· FOCUS MODE';
+  }
+}
 
 function updateTimerDisplay() {
   const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
   const s = (timerSeconds % 60).toString().padStart(2, '0');
   timerDisplay.textContent = `${m}:${s}`;
 
-  const progress = timerSeconds / timerTotalSeconds;
+  const progress = timerTotalSeconds > 0 ? timerSeconds / timerTotalSeconds : 1;
   ringProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
 }
 
 function startTimer() {
   if (timerRunning) return;
+  if (isLinkedMode && !selectedExtActivity) {
+    alert('Please select a Linked Activity first!');
+    return;
+  }
   timerRunning = true;
   timerStartBtn.textContent = '⏸ Pause';
 
-  // Open pomodoro session on backend
   openPomodoroSession();
 
   timerInterval = setInterval(() => {
@@ -205,7 +339,12 @@ function startTimer() {
       clearInterval(timerInterval);
       timerRunning = false;
       timerStartBtn.textContent = '▶ Start';
-      completePomodoroSession();
+      
+      if (isLinkedMode) {
+        extRatingOverlay.classList.remove('hidden');
+      } else {
+        completePomodoroSession();
+      }
       sendNotification('🍅 Pomodoro complete!', 'Time for a break. Gold reward incoming!');
       timerSeconds = timerTotalSeconds;
       updateTimerDisplay();
@@ -220,6 +359,7 @@ function pauseTimer() {
   clearInterval(timerInterval);
   timerRunning = false;
   timerStartBtn.textContent = '▶ Resume';
+  notifyPauseSession();
 }
 
 timerStartBtn.addEventListener('click', () => {
@@ -231,32 +371,83 @@ timerResetBtn.addEventListener('click', () => {
   timerRunning = false;
   timerSeconds = timerTotalSeconds;
   timerStartBtn.textContent = '▶ Start';
+  notifyResetSession();
   updateTimerDisplay();
 });
 
-// Start pomodoro session on backend
+async function finishSessionWithRating(ratingVal) {
+  try {
+    const { extensionToken } = await browser.storage.local.get('extensionToken');
+    if (!extensionToken) return;
+    const apiBase = await getApiBase();
+    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/complete/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({ rating: ratingVal }),
+    });
+    syncAndRender();
+  } catch (e) {
+    console.error('[MIND OS] finishSessionWithRating error:', e);
+  }
+}
+
+// Start active pomodoro session on backend
 async function openPomodoroSession() {
   try {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
     const apiBase = await getApiBase();
-    const res = await fetch(`${apiBase}/api/pomodoro/sessions/`, {
+    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/start/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${extensionToken}`,
       },
       body: JSON.stringify({
+        linked_activity_key: isLinkedMode ? selectedExtActivity : null,
         duration_minutes: Math.round(timerTotalSeconds / 60),
-        status: 'in_progress',
+        mode: 'work',
       }),
     });
-    if (res.ok) {
-      const data = await res.json();
-      pomodoroSessionId = data.id;
-    }
   } catch (e) {
     console.error('[MIND OS] openPomodoroSession error:', e);
+  }
+}
+
+async function notifyPauseSession() {
+  try {
+    const { extensionToken } = await browser.storage.local.get('extensionToken');
+    if (!extensionToken) return;
+    const apiBase = await getApiBase();
+    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/pause/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${extensionToken}`,
+      },
+    });
+  } catch (e) {
+    console.error('[MIND OS] notifyPauseSession error:', e);
+  }
+}
+
+async function notifyResetSession() {
+  try {
+    const { extensionToken } = await browser.storage.local.get('extensionToken');
+    if (!extensionToken) return;
+    const apiBase = await getApiBase();
+    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/reset/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${extensionToken}`,
+      },
+    });
+  } catch (e) {
+    console.error('[MIND OS] notifyResetSession error:', e);
   }
 }
 

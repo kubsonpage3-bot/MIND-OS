@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.functional import cached_property
+from django.utils import timezone
 from datetime import date
 
 
@@ -1623,3 +1624,40 @@ class PomodoroSession(models.Model):
 
     def __str__(self):
         return f"Pomodoro {self.mode} ({self.duration}m) - {self.user.username}"
+
+
+class ActivePomodoroSession(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="active_pomodoro",
+        verbose_name="Пользователь",
+    )
+    linked_activity_key = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="Ключ активности"
+    )
+    duration_minutes = models.PositiveIntegerField(
+        default=25, verbose_name="Длительность (мин)"
+    )
+    started_at = models.DateTimeField(
+        default=timezone.now, verbose_name="Время старта"
+    )
+    is_paused = models.BooleanField(default=False, verbose_name="Пауза")
+    paused_remaining_seconds = models.PositiveIntegerField(
+        default=0, verbose_name="Остаток секунд на паузе"
+    )
+    mode = models.CharField(max_length=20, default="work", verbose_name="Режим")
+
+    class Meta:
+        verbose_name = "Активная сессия помодоро"
+        verbose_name_plural = "Активные сессии помодоро"
+
+    def remaining_seconds(self):
+        if self.is_paused:
+            return self.paused_remaining_seconds
+        total_sec = self.duration_minutes * 60
+        elapsed = (timezone.now() - self.started_at).total_seconds()
+        return max(0, int(total_sec - elapsed))
+
+    def __str__(self):
+        return f"ActivePomodoro {self.user.username} ({self.remaining_seconds()}s left)"

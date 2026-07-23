@@ -52,6 +52,35 @@
 
       <!-- ── TIMER TAB ─────────────────────────────────────── -->
       <div id="tab-timer" class="tab-content">
+        <!-- Standalone / Linked Mode Toggle -->
+        <div class="mode-toggle-bar">
+          <button id="extModeStandaloneBtn" class="mode-btn active">STANDALONE</button>
+          <button id="extModeLinkedBtn" class="mode-btn">LINKED ACTIVITY</button>
+        </div>
+
+        <!-- Linked Activity Controls -->
+        <div id="extActivityBox" class="activity-box hidden">
+          <select id="extActivitySelect" class="activity-select">
+            <option value="">-- Select Activity --</option>
+            <option value="math">🧠 Mathematics</option>
+            <option value="coding">💻 Coding</option>
+            <option value="languages">🗣 Languages</option>
+            <option value="reading">📚 Reading</option>
+            <option value="science">🔬 Science</option>
+          </select>
+          <div class="duration-btn-group">
+            <button id="extDur30Btn" class="dur-btn active" data-min="30">30 MINS</button>
+            <button id="extDur60Btn" class="dur-btn" data-min="60">1 HOUR</button>
+          </div>
+        </div>
+
+        <!-- Character Companion Badge -->
+        <div id="extCharBadge" class="char-badge char-work">
+          <span id="extCharIcon">💖</span>
+          <span id="extCharName">BEATRIX</span>
+          <span id="extCharMode">· FOCUS MODE</span>
+        </div>
+
         <div class="pomodoro-box">
           <div class="pomodoro-ring">
             <svg viewBox="0 0 100 100" class="ring-svg">
@@ -68,6 +97,22 @@
             <button id="timerResetBtn" class="btn btn-ghost">↺</button>
           </div>
         </div>
+
+        <!-- Rating Overlay -->
+        <div id="extRatingOverlay" class="rating-overlay hidden">
+          <div class="rating-card">
+            <h4>Rate Focus (1–5)</h4>
+            <div class="stars-row">
+              <button class="star-btn" data-rating="1">⭐</button>
+              <button class="star-btn" data-rating="2">⭐</button>
+              <button class="star-btn" data-rating="3">⭐</button>
+              <button class="star-btn" data-rating="4">⭐</button>
+              <button class="star-btn" data-rating="5">⭐</button>
+            </div>
+            <button id="extConfirmRatingBtn" class="btn btn-primary btn-sm mt-2">Confirm Rating</button>
+          </div>
+        </div>
+
         <div class="pomo-stats">
           <div class="pomo-stat">
             <span id="todayPomos">—</span>

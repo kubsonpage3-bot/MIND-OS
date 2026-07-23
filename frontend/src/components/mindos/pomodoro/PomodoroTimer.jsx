@@ -154,7 +154,30 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   useEffect(() => { linkedModeRef.current = linkedMode; }, [linkedMode]);
   useEffect(() => { selectedActivityRef.current = selectedActivity; }, [selectedActivity]);
 
-  const { saveSession, isSaving } = usePomodoro();
+  const {
+    saveSession,
+    activeSession,
+    startActiveSession,
+    pauseActiveSession,
+    resetActiveSession,
+    completeActiveSession,
+  } = usePomodoro();
+
+  // ── Sync from Backend Active Session (SSOT) ──────────────────────────────────
+  useEffect(() => {
+    if (activeSession?.active && !isRunningRef.current) {
+      if (activeSession.linked_activity_key) {
+        setLinkedMode(true);
+        setSelectedActivity(activeSession.linked_activity_key);
+        setLinkedDuration(activeSession.duration_minutes);
+      }
+      setMode(activeSession.mode || 'work');
+      setTimeLeft(activeSession.remaining_seconds);
+      if (!activeSession.is_paused && activeSession.remaining_seconds > 0) {
+        setIsRunning(true);
+      }
+    }
+  }, [activeSession]);
 
   // --- Compiled Activities ---
   const allActivities = useMemo(() => {
@@ -340,6 +363,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
 
   // ─── CONTROLS ────────────────────────────────────────────────────────────────
   const resetTimer = useCallback(() => {
+    resetActiveSession();
     setIsRunning(false);
     setCycleCount(0);
     setMode('work');
@@ -348,7 +372,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     } else {
       setTimeLeft(preset.work * 60);
     }
-  }, [linkedMode, linkedDuration, preset]);
+  }, [linkedMode, linkedDuration, preset, resetActiveSession]);
 
   const switchMode = (newMode) => {
     setIsRunning(false);
@@ -368,6 +392,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
 
     if (rating === null) {
       // Discard and cleanly exit to Standalone mode
+      resetActiveSession();
       setLinkedMode(false);
       setIsRunning(false);
       setCycleCount(0);
@@ -375,6 +400,8 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
       setTimeLeft(preset.work * 60);
       return;
     }
+
+    completeActiveSession({ rating: rating || 3 });
 
     const activityKey = selectedActivity;
     const hours = linkedDuration / 60; // 0.5 or 1.0
@@ -735,7 +762,17 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
                     toast.error("Please select an activity first!");
                     return;
                   }
-                  setIsRunning(!isRunning);
+                  if (!isRunning) {
+                    startActiveSession({
+                      linked_activity_key: linkedMode ? selectedActivity : null,
+                      duration_minutes: linkedMode ? linkedDuration : (mode === 'work' ? preset.work : mode === 'break' ? preset.break : preset.longBreak),
+                      mode: mode,
+                    });
+                    setIsRunning(true);
+                  } else {
+                    pauseActiveSession();
+                    setIsRunning(false);
+                  }
                 }}
                 whileTap={{ scale: 0.92 }}
                 className="w-20 h-20 rounded-full font-mono font-bold text-sm flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed"

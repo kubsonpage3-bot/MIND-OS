@@ -198,6 +198,7 @@ REST_FRAMEWORK = {
     # По умолчанию требуем JWT-токен для всех эндпоинтов
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "extension.authentication.ExtensionTokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",

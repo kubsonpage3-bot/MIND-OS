@@ -5,7 +5,9 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from api.models import PomodoroSession
+from django.db import transaction
+from django.utils import timezone
+from api.models import ActivePomodoroSession, PomodoroSession, UserProfile
 from api.serializers.pomodoro import PomodoroSessionSerializer
 
 logger = logging.getLogger(__name__)
@@ -119,5 +121,138 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 "active_days": active_days,
                 "current_streak": streak,
                 "best_streak": best_streak,
+            }
+        )
+
+    @action(detail=False, methods=["get"], url_path="active-session")
+    def active_session_get(self, request):
+        active = ActivePomodoroSession.objects.filter(user=request.user).first()
+        if not active:
+            return Response({"active": False})
+
+        rem = active.remaining_seconds()
+        return Response(
+            {
+                "active": True,
+                "linked_activity_key": active.linked_activity_key,
+                "duration_minutes": active.duration_minutes,
+                "mode": active.mode,
+                "is_paused": active.is_paused,
+                "remaining_seconds": rem,
+                "started_at": active.started_at,
+            }
+        )
+
+    @action(detail=False, methods=["post"], url_path="active-session/start")
+    def active_session_start(self, request):
+        activity_key = request.data.get("linked_activity_key")
+        duration = int(request.data.get("duration_minutes", 25))
+        mode = request.data.get("mode", "work")
+
+        with transaction.atomic():
+            active, _ = ActivePomodoroSession.objects.select_for_update().update_or_create(
+                user=request.user,
+                defaults={
+                    "linked_activity_key": activity_key,
+                    "duration_minutes": duration,
+                    "mode": mode,
+                    "started_at": timezone.now(),
+                    "is_paused": False,
+                    "paused_remaining_seconds": 0,
+                },
+            )
+
+        return Response(
+            {
+                "active": True,
+                "linked_activity_key": active.linked_activity_key,
+                "duration_minutes": active.duration_minutes,
+                "mode": active.mode,
+                "is_paused": False,
+                "remaining_seconds": active.remaining_seconds(),
+                "started_at": active.started_at,
+            }
+        )
+
+    @action(detail=False, methods=["post"], url_path="active-session/pause")
+    def active_session_pause(self, request):
+        with transaction.atomic():
+            active = (
+                ActivePomodoroSession.objects.select_for_update()
+                .filter(user=request.user)
+                .first()
+            )
+            if not active:
+                return Response({"active": False}, status=400)
+
+            if active.is_paused:
+                # Resume
+                remaining = active.paused_remaining_seconds
+                total_sec = active.duration_minutes * 60
+                elapsed = max(0, total_sec - remaining)
+                active.started_at = timezone.now() - timedelta(seconds=elapsed)
+                active.is_paused = False
+                active.paused_remaining_seconds = 0
+            else:
+                # Pause
+                rem = active.remaining_seconds()
+                active.is_paused = True
+                active.paused_remaining_seconds = rem
+
+            active.save()
+
+        return Response(
+            {
+                "active": True,
+                "is_paused": active.is_paused,
+                "remaining_seconds": active.remaining_seconds(),
+            }
+        )
+
+    @action(detail=False, methods=["post"], url_path="active-session/reset")
+    def active_session_reset(self, request):
+        with transaction.atomic():
+            ActivePomodoroSession.objects.filter(user=request.user).delete()
+        return Response({"active": False})
+
+    @action(detail=False, methods=["post"], url_path="active-session/complete")
+    def active_session_complete(self, request):
+        rating = int(request.data.get("rating", 3))
+        rating = max(1, min(5, rating))
+
+        with transaction.atomic():
+            active = (
+                ActivePomodoroSession.objects.select_for_update()
+                .filter(user=request.user)
+                .first()
+            )
+            duration = active.duration_minutes if active else 25
+            mode = active.mode if active else "work"
+            activity_key = active.linked_activity_key if active else None
+            if active:
+                active.delete()
+
+            session = PomodoroSession.objects.create(
+                user=request.user,
+                duration=duration,
+                mode=mode,
+                label=activity_key or "Focus Session",
+                completed=True,
+            )
+
+            # Award Gold and XP directly to UserProfile
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            gold_earned = max(10, duration * 2)
+            xp_earned = max(15, duration * 3)
+            profile.gold += gold_earned
+            profile.xp += xp_earned
+            profile.save(update_fields=["gold", "xp"])
+
+        return Response(
+            {
+                "success": True,
+                "session_id": session.id,
+                "gold_earned": gold_earned,
+                "xp_earned": xp_earned,
             }
         )

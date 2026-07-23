@@ -62,6 +62,48 @@ export function usePomodoro() {
     },
   });
 
+  // 5. Active Pomodoro Session Sync
+  const {
+    data: activeSession,
+    isLoading: isActiveSessionLoading,
+  } = useQuery({
+    queryKey: ['pomodoro', 'active-session'],
+    queryFn: () => djangoApi.pomodoro.getActiveSession(),
+    refetchInterval: 10_000, // Sync every 10s
+  });
+
+  const startActiveSessionMutation = useMutation({
+    mutationFn: (data) => djangoApi.pomodoro.startActiveSession(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+    },
+  });
+
+  const pauseActiveSessionMutation = useMutation({
+    mutationFn: () => djangoApi.pomodoro.pauseActiveSession(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+    },
+  });
+
+  const resetActiveSessionMutation = useMutation({
+    mutationFn: () => djangoApi.pomodoro.resetActiveSession(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+    },
+  });
+
+  const completeActiveSessionMutation = useMutation({
+    mutationFn: (data) => djangoApi.pomodoro.completeActiveSession(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'heatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+    },
+  });
+
   return {
     heatmapData,
     isHeatmapLoading,
@@ -74,6 +116,13 @@ export function usePomodoro() {
     sessionsData,
     isSessionsLoading,
     sessionsError,
+
+    activeSession,
+    isActiveSessionLoading,
+    startActiveSession: startActiveSessionMutation.mutate,
+    pauseActiveSession: pauseActiveSessionMutation.mutate,
+    resetActiveSession: resetActiveSessionMutation.mutate,
+    completeActiveSession: completeActiveSessionMutation.mutate,
 
     saveSession: saveSessionMutation.mutate,
     isSaving: saveSessionMutation.isPending,

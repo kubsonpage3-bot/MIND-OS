@@ -486,5 +486,24 @@ export const djangoApi = {
       }),
     getHeatmap: (days = 365) => djangoFetch(`/pomodoro/sessions/heatmap/?days=${days}`),
     getStats: () => djangoFetch('/pomodoro/sessions/stats/'),
+    getActiveSession: () => djangoFetch('/pomodoro/sessions/active-session/'),
+    startActiveSession: (data) =>
+      djangoFetch('/pomodoro/sessions/active-session/start/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    pauseActiveSession: () =>
+      djangoFetch('/pomodoro/sessions/active-session/pause/', {
+        method: 'POST',
+      }),
+    resetActiveSession: () =>
+      djangoFetch('/pomodoro/sessions/active-session/reset/', {
+        method: 'POST',
+      }),
+    completeActiveSession: (data = {}) =>
+      djangoFetch('/pomodoro/sessions/active-session/complete/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
   },
 };

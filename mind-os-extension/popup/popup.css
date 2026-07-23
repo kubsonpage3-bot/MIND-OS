@@ -325,3 +325,68 @@ html, body {
   font-size: 9px; font-weight: 700; color: var(--dim);
   white-space: nowrap;
 }
+
+/* ── LINKED ACTIVITY & CHAR BADGE ──────────────────────────── */
+.mode-toggle-bar {
+  display: flex; gap: 4px; background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border); border-radius: 8px; padding: 2px;
+  margin-bottom: 8px;
+}
+.mode-btn {
+  flex: 1; padding: 5px 0; font-size: 9px; font-weight: 800;
+  color: var(--dim); background: transparent; border: none;
+  border-radius: 6px; cursor: pointer; transition: all 0.2s ease;
+}
+.mode-btn.active {
+  background: rgba(236,72,153,0.18); color: #ec4899;
+  border: 1px solid rgba(236,72,153,0.3);
+}
+
+.activity-box {
+  background: var(--bg2); border: 1px solid rgba(236,72,153,0.2);
+  border-radius: 8px; padding: 8px; margin-bottom: 8px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.activity-select {
+  width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+  color: #fff; border-radius: 6px; padding: 4px 8px; font-size: 11px;
+}
+.duration-btn-group { display: flex; gap: 4px; }
+.dur-btn {
+  flex: 1; padding: 4px 0; font-size: 9px; font-weight: 700;
+  color: var(--dim); background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer;
+}
+.dur-btn.active {
+  background: rgba(236,72,153,0.2); color: #ec4899;
+  border-color: #ec4899;
+}
+
+.char-badge {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 10px; font-weight: 900; padding: 4px 8px;
+  border-radius: 6px; margin-bottom: 8px;
+}
+.char-work { background: rgba(244,114,182,0.12); color: #f472b6; border: 1px solid rgba(244,114,182,0.3); }
+.char-break { background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+.char-longBreak { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+/* ── RATING OVERLAY ────────────────────────────────────────── */
+.rating-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(4px); z-index: 50; display: flex;
+  align-items: center; justify-content: center; padding: 16px;
+}
+.rating-card {
+  background: var(--bg1); border: 1px solid var(--purple);
+  border-radius: 12px; padding: 16px; text-align: center;
+  width: 100%; max-width: 240px; box-shadow: 0 0 20px var(--purple-glow);
+}
+.rating-card h4 { font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.stars-row { display: flex; justify-content: center; gap: 4px; margin: 8px 0; }
+.star-btn {
+  background: transparent; border: none; font-size: 20px;
+  cursor: pointer; opacity: 0.4; transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.star-btn.selected, .star-btn:hover { opacity: 1; transform: scale(1.2); }
+
