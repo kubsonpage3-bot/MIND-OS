@@ -143,18 +143,38 @@ disconnectBtn.addEventListener('click', async () => {
 
 // ─── Sync ────────────────────────────────────────────────────────────────────
 
+const DEFAULT_BASE_ACTIVITIES = [
+  { key: 'mathematics', label: 'Mathematics', icon: '∑' },
+  { key: 'physics', label: 'Physics', icon: '⚛' },
+  { key: 'history', label: 'History', icon: '📜' },
+  { key: 'english', label: 'English', icon: '✍' },
+  { key: 'philosophy', label: 'Philosophy', icon: 'φ' },
+  { key: 'vocabulary', label: 'Vocabulary', icon: 'Aa' },
+  { key: 'chess', label: 'Chess / Logic', icon: '♟' },
+  { key: 'coding', label: 'Coding', icon: '</>' },
+  { key: 'creative_answers', label: 'Creative Answers', icon: '💡' },
+  { key: 'exercise', label: 'Exercise', icon: '⚡' },
+  { key: 'prayer', label: 'Prayer / Meditation', icon: '🕊️' },
+  { key: 'running', label: 'Running', icon: '🏃' },
+  { key: 'reading', label: 'Reading', icon: '📖' },
+  { key: 'german', label: 'German', icon: '🇩🇪' },
+  { key: 'languages', label: 'Other Languages', icon: '🌐' },
+  { key: 'psychology', label: 'Psychology', icon: '💗' },
+  { key: 'chemistry', label: 'Chemistry', icon: '💎' },
+  { key: 'neuroscience', label: 'Neuroscience', icon: '🧠' },
+];
+
 function renderActivityOptions(activities) {
   if (!extActivitySelect) return;
+  const list = (Array.isArray(activities) && activities.length > 0) ? activities : DEFAULT_BASE_ACTIVITIES;
   const currentVal = extActivitySelect.value;
   extActivitySelect.innerHTML = '<option value="">-- Select Activity --</option>';
-  if (Array.isArray(activities)) {
-    activities.forEach((act) => {
-      const opt = document.createElement('option');
-      opt.value = act.key;
-      opt.textContent = `${act.icon || '🔘'} ${act.label || act.key}`;
-      extActivitySelect.appendChild(opt);
-    });
-  }
+  list.forEach((act) => {
+    const opt = document.createElement('option');
+    opt.value = act.key;
+    opt.textContent = `${act.icon || '🔘'} ${act.label || act.key}`;
+    extActivitySelect.appendChild(opt);
+  });
   if (currentVal) {
     extActivitySelect.value = currentVal;
   }

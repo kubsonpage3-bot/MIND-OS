@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-07-23",
+    "version": "0.8.19",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed Firefox Extension activities dropdown showing empty list before initial backend sync by adding robust base activities fallback."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
     "version": "0.8.18",
     "changes": [
       {
