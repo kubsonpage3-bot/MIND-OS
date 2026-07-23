@@ -193,8 +193,16 @@ browser.runtime.onMessage.addListener(async (msg) => {
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, error: data.error, gold: data.gold };
-      // Update gold locally and remove block rule immediately
-      await browser.storage.local.set({ gold: data.gold });
+
+      // Update gold and activeUnlocks locally so CHECK_BLOCKED sees the unlock immediately
+      const { activeUnlocks = [] } = await browser.storage.local.get('activeUnlocks');
+      const cleanDomain = (msg.domain || '').toLowerCase().trim().replace(/^www\./, '');
+      const filtered = activeUnlocks.filter(
+        (u) => u.domain.toLowerCase().replace(/^www\./, '') !== cleanDomain
+      );
+      filtered.push({ domain: cleanDomain, unlocked_until: data.unlocked_until });
+      await browser.storage.local.set({ gold: data.gold, activeUnlocks: filtered });
+
       await temporarilyUnblock(msg.domain, data.unlocked_until);
       return { ok: true, gold: data.gold, unlocked_until: data.unlocked_until };
     }

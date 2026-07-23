@@ -355,15 +355,28 @@
       if (unlockRes?.ok) {
         payBtn.className = 'pay-btn success';
         payBtn.textContent = '✓ UNLOCKED!';
-        statusMsg.className = 'status-msg success';
-        statusMsg.textContent = `Access granted for ${durationDisplay} min. Loading...`;
         backdrop.classList.add('unlocking');
 
+        // Calculate remaining time from server's unlocked_until
+        const unlockedUntil = unlockRes.unlocked_until
+          ? new Date(unlockRes.unlocked_until)
+          : new Date(Date.now() + durationDisplay * 60 * 1000);
+
+        const getRemainingStr = () => {
+          const secsLeft = Math.max(0, Math.ceil((unlockedUntil - Date.now()) / 1000));
+          const m = Math.floor(secsLeft / 60);
+          const s = secsLeft % 60;
+          return `${m}:${String(s).padStart(2, '0')} remaining`;
+        };
+
+        statusMsg.className = 'status-msg success';
+        statusMsg.textContent = `✓ Access granted! ${getRemainingStr()}`;
+
+        // Remove overlay after 800ms
         setTimeout(() => {
           document.documentElement.style.overflow = '';
           host.remove();
-          // Page was already loaded in background — just let it display
-        }, 700);
+        }, 800);
 
       } else {
         payBtn.disabled = false;
@@ -375,8 +388,8 @@
         if (unlockRes?.error === 'insufficient_gold') {
           const have = Math.round(Number(unlockRes.gold ?? 0));
           statusMsg.textContent = `Not enough gold! Have: ${have} 🪙  Need: ${costDisplay} 🪙`;
-          const goldDisplay = shadow.getElementById('yourGoldDisplay');
-          if (goldDisplay) goldDisplay.textContent = have;
+          const goldEl = shadow.getElementById('yourGoldDisplay');
+          if (goldEl) goldEl.textContent = have;
         } else {
           statusMsg.textContent = 'Unlock failed. Check connection.';
         }
