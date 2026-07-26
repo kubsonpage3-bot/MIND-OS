@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { djangoApi, getMediaUrl } from '@/api/djangoClient';
 import { getRankDisplayData } from '@/lib/rankEngine';
-import { Copy, Check, Users, LogOut, UserPlus, Swords } from 'lucide-react';
+import { Copy, Check, Users, LogOut, UserPlus, Swords, Settings, Shield } from 'lucide-react';
 import { Crown, MessageSquare, Zap } from 'lucide-react';
 import PartyMemberProfileSheet from './PartyMemberProfileSheet';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
@@ -32,6 +32,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   const rankId = member.rank_info?.current_id || 'F';
   const classInfo = CLASSES[charClass] || null;
   const classColor = classInfo?.color || '#878190';
+  const didDailyToday = member.did_dailies_today === true;
 
   let spriteUrl = null;
   if (member.character_image) {
@@ -45,6 +46,15 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
     spriteUrl = FALLBACK_SPRITES[rankId] || FALLBACK_SPRITES['F'];
   }
 
+  const BUFF_DEFS = [
+    { code: 'heal_1',        icon: '💚', label: '+15 HP',    cls: 'text-green-400 border-green-500/20 bg-green-500/10' },
+    { code: 'heal_2',        icon: '💖', label: '+30 HP',    cls: 'text-pink-400 border-pink-500/20 bg-pink-500/10' },
+    { code: 'xp_boost_24h', icon: '⚡', label: '+25% XP',  cls: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
+    { code: 'gold_boost_12h', icon: '💰', label: '+20% Gold', cls: 'text-amber-400 border-amber-500/20 bg-amber-500/10' },
+    { code: 'mana_surge',   icon: '💙', label: '+20 MP',    cls: 'text-blue-400 border-blue-500/20 bg-blue-500/10' },
+    { code: 'streak_shield', icon: '🛡️', label: 'Shield',   cls: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -54,26 +64,34 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
-        {/* Portrait */}
-        <div
-          className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ring-1 ring-black/20 dark:ring-white/10 shadow-sm"
-          style={{
-            background: 'var(--habit-panel)',
-            borderColor: classColor,
-          }}
-        >
-          {spriteUrl ? (
-            <img
-              src={spriteUrl}
-              alt={member.username}
-              className="w-full h-full object-cover"
-              style={{ imageRendering: 'pixelated' }}
-            />
-          ) : (
-            <span className="font-mono font-black text-sm uppercase" style={{ color: 'var(--habit-dim)' }}>
-              {member.username?.charAt(0) || '?'}
-            </span>
-          )}
+        {/* Portrait + daily status dot */}
+        <div className="relative shrink-0">
+          <div
+            className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ring-1 ring-black/20 dark:ring-white/10 shadow-sm"
+            style={{
+              background: 'var(--habit-panel)',
+              borderColor: classColor,
+            }}
+          >
+            {spriteUrl ? (
+              <img
+                src={spriteUrl}
+                alt={member.username}
+                className="w-full h-full object-cover"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            ) : (
+              <span className="font-mono font-black text-sm uppercase" style={{ color: 'var(--habit-dim)' }}>
+                {member.username?.charAt(0) || '?'}
+              </span>
+            )}
+          </div>
+          {/* Daily status dot */}
+          <span
+            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--habit-bg)]"
+            style={{ background: didDailyToday ? '#00cc88' : '#ef4444' }}
+            title={didDailyToday ? 'Dailies done today ✓' : 'Dailies not done today'}
+          />
         </div>
 
         {/* Info */}
@@ -175,33 +193,236 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
         </div>
       </div>
 
-      {/* Buff menu */}
+      {/* Buff menu — 6 types in 2 rows of 3 */}
       <AnimatePresence>
         {showBuffs && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-white/5 pt-2 flex gap-2"
+            className="overflow-hidden border-t border-white/5 pt-2"
           >
-            <button
-              onClick={(e) => { e.stopPropagation(); onBuff('heal_1'); setShowBuffs(false); }}
-              className="flex-1 py-1 text-[10px] font-mono rounded bg-green-500/10 text-green-400 border border-green-500/20"
-            >
-              + Heal
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onBuff('focus_buff'); setShowBuffs(false); }}
-              className="flex-1 py-1 text-[10px] font-mono rounded bg-blue-500/10 text-blue-400 border border-blue-500/20"
-            >
-              + Focus
-            </button>
+            <div className="grid grid-cols-3 gap-1.5">
+              {BUFF_DEFS.map(b => (
+                <button
+                  key={b.code}
+                  onClick={(e) => { e.stopPropagation(); onBuff(b.code); setShowBuffs(false); }}
+                  className={`py-1.5 text-[9px] font-mono rounded border flex flex-col items-center gap-0.5 ${b.cls}`}
+                >
+                  <span className="text-sm">{b.icon}</span>
+                  <span>{b.label}</span>
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
   );
 }
+
+// ─── Achievement Badge ────────────────────────────────────────────────────────
+
+const ACHIEVEMENT_META = {
+  streak_7:    { icon: '🔥', label: '7-Day Streak' },
+  streak_30:   { icon: '🏆', label: '30-Day Streak' },
+  streak_100:  { icon: '💀', label: '100-Day Streak' },
+  full_house:  { icon: '👑', label: 'Full House' },
+  first_quest: { icon: '✅', label: 'First Quest' },
+  quest_master:{ icon: '🎯', label: 'Quest Master' },
+};
+
+function PartyAchievementBadges({ achievements }) {
+  if (!achievements || achievements.length === 0) return null;
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {achievements.map(a => {
+        const meta = ACHIEVEMENT_META[a.code] || { icon: '🏅', label: a.code };
+        return (
+          <motion.div
+            key={a.code}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            title={`${meta.label} — ${new Date(a.unlocked_at).toLocaleDateString()}`}
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold cursor-help"
+            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', border: '1px solid var(--habit-purple)44' }}
+          >
+            <span>{meta.icon}</span>
+            <span>{meta.label}</span>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Weekly Quest Block ───────────────────────────────────────────────────────
+
+function PartyWeeklyQuestBlock({ quest }) {
+  if (!quest) return null;
+
+  const pct = quest.target_value > 0
+    ? Math.min(100, Math.round((quest.current_value / quest.target_value) * 100))
+    : 0;
+
+  const questLabel = (quest.quest_type || '').replace(/_/g, ' ');
+  const daysLeft = quest.days_left ?? '?';
+
+  return (
+    <div
+      className="p-3 rounded-xl space-y-2"
+      style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <span className="text-base">⚔️</span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>
+            Weekly Quest
+          </span>
+        </div>
+        {quest.is_completed ? (
+          <span className="text-[10px] font-mono font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+            ✓ Completed!
+          </span>
+        ) : (
+          <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+            {daysLeft}d left
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex justify-between">
+          <span className="text-[10px] font-mono capitalize" style={{ color: 'var(--habit-dim)' }}>
+            {questLabel}
+          </span>
+          <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--habit-text)' }}>
+            {quest.current_value} / {quest.target_value}
+          </span>
+        </div>
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+          <motion.div
+            className="h-full rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1, ease: 'easeOut' }}
+            style={{
+              background: quest.is_completed
+                ? 'linear-gradient(90deg, #00cc88, #00e5ff)'
+                : 'linear-gradient(90deg, #7B61FF, #00e5ff)',
+              boxShadow: '0 0 6px #7B61FF44',
+            }}
+          />
+        </div>
+        <div className="text-right text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+          {pct}% complete
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Party Settings Modal ─────────────────────────────────────────────────────
+
+function PartySettingsModal({ party, onClose }) {
+  const queryClient = useQueryClient();
+  const [name, setName] = useState(party?.name || '');
+  const [description, setDescription] = useState(party?.description || '');
+  const [memberCap, setMemberCap] = useState(party?.member_cap || 8);
+  const [error, setError] = useState('');
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => djangoApi.party.updateSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
+      onClose();
+    },
+    onError: (err) => setError(err?.data?.error || err?.message || 'Failed to save settings.'),
+  });
+
+  const inputStyle = {
+    background: 'var(--habit-bg)',
+    border: '1px solid var(--habit-border)',
+    color: 'var(--habit-text)',
+    fontFamily: "'Nunito'",
+    fontSize: 13,
+    borderRadius: 10,
+    padding: '8px 12px',
+    width: '100%',
+    outline: 'none',
+    resize: 'vertical',
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 10 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="w-full max-w-sm rounded-2xl p-5 space-y-4"
+        style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-mono font-bold text-sm" style={{ color: 'var(--habit-text)' }}>⚙️ Party Settings</span>
+          <button onClick={onClose} className="text-[var(--habit-dim)] hover:text-[var(--habit-text)] transition-colors text-xl leading-none">×</button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-[10px] font-mono uppercase tracking-wider block mb-1" style={{ color: 'var(--habit-dim)' }}>Party Name</label>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} maxLength={64} placeholder="Party name" />
+          </div>
+          <div>
+            <label className="text-[10px] font-mono uppercase tracking-wider block mb-1" style={{ color: 'var(--habit-dim)' }}>Description <span className="normal-case">(optional, 140 chars)</span></label>
+            <textarea
+              style={{ ...inputStyle, minHeight: 60 }}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              maxLength={140}
+              placeholder="Tell the world what your party is about..."
+            />
+            <div className="text-right text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>{description.length}/140</div>
+          </div>
+          <div>
+            <label className="text-[10px] font-mono uppercase tracking-wider block mb-1" style={{ color: 'var(--habit-dim)' }}>Member Cap: {memberCap}</label>
+            <input
+              type="range" min={2} max={8} step={1}
+              value={memberCap}
+              onChange={e => setMemberCap(Number(e.target.value))}
+              className="w-full accent-purple-500"
+            />
+            <div className="flex justify-between text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+              <span>2</span><span>8</span>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="text-xs font-mono px-3 py-2 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid #ef444444', color: '#ef4444' }}>{error}</div>
+        )}
+
+        <button
+          disabled={!name.trim() || updateMutation.isPending}
+          onClick={() => updateMutation.mutate({ name: name.trim(), description, member_cap: memberCap })}
+          className="w-full py-2.5 rounded-xl font-mono font-bold text-sm transition-all"
+          style={{ background: 'var(--habit-purple)', color: 'white', opacity: name.trim() ? 1 : 0.5 }}
+        >
+          {updateMutation.isPending ? 'Saving...' : 'Save Settings'}
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+
 
 // ─── Invite Code Display ──────────────────────────────────────────────────────
 
@@ -632,6 +853,7 @@ function PartyView({ party }) {
   const [activeTab, setActiveTab] = useState('members');
   const [leaveError, setLeaveError] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const leaveMutation = useMutation({
     mutationFn: () => djangoApi.party.leave(),
@@ -665,48 +887,81 @@ function PartyView({ party }) {
 
   const currentUsername = profile?.username;
   const isCurrentUserOwner = party.created_by_username === currentUsername;
+  const memberCap = party.member_cap || 8;
 
   return (
     <div className="space-y-4">
-      {/* Party header */}
+      {/* Party Dashboard Header */}
       <div
-        className="px-4 py-3 rounded-xl flex items-center justify-between"
+        className="p-4 rounded-xl space-y-3"
         style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
       >
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4" style={{ color: 'var(--habit-purple)' }} />
-          <span className="font-mono font-black text-sm" style={{ color: 'var(--habit-text)' }}>
-            {party.name}
-          </span>
-          <span
-            className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-dim)' }}
-          >
-            {party.member_count}/8
-          </span>
-          {party.streak > 0 && (
-            <span
-              className="text-[10px] font-mono px-1.5 py-0.5 rounded flex items-center gap-1"
-              style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid #f59e0b40' }}
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Users className="w-4 h-4 shrink-0" style={{ color: 'var(--habit-purple)' }} />
+              <span className="font-mono font-black text-base truncate" style={{ color: 'var(--habit-text)' }}>
+                {party.name}
+              </span>
+              <span
+                className="text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0"
+                style={{ background: 'var(--habit-border)', color: 'var(--habit-dim)' }}
+              >
+                {party.member_count}/{memberCap} members
+              </span>
+              {party.streak > 0 && (
+                <span
+                  className="text-[10px] font-mono px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0"
+                  style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid #f59e0b40' }}
+                >
+                  🔥 {party.streak}d streak
+                </span>
+              )}
+            </div>
+            {party.description && (
+              <p className="text-xs font-mono text-left opacity-80 leading-relaxed" style={{ color: 'var(--habit-text)' }}>
+                {party.description}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isCurrentUserOwner && (
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                className="p-2 rounded-lg transition-all hover:bg-white/10"
+                style={{ border: '1px solid var(--habit-border)', color: 'var(--habit-dim)' }}
+                title="Party Settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={handleLeave}
+              disabled={leaveMutation.isPending}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all"
+              style={{
+                background: 'rgba(239,68,68,0.1)',
+                border: '1px solid #ef444440',
+                color: '#ef4444',
+                opacity: leaveMutation.isPending ? 0.5 : 1,
+              }}
             >
-              🔥 {party.streak}d
-            </span>
-          )}
+              <LogOut className="w-3.5 h-3.5" />
+              {leaveMutation.isPending ? 'Leaving…' : 'Leave'}
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleLeave}
-          disabled={leaveMutation.isPending}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all"
-          style={{
-            background: 'rgba(239,68,68,0.1)',
-            border: '1px solid #ef444440',
-            color: '#ef4444',
-            opacity: leaveMutation.isPending ? 0.5 : 1,
-          }}
-        >
-          <LogOut className="w-3 h-3" />
-          {leaveMutation.isPending ? 'Leaving…' : 'Leave'}
-        </button>
+
+        {/* Achievements row */}
+        {party.achievements && party.achievements.length > 0 && (
+          <div className="pt-2 border-t border-white/5">
+            <div className="text-[9px] font-mono uppercase tracking-wider mb-1.5" style={{ color: 'var(--habit-dim)' }}>
+              Party Achievements
+            </div>
+            <PartyAchievementBadges achievements={party.achievements} />
+          </div>
+        )}
       </div>
 
       {leaveError && (
@@ -749,9 +1004,14 @@ function PartyView({ party }) {
 
       <AnimatePresence mode="wait">
         {activeTab === 'members' && (
-          <motion.div key="members" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
+          <motion.div key="members" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="space-y-3">
+            {/* Weekly Quest Block */}
+            {party.weekly_quest && (
+              <PartyWeeklyQuestBlock quest={party.weekly_quest} />
+            )}
+
             <InviteCodeDisplay code={party.invite_code} />
-            <div className="mt-4 space-y-2">
+            <div className="space-y-2">
               {(party.members || []).map((member) => (
                 <MemberCard
                   key={member.username}
@@ -784,6 +1044,15 @@ function PartyView({ party }) {
         userId={selectedMember?.user_id}
         memberName={selectedMember?.username}
       />
+
+      <AnimatePresence>
+        {showSettingsModal && (
+          <PartySettingsModal
+            party={party}
+            onClose={() => setShowSettingsModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

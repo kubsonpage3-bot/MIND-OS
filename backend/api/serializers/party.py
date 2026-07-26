@@ -26,6 +26,8 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     max_streak = serializers.SerializerMethodField()
     total_tasks_completed = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
+    did_dailies_today = serializers.SerializerMethodField()
+    weekly_tasks_done = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -46,6 +48,8 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "max_streak",
             "weekly_xp",
             "role",
+            "did_dailies_today",
+            "weekly_tasks_done",
         )
         read_only_fields = fields
 
@@ -91,6 +95,15 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
         except Exception:
             return "MEMBER"
 
+    def get_did_dailies_today(self, obj) -> bool:
+        from django.utils import timezone
+
+        try:
+            mem = obj.user.party_membership
+            return mem.last_daily_completed_date == timezone.now().date()
+        except Exception:
+            return False
+
 
 class PartySerializer(serializers.ModelSerializer):
     """
@@ -103,18 +116,25 @@ class PartySerializer(serializers.ModelSerializer):
     created_by_username = serializers.CharField(
         source="created_by.username", read_only=True
     )
+    achievements = serializers.SerializerMethodField()
+    weekly_quest = serializers.SerializerMethodField()
 
     class Meta:
         model = Party
         fields = (
             "id",
             "name",
+            "description",
             "invite_code",
             "created_at",
             "member_count",
+            "member_cap",
+            "streak",
             "members",
             "created_by",
             "created_by_username",
+            "achievements",
+            "weekly_quest",
         )
         read_only_fields = fields
 
@@ -126,6 +146,26 @@ class PartySerializer(serializers.ModelSerializer):
 
     def get_member_count(self, obj) -> int:
         return obj.memberships.count()
+
+    def get_achievements(self, obj) -> list:
+        return list(
+            obj.achievements.values("code", "unlocked_at").order_by("unlocked_at")
+        )
+
+    def get_weekly_quest(self, obj) -> dict | None:
+        from api.services.party_service import get_or_create_weekly_quest
+
+        try:
+            quest = get_or_create_weekly_quest(obj)
+            return {
+                "quest_type": quest.quest_type,
+                "target_value": quest.target_value,
+                "current_value": quest.current_value,
+                "is_completed": quest.is_completed,
+                "week_key": quest.week_key,
+            }
+        except Exception:
+            return None
 
 
 class PartyEventReactionSerializer(serializers.ModelSerializer):

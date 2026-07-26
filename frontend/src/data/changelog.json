@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-07-26",
+    "version": "0.8.32",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Party System v2: Added Weekly Team Quests with group rewards, an expanded 6-type Buff Arsenal, custom Party Settings (name, description, member limit), permanent Party Achievements, and a redesigned Party Dashboard with member activity indicators."
+      }
+    ]
+  },
+  {
     "date": "2026-07-25",
     "version": "0.8.31",
     "changes": [

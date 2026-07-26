@@ -1395,12 +1395,18 @@ def _generate_invite_code() -> str:
 class Party(models.Model):
     """
     A group of users who can view each other's public progress.
-    v1: read-only visibility, no shared boss, no chat.
+    v2: added description, member_cap, weekly quests, achievements.
     """
 
     objects = models.Manager()
 
     name = models.CharField(max_length=64, verbose_name="Party name")
+    description = models.CharField(
+        max_length=140,
+        blank=True,
+        default="",
+        verbose_name="Description",
+    )
     invite_code = models.CharField(
         max_length=6,
         unique=True,
@@ -1417,6 +1423,11 @@ class Party(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     streak = models.PositiveIntegerField(default=0, verbose_name="Party Streak")
     last_streak_update_date = models.DateField(null=True, blank=True)
+    member_cap = models.PositiveSmallIntegerField(
+        default=8,
+        verbose_name="Member cap",
+        help_text="Max members allowed (2–8).",
+    )
 
     class Meta:
         verbose_name = "Party"
@@ -1535,6 +1546,95 @@ class PartyEventReaction(models.Model):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Party v2 — Weekly Quests & Achievements
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class PartyWeeklyQuest(models.Model):
+    """
+    A shared weekly challenge for the entire party.
+    One quest per party per ISO week. Completed when current_value >= target_value.
+    """
+
+    QUEST_TYPES = (
+        ("tasks_completed", "Tasks Completed"),
+        ("habits_completed", "Habits Completed"),
+    )
+
+    objects = models.Manager()
+
+    party = models.ForeignKey(
+        Party,
+        on_delete=models.CASCADE,
+        related_name="weekly_quests",
+    )
+    quest_type = models.CharField(
+        max_length=30, choices=QUEST_TYPES, default="tasks_completed"
+    )
+    target_value = models.PositiveIntegerField(default=50)
+    current_value = models.PositiveIntegerField(default=0)
+    week_key = models.CharField(
+        max_length=10,
+        help_text="ISO week key, e.g. '25W30'",
+    )
+    is_completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Party Weekly Quest"
+        verbose_name_plural = "Party Weekly Quests"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["party", "week_key"],
+                name="unique_party_week_quest",
+            )
+        ]
+
+    def __str__(self):
+        return f"[{self.party.name}] {self.quest_type} W{self.week_key}: {self.current_value}/{self.target_value}"
+
+
+class PartyAchievement(models.Model):
+    """
+    A permanent trophy earned by the party for reaching a milestone.
+    Each achievement code can only be earned once per party.
+    """
+
+    ACHIEVEMENT_CODES = (
+        ("streak_7", "7-Day Streak"),
+        ("streak_30", "30-Day Streak"),
+        ("streak_100", "100-Day Streak"),
+        ("full_house", "Full House (max members)"),
+        ("first_quest", "First Weekly Quest Completed"),
+        ("quest_master", "5 Weekly Quests Completed"),
+    )
+
+    objects = models.Manager()
+
+    party = models.ForeignKey(
+        Party,
+        on_delete=models.CASCADE,
+        related_name="achievements",
+    )
+    code = models.CharField(max_length=30, choices=ACHIEVEMENT_CODES)
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Party Achievement"
+        verbose_name_plural = "Party Achievements"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["party", "code"],
+                name="unique_party_achievement",
+            )
+        ]
+
+    def __str__(self):
+        return f"[{self.party.name}] {self.code}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Calendar Events (Ручные события в календаре)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1639,9 +1739,7 @@ class ActivePomodoroSession(models.Model):
     duration_minutes = models.PositiveIntegerField(
         default=25, verbose_name="Длительность (мин)"
     )
-    started_at = models.DateTimeField(
-        default=timezone.now, verbose_name="Время старта"
-    )
+    started_at = models.DateTimeField(default=timezone.now, verbose_name="Время старта")
     is_paused = models.BooleanField(default=False, verbose_name="Пауза")
     paused_remaining_seconds = models.PositiveIntegerField(
         default=0, verbose_name="Остаток секунд на паузе"

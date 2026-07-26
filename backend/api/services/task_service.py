@@ -443,6 +443,18 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
         final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+        # Party buff: XP boost (xp_boost_24h effect from party member)
+        if ActiveEffect.objects.filter(
+            user=user, skill_id="xp_boost_24h", expires_at__gt=timezone.now()
+        ).exists():
+            final_xp = int(final_xp * 1.25)
+
+        # Party buff: Gold boost (gold_boost_12h effect from party member)
+        if ActiveEffect.objects.filter(
+            user=user, skill_id="gold_boost_12h", expires_at__gt=timezone.now()
+        ).exists():
+            final_gold = int(final_gold * 1.20)
+
         active_codes = profile.active_allies or []
 
         recruited_allies = {
@@ -618,6 +630,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                             party.save(
                                 update_fields=["streak", "last_streak_update_date"]
                             )
+                            # Check streak achievements
+                            try:
+                                from api.services.party_service import (
+                                    check_streak_achievements,
+                                )
+
+                                check_streak_achievements(party)
+                            except Exception:
+                                pass
                             if party.streak in [3, 7, 14, 30, 50, 100, 365]:
                                 try:
                                     with transaction.atomic():
@@ -652,6 +673,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                         )
                 except Exception as e:
                     print(f"Failed to create task_completed event: {e}")
+
+            # Party Weekly Quest progress
+            try:
+                from api.services.party_service import add_quest_progress
+
+                add_quest_progress(membership.party)
+            except Exception:
+                pass
+
         except ObjectDoesNotExist:
             pass
 

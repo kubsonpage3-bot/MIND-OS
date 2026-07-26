@@ -2809,6 +2809,89 @@ class PartyLeaderboardView(generics.GenericAPIView):
         return Response({"leaderboard": data}, status=status.HTTP_200_OK)
 
 
+class PartySettingsView(generics.GenericAPIView):
+    """PATCH /api/party/settings/ — Owner-only: update name, description, member_cap."""
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        from api.services.party_service import update_party_settings
+        from api.exceptions import GameLogicError
+
+        name = request.data.get("name")
+        description = request.data.get("description")
+        member_cap = request.data.get("member_cap")
+
+        if member_cap is not None:
+            try:
+                member_cap = int(member_cap)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": "member_cap must be an integer."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+            party = update_party_settings(
+                request.user,
+                name=name,
+                description=description,
+                member_cap=member_cap,
+            )
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        from api.serializers.party import PartySerializer
+
+        return Response(PartySerializer(party, context={"request": request}).data)
+
+
+class PartyWeeklyQuestView(generics.GenericAPIView):
+    """GET /api/party/quest/ — Return current week quest for the user's party."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from api.services.party_service import get_or_create_weekly_quest
+
+        try:
+            party = request.user.party_membership.party
+        except Exception:
+            return Response(
+                {"error": "Not in a party."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            quest = get_or_create_weekly_quest(party)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Calculate days left in the ISO week
+        from django.utils import timezone
+
+        today = timezone.now().date()
+        days_left = 7 - today.weekday()  # weekday 0=Monday, 6=Sunday
+
+        return Response(
+            {
+                "quest_type": quest.quest_type,
+                "quest_label": quest.quest_type.replace("_", " ").title(),
+                "target_value": quest.target_value,
+                "current_value": quest.current_value,
+                "is_completed": quest.is_completed,
+                "week_key": quest.week_key,
+                "days_left": days_left,
+                "progress_pct": (
+                    round(min(100, quest.current_value / quest.target_value * 100))
+                    if quest.target_value
+                    else 0
+                ),
+            }
+        )
+
+
 class PartyMemberProfileView(generics.GenericAPIView):
     """GET /api/party/members/<user_id>/profile/"""
 

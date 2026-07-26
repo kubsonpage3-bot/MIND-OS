@@ -474,7 +474,12 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ receiver_username: username, effect_code: code })
     }),
-    leaderboard: () => djangoFetch('/party/leaderboard/')
+    leaderboard: () => djangoFetch('/party/leaderboard/'),
+    updateSettings: (data) => djangoFetch('/party/settings/', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+    getQuest: () => djangoFetch('/party/quest/'),
   },
 
   pomodoro: {
