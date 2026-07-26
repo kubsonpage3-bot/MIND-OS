@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
@@ -136,7 +136,13 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { success, error } = useHaptic();
-  const tasks = dailies;
+  // Sort by `order` field so tasks keep their position after completion.
+  // Without this, invalidateQueries causes the backend to return tasks sorted by
+  // is_completed (completed → bottom), making completed tasks jump visually.
+  const tasks = useMemo(
+    () => [...dailies].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    [dailies]
+  );
   const [cronMsg, setCronMsg] = useState(null);
   const [deathMsg, setDeathMsg] = useState(null);
 
@@ -218,7 +224,8 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       if (oldIndex === -1 || newIndex === -1) return oldTasks;
 
       const columnType = newTasks[oldIndex].type;
-      const columnTasks = newTasks.filter(t => t.type === columnType);
+      // Sort by order so arrayMove works on the same order as the visual list
+      const columnTasks = newTasks.filter(t => t.type === columnType).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       const otherTasks = newTasks.filter(t => t.type !== columnType);
 
       const oldColIndex = columnTasks.findIndex(t => String(t.id) === active.id);

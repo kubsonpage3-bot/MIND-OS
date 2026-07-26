@@ -1,5 +1,29 @@
 [
   {
+    "date": "2026-07-25",
+    "version": "0.8.31",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Security hardening: sessions are now refreshed more frequently so stolen tokens expire in 1 hour instead of 14 days."
+      },
+      {
+        "type": "fix",
+        "text": "API documentation is no longer publicly accessible in production — reduces attack surface."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-25",
+    "version": "0.8.30",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed tasks jumping to the bottom of the list after being completed — tasks now stay in their original position regardless of completion status."
+      }
+    ]
+  },
+  {
     "date": "2026-07-23",
     "version": "0.8.29",
     "changes": [

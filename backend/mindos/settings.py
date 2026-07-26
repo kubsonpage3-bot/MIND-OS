@@ -232,13 +232,14 @@ REST_FRAMEWORK = {
 
 # ── JWT-настройки (djangorestframework-simplejwt) ─────────────────────────
 SIMPLE_JWT = {
-    # Время жизни access-токена — 14 дней
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=14),
-    # Время жизни refresh-токена — 90 дней
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
-    # Параллельные сессии: не вращаем и не блэклистим токены при обновлении
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": False,
+    # Access token — 1 hour (was 14 days; short-lived = safer)
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    # Refresh token — 30 days
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    # Rotate refresh tokens: every /api/auth/token/refresh/ call issues a new token
+    # and the old one is blacklisted — prevents token reuse after theft.
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     # Алгоритм подписи
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,

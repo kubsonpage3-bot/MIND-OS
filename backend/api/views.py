@@ -1005,8 +1005,17 @@ def stripe_webhook_view(request):
 
     try:
         handle_stripe_webhook(payload, sig_header)
+    except ValueError as e:
+        # ValueError = invalid signature / payload — safe to log, never expose
+        logger.warning(f"Stripe webhook rejected: {e}")
+        return Response(
+            {"error": "Invalid payload"}, status=status.HTTP_400_BAD_REQUEST
+        )
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        logger.error(f"Stripe webhook unexpected error: {e}")
+        return Response(
+            {"error": "Webhook processing failed"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     return Response({"status": "success"})
 
@@ -3167,6 +3176,9 @@ class GdprDeleteRequestView(APIView):
     """
 
     permission_classes = []  # Public — no authentication required
+    throttle_classes = [
+        AnonRateThrottle
+    ]  # Max 30/min per IP — prevents email spam abuse
 
     VALID_REQUEST_TYPES = {
         "delete_account",

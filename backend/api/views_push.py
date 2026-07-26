@@ -1,4 +1,5 @@
 import logging
+import hmac
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -71,7 +72,8 @@ class CronStreakWarningView(APIView):
             )
 
         token = auth_header.split(" ")[1]
-        if token != settings.CRON_SECRET:
+        # Timing-safe comparison — prevents brute-force via response timing
+        if not hmac.compare_digest(token, settings.CRON_SECRET):
             return Response({"error": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
         try:

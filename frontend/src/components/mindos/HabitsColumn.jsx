@@ -12,7 +12,7 @@ import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem, DragHandle } from "./SortableTaskItem";
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -160,7 +160,11 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { success, error } = useHaptic();
-  const tasks = habits;
+  // Sort by `order` so habits keep stable positions even after server refetch
+  const tasks = useMemo(
+    () => [...habits].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    [habits]
+  );
 
   const { profile } = useDjangoAuth();
   const hp = profile?.hp ?? 100;
@@ -197,7 +201,8 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       if (oldIndex === -1 || newIndex === -1) return oldTasks;
 
       const columnType = newTasks[oldIndex].type;
-      const columnTasks = newTasks.filter(t => t.type === columnType);
+      // Sort by order so arrayMove works on the same order as the visual list
+      const columnTasks = newTasks.filter(t => t.type === columnType).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       const otherTasks = newTasks.filter(t => t.type !== columnType);
 
       const oldColIndex = columnTasks.findIndex(t => String(t.id) === active.id);

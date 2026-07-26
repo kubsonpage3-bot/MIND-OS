@@ -134,7 +134,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   const [formType, setFormType] = useState('todo');
   const [editingTask, setEditingTask] = useState(null);
 
-  const activeTodos = todos.filter(t => !t.is_completed);
+  const activeTodos = todos.filter(t => !t.is_completed).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const sensors = useTaskDndSensors();
   const [activeId, setActiveId] = useState(null);
@@ -160,8 +160,9 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       if (oldIndex === -1 || newIndex === -1) return oldTasks;
 
       const columnType = newTasks[oldIndex].type;
-      const columnTasks = newTasks.filter(t => t.type === columnType);
-      const otherTasks = newTasks.filter(t => t.type !== columnType);
+      // Sort by order so arrayMove works on the same order as the visual list
+      const columnTasks = newTasks.filter(t => t.type === columnType && !t.is_completed).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const otherTasks = newTasks.filter(t => t.type !== columnType || t.is_completed);
 
       const oldColIndex = columnTasks.findIndex(t => String(t.id) === active.id);
       const newColIndex = columnTasks.findIndex(t => String(t.id) === over.id);
