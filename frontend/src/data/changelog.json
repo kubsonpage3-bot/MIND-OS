@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-07-27",
+    "version": "0.8.33",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed Rival page not opening on mobile when tapped in the sidebar — the section was missing from the mobile swipe carousel."
+      }
+    ]
+  },
+  {
     "date": "2026-07-26",
     "version": "0.8.32",
     "changes": [

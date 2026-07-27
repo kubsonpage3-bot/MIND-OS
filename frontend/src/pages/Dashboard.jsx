@@ -195,9 +195,9 @@ function MetricPanel3D({ children }) {
   );
 }
 
-const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
+const BOTTOM_TABS = ["dashboard", "tasks", "character", "rival", "tools", "settings"];
 const getSectionIndex = (sec) => {
-  if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 3; // "tools"
+  if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 4; // "tools" is now at index 4
   const idx = BOTTOM_TABS.indexOf(sec);
   return idx === -1 ? 0 : idx;
 };
