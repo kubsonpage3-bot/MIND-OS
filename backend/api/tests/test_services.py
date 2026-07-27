@@ -1395,3 +1395,40 @@ def test_unknown_tier_raises():
 
     with pytest.raises(ValueError):
         task_rewards("nonsense")
+
+
+@pytest.mark.django_db
+def test_daily_task_value_single_increment_on_cron_reset(user, profile):
+    from api.models import Task
+    from api.services.task_service import complete_task, process_missed_tasks
+    import datetime
+
+    daily = Task.objects.create(
+        user=user,
+        title="Single Increment Daily",
+        task_type=Task.TaskType.DAILY,
+        value=3.0,
+    )
+    initial_value = daily.value
+
+    # 1. Complete the task today
+    complete_task(user, daily.id, is_positive=True)
+    daily.refresh_from_db()
+
+    value_after_completion = daily.value
+    assert (
+        value_after_completion > initial_value
+    ), "Value should increase after completion"
+
+    # 2. Advance time to tomorrow and run process_missed_tasks cron
+    profile.last_daily_cron_at = datetime.date.today() - datetime.timedelta(days=1)
+    profile.save()
+
+    process_missed_tasks(user)
+    daily.refresh_from_db()
+
+    # 3. Value should NOT change again when cron resets the completed daily task
+    assert (
+        daily.value == value_after_completion
+    ), f"Value should remain {value_after_completion} after cron reset, but got {daily.value}"
+    assert daily.is_completed is False

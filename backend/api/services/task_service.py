@@ -1238,7 +1238,6 @@ def process_missed_tasks(user):
             task.last_completed_at = (
                 None  # Clear timestamp so tomorrow's first click is never blocked.
             )
-            task.value = calc_new_value(task.value, "complete", "daily")
             log.append({"type": "daily_done", "id": task.id, "title": task.title})
         else:
             # Missed daily

@@ -6,6 +6,10 @@
       {
         "type": "fix",
         "text": "Fixed Rival page not opening on mobile when tapped in the sidebar — the section was missing from the mobile swipe carousel."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed task value jumping by +2 during daily resets by eliminating duplicate increment logic during midnight cron."
       }
     ]
   },

@@ -2781,3 +2781,16 @@ WARNING 2026-07-23 21:23:47,600 log 24116 2196 Bad Request: /api/extension/pair/
 WARNING 2026-07-23 21:23:47,691 log 24116 2196 Forbidden: /api/extension/status/
 WARNING 2026-07-23 21:23:50,132 log 24116 2196 Bad Request: /api/extension/unlock-site/
 WARNING 2026-07-23 21:23:52,648 log 24116 2196 Bad Request: /api/extension/unlock-site/
+WARNING 2026-07-27 10:13:48,599 log 19756 18588 Unauthorized: /api/analytics/event/
+WARNING 2026-07-27 10:13:51,491 log 19756 18588 Bad Request: /api/analytics/event/
+WARNING 2026-07-27 10:14:03,354 log 19756 18588 Bad Request: /api/auth/register/
+WARNING 2026-07-27 10:14:20,306 log 20836 19956 Unauthorized: /api/analytics/event/
+WARNING 2026-07-27 10:14:23,145 log 20836 19956 Bad Request: /api/analytics/event/
+WARNING 2026-07-27 10:14:35,146 log 20836 19956 Bad Request: /api/auth/register/
+ERROR 2026-07-27 10:14:49,003 task_service 2580 19972 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-07-27 10:15:40,443 task_service 2580 19972 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-07-27 10:15:49,581 log 19756 18588 Bad Request: /api/profile/
+WARNING 2026-07-27 10:15:53,893 log 19756 18588 Forbidden: /api/calendar/events/
+WARNING 2026-07-27 10:16:12,416 log 20836 19956 Bad Request: /api/profile/
+WARNING 2026-07-27 10:16:16,750 log 20836 19956 Forbidden: /api/calendar/events/
+WARNING 2026-07-27 10:16:46,690 log 19756 18588 Bad Request: /api/tasks/3923/sacrifice/
