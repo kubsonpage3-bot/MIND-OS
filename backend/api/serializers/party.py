@@ -104,6 +104,21 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
         except Exception:
             return False
 
+    def get_weekly_tasks_done(self, obj) -> int:
+        from django.utils import timezone
+        from datetime import timedelta
+        from api.models import Task
+
+        try:
+            week_ago = timezone.now() - timedelta(days=7)
+            return Task.objects.filter(
+                user=obj.user,
+                is_completed=True,
+                last_completed_at__gte=week_ago,
+            ).count()
+        except Exception:
+            return 0
+
 
 class PartySerializer(serializers.ModelSerializer):
     """

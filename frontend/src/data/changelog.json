@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-07-28",
+    "version": "0.8.34",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed server crash (HTTP 500) on login caused by a missing method in the Party member serializer — the site was inaccessible for all users."
+      }
+    ]
+  },
+  {
     "date": "2026-07-27",
     "version": "0.8.33",
     "changes": [
