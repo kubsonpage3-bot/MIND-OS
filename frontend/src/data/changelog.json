@@ -10,6 +10,24 @@
     ]
   },
   {
+    "date": "2026-07-28",
+    "version": "0.8.35",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Disabled WebView debugging mode in production builds — improves security for Android users."
+      },
+      {
+        "type": "fix",
+        "text": "Party activity feed now correctly labels completed tasks instead of using an invalid event type."
+      },
+      {
+        "type": "fix",
+        "text": "Android app version updated to 0.8.34 — version tracking is now accurate on Google Play."
+      }
+    ]
+  },
+  {
     "date": "2026-07-27",
     "version": "0.8.33",
     "changes": [

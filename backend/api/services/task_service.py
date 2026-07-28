@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from django.utils import timezone
 import random
@@ -9,6 +10,8 @@ from api.services.rewards_service import task_rewards
 from api.services.skill_service import apply_effects_on_task_complete
 from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
+
+logger = logging.getLogger(__name__)
 
 
 def is_daily_scheduled_for_date(task, date_val) -> bool:
@@ -651,7 +654,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                                             message=f"hit a {party.streak}-day streak!",
                                         )
                                 except Exception as e:
-                                    print(f"Failed to create milestone event: {e}")
+                                    logger.warning(
+                                        "Failed to create milestone event: %s", e
+                                    )
 
             membership.save(
                 update_fields=[
@@ -668,11 +673,11 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                         PartyEvent.objects.create(
                             party=membership.party,
                             member=membership,
-                            event_type="task_completed",
+                            event_type="task",
                             message=task.title[:250],
                         )
                 except Exception as e:
-                    print(f"Failed to create task_completed event: {e}")
+                    logger.warning("Failed to create task event: %s", e)
 
             # Party Weekly Quest progress
             try:
@@ -889,7 +894,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                             message=str(profile.level),
                         )
                 except Exception as e:
-                    print(f"Failed to create level_up event: {e}")
+                    logger.warning("Failed to create level_up event: %s", e)
             except ObjectDoesNotExist:
                 pass
         profile.save(
