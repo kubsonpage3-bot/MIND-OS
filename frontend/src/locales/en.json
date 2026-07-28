@@ -2088,5 +2088,83 @@
       "name": "Apex Sovereign",
       "desc": "Perform at least 1 Prestige reset"
     }
+  },
+  "johan_diff": {
+    "title": "RIVAL — JOHAN DIFFICULTY",
+    "desc": "Controls how fast Johan accumulates XP and how aggressive his surge days are.",
+    "easy_label": "Easy",
+    "easy_desc": "Johan trains slow.",
+    "normal_label": "Normal",
+    "normal_desc": "Balanced challenge.",
+    "hard_label": "Hard",
+    "hard_desc": "Johan pushes hard.",
+    "extreme_label": "Extreme",
+    "extreme_desc": "No mercy. No catch-up.",
+    "syncing": "Syncing with Johan..."
+  },
+  "rival_taunts": {
+    "pressure_0": "RIVAL is calculating your endpoint.",
+    "pressure_1": "Day 4. The gap is structural now.",
+    "pressure_2": "Johan doesn't plateau. You do.",
+    "pressure_3": "Stop. Recalculate. Then grind.",
+    "pressure_4": "Every session you skip becomes Johan's lead.",
+    "pressure_5": "This is a streak he will not break.",
+    "ahead_0": "The gap closes when you stop.",
+    "ahead_1": "Johan doesn't take rest days.",
+    "ahead_2": "Every hour you skip, they don't.",
+    "ahead_3": "Shadows don't sleep.",
+    "ahead_4": "Johan logged another session. Did you?",
+    "ahead_5": "You were ahead. Past tense.",
+    "ahead_6": "Consistency is the only variable that compounds.",
+    "ahead_7": "Johan is 3 subjects ahead this week.",
+    "winning_0": "You lead by {{xp}} XP. Don't stop now.",
+    "winning_1": "Johan is recalibrating.",
+    "winning_2": "Good. Now stay ahead.",
+    "winning_3": "Johan sees the gap. They won't accept it.",
+    "winning_4": "Lead means nothing without consistency.",
+    "winning_5": "Johan is planning a surge. Stay alert.",
+    "default_0": "Shadow Protocol Active — Monitoring your progress.",
+    "default_1": "The race doesn't pause.",
+    "default_2": "Johan is always logging somewhere.",
+    "default_3": "Your next session determines the gap.",
+    "slacking": "{{name}} logged {{hours}}h already today. You have: 0h.",
+    "pressure_day": "[Day {{days}}] {{taunt}}",
+    "overtook": "⚡ {{name}} overtook you by {{diff}} XP today. {{taunt}}",
+    "noticed": "{{name}} noticed your session. Adjusting pace.",
+    "streak_lead": "Your streak is longer. {{name}} is watching.",
+    "focus_taunt": "{{name}}: '...that focus score.'"
+  },
+  "boss_panel_extra": {
+    "idle_dps": "⚡ Idle DPS:",
+    "per_hr": "/hr",
+    "eta": "⏱️ ETA:",
+    "final_blow": "FINAL BLOW REQUIRED!",
+    "buff_active": "⚡ BUFF ACTIVE",
+    "reward": "Reward:"
+  },
+  "party_extra": {
+    "profile_title": "{{name}}'s Profile",
+    "loading": "Loading profile...",
+    "failed": "Failed to load profile.",
+    "joined": "Joined",
+    "max_streak": "Max Streak",
+    "tasks_done": "Tasks Done",
+    "rank_xp": "Rank XP",
+    "recruited_allies": "Recruited Allies ({{count}})",
+    "no_allies": "No allies recruited yet",
+    "kick_confirm": "Are you sure you want to kick {{name}} from the party?",
+    "kick_tooltip": "Kick Member",
+    "dailies_done": "Dailies done today ✓",
+    "dailies_not_done": "Dailies not done today"
+  },
+  "training_extra": {
+    "expected_rewards": "Expected Rewards",
+    "experience": "Experience",
+    "gold": "Gold",
+    "boss_dmg": "Boss DMG",
+    "log_btn": "Log"
+  },
+  "brain_chart_extra": {
+    "now": "now"
   }
 }

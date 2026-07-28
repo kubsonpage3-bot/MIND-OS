@@ -217,11 +217,16 @@ export default function GameplayPanel() {
       >
         <div className="flex items-center gap-2">
           <Ghost className="w-4 h-4" style={{ color: "#00e5ff" }} />
-          <span className="font-mono text-xs font-bold" style={{ color: "#00e5ff" }}>RIVAL — JOHAN DIFFICULTY</span>
+          <span className="font-mono text-xs font-bold" style={{ color: "#00e5ff" }}>{t('johan_diff.title', 'RIVAL — JOHAN DIFFICULTY')}</span>
         </div>
-        <p className="text-[10px] font-mono italic" style={{ color: "rgba(0,229,255,0.5)" }}>Controls how fast Johan accumulates XP and how aggressive his surge days are.</p>
+        <p className="text-[10px] font-mono italic" style={{ color: "rgba(0,229,255,0.5)" }}>{t('johan_diff.desc', 'Controls how fast Johan accumulates XP and how aggressive his surge days are.')}</p>
         <div className="grid grid-cols-2 gap-3">
-          {JOHAN_DIFFICULTIES.map(diff => {
+          {[
+            { id: "EASY",    label: t('johan_diff.easy_label', 'Easy'),    desc: t('johan_diff.easy_desc', 'Johan trains slow.'),      xp_mult: "×0.6 XP",  color: "#00cc88" },
+            { id: "NORMAL",  label: t('johan_diff.normal_label', 'Normal'),  desc: t('johan_diff.normal_desc', 'Balanced challenge.'),      xp_mult: "×0.9 XP",  color: "#00e5ff" },
+            { id: "HARD",    label: t('johan_diff.hard_label', 'Hard'),    desc: t('johan_diff.hard_desc', 'Johan pushes hard.'),       xp_mult: "×1.2 XP",  color: "#f59e0b" },
+            { id: "EXTREME", label: t('johan_diff.extreme_label', 'Extreme'), desc: t('johan_diff.extreme_desc', 'No mercy. No catch-up.'),  xp_mult: "×1.6 XP",  color: "#ef4444" },
+          ].map(diff => {
             const current = profile?.rival_data?.rivalDifficulty || "NORMAL";
             const isActive = current === diff.id;
             return (
@@ -246,7 +251,7 @@ export default function GameplayPanel() {
           })}
         </div>
         {rivalDiffMutation.isPending && (
-          <div className="text-[9px] font-mono text-center" style={{ color: "rgba(0,229,255,0.4)" }}>Syncing with Johan...</div>
+          <div className="text-[9px] font-mono text-center" style={{ color: "rgba(0,229,255,0.4)" }}>{t('johan_diff.syncing', 'Syncing with Johan...')}</div>
         )}
       </div>
 

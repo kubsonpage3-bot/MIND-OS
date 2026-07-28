@@ -93,7 +93,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
 
   // Format remaining time to victory
   const formatETA = (seconds) => {
-    if (seconds <= 0 || !isFinite(seconds)) return "Final Blow Required!";
+    if (seconds <= 0 || !isFinite(seconds)) return t("boss_panel_extra.final_blow", "Final Blow Required!");
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
@@ -235,7 +235,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
           {open ? "▾" : "▸"} {t("boss_panel.scroll_boss")} — <span className="text-red-400">{t("boss_panel.active")}</span>
           {hasDamageBuff && (
             <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[9px] font-bold border border-cyan-500/50 flex items-center gap-1">
-              <span>⚡ BUFF ACTIVE</span>
+              <span>{t("boss_panel_extra.buff_active", "⚡ BUFF ACTIVE")}</span>
             </span>
           )}
         </span>
@@ -400,14 +400,14 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
               
               {/* Idle Stats Bar */}
               <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground/60 border-t border-border/30 pt-1.5 mt-1">
-                <span>⚡ Idle DPS: {dps.toFixed(2)} ({ (dps * 3600).toFixed(0) }/hr)</span>
-                <span>⏱️ ETA: {formatETA((bossHP - minHP) / dps)}</span>
+                <span>{t("boss_panel_extra.idle_dps", "⚡ Idle DPS:")} {dps.toFixed(2)} ({ (dps * 3600).toFixed(0) }{t("boss_panel_extra.per_hr", "/hr")})</span>
+                <span>{t("boss_panel_extra.eta", "⏱️ ETA:")} {formatETA((bossHP - minHP) / dps)}</span>
               </div>
               <div className="flex justify-between items-end">
                 <div>
                   <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeBossTemplate.name}</div>
                   <div className="text-[10px] font-mono text-yellow-400/70">
-                    Reward: +{Math.round(activeEncounter.boss.reward_gold).toLocaleString()}G · +{activeBossTemplate.reward.sp}SP · {activeBossTemplate.uniqueItem.label}
+                    {t("boss_panel_extra.reward", "Reward:")} +{Math.round(activeEncounter.boss.reward_gold).toLocaleString()}G · +{activeBossTemplate.reward.sp}SP · {activeBossTemplate.uniqueItem.label}
                   </div>
                 </div>
                 {isNearlyDefeated && (
@@ -416,7 +416,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-[10px] font-mono font-bold text-red-400 animate-pulse bg-red-400/10 px-2 py-0.5 rounded border border-red-400/30"
                   >
-                    FINAL BLOW REQUIRED!
+                    {t("boss_panel_extra.final_blow", "FINAL BLOW REQUIRED!")}
                   </motion.div>
                 )}
               </div>

@@ -505,19 +505,19 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
 
               return (
                 <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-xs space-y-2">
-                  <div className="text-muted-foreground/50 uppercase text-[9px] tracking-wider">{t('training.expected_rewards', 'Expected Rewards')}</div>
+                  <div className="text-muted-foreground/50 uppercase text-[9px] tracking-wider">{t('training_extra.expected_rewards', 'Expected Rewards')}</div>
                   <div className="flex justify-around gap-4 text-center">
                     <div>
                       <div className="text-blue-400 font-pixel text-lg">+{expectedXp} XP</div>
-                      <div className="text-[8.5px] text-muted-foreground mt-0.5">Experience</div>
+                      <div className="text-[8.5px] text-muted-foreground mt-0.5">{t('training_extra.experience', 'Experience')}</div>
                     </div>
                     <div>
                       <div className="text-yellow-500 font-pixel text-lg">+{expectedGold}G</div>
-                      <div className="text-[8.5px] text-muted-foreground mt-0.5">Gold</div>
+                      <div className="text-[8.5px] text-muted-foreground mt-0.5">{t('training_extra.gold', 'Gold')}</div>
                     </div>
                     <div>
                       <div className="text-red-400 font-pixel text-lg">⚔ {expectedDmg}</div>
-                      <div className="text-[8.5px] text-muted-foreground mt-0.5">Boss DMG</div>
+                      <div className="text-[8.5px] text-muted-foreground mt-0.5">{t('training_extra.boss_dmg', 'Boss DMG')}</div>
                     </div>
                   </div>
                 </div>
@@ -547,7 +547,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                 className={`w-full py-3 rounded-full transition-all hover:scale-[1.02] active:scale-[0.98] ${isLogging ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{ background: "var(--habit-purple)", color: "white", fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, letterSpacing: "0.02em", boxShadow: "0 4px 16px var(--habit-purple-glow)" }}
               >
-                Log {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} {t('training.efficiency', 'eff.')}
+                {t('training_extra.log_btn', 'Log')} {isQuestionsMode ? `${questions}q` : `${hours}h`} · ×{efficiency.total.toFixed(2)} {t('training.efficiency', 'eff.')}
               </button>
             </div>
           </motion.div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 /**
  * MasteryBrainChart
@@ -126,6 +127,7 @@ export default function MasteryBrainChart({
   height = "250px",
   className = ""
 }) {
+  const { t } = useTranslation();
   const [hoveredCategory, setHoveredCategory] = useState(null);
 
   const statsMap = useMemo(() => {
@@ -366,7 +368,7 @@ export default function MasteryBrainChart({
             </span>
             <span className="text-muted-foreground">|</span>
             <span className="text-foreground font-semibold">
-              now {statsMap[hoveredCategory].pct?.toFixed(1)}%
+              {t('brain_chart_extra.now', 'now')} {statsMap[hoveredCategory].pct?.toFixed(1)}%
             </span>
             {statsMap[hoveredCategory].pct30d != null && (
               <span className="text-muted-foreground/70 text-[10px]">

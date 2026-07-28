@@ -5,8 +5,10 @@ import { getRankDisplayData } from '@/lib/rankEngine';
 import { AllyPortrait } from './AlliesPanel';
 import PixelCharacter from './PixelCharacter';
 import { useHardwareBack } from '@/utils/modalStack';
+import { useTranslation } from 'react-i18next';
 
 export default function PartyMemberProfileSheet({ isOpen, onClose, userId, memberName }) {
+  const { t } = useTranslation();
   useHardwareBack(isOpen, onClose);
   
   const { data: profile, isLoading, isError } = useQuery({
@@ -22,11 +24,11 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
   });
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={`${memberName || 'Member'}'s Profile`}>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={t('party_extra.profile_title', `${memberName || 'Member'}'s Profile`, { name: memberName || 'Member' })}>
       {isLoading ? (
-        <div className="py-8 text-center text-[11px] font-mono text-white/50">Loading profile...</div>
+        <div className="py-8 text-center text-[11px] font-mono text-white/50">{t('party_extra.loading', 'Loading profile...')}</div>
       ) : isError || !profile ? (
-        <div className="py-8 text-center text-[11px] font-mono text-red-400">Failed to load profile.</div>
+        <div className="py-8 text-center text-[11px] font-mono text-red-400">{t('party_extra.failed', 'Failed to load profile.')}</div>
       ) : (
         <div className="space-y-6 pb-6">
           {/* Top section: Avatar & Basic Info */}
@@ -75,19 +77,19 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-2">
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
-              <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">Joined</div>
+              <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">{t('party_extra.joined', 'Joined')}</div>
               <div className="font-mono text-xs font-bold text-[var(--habit-text)]">
                 {profile.joined ? new Date(profile.joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'}
               </div>
             </div>
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
-              <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">Max Streak</div>
+              <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">{t('party_extra.max_streak', 'Max Streak')}</div>
               <div className="font-mono text-xs font-bold text-[#f59e0b]">
                 🔥 {profile.max_streak}d
               </div>
             </div>
             <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] text-center">
-              <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">Tasks Done</div>
+              <div className="text-[10px] font-mono text-[var(--habit-dim)] mb-1">{t('party_extra.tasks_done', 'Tasks Done')}</div>
               <div className="font-mono text-xs font-bold text-[#3b82f6]">
                 ✓ {profile.total_tasks_completed}
               </div>
@@ -124,7 +126,7 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
 
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-mono">
-                <span className="text-[#a855f7]">Rank XP</span>
+                <span className="text-[#a855f7]">{t('party_extra.rank_xp', 'Rank XP')}</span>
                 <span className="text-[var(--habit-dim)]">{Math.floor(profile.rank_xp)} / {profile.rank_info?.next_threshold || profile.prestige_xp_required || 8000}</span>
               </div>
               <div className="h-1.5 rounded-full bg-[var(--habit-border)] overflow-hidden">
@@ -142,12 +144,12 @@ export default function PartyMemberProfileSheet({ isOpen, onClose, userId, membe
           {/* Allies List */}
           <div>
             <div className="text-[11px] font-mono font-bold text-[var(--habit-dim)] mb-3 px-1 uppercase tracking-widest">
-              Recruited Allies ({profile.allies?.length || 0})
+              {t('party_extra.recruited_allies', `Recruited Allies (${profile.allies?.length || 0})`, { count: profile.allies?.length || 0 })}
             </div>
             
             {profile.allies?.length === 0 ? (
               <div className="p-4 rounded-xl border border-[var(--habit-border)] border-dashed text-center">
-                <span className="text-xs font-mono text-white/30">No allies recruited yet</span>
+                <span className="text-xs font-mono text-white/30">{t('party_extra.no_allies', 'No allies recruited yet')}</span>
               </div>
             ) : (
             <div className="flex gap-2 overflow-x-auto pb-2" style={{ paddingRight: '1rem' }} onPointerDown={(e) => e.stopPropagation()}>

@@ -90,7 +90,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
           <span
             className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--habit-bg)]"
             style={{ background: didDailyToday ? '#00cc88' : '#ef4444' }}
-            title={didDailyToday ? 'Dailies done today ✓' : 'Dailies not done today'}
+            title={didDailyToday ? t('party_extra.dailies_done', 'Dailies done today ✓') : t('party_extra.dailies_not_done', 'Dailies not done today')}
           />
         </div>
 
@@ -134,12 +134,12 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`Are you sure you want to kick ${member.username} from the party?`)) {
+                    if (confirm(t('party_extra.kick_confirm', `Are you sure you want to kick ${member.username} from the party?`, { name: member.username }))) {
                       onKick();
                     }
                   }}
                   className="p-1 rounded-md transition-all hover:bg-red-500/10 text-red-400 shrink-0"
-                  title="Kick Member"
+                  title={t('party_extra.kick_tooltip', 'Kick Member')}
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -188,7 +188,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
             {Math.floor(member.rank_xp)} / {member.rank_info?.next_threshold}
           </div>
           <div className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-            Rank XP
+            {t('party_extra.rank_xp', 'Rank XP')}
           </div>
         </div>
       </div>

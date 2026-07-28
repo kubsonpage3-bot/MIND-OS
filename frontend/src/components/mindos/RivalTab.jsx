@@ -69,7 +69,7 @@ const DEFAULT_TAUNTS = [
 // ─── DYNAMIC MESSAGE SYSTEM ───────────────────────────────────────────────────
 function calcJohanMessage(
   playerRankXP, johanXP, playerTodayHours, johanTodayHours,
-  playerStreak, johanStreak, logs, dayNumber, rivalName, behindDays
+  playerStreak, johanStreak, logs, dayNumber, rivalName, behindDays, t
 ) {
   const nowH = new Date().getHours();
   const diff = Math.abs(johanXP - playerRankXP);
@@ -80,9 +80,16 @@ function calcJohanMessage(
   const recentLog = logs.find(l => new Date(l.created_at).getTime() > oneHourAgo);
   const hasPerfectFocus = logs.some(l => (l.focus_rating || 0) >= 10);
 
+  const getT = (key, fallback, options) => t ? t(key, fallback, options) : fallback;
+
+  const pressureKeys = ['pressure_0', 'pressure_1', 'pressure_2', 'pressure_3', 'pressure_4', 'pressure_5'];
+  const aheadKeys = ['ahead_0', 'ahead_1', 'ahead_2', 'ahead_3', 'ahead_4', 'ahead_5', 'ahead_6', 'ahead_7'];
+  const winningKeys = ['winning_0', 'winning_1', 'winning_2', 'winning_3', 'winning_4', 'winning_5'];
+  const defaultKeys = ['default_0', 'default_1', 'default_2', 'default_3'];
+
   if (playerTodayHours === 0 && nowH >= 15 && johanTodayHours > 0) {
     return {
-      text: `${rivalName} logged ${johanTodayHours.toFixed(1)}h already today. You have: 0h.`,
+      text: getT('rival_taunts.slacking', `${rivalName} logged ${johanTodayHours.toFixed(1)}h already today. You have: 0h.`, { name: rivalName, hours: johanTodayHours.toFixed(1) }),
       color: "#f59e0b",
       category: "slacking",
     };
@@ -90,14 +97,16 @@ function calcJohanMessage(
 
   // Escalate pressure when behind many days
   if (behindDays >= 6) {
-    const taunt = hashSelect(PRESSURE_TAUNTS, hourSeed);
-    return { text: `[Day ${behindDays}] ${taunt}`, color: "#ef4444", category: "pressure", pulse: true };
+    const key = hashSelect(pressureKeys, hourSeed);
+    const taunt = getT(`rival_taunts.${key}`);
+    return { text: getT('rival_taunts.pressure_day', `[Day ${behindDays}] ${taunt}`, { days: behindDays, taunt }), color: "#ef4444", category: "pressure", pulse: true };
   }
 
   if (pctAhead > 0.05) {
-    const taunt = hashSelect(AHEAD_TAUNTS, hourSeed);
+    const key = hashSelect(aheadKeys, hourSeed);
+    const taunt = getT(`rival_taunts.${key}`);
     return {
-      text: `⚡ ${rivalName} overtook you by ${diff.toFixed(1)} XP today. ${taunt}`,
+      text: getT('rival_taunts.overtook', `⚡ ${rivalName} overtook you by ${diff.toFixed(1)} XP today. ${taunt}`, { name: rivalName, diff: diff.toFixed(1), taunt }),
       color: "#ef4444",
       category: "ahead",
       pulse: true,
@@ -106,7 +115,7 @@ function calcJohanMessage(
 
   if (recentLog) {
     return {
-      text: `${rivalName} noticed your session. Adjusting pace.`,
+      text: getT('rival_taunts.noticed', `${rivalName} noticed your session. Adjusting pace.`, { name: rivalName }),
       color: "#00e5ff",
       category: "noticed",
     };
@@ -114,7 +123,7 @@ function calcJohanMessage(
 
   if (playerStreak > johanStreak) {
     return {
-      text: `Your streak is longer. ${rivalName} is watching.`,
+      text: getT('rival_taunts.streak_lead', `Your streak is longer. ${rivalName} is watching.`, { name: rivalName }),
       color: "#00cc88",
       category: "streakLead",
     };
@@ -122,23 +131,24 @@ function calcJohanMessage(
 
   if (hasPerfectFocus) {
     return {
-      text: `${rivalName}: '...that focus score.'`,
+      text: getT('rival_taunts.focus_taunt', `${rivalName}: '...that focus score.'`, { name: rivalName }),
       color: "#00e5ff",
       category: "perfectFocus",
     };
   }
 
   if (playerRankXP > johanXP) {
-    const template = hashSelect(WINNING_MESSAGES, hourSeed);
+    const key = hashSelect(winningKeys, hourSeed);
     return {
-      text: template.replace("{X}", diff.toFixed(1)),
+      text: getT(`rival_taunts.${key}`, undefined, { xp: diff.toFixed(1) }),
       color: "#00cc88",
       category: "winning",
     };
   }
 
+  const defKey = hashSelect(defaultKeys, hourSeed);
   return {
-    text: hashSelect(DEFAULT_TAUNTS, hourSeed),
+    text: getT(`rival_taunts.${defKey}`),
     color: "rgba(0,229,255,0.5)",
     category: "default",
   };
@@ -339,7 +349,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
   const msgObj = calcJohanMessage(
     playerRankXP, johanXP, playerTodayHours, rivalTodayHours,
     playerStreak, johanStreak, logs, getDayNumber(), RIVAL_NAME,
-    rivalData.behindDays || 0
+    rivalData.behindDays || 0, t
   );
 
   const johanWeekHours = rivalData.johanWeekHours || 0;
