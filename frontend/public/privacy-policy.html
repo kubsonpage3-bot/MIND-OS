@@ -213,7 +213,7 @@
       btn.disabled = true;
       btn.textContent = 'Submitting...';
       try {
-        var res = await fetch('https://mindos-backend.onrender.com/api/gdpr/delete-request/', {
+        var res = await fetch('https://mind-os-d5sk.onrender.com/api/gdpr/delete-request/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email, request_type: requestType, username: username, notes: notes })
