@@ -263,12 +263,16 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
                 category: taskData.category ?? t.category,
                 difficulty: taskData.difficulty ?? t.difficulty,
                 notes: taskData.notes ?? t.notes,
+                value: res?.value ?? res?.rpgValue ?? t.value,
+                rpgValue: res?.value ?? res?.rpgValue ?? t.rpgValue,
+                task_hp: res?.task_hp ?? t.task_hp,
               }
             : t
         );
       });
       setShowForm(false);
       setEditingTask(null);
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });

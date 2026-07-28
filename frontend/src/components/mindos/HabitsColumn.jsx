@@ -242,12 +242,16 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                 category: taskData.category ?? t.category,
                 difficulty: taskData.difficulty ?? t.difficulty,
                 notes: taskData.notes ?? t.notes,
+                value: res?.value ?? res?.rpgValue ?? t.value,
+                rpgValue: res?.value ?? res?.rpgValue ?? t.rpgValue,
+                task_hp: res?.task_hp ?? t.task_hp,
               }
             : t
         );
       });
       setShowForm(false);
       setEditingTask(null);
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
     onError: () => {
       // Full refetch on error to restore real server state
@@ -304,6 +308,28 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
 
       if (res?.profile) {
         queryClient.setQueryData(["userprofile"], res.profile);
+      }
+
+      if (res?.task) {
+        const dt = res.task;
+        queryClient.setQueryData(["tasks"], (old) => {
+          if (!old) return old;
+          const list = Array.isArray(old) ? old : (old?.results ?? []);
+          const updated = list.map((t) =>
+            t.id === dt.id
+              ? {
+                  ...t,
+                  value: dt.value ?? t.value,
+                  rpgValue: dt.value ?? t.rpgValue,
+                  streak: dt.streak ?? t.streak,
+                  posStreak: dt.pos_streak ?? t.posStreak,
+                  negStreak: dt.neg_streak ?? t.negStreak,
+                  task_hp: dt.task_hp ?? t.task_hp,
+                }
+              : t
+          );
+          return Array.isArray(old) ? updated : { ...old, results: updated };
+        });
       }
 
       if (positive) {

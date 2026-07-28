@@ -88,7 +88,9 @@
     --habit-sidebar-border: rgba(255, 255, 255, 0.07);
     --habit-sidebar-hover: rgba(255, 255, 255, 0.09);
     --habit-sidebar-sub-bg: rgba(255, 255, 255, 0.04);
-    --habit-sidebar-sub-text: rgba(255, 255, 255, 0.55);
+    /* Sidebar Layout Offsets (explicit px to prevent rem font-size scaling bugs) */
+    --sidebar-offset-expanded: 256px;
+    --sidebar-offset-collapsed: 64px;
 
     /* Bottom Nav Variables */
     --habit-bottom-bg: rgba(29, 29, 33, 0.98);
