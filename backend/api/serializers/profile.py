@@ -173,7 +173,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     "label": inv.item.name,
                     "description": inv.item.description,
                     "slot": inv.item.slot_type,
-                    "tier": inv.item.gear_class or inv.item.tier,
+                    "tier": inv.item.gear_class or "E",
                     "icon_url": inv.item.icon_url,
                     "consumable": inv.item.item_type == "consumable",
                     "quantity": inv.quantity,
