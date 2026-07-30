@@ -39,7 +39,7 @@ export const THEMES = {
     darkMode: true,
     preview: ["#1a3020", "#2d5a3a", "#4a8c5c", "#ffb7b2", "#a8d8a8"],
     wallpaper: "/images/webp/theme_anime.webp",
-    description: "Fantasy field (Re:Zero)",
+    description: "Fantasy Field",
     hpColor: "#ffb7b2",
     mpColor: "#a8d8a8",
     xpColor: "#4a8c5c",
