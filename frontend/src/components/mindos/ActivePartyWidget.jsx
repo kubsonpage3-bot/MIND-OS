@@ -5,6 +5,8 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { djangoApi } from "@/api/djangoClient";
 import OptimizedImage from "./OptimizedImage";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+
 
 const RANK_BORDER_COLOR = {
   'C': 'border-blue-500/60',
@@ -19,6 +21,7 @@ const RANK_COLORS = { E: "#888", D: "#22c55e", C: "#3b82f6", B: "#a855f7", A: "#
 export default function ActivePartyWidget() {
   const { profile, refreshProfile } = useDjangoAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [selectedAlly, setSelectedAlly] = useState(null);
   const queryClient = useQueryClient();
 
@@ -80,14 +83,14 @@ export default function ActivePartyWidget() {
     <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>
-          ⚔️ ACTIVE PARTY
+          ⚔️ {t('settings.active_party', 'ACTIVE PARTY')}
         </span>
       </div>
       
       <div className="px-4 pb-4">
         {allEmpty ? (
           <p className="text-sm text-center py-2" style={{ color: "var(--habit-dim)" }}>
-            Recruit allies in Shop → Allies to strengthen your party
+            {t('settings.recruit_allies_hint', 'Recruit allies in Shop → Allies to strengthen your party')}
           </p>
         ) : null}
 
@@ -120,7 +123,7 @@ export default function ActivePartyWidget() {
                   <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ background: "var(--habit-purple-light)" }}>
                     <span className="text-2xl" style={{ color: "var(--habit-purple)", opacity: 0.5 }}>+</span>
                   </div>
-                  <span className="text-xs mt-1" style={{ color: "var(--habit-dim)" }}>Add Ally</span>
+                  <span className="text-xs mt-1" style={{ color: "var(--habit-dim)" }}>{t('settings.add_ally', 'Add Ally')}</span>
                 </div>
               );
             }
@@ -163,7 +166,7 @@ export default function ActivePartyWidget() {
                 </span>
 
                 <div className="text-[10px] font-mono mt-2 text-center text-green-400">
-                  Lv{recruitedLevels[selectedAlly.id] || 1} Active Buff:<br />
+                  {t('settings.lv_active_buff', 'Lv{{level}} Active Buff:', { level: recruitedLevels[selectedAlly.id] || 1 })}<br />
                   <span className="text-foreground/80">{selectedAlly.levels[(recruitedLevels[selectedAlly.id] || 1) - 1]}</span>
                 </div>
               </div>
@@ -174,7 +177,7 @@ export default function ActivePartyWidget() {
                   disabled={updateAlliesMutation.isPending}
                   className="w-full py-2 font-mono font-bold text-xs rounded-xl border transition-colors bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {updateAlliesMutation.isPending ? "DISMISSING..." : "DISMISS FROM PARTY"}
+                  {updateAlliesMutation.isPending ? t('settings.dismissing', 'DISMISSING...') : t('settings.dismiss_from_party', 'DISMISS FROM PARTY')}
                 </button>
 
                 <button
@@ -185,7 +188,7 @@ export default function ActivePartyWidget() {
                   className="w-full py-2 font-mono font-bold text-xs rounded-xl border hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                   style={{ borderColor: "var(--habit-border)", color: "var(--habit-text)" }}
                 >
-                  VIEW IN ALLIES
+                  {t('settings.view_in_allies', 'VIEW IN ALLIES')}
                 </button>
               </div>
             </motion.div>

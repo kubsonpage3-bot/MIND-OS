@@ -343,7 +343,17 @@
     "upgradeSubtitle": "Unlock all features",
     "secureCheckout": "Secure Checkout",
     "premiumActive": "Premium Active",
-    "premiumFullAccess": "Full Access Granted"
+    "premiumFullAccess": "Full Access Granted",
+    "language_region": "Language & Region",
+    "interface_language": "Interface Language",
+    "select_language": "Select Language",
+    "active_party": "ACTIVE PARTY",
+    "add_ally": "Add Ally",
+    "recruit_allies_hint": "Recruit allies in Shop → Allies to strengthen your party",
+    "lv_active_buff": "Lv{{level}} Active Buff:",
+    "dismiss_from_party": "DISMISS FROM PARTY",
+    "dismissing": "DISMISSING...",
+    "view_in_allies": "VIEW IN ALLIES"
   },
   "errors": {
     "access_restricted": "Access Restricted",

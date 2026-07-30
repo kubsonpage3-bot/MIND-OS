@@ -343,7 +343,17 @@
     "upgradeSubtitle": "Разблокировать полную игру",
     "secureCheckout": "Безопасная оплата через Stripe · Отмена в любой время",
     "premiumActive": "● АКТИВНО",
-    "premiumFullAccess": "Полный доступ"
+    "premiumFullAccess": "Полный доступ",
+    "language_region": "Язык и регион",
+    "interface_language": "Язык интерфейса",
+    "select_language": "Выбор языка",
+    "active_party": "АКТИВНАЯ ПАРТИЯ",
+    "add_ally": "Добавить",
+    "recruit_allies_hint": "Найми союзников в Магазине → Союзники для усиления партии",
+    "lv_active_buff": "Ур.{{level}} Активный бафф:",
+    "dismiss_from_party": "УБРАТЬ ИЗ ПАРТИИ",
+    "dismissing": "УБИРАЕМ...",
+    "view_in_allies": "СМОТРЕТЬ В СОЮЗНИКАХ"
   },
   "errors": {
     "access_restricted": "Доступ ограничен",
