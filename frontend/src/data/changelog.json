@@ -1,7 +1,18 @@
 [
   {
     "date": "2026-07-30",
+    "version": "0.8.40",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Settings tab bar on mobile now fills the full screen width evenly — no more empty space on the right side."
+      }
+    ]
+  },
+  {
+    "date": "2026-07-30",
     "version": "0.8.39",
+
     "changes": [
       {
         "type": "fix",

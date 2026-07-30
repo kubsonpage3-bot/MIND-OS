@@ -68,25 +68,27 @@ function SettingsPanel({ activeSubTab, onBack = undefined }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex md:hidden gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDown={(e) => e.stopPropagation()}>
+      <div className="flex md:hidden gap-1 p-1 rounded-2xl" style={{ background: "var(--habit-border)" }} onPointerDown={(e) => e.stopPropagation()}>
         {SETTINGS_TABS.map(tTab => {
           const isActive = showDataTab === tTab.id;
           return (
             <button
               key={tTab.id}
               onClick={() => setShowDataTab(tTab.id)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all whitespace-nowrap relative"
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] rounded-xl transition-all relative"
               style={{
                 fontFamily: "'Nunito'",
                 fontWeight: isActive ? 800 : 600,
-                fontSize: 11,
+                fontSize: 10,
                 background: isActive ? "var(--habit-purple)" : "transparent",
                 color: isActive ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
                 boxShadow: isActive ? "0 2px 8px var(--habit-purple-glow)" : "none",
               }}
             >
-              <tTab.icon className="w-3 h-3" />
-              <span className="hidden sm:inline">{t(`sidebar.sections.${tTab.id}`)}</span>
+              <tTab.icon className="w-4 h-4" />
+              <span className="hidden xs:block leading-none text-center px-0.5 truncate w-full text-center" style={{ fontSize: 9 }}>
+                {t(`sidebar.sections.${tTab.id}`, tTab.label)}
+              </span>
               {tTab.id === "changelog" && hasNewChangelog && (
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
               )}
