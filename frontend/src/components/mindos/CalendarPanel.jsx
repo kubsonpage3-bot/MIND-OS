@@ -92,10 +92,17 @@ function EventBlock({ event, colDate, handlers }) {
         <>
           <div
             onPointerDown={(e) => { e.stopPropagation(); onResizeStart(e, event); }}
-            className={cn('absolute', 'bottom-0', 'left-0', 'right-0', 'h-2', 'cursor-ns-resize', 'flex', 'items-center', 'justify-center', 'opacity-0', 'group-hover:opacity-100', 'transition-opacity')}
+            className={cn(
+              'absolute', 'bottom-0', 'left-0', 'right-0',
+              'h-5',
+              'cursor-ns-resize', 'flex', 'items-center', 'justify-center',
+              'opacity-100',
+              'md:opacity-0', 'md:group-hover:opacity-100',
+              'transition-opacity'
+            )}
             style={{ touchAction: "none" }}
           >
-            <div className={cn('w-8', 'h-0.5', 'rounded-full', 'bg-foreground/30')} />
+            <div className={cn('w-8', 'h-1', 'rounded-full', 'bg-foreground/40')} />
           </div>
           <button
             onPointerDown={(e) => { e.stopPropagation(); deleteEvent(event.id); }}
@@ -350,11 +357,23 @@ export default function CalendarPanel() {
       if (!dragRef.current || !gridRef.current) return;
       const { eventId, duration, offsetMins, currentDate } = dragRef.current;
       const gridRect = gridRef.current.getBoundingClientRect();
-      const scrollTop = scrollRef.current ? scrollRef.current.scrollTop : 0;
-      let rawMins = ((mv.clientY - gridRect.top + scrollTop) / HOUR_PX) * 60 - offsetMins;
+      // gridRect.top is viewport-relative and already moves with scroll — no need to add scrollTop
+      let rawMins = ((mv.clientY - gridRect.top) / HOUR_PX) * 60 - offsetMins;
       let newStart = snapTo15(Math.max(0, Math.min(23 * 60, rawMins)));
       let newEnd = newStart + duration;
       if (newEnd > 24 * 60) { newEnd = 24 * 60; newStart = newEnd - duration; }
+
+      // Auto-scroll when pointer is near the top/bottom edge of the scroll container
+      if (scrollRef.current) {
+        const sr = scrollRef.current.getBoundingClientRect();
+        const ZONE = 64;
+        const SPEED = 10;
+        if (mv.clientY < sr.top + ZONE) {
+          scrollRef.current.scrollTop -= SPEED;
+        } else if (mv.clientY > sr.bottom - ZONE) {
+          scrollRef.current.scrollTop += SPEED;
+        }
+      }
 
       // Detect column (for week view) by checking x position
       let newDate = currentDate;
@@ -410,9 +429,22 @@ export default function CalendarPanel() {
       if (!resizeRef.current || !gridRef.current) return;
       const { eventId, startMins, offsetY } = resizeRef.current;
       const gridRect = gridRef.current.getBoundingClientRect();
-      const scrollTop = scrollRef.current ? scrollRef.current.scrollTop : 0;
-      let rawEndMins = (((mv.clientY - offsetY) - gridRect.top + scrollTop) / HOUR_PX) * 60;
+      // gridRect.top is viewport-relative — no need to add scrollTop
+      let rawEndMins = ((mv.clientY - offsetY - gridRect.top) / HOUR_PX) * 60;
       let newEnd = snapTo15(Math.max(startMins + MIN_EVENT_MINS, Math.min(24 * 60, rawEndMins)));
+
+      // Auto-scroll when near edges
+      if (scrollRef.current) {
+        const sr = scrollRef.current.getBoundingClientRect();
+        const ZONE = 64;
+        const SPEED = 10;
+        if (mv.clientY < sr.top + ZONE) {
+          scrollRef.current.scrollTop -= SPEED;
+        } else if (mv.clientY > sr.bottom - ZONE) {
+          scrollRef.current.scrollTop += SPEED;
+        }
+      }
+
       setEvents(prev => prev.map(ev => ev.id === eventId
         ? { ...ev, endTime: minsToTime(newEnd) }
         : ev

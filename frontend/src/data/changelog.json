@@ -1,5 +1,24 @@
 [
   {
+    "date": "2026-07-30",
+    "version": "0.8.39",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed calendar events jumping to the wrong position when dragging or resizing after scrolling down (double scroll offset bug)."
+      },
+      {
+        "type": "fix",
+        "text": "Calendar drag and resize now auto-scroll the calendar when you approach the top or bottom edge."
+      },
+      {
+        "type": "fix",
+        "text": "Resize handle on calendar events is now larger and always visible on mobile, making it much easier to stretch events on touchscreens."
+      }
+    ]
+  },
+  {
+
     "date": "2026-07-28",
     "version": "0.8.38",
     "changes": [
