@@ -1,6 +1,16 @@
 [
   {
     "date": "2026-08-08",
+    "version": "0.8.45",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Completely redesigned the extension popup to a clean, spacious minimalist layout — slimmer header, single XP progress bar, compact icon tabs, and less visual clutter while keeping all features."
+      }
+    ]
+  },
+  {
+    "date": "2026-08-08",
     "version": "0.8.44",
     "changes": [
       {
