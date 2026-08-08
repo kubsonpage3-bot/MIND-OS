@@ -83,10 +83,16 @@ async function syncBlocklist() {
       user_activities: data.user_activities,
       today_tasks: data.today_tasks,
     });
-    await applyBlockRules(data.blocked_sites);
   } catch (e) {
     console.error('[MIND OS] syncBlocklist error:', e);
   }
+}
+
+function domainMatches(target, blocked) {
+  const t = (target || '').toLowerCase().trim().replace(/^www\./, '');
+  const b = (blocked || '').toLowerCase().trim().replace(/^www\./, '');
+  if (!t || !b) return false;
+  return t === b || t.endsWith('.' + b);
 }
 
 // ─── Alarm handler (re-block after unlock expires) ───────────────────────────
@@ -97,7 +103,7 @@ browser.alarms.onAlarm.addListener(async (alarm) => {
     console.log(`[MIND OS] Re-blocking ${domain}`);
     // Remove unlock from local cache
     const { activeUnlocks = [] } = await browser.storage.local.get('activeUnlocks');
-    const updated = activeUnlocks.filter((u) => u.domain !== domain);
+    const updated = activeUnlocks.filter((u) => !domainMatches(u.domain, domain));
     await browser.storage.local.set({ activeUnlocks: updated });
     // Sync to get fresh list and re-apply rules
     await syncBlocklist();
@@ -197,9 +203,7 @@ browser.runtime.onMessage.addListener(async (msg) => {
       // Update gold and activeUnlocks locally so CHECK_BLOCKED sees the unlock immediately
       const { activeUnlocks = [] } = await browser.storage.local.get('activeUnlocks');
       const cleanDomain = (msg.domain || '').toLowerCase().trim().replace(/^www\./, '');
-      const filtered = activeUnlocks.filter(
-        (u) => u.domain.toLowerCase().replace(/^www\./, '') !== cleanDomain
-      );
+      const filtered = activeUnlocks.filter((u) => !domainMatches(u.domain, cleanDomain));
       filtered.push({ domain: cleanDomain, unlocked_until: data.unlocked_until });
       await browser.storage.local.set({ gold: data.gold, activeUnlocks: filtered });
 
@@ -213,10 +217,10 @@ browser.runtime.onMessage.addListener(async (msg) => {
         await browser.storage.local.get(['blockedSites', 'activeUnlocks', 'gold']);
       const now = new Date();
       const isUnlocked = activeUnlocks.some(
-        (u) => u.domain === targetDomain && new Date(u.unlocked_until) > now
+        (u) => domainMatches(targetDomain, u.domain) && new Date(u.unlocked_until) > now
       );
       const site = blockedSites.find(
-        (s) => s.domain.toLowerCase().trim().replace(/^www\./, '') === targetDomain
+        (s) => domainMatches(targetDomain, s.domain)
       );
       if (site && !isUnlocked) {
         return {

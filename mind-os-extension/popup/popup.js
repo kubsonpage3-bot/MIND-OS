@@ -685,12 +685,33 @@ function sendNotification(title, message) {
 
 async function setupCurrentTabDomain() {
   const res = await browser.runtime.sendMessage({ type: 'GET_CURRENT_TAB_DOMAIN' });
-  currentTabDomain.textContent = res.domain || 'unknown';
+  const rawDomain = res.domain || 'unknown';
+  currentTabDomain.textContent = rawDomain;
+
+  if (rawDomain && rawDomain !== 'unknown' && state.blockedSites) {
+    const cleanCurrent = rawDomain.toLowerCase().trim().replace(/^www\./, '');
+    const alreadyBlocked = state.blockedSites.some((s) => {
+      const bDomain = s.domain.toLowerCase().trim().replace(/^www\./, '');
+      return cleanCurrent === bDomain || cleanCurrent.endsWith('.' + bDomain);
+    });
+
+    if (alreadyBlocked) {
+      blockCurrentBtn.textContent = 'Blocked ✓';
+      blockCurrentBtn.disabled = true;
+      blockCurrentBtn.style.opacity = '0.6';
+      blockCurrentBtn.style.cursor = 'default';
+    } else {
+      blockCurrentBtn.textContent = 'Block';
+      blockCurrentBtn.disabled = false;
+      blockCurrentBtn.style.opacity = '1';
+      blockCurrentBtn.style.cursor = 'pointer';
+    }
+  }
 }
 
 blockCurrentBtn.addEventListener('click', async () => {
   const domain = currentTabDomain.textContent;
-  if (!domain || domain === 'unknown' || domain === 'loading...') return;
+  if (!domain || domain === 'unknown' || domain === 'loading...' || blockCurrentBtn.disabled) return;
   await addSite(domain);
 });
 
@@ -724,7 +745,11 @@ async function addSite(domain) {
   }
 }
 
+let _blocklistTickInterval = null;
+
 function renderBlocklist() {
+  setupCurrentTabDomain();
+
   if (!state.blockedSites.length) {
     blocklistEmpty.classList.remove('hidden');
     blocklistUl.innerHTML = '';
@@ -733,21 +758,24 @@ function renderBlocklist() {
   blocklistEmpty.classList.add('hidden');
 
   const now = new Date();
-  const activeUnlockMap = new Map(
-    state.activeUnlocks
-      .filter((u) => new Date(u.unlocked_until) > now)
-      .map((u) => [u.domain, u])
-  );
-
   blocklistUl.innerHTML = '';
   state.blockedSites.forEach((site) => {
-    const unlock = activeUnlockMap.get(site.domain);
+    const cleanSiteDomain = site.domain.toLowerCase().trim().replace(/^www\./, '');
+    const unlock = (state.activeUnlocks || []).find((u) => {
+      const cleanU = u.domain.toLowerCase().trim().replace(/^www\./, '');
+      return (cleanSiteDomain === cleanU || cleanSiteDomain.endsWith('.' + cleanU) || cleanU.endsWith('.' + cleanSiteDomain)) && new Date(u.unlocked_until) > now;
+    });
+
+    let timeLeft = null;
+    if (unlock) {
+      const msLeft = new Date(unlock.unlocked_until).getTime() - now.getTime();
+      const minsLeft = Math.max(0, Math.floor(msLeft / 60000));
+      // Cap at configured unlock duration to prevent clock skew discrepancy (e.g. 32m for 30m rule)
+      timeLeft = Math.min(site.unlock_duration_minutes, minsLeft);
+    }
+
     const li = document.createElement('li');
     li.className = `site-item${unlock ? ' unlocked' : ''}`;
-
-    const timeLeft = unlock
-      ? Math.max(0, Math.round((new Date(unlock.unlocked_until) - now) / 60000))
-      : null;
 
     li.innerHTML = `
       <span class="site-domain">${site.domain}</span>
@@ -761,6 +789,16 @@ function renderBlocklist() {
     `;
     blocklistUl.appendChild(li);
   });
+
+  // Start live tick interval every 5s to update remaining minutes while popup stays open
+  if (!_blocklistTickInterval) {
+    _blocklistTickInterval = setInterval(() => {
+      const blockTab = $('tab-blocklist');
+      if (blockTab && !blockTab.classList.contains('hidden') && state.blockedSites.length) {
+        renderBlocklist();
+      }
+    }, 5000);
+  }
 
   // Event delegation
   blocklistUl.querySelectorAll('.unlock-btn').forEach((btn) => {
