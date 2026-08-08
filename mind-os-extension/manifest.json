@@ -46,5 +46,11 @@
       "id": "mind-os-companion@mindosgrowth.org",
       "strict_min_version": "109.0"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*", "popup/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

@@ -6,6 +6,10 @@
       {
         "type": "feature",
         "text": "Redesigned Pomodoro Chrome Extension popup UI with sci-fi glassmorphism cards, enlarged gradient progress ring, animated background grid, and glow effects."
+      },
+      {
+        "type": "feature",
+        "text": "Added 16-bit retro pixel art Beatrix wizard character avatar with magical glowing pedestal and floating animations to the extension blocked site overlay."
       }
     ]
   },

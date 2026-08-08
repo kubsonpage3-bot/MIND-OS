@@ -73,21 +73,45 @@
       background: linear-gradient(90deg, transparent, var(--purple), var(--gold), transparent);
     }
 
-    /* Shield Icon */
-    .shield-wrapper {
+    /* Sprite & Pedestal */
+    .sprite-wrapper {
       position: relative;
-      display: inline-block;
-      margin-bottom: 16px;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: spriteFloat 3s ease-in-out infinite alternate;
     }
-    .shield-icon {
-      font-size: 64px;
-      display: block;
-      filter: drop-shadow(0 0 16px var(--purple-glow));
-      animation: shieldPulse 3s infinite ease-in-out;
+    @keyframes spriteFloat {
+      0%   { transform: translateY(0px);   filter: drop-shadow(0 0 12px rgba(124,58,237,0.4)); }
+      100% { transform: translateY(-10px); filter: drop-shadow(0 0 26px rgba(124,58,237,0.8)) drop-shadow(0 0 40px rgba(245,158,11,0.5)); }
     }
-    @keyframes shieldPulse {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 16px var(--purple-glow)); }
-      50% { transform: scale(1.06); filter: drop-shadow(0 0 28px var(--purple-glow)) drop-shadow(0 0 10px var(--gold-glow)); }
+    .sprite-img {
+      width: 130px;
+      height: 130px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      user-select: none;
+      z-index: 2;
+      position: relative;
+    }
+    .sprite-pedestal {
+      position: absolute;
+      bottom: 4px;
+      width: 105px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(124,58,237,0.6) 0%, rgba(245,158,11,0.2) 60%, transparent 80%);
+      border: 1px solid rgba(124,58,237,0.4);
+      box-shadow: 0 0 18px rgba(124,58,237,0.5);
+      animation: pedestalPulse 2s ease-in-out infinite alternate;
+    }
+    @keyframes pedestalPulse {
+      0%   { transform: scale(0.95); opacity: 0.6; }
+      100% { transform: scale(1.1);  opacity: 1; }
     }
 
     .header-badge {
@@ -265,11 +289,13 @@
 </head>
 <body>
   <div class="card" id="card">
-    <div class="shield-wrapper">
-      <span class="shield-icon">🛡️</span>
+    <div class="header-badge pixel-text">🛡️ MIND OS GUARDIAN</div>
+    
+    <div class="sprite-wrapper">
+      <img src="pixel_wizard_guardian.png" alt="Beatrix" class="sprite-img" />
+      <div class="sprite-pedestal"></div>
     </div>
 
-    <div class="header-badge pixel-text">MIND OS GUARDIAN</div>
     <h1 class="pixel-text">ACCESS RESTRICTED</h1>
 
     <div class="domain-box">
@@ -279,30 +305,32 @@
 
     <div class="quote-box">
       <p id="quoteText">"The Void claims those who succumb to distraction. Stay focused, Adventurer!"</p>
-      <span class="quote-author" id="quoteAuthor">— MIND OS Chronicles</span>
+      <span class="quote-author" id="quoteAuthor">— BEATRIX (MIND OS GUARDIAN)</span>
     </div>
 
     <div class="rule-card" id="ruleCard">
       <div class="rule-title pixel-text">TEMPORARY PASS UNLOCK</div>
       <div class="rule-details">
         <div class="rule-item">
-          <span class="rule-val pixel-text" id="unlockCostVal">111</span>
-          <span class="rule-lbl">🪙 GOLD COST</span>
+          <span class="rule-val pixel-text" id="userGoldVal">—</span>
+          <span class="rule-lbl">🪙 YOUR GOLD</span>
         </div>
         <div style="font-size: 18px; color: var(--dim);">•</div>
         <div class="rule-item">
-          <span class="rule-val pixel-text" id="unlockDurationVal">30</span>
-          <span class="rule-lbl">⏱️ MINUTES</span>
+          <span class="rule-val pixel-text" id="unlockCostVal">100</span>
+          <span class="rule-lbl">💸 UNLOCK COST</span>
         </div>
-      </div>
-      <div class="balance-tag pixel-text">
-        YOUR GOLD: <span class="balance-amount" id="userGoldVal">—</span> 🪙
+        <div style="font-size: 18px; color: var(--dim);">•</div>
+        <div class="rule-item">
+          <span class="rule-val pixel-text" id="unlockDurationVal">30m</span>
+          <span class="rule-lbl">⏱ DURATION</span>
+        </div>
       </div>
     </div>
 
     <div class="actions">
       <button class="btn btn-unlock pixel-text" id="unlockBtn">
-        🔓 UNLOCK (<span id="btnCost">111</span> 🪙)
+        🔓 UNLOCK (<span id="btnCost">100</span> 🪙)
       </button>
       <button class="btn btn-back pixel-text" id="backBtn">
         🛡️ RETURN TO WORK

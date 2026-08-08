@@ -58,10 +58,13 @@
   const durationDisplay = Math.round(Number(unlockDuration));
   const goldDisplay = Math.round(Number(gold));
 
+  const characterImgUrl = browser.runtime.getURL('icons/pixel_wizard_guardian.png');
+  const hasEnoughGold = goldDisplay >= costDisplay;
+
   // Inject styles into shadow DOM
   const styleEl = document.createElement('style');
   styleEl.textContent = `
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@700;800;900&display=swap');
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -80,187 +83,282 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      background: rgba(6, 6, 14, 0.92);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: radial-gradient(circle at 50% 35%, rgba(124, 58, 237, 0.18) 0%, rgba(6, 6, 14, 0.96) 70%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 28px 20px 48px;
+      padding: 24px 20px 40px;
       color: #f59e0b;
       animation: fadeIn 0.25s ease-out;
-      gap: 0;
+      overflow-y: auto;
+    }
+
+    /* Subtle background grid */
+    .backdrop::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
+      from { opacity: 0; transform: scale(0.98); }
+      to   { opacity: 1; transform: scale(1); }
     }
 
     /* ─── Top Banner ─────────────────────────────── */
     .top-bar {
       width: 100%;
-      max-width: 860px;
+      max-width: 780px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .guardian-tag {
+      font-size: 8px;
+      color: #c084fc;
+      background: rgba(124, 58, 237, 0.16);
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.08em;
+      box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
     }
 
     .reload-btn {
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(18, 18, 34, 0.8);
+      border: 1px solid rgba(245, 158, 11, 0.35);
       color: #f59e0b;
       font-family: 'Press Start 2P', monospace;
-      font-size: 10px;
-      padding: 9px 14px;
-      border-radius: 6px;
+      font-size: 9px;
+      padding: 8px 14px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
       white-space: nowrap;
       flex-shrink: 0;
+      backdrop-filter: blur(4px);
     }
     .reload-btn:hover {
       background: #f59e0b;
       color: #000;
-      box-shadow: 0 0 14px rgba(245, 158, 11, 0.7);
+      border-color: #f59e0b;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.7);
+      transform: translateY(-1px);
     }
 
-    .banner-center {
-      flex: 1;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .banner-title {
-      font-size: clamp(11px, 1.6vw, 16px);
-      color: #f59e0b;
-      line-height: 1.6;
-      text-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
-    }
-
-    .banner-sub {
-      font-size: clamp(10px, 1.4vw, 14px);
-      color: #fbbf24;
-      line-height: 1.6;
-      text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
-    }
-
-    /* ─── Center ──────────────────────────────────── */
+    /* ─── Center Container ───────────────────────── */
     .center-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 28px;
+      gap: 20px;
       flex: 1;
+      position: relative;
+      z-index: 2;
+      max-width: 580px;
+      width: 100%;
+      margin: 16px 0;
     }
 
+    .domain-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(14, 14, 28, 0.85);
+      border: 1px solid rgba(124, 58, 237, 0.35);
+      border-radius: 12px;
+      padding: 8px 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 20px rgba(124,58,237,0.15);
+    }
+    .domain-title {
+      font-size: clamp(10px, 1.4vw, 13px);
+      color: #f4f4ff;
+      line-height: 1.4;
+    }
+    .domain-name {
+      color: #c084fc;
+      text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+    }
+
+    /* ─── Sprite & Pedestal ──────────────────────── */
     .sprite-wrapper {
-      width: 150px;
-      height: 150px;
+      position: relative;
+      width: 160px;
+      height: 160px;
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: spriteFloat 2.8s ease-in-out infinite alternate;
+      animation: spriteFloat 3s ease-in-out infinite alternate;
     }
 
     @keyframes spriteFloat {
-      0%   { transform: translateY(0px);   filter: drop-shadow(0 0 16px rgba(245,158,11,0.5)); }
-      100% { transform: translateY(-14px); filter: drop-shadow(0 0 30px rgba(245,158,11,0.9)) drop-shadow(0 0 50px rgba(124,58,237,0.6)); }
+      0%   { transform: translateY(0px);   filter: drop-shadow(0 0 12px rgba(124,58,237,0.4)); }
+      100% { transform: translateY(-12px); filter: drop-shadow(0 0 26px rgba(124,58,237,0.8)) drop-shadow(0 0 40px rgba(245,158,11,0.5)); }
     }
 
-    .sprite-emoji {
-      font-size: 88px;
-      line-height: 1;
-      user-select: none;
+    .sprite-img {
+      width: 135px;
+      height: 135px;
+      object-fit: contain;
       image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      user-select: none;
+      z-index: 2;
+      position: relative;
     }
 
-    /* ─── Gold Info Row ──────────────────────────── */
-    .gold-info {
+    .sprite-pedestal {
+      position: absolute;
+      bottom: 6px;
+      width: 110px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(124,58,237,0.6) 0%, rgba(245,158,11,0.2) 60%, transparent 80%);
+      border: 1px solid rgba(124,58,237,0.4);
+      box-shadow: 0 0 18px rgba(124,58,237,0.5);
+      animation: pedestalPulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes pedestalPulse {
+      0%   { transform: scale(0.95); opacity: 0.6; }
+      100% { transform: scale(1.1);  opacity: 1; }
+    }
+
+    /* ─── Quote Banner ───────────────────────────── */
+    .quote-card {
+      background: rgba(18, 18, 36, 0.75);
+      border: 1px solid rgba(124, 58, 237, 0.25);
+      border-left: 3px solid #7c3aed;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-style: italic;
+      color: #cbd5e1;
+      text-align: center;
+      line-height: 1.5;
+      width: 100%;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .quote-author {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      font-style: normal;
+      color: #94a3b8;
+      display: block;
+      margin-top: 5px;
+    }
+
+    /* ─── RPG Gold & Stats Banner ────────────────── */
+    .rpg-stats-card {
+      width: 100%;
+      background: rgba(18, 18, 34, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 14px;
+      padding: 14px 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.5), inset 0 0 20px rgba(245, 158, 11, 0.05);
+    }
+
+    .rpg-stats-grid {
       display: flex;
       align-items: center;
-      gap: 18px;
-      background: rgba(245,158,11,0.08);
-      border: 1px solid rgba(245,158,11,0.25);
-      border-radius: 12px;
-      padding: 10px 20px;
-      font-size: 10px;
-      color: #fbbf24;
+      justify-content: space-around;
+      gap: 12px;
     }
-    .gold-info-item {
+
+    .rpg-stat-col {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
     }
-    .gold-val {
-      font-size: 18px;
+
+    .rpg-stat-val {
+      font-size: 16px;
       color: #fff;
       text-shadow: 0 0 10px rgba(245,158,11,0.6);
     }
-    .gold-lbl {
-      font-size: 8px;
-      color: rgba(245,158,11,0.7);
+
+    .rpg-stat-val.low-gold {
+      color: #ef4444;
+      text-shadow: 0 0 10px rgba(239,68,68,0.6);
     }
-    .gold-sep {
-      font-size: 20px;
-      color: rgba(245,158,11,0.3);
+
+    .rpg-stat-lbl {
+      font-size: 7px;
+      color: rgba(245, 158, 11, 0.75);
+      letter-spacing: 0.06em;
+    }
+
+    .rpg-stat-sep {
+      font-size: 18px;
+      color: rgba(245, 158, 11, 0.25);
     }
 
     /* ─── Pay Button ─────────────────────────────── */
     .pay-btn {
-      background: rgba(10,10,18,0.88);
+      background: linear-gradient(135deg, rgba(20, 20, 36, 0.95), rgba(124, 58, 237, 0.25));
       border: 2px solid #f59e0b;
       color: #f59e0b;
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(11px, 1.4vw, 15px);
-      padding: 18px 42px;
-      border-radius: 32px;
+      font-size: clamp(10px, 1.3vw, 14px);
+      padding: 16px 36px;
+      border-radius: 30px;
       cursor: pointer;
       box-shadow:
-        0 0 24px rgba(245,158,11,0.55),
+        0 0 24px rgba(245,158,11,0.5),
         inset 0 0 12px rgba(245,158,11,0.18);
-      transition: all 0.18s ease;
-      letter-spacing: 0.05em;
+      transition: all 0.2s ease;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      animation: btnPulse 2s ease-in-out infinite;
+      animation: btnPulse 2.2s ease-in-out infinite;
+      width: 100%;
     }
 
     @keyframes btnPulse {
-      0%, 100% { box-shadow: 0 0 24px rgba(245,158,11,0.55), inset 0 0 12px rgba(245,158,11,0.18); }
-      50%       { box-shadow: 0 0 42px rgba(245,158,11,0.85), inset 0 0 20px rgba(245,158,11,0.32); }
+      0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.45), inset 0 0 10px rgba(245,158,11,0.15); }
+      50%       { box-shadow: 0 0 36px rgba(245,158,11,0.85), inset 0 0 18px rgba(245,158,11,0.30); }
     }
 
     .pay-btn:hover:not(:disabled) {
       background: #f59e0b;
       color: #000;
-      box-shadow: 0 0 50px rgba(245,158,11,1), 0 0 70px rgba(245,158,11,0.5);
-      transform: scale(1.06);
+      border-color: #f59e0b;
+      box-shadow: 0 0 46px rgba(245,158,11,1), 0 0 65px rgba(245,158,11,0.5);
+      transform: scale(1.03);
       animation: none;
     }
 
     .pay-btn:disabled {
-      opacity: 0.55;
+      opacity: 0.6;
       cursor: not-allowed;
       animation: none;
     }
 
     .pay-btn.success {
-      background: #22c55e;
+      background: linear-gradient(135deg, #16a34a, #22c55e);
       border-color: #22c55e;
       color: #fff;
-      box-shadow: 0 0 30px rgba(34,197,94,0.7);
+      box-shadow: 0 0 32px rgba(34,197,94,0.7);
       animation: none;
     }
 
-    /* ─── Error / Success Message ────────────────── */
+    /* ─── Status Message ─────────────────────────── */
     .status-msg {
-      font-size: 10px;
+      font-size: 9px;
       text-align: center;
       min-height: 20px;
       text-shadow: 0 0 8px currentColor;
@@ -294,36 +392,46 @@
 
   backdrop.innerHTML = `
     <div class="top-bar">
+      <div class="guardian-tag">🛡️ MIND OS GUARDIAN</div>
       <button class="reload-btn" id="reloadBtn">↻ Reload</button>
-      <div class="banner-center">
-        <div class="banner-title">You're trying to Access www.${domain}</div>
-        <div class="banner-sub">Pay ${costDisplay} Gold to access for ${durationDisplay} Minutes</div>
-      </div>
     </div>
 
     <div class="center-container">
+      <div class="domain-badge">
+        <span style="font-size: 14px;">🌐</span>
+        <span class="domain-title">ACCESS RESTRICTED: <strong class="domain-name">${domain}</strong></span>
+      </div>
+
       <div class="sprite-wrapper">
-        <span class="sprite-emoji">🧙‍♂️</span>
+        <img src="${characterImgUrl}" alt="Beatrix" class="sprite-img" />
+        <div class="sprite-pedestal"></div>
       </div>
 
-      <div class="gold-info">
-        <div class="gold-info-item">
-          <span class="gold-val" id="yourGoldDisplay">${goldDisplay}</span>
-          <span class="gold-lbl">🪙 YOUR GOLD</span>
-        </div>
-        <div class="gold-sep">•</div>
-        <div class="gold-info-item">
-          <span class="gold-val">${costDisplay}</span>
-          <span class="gold-lbl">💸 COST</span>
-        </div>
-        <div class="gold-sep">•</div>
-        <div class="gold-info-item">
-          <span class="gold-val">${durationDisplay}m</span>
-          <span class="gold-lbl">⏱ ACCESS</span>
+      <div class="quote-card">
+        <p>"The Void claims those who succumb to distraction. Stay focused, Adventurer!"</p>
+        <span class="quote-author">— BEATRIX (MIND OS GUARDIAN)</span>
+      </div>
+
+      <div class="rpg-stats-card">
+        <div class="rpg-stats-grid">
+          <div class="rpg-stat-col">
+            <span class="rpg-stat-val ${hasEnoughGold ? '' : 'low-gold'}" id="yourGoldDisplay">${goldDisplay}</span>
+            <span class="rpg-stat-lbl">🪙 YOUR GOLD</span>
+          </div>
+          <div class="rpg-stat-sep">•</div>
+          <div class="rpg-stat-col">
+            <span class="rpg-stat-val">${costDisplay}</span>
+            <span class="rpg-stat-lbl">💸 UNLOCK COST</span>
+          </div>
+          <div class="rpg-stat-sep">•</div>
+          <div class="rpg-stat-col">
+            <span class="rpg-stat-val">${durationDisplay}m</span>
+            <span class="rpg-stat-lbl">⏱ DURATION</span>
+          </div>
         </div>
       </div>
 
-      <button class="pay-btn" id="payBtn">[ Pay To Pass ]</button>
+      <button class="pay-btn" id="payBtn">[ PAY ${costDisplay} GOLD TO PASS ]</button>
       <div class="status-msg" id="statusMsg"></div>
     </div>
   `;
