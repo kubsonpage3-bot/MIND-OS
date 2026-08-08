@@ -16,6 +16,7 @@ import { useState, useMemo } from 'react';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
 import { useLongPress } from '@/hooks/useLongPress';
+import { usePixelBurst, PixelBurstLayer } from '@/components/mindos/PixelParticles';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -64,21 +65,27 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
   const con = getConStat();
   const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);
 
+  const { bursts, trigger: triggerBurst } = usePixelBurst();
+
   const longPressProps = useLongPress(() => onEdit(task));
 
   return (
-    <div
-      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150 ${task.is_completed ? 'opacity-50' : 'task-card bg-[var(--habit-panel)]'}`}
+    <motion.div
+      className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer ${task.is_completed ? 'opacity-50' : 'task-card bg-[var(--habit-panel)]'}`}
       style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
+      whileTap={{ scale: 0.97 }}
       {...longPressProps}
     >
+      {/* Pixel burst overlay */}
+      <PixelBurstLayer bursts={bursts} />
       {/* Fused rectangular control on the left edge */}
       <div className="flex flex-col shrink-0 w-8 self-stretch border-r border-[var(--habit-border)] overflow-hidden">
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.92 }}
           onClick={(e) => {
             e.stopPropagation();
             if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+            triggerBurst(accentColor, 10);
             habitClick(task, true);
           }}
           className="flex-1 flex items-center justify-center text-white font-bold text-sm bg-[#22c55e] hover:bg-[#16a34a] active:bg-[#15803d] transition-colors"
@@ -149,7 +156,7 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
       <div className="shrink-0 flex items-center h-full ml-1">
         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 

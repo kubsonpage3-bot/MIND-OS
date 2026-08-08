@@ -1,5 +1,67 @@
 [
   {
+    "date": "2026-08-08",
+    "version": "0.8.43",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Redesigned Pomodoro Chrome Extension popup UI with sci-fi glassmorphism cards, enlarged gradient progress ring, animated background grid, and glow effects."
+      }
+    ]
+  },
+  {
+    "date": "2026-08-08",
+    "version": "0.8.42",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed a silent crash where the 'death' sound tried to play but didn't exist — you'll now hear a proper ominous descending melody when your HP hits zero."
+      },
+      {
+        "type": "feature",
+        "text": "Completing a daily, todo, or positive habit now fires a pixel-art particle burst in the color of that task's category."
+      },
+      {
+        "type": "feature",
+        "text": "All task rows now have a satisfying bounce and green glow effect when you check them off."
+      },
+      {
+        "type": "feature",
+        "text": "Achievements now pop up as a dedicated golden toast sliding in from the right — much more epic than before."
+      },
+      {
+        "type": "feature",
+        "text": "Rank Up screen completely redesigned: rotating light rays, full-screen confetti burst, and a dramatic stagger animation for the rank letter."
+      },
+      {
+        "type": "feature",
+        "text": "Added 8 new sounds: daily complete (major chord), level up (pentatonic scale), achievement (fanfare), chest open (coin scatter), streak milestone, tab switch, check-in done, and death."
+      },
+      {
+        "type": "feature",
+        "text": "Improved rank_up, critical, and boss_hit sounds with reverb echoes and pitch effects for more impact."
+      },
+      {
+        "type": "balance",
+        "text": "Reward toast redesigned with a shimmer sweep effect and pulsing gold border on critical-focus completions."
+      }
+    ]
+  },
+  {
+    "date": "2026-08-08",
+    "version": "0.8.41",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed rival (Johan) getting stuck at the same XP level when you don't log in for several days — he now catches up for every day you were away, not just the current one."
+      },
+      {
+        "type": "feature",
+        "text": "Added a 'Welcome Back' daily check-in popup (like Habitica): when you return after being away a day, the game asks which dailies you actually completed yesterday. Checked ones give XP and Gold; unchecked ones deal the usual HP penalty."
+      }
+    ]
+  },
+  {
     "date": "2026-07-30",
     "version": "0.8.40",
     "changes": [

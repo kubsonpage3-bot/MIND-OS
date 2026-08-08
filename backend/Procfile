@@ -1,1 +1,1 @@
-web: gunicorn mindos.wsgi:application --workers 3 --timeout 30 --bind 0.0.0.0:$PORT
+web: gunicorn mindos.wsgi:application --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT --preload

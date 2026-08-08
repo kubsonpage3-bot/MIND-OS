@@ -35,6 +35,7 @@ from .views import (
     CombatSyncView,
     ResetDataView,
     RivalView,
+    DailyCheckinView,
     PartyCreateView,
     PartyJoinView,
     PartyLeaveView,
@@ -101,6 +102,7 @@ urlpatterns = [
     ),
     path("analytics/event/", FeatureEventView.as_view(), name="analytics-event"),
     path("rival/", RivalView.as_view(), name="rival"),
+    path("daily-checkin/", DailyCheckinView.as_view(), name="daily-checkin"),
     # ——— Billing (Stripe) —————————————————————————————————————————————
     path(
         "billing/create-checkout-session/",

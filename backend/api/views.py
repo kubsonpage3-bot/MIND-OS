@@ -69,7 +69,11 @@ from .serializers import (
     BossEncounterSerializer,
     BossSummonSerializer,
 )
-from api.services.task_service import complete_task
+from api.services.task_service import (
+    complete_task,
+    get_yesterday_uncompleted_dailies,
+    complete_yesterday_dailies,
+)
 from api.services.skill_service import activate_skill
 from api.services.shop_service import buy_item
 from api.services.crafting_service import craft_item
@@ -2451,6 +2455,78 @@ class RivalView(generics.GenericAPIView):
             logger.error(f"Error computing rival data: {str(e)}", exc_info=True)
             return Response(
                 {"error": "Failed to compute rival data"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+# ─── Daily Check-in (Welcome Back / Habitica-style) ──────────────────────────
+
+
+class DailyCheckinView(generics.GenericAPIView):
+    """
+    GET  /api/daily-checkin/  — returns yesterday's uncompleted dailies
+                                (empty list = no modal needed)
+    POST /api/daily-checkin/  — submit which ones were actually done
+                                body: { "completed_ids": [1, 2, 3] }
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            yesterday_missed = get_yesterday_uncompleted_dailies(request.user)
+
+            # Only show the modal if user missed at least one day
+            # (last_login_date < today – 1  means they were away)
+            from django.utils import timezone
+
+            today = timezone.now().date()
+            yesterday = today - __import__("datetime").timedelta(days=1)
+
+            needs_checkin = (
+                profile.last_login_date is not None
+                and profile.last_login_date <= yesterday
+                and len(yesterday_missed) > 0
+            )
+
+            data = [
+                {
+                    "id": t.id,
+                    "title": t.title,
+                    "difficulty": t.difficulty,
+                    "category": t.category or "",
+                    "streak": t.streak,
+                }
+                for t in yesterday_missed
+            ]
+
+            return Response(
+                {"needs_checkin": needs_checkin, "dailies": data},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(f"DailyCheckinView GET error: {e}", exc_info=True)
+            return Response(
+                {"error": "Failed to load daily check-in"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def post(self, request):
+        try:
+            completed_ids = request.data.get("completed_ids", [])
+            if not isinstance(completed_ids, list):
+                return Response(
+                    {"error": "completed_ids must be a list"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            completed_ids = [int(i) for i in completed_ids]
+            result = complete_yesterday_dailies(request.user, completed_ids)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"DailyCheckinView POST error: {e}", exc_info=True)
+            return Response(
+                {"error": "Failed to process daily check-in"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

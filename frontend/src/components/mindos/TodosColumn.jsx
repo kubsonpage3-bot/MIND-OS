@@ -13,6 +13,7 @@ import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem, DragHandle } from "./SortableTaskItem";
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 import { useLongPress } from '@/hooks/useLongPress';
+import { usePixelBurst, PixelBurstLayer } from '@/components/mindos/PixelParticles';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -54,22 +55,42 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
   const tv = task.value ?? 0;
   const tvColor = getTaskValueColor(tv);
   const overdue = isOverdue(task);
+  const { bursts, trigger: triggerBurst } = usePixelBurst();
+  const [justCompleted, setJustCompleted] = useState(false);
+
+  const handleToggle = () => {
+    if (toggleMutation.isPending) return;
+    if (!task.is_completed) {
+      triggerBurst(accentColor, 12);
+      setJustCompleted(true);
+      setTimeout(() => setJustCompleted(false), 700);
+    }
+    toggleMutation.mutate(task.id);
+  };
 
   const longPressProps = useLongPress(
     () => onEdit(task),
-    () => { if (!toggleMutation.isPending) toggleMutation.mutate(task.id); }
+    handleToggle,
   );
 
   return (
-    <div
-      className="flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer transition-all duration-150"
+    <motion.div
+      className="relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer"
       style={/** @type {any} */ ({
         background: 'var(--habit-panel)',
-        border: `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+        border: justCompleted
+          ? `1px solid ${accentColor}99`
+          : `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+        boxShadow: justCompleted ? `0 0 10px ${accentColor}44` : undefined,
+        transition: 'border 0.4s ease, box-shadow 0.4s ease',
         ...longPressProps.style
       })}
+      whileTap={{ scale: 0.97 }}
+      animate={justCompleted ? { scale: [1, 1.04, 0.98, 1] } : {}}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
       {...longPressProps}
     >
+      <PixelBurstLayer bursts={bursts} />
       <DragHandle />
       {/* Task Value bar */}
       <div
@@ -119,7 +140,7 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
       <div className="shrink-0">
         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 

@@ -14,6 +14,7 @@ import { SortableTaskItem, DragHandle } from './SortableTaskItem';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
 import { useLongPress } from '@/hooks/useLongPress';
+import { usePixelBurst, PixelBurstLayer } from '@/components/mindos/PixelParticles';
 
 function getTaskValueColor(tv) {
   if (tv > 0) return '#22c55e';
@@ -57,38 +58,59 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
   const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
   const tv = task.value ?? task.rpgValue ?? 0;
   const tvColor = getTaskValueColor(tv);
+  const { bursts, trigger: triggerBurst } = usePixelBurst();
+  const [justCompleted, setJustCompleted] = useState(false);
 
   const isScheduledToday = (() => {
     if (task.repeat_weekdays === undefined || task.repeat_weekdays === null) return true;
-    const jsDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1; // 0 = Monday, ..., 6 = Sunday
+    const jsDay = new Date().getDay();
+    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1;
     const flag = 1 << pythonWeekday;
     return (task.repeat_weekdays & flag) > 0;
   })();
 
+  const handleComplete = () => {
+    if (!isScheduledToday) return;
+    if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+    if (!task.is_completed) {
+      // Trigger pixel burst in category color
+      triggerBurst(accentColor, 12);
+      setJustCompleted(true);
+      setTimeout(() => setJustCompleted(false), 700);
+    }
+    completeDaily(task);
+  };
+
   const longPressProps = useLongPress(
     () => onEdit(task),
-    () => {
-      if (!isScheduledToday) return;
-      if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
-      completeDaily(task);
-    }
+    handleComplete,
   );
 
   return (
-    <div
-      className={`flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden transition-all duration-150 ${
+    <motion.div
+      className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden ${
         !isScheduledToday
-          ? 'opacity-40 bg-gray-100/50 dark:bg-gray-800/20 cursor-default'
+          ? 'opacity-40 cursor-default'
           : task.is_completed
           ? 'opacity-50 cursor-pointer'
           : 'task-card bg-white dark:bg-gray-900 cursor-pointer'
       }`}
-      style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
+      style={{
+        border: justCompleted ? `1px solid ${accentColor}99` : '1px solid var(--habit-border)',
+        boxShadow: justCompleted ? `0 0 10px ${accentColor}44` : undefined,
+        transition: 'border 0.4s ease, box-shadow 0.4s ease',
+        ...longPressProps.style,
+      }}
+      whileTap={isScheduledToday ? { scale: 0.97 } : {}}
+      animate={justCompleted ? { scale: [1, 1.04, 0.98, 1] } : {}}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
       {...longPressProps}
     >
+      {/* Pixel burst overlay */}
+      <PixelBurstLayer bursts={bursts} />
+
       <DragHandle />
-      
+
       {/* Task Value bar */}
       {!task.is_completed && (
         <div
@@ -128,7 +150,7 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
       <div className="shrink-0">
         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -343,7 +365,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
         return old;
       });
 
-      playSound(isCompleting ? 'task_complete' : 'habit_negative');
+      playSound(isCompleting ? 'daily_complete' : 'habit_negative');
       if (isCompleting) {
         success();
       } else {

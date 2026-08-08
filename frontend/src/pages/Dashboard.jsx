@@ -45,6 +45,9 @@ import AchievementTracker from "@/components/mindos/AchievementTracker";
 import GuestBanner from "@/components/mindos/GuestBanner";
 import ConvertGuestModal from "@/components/mindos/ConvertGuestModal";
 import OfflineSummaryModal from "@/components/mindos/OfflineSummaryModal";
+import WelcomeBackModal from "@/components/mindos/WelcomeBackModal";
+import AchievementToast from "@/components/mindos/AchievementToast";
+import { useDailyCheckin } from "@/hooks/useDailyCheckin";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 // Removed getRankFromXP
@@ -966,6 +969,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       <GuestBanner onConvertClick={() => setIsConvertGuestModalOpen(true)} />
       <main ref={containerRef} className="flex-1 w-full max-w-7xl mx-auto px-0 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <AchievementTracker />
+        <AchievementToast />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
 
@@ -1071,6 +1075,32 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
       {/* Offline Summary Modal */}
       <OfflineSummaryModal profile={profile} />
+
+      {/* Welcome Back Daily Check-in Modal */}
+      <WelcomeBackCheckin />
     </div>
+  );
+}
+
+function WelcomeBackCheckin() {
+  const { needsCheckin, dailies, submitCheckin, isSubmitting } = useDailyCheckin();
+  const [dismissed, setDismissed] = useState(false);
+
+  const handleSubmit = (completedIds) => {
+    submitCheckin(completedIds, {
+      onSettled: () => setDismissed(true),
+    });
+  };
+
+  if (!needsCheckin || dismissed || dailies.length === 0) return null;
+
+  return (
+    <AnimatePresence>
+      <WelcomeBackModal
+        dailies={dailies}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+      />
+    </AnimatePresence>
   );
 }

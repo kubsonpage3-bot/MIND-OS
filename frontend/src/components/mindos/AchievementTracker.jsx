@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { showRewardToast } from "@/components/mindos/RewardToast";
+import { showAchievementToast } from "@/components/mindos/AchievementToast";
 import { playSound } from "@/lib/soundEffects";
 import { useQueryClient } from "@tanstack/react-query";
 import i18n from "@/lib/i18n";
@@ -27,8 +27,9 @@ export default function AchievementTracker() {
         if (!prevUnlocked.current.has(achId)) {
           prevUnlocked.current.add(achId);
           newFound = true;
-          showRewardToast({ label: i18n.t('achievements.unlocked', { name: achName }) });
-          playSound('success');
+          const description = i18n.t(`rpgData.achievements.${achId}.description`, found?.description || '');
+          showAchievementToast(achName, description);
+          playSound('achievement');
         }
       });
 

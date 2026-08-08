@@ -231,14 +231,38 @@ def compute_rival_data(user_profile):
         today, user_id, pattern, specializations, diff_cfg
     )
 
-    # ── Persistent XP accumulation ─────────────────────────────
-    prev_accumulated = stored.get("johanAccumulatedXP", None)
-    today_daily_xp = calc_johan_daily_xp(sessions, diff_cfg)
+    # ── Persistent XP accumulation (offline-aware) ─────────────
+    # Calculate XP for EVERY day missed since last login, not just today.
+    prev_accumulated = stored.get("johanAccumulatedXP", 0.0) or 0.0
+    last_updated_str = stored.get("lastUpdated")
 
-    if prev_accumulated is not None:
-        johan_xp = round(prev_accumulated + today_daily_xp, 1)
+    if last_updated_str:
+        last_updated_dt = datetime.strptime(last_updated_str, "%Y-%m-%d")
+        today_dt = datetime.strptime(today, "%Y-%m-%d")
+        days_missed = (
+            today_dt - last_updated_dt
+        ).days  # e.g. 0 = same day, 5 = 5 days away
     else:
-        johan_xp = today_daily_xp
+        days_missed = 0
+
+    # Cap to avoid heavy loops for very long absences (30 days max)
+    days_missed = min(days_missed, 30)
+
+    # Sum XP for each missed day + today
+    accumulated_xp = prev_accumulated
+    for i in range(days_missed + 1):
+        offset = days_missed - i  # 0 = today, 1 = yesterday, etc.
+        day_dt = datetime.strptime(today, "%Y-%m-%d") - timedelta(days=offset)
+        day_str = day_dt.strftime("%Y-%m-%d")
+        day_pattern = get_day_pattern(day_str, user_id, diff_cfg)
+        day_sessions = generate_daily_sessions(
+            day_str, user_id, day_pattern, specializations, diff_cfg
+        )
+        accumulated_xp = round(
+            accumulated_xp + calc_johan_daily_xp(day_sessions, diff_cfg), 1
+        )
+
+    johan_xp = accumulated_xp
 
     # ── Behavioral streak ──────────────────────────────────────
     johan_streak = calc_johan_streak(today, user_id, diff_cfg)

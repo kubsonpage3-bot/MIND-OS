@@ -1,3 +1,4 @@
+# flake8: noqa
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -11,13 +12,28 @@ import django
 
 django.setup()
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User  # noqa: E402
+from api.models import UserProfile  # noqa: E402
+
+username = "test12345"
+password = "test123123"
+email = "test12345@mindos.app"
 
 try:
-    user = User.objects.get(username="test123")
-    profile = user.profile
+    user, created = User.objects.get_or_create(
+        username=username, defaults={"email": email}
+    )
+    user.email = email
+    user.set_password(password)
+    user.save()
+
+    profile, p_created = UserProfile.objects.get_or_create(user=user)
     profile.is_premium = True
     profile.save(update_fields=["is_premium"])
-    print(f"Successfully activated premium for {user.username}.")
+
+    action = "Created new" if created else "Updated existing"
+    print(
+        f"SUCCESS: {action} user '{username}' (email: {email}). Premium activated: {profile.is_premium}."
+    )
 except Exception as e:
-    print(f"Error: {e}")
+    print(f"ERROR activating premium: {e}")

@@ -77,6 +77,158 @@ def complete_task(user, task_id, is_positive=True):
         raise
 
 
+def get_yesterday_uncompleted_dailies(user):
+    """
+    Returns a list of dailies that were scheduled for YESTERDAY but were NOT completed.
+    Used by the Welcome Back modal (Habitica-style daily check-in).
+    """
+    import zoneinfo
+    from django.utils import timezone as tz
+
+    profile = UserProfile.objects.get(user=user)
+
+    try:
+        user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+    except Exception:
+        user_tz = zoneinfo.ZoneInfo("UTC")
+
+    yesterday = (tz.now().astimezone(user_tz) - timedelta(days=1)).date()
+
+    dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
+    result = []
+    for task in dailies:
+        if not is_daily_scheduled_for_date(task, yesterday):
+            continue
+        # Check if completed yesterday
+        was_completed_yesterday = False
+        if task.last_completed_at:
+            local_date = task.last_completed_at.astimezone(user_tz).date()
+            was_completed_yesterday = local_date == yesterday
+        if not was_completed_yesterday:
+            result.append(task)
+    return result
+
+
+@transaction.atomic
+def complete_yesterday_dailies(user, completed_ids: list):
+    """
+    Handles the Welcome Back daily check-in response.
+    - Tasks in completed_ids: grant XP/Gold rewards retroactively (deja-vu style).
+    - Tasks NOT in completed_ids but were scheduled: apply missed-daily HP penalty.
+    Returns a summary dict.
+    """
+    from django.utils import timezone as tz
+    from api.services.combat_service import calculate_fail_damage
+    from api.services.mechanics import apply_active_mutators
+    from api.models import ActiveEffect
+    from api.services.profile_service import gain_xp, check_death
+
+    profile = UserProfile.objects.select_for_update().get(user=user)
+
+    missed_tasks = get_yesterday_uncompleted_dailies(user)
+    total_xp = 0
+    total_gold = 0
+    total_dmg = 0
+    log = []
+
+    transcendence_active = ActiveEffect.objects.filter(
+        user=user, skill_id="transcendence"
+    ).exists()
+    iron_fast_active = ActiveEffect.objects.filter(
+        user=user, skill_id="iron_fast"
+    ).exists()
+    elixir_active = ActiveEffect.objects.filter(
+        user=user, skill_id="elixir", expires_at__gt=tz.now()
+    ).exists()
+
+    for task in missed_tasks:
+        if task.id in completed_ids:
+            # ── Grant retroactive rewards ─────────────────────────
+            rewards = task.get_rewards()
+            base_xp = rewards.get("xp", 0)
+            base_gold = rewards.get("gold", 0)
+            final_xp = max(0, int(base_xp * profile.xp_multiplier))
+            final_gold = max(0, int(base_gold * profile.gold_multiplier))
+
+            gain_xp(profile, final_xp)
+            profile.rank_xp = max(0, profile.rank_xp + final_xp)
+            profile.gold = max(0, profile.gold + final_gold)
+
+            # Mark task as if it was completed yesterday
+            task.is_completed = True
+            task.last_completed_at = tz.now().replace(
+                hour=12, minute=0, second=0, microsecond=0
+            ) - timedelta(days=1)
+            task.completion_count += 1
+            task.streak += 1
+            task.value = calc_new_value(task.value, "complete", "daily")
+            task.save()
+
+            total_xp += final_xp
+            total_gold += final_gold
+            log.append(
+                {
+                    "type": "checkin_done",
+                    "id": task.id,
+                    "title": task.title,
+                    "xp": final_xp,
+                    "gold": final_gold,
+                }
+            )
+        else:
+            # ── Apply missed-daily HP penalty ─────────────────────
+            context = {
+                "is_science": False,
+                "is_language": False,
+                "is_exercise": False,
+                "is_prayer": False,
+                "task_type": "daily",
+                "hours": 0,
+            }
+            mutator_effects = apply_active_mutators(
+                profile, context, trigger_side_effects=False
+            )
+            outcome = calculate_task_outcome(
+                user,
+                "daily",
+                base_hp_lost=calculate_fail_damage(task, profile),
+                is_positive=False,
+                mutator_effects=mutator_effects,
+            )
+            final_dmg = outcome["hp_lost"]
+            if iron_fast_active or elixir_active:
+                final_dmg = 0
+
+            if not transcendence_active:
+                task.streak = 0
+                task.value = calc_new_value(task.value, "fail", "daily")
+            task.is_completed = False
+            task.save()
+
+            total_dmg += final_dmg
+            log.append(
+                {
+                    "type": "checkin_missed",
+                    "id": task.id,
+                    "title": task.title,
+                    "damage": final_dmg,
+                }
+            )
+
+    profile.hp = max(0, profile.hp - total_dmg)
+    profile.save(update_fields=["hp", "gold", "rank_xp", "level"])
+
+    died = check_death(profile)
+
+    return {
+        "total_xp": total_xp,
+        "total_gold": total_gold,
+        "total_dmg": total_dmg,
+        "died": died,
+        "log": log,
+    }
+
+
 def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     """
     Выполнение задачи и начисление наград.

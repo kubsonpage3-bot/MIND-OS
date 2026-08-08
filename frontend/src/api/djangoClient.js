@@ -511,4 +511,13 @@ export const djangoApi = {
         body: JSON.stringify(data),
       }),
   },
+
+  dailyCheckin: {
+    get: () => djangoFetch('/daily-checkin/'),
+    submit: (completedIds) =>
+      djangoFetch('/daily-checkin/', {
+        method: 'POST',
+        body: JSON.stringify({ completed_ids: completedIds }),
+      }),
+  },
 };
