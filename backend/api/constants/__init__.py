@@ -216,13 +216,6 @@ HUMANITIES_RANK_THRESHOLDS = [
     {"id": "SSS", "min": 8000},
 ]
 
-TASK_REWARD_TABLE = {
-    "trivial": {"xp": 1, "gold": 1},
-    "easy": {"xp": 5, "gold": 3},
-    "medium": {"xp": 15, "gold": 7},
-    "hard": {"xp": 40, "gold": 15},
-}
-
 BOSS_DIFFICULTY_MULTIPLIERS = {
     "EASY": {"hp": 0.5, "reward": 0.8},
     "NORMAL": {"hp": 1.0, "reward": 1.0},

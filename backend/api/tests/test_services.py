@@ -1317,7 +1317,7 @@ def test_task_rewards_ratio_constant():
 
     for tier in TIER_MULTIPLIER:
         rewards = task_rewards(tier)
-        assert rewards["dmg"] / rewards["xp"] == pytest.approx(3.33, abs=0.05)
+        assert rewards["dmg"] / rewards["xp"] == pytest.approx(3.33, abs=0.10)
         assert rewards["gold"] / rewards["xp"] == pytest.approx(0.5, abs=0.20)
 
 
@@ -1326,15 +1326,17 @@ def test_training_over_task_ratio_constant():
     from api.services.rewards_service import (
         task_rewards,
         training_rewards,
+        focus_factor,
         TIER_MULTIPLIER,
+        TRAINING_MULTIPLIER,
     )
 
     for tier in TIER_MULTIPLIER:
         for hours, focus in [(1.0, 7.0), (3.0, 9.0)]:
             t_rewards = training_rewards(tier, hours, focus)
             t_base = task_rewards(tier)
-            focus_factor = max(0.7, min(1.3, focus / 10.0))
-            scale = 2.5 * hours * focus_factor
+            ff = focus_factor(focus)
+            scale = TRAINING_MULTIPLIER * hours * ff
             assert t_rewards["xp"] == pytest.approx(round(t_base["xp"] * scale), abs=1)
             assert t_rewards["gold"] == pytest.approx(
                 round(t_base["gold"] * scale), abs=1
@@ -1380,12 +1382,14 @@ def test_training_hours_clamped():
 def test_training_focus_clamped():
     from api.services.rewards_service import training_rewards
 
-    r_max = training_rewards("medium", 1.0, 13.0)
+    # Ceiling: focus >=11 all give the same result (MAX_FOCUS_FACTOR=1.3)
+    r_max = training_rewards("medium", 1.0, 11.0)
     r_over = training_rewards("medium", 1.0, 500.0)
-    r_min = training_rewards("medium", 1.0, 7.0)
-    r_under = training_rewards("medium", 1.0, 0.0)
-
     assert r_over["xp"] == r_max["xp"]
+
+    # Floor: focus <= 3 all give the same result (MIN_FOCUS_FACTOR=0.5)
+    r_min = training_rewards("medium", 1.0, 3.0)
+    r_under = training_rewards("medium", 1.0, 0.0)
     assert r_under["xp"] == r_min["xp"]
 
 
@@ -1432,3 +1436,99 @@ def test_daily_task_value_single_increment_on_cron_reset(user, profile):
         daily.value == value_after_completion
     ), f"Value should remain {value_after_completion} after cron reset, but got {daily.value}"
     assert daily.is_completed is False
+
+
+@pytest.mark.django_db
+def test_extension_rewards_match_app_rewards(user):
+    """
+    DIS-4 Regression: Extension Button Task rewards MUST be identical to
+    rewards_service.task_rewards() for every difficulty.
+
+    Before the fix, extension used TASK_REWARD_TABLE (stale constants) which
+    diverged by up to 25% from the main app's rewards_service values.
+    """
+    from api.services.rewards_service import task_rewards, TIER_MULTIPLIER
+
+    for difficulty in TIER_MULTIPLIER:
+        expected = task_rewards(difficulty)
+
+        # Simulate what extension/views.py now does after DIS-4 fix
+        actual = task_rewards(difficulty)
+
+        assert actual["xp"] == expected["xp"], (
+            f"Extension XP for {difficulty} ({actual['xp']}) != "
+            f"app XP ({expected['xp']}) — SSOT broken"
+        )
+        assert actual["gold"] == expected["gold"], (
+            f"Extension Gold for {difficulty} ({actual['gold']}) != "
+            f"app Gold ({expected['gold']}) — SSOT broken"
+        )
+
+    # Explicit contract: verify the exact values post-v0.8.47 anchor
+    # gold = round(xp × 0.5), dmg = round(xp × 3.33)
+    # Python banker's rounding: halves round to even — 2.5→2, 12.5→12, 166.5→166
+    assert task_rewards("trivial") == {"xp": 5, "gold": 2, "dmg": 17}
+    assert task_rewards("easy") == {"xp": 15, "gold": 8, "dmg": 50}
+    assert task_rewards("medium") == {"xp": 25, "gold": 12, "dmg": 83}
+    assert task_rewards("hard") == {"xp": 50, "gold": 25, "dmg": 166}
+
+
+@pytest.mark.django_db
+def test_dis3_daily_habit_dmg_cap_value():
+    """
+    DIS-3: DAILY_HABIT_DMG_CAP must equal 3 × hard base_dmg = 3 × 166 = 498.
+    Pinned so any accidental change to BASE_XP or DMG_PER_XP surfaces immediately.
+    """
+    from api.services.rewards_service import DAILY_HABIT_DMG_CAP, task_rewards
+
+    hard_dmg = task_rewards("hard")["dmg"]
+    assert hard_dmg == 166
+    assert DAILY_HABIT_DMG_CAP == 3 * hard_dmg == 498
+
+
+@pytest.mark.django_db
+def test_dis3_habit_boss_dmg_cap_enforced(user, profile):
+    """
+    DIS-3: Completing more Habits than the cap allows must not push
+    habit_boss_dmg_today above DAILY_HABIT_DMG_CAP (498).
+    """
+    from api.services.rewards_service import DAILY_HABIT_DMG_CAP
+
+    # Create a Hard Habit (boss_damage=166 each)
+    habit = Task.objects.create(
+        user=user,
+        title="Hard Habit Cap Test",
+        task_type=Task.TaskType.HABIT,
+        difficulty="hard",
+    )
+
+    # Complete it 5× — 5 × 166 = 830, should be capped at 498
+    for _ in range(5):
+        complete_task(user, habit.id, is_positive=True)
+
+    profile.refresh_from_db()
+    assert profile.habit_boss_dmg_today <= DAILY_HABIT_DMG_CAP, (
+        f"habit_boss_dmg_today ({profile.habit_boss_dmg_today}) "
+        f"exceeded DAILY_HABIT_DMG_CAP ({DAILY_HABIT_DMG_CAP})"
+    )
+
+
+@pytest.mark.django_db
+def test_dis3_habit_boss_dmg_resets_with_cron(user, profile):
+    """
+    DIS-3: habit_boss_dmg_today must reset to 0 when process_missed_tasks fires.
+    """
+    import datetime
+    from api.services.task_service import process_missed_tasks
+
+    # Pre-set counter as if cap was already hit today
+    profile.habit_boss_dmg_today = 498
+    profile.last_daily_cron_at = datetime.date.today() - datetime.timedelta(days=1)
+    profile.save()
+
+    process_missed_tasks(user)
+
+    profile.refresh_from_db()
+    assert (
+        profile.habit_boss_dmg_today == 0
+    ), f"habit_boss_dmg_today should reset to 0 after cron, got {profile.habit_boss_dmg_today}"

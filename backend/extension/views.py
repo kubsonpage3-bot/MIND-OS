@@ -351,7 +351,7 @@ def complete_task(request):
     """
     from api.models import Task
     from api.services.profile_service import gain_xp
-    from api.constants import TASK_REWARD_TABLE
+    from api.services.rewards_service import task_rewards
 
     task_id = request.data.get("task_id")
     if not task_id:
@@ -373,7 +373,7 @@ def complete_task(request):
         return Response({"error": "already_completed_today"}, status=400)
 
     difficulty = getattr(task, "difficulty", "easy") or "easy"
-    rewards = TASK_REWARD_TABLE.get(difficulty, TASK_REWARD_TABLE["easy"])
+    rewards = task_rewards(difficulty)
     xp_gained = rewards["xp"]
     gold_gained = rewards["gold"]
 

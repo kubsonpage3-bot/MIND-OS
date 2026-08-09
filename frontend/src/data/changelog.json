@@ -1,5 +1,67 @@
 [
   {
+    "date": "2026-08-09",
+    "version": "0.8.48",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Chrome Extension now gives the same XP and Gold as the main app for Button Tasks — previously it used a stale reward table and paid up to 25% less XP than completing the same task in the browser."
+      },
+      {
+        "type": "fix",
+        "text": "Boss damage from existing tasks has been recalculated to match the v0.8.47 rebalance — old tasks created before the patch were dealing 40% less damage per hit than newly created ones."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed a hidden fallback in boss damage calculation that could give a third, incorrect damage value if a task had no stored damage — now always uses the same formula as the task card."
+      },
+      {
+        "type": "balance",
+        "text": "Gold economy note: completing tasks now awards ~67% more gold than before v0.8.47. Shop prices are unchanged for now — this is being monitored. Training session gold was not affected."
+      },
+      {
+        "type": "balance",
+        "text": "Added a daily cap to cumulative boss damage dealt by Habit completions (498 dmg/day, equivalent to 3h of Hard Training at focus 8). This prevents infinite habit farming from outscaling genuine study sessions in boss damage."
+      }
+    ]
+  },
+  {
+    "date": "2026-08-09",
+    "version": "0.8.47",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "XP rebalance: 1 hour of hard study at focus 8 now gives exactly 50 XP — set as the anchor for the entire XP system."
+      },
+      {
+        "type": "balance",
+        "text": "Tasks with estimated hours now scale XP: +15% per hour, capped at 2× for tasks 6.7h+. A 4-hour todo gives 60% more XP than the same task with no time estimate."
+      },
+      {
+        "type": "balance",
+        "text": "Habit streak bonus capped at 1.3× (reached at 15-day streak). Previously it grew without limit and could outpace study sessions on long streaks."
+      }
+    ]
+  },
+  {
+    "date": "2026-08-08",
+    "version": "0.8.46",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed rival offline XP calculation logic to prevent double-counting previous days' progress."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed Chrome Extension MV3 compatibility for background service worker and messaging."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed duplicate web push notification issue for users with multiple connected devices."
+      }
+    ]
+  },
+  {
     "date": "2026-08-08",
     "version": "0.8.45",
     "changes": [

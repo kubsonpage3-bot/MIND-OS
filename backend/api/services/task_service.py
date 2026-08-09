@@ -331,8 +331,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         if is_positive:
             task.pos_streak += 1
             task.neg_streak = 0
-            # Увеличиваем награды в зависимости от размера pos_streak (по 5% за каждый стрик)  # noqa: E501
-            streak_mult = 1.0 + (task.pos_streak * 0.05)
+            # Streak bonus capped at 1.3x (reached at streak=15, +2% per step).
+            # Cap matches focus_factor ceiling — habit discipline has real value
+            # but cannot outpace a genuine training session indefinitely.
+            streak_mult = min(1.3, 1.0 + (task.pos_streak * 0.02))
             rewards["xp"] = int(rewards["xp"] * streak_mult)
             rewards["gold"] = int(rewards["gold"] * streak_mult)
         else:
@@ -792,8 +794,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                                 )
 
                                 check_streak_achievements(party)
-                            except Exception:
-                                pass
+                            except Exception as e:
+                                logger.warning(
+                                    "Failed to check party streak achievements: %s", e
+                                )
                             if party.streak in [3, 7, 14, 30, 50, 100, 365]:
                                 try:
                                     with transaction.atomic():
@@ -836,8 +840,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 from api.services.party_service import add_quest_progress
 
                 add_quest_progress(membership.party)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Failed to add party quest progress: %s", e)
 
         except ObjectDoesNotExist:
             pass
@@ -1123,15 +1127,17 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         damage_dealt = gamification_result.get("damage_dealt", 0)
 
         # Базовый урон от сложности
+        from api.services.rewards_service import task_rewards as _task_rewards
+
+        _diff = (
+            task.difficulty
+            if task.difficulty in ["trivial", "easy", "medium", "hard"]
+            else "medium"
+        )
         base_dmg = (
             task.boss_damage
             if (task.boss_damage is not None and task.boss_damage > 0)
-            else {
-                "trivial": 15,
-                "easy": 25,
-                "medium": 50,
-                "hard": 75,
-            }.get(task.difficulty, 25)
+            else _task_rewards(_diff)["dmg"]
         )
 
         task_type = getattr(task, "task_type", "habit")
@@ -1246,9 +1252,30 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         is_crit = gamification_result.get("is_crit", False)
 
+        # DIS-3: Habit daily boss-damage cap — prevents Habit farming from
+        # outscaling Training sessions. Cap = 3 × hard base_dmg = 498.
+        # Only applies to positive Habit completions; all other types unaffected.
+        if task.task_type == Task.TaskType.HABIT and is_positive:
+            from api.services.rewards_service import DAILY_HABIT_DMG_CAP
+
+            remaining = max(0, DAILY_HABIT_DMG_CAP - profile.habit_boss_dmg_today)
+            final_damage_dealt = min(final_damage_dealt, remaining)
+
         profile.save()
         combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
         profile.refresh_from_db()
+
+        # Track cumulative Habit boss dmg dealt today (for cap enforcement above)
+        if (
+            task.task_type == Task.TaskType.HABIT
+            and is_positive
+            and final_damage_dealt > 0
+        ):
+            profile.habit_boss_dmg_today = min(
+                DAILY_HABIT_DMG_CAP,
+                profile.habit_boss_dmg_today + final_damage_dealt,
+            )
+            profile.save(update_fields=["habit_boss_dmg_today"])
 
         if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
             if not isinstance(task.last_reward_data, dict):
@@ -1346,6 +1373,7 @@ def process_missed_tasks(user):
 
     profile.tasks_completed_today = 0
     profile.habits_completed_today = 0
+    profile.habit_boss_dmg_today = 0  # DIS-3 cap resets with daily window
     profile.todos_completed_today = 0
     profile.dailies_completed_today = 0
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
@@ -1565,6 +1593,7 @@ def process_missed_tasks(user):
             "level",
             "tasks_completed_today",
             "habits_completed_today",
+            "habit_boss_dmg_today",
             "todos_completed_today",
             "dailies_completed_today",
             "total_overdue_tasks",

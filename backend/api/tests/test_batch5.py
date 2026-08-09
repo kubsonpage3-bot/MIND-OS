@@ -42,14 +42,15 @@ def test_transcendent_will(profile):
         calc_johan_daily_xp,
         get_johan_specializations,
     )
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     rival_data_before = compute_rival_data(profile)
     accumulated_before = rival_data_before["johanAccumulatedXP"]
 
-    profile.rival_data["lastUpdated"] = "1999-01-01"
+    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
+    profile.rival_data["lastUpdated"] = yesterday
     profile.save()
 
     UnlockedSkill.objects.create(user_profile=profile, skill_code="transcendent_will")

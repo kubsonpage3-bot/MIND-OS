@@ -1,7 +1,11 @@
+import logging
 from datetime import timedelta
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils import timezone
 from api.models import UserProfile, UnlockedSkill, ActiveEffect
+
+logger = logging.getLogger(__name__)
 
 
 def _sync_max_streak(user, profile):
@@ -12,8 +16,8 @@ def _sync_max_streak(user, profile):
         if profile.streak > stats.max_streak:
             stats.max_streak = profile.streak
             stats.save(update_fields=["max_streak"])
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Failed to sync max_streak for user %s: %s", user, e)
 
 
 @transaction.atomic
@@ -59,8 +63,10 @@ def process_daily_login(user):
                     event_type="milestone",
                     message="missed a daily, resetting the party streak.",
                 )
-    except Exception:
+    except ObjectDoesNotExist:
         pass
+    except Exception as e:
+        logger.warning("Failed to check party streak reset for user %s: %s", user, e)
 
     if delta == 1:
         profile.streak += 1

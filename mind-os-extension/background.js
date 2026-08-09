@@ -116,11 +116,13 @@ browser.alarms.onAlarm.addListener(async (alarm) => {
 
 // ─── Message handler (from popup) ────────────────────────────────────────────
 
-browser.runtime.onMessage.addListener(async (msg) => {
+const extensionApi = typeof browser !== 'undefined' ? browser : chrome;
+
+async function handleMessage(msg) {
   switch (msg.type) {
     case 'SYNC': {
       await syncBlocklist();
-      const state = await browser.storage.local.get([
+      const state = await extensionApi.storage.local.get([
         'gold', 'hp', 'maxHp',
         'mana', 'max_mana', 'xp', 'xp_to_next_level', 'level',
         'rank', 'rank_progress_pct', 'streak',
@@ -143,16 +145,16 @@ browser.runtime.onMessage.addListener(async (msg) => {
         return { ok: false, error: err.error };
       }
       const { token } = await res.json();
-      await browser.storage.local.set({ extensionToken: token });
+      await extensionApi.storage.local.set({ extensionToken: token });
       await syncBlocklist();
       return { ok: true };
     }
 
     case 'UNPAIR': {
-      await browser.storage.local.remove('extensionToken');
+      await extensionApi.storage.local.remove('extensionToken');
       // Remove all block rules (extension unlinked = no blocking)
-      const rules = await browser.declarativeNetRequest.getDynamicRules();
-      await browser.declarativeNetRequest.updateDynamicRules({
+      const rules = await extensionApi.declarativeNetRequest.getDynamicRules();
+      await extensionApi.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: rules.map((r) => r.id),
       });
       return { ok: true };
@@ -201,11 +203,11 @@ browser.runtime.onMessage.addListener(async (msg) => {
       if (!res.ok) return { ok: false, error: data.error, gold: data.gold };
 
       // Update gold and activeUnlocks locally so CHECK_BLOCKED sees the unlock immediately
-      const { activeUnlocks = [] } = await browser.storage.local.get('activeUnlocks');
+      const { activeUnlocks = [] } = await extensionApi.storage.local.get('activeUnlocks');
       const cleanDomain = (msg.domain || '').toLowerCase().trim().replace(/^www\./, '');
       const filtered = activeUnlocks.filter((u) => !domainMatches(u.domain, cleanDomain));
       filtered.push({ domain: cleanDomain, unlocked_until: data.unlocked_until });
-      await browser.storage.local.set({ gold: data.gold, activeUnlocks: filtered });
+      await extensionApi.storage.local.set({ gold: data.gold, activeUnlocks: filtered });
 
       await temporarilyUnblock(msg.domain, data.unlocked_until);
       return { ok: true, gold: data.gold, unlocked_until: data.unlocked_until };
@@ -214,7 +216,7 @@ browser.runtime.onMessage.addListener(async (msg) => {
     case 'CHECK_BLOCKED': {
       const targetDomain = (msg.domain || '').toLowerCase().trim().replace(/^www\./, '');
       const { blockedSites = [], activeUnlocks = [], gold = 0 } =
-        await browser.storage.local.get(['blockedSites', 'activeUnlocks', 'gold']);
+        await extensionApi.storage.local.get(['blockedSites', 'activeUnlocks', 'gold']);
       const now = new Date();
       const isUnlocked = activeUnlocks.some(
         (u) => domainMatches(targetDomain, u.domain) && new Date(u.unlocked_until) > now
@@ -235,7 +237,7 @@ browser.runtime.onMessage.addListener(async (msg) => {
     }
 
     case 'GET_CURRENT_TAB_DOMAIN': {
-      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await extensionApi.tabs.query({ active: true, currentWindow: true });
       if (!tab?.url) return { domain: null };
       try {
         const url = new URL(tab.url);
@@ -248,6 +250,13 @@ browser.runtime.onMessage.addListener(async (msg) => {
     default:
       return { ok: false, error: 'unknown_message_type' };
   }
+}
+
+extensionApi.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  handleMessage(msg)
+    .then((res) => sendResponse(res))
+    .catch((err) => sendResponse({ ok: false, error: err.message }));
+  return true;
 });
 
 // ─── Init ────────────────────────────────────────────────────────────────────

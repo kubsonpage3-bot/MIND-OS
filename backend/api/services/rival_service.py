@@ -241,17 +241,17 @@ def compute_rival_data(user_profile):
         today_dt = datetime.strptime(today, "%Y-%m-%d")
         days_missed = (
             today_dt - last_updated_dt
-        ).days  # e.g. 0 = same day, 5 = 5 days away
+        ).days  # e.g. 1 = yesterday, 5 = 5 days away
     else:
-        days_missed = 0
+        days_missed = 1
 
     # Cap to avoid heavy loops for very long absences (30 days max)
-    days_missed = min(days_missed, 30)
+    days_missed = min(max(1, days_missed), 30)
 
-    # Sum XP for each missed day + today
+    # Sum XP for each missed day that was NOT accumulated yet + today
     accumulated_xp = prev_accumulated
-    for i in range(days_missed + 1):
-        offset = days_missed - i  # 0 = today, 1 = yesterday, etc.
+    for i in range(days_missed):
+        offset = days_missed - 1 - i  # for days_missed=1 -> offset=0 (today)
         day_dt = datetime.strptime(today, "%Y-%m-%d") - timedelta(days=offset)
         day_str = day_dt.strftime("%Y-%m-%d")
         day_pattern = get_day_pattern(day_str, user_id, diff_cfg)

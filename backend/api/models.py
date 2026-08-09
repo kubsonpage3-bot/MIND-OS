@@ -223,6 +223,10 @@ class UserProfile(models.Model):
     habits_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено привычек сегодня"
     )
+    habit_boss_dmg_today = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Суммарный boss dmg от Habits сегодня (DIS-3 cap)",
+    )
     todos_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено тудушек сегодня"
     )
@@ -923,7 +927,11 @@ class Task(models.Model):
     def get_rewards(self) -> dict:
         """
         Возвращает словарь с наградами за выполнение задачи.
-        Учитывает числовой множитель value.
+        Учитывает:
+          - value_mod (Habitica-style деградация/рост от выполнений)
+          - hours_bonus для Todo/Daily: +15% за каждый estimated_hour, cap 2.0×
+            → min(2.0, 1.0 + hours * 0.15)
+            0h → 1.0×, 1h → 1.15×, 4h → 1.6×, 6.7h+ → 2.0× (cap)
         """
         task_value = self.value
         if task_value < 0:
@@ -932,8 +940,15 @@ class Task(models.Model):
             scale = 0.06 if self.task_type == self.TaskType.TODO else 0.04
             value_mod = max(0.1, 1.0 - float(task_value) * scale)
 
-        xp_reward = round(self.xp_reward * value_mod)
-        gold_reward = round(self.gold_reward * value_mod)
+        # Hours bonus: only for Todo/Daily (not Habit — Habits use streak for scaling)
+        hours_bonus = 1.0
+        if self.task_type in (self.TaskType.TODO, self.TaskType.DAILY):
+            estimated_hours = getattr(self, "estimated_hours", None) or 0
+            if estimated_hours > 0:
+                hours_bonus = min(2.0, 1.0 + float(estimated_hours) * 0.15)
+
+        xp_reward = round(self.xp_reward * value_mod * hours_bonus)
+        gold_reward = round(self.gold_reward * value_mod * hours_bonus)
 
         return {
             "xp": max(0, xp_reward),
