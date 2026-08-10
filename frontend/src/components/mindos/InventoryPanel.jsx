@@ -53,6 +53,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   });
 
   const applyConsumable = (item) => {
+    if (!item.code) {
+      console.error('[InventoryPanel] Cannot consume: item.code is missing', item);
+      return;
+    }
     setUsedId(item.id);
     consumeMutation.mutate(item.code);
     setTimeout(() => setUsedId(null), 800);
@@ -234,7 +238,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
             const tierColor = getTierColor(item.tier);
             const effectColor = tierColor || "#8b5cf6";
             const isUsed = usedId === item.id;
-            const alreadyActive = consumables_active[item.id]?.active && (!consumables_active[item.id]?.expiresAt || Date.now() < consumables_active[item.id]?.expiresAt);
+            const alreadyActive = consumables_active[item.code]?.active && (!consumables_active[item.code]?.expiresAt || Date.now() < consumables_active[item.code]?.expiresAt);
             // Count how many of this item in inventory
             const count = consumablesOwned.filter(i => i.id === item.id).length;
 

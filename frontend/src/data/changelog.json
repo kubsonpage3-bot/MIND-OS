@@ -1,5 +1,20 @@
 [
   {
+    "date": "2026-08-10",
+    "version": "0.8.49",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed consumables (XP Booster, Streak Shield, Focus Stim, Boss Damage+, etc.) being purchased but not actually applying their effects — the USE button now correctly sends the item to the server and active buffs display in the Inventory panel."
+      },
+      {
+        "type": "fix",
+        "text": "Active buff indicators (ACTIVE badge) in Inventory now correctly show which consumables are currently running, including ones with time limits like XP Booster."
+      }
+    ]
+  },
+  {
+
     "date": "2026-08-09",
     "version": "0.8.48",
     "changes": [

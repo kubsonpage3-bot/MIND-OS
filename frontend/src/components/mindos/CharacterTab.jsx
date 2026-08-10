@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
@@ -131,6 +131,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
         const response = await djangoApi.shop.getItems();
         return (response || []).map((item) => ({
           id: item.code,
+          code: item.code,
           label: t(`items.${item.code}.name`, item.name),
           desc: t(`items.${item.code}.desc`, item.description),
           tier: item.tier,
@@ -147,6 +148,21 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
       }
     }
   });
+
+  const { data: activeEffectsData } = useQuery({
+    queryKey: ['active_effects'],
+    queryFn: () => djangoApi.skills.getActiveEffects(),
+    staleTime: 30_000,
+  });
+
+  const activeEffectsMap = useMemo(() => {
+    const effects = activeEffectsData?.active_effects || [];
+    return Object.fromEntries(effects.map(e => [e.skill_id, {
+      active: true,
+      skill_id: e.skill_id,
+      expiresAt: e.expires_at ? new Date(e.expires_at).getTime() : null,
+    }]));
+  }, [activeEffectsData]);
 
   const gold = profile?.gold || 0;
   // Gold is SSOT on the Django backend.
@@ -172,7 +188,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   const rawInventory = profile?.inventory || [];
   const inventory = Array.isArray(rawInventory) ? rawInventory.map(ri => {
     const found = shopItems.find(i => i.id === ri.id || i.id === ri.code);
-    return found ? { ...found, ...ri } : ri;
+    // Preserve code from shopItems — ri.code from Django serializer is the canonical item code.
+    // found.id === item.code, so we ensure code is never lost after merge.
+    return found ? { ...found, ...ri, code: ri.code || found.id } : ri;
   }) : [];
 
   const equipped = {};
@@ -834,7 +852,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             <ChestPanel />
           )}
           {shopTab === "inventory" && (
-            <InventoryPanel gs={{ inventory, consumables: {} }} onSave={() => { }} onToggleEquip={equipItem} />
+            <InventoryPanel gs={{ inventory, consumables: activeEffectsMap }} onSave={() => { }} onToggleEquip={equipItem} />
           )}
           {shopTab === "allies" && (
             alliesLocked ? (
