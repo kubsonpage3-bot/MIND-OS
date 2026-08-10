@@ -557,7 +557,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
       ) : (
         <div className="flex flex-col gap-2 p-3 rounded-xl border border-pink-500/10 bg-pink-500/5 animate-in fade-in duration-200" onPointerDown={e => e.stopPropagation()}>
           <div className="flex items-center justify-between text-[10px] font-mono text-pink-400 font-bold">
-            <span>LINKED FOCUS MODE</span>
+            <span>{t('pomodoro_ui.linked_focus_mode')}</span>
             <span>{linkedDuration} MINS</span>
           </div>
           
@@ -852,13 +852,13 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
             onPointerDown={e => e.stopPropagation()}
           >
             <div className="text-3xl mb-1.5 animate-bounce">⚡</div>
-            <div className="font-mono font-black text-sm text-pink-400 uppercase tracking-widest">Session Complete!</div>
+            <div className="font-mono font-black text-sm text-pink-400 uppercase tracking-widest">{t('pomodoro_ui.session_complete')}</div>
             <div className="font-mono text-[10px] text-muted-foreground mt-1 max-w-[200px] leading-relaxed">
               Log training session for:
               <div className="text-foreground font-bold mt-0.5">{allActivities[selectedActivity]?.label}</div>
             </div>
             
-            <div className="text-[9px] font-mono text-muted-foreground/60 mt-4 uppercase tracking-wider">How was your focus quality?</div>
+            <div className="text-[9px] font-mono text-muted-foreground/60 mt-4 uppercase tracking-wider">{t('pomodoro_ui.focus_quality')}</div>
             
             {/* 1-10 grid of rating buttons */}
             <div className="grid grid-cols-5 gap-1.5 my-3.5 w-full max-w-[220px]">

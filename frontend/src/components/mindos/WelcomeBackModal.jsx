@@ -1,6 +1,6 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, Square, Shield, Zap, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const CATEGORY_COLORS = {
   STEM: '#3b82f6',
@@ -23,6 +23,7 @@ const DIFF_COLORS = {
 };
 
 function DailyCheckItem({ task, checked, onToggle }) {
+  const { t } = useTranslation();
   const accentColor = CATEGORY_COLORS[task.category] || '#9444ff';
   const diffColor = DIFF_COLORS[task.difficulty] || '#f59e0b';
 
@@ -76,7 +77,7 @@ function DailyCheckItem({ task, checked, onToggle }) {
         </p>
         {task.streak > 0 && (
           <p className="text-xs mt-0.5" style={{ color: '#f59e0b' }}>
-            🔥 {task.streak} day streak
+            🔥 {task.streak} {t('welcome_back.day_streak')}
           </p>
         )}
       </div>
@@ -96,6 +97,7 @@ function DailyCheckItem({ task, checked, onToggle }) {
 
 export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
   const [checked, setChecked] = useState(new Set());
+  const { t } = useTranslation();
 
   const toggleItem = (id) => {
     setChecked((prev) => {
@@ -157,10 +159,10 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
             className="text-xl font-bold mb-1"
             style={{ color: '#c4a3ff' }}
           >
-            С возвращением!
+            {t('welcome_back.title')}
           </h2>
           <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Отметь дейлики, которые ты выполнил вчера:
+            {t('welcome_back.subtitle')}
           </p>
         </div>
 
@@ -191,11 +193,11 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
           }}
         >
           <span style={{ color: '#22c55e' }}>
-            ✅ {checkedCount} выполнено → <span className="font-semibold">+XP +Gold</span>
+            ✅ {t('welcome_back.completed', { count: checkedCount })} → <span className="font-semibold">+XP +Gold</span>
           </span>
           {missedCount > 0 && (
             <span style={{ color: '#ef4444' }}>
-              ❌ {missedCount} пропущено → <span className="font-semibold">-HP</span>
+              ❌ {t('welcome_back.missed', { count: missedCount })} → <span className="font-semibold">-HP</span>
             </span>
           )}
         </div>
@@ -212,7 +214,7 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
-            Пропустить
+            {t('welcome_back.skip')}
           </button>
 
           <motion.button
@@ -233,10 +235,10 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
                   transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
                   className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                 />
-                Сохранение...
+                {t('welcome_back.saving')}
               </span>
             ) : (
-              'Начать новый день! 🚀'
+              t('welcome_back.start_day')
             )}
           </motion.button>
         </div>

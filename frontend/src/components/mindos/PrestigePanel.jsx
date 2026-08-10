@@ -122,37 +122,37 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
 
             <div className="space-y-2 text-xs font-mono">
               <div className="p-3 rounded-lg bg-red-900/10 border border-red-900/30 space-y-1">
-                <div className="text-red-400 font-bold mb-1">YOU WILL LOSE:</div>
-                {["Rank resets to F (XP → 0)", "All active skill cooldowns reset", "Current mana → 0", "All equipped items unequipped"].map(t => (
-                  <div key={t} className="text-muted-foreground/60">✗ {t}</div>
+                <div className="text-red-400 font-bold mb-1">{t('prestige.you_will_lose')}</div>
+                {(t('prestige.lose_items', { returnObjects: true }) || []).map((item, i) => (
+                  <div key={i} className="text-muted-foreground/60">✗ {item}</div>
                 ))}
               </div>
 
               <div className="p-3 rounded-lg bg-green-900/10 border border-green-900/30 space-y-1">
-                <div className="text-green-400 font-bold mb-1">YOU WILL KEEP:</div>
-                {["All items in inventory", "All Gold", "All recruited and upgraded Allies", "All skill tree nodes", "All achievements and titles", "All cognitive metrics and IQ"].map(t => (
-                  <div key={t} className="text-muted-foreground/60">✓ {t}</div>
+                <div className="text-green-400 font-bold mb-1">{t('prestige.you_will_keep')}</div>
+                {(t('prestige.keep_items', { returnObjects: true }) || []).map((item, i) => (
+                  <div key={i} className="text-muted-foreground/60">✓ {item}</div>
                 ))}
               </div>
 
               <div className="p-3 rounded-lg bg-yellow-900/10 border border-yellow-900/30 space-y-1">
-                <div className="text-yellow-400 font-bold mb-1">YOU WILL GAIN:</div>
+                <div className="text-yellow-400 font-bold mb-1">{t('prestige.you_will_gain')}</div>
                 {[
-                  `All RPG Stats permanently +${(count + 1) * 10}%`,
-                  `IQ ceiling permanently +${15 + count * 5}%`,
-                  "Loot rarity permanently upgraded",
-                  "Enchantment pool expands",
-                  `Prestige ×${count + 1} badge`,
-                  "+5 Skill Points immediately",
-                  "Prestige-exclusive achievement",
-                ].map(t => (
-                  <div key={t} className="text-yellow-400/70">✦ {t}</div>
+                  t('prestige.gain_items.0', { pct: (count + 1) * 10 }),
+                  t('prestige.gain_items.1', { iq: 15 + count * 5 }),
+                  t('prestige.gain_items.2'),
+                  t('prestige.gain_items.3'),
+                  t('prestige.gain_items.4', { count: count + 1 }),
+                  t('prestige.gain_items.5'),
+                  t('prestige.gain_items.6'),
+                ].map((item, i) => (
+                  <div key={i} className="text-yellow-400/70">✦ {item}</div>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="text-[10px] font-mono text-muted-foreground/50 text-center">Type REBIRTH to confirm</div>
+              <div className="text-[10px] font-mono text-muted-foreground/50 text-center">{t('prestige.type_rebirth')}</div>
               <input
                 value={input}
                 onChange={e => setInput(e.target.value.toUpperCase())}

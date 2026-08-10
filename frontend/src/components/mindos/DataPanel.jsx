@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Database, Download, Upload, Cloud, CloudOff, RefreshCw, FileJson, Globe } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { useTranslation } from "react-i18next";
 
 export default function DataPanel() {
+  const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const [syncStatus, setSyncStatus] = useState("idle");
   const [lastSync, setLastSync] = useState(null);
@@ -92,35 +94,35 @@ export default function DataPanel() {
           ) : (
             <Cloud className="w-3.5 h-3.5 text-muted-foreground" />
           )}
-          <span className="font-mono text-xs font-bold">Cloud Sync Status</span>
+          <h3 className="font-mono font-black text-sm">{t('data_panel.cloud_sync')}</h3>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Sync progress across all devices</p>
+        <p className="text-xs text-muted-foreground">{t('data_panel.cloud_sync_desc')}</p>
         <div className="flex gap-2">
           <button
             onClick={handleSyncToCloud}
             disabled={syncStatus === "syncing"}
             className="flex-1 py-2 rounded-lg border border-primary/40 text-primary font-mono text-xs hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Upload className="w-3 h-3" /> Upload
+            <Upload className="w-3 h-3" /> {t('data_panel.upload')}
           </button>
           <button
             onClick={handleSyncFromCloud}
             disabled={syncStatus === "syncing"}
             className="flex-1 py-2 rounded-lg border border-primary/40 text-primary font-mono text-xs hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Download className="w-3 h-3" /> Download
+            <Download className="w-3 h-3" /> {t('data_panel.download')}
           </button>
         </div>
         {lastSync && (
           <div className="text-[9px] font-mono text-muted-foreground/50 text-center">
-            Last sync: {lastSync.toLocaleString()}
+            {t('data_panel.last_sync', { date: lastSync.toLocaleString() })}
           </div>
         )}
         {syncStatus === "synced" && (
-          <div className="text-[9px] font-mono text-green-400 text-center">✓ Synced</div>
+          <div className="text-[9px] font-mono text-green-400 text-center">✓ {t('data_panel.synced')}</div>
         )}
         {syncStatus === "error" && (
-          <div className="text-[9px] font-mono text-red-400 text-center">✗ Sync failed</div>
+          <div className="text-[9px] font-mono text-red-400 text-center">✗ {t('data_panel.sync_failed')}</div>
         )}
       </div>
 
@@ -128,21 +130,21 @@ export default function DataPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <FileJson className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Export Data</span>
+          <h3 className="font-mono font-black text-sm">{t('data_panel.export_data')}</h3>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Download complete backup (JSON format)</p>
+        <p className="text-[10px] text-muted-foreground/70">{t('data_panel.export_desc')}</p>
         <button
           onClick={exportAllData}
           className="w-full py-2 rounded-lg border border-primary/40 text-primary font-mono text-xs hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
         >
-          <Download className="w-3 h-3" /> Generate Backup
+          <Download className="w-3 h-3" /> {t('data_panel.generate_backup')}
         </button>
         {exportData && (
           <button
             onClick={downloadExport}
             className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-mono text-xs hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
-            <Download className="w-3 h-3" /> Download File
+            <Download className="w-3 h-3" /> {t('data_panel.download_file')}
           </button>
         )}
       </div>
@@ -151,11 +153,11 @@ export default function DataPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Upload className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Import Data</span>
+          <h3 className="font-mono font-black text-sm">{t('data_panel.import_data')}</h3>
         </div>
-        <p className="text-[10px] text-muted-foreground/70">Restore from backup file</p>
+        <p className="text-xs text-muted-foreground">{t('data_panel.restore_backup')}</p>
         <label className="w-full py-2 rounded-lg border border-border text-muted-foreground font-mono text-xs hover:bg-accent transition-colors flex items-center justify-center gap-2 cursor-pointer">
-          <Upload className="w-3 h-3" /> Select File
+          <Upload className="w-3 h-3" /> {t('data_panel.select_file')}
           <input type="file" accept=".json" onChange={handleImport} className="hidden" />
         </label>
         {importError && (
@@ -167,10 +169,10 @@ export default function DataPanel() {
       <div className="p-4 rounded-xl border border-border bg-card">
         <div className="flex items-center gap-2 mb-2">
           <Database className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Storage Status</span>
+          <h3 className="font-mono font-black text-sm">{t('data_panel.storage_status')}</h3>
         </div>
         <div className="text-xs text-muted-foreground font-mono">
-          {Object.keys(localStorage).filter(k => k.startsWith("mindos_")).length} mindos keys active
+          {Object.keys(localStorage).filter(k => k.startsWith("mindos_")).length} {t('data_panel.keys_active')}
         </div>
       </div>
 
@@ -178,11 +180,11 @@ export default function DataPanel() {
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex items-center gap-2">
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs font-bold">Region Settings</span>
+          <h3 className="font-mono font-black text-sm">{t('data_panel.region_settings')}</h3>
         </div>
         <div className="space-y-3">
           <div>
-            <div className="text-[10px] font-mono text-muted-foreground mb-1">Timezone</div>
+            <label className="text-xs text-muted-foreground">{t('data_panel.timezone')}</label>
             <div className="text-xs font-mono text-foreground">
               {Intl.DateTimeFormat().resolvedOptions().timeZone}
             </div>

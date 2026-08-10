@@ -72,9 +72,9 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Package className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs font-bold text-foreground uppercase tracking-wider">Inventory</span>
+        <span className="font-mono text-xs font-bold text-foreground uppercase tracking-wider">{t('inventory_panel.title')}</span>
         <span className="font-mono text-[10px] text-muted-foreground/50">
-          ({gearOwned.length} gear · {consumablesOwned.length} consumables)
+          ({gearOwned.length} {t('inventory_panel.gear_tab')} · {consumablesOwned.length} {t('inventory_panel.consumables_tab')})
         </span>
       </div>
 
@@ -105,7 +105,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
       {/* Active consumable indicators */}
       {tab === "consumables" && Object.entries(consumables_active).some(([, v]) => v?.active) && (
         <div className="space-y-1">
-          <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-widest">Active Effects</div>
+          <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-widest">{t('inventory_panel.active_effects')}</div>
           {Object.entries(consumables_active).map(([id, c]) => {
             if (!c?.active) return null;
             const expired = c.expiresAt && Date.now() > c.expiresAt;
@@ -131,7 +131,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
       {tab === "gear" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
           {gearOwned.length === 0 ? (
-            <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">No gear in inventory. Buy from the shop!</div>
+            <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">{t('inventory_panel.no_gear')}</div>
           ) : gearOwned.map((item, idx) => {
             const tierColor = item.gear_class
               ? getGearClassColor(item.gear_class)
@@ -233,7 +233,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
       {tab === "consumables" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
           {consumablesOwned.length === 0 ? (
-            <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">No consumables. Buy from the shop!</div>
+            <div className="col-span-full text-center py-8 text-muted-foreground/40 font-mono text-xs">{t('inventory_panel.no_consumables')}</div>
           ) : consumablesOwned.map((item, idx) => {
             const tierColor = getTierColor(item.tier);
             const effectColor = tierColor || "#8b5cf6";

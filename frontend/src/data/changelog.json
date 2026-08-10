@@ -1,5 +1,39 @@
 [
   {
+    "version": "0.8.50",
+    "date": "2026-08-10",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed WelcomeBackModal showing in Russian regardless of language setting — now fully localized."
+      },
+      {
+        "type": "fix",
+        "text": "Localized InventoryPanel (Inventory, Active Effects, empty state messages)."
+      },
+      {
+        "type": "fix",
+        "text": "Localized PrestigePanel (YOU WILL LOSE/KEEP/GAIN headers and item lists)."
+      },
+      {
+        "type": "fix",
+        "text": "Localized AlliesPanel (Active Team Bonuses, Abilities by Level, MAX LEVEL, RANK)."
+      },
+      {
+        "type": "fix",
+        "text": "Localized OfflineSummaryModal (title, Time Away, Passive Boss Damage, CONTINUE)."
+      },
+      {
+        "type": "fix",
+        "text": "Localized PomodoroTimer (Linked Focus Mode, Session Complete, focus quality prompt)."
+      },
+      {
+        "type": "fix",
+        "text": "Localized DataPanel (Cloud Sync, Export/Import Data, Region Settings, Timezone, Date Format)."
+      }
+    ]
+  },
+  {
     "date": "2026-08-10",
     "version": "0.8.49",
     "changes": [
@@ -14,7 +48,6 @@
     ]
   },
   {
-
     "date": "2026-08-09",
     "version": "0.8.48",
     "changes": [
@@ -175,7 +208,6 @@
   {
     "date": "2026-07-30",
     "version": "0.8.39",
-
     "changes": [
       {
         "type": "fix",
@@ -192,7 +224,6 @@
     ]
   },
   {
-
     "date": "2026-07-28",
     "version": "0.8.38",
     "changes": [

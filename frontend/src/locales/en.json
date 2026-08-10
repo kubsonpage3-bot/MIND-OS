@@ -757,7 +757,34 @@
     "initiate": "Initiate Prestige",
     "prestige": "Prestige",
     "reborn": "REBORN",
-    "xpToUnlock": "XP to unlock"
+    "xpToUnlock": "XP to unlock",
+    "you_will_lose": "YOU WILL LOSE:",
+    "you_will_keep": "YOU WILL KEEP:",
+    "you_will_gain": "YOU WILL GAIN:",
+    "type_rebirth": "Type REBIRTH to confirm",
+    "lose_items": [
+      "Rank resets to F (XP → 0)",
+      "All active skill cooldowns reset",
+      "Current mana → 0",
+      "All equipped items unequipped"
+    ],
+    "keep_items": [
+      "All items in inventory",
+      "All Gold",
+      "All recruited and upgraded Allies",
+      "All skill tree nodes",
+      "All achievements and titles",
+      "All cognitive metrics and IQ"
+    ],
+    "gain_items": [
+      "All RPG Stats permanently +{{pct}}%",
+      "IQ ceiling permanently +{{iq}}%",
+      "Loot rarity permanently upgraded",
+      "Enchantment pool expands",
+      "Prestige ×{{count}} badge",
+      "+5 Skill Points immediately",
+      "Prestige-exclusive achievement"
+    ]
   },
   "rankBadge": {
     "maxRank": "MAX RANK",
@@ -2176,5 +2203,80 @@
   },
   "brain_chart_extra": {
     "now": "now"
+  },
+  "welcome_back": {
+    "title": "Welcome Back!",
+    "subtitle": "Mark the dailies you completed yesterday:",
+    "completed": "{{count}} completed",
+    "missed": "{{count}} missed",
+    "skip": "Skip",
+    "saving": "Saving...",
+    "start_day": "Start New Day! 🚀",
+    "day_streak": "day streak"
+  },
+  "inventory_panel": {
+    "title": "Inventory",
+    "active_effects": "Active Effects",
+    "no_gear": "No gear in inventory. Buy from the shop!",
+    "no_consumables": "No consumables. Buy from the shop!",
+    "gear_tab": "gear",
+    "consumables_tab": "consumables",
+    "time_left": "{{hours}}h left",
+    "one_session": "1 session"
+  },
+  "offline_summary": {
+    "title": "WHILE YOU WERE OFFLINE",
+    "desc": "Summary of what happened while you were offline.",
+    "time_away": "Time Away",
+    "passive_boss_damage": "Passive Boss Damage",
+    "party_kept_fighting": "Your party kept fighting",
+    "continue_btn": "CONTINUE"
+  },
+  "allies_panel": {
+    "active_team_bonuses": "Active Team Bonuses",
+    "abilities_by_level": "Abilities by Level",
+    "locked_ability": "Locked",
+    "max_level": "MAX LEVEL",
+    "rank": "RANK"
+  },
+  "pomodoro_ui": {
+    "linked_focus_mode": "LINKED FOCUS MODE",
+    "session_complete": "Session Complete!",
+    "focus_quality": "How was your focus quality?",
+    "browser_notifications": "Browser Notifications"
+  },
+  "calendar_connect": {
+    "title": "Google Calendar Integration",
+    "loading": "Loading connection status...",
+    "connected": "Connected",
+    "sign_in": "Sign in with your Google account",
+    "auto_sync": "Your dailies will automatically sync to your calendar",
+    "manage_settings": "Manage sync settings in the Calendar panel",
+    "help": "Google Calendar Help",
+    "connector_id": "Connector ID:",
+    "connector_name": "Connector Name:",
+    "integration_type": "Integration Type:",
+    "connection_status": "Connection Status:"
+  },
+  "data_panel": {
+    "cloud_sync": "Cloud Sync Status",
+    "cloud_sync_desc": "Sync progress across all devices",
+    "export_data": "Export Data",
+    "import_data": "Import Data",
+    "restore_backup": "Restore from backup file",
+    "storage_status": "Storage Status",
+    "region_settings": "Region Settings",
+    "timezone": "Timezone",
+    "date_format": "Date Format",
+    "upload": "Upload",
+    "download": "Download",
+    "last_sync": "Last sync: {{date}}",
+    "synced": "Synced",
+    "sync_failed": "Sync failed",
+    "export_desc": "Download complete backup (JSON format)",
+    "generate_backup": "Generate Backup",
+    "download_file": "Download File",
+    "select_file": "Select File",
+    "keys_active": "mindos keys active"
   }
 }

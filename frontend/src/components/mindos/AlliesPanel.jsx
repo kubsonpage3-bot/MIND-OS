@@ -301,7 +301,7 @@ export default function AlliesPanel({ onSpendGold }) {
       {/* Team bonuses */}
       {teamBonuses.length > 0 && (
         <div className="p-3 rounded-xl border border-border bg-card/40 space-y-1.5">
-          <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-widest">Active Team Bonuses</div>
+          <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-widest">{t('allies_panel.active_team_bonuses')}</div>
           {teamBonuses.map(({ ally, bonus }, idx) => {
             const currentLevel = (levels[ally.id] || 1) - 1;
             const translatedLevels = t(`allies.${ally.id}.levels`, { returnObjects: true });
@@ -381,7 +381,7 @@ export default function AlliesPanel({ onSpendGold }) {
                   <span className="text-[9px] font-mono text-muted-foreground/50">{String(t(`allies.${selected.id}.title`, selected.title))}</span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold"
                     style={{ background: `${RANK_COLORS[selected.rank]}20`, color: RANK_COLORS[selected.rank], border: `1px solid ${RANK_COLORS[selected.rank]}50` }}>
-                    RANK {selected.rank}
+                    {t('allies_panel.rank')} {selected.rank}
                   </span>
                 </div>
                 <div className="border border-border p-3 rounded bg-muted/30 relative">
@@ -391,7 +391,7 @@ export default function AlliesPanel({ onSpendGold }) {
 
               {/* Levels */}
               <div className="space-y-1.5">
-                <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-wider">Abilities by Level</div>
+                <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-wider">{t('allies_panel.abilities_by_level')}</div>
                 {selected.levels.map((bonus, i) => {
                   const currentLevel = levels[selected.id] || 0;
                   const isUnlocked = displayAsRecruited && currentLevel > i;
@@ -405,7 +405,7 @@ export default function AlliesPanel({ onSpendGold }) {
                       {hasLevel ? (
                         <span className="text-foreground/60">{String(translatedBonus)}</span>
                       ) : (
-                        <span className="text-foreground/60">Locked</span>
+                        <span className="text-foreground/60">{t('allies_panel.locked_ability')}</span>
                       )}
                     </div>
                   );
@@ -440,7 +440,7 @@ export default function AlliesPanel({ onSpendGold }) {
                   UPGRADE → Lv{(levels[selected.id] || 1) + 1} — {selected.upgradeCosts[(levels[selected.id] || 1) - 1]}G
                 </button>
               ) : (
-                <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">MAX LEVEL</div>
+                <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">{t('allies_panel.max_level')}</div>
               )}
 
               <button onClick={closeDetail} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors">

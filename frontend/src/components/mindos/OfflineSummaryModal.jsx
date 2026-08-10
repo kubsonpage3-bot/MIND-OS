@@ -74,16 +74,16 @@ export default function OfflineSummaryModal({ profile }) {
       <DialogContent className="sm:max-w-md bg-[var(--habit-panel)] border-[var(--habit-border)] text-zinc-100" aria-describedby="offline-summary-desc">
         <DialogHeader>
           <DialogTitle className="text-xl font-black text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
-            WHILE YOU WERE OFFLINE
+            {t('offline_summary.title')}
           </DialogTitle>
           <DialogDescription id="offline-summary-desc" className="sr-only">
-            Summary of what happened while you were offline.
+            {t('offline_summary.desc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col items-center space-y-6 py-4">
           <div className="text-center space-y-1">
-            <div className="text-zinc-400 text-sm uppercase tracking-widest font-mono">Time Away</div>
+            <div className="text-zinc-400 text-sm uppercase tracking-widest font-mono">{t('offline_summary.time_away')}</div>
             <div className="text-3xl font-black font-mono text-white">
               {summaryData.hours > 0 && `${summaryData.hours}h `}
               {summaryData.minutes > 0 && `${summaryData.minutes}m `}
@@ -104,8 +104,8 @@ export default function OfflineSummaryModal({ profile }) {
                     ⚔️
                   </div>
                   <div>
-                    <div className="font-bold text-red-100 text-sm">Passive Boss Damage</div>
-                    <div className="text-xs text-red-400/80 font-mono">Your party kept fighting</div>
+                    <div className="font-bold text-red-100 text-sm">{t('offline_summary.passive_boss_damage')}</div>
+                    <div className="text-xs text-red-400/80 font-mono">{t('offline_summary.party_kept_fighting')}</div>
                   </div>
                 </div>
                 <div className="text-xl font-black font-mono text-red-400">
@@ -119,7 +119,7 @@ export default function OfflineSummaryModal({ profile }) {
             onClick={() => setIsOpen(false)}
             className="w-full h-12 text-lg font-black tracking-widest bg-zinc-100 text-zinc-900 hover:bg-white"
           >
-            CONTINUE
+            {t('offline_summary.continue_btn')}
           </Button>
         </div>
       </DialogContent>
