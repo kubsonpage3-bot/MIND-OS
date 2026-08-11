@@ -301,13 +301,13 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   const toggleMutation = useMutation({
     mutationFn: (todoId) => djangoApi.tasks.toggle(todoId),
     onMutate: async (todoId) => {
-      // Opt-update UI immediately (getQueryData -> filter -> setQueryData)
       const previousTodos = /** @type {any} */ (queryClient.getQueryData(['tasks']));
       if (previousTodos) {
+        const toggleItem = (t) => t.id === todoId ? { ...t, is_completed: !t.is_completed } : t;
         if (Array.isArray(previousTodos)) {
-          queryClient.setQueryData(['tasks'], previousTodos.filter(t => t.id !== todoId));
+          queryClient.setQueryData(['tasks'], previousTodos.map(toggleItem));
         } else if (previousTodos.results) {
-          queryClient.setQueryData(['tasks'], { ...previousTodos, results: previousTodos.results.filter(t => t.id !== todoId) });
+          queryClient.setQueryData(['tasks'], { ...previousTodos, results: previousTodos.results.map(toggleItem) });
         }
       }
       return { previousTodos };

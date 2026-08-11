@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.51",
+    "date": "2026-08-11",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed tasks in To-Do list jumping to a new position when checked or unchecked — they now stay in place."
+      }
+    ]
+  },
+  {
     "version": "0.8.50",
     "date": "2026-08-10",
     "changes": [
