@@ -1,5 +1,19 @@
 [
   {
+    "version": "0.8.52",
+    "date": "2026-08-13",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Reduced HP damage from missed Dailies and negative Habits to 1–20 HP range (previously 5–30+). Damage now scales correctly with task difficulty and how red (neglected) the task is."
+      },
+      {
+        "type": "balance",
+        "text": "Your DEF stat now actually reduces damage taken from missed Dailies and negative Habits. Previously this was hardcoded and ignored your equipment and skill tree."
+      }
+    ]
+  },
+  {
     "version": "0.8.51",
     "date": "2026-08-11",
     "changes": [

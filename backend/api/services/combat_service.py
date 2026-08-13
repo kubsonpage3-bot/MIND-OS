@@ -184,17 +184,23 @@ def process_boss_death(user, encounter):
 
 def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     """
-    Рассчитывает урон по HP при провале привычки или дейлика по формуле из taskEngine.js.  # noqa: E501
+    Рассчитывает урон по HP при провале привычки или дейлика.
+    Диапазон: ~1–20 HP в зависимости от сложности, task value и стата DEF.
+
+    DEF снижает урон от: пропущенных дейликов, отрицательных привычек.
+    Каждое очко DEF даёт 3.5% снижения урона, максимум 55%.
     """
-    BASE_DAMAGE = {"trivial": 10, "easy": 10, "medium": 10, "hard": 10, "critical": 10}
+    # Базовый урон 2 для всех сложностей — множитель DIFF_MULT даёт реальное различие.
+    # Итоговый диапазон при нейтральной задаче (value≈0): trivial≈1, easy≈2, medium≈3, hard≈5, critical≈7
+    # Красная задача (value≈-47): trivial≈4, easy≈7, medium≈14, hard≈21, critical≈28
+    BASE_DAMAGE = 2
     DIFF_MULT = {"trivial": 0.5, "easy": 1, "medium": 2, "hard": 3, "critical": 4}
 
     difficulty = getattr(task, "difficulty", "medium")
-    if difficulty not in BASE_DAMAGE:
+    if difficulty not in DIFF_MULT:
         difficulty = "medium"
 
-    base = BASE_DAMAGE.get(difficulty, 10)
-    diff_mult = DIFF_MULT.get(difficulty, 2)
+    diff_mult = DIFF_MULT[difficulty]
 
     task_value = getattr(task, "value", 0.0)
     if task_value < 0:
@@ -202,14 +208,16 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     else:
         value_mult = max(0.5, 1 - task_value / 30.0)
 
-    # В данный момент CON-стат зафиксирован на 5 (как в дефолтном JS)
-    con_stat = 5
+    # DEF стат — реальный, из снаряжения + класса + skill tree + prestige.
+    # Чем выше DEF, тем меньше урон от пропущенных дейликов и минус-привычек.
+    total_stats = profile.total_stats if isinstance(profile.total_stats, dict) else {}
+    con_stat = max(1, total_stats.get("def", 1))
     con_reduction = min(0.55, (con_stat - 1) * 0.035)
 
-    raw = base * diff_mult * value_mult * checklist_ratio
-    damage = max(0.01, round(raw * (1 - con_reduction) * 100) / 100)
+    raw = BASE_DAMAGE * diff_mult * value_mult * checklist_ratio
+    damage = max(1, round(raw * (1 - con_reduction)))
 
-    return int(round(damage))
+    return int(damage)
 
 
 @transaction.atomic
