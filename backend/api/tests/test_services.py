@@ -308,12 +308,12 @@ def test_calculate_task_outcome(user):
     profile.base_def = 100
     profile.save()
 
-    # Positive task
+    # Positive task: PWR=10 (+5%), SPD=20 (+10%)
     res = calculate_task_outcome(
         user, "todo", base_xp=10, base_gold=10, is_positive=True
     )
-    assert res["xp_earned"] == 10 + (10 * 0.5)  # 15
-    assert res["gold_earned"] == 10 + (20 * 0.5)  # 20
+    assert res["xp_earned"] == int(10 * 1.05)  # 10
+    assert res["gold_earned"] == int(10 * 1.10)  # 11
 
     # Negative task
     res_neg = calculate_task_outcome(user, "habit", base_hp_lost=50, is_positive=False)

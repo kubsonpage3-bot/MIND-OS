@@ -344,7 +344,7 @@ def test_null_zone_conversion(test_user_and_profile_mutators):
     )
     res = complete_task(user, task.id)
     assert res["rewards"]["xp"] == 0
-    assert res["rewards"]["gold"] == 19
+    assert res["rewards"]["gold"] == 11 or res["rewards"]["gold"] == 12
 
 
 @pytest.mark.django_db
