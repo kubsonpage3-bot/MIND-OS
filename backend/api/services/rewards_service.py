@@ -1,19 +1,23 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # MIND OS — Reward Constants (Single Source of Truth)
 #
-# BALANCE ANCHOR (verified): Training hard / 1h / focus=8 → exactly 50 XP
-#   base_xp      = BASE_XP(5) × TIER_MULT("hard"=10) = 50
+# BALANCE ANCHOR (v2 — XP halved): Training hard / 1h / focus=8 → 24 XP
+#   base_xp      = BASE_XP(3) × TIER_MULT("hard"=8) = 24
 #   focus_factor = clamp(8/10 + 0.2, 0.5, 1.3)       = 1.0
 #   scale        = TRAINING_MULTIPLIER(1.0) × hours(1) × focus_factor(1.0) = 1.0
-#   xp           = round(50 × 1.0) = 50 ✓
+#   xp           = round(24 × 1.0) = 24 ✓
+#
+# REBALANCE NOTE (2026-08-18): XP rewards reduced ~50% across all task tiers.
+#   trivial: 5 → 3 | easy: 15 → 6 | medium: 25 → 12 | hard: 50 → 24
+#   Gold and HP penalties are unchanged. Rank thresholds are unchanged.
 # ──────────────────────────────────────────────────────────────────────────────
 
-BASE_XP = 5
+BASE_XP = 3
 TIER_MULTIPLIER = {
     "trivial": 1,
-    "easy": 3,
-    "medium": 5,
-    "hard": 10,
+    "easy": 2,
+    "medium": 4,
+    "hard": 8,
 }
 DMG_PER_XP = 3.33
 GOLD_PER_XP = 0.5
@@ -26,8 +30,7 @@ MIN_FOCUS_FACTOR = 0.5
 MAX_FOCUS_FACTOR = 1.3
 
 # DIS-3: Daily cap on cumulative Habit boss damage per daily-reset window.
-# = 3 × hard tier base_dmg = 3 × round(50 × 3.33) = 3 × 166 = 498.
-# At 3h Hard Training focus=8 → 498 dmg, achieving exact parity with the cap.
+# = 3 × hard tier base_dmg = 3 × round(24 × 3.33) = 3 × 80 = 240.
 # Resets on the same window as process_missed_tasks (user local time).
 DAILY_HABIT_DMG_CAP = 3 * round(BASE_XP * TIER_MULTIPLIER["hard"] * DMG_PER_XP)
 

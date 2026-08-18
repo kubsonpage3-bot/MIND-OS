@@ -1464,26 +1464,25 @@ def test_extension_rewards_match_app_rewards(user):
             f"app Gold ({expected['gold']}) — SSOT broken"
         )
 
-    # Explicit contract: verify the exact values post-v0.8.47 anchor
+    # Explicit contract: verify the exact values post-v0.8.53 rebalance (XP halved)
     # gold = round(xp × 0.5), dmg = round(xp × 3.33)
-    # Python banker's rounding: halves round to even — 2.5→2, 12.5→12, 166.5→166
-    assert task_rewards("trivial") == {"xp": 5, "gold": 2, "dmg": 17}
-    assert task_rewards("easy") == {"xp": 15, "gold": 8, "dmg": 50}
-    assert task_rewards("medium") == {"xp": 25, "gold": 12, "dmg": 83}
-    assert task_rewards("hard") == {"xp": 50, "gold": 25, "dmg": 166}
+    assert task_rewards("trivial") == {"xp": 3, "gold": 2, "dmg": 10}
+    assert task_rewards("easy") == {"xp": 6, "gold": 3, "dmg": 20}
+    assert task_rewards("medium") == {"xp": 12, "gold": 6, "dmg": 40}
+    assert task_rewards("hard") == {"xp": 24, "gold": 12, "dmg": 80}
 
 
 @pytest.mark.django_db
 def test_dis3_daily_habit_dmg_cap_value():
     """
-    DIS-3: DAILY_HABIT_DMG_CAP must equal 3 × hard base_dmg = 3 × 166 = 498.
+    DIS-3: DAILY_HABIT_DMG_CAP must equal 3 × hard base_dmg = 3 × 80 = 240.
     Pinned so any accidental change to BASE_XP or DMG_PER_XP surfaces immediately.
     """
     from api.services.rewards_service import DAILY_HABIT_DMG_CAP, task_rewards
 
     hard_dmg = task_rewards("hard")["dmg"]
-    assert hard_dmg == 166
-    assert DAILY_HABIT_DMG_CAP == 3 * hard_dmg == 498
+    assert hard_dmg == 80
+    assert DAILY_HABIT_DMG_CAP == 3 * hard_dmg == 240
 
 
 @pytest.mark.django_db

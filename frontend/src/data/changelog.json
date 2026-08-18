@@ -1,5 +1,19 @@
 [
   {
+    "version": "0.8.53",
+    "date": "2026-08-18",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "XP rewards from habits, to-dos, dailies, and training sessions reduced by ~50%. Reaching Rank D now takes a few real days of effort instead of a single afternoon."
+      },
+      {
+        "type": "balance",
+        "text": "Boss scroll XP rewards reduced by ~50% to stay proportional with task rewards — bosses are no longer a fast-track to ranking up."
+      }
+    ]
+  },
+  {
     "version": "0.8.52",
     "date": "2026-08-13",
     "changes": [
