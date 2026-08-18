@@ -1531,3 +1531,48 @@ def test_dis3_habit_boss_dmg_resets_with_cron(user, profile):
     assert (
         profile.habit_boss_dmg_today == 0
     ), f"habit_boss_dmg_today should reset to 0 after cron, got {profile.habit_boss_dmg_today}"
+
+
+@pytest.mark.django_db
+def test_task_value_multiplier_bounds(user):
+    """
+    Verifies that task value modifier in get_rewards() is bounded by:
+    - Minimum floor: 0.6x (even with high positive TV)
+    - Maximum ceiling: 2.0x (even with extreme negative TV)
+    """
+    # 1. Extreme positive TV (+100.0) -> must floor at 0.6x
+    task_green = Task.objects.create(
+        user=user,
+        title="Green Habit",
+        task_type=Task.TaskType.HABIT,
+        difficulty="medium",  # base xp=12, gold=6
+        value=100.0,
+    )
+    r_green = task_green.get_rewards()
+    assert r_green["xp"] == round(12 * 0.6)  # 7
+    assert r_green["gold"] == round(6 * 0.6)  # 4
+
+    # 2. Extreme negative TV (-100.0) -> must cap at 2.0x
+    task_red = Task.objects.create(
+        user=user,
+        title="Red Habit",
+        task_type=Task.TaskType.HABIT,
+        difficulty="medium",  # base xp=12, gold=6
+        value=-100.0,
+    )
+    r_red = task_red.get_rewards()
+    assert r_red["xp"] == round(12 * 2.0)  # 24
+    assert r_red["gold"] == round(6 * 2.0)  # 12
+
+    # 3. Neutral TV (0.0) -> 1.0x
+    task_neutral = Task.objects.create(
+        user=user,
+        title="Neutral Habit",
+        task_type=Task.TaskType.HABIT,
+        difficulty="medium",
+        value=0.0,
+    )
+    r_neutral = task_neutral.get_rewards()
+    assert r_neutral["xp"] == 12
+    assert r_neutral["gold"] == 6
+

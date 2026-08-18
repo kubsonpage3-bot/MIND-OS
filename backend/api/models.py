@@ -935,10 +935,10 @@ class Task(models.Model):
         """
         task_value = self.value
         if task_value < 0:
-            value_mod = 1.0 + abs(float(task_value)) * 0.05
+            value_mod = min(2.0, 1.0 + abs(float(task_value)) * 0.05)
         else:
             scale = 0.06 if self.task_type == self.TaskType.TODO else 0.04
-            value_mod = max(0.1, 1.0 - float(task_value) * scale)
+            value_mod = max(0.6, 1.0 - float(task_value) * scale)
 
         # Hours bonus: only for Todo/Daily (not Habit — Habits use streak for scaling)
         hours_bonus = 1.0
