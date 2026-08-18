@@ -1180,159 +1180,276 @@
     "mutators": {
       "bloodwork": {
         "name": "Bloodwork",
-        "desc": "Increases effectiveness of physical tasks."
+        "desc": "Science sessions give +20% Rank XP. Other subjects give -5%.",
+        "bonus": "+20% Rank XP for all STEM tasks and training sessions (Math, Physics, Coding, Chemistry, Biology).",
+        "penalty": "-5% Rank XP for all non-STEM subjects.",
+        "mechanics": "Specializes your progression into hard sciences and technical disciplines."
       },
       "monks_path": {
-        "name": "Monks Path",
-        "desc": "Enhances spiritual and mental focus."
+        "name": "Monk's Path",
+        "desc": "Prayer/Meditation gives +40% Rank XP. Daily streak log gives +2 XP instead of +1.",
+        "bonus": "+40% Rank XP for Mindfulness and Prayer/Meditation tasks. Daily streak log grants +2 XP instead of +1.",
+        "penalty": "No direct penalty. Requires regular spiritual and mental focus habits.",
+        "mechanics": "Accelerates leveling through consistent mindfulness and mental calm."
       },
       "iron_routine": {
         "name": "Iron Routine",
-        "desc": "Builds unbreakable daily habits."
+        "desc": "Exercise/Running gives +25% Rank XP. Miss a daily -> lose bonus for 24h.",
+        "bonus": "+25% Rank XP for all Health, Fitness, and Running activities.",
+        "penalty": "Missing any daily task disables the bonus for the next 24 hours.",
+        "mechanics": "Enforces unbreakable discipline by tying physical XP bonuses to daily habit consistency."
       },
       "lexicon": {
         "name": "Lexicon",
-        "desc": "Boosts knowledge acquisition."
+        "desc": "Language sessions give +20% Rank XP and +0.01 Crystallized Intelligence (Gc) per session.",
+        "bonus": "+20% Rank XP for Language and Vocabulary sessions. +0.01 Gc gained per session.",
+        "penalty": "No direct penalty.",
+        "mechanics": "Boosts long-term cognitive crystal growth through linguistics."
       },
       "night_owl": {
         "name": "Night Owl",
-        "desc": "Increases productivity at night."
+        "desc": "Sessions after 21:00 give +30% Rank XP. Before 09:00: -10%.",
+        "bonus": "+30% Rank XP for all tasks and sessions completed after 21:00.",
+        "penalty": "-10% Rank XP for morning tasks completed before 09:00.",
+        "mechanics": "Adapts your XP economy for late-night productivity. Incompatible with Early Riser."
       },
       "early_riser": {
         "name": "Early Riser",
-        "desc": "Increases productivity in the morning."
+        "desc": "Sessions before 09:00 give +30% Rank XP. After 21:00: -10%.",
+        "bonus": "+30% Rank XP for all tasks and sessions finished before 09:00.",
+        "penalty": "-10% Rank XP for late-night tasks completed after 21:00.",
+        "mechanics": "Rewards early morning focus and sleep discipline. Incompatible with Night Owl."
       },
       "tunnel_vision": {
         "name": "Tunnel Vision",
-        "desc": "Hyper-focus on a single task."
+        "desc": "Log ONLY one subject per day: +50% Rank XP. Log 2+: bonus lost.",
+        "bonus": "+50% Rank XP as long as you only complete tasks from a single category throughout the day.",
+        "penalty": "Completing a task from a second category immediately removes the +50% bonus until midnight.",
+        "mechanics": "Hyper-focuses your day on mastering one specific craft."
       },
       "loan_shark": {
         "name": "Loan Shark",
-        "desc": "Borrow future gold for a steep price."
+        "desc": "+40% Gold from tasks. Every midnight: lose 30 Gold debt.",
+        "bonus": "+40% Gold from all completed habits, dailies, and to-dos.",
+        "penalty": "Deducts 30 Gold automatically at midnight (00:00).",
+        "mechanics": "Provides heavy cash flow, but requires active daily tasks to avoid falling into debt."
       },
       "compound": {
         "name": "Compound",
-        "desc": "Interest on your banked gold."
+        "desc": "Every 100 Gold you own generates +1 Gold/day passively.",
+        "bonus": "Earn passive daily gold interest: +1G for every 100G in your balance (e.g. 1000G = +10G/day).",
+        "penalty": "No penalty. Requires holding and growing capital.",
+        "mechanics": "Acts as an in-game high-yield savings account."
       },
       "miser": {
         "name": "Miser",
-        "desc": "Reduces costs but slows progression."
+        "desc": "20% discount on shop items, but requires spending restraint.",
+        "bonus": "-20% cost on all shop gear, consumables, and scrolls.",
+        "penalty": "Restricts frivolous purchases.",
+        "mechanics": "Allows economical buying of gear and supplies."
       },
       "tithe": {
         "name": "Tithe",
-        "desc": "Sacrifice gold for spiritual power."
+        "desc": "Each task: pay 3 Gold or lose 5 HP. In exchange: +15% Rank XP from all tasks.",
+        "bonus": "+15% Rank XP from every single completed task.",
+        "penalty": "Deducts 3 Gold per task. If out of gold, drains 5 HP instead!",
+        "mechanics": "Converts financial or physical sacrifice directly into rapid rank progression."
       },
       "ascetic_loop": {
         "name": "Ascetic Loop",
-        "desc": "Endless repetition builds strength."
+        "desc": "Daily tasks grant +5 flat XP, strengthening long-term streaks.",
+        "bonus": "+5 flat XP on every completed daily task.",
+        "penalty": "Breaking streaks halts momentum.",
+        "mechanics": "Perfect for players managing many short, regular daily tasks."
       },
       "double_nothing": {
         "name": "Double or Nothing",
-        "desc": "50% chance for double rewards or nothing."
+        "desc": "Streak milestone rewards doubled. Miss 2 days in a row: streak resets to 0.",
+        "bonus": "2.0x rewards on major streak milestones (3, 7, 14, 30, 50, 100 days).",
+        "penalty": "Missing 2 consecutive days irreversibly resets your streak to 0.",
+        "mechanics": "High-stakes gamification for players confident in their consistency."
       },
       "momentum": {
         "name": "Momentum",
-        "desc": "Consecutive tasks yield more rewards."
+        "desc": "Each day with 1h+ logged: +2% Rank XP, stacks to +20%. Miss: resets.",
+        "bonus": "+2% Rank XP for each day with 1+ hour of tracked activity, stacking up to +20%.",
+        "penalty": "Missing a day completely resets the stacked bonus to 0%.",
+        "mechanics": "Builds unstoppable compounding habit momentum over weeks."
       },
       "diversity_lock": {
         "name": "Diversity Lock",
-        "desc": "Forces varied task selection."
+        "desc": "+20% Rank XP for alternating subjects. Doing 2 tasks of the same category in a row gives 0 XP for the second.",
+        "bonus": "+20% Rank XP across all tasks when constantly alternating categories.",
+        "penalty": "Completing a second consecutive task in the same category awards 0 XP.",
+        "mechanics": "Enforces a well-rounded lifestyle by demanding category rotation."
       },
       "silence": {
         "name": "Silence",
-        "desc": "No notifications or feedback."
+        "desc": "All skills disabled for 48 hours. Afterwards: all cooldowns reset to 0.",
+        "bonus": "Instantly resets all skill cooldowns to 0 after the 48-hour vow ends.",
+        "penalty": "Disables the use of all active class skills for 48 hours.",
+        "mechanics": "A discipline trial to prepare for devastating boss combat."
       },
       "ironman": {
         "name": "Ironman",
-        "desc": "Permadeath for your streak."
+        "desc": "HP hits 0 -> lose 25% HP and 10% Gold. Permanently grants +15% Rank XP from all sources.",
+        "bonus": "+15% permanent Rank XP boost to all tasks and sessions forever.",
+        "penalty": "Cannot be unequipped once activated. Death inflicts heavy resource loss.",
+        "mechanics": "True hardcore mode for elite players."
       },
       "glass_cannon": {
         "name": "Glass Cannon",
-        "desc": "Massive rewards, massive penalties."
+        "desc": "+25% Rank XP from all sources. HP damage from missed dailies and negative habits +60%.",
+        "bonus": "+25% Rank XP across all completed tasks.",
+        "penalty": "+60% incoming damage to HP whenever you miss a daily or trigger a negative habit.",
+        "mechanics": "Fast progression at the cost of extreme fragility."
       },
       "zero_hour": {
         "name": "Zero Hour",
-        "desc": "Work under intense time pressure."
+        "desc": "No Gold earned for 7 days. Afterwards: receive 3x of everything you would have earned.",
+        "bonus": "Triple payout (3.0x all earned gold) delivered after 7 full days.",
+        "penalty": "You receive 0 Gold from all tasks during the 7-day restriction.",
+        "mechanics": "A delayed gratification test yielding massive financial returns."
       },
       "catalyst": {
         "name": "Catalyst",
-        "desc": "Triggers powerful synergy effects."
+        "desc": "Each OTHER active mutator gives +8% Rank XP. Alone: gives no bonus.",
+        "bonus": "+8% Rank XP per other active mutator (+16% with 3 slots, +24% with 4 slots).",
+        "penalty": "Provides no effect if active by itself.",
+        "mechanics": "The cornerstone modifier for multi-mutator builds."
       },
       "echo": {
         "name": "Echo",
-        "desc": "Repeats the last positive effect."
+        "desc": "Switching task categories gives double rewards (2.0x XP and 2.0x Gold) on the next task.",
+        "bonus": "2.0x XP and 2.0x Gold on the first task of a new category.",
+        "penalty": "Repeating the same category does not trigger the double reward.",
+        "mechanics": "Synergizes extraordinarily well with Diversity Lock."
       },
       "mirror": {
         "name": "Mirror",
-        "desc": "Reflects negative events."
+        "desc": "Completing a task in the same category as previous has a 30% chance to reflect damage to the boss.",
+        "bonus": "Reflects damage and deals +15% damage to active boss when repeating a category.",
+        "penalty": "Requires serial execution in one single discipline.",
+        "mechanics": "Combat and defensive utility for deep single-category study."
       },
       "resonance": {
         "name": "Resonance",
-        "desc": "Amplifies all active mutators."
+        "desc": "If 2+ active mutators share a category: +10% to ALL their positive effects.",
+        "bonus": "+10% boost to the magnitude of all mutator effects within matching groups.",
+        "penalty": "Requires equipping mutators from identical categories.",
+        "mechanics": "Amplifies specialized builds (e.g. 2 Economy mutators active together)."
       },
       "gambler": {
         "name": "Gambler",
-        "desc": "Randomized rewards."
+        "desc": "Each task: 20% chance for double rewards (2x), 20% chance for 0 rewards, 60% normal.",
+        "bonus": "20% chance to hit the jackpot (2.0x XP and 2.0x Gold).",
+        "penalty": "20% chance to walk away with 0 rewards.",
+        "mechanics": "Adds thrilling RNG variance to everyday task completions."
       },
       "phantom_load": {
         "name": "Phantom Load",
-        "desc": "Ghost tasks grant bonus XP."
+        "desc": "Yesterday's hours count as +30% today for Rank XP calculation.",
+        "bonus": "Transfers 30% of yesterday's training time into a direct XP bonus today.",
+        "penalty": "If no hours were logged yesterday, bonus is 0.",
+        "mechanics": "Carries forward yesterday's hard work to propel today's gains."
       },
       "cursed_clock": {
         "name": "Cursed Clock",
-        "desc": "Time moves faster, but so do deadlines."
+        "desc": "+1 flat Rank XP per logged hour. Lose 2 Gold for every idle hour during the day (8:00-22:00).",
+        "bonus": "+1 flat Rank XP for every verified hour of focus.",
+        "penalty": "-2 Gold per idle hour during daytime working hours.",
+        "mechanics": "Aggressive anti-procrastination clock keeping you active throughout the day."
       },
       "deja_vu": {
         "name": "Deja Vu",
-        "desc": "Repeat past tasks for current rewards."
+        "desc": "Working on the same subject 3 days in a row: 3rd day gives +50% Rank XP.",
+        "bonus": "+50% Rank XP on the 3rd consecutive day of studying the same subject.",
+        "penalty": "Breaking the subject chain resets the 3-day counter.",
+        "mechanics": "Rewards 3-day intensive bootcamps on specific topics."
       },
       "volatile": {
         "name": "Volatile",
-        "desc": "Unpredictable positive and negative shifts."
+        "desc": "1st task of day: +100% rewards (2x). 5th+ tasks: +50%. Tasks 2-4: -10%.",
+        "bonus": "2.0x rewards for your first task and 1.5x rewards for hyper-active days (5+ tasks).",
+        "penalty": "-10% reward on middle tasks (tasks 2 through 4).",
+        "mechanics": "Makes starting the morning easy and incentivizes high-volume productivity days."
       },
       "weight_of_history": {
         "name": "Weight of History",
-        "desc": "Past failures increase current difficulty."
+        "desc": "Every 100 lifetime logged hours grants a permanent +1% Rank XP.",
+        "bonus": "+1% permanent Rank XP per 100 total hours logged (500h = +5%, 1000h = +10%).",
+        "penalty": "No penalty. Scales with veteran account age.",
+        "mechanics": "Long-term passive progression booster for dedicated users."
       },
       "mirror_match": {
         "name": "Mirror Match",
-        "desc": "30% chance on completion to autocomplete another task of the same category for 50% reward."
+        "desc": "30% chance on completion to autocomplete another task in the same category for 50% reward.",
+        "bonus": "30% chance to trigger an instant autocomplete cascade for neighboring category tasks.",
+        "penalty": "No penalty.",
+        "mechanics": "Creates satisfying combo chains when completing related tasks."
       },
       "alchemist": {
         "name": "Alchemist",
-        "desc": "At daily reset, converts all unspent Mana into Gold (1 Mana = 2 Gold)."
+        "desc": "At daily reset, converts all unspent Mana into Gold (1 Mana = 2 Gold).",
+        "bonus": "Converts remaining Mana into Gold at a 1 MP = 2 Gold rate at midnight.",
+        "penalty": "No penalty.",
+        "mechanics": "Monetizes unused daily mana reserves."
       },
       "time_dilation": {
         "name": "Time Dilation",
-        "desc": "Sessions require a minimum of 2.0 hours to submit, but grant 3.0x XP and Gold."
+        "desc": "Sessions require a minimum of 2.0 hours to submit, but grant 3.0x XP and Gold.",
+        "bonus": "3.0x XP and 3.0x Gold for long, focused study sessions.",
+        "penalty": "Sessions under 2 hours (120 minutes) cannot be logged.",
+        "mechanics": "Designed for uninterrupted Deep Work marathons."
       },
       "sacrificial_altar": {
         "name": "Sacrificial Altar",
-        "desc": "Permanently delete a completed Habit/Daily (min 7d old or streak 5+) for a large reward."
+        "desc": "Permanently delete a completed Habit/Daily (min 7d old or streak 5+) for a large reward.",
+        "bonus": "Massive one-time XP and Gold windfall upon ritual sacrifice of a matured habit.",
+        "penalty": "The chosen task is permanently erased.",
+        "mechanics": "Cleanse obsolete routines from your task lists for huge rewards."
       },
       "twin_souls": {
         "name": "Twin Souls",
-        "desc": "Directs 15% of all XP and Gold to the active ally with the lowest XP received."
+        "desc": "Directs 15% of all XP and Gold to the active ally with the lowest XP received.",
+        "bonus": "Automatically funnels progression to power-level your weakest active companion.",
+        "penalty": "15% of your earnings are redirected to the ally.",
+        "mechanics": "Evenly balances your party's combat and utility power."
       },
       "inversion": {
         "name": "Inversion",
-        "desc": "Flips focus quality: low focus yields high rewards, high focus yields low rewards."
+        "desc": "Flips focus quality: low focus yields high rewards (1.3x), high focus yields low rewards.",
+        "bonus": "Max rewards when logging low focus rating.",
+        "penalty": "High focus ratings yield diminished reward multipliers.",
+        "mechanics": "Useful when doing background chores, podcasts, or mechanical tasks."
       },
       "gamblers_ledger": {
-        "name": "Gamblers Ledger",
-        "desc": "Gold from tasks is stored in a ledger and paid out at weekly reset with a +50% bonus."
+        "name": "Gambler's Ledger",
+        "desc": "Gold from tasks is banked in a ledger and paid out at weekly reset with a +50% bonus.",
+        "bonus": "+50% bonus on all accumulated gold paid out at the end of the week.",
+        "penalty": "Gold remains locked and unavailable to spend during the week.",
+        "mechanics": "A disciplined high-yield vault for patient savers."
       },
       "parasite": {
         "name": "Parasite",
-        "desc": "Doubles the effect of all active XP and Gold mutators (bonuses and penalties)."
+        "desc": "Doubles the effect of all active XP and Gold mutators (both bonuses and penalties).",
+        "bonus": "Doubles (2.0x) all positive XP and Gold bonuses from active mutators.",
+        "penalty": "Also doubles all associated penalties, debts, and HP risks!",
+        "mechanics": "High-risk ultimate amplifier for extreme min-max builds."
       },
       "null_zone": {
         "name": "Null Zone",
-        "desc": "Fully disables XP gain, converting 100% of earned XP into Gold at 1 XP = 0.5 Gold."
+        "desc": "Fully disables XP gain, converting 100% of earned XP into Gold at 1 XP = 0.5 Gold.",
+        "bonus": "Massive gold rush from all tasks, dailies, and training sessions.",
+        "penalty": "You earn 0 XP while this mutator is active.",
+        "mechanics": "Dedicated farming mode for purchasing high-end gear and consumables."
       },
       "chronomancer": {
         "name": "Chronomancer",
-        "desc": "Banks a missed day (once every 14 days) to preserve your streak and finish tasks later."
+        "desc": "Banks a missed day (once every 14 days) to preserve your streak.",
+        "bonus": "Automatic streak-protection insurance once every two weeks.",
+        "penalty": "14-day cooldown after each trigger.",
+        "mechanics": "A safety net against unexpected life emergencies."
       }
     }
   },
@@ -1366,8 +1483,25 @@
   "mutators_ui": {
     "active_count": "{{n}}/{{max}} active",
     "ironman_title": "IRONMAN MODE",
-    "ironman_desc": "If HP reaches 0 — prestige will be forcefully activated. This cannot be undone. In exchange: all Rank XP +15% permanently.",
-    "ironman_confirm_btn": "CONFIRM — 3000G"
+    "ironman_desc": "If HP hits 0 — forced prestige triggers. This cannot be undone. In return: +15% Rank XP forever.",
+    "ironman_confirm_btn": "CONFIRM — 3000G",
+    "positive_effect": "Positive Effect",
+    "penalty_cost": "Penalty / Cost",
+    "mechanics": "Mechanics",
+    "synergy": "Synergy",
+    "pairs_with": "Pairs with:",
+    "conflicts_with": "Conflicts with:",
+    "type_label": "Activation Type",
+    "type_permanent": "Permanent",
+    "type_toggleable": "Toggleable",
+    "type_passive": "Passive",
+    "type_duration": "{{days}} Days",
+    "btn_active_permanent": "🔒 ACTIVE (PERMANENT)",
+    "btn_active_on": "ACTIVE (TAP TO UNEQUIP)",
+    "btn_activate": "ACTIVATE MUTATOR",
+    "btn_chest_only": "🎁 CHEST ONLY",
+    "btn_conflict_blocked": "⚠️ BLOCKED BY CONFLICT",
+    "btn_limit_reached": "SLOT LIMIT REACHED (MAX {{max}})"
   },
   "items": {
     "data_ring": {

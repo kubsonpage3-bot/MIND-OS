@@ -77,7 +77,7 @@ export default function ItemDetailModal({ item, isOpen, onClose, actionButton, t
               </div>
 
               {/* Description */}
-              <div className="text-sm font-mono text-slate-300 leading-relaxed max-h-40 overflow-y-auto">
+              <div className="text-sm font-mono text-slate-300 leading-relaxed max-h-[55vh] overflow-y-auto w-full pr-1">
                 {displayDescription}
               </div>
             </div>

@@ -345,36 +345,85 @@ export default function MutatorsPanel({ onSpendGold }) {
         iconUrl={selectedMutator ? selectedMutator.icon : undefined}
         description={
           selectedMutator && (
-            <div className="space-y-4 text-left">
-              <div className="text-sm font-mono text-slate-300 leading-relaxed">
+            <div className="space-y-3 text-left">
+              {/* Short summary */}
+              <div className="text-xs font-mono text-slate-300 leading-relaxed bg-slate-900/40 p-2.5 rounded-lg border border-slate-800">
                 {t(`rpgData.mutators.${selectedMutator.id}.desc`)}
               </div>
+
+              {/* Activation type badge */}
+              <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between px-1">
+                <span className="opacity-60">{t('mutators_ui.type_label', 'Activation Type')}:</span> 
+                <span className="font-bold text-slate-200 uppercase">
+                  {selectedMutator.permanent_lock 
+                    ? t('mutators_ui.type_permanent', 'Permanent') 
+                    : selectedMutator.toggle 
+                    ? t('mutators_ui.type_toggleable', 'Toggleable') 
+                    : selectedMutator.durationDays 
+                    ? t('mutators_ui.type_duration', { days: selectedMutator.durationDays }) 
+                    : t('mutators_ui.type_passive', 'Passive')}
+                </span>
+              </div>
               
-              {(selectedMutator.durationDays || selectedMutator.toggle) && (
-                <div className="text-xs font-mono text-slate-400 border-t border-slate-700/50 pt-2 flex items-center gap-2">
-                  <span className="opacity-60">Type:</span> 
-                  {selectedMutator.permanent_lock ? "Permanent" : selectedMutator.toggle ? "Toggleable" : `${selectedMutator.durationDays} Days`}
+              {/* Positive Bonus */}
+              {t(`rpgData.mutators.${selectedMutator.id}.bonus`, { defaultValue: "" }) && (
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 space-y-1">
+                  <div className="text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className="text-emerald-300">✦</span> {t('mutators_ui.positive_effect', 'Positive Effect')}
+                  </div>
+                  <div className="text-xs font-mono text-emerald-200/90 leading-relaxed">
+                    {t(`rpgData.mutators.${selectedMutator.id}.bonus`)}
+                  </div>
                 </div>
               )}
 
+              {/* Penalty / Cost */}
+              {t(`rpgData.mutators.${selectedMutator.id}.penalty`, { defaultValue: "" }) && (
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 space-y-1">
+                  <div className="text-[11px] font-mono font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className="text-rose-300">⚠️</span> {t('mutators_ui.penalty_cost', 'Penalty / Cost')}
+                  </div>
+                  <div className="text-xs font-mono text-rose-200/90 leading-relaxed">
+                    {t(`rpgData.mutators.${selectedMutator.id}.penalty`)}
+                  </div>
+                </div>
+              )}
+
+              {/* Mechanics */}
+              {t(`rpgData.mutators.${selectedMutator.id}.mechanics`, { defaultValue: "" }) && (
+                <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-2.5 space-y-1">
+                  <div className="text-[11px] font-mono font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span>⚙️</span> {t('mutators_ui.mechanics', 'Mechanics')}
+                  </div>
+                  <div className="text-xs font-mono text-slate-300 leading-relaxed">
+                    {t(`rpgData.mutators.${selectedMutator.id}.mechanics`)}
+                  </div>
+                </div>
+              )}
+
+              {/* Synergy */}
               {selectedMutator.synergy && (
-                <div className="rounded border border-indigo-900/50 bg-indigo-900/20 p-3 space-y-1 mt-2">
-                  <div className="font-mono text-xs font-bold text-indigo-400 flex items-center gap-1">
-                    ⚡ Synergy
+                <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-2.5 space-y-1">
+                  <div className="font-mono text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span>⚡</span> {t('mutators_ui.synergy', 'Synergy')}
                   </div>
-                  <div className="font-mono text-[11px] text-slate-400">
-                    Pairs with: <span className="text-indigo-300">{t(`rpgData.mutators.${MUTATORS.find(m => m.id === selectedMutator.synergy)?.id}.name`)}</span>
+                  <div className="font-mono text-xs text-slate-300">
+                    {t('mutators_ui.pairs_with', 'Pairs with:')}{" "}
+                    <span className="text-indigo-300 font-bold">
+                      {t(`rpgData.mutators.${MUTATORS.find(m => m.id === selectedMutator.synergy)?.id || selectedMutator.synergy}.name`)}
+                    </span>
                   </div>
                 </div>
               )}
 
-              {selectedMutator.conflicts && (
-                <div className="rounded border border-red-900/50 bg-red-900/20 p-3 space-y-1 mt-2">
-                  <div className="font-mono text-xs font-bold text-red-400 flex items-center gap-1">
-                    ⚠️ Conflicts With
+              {/* Conflicts */}
+              {selectedMutator.conflicts && selectedMutator.conflicts.length > 0 && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 space-y-1">
+                  <div className="font-mono text-[11px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span>🚫</span> {t('mutators_ui.conflicts_with', 'Conflicts with:')}
                   </div>
-                  <div className="font-mono text-[11px] text-slate-400">
-                    {selectedMutator.conflicts.map(c => t(`rpgData.mutators.${MUTATORS.find(m => m.id === c)?.id}.name`)).join(", ")}
+                  <div className="font-mono text-xs text-amber-200/90 leading-relaxed">
+                    {selectedMutator.conflicts.map(c => t(`rpgData.mutators.${MUTATORS.find(m => m.id === c)?.id || c}.name`)).join(", ")}
                   </div>
                 </div>
               )}
@@ -387,6 +436,19 @@ export default function MutatorsPanel({ onSpendGold }) {
             const purchased_ = isPurchased(selectedMutator.id);
             const canActivate = active.length < MAX_ACTIVE || active_;
             const conflicted = !isActive(selectedMutator.id) && selectedMutator.conflicts?.some(c => isActive(c));
+
+            let btnText = t('mutators_ui.btn_activate', 'ACTIVATE');
+            if (active_) {
+              btnText = selectedMutator.permanent_lock 
+                ? t('mutators_ui.btn_active_permanent', '🔒 ACTIVE (PERMANENT)') 
+                : t('mutators_ui.btn_active_on', 'ACTIVE (TAP TO UNEQUIP)');
+            } else if (conflicted) {
+              btnText = t('mutators_ui.btn_conflict_blocked', '⚠️ BLOCKED BY CONFLICT');
+            } else if (!purchased_) {
+              btnText = t('mutators_ui.btn_chest_only', '🎁 CHEST ONLY');
+            } else if (!canActivate) {
+              btnText = t('mutators_ui.btn_limit_reached', { max: MAX_ACTIVE });
+            }
 
             return (
               <button
@@ -403,7 +465,7 @@ export default function MutatorsPanel({ onSpendGold }) {
                 }`}
                 style={{ opacity: conflicted ? 0.4 : 1 }}
               >
-                {active_ ? (selectedMutator.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED BY CONFLICT" : "🎁 Chest Only"}
+                {btnText}
               </button>
             );
           })()
