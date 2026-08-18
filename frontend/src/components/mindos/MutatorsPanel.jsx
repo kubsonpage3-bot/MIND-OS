@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MUTATORS } from "@/constants/rpgData";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi, getMediaUrl } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 import GameCard from "@/components/ui/GameCard";
-import ItemDetailModal from "./ItemDetailModal";
+import { useHardwareBack } from "@/utils/modalStack";
 
 const CAT_LABELS = {
   amplifier: { label: "AMPLIFIERS", color: "#3b82f6" },
@@ -26,6 +27,8 @@ export default function MutatorsPanel({ onSpendGold }) {
   const [highlightedId, setHighlightedId] = useState(null);
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
+
+  useHardwareBack(!!selectedMutator, () => setSelectedMutator(null));
 
   const mutators = profile?.active_mutators || { active: [], purchased: [] };
   const gold = profile?.gold || 0;
@@ -233,6 +236,51 @@ export default function MutatorsPanel({ onSpendGold }) {
         </div>
       </div>
 
+      {activeSynergies.length > 0 && (
+        <div className="p-3 rounded-xl border border-indigo-500/40 bg-indigo-500/10 flex items-center gap-2">
+          <span className="text-base">⚡</span>
+          <div className="text-[10px] font-mono text-indigo-300">
+            <span className="font-bold uppercase tracking-wide">Synergies Active:</span>{" "}
+            {activeSynergies.map(m => t(`rpgData.mutators.${m.id}.name`)).join(", ")}
+          </div>
+        </div>
+      )}
+
+      <div className="p-3 rounded-xl border border-border bg-card/40 space-y-2">
+        <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground/60">
+          <span>ACTIVE SLOTS</span>
+          <span>{active.length} / {MAX_ACTIVE}</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {Array.from({ length: MAX_ACTIVE }).map((_, idx) => {
+            const mut = active[idx];
+            const orig = mut ? MUTATORS.find(m => m.id === mut.id) : null;
+            return (
+              <div
+                key={idx}
+                onClick={() => orig && setSelectedMutator(orig)}
+                className={`p-2 rounded-lg border flex flex-col items-center justify-center text-center h-20 transition-all ${
+                  orig
+                    ? "border-[#f0c040] bg-[#f0c04008] cursor-pointer hover:bg-[#f0c04015]"
+                    : "border-dashed border-border/60 bg-muted/10 text-muted-foreground/30"
+                }`}
+              >
+                {orig ? (
+                  <>
+                    <img src={orig.icon} alt={orig.name} className="w-8 h-8 object-contain mb-1" style={{ imageRendering: "pixelated" }} />
+                    <div className="font-mono text-[9px] font-bold text-[#f0c040] truncate w-full px-1">
+                      {t(`rpgData.mutators.${orig.id}.name`)}
+                    </div>
+                  </>
+                ) : (
+                  <span className="font-mono text-[9px] tracking-widest uppercase">EMPTY</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {Object.entries(CAT_LABELS).map(([cat, cfg]) => {
         const muts = byCategory[cat] || [];
         if (!muts.length) return null;
@@ -247,70 +295,73 @@ export default function MutatorsPanel({ onSpendGold }) {
                 const purchased_ = isPurchased(mut.id);
                 const synActive = isSynergyActive(mut);
                 const canActivate = active.length < MAX_ACTIVE || active_;
-                const canAfford = purchased_ || gold >= mut.cost;
                 const conflicted = !isActive(mut.id) && mut.conflicts?.some(c => isActive(c));
                 const isHighlighted = mut.id === highlightedId;
 
                 return (
-                  <GameCard key={mut.id} 
-                    id={`mutator-card-${mut.id}`}
-                    isActive={active_ || isHighlighted}
-                    borderColor={isHighlighted ? "#f0c040" : active_ ? "#f0c040" : purchased_ ? "hsl(var(--primary)/0.4)" : undefined}
-                    glowColor={isHighlighted ? "#f0c040" : "#f0c040"}
-                    className={`flex flex-col text-center p-3 relative cursor-pointer ${purchased_ && !active_ ? "bg-primary/5" : ""}`}
+                  <div
+                    key={mut.id}
                     onClick={() => setSelectedMutator(mut)}
-                    style={isHighlighted ? {
-                      animation: "celebratePulse 1s infinite ease-in-out",
-                      zIndex: 30
-                    } : {}}
+                    className="cursor-pointer select-none transition-transform active:scale-[0.98] h-full"
                   >
-                    {/* Badges container (Synergy / Conflict) top-right */}
-                    <div className="absolute top-2 right-2 flex gap-1 z-20">
-                      {mut.synergy && (
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${synActive ? "bg-[#f0c040] text-black" : "bg-[#f0c04020] text-[#f0c040]"}`}>
-                          ⚡
-                        </div>
-                      )}
-                      {conflicted && (
-                        <div className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-red-500/20 text-red-500">
-                          ⚠️
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Pixel art icon */}
-                    <div className={`shrink-0 w-12 h-12 mx-auto rounded-lg border overflow-hidden flex items-center justify-center mb-2 z-10 relative ${active_ ? "border-[#f0c04060] bg-[#f0c04010]" : "border-border bg-muted/30"}`}
-                      style={{ imageRendering: "pixelated" }}>
-                        <img src={mut.icon} alt={t(`rpgData.mutators.${mut.id}.name`)} className="w-full h-full object-contain"
-                        style={{ imageRendering: "pixelated" }} />
-                    </div>
-
-                    <div className="flex-1 min-w-0 flex flex-col justify-start">
-                      <div className={`font-mono text-[11px] font-black tracking-wide truncate px-1 ${active_ ? "text-[#f0c040]" : purchased_ ? "text-primary" : "text-foreground"}`}>
-                        {t(`rpgData.mutators.${mut.id}.name`)}
-                      </div>
-                      <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 line-clamp-2 px-1 mb-2">
-                        {t(`rpgData.mutators.${mut.id}.desc`)}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        if (!purchased_) return;
-                        e.stopPropagation();
-                        activate(mut);
-                      }}
-                      disabled={!purchased_ || (!canActivate && !active_) || conflicted}
-                      className={`w-full shrink-0 py-1.5 mt-auto text-[10px] font-mono font-bold rounded border transition-all relative z-10 ${
-                        active_ ? "border-[#f0c040] bg-[#f0c040] text-black" :
-                        purchased_ && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
-                        "border-border/30 text-muted-foreground/30 bg-transparent cursor-not-allowed"
-                      }`}
-                      style={{ opacity: conflicted ? 0.4 : 1 }}
+                    <GameCard
+                      id={`mutator-card-${mut.id}`}
+                      isHoverable
+                      isActive={active_ || isHighlighted}
+                      borderColor={isHighlighted ? "#f0c040" : active_ ? "#f0c040" : purchased_ ? "hsl(var(--primary)/0.4)" : undefined}
+                      glowColor={isHighlighted ? "#f0c040" : "#f0c040"}
+                      className={`flex flex-col text-center p-3 relative h-full ${purchased_ && !active_ ? "bg-primary/5" : ""}`}
+                      style={isHighlighted ? {
+                        animation: "celebratePulse 1s infinite ease-in-out",
+                        zIndex: 30
+                      } : {}}
                     >
-                      {active_ ? (mut.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED" : "🎁 Chest Only"}
-                    </button>
-                  </GameCard>
+                      <div className="absolute top-2 right-2 flex gap-1 z-20">
+                        {mut.synergy && (
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${synActive ? "bg-[#f0c040] text-black" : "bg-[#f0c04020] text-[#f0c040]"}`}>
+                            ⚡
+                          </div>
+                        )}
+                        {conflicted && (
+                          <div className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-red-500/20 text-red-500">
+                            ⚠️
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={`shrink-0 w-12 h-12 mx-auto rounded-lg border overflow-hidden flex items-center justify-center mb-2 z-10 relative ${active_ ? "border-[#f0c04060] bg-[#f0c04010]" : "border-border bg-muted/30"}`}
+                        style={{ imageRendering: "pixelated" }}>
+                        <img src={mut.icon} alt={t(`rpgData.mutators.${mut.id}.name`)} className="w-full h-full object-contain"
+                          style={{ imageRendering: "pixelated" }} />
+                      </div>
+
+                      <div className="flex-1 min-w-0 flex flex-col justify-start">
+                        <div className={`font-mono text-[11px] font-black tracking-wide truncate px-1 ${active_ ? "text-[#f0c040]" : purchased_ ? "text-primary" : "text-foreground"}`}>
+                          {t(`rpgData.mutators.${mut.id}.name`)}
+                        </div>
+                        <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 line-clamp-2 px-1 mb-2">
+                          {t(`rpgData.mutators.${mut.id}.desc`)}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          if (!purchased_) return;
+                          e.stopPropagation();
+                          activate(mut);
+                        }}
+                        disabled={!purchased_ || (!canActivate && !active_) || conflicted}
+                        className={`w-full shrink-0 py-1.5 mt-auto text-[10px] font-mono font-bold rounded border transition-all relative z-10 ${
+                          active_ ? "border-[#f0c040] bg-[#f0c040] text-black" :
+                          purchased_ && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
+                          "border-border/30 text-muted-foreground/30 bg-transparent cursor-not-allowed"
+                        }`}
+                        style={{ opacity: conflicted ? 0.4 : 1 }}
+                      >
+                        {active_ ? (mut.permanent_lock ? "🔒 ACTIVE" : "ACTIVE (ON)") : purchased_ ? "ACTIVATE" : conflicted ? "BLOCKED" : "🎁 Chest Only"}
+                      </button>
+                    </GameCard>
+                  </div>
                 );
               })}
             </div>
@@ -318,159 +369,181 @@ export default function MutatorsPanel({ onSpendGold }) {
         );
       })}
 
-      {confirmIronman && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
-          <div className="rounded-2xl border border-red-900/60 bg-card p-6 max-w-sm w-full space-y-4 text-center">
-            <div className="text-2xl">💀</div>
-            <div className="font-mono font-black text-red-400 tracking-widest">{t('mutators_ui.ironman_title')}</div>
-            <div className="text-xs font-mono text-muted-foreground/70 leading-relaxed">
-              {t('mutators_ui.ironman_desc')}
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setConfirmIronman(false)} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">{t('skill_tree.btn_cancel')}</button>
-              <button onClick={confirmIronmanActivate} className="flex-1 py-2 text-xs font-mono rounded-lg bg-red-600 text-white font-bold">{t('mutators_ui.ironman_confirm_btn')}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {selectedMutator && (() => {
+          const catColor = CAT_LABELS[selectedMutator.cat]?.color || "#f0c040";
+          const catLabel = CAT_LABELS[selectedMutator.cat]?.label || selectedMutator.cat;
+          const active_ = isActive(selectedMutator.id);
+          const purchased_ = isPurchased(selectedMutator.id);
+          const canActivate = active.length < MAX_ACTIVE || active_;
+          const conflicted = !isActive(selectedMutator.id) && selectedMutator.conflicts?.some(c => isActive(c));
 
-      {/* Item Detail Modal for Mutators */}
-      <ItemDetailModal 
-        item={selectedMutator}
-        isOpen={!!selectedMutator}
-        onClose={() => setSelectedMutator(null)}
-        title={selectedMutator ? t(`rpgData.mutators.${selectedMutator.id}.name`) : ""}
-        subtitle={selectedMutator ? (CAT_LABELS[selectedMutator.cat]?.label || "") : ""}
-        tierColor={selectedMutator ? CAT_LABELS[selectedMutator.cat]?.color : undefined}
-        iconUrl={selectedMutator ? selectedMutator.icon : undefined}
-        description={
-          selectedMutator && (
-            <div className="space-y-3 text-left">
-              {/* Short summary */}
-              <div className="text-xs font-mono text-slate-300 leading-relaxed bg-slate-900/40 p-2.5 rounded-lg border border-slate-800">
-                {t(`rpgData.mutators.${selectedMutator.id}.desc`)}
-              </div>
+          let btnText = t('mutators_ui.btn_activate', 'ACTIVATE');
+          if (active_) {
+            btnText = selectedMutator.permanent_lock 
+              ? t('mutators_ui.btn_active_permanent', '🔒 ACTIVE (PERMANENT)') 
+              : t('mutators_ui.btn_active_on', 'ACTIVE (TAP TO UNEQUIP)');
+          } else if (conflicted) {
+            btnText = t('mutators_ui.btn_conflict_blocked', '⚠️ BLOCKED BY CONFLICT');
+          } else if (!purchased_) {
+            btnText = t('mutators_ui.btn_chest_only', '🎁 CHEST ONLY');
+          } else if (!canActivate) {
+            btnText = t('mutators_ui.btn_limit_reached', { max: MAX_ACTIVE });
+          }
 
-              {/* Activation type badge */}
-              <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between px-1">
-                <span className="opacity-60">{t('mutators_ui.type_label', 'Activation Type')}:</span> 
-                <span className="font-bold text-slate-200 uppercase">
-                  {selectedMutator.permanent_lock 
-                    ? t('mutators_ui.type_permanent', 'Permanent') 
-                    : selectedMutator.toggle 
-                    ? t('mutators_ui.type_toggleable', 'Toggleable') 
-                    : selectedMutator.durationDays 
-                    ? t('mutators_ui.type_duration', { days: selectedMutator.durationDays }) 
-                    : t('mutators_ui.type_passive', 'Passive')}
-                </span>
-              </div>
-              
-              {/* Positive Bonus */}
-              {t(`rpgData.mutators.${selectedMutator.id}.bonus`, { defaultValue: "" }) && (
-                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 space-y-1">
-                  <div className="text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
-                    <span className="text-emerald-300">✦</span> {t('mutators_ui.positive_effect', 'Positive Effect')}
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+              onClick={() => setSelectedMutator(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.85, opacity: 0, y: 15 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                className="bg-card border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto"
+                style={{ borderColor: `${catColor}60`, boxShadow: `0 0 40px ${catColor}30` }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex flex-col items-center gap-2 relative text-center">
+                  <div
+                    className="w-24 h-24 rounded-2xl overflow-hidden border-2 relative z-10 flex items-center justify-center bg-black/40 p-2"
+                    style={{
+                      borderColor: catColor,
+                      boxShadow: `0 0 25px ${catColor}40`,
+                      imageRendering: "pixelated",
+                    }}
+                  >
+                    <img
+                      src={selectedMutator.icon}
+                      alt={t(`rpgData.mutators.${selectedMutator.id}.name`)}
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: "pixelated" }}
+                    />
                   </div>
-                  <div className="text-xs font-mono text-emerald-200/90 leading-relaxed">
-                    {t(`rpgData.mutators.${selectedMutator.id}.bonus`)}
-                  </div>
-                </div>
-              )}
 
-              {/* Penalty / Cost */}
-              {t(`rpgData.mutators.${selectedMutator.id}.penalty`, { defaultValue: "" }) && (
-                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 space-y-1">
-                  <div className="text-[11px] font-mono font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
-                    <span className="text-rose-300">⚠️</span> {t('mutators_ui.penalty_cost', 'Penalty / Cost')}
+                  <div className="font-mono font-black text-base tracking-wide" style={{ color: catColor }}>
+                    {t(`rpgData.mutators.${selectedMutator.id}.name`)}
                   </div>
-                  <div className="text-xs font-mono text-rose-200/90 leading-relaxed">
-                    {t(`rpgData.mutators.${selectedMutator.id}.penalty`)}
-                  </div>
-                </div>
-              )}
 
-              {/* Mechanics */}
-              {t(`rpgData.mutators.${selectedMutator.id}.mechanics`, { defaultValue: "" }) && (
-                <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-2.5 space-y-1">
-                  <div className="text-[11px] font-mono font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
-                    <span>⚙️</span> {t('mutators_ui.mechanics', 'Mechanics')}
-                  </div>
-                  <div className="text-xs font-mono text-slate-300 leading-relaxed">
-                    {t(`rpgData.mutators.${selectedMutator.id}.mechanics`)}
-                  </div>
-                </div>
-              )}
-
-              {/* Synergy */}
-              {selectedMutator.synergy && (
-                <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-2.5 space-y-1">
-                  <div className="font-mono text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
-                    <span>⚡</span> {t('mutators_ui.synergy', 'Synergy')}
-                  </div>
-                  <div className="font-mono text-xs text-slate-300">
-                    {t('mutators_ui.pairs_with', 'Pairs with:')}{" "}
-                    <span className="text-indigo-300 font-bold">
-                      {t(`rpgData.mutators.${MUTATORS.find(m => m.id === selectedMutator.synergy)?.id || selectedMutator.synergy}.name`)}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase"
+                      style={{ background: `${catColor}20`, color: catColor, border: `1px solid ${catColor}50` }}
+                    >
+                      {catLabel}
+                    </span>
+                    <span className="text-[9px] font-mono text-muted-foreground/60 uppercase">
+                      {selectedMutator.permanent_lock 
+                        ? t('mutators_ui.type_permanent', 'Permanent') 
+                        : selectedMutator.toggle 
+                        ? t('mutators_ui.type_toggleable', 'Toggleable') 
+                        : selectedMutator.durationDays 
+                        ? t('mutators_ui.type_duration', { days: selectedMutator.durationDays }) 
+                        : t('mutators_ui.type_passive', 'Passive')}
                     </span>
                   </div>
-                </div>
-              )}
 
-              {/* Conflicts */}
-              {selectedMutator.conflicts && selectedMutator.conflicts.length > 0 && (
-                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 space-y-1">
-                  <div className="font-mono text-[11px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
-                    <span>🚫</span> {t('mutators_ui.conflicts_with', 'Conflicts with:')}
-                  </div>
-                  <div className="font-mono text-xs text-amber-200/90 leading-relaxed">
-                    {selectedMutator.conflicts.map(c => t(`rpgData.mutators.${MUTATORS.find(m => m.id === c)?.id || c}.name`)).join(", ")}
+                  <div className="border border-border p-3 rounded-xl bg-muted/20 w-full">
+                    <div className="text-[11px] font-mono text-muted-foreground/80 leading-relaxed italic text-center">
+                      "{t(`rpgData.mutators.${selectedMutator.id}.desc`)}"
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )
-        }
-        actionButton={
-          selectedMutator && (() => {
-            const active_ = isActive(selectedMutator.id);
-            const purchased_ = isPurchased(selectedMutator.id);
-            const canActivate = active.length < MAX_ACTIVE || active_;
-            const conflicted = !isActive(selectedMutator.id) && selectedMutator.conflicts?.some(c => isActive(c));
 
-            let btnText = t('mutators_ui.btn_activate', 'ACTIVATE');
-            if (active_) {
-              btnText = selectedMutator.permanent_lock 
-                ? t('mutators_ui.btn_active_permanent', '🔒 ACTIVE (PERMANENT)') 
-                : t('mutators_ui.btn_active_on', 'ACTIVE (TAP TO UNEQUIP)');
-            } else if (conflicted) {
-              btnText = t('mutators_ui.btn_conflict_blocked', '⚠️ BLOCKED BY CONFLICT');
-            } else if (!purchased_) {
-              btnText = t('mutators_ui.btn_chest_only', '🎁 CHEST ONLY');
-            } else if (!canActivate) {
-              btnText = t('mutators_ui.btn_limit_reached', { max: MAX_ACTIVE });
-            }
+                <div className="space-y-2">
+                  {t(`rpgData.mutators.${selectedMutator.id}.bonus`, { defaultValue: "" }) && (
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 space-y-1">
+                      <div className="text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <span className="text-emerald-300 font-black">✦</span> {t('mutators_ui.positive_effect', 'Positive Effect')}
+                      </div>
+                      <div className="text-xs font-mono text-emerald-200/90 leading-relaxed">
+                        {t(`rpgData.mutators.${selectedMutator.id}.bonus`)}
+                      </div>
+                    </div>
+                  )}
 
-            return (
-              <button
-                onClick={() => {
-                  if (!purchased_) return;
-                  activate(selectedMutator);
-                  setSelectedMutator(null);
-                }}
-                disabled={!purchased_ || (!canActivate && !active_) || conflicted}
-                className={`w-full py-3 text-xs font-mono font-black rounded transition-all border ${
-                  active_ ? "border-[#f0c040] bg-[#f0c040] text-black" :
-                  purchased_ && canActivate && !conflicted ? "border-border bg-foreground/5 text-foreground hover:bg-foreground/10" :
-                  "border-border/30 text-muted-foreground/30 bg-transparent cursor-not-allowed"
-                }`}
-                style={{ opacity: conflicted ? 0.4 : 1 }}
-              >
-                {btnText}
-              </button>
-            );
-          })()
-        }
-      />
+                  {t(`rpgData.mutators.${selectedMutator.id}.penalty`, { defaultValue: "" }) && (
+                    <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 space-y-1">
+                      <div className="text-[11px] font-mono font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <span className="text-rose-300">⚠️</span> {t('mutators_ui.penalty_cost', 'Penalty / Cost')}
+                      </div>
+                      <div className="text-xs font-mono text-rose-200/90 leading-relaxed">
+                        {t(`rpgData.mutators.${selectedMutator.id}.penalty`)}
+                      </div>
+                    </div>
+                  )}
+
+                  {t(`rpgData.mutators.${selectedMutator.id}.mechanics`, { defaultValue: "" }) && (
+                    <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 space-y-1">
+                      <div className="text-[11px] font-mono font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <span>⚙️</span> {t('mutators_ui.mechanics', 'Mechanics')}
+                      </div>
+                      <div className="text-xs font-mono text-slate-300 leading-relaxed">
+                        {t(`rpgData.mutators.${selectedMutator.id}.mechanics`)}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMutator.synergy && (
+                    <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 space-y-1">
+                      <div className="font-mono text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <span>⚡</span> {t('mutators_ui.synergy', 'Synergy')}
+                      </div>
+                      <div className="font-mono text-xs text-slate-300">
+                        {t('mutators_ui.pairs_with', 'Pairs with:')}{" "}
+                        <span className="text-indigo-300 font-bold">
+                          {t(`rpgData.mutators.${MUTATORS.find(m => m.id === selectedMutator.synergy)?.id || selectedMutator.synergy}.name`)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMutator.conflicts && selectedMutator.conflicts.length > 0 && (
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-1">
+                      <div className="font-mono text-[11px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <span>🚫</span> {t('mutators_ui.conflicts_with', 'Conflicts with:')}
+                      </div>
+                      <div className="font-mono text-xs text-amber-200/90 leading-relaxed">
+                        {selectedMutator.conflicts.map(c => t(`rpgData.mutators.${MUTATORS.find(m => m.id === c)?.id || c}.name`)).join(", ")}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => {
+                      if (!purchased_) return;
+                      activate(selectedMutator);
+                      setSelectedMutator(null);
+                    }}
+                    disabled={!purchased_ || (!canActivate && !active_) || conflicted}
+                    className={`w-full py-3 text-xs font-mono font-black rounded-xl transition-all border ${
+                      active_ ? "border-[#f0c040] bg-[#f0c040] text-black shadow-lg shadow-[#f0c040]/20" :
+                      purchased_ && canActivate && !conflicted ? "border-primary bg-primary/20 text-primary hover:bg-primary/30" :
+                      "border-border/40 text-muted-foreground/40 bg-white/5 cursor-not-allowed"
+                    }`}
+                    style={{ opacity: conflicted ? 0.4 : 1 }}
+                  >
+                    {btnText}
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setSelectedMutator(null)}
+                  className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors text-center uppercase tracking-wider"
+                >
+                  {t('skill_tree.btn_cancel', 'CLOSE')}
+                </button>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }

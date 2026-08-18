@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.57",
+    "date": "2026-08-18",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Mutator cards now open a dedicated Allies-style animated popup inspection modal with glowing portraits, mechanics breakdowns, synergies, and instant activation controls."
+      }
+    ]
+  },
+  {
     "version": "0.8.56",
     "date": "2026-08-18",
     "changes": [
