@@ -36,10 +36,10 @@ export default function MutatorsPanel({ onSpendGold }) {
   const active = mutators.active || [];
   const purchased = mutators.purchased || [];
 
-  const isActive = (id) => active.some(m => m.id === id);
+  const isActive = (id) => active.some(m => (typeof m === 'object' ? m.id : m) === id);
   const isPurchased = (id) => purchased.includes(id);
 
-  const getActiveSynergyIds = () => active.map(m => m.id);
+  const getActiveSynergyIds = () => active.map(m => (typeof m === 'object' ? m.id : m));
 
   const isSynergyActive = (mut) => {
     if (!mut.synergy) return false;
@@ -136,6 +136,11 @@ export default function MutatorsPanel({ onSpendGold }) {
   const totalMutators = activeMutatorsList.length;
   const unlockedCount = purchased.filter(id => activeMutatorsList.some(m => m.id === id)).length;
   const isAllUnlocked = unlockedCount >= totalMutators;
+
+  const activeSynergies = active.map(m => {
+    const mutId = typeof m === 'object' ? m.id : m;
+    return MUTATORS.find(orig => orig.id === mutId);
+  }).filter(orig => orig && isSynergyActive(orig));
 
   return (
     <div className="space-y-5">

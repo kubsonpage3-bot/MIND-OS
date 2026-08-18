@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.58",
+    "date": "2026-08-18",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed Character tab crash by defining active mutator synergy tracking and robust mutator activation status."
+      }
+    ]
+  },
+  {
     "version": "0.8.57",
     "date": "2026-08-18",
     "changes": [
