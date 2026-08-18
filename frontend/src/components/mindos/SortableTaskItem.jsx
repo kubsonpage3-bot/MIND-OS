@@ -16,7 +16,7 @@ export function SortableTaskItem({ id, children }) {
   } = useSortable({ id: String(id) })
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: transform ? CSS.Translate.toString(transform) : undefined,
     transition: transition || undefined,
     // Dragged item appears above others
     zIndex: isDragging ? 999 : undefined,

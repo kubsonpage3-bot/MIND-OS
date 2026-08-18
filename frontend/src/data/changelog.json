@@ -1,5 +1,23 @@
 [
   {
+    "version": "0.8.54",
+    "date": "2026-08-18",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed excessive XP bonuses on low-difficulty tasks (PWR stat bonus is now properly proportional to task tier)."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed cards jumping up and down when tapping habits, dailies, or to-dos."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed phantom rival screen appearing when swiping tabs on mobile."
+      }
+    ]
+  },
+  {
     "version": "0.8.53",
     "date": "2026-08-18",
     "changes": [

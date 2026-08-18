@@ -276,17 +276,19 @@ def calculate_task_outcome(
     }
 
     if is_positive:
-        # Power (PWR): Adds a flat bonus to the base XP earned. Formula: Base_XP + (PWR * 0.5)  # noqa: E501
-        pwr_bonus = pwr * 0.5
-        final_xp = base_xp + pwr_bonus
+        # Power (PWR): Percentage XP bonus, capped at +50%.
+        # Keeps low-tier (Trivial) tasks proportionally rewarded — high PWR
+        # shouldn't make a 3-XP habit pay out 50+ XP.
+        pwr_pct = min(0.50, pwr * 0.005)  # 100 PWR → +50%
+        final_xp = base_xp * (1.0 + pwr_pct)
 
         # Base Boss Damage: Flat 10 + PWR stat
         base_damage = 10
         damage_dealt = base_damage + pwr
 
-        # Speed (SPD): Grants a flat bonus to Gold. Formula: Base_Gold + (SPD * 0.5)
-        spd_bonus = spd * 0.5
-        final_gold = base_gold + spd_bonus
+        # Speed (SPD): Percentage Gold bonus, capped at +50%.
+        spd_pct = min(0.50, spd * 0.005)  # 100 SPD → +50%
+        final_gold = base_gold * (1.0 + spd_pct)
 
         # Focus (FOC): Grants a "Critical Focus" chance. Formula: FOC * 0.5% chance. If triggered, multiply final XP and Gold by 2.  # noqa: E501
         crit_chance = foc * 0.005 + passive_effects.get("crit_chance_bonus", 0.0)

@@ -73,7 +73,6 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
     <motion.div
       className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer ${task.is_completed ? 'opacity-50' : 'task-card bg-[var(--habit-panel)]'}`}
       style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
-      whileTap={{ scale: 0.97 }}
       {...longPressProps}
     >
       {/* Pixel burst overlay */}

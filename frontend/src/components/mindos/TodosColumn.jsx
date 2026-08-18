@@ -85,7 +85,6 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
         transition: 'border 0.4s ease, box-shadow 0.4s ease',
         ...longPressProps.style
       })}
-      whileTap={{ scale: 0.97 }}
       animate={justCompleted ? { scale: [1, 1.04, 0.98, 1] } : {}}
       transition={{ duration: 0.28, ease: 'easeOut' }}
       {...longPressProps}
