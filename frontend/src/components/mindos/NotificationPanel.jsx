@@ -153,8 +153,11 @@ export default function NotificationPanel() {
 
       {/* Settings Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
-          <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
+        >
+          <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[85svh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <span className="font-mono text-sm font-bold tracking-wider">NOTIFICATION SETTINGS</span>
               <button onClick={() => setShowModal(false)}>

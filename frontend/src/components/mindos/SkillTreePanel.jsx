@@ -786,7 +786,8 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
         {showRespec && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 px-4"
+            style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
             onClick={() => setShowRespec(false)}
           >
             <motion.div
@@ -826,7 +827,8 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
         {showPresetSave && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 px-4"
+            style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
             onClick={() => setShowPresetSave(false)}
           >
             <motion.div

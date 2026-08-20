@@ -113,8 +113,11 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
-          <div className="rounded-2xl border border-yellow-500/40 bg-card p-6 max-w-md w-full space-y-4 my-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 px-4 overflow-y-auto"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
+        >
+          <div className="rounded-2xl border border-yellow-500/40 bg-card p-6 max-w-md w-full space-y-4 my-4 max-h-[85svh] overflow-y-auto">
             <div className="text-center">
               <div className="text-2xl mb-2">🦅</div>
               <div className="font-mono font-black text-xl" style={{ color: "#f0c040" }}>PRESTIGE — REBIRTH</div>

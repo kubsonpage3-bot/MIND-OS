@@ -327,7 +327,8 @@ export default function AlliesPanel({ onSpendGold }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4"
+            style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
             onClick={closeDetail}
           >
             <motion.div
@@ -335,7 +336,7 @@ export default function AlliesPanel({ onSpendGold }) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.85, opacity: 0 }}
               transition={{ type: "spring", damping: 18 }}
-              className="bg-card border rounded-2xl p-5 max-w-xs w-full space-y-4"
+              className="bg-card border rounded-2xl p-5 max-w-xs w-full space-y-4 max-h-[85svh] overflow-y-auto"
               style={{ borderColor: `${selected.color}60`, boxShadow: `0 0 40px ${selected.color}30` }}
               onClick={e => e.stopPropagation()}
             >

@@ -401,7 +401,8 @@ export default function MutatorsPanel({ onSpendGold }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm"
+              style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
               onClick={() => setSelectedMutator(null)}
             >
               <motion.div
@@ -409,7 +410,7 @@ export default function MutatorsPanel({ onSpendGold }) {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.85, opacity: 0, y: 15 }}
                 transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                className="bg-card border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto"
+                className="bg-card border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[85svh] overflow-y-auto"
                 style={{ borderColor: `${catColor}60`, boxShadow: `0 0 40px ${catColor}30` }}
                 onClick={e => e.stopPropagation()}
               >
