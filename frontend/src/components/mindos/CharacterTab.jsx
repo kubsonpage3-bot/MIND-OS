@@ -846,7 +846,12 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             <ScrollsPanel gold={gold} onSpendGold={spendGold} />
           )}
           {shopTab === "chests" && (
-            <ChestPanel />
+            <div className="space-y-6">
+              <ChestPanel />
+              <div className="pt-5 border-t border-border/40">
+                <InventoryPanel gs={{ inventory, consumables: activeEffectsMap }} onSave={() => { }} onToggleEquip={equipItem} />
+              </div>
+            </div>
           )}
           {shopTab === "inventory" && (
             <InventoryPanel gs={{ inventory, consumables: activeEffectsMap }} onSave={() => { }} onToggleEquip={equipItem} />

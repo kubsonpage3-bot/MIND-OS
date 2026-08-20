@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.66",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Integrated your Inventory (Gear & Consumables) directly underneath the Chests tab, allowing you to instantly view, equip, and manage won items without switching tabs."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.65",
     "date": "2026-08-20",
     "changes": [
