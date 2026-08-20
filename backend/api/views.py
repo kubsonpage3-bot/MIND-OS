@@ -1752,6 +1752,27 @@ class TrainingLogView(generics.GenericAPIView):
             else:
                 current_category = resolve_mastery_category(activity=activity)
 
+            if current_category == "languages":
+                from api.models import ActiveEffect
+                babel_effect = ActiveEffect.objects.filter(
+                    user=request.user, effect_id="babel_mode_effect"
+                ).first()
+                if babel_effect:
+                    from api.services.mechanics import get_user_language_activities
+                    lang_acts = get_user_language_activities(request.user)
+                    for act in lang_acts:
+                        if act != activity:
+                            TrainingSession.objects.create(
+                                user_profile=profile,
+                                activity_key=act,
+                                hours=hours,
+                                focus_rating=focus_rating,
+                                efficiency=eff_total,
+                                xp_earned=0,
+                                gf_gain=0, gc_gain=0, ps_gain=0, vm_gain=0
+                            )
+                    babel_effect.delete()
+
             if current_category:
                 today_str = str(timezone.now().date())
                 streaks = dict(profile.category_streaks or {})

@@ -1042,6 +1042,18 @@ def resolve_mastery_category(
     return ""
 
 
+def get_user_language_activities(user) -> list[str]:
+    """
+    Returns a list of activity_keys that belong to the 'languages' mastery category.
+    Includes defaults and any custom tasks created by the user with mastery_category='languages'.
+    """
+    from api.models import Task
+    defaults = ["english", "german", "other_languages", "languages", "vocabulary"]
+    custom_tasks = Task.objects.filter(user=user, mastery_category__iexact="languages")
+    custom_keys = [f"custom_task_{t.id}" for t in custom_tasks]
+    return defaults + custom_keys
+
+
 def get_passive_multipliers(profile, context: dict):
     from django.utils import timezone
 

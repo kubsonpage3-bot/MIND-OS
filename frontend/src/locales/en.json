@@ -875,7 +875,7 @@
       },
       "babel_mode": {
         "name": "Babel Mode",
-        "desc": "Next language session counts across all three language subjects."
+        "desc": "Next language session counts across all language subjects."
       },
       "polyglot_surge": {
         "name": "Polyglot Surge",

@@ -135,7 +135,7 @@ export const CLASSES = {
     stats: { pwr: 5, def: 5, foc: 10, mem: 11, spd: 9, lck: 5 },
     maxMana: 110,
     skills: [
-      { id: "babel_mode", name: "BABEL MODE", mana: 40, cooldownH: 24, desc: "Next language session counts across all three language subjects." },
+      { id: "babel_mode", name: "BABEL MODE", mana: 40, cooldownH: 24, desc: "Next language session counts across all language subjects." },
       { id: "polyglot_surge", name: "POLYGLOT SURGE", mana: 65, cooldownH: 24, desc: "Push all language subject ranks forward by 2 virtual hours each." },
       { id: "memetic_transfer", name: "MEMETIC TRANSFER", mana: 95, cooldownH: 24, desc: "For 24h: Gc and Vm gains also mirror as Gf gains at 50% rate." },
     ],

@@ -384,7 +384,8 @@ def _create_effect(skill_id, profile):
     # Мгновенные эффекты
 
     if skill_id == "polyglot_surge":
-        from api.services.mechanics import calculate_cognitive_gains
+        from api.services.mechanics import calculate_cognitive_gains, get_user_language_activities
+        from api.models import TrainingSession
 
         gains = calculate_cognitive_gains("languages", 2, 1.0, profile)
         profile.gf = (profile.gf or 100.0) + gains.get("gf", 0)
@@ -392,6 +393,19 @@ def _create_effect(skill_id, profile):
         profile.ps = (profile.ps or 100.0) + gains.get("ps", 0)
         profile.vm = (profile.vm or 100.0) + gains.get("vm", 0)
         profile.save(update_fields=["gf", "gc", "ps", "vm"])
+
+        # Push all language subject ranks forward by 2 virtual hours each
+        lang_activities = get_user_language_activities(profile.user)
+        for act in lang_activities:
+            TrainingSession.objects.create(
+                user_profile=profile,
+                activity_key=act,
+                hours=2.0,
+                focus_rating=10.0,
+                efficiency=1.0,
+                xp_earned=0,
+                gf_gain=0, gc_gain=0, ps_gain=0, vm_gain=0
+            )
         return None
 
     if skill_id == "war_cry":
