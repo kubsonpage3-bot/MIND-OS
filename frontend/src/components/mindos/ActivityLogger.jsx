@@ -6,7 +6,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import EfficiencyMeter from "./EfficiencyMeter";
-import SubjectRankBadge from "./SubjectRankBadge";
+import SubjectRankBadge, { SubjectRankProgressBar } from "./SubjectRankBadge";
 import CreateTaskForm from "./CreateTaskForm";
 
 function loadHiddenActivities() {
@@ -322,7 +322,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
       </div>
 
       {/* Activity grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 auto-rows-fr">
         {Object.entries(allActivities)
           .filter(([key]) => !hiddenActivities.includes(key))
           .map(([key, activity]) => {
@@ -333,52 +333,74 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             const isPendingDelete = confirmDelete === key;
 
             return (
-              <div key={key} className="relative">
+              <div key={key} className="relative h-full flex flex-col">
                 <button
                   onClick={() => !deleteMode && handleSelectActivity(key)}
-                  className="w-full h-[110px] sm:h-[145px] flex flex-col group relative p-3 rounded-xl transition-all duration-200 text-left overflow-hidden"
+                  className="w-full h-full min-h-[160px] sm:min-h-[175px] flex flex-col justify-between group relative p-3 sm:p-3.5 rounded-xl transition-all duration-200 text-left overflow-hidden"
                   style={{
                     background: deleteMode ? "rgba(247,78,82,0.05)" : isSelected ? "var(--habit-purple-light)" : "var(--habit-panel)",
                     border: deleteMode ? "1.5px solid rgba(247,78,82,0.3)" : isSelected ? "1.5px solid var(--habit-purple)" : "1.5px solid var(--habit-border)",
-                    boxShadow: isSelected ? "0 2px 12px var(--habit-purple-glow)" : "0 1px 4px rgba(0,0,0,0.05)",
+                    boxShadow: isSelected ? "0 2px 14px var(--habit-purple-glow)" : "0 1px 4px rgba(0,0,0,0.05)",
                   }}
                 >
-                  <div className="text-xl mb-1">{activity.icon}</div>
-                  <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: "var(--habit-text)" }} className="leading-tight">{activity.label}</div>
-                  <div style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }} className="mt-0.5 hidden sm:block line-clamp-2">{activity.description}</div>
-                  <div className="flex-1" /> {/* Spacer to push metrics down if needed */}
-                  <div className="flex gap-1 mt-2 flex-wrap">
-                    {activeMetrics.map(([mk, mc]) => (
-                      <span key={mk} className={`text-sm font-pixel px-1 py-0.5 rounded bg-${mc.color}/10 text-${mc.color}`}>
-                        +{mc.abbr}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-auto pt-2">
+                  {/* Top Header: Icon + Rank Badge */}
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <div className="text-xl sm:text-2xl leading-none">{activity.icon}</div>
                     <SubjectRankBadge hours={totalHours} />
+                  </div>
+
+                  {/* Middle Content: Title + Description */}
+                  <div className="my-auto py-1.5 w-full">
+                    <div
+                      className="leading-snug line-clamp-1 sm:line-clamp-2"
+                      style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, color: "var(--habit-text)" }}
+                    >
+                      {activity.label}
+                    </div>
+                    <div
+                      className="mt-1 leading-snug line-clamp-2 block text-[11px] sm:text-xs text-muted-foreground/90 dark:text-gray-300/80"
+                      style={{ fontFamily: "'Nunito'", fontWeight: 500 }}
+                    >
+                      {activity.description}
+                    </div>
+                  </div>
+
+                  {/* Bottom: Metrics tags + Progress bar */}
+                  <div className="w-full mt-auto pt-1.5">
+                    <div className="flex gap-1 flex-wrap items-center">
+                      {activeMetrics.map(([mk, mc]) => (
+                        <span
+                          key={mk}
+                          className={`text-[9px] sm:text-[10px] font-pixel font-bold px-1.5 py-0.5 rounded bg-${mc.color}/10 text-${mc.color}`}
+                        >
+                          +{mc.abbr}
+                        </span>
+                      ))}
+                    </div>
+                    <SubjectRankProgressBar hours={totalHours} className="mt-2" />
                   </div>
                 </button>
 
                 {/* Delete button overlay */}
                 {deleteMode && (
-                  <div className="absolute top-1 right-1">
+                  <div className="absolute top-1.5 right-1.5 z-10">
                     {isPendingDelete ? (
                       <div className="flex gap-1">
                         <button
                           onClick={() => hideActivity(key)}
-                          className="px-1.5 py-0.5 text-sm font-pixel bg-red-500 text-white rounded"
+                          className="px-1.5 py-0.5 text-xs font-pixel bg-red-500 text-white rounded"
                         >✓ YES</button>
                         <button
                           onClick={() => setConfirmDelete(null)}
-                          className="px-1.5 py-0.5 text-sm font-pixel bg-muted text-muted-foreground rounded"
+                          className="px-1.5 py-0.5 text-xs font-pixel bg-muted text-muted-foreground rounded"
                         >✕</button>
                       </div>
                     ) : (
                       <button
                         onClick={() => setConfirmDelete(key)}
-                        className="w-5 h-5 flex items-center justify-center rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors"
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-red-500/90 hover:bg-red-500 text-white shadow transition-colors"
                       >
-                        <Trash2 className="w-2.5 h-2.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     )}
                   </div>

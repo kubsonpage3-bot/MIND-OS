@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-const SUBJECT_RANKS = [
+export const SUBJECT_RANKS = [
   { id: "F",   min: 0,    max: 9.99,  color: "#888888" },
   { id: "E",   min: 10,   max: 29.99, color: "#888888" },
   { id: "D",   min: 30,   max: 59.99, color: "#3388ff" },
@@ -23,37 +23,58 @@ export function getNextSubjectRank(hours) {
   return idx < SUBJECT_RANKS.length - 1 ? SUBJECT_RANKS[idx + 1] : null;
 }
 
-export default function SubjectRankBadge({ hours = 0 }) {
-  const [showTip, setShowTip] = useState(false);
+export function SubjectRankProgressBar({ hours = 0, className = "" }) {
   const rank = getSubjectRank(hours);
   const next = getNextSubjectRank(hours);
   const progressPct = next ? Math.min(100, ((hours - rank.min) / (next.min - rank.min)) * 100) : 100;
-  const hoursToGo = next ? Math.max(0, next.min - hours).toFixed(1) : 0;
-
   const isSSS = rank.id === "SSS";
 
   return (
-    <div className="relative w-full">
-      {/* Progress bar */}
-      <div className="h-1 rounded-full bg-black/30 overflow-hidden mt-2">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${progressPct}%`,
-            background: rank.color,
-            animation: isSSS ? "pulse-glow 1.5s ease-in-out infinite" : undefined,
-          }}
-        />
-      </div>
-
-      {/* Rank badge + tooltip */}
+    <div className={`h-1 w-full rounded-full bg-black/30 dark:bg-white/10 overflow-hidden ${className}`}>
       <div
-        className="absolute bottom-0 right-0 translate-y-[-110%] cursor-default"
-        onMouseEnter={() => setShowTip(true)}
+        className="h-full rounded-full transition-all duration-500"
+        style={{
+          width: `${progressPct}%`,
+          background: rank.color,
+          animation: isSSS ? "pulse-glow 1.5s ease-in-out infinite" : undefined,
+        }}
+      />
+    </div>
+  );
+}
+
+export default function SubjectRankBadge({ hours = 0, showProgress = false, className = "" }) {
+  const [showTip, setShowTip] = useState(false);
+  const [tipCoords, setTipCoords] = useState({ top: 0, left: 0 });
+  const badgeRef = useRef(null);
+
+  const rank = getSubjectRank(hours);
+  const next = getNextSubjectRank(hours);
+  const hoursToGo = next ? Math.max(0, next.min - hours).toFixed(1) : 0;
+  const isSSS = rank.id === "SSS";
+
+  const handleMouseEnter = () => {
+    if (badgeRef.current) {
+      const rect = badgeRef.current.getBoundingClientRect();
+      setTipCoords({
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2,
+      });
+      setShowTip(true);
+    }
+  };
+
+  return (
+    <div className={`relative inline-flex flex-col ${className}`}>
+      <div
+        ref={badgeRef}
+        className="cursor-help inline-flex items-center"
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setShowTip(false)}
+        onClick={(e) => e.stopPropagation()}
       >
         <span
-          className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded"
+          className="text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded leading-none flex items-center justify-center min-w-[18px] text-center"
           style={{
             color: rank.color,
             background: `${rank.color}22`,
@@ -65,11 +86,22 @@ export default function SubjectRankBadge({ hours = 0 }) {
         </span>
 
         {showTip && (
-          <div className="absolute bottom-full right-0 mb-1 z-50 whitespace-nowrap bg-card border border-border rounded-lg px-2.5 py-1.5 text-[10px] font-mono text-foreground shadow-xl">
+          <div
+            className="fixed z-[99999] whitespace-nowrap bg-slate-900/95 text-slate-100 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-[10px] font-mono shadow-2xl pointer-events-none backdrop-blur-sm"
+            style={{
+              top: `${tipCoords.top}px`,
+              left: `${tipCoords.left}px`,
+              transform: "translate(-50%, -100%)",
+            }}
+          >
             Total: {hours.toFixed(1)}h | Rank: {rank.id} | {next ? `Next: ${next.id} at ${next.min}h | ${hoursToGo}h to go` : "MAX RANK"}
           </div>
         )}
       </div>
+
+      {showProgress && (
+        <SubjectRankProgressBar hours={hours} className="mt-1.5" />
+      )}
     </div>
   );
 }
