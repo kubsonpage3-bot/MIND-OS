@@ -880,8 +880,8 @@ class Task(models.Model):
     class Meta:
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
-        # По умолчанию сортируем: сначала порядок, потом дата создания
-        ordering = ["order", "-created_at"]
+        # По умолчанию сортируем: сначала порядок, потом id
+        ordering = ["order", "id"]
         indexes = [
             models.Index(fields=["user", "task_type"]),
             models.Index(fields=["user", "is_completed"]),

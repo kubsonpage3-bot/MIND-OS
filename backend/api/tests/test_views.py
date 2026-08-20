@@ -195,3 +195,97 @@ def test_profile_serializer_hp_boost(api_client, user, profile):
     # The max HP returned by the API should be 120 (100 base + 20 boost)
     assert resp.data["hp_max"] == 120
     assert resp.data["max_hp"] == 120
+
+
+@pytest.mark.django_db
+def test_task_sequential_order_and_stable_completion(api_client, user, profile):
+    """
+    Verifies that:
+    1. Newly created tasks get sequential 'order' values (0, 1, 2...).
+    2. Completing a task does NOT shift its position or jump it to the top.
+    3. Manual reordering persists correctly.
+    """
+    api_client.force_authenticate(user=user)
+
+    # 1. Create 3 habits
+    h1 = api_client.post(
+        "/api/tasks/",
+        {"title": "Habit 1", "task_type": "habit", "difficulty": "easy"},
+        format="json",
+    ).data
+    h2 = api_client.post(
+        "/api/tasks/",
+        {"title": "Habit 2", "task_type": "habit", "difficulty": "easy"},
+        format="json",
+    ).data
+    h3 = api_client.post(
+        "/api/tasks/",
+        {"title": "Habit 3", "task_type": "habit", "difficulty": "easy"},
+        format="json",
+    ).data
+
+    assert h1["order"] == 0
+    assert h2["order"] == 1
+    assert h3["order"] == 2
+
+    # 2. Complete Habit 2 (positive)
+    complete_resp = api_client.post(
+        f"/api/tasks/{h2['id']}/complete/",
+        {"is_positive": True},
+        format="json",
+    )
+    assert complete_resp.status_code == 200
+
+    # 3. Fetch list and ensure Habit 2 is still at index 1, not top or bottom
+    list_resp = api_client.get("/api/tasks/?task_type=habit")
+    assert list_resp.status_code == 200
+    results = list_resp.data if isinstance(list_resp.data, list) else list_resp.data.get("results", [])
+    task_ids = [t["id"] for t in results]
+    assert task_ids == [h1["id"], h2["id"], h3["id"]]
+
+    # 4. Create 2 todos and verify completion / toggle stability
+    t1 = api_client.post(
+        "/api/tasks/",
+        {"title": "Todo 1", "task_type": "todo", "difficulty": "easy"},
+        format="json",
+    ).data
+    t2 = api_client.post(
+        "/api/tasks/",
+        {"title": "Todo 2", "task_type": "todo", "difficulty": "easy"},
+        format="json",
+    ).data
+    assert t1["order"] == 0
+    assert t2["order"] == 1
+
+    # Toggle Todo 2
+    toggle_resp = api_client.post(f"/api/tasks/{t2['id']}/toggle/", format="json")
+    assert toggle_resp.status_code == 200
+
+    # Fetch list and check order is [Todo 1, Todo 2]
+    list_todos = api_client.get("/api/tasks/?task_type=todo")
+    todo_results = list_todos.data if isinstance(list_todos.data, list) else list_todos.data.get("results", [])
+    todo_ids = [t["id"] for t in todo_results]
+    assert todo_ids == [t1["id"], t2["id"]]
+
+    # 5. Test manual reorder
+    reorder_resp = api_client.post(
+        "/api/tasks/reorder/",
+        [
+            {"id": h3["id"], "order": 0},
+            {"id": h1["id"], "order": 1},
+            {"id": h2["id"], "order": 2},
+        ],
+        format="json",
+    )
+    assert reorder_resp.status_code == 200
+
+    # Fetch habits again
+    list_habits_reordered = api_client.get("/api/tasks/?task_type=habit")
+    reordered_results = (
+        list_habits_reordered.data
+        if isinstance(list_habits_reordered.data, list)
+        else list_habits_reordered.data.get("results", [])
+    )
+    reordered_ids = [t["id"] for t in reordered_results]
+    assert reordered_ids == [h3["id"], h1["id"], h2["id"]]
+

@@ -162,13 +162,15 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
 
 
 
+const taskComparator = (a, b) => ((a.order ?? 0) - (b.order ?? 0)) || ((a.id ?? 0) - (b.id ?? 0));
+
 export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { success, error } = useHaptic();
-  // Sort by `order` so habits keep stable positions even after server refetch
+  // Strictly deterministic sorting by order, then id
   const tasks = useMemo(
-    () => [...habits].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    () => [...habits].sort(taskComparator),
     [habits]
   );
 
@@ -202,18 +204,15 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
       if (!oldTasks) return oldTasks;
       const normalized = Array.isArray(oldTasks) ? oldTasks : (oldTasks?.results ?? []);
       const newTasks = [...normalized];
-      const oldIndex = newTasks.findIndex(t => String(t.id) === active.id);
-      const newIndex = newTasks.findIndex(t => String(t.id) === over.id);
-      if (oldIndex === -1 || newIndex === -1) return oldTasks;
 
-      const columnType = newTasks[oldIndex].type;
-      // Sort by order so arrayMove works on the same order as the visual list
-      const columnTasks = newTasks.filter(t => t.type === columnType).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const columnType = 'habit';
+      const columnTasks = newTasks.filter(t => t.type === columnType).sort(taskComparator);
       const otherTasks = newTasks.filter(t => t.type !== columnType);
 
-      const oldColIndex = columnTasks.findIndex(t => String(t.id) === active.id);
-      const newColIndex = columnTasks.findIndex(t => String(t.id) === over.id);
-      
+      const oldColIndex = columnTasks.findIndex(t => String(t.id) === String(active.id));
+      const newColIndex = columnTasks.findIndex(t => String(t.id) === String(over.id));
+      if (oldColIndex === -1 || newColIndex === -1) return oldTasks;
+
       const reorderedCol = arrayMove(columnTasks, oldColIndex, newColIndex);
       reorderedCol.forEach((t, i) => { t.order = i; });
 

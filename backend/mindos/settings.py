@@ -88,12 +88,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "mindos.wsgi.application"
 
 # ── База данных ───────────────────────────────────────────────────
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    db_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+is_sqlite = db_url.startswith("sqlite")
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-        conn_health_checks=True,
+        default=db_url,
+        conn_max_age=600 if not is_sqlite else 0,
+        ssl_require=False if is_sqlite else True,
+        conn_health_checks=True if not is_sqlite else False,
     )
 }
 

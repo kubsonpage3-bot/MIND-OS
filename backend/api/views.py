@@ -19,7 +19,7 @@ from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 import logging
 from datetime import timedelta
-from django.db import transaction
+from django.db import models, transaction
 
 from rest_framework import viewsets, generics, status, filters, serializers
 from rest_framework.views import APIView
@@ -360,8 +360,8 @@ class TaskViewSet(viewsets.ModelViewSet):
     ]
     filterset_fields = ["task_type", "is_completed", "difficulty"]
     search_fields = ["title", "notes"]
-    ordering_fields = ["order", "created_at", "due_date", "difficulty"]
-    ordering = ["order"]
+    ordering_fields = ["order", "id", "created_at", "due_date", "difficulty"]
+    ordering = ["order", "id"]
 
     def get_queryset(self):
         """
@@ -372,10 +372,20 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """
-        При создании задачи автоматически устанавливаем user = текущий пользователь.
-        Пользователь не может создать задачу от чужого имени.
+        При создании задачи автоматически устанавливаем user = текущий пользователь
+        и рассчитываем следующий order для task_type, если order не передан явно.
         """
-        serializer.save(user=self.request.user)
+        if "order" not in serializer.validated_data:
+            task_type = serializer.validated_data.get("task_type", Task.TaskType.TODO)
+            max_order = (
+                Task.objects.filter(user=self.request.user, task_type=task_type)
+                .aggregate(models.Max("order"))
+                .get("order__max")
+            )
+            next_order = (max_order + 1) if max_order is not None else 0
+            serializer.save(user=self.request.user, order=next_order)
+        else:
+            serializer.save(user=self.request.user)
 
     # ── Кастомный action: выполнить задачу ───────────────────────────────
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Square, Clock } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Square, CheckSquare, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -75,12 +75,14 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
 
   return (
     <motion.div
-      className="relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer"
+      className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer ${
+        task.is_completed ? 'opacity-50' : ''
+      }`}
       style={/** @type {any} */ ({
         background: 'var(--habit-panel)',
         border: justCompleted
           ? `1px solid ${accentColor}99`
-          : `1px solid ${overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
+          : `1px solid ${overdue && !task.is_completed ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
         boxShadow: justCompleted ? `0 0 10px ${accentColor}44` : undefined,
         transition: 'border 0.4s ease, box-shadow 0.4s ease',
         ...longPressProps.style
@@ -92,22 +94,23 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
       <PixelBurstLayer bursts={bursts} />
       <DragHandle />
       {/* Task Value bar */}
-      <div
-        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
-        title={`Task Value: ${tv.toFixed(1)}`}
-      />
+      {!task.is_completed && (
+        <div
+          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
+          title={`Task Value: ${tv.toFixed(1)}`}
+        />
+      )}
 
       {/* Checkbox */}
-      <div className="shrink-0">
-        <Square size={20} strokeWidth={2} style={{ color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)' }} />
+      <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : (overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)') }}>
+        {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="truncate" style={{
+        <div className={`truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{
           fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-          color: overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
-          textDecoration: 'none',
+          color: overdue && !task.is_completed ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
         }}>
           {task.name}
         </div>
@@ -115,20 +118,22 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
           <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
           <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
           {/* Task Value */}
-          <span className="text-[10px] font-mono" style={{ color: tvColor }}>
-            TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
-          </span>
+          {tv !== 0 && (
+            <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+              TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
+            </span>
+          )}
           {/* Due date */}
           {task.due_date && (
-            <span className="flex items-center gap-0.5 text-[10px]" style={{ color: overdue ? 'var(--habit-red)' : 'var(--habit-dim)' }}>
+            <span className="flex items-center gap-0.5 text-[10px]" style={{ color: overdue && !task.is_completed ? 'var(--habit-red)' : 'var(--habit-dim)' }}>
               <Clock size={8} />
               {new Date(task.due_date).toLocaleDateString()}
-              {overdue && ' ⚠️'}
+              {overdue && !task.is_completed && ' ⚠️'}
             </span>
           )}
         </div>
         {/* Предупреждение о снижении награды */}
-        {tv < -5 && (
+        {tv < -5 && !task.is_completed && (
           <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
             reward -{ Math.round(Math.abs(tv) * 5) }%
           </div>
@@ -143,6 +148,8 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
   );
 }
 
+const taskComparator = (a, b) => ((a.order ?? 0) - (b.order ?? 0)) || ((a.id ?? 0) - (b.id ?? 0));
+
 export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRankXP }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -154,7 +161,11 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   const [formType, setFormType] = useState('todo');
   const [editingTask, setEditingTask] = useState(null);
 
-  const activeTodos = todos.filter(t => !t.is_completed).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  // Strictly deterministic sorting by order, then id
+  const tasks = useMemo(
+    () => [...todos].sort(taskComparator),
+    [todos]
+  );
 
   const sensors = useTaskDndSensors();
   const [activeId, setActiveId] = useState(null);
@@ -175,18 +186,15 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       const rawTasks = /** @type {any} */ (oldTasks);
       const normalized = Array.isArray(rawTasks) ? rawTasks : (rawTasks?.results ?? []);
       const newTasks = [...normalized];
-      const oldIndex = newTasks.findIndex(t => String(t.id) === active.id);
-      const newIndex = newTasks.findIndex(t => String(t.id) === over.id);
-      if (oldIndex === -1 || newIndex === -1) return oldTasks;
 
-      const columnType = newTasks[oldIndex].type;
-      // Sort by order so arrayMove works on the same order as the visual list
-      const columnTasks = newTasks.filter(t => t.type === columnType && !t.is_completed).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      const otherTasks = newTasks.filter(t => t.type !== columnType || t.is_completed);
+      const columnType = 'todo';
+      const columnTasks = newTasks.filter(t => t.type === columnType).sort(taskComparator);
+      const otherTasks = newTasks.filter(t => t.type !== columnType);
 
-      const oldColIndex = columnTasks.findIndex(t => String(t.id) === active.id);
-      const newColIndex = columnTasks.findIndex(t => String(t.id) === over.id);
-      
+      const oldColIndex = columnTasks.findIndex(t => String(t.id) === String(active.id));
+      const newColIndex = columnTasks.findIndex(t => String(t.id) === String(over.id));
+      if (oldColIndex === -1 || newColIndex === -1) return oldTasks;
+
       const reorderedCol = arrayMove(columnTasks, oldColIndex, newColIndex);
       reorderedCol.forEach((t, i) => { t.order = i; });
 
@@ -364,8 +372,6 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     deleteMutation.mutate(id);
   };
 
-  const sortedActive = activeTodos;
-
   return (
     <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
       {/* Header */}
@@ -382,15 +388,15 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
           className="flex-1 p-3 space-y-2" 
           style={{ background: 'var(--habit-panel)', minHeight: 120 }}
         >
-          <SortableContext items={sortedActive.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
-            {activeTodos.length === 0 && (
+          <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
+            {tasks.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-3xl mb-2">📜</div>
                 <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_todos')}</div>
               </div>
             )}
             <AnimatePresence mode="popLayout">
-          {sortedActive.map((task, index) => {
+          {tasks.map((task, index) => {
             return (
               <motion.div
                 key={task.id}
