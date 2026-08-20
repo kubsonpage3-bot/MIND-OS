@@ -39,9 +39,9 @@ const SECTION_GROUPS = [
       { id: "character", label: "Character", icon: "character", subItems: [
         { id: "overview",     label: "Overview" },
         { id: "skills",       label: "Skills" },
-        { id: "achievements", label: "Achievements" },
         { id: "shop",         label: "Shop" },
       ]},
+
       { id: "rival", label: "Rival", icon: "rival", subItems: [] },
     ],
   },

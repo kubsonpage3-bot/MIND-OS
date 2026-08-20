@@ -1,5 +1,5 @@
 import PixelCharacter from "@/components/mindos/PixelCharacter";
-import TitleIcon from "@/components/mindos/TitleIcon";
+
 import BossPanel from "@/components/mindos/BossPanel";
 import { CLASSES } from "@/constants/rpgData";
 import { getRankDisplayData } from "@/lib/rankEngine";
@@ -43,23 +43,7 @@ export default function CharacterHub({ rankXP, currentRankId, onBossDamage, exte
         </div>
         <div style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 16, color: "var(--habit-text)" }}>{userName || "Hero"}</div>
         <div style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: "var(--habit-dim)", marginTop: 4 }}>LVL {rankId}</div>
-        {(() => {
-          const activeTitle = profile?.playstyle_info?.active_title || { id: "awakened_one", name: "Awakened One", icon: "✨", color: "#a855f7" };
-          const translatedName = t(`titles.${activeTitle.id}.name`, activeTitle.name);
-          return (
-            <div
-              className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold border shadow-xs"
-              style={{
-                background: `${activeTitle.color}15`,
-                borderColor: `${activeTitle.color}40`,
-                color: activeTitle.color,
-              }}
-            >
-              <TitleIcon title={activeTitle} className="w-3.5 h-3.5" />
-              <span>{translatedName}</span>
-            </div>
-          );
-        })()}
+
       </div>
 
       {/* HP Bar */}

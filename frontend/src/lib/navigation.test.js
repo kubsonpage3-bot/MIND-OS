@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { isValidSubTab, getValidSubTab, SUB_TABS } from "./navigation.js";
 
 test("SUB_TABS structure", () => {
-  assert.deepEqual(SUB_TABS.character, ["overview", "skills", "achievements", "shop"]);
+  assert.deepEqual(SUB_TABS.character, ["overview", "skills", "shop"]);
   assert.ok(SUB_TABS.settings.includes("appearance"));
 });
 

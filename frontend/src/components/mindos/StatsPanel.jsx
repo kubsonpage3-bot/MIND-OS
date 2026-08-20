@@ -1,10 +1,9 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { djangoApi } from "@/api/djangoClient";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import TitleSelectorModal from "@/components/mindos/TitleSelectorModal";
-import TitleIcon from "@/components/mindos/TitleIcon";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+
 
 const XP_PER_LEVEL = 500;
 
@@ -126,7 +125,7 @@ function BatteryIndicator({ level, color }) {
 
 export default function StatsPanel({ profile, logs }) {
   const { t } = useTranslation();
-  const [showTitleModal, setShowTitleModal] = useState(false);
+
 
   const weeklyXP = profile?.weekly_xp || 0;
   const xpPct = (weeklyXP % XP_PER_LEVEL) / XP_PER_LEVEL * 100;
@@ -144,28 +143,11 @@ export default function StatsPanel({ profile, logs }) {
     : batteryLevel >= 25 ? "#f59e0b"
     : "#f74e52";
 
-  const playstyleInfo = profile?.playstyle_info || {};
-  const activeTitle = playstyleInfo.active_title || { id: "awakened_one", name: "Awakened One", icon: "✨", color: "#a855f7" };
-  const unlockedCount = playstyleInfo.unlocked_count || 1;
-  const totalCount = playstyleInfo.total_count || 52;
 
-  const rarityStyle = useMemo(() => {
-    const priority = activeTitle.priority || 0;
-    let rarity = "common";
-    if (activeTitle.id === "awakened_one") rarity = "rare";
-    else if (priority >= 120) rarity = "legendary";
-    else if (priority >= 95) rarity = "epic";
-    else if (priority >= 75) rarity = "rare";
-    else if (priority >= 50) rarity = "uncommon";
-    return RARITY_STYLES[rarity];
-  }, [activeTitle]);
-
-  const rColor = rarityStyle.color;
-  const isLegendary = activeTitle.priority >= 120;
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {/* ── STREAK CARD (Clean & simplified) ─────────── */}
         <StreakCard profile={profile} />
 
@@ -279,76 +261,7 @@ export default function StatsPanel({ profile, logs }) {
           </div>
         </Card3D>
 
-        {/* ── TITLE CARD (Elevated Medallion Centerpiece) ─── */}
-        <Card3D
-          onClick={() => setShowTitleModal(true)}
-          style={{
-            background: `linear-gradient(145deg, ${rColor}18, ${rColor}06)`,
-            borderColor: `${rColor}${rarityStyle.borderOpacity}`,
-            boxShadow: `0 4px 28px ${rColor}${rarityStyle.glowOpacity}, 0 1px 0 rgba(255,255,255,0.08) inset`,
-            cursor: "pointer",
-          }}
-          className="cursor-pointer"
-        >
-          {/* Legendary shimmer overlay */}
-          {isLegendary && (
-            <motion.div
-              className="absolute inset-0 rounded-xl pointer-events-none"
-              animate={{ opacity: [0, 0.3, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              style={{ background: `radial-gradient(ellipse at 50% 0%, ${rColor}50 0%, transparent 70%)`, zIndex: 3 }}
-            />
-          )}
-
-          <motion.div
-            className="w-12 h-12 flex items-center justify-center rounded-xl p-1 relative"
-            whileHover={{ scale: 1.15, rotate: 6 }}
-            transition={{ type: "spring", stiffness: 400 }}
-            style={{
-              background: `radial-gradient(circle, ${rColor}25 0%, transparent 75%)`,
-              boxShadow: `0 0 14px ${rColor}60`,
-              transform: "translateZ(30px)",
-            }}
-          >
-            <TitleIcon title={activeTitle} className="w-11 h-11" />
-          </motion.div>
-
-          <div
-            className="truncate max-w-full px-1 font-bold leading-tight"
-            style={{
-              fontFamily: "'Nunito'",
-              fontSize: "0.82rem",
-              color: rColor,
-              textShadow: `0 0 14px ${rColor}80`,
-              transform: "translateZ(40px)",
-            }}
-          >
-            {t(`titles.${activeTitle.id}.name`, activeTitle.name)}
-          </div>
-
-          <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
-            TITLE
-          </div>
-
-          <div
-            className="text-[8px] font-mono font-semibold px-2 py-0.5 rounded-full"
-            style={{
-              background: `${rColor}18`,
-              border: `1px solid ${rColor}30`,
-              color: rColor,
-              transform: "translateZ(20px)",
-            }}
-          >
-            🏆 {unlockedCount}/{totalCount}
-          </div>
-        </Card3D>
       </div>
-
-      <AnimatePresence>
-        {showTitleModal && (
-          <TitleSelectorModal profile={profile} onClose={() => setShowTitleModal(false)} />
-        )}
-      </AnimatePresence>
     </>
   );
 }

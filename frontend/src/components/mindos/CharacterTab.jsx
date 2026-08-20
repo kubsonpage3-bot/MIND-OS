@@ -22,7 +22,7 @@ import ClassSelector from "./ClassSelector";
 import SkillPanel from "./SkillPanel";
 import SkillTreePanel from "./SkillTreePanel";
 import AlliesPanel from "./AlliesPanel";
-import AchievementsPanel from "./AchievementsPanel";
+
 import MutatorsPanel from "./MutatorsPanel";
 import TabGuideModal from "./TabGuideModal";
 import GameCard from "@/components/ui/GameCard";
@@ -51,7 +51,7 @@ const SLOT_KEYS = ["headware", "neural_link", "core", "arms", "legs", "offhand",
 
 const TIER_ORDER = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
 
-const SUB_TAB_IDS = ["overview", "skills", "achievements", "shop"];
+const SUB_TAB_IDS = ["overview", "skills", "shop"];
 
 function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab: externalSubTab, onBack = undefined }) {
   useProfileMount("CharacterTab");
@@ -714,10 +714,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
         )
       )}
 
-      {/* ACHIEVEMENTS */}
-      {subTab === "achievements" && (
-        <AchievementsPanel profile={profile} logs={logs || []} alliesData={profile?.recruited_allies || {}} prestigeData={{ count: profile?.prestige_count || 0 }} onClaimReward={() => { }} />
-      )}
+
 
       {/* SHOP */}
       {subTab === "shop" && (

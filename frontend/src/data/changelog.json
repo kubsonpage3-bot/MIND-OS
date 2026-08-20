@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.59",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Removed Titles and Achievements panels from the interface to declutter the Character tab and stats screen."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.58",
     "date": "2026-08-18",
     "changes": [

@@ -1,5 +1,5 @@
 export const SUB_TABS = {
-  character: ["overview", "skills", "achievements", "shop"],
+  character: ["overview", "skills", "shop"],
   settings: [
     "appearance",
     "notifications",
