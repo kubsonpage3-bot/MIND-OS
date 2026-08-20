@@ -159,7 +159,7 @@ class ServiceMechanicsTests(TestCase):
         self.profile.save()
 
         self.item = Item.objects.create(
-            code="gold_sword", name="Gold Sword", item_type="equipment", cost=50
+            code="gold_sword", name="Gold Sword", item_type="consumable", cost=50
         )
         self.task = Task.objects.create(
             user=self.user, title="Test Task", task_type="habit", difficulty="hard"

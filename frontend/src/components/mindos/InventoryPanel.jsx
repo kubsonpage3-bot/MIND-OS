@@ -53,12 +53,13 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   });
 
   const applyConsumable = (item) => {
-    if (!item.code) {
+    const itemCode = item.code || item.id;
+    if (!itemCode) {
       console.error('[InventoryPanel] Cannot consume: item.code is missing', item);
       return;
     }
-    setUsedId(item.id);
-    consumeMutation.mutate(item.code);
+    setUsedId(item.id || itemCode);
+    consumeMutation.mutate(itemCode);
     setTimeout(() => setUsedId(null), 800);
   };
 
@@ -237,13 +238,14 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
           ) : consumablesOwned.map((item, idx) => {
             const tierColor = getTierColor(item.tier);
             const effectColor = tierColor || "#8b5cf6";
-            const isUsed = usedId === item.id;
-            const alreadyActive = consumables_active[item.code]?.active && (!consumables_active[item.code]?.expiresAt || Date.now() < consumables_active[item.code]?.expiresAt);
+            const isUsed = usedId === (item.id || item.code);
+            const itemCode = item.code || item.id;
+            const alreadyActive = consumables_active[itemCode]?.active && (!consumables_active[itemCode]?.expiresAt || Date.now() < consumables_active[itemCode]?.expiresAt);
             // Count how many of this item in inventory
-            const count = consumablesOwned.filter(i => i.id === item.id).length;
+            const count = item.quantity || consumablesOwned.filter(i => (i.id === item.id || i.code === itemCode)).length;
 
             // Only render first occurrence per id to avoid duplicate rows
-            const firstIdx = consumablesOwned.findIndex(i => i.id === item.id);
+            const firstIdx = consumablesOwned.findIndex(i => (i.id === item.id || (i.code && i.code === itemCode)));
             if (firstIdx !== idx) return null;
 
             return (

@@ -70,9 +70,17 @@ def consume_item(user, item_code: str):
             "duration_hours": 24,
         },
         "daily_xp_surge": {
-            "data": {"effect_type": "xp_booster", "xpBoost": 0.5},
+            "data": {"effect_type": "xp_booster", "xpBoost": 1.0},
             "duration_hours": 2,
-        },  # Using same logic
+        },
+        "focus_scroll": {
+            "data": {
+                "effect_type": "focus_scroll",
+                "xpBoost": 0.25,
+                "cooldown_reduction": 0.5,
+            },
+            "duration_hours": 2,
+        },
         "streak_shield": {
             "data": {"effect_type": "streak_shield", "uses_left": 1},
             "duration_hours": None,

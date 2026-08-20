@@ -26,28 +26,26 @@ class ConsumablesTests(TestCase):
         self.profile.hp = 10
         self.profile.save()
 
-        # Create items
-        self.small_heal = Item.objects.create(
+        # Get or create items
+        self.small_heal, _ = Item.objects.get_or_create(
             code="small_heal",
-            name="Small Heal",
-            item_type="consumable",
-            hp_boost=20,
-            cost=10,
+            defaults={"name": "Small Heal", "item_type": "consumable", "hp_boost": 20, "cost": 10},
         )
-        self.xp_booster = Item.objects.create(
-            code="xp_booster", name="XP Booster", item_type="consumable", cost=50
+        self.xp_booster, _ = Item.objects.get_or_create(
+            code="xp_booster",
+            defaults={"name": "XP Booster", "item_type": "consumable", "cost": 50},
         )
-        self.streak_shield = Item.objects.create(
-            code="streak_shield", name="Streak Shield", item_type="consumable", cost=100
+        self.streak_shield, _ = Item.objects.get_or_create(
+            code="streak_shield",
+            defaults={"name": "Streak Shield", "item_type": "consumable", "cost": 100},
         )
-        self.memory_patch = Item.objects.create(
-            code="memory_patch", name="Memory Patch", item_type="consumable", cost=35
+        self.memory_patch, _ = Item.objects.get_or_create(
+            code="memory_patch",
+            defaults={"name": "Memory Patch", "item_type": "consumable", "cost": 35},
         )
-        self.boss_damage_plus = Item.objects.create(
+        self.boss_damage_plus, _ = Item.objects.get_or_create(
             code="boss_damage_plus",
-            name="Boss Damage+",
-            item_type="consumable",
-            cost=60,
+            defaults={"name": "Boss Damage+", "item_type": "consumable", "cost": 60},
         )
 
         InventoryItem.objects.create(

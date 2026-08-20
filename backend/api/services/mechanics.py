@@ -1172,6 +1172,10 @@ def get_passive_multipliers(profile, context: dict):
         if "gold_boost" in effect.data:
             effects["gold_mult"] += effect.data["gold_boost"]
 
+        # Cooldown Reduction Buff (Focus Scroll)
+        if "cooldown_reduction" in effect.data:
+            effects["cooldown_reduction"] += effect.data["cooldown_reduction"]
+
         # Humanities XP Boost
         if "humanitiesXpBoost" in effect.data and is_language:
             effects["humanities_xp_mult"] += effect.data["humanitiesXpBoost"]
