@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
@@ -20,16 +20,9 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
   const [particleTrigger, setParticleTrigger] = useState(null); // { id, intensity, color }
   const [open, setOpen] = useState(true);
   const [displayHP, setDisplayHP] = useState(0);
-  const [idleDamageFloats, setIdleDamageFloats] = useState([]);
   const bossSpriteControls = useAnimation();
 
 
-  // Preserve initial drain state across React Query refetches
-  const initialDrainRef = useRef({
-    active: false,
-    preDamageHP: 0,
-    serverHP: 0,
-  });
 
   // 1. Подписываемся на энкаунтеры (для отображения активного босса)
   const { data: encountersData = [] } = useQuery({
@@ -103,85 +96,6 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     return `~${s}s`;
   };
 
-  // Idle HP tick effect
-  useEffect(() => {
-    if (!activeEncounter || activeEncounter.is_defeated || !activeBossTemplate) return;
-
-    const maxHP = activeEncounter.boss.hp_max;
-    const minHP = Math.max(0, Math.floor(maxHP * 0.05));
-    const serverHP = activeEncounter.hp_current;
-    const serverTime = activeEncounter.last_idle_tick_at ? new Date(activeEncounter.last_idle_tick_at).getTime() : Date.now();
-    const dps = activeEncounter.idle_dps || 0.1;
-
-    // Lock in the initial drain state if we have offline damage and aren't already draining it
-    if (!initialDrainRef.current.active && (activeEncounter.idle_damage_applied || 0) > 0) {
-      initialDrainRef.current = {
-        active: true,
-        preDamageHP: serverHP + activeEncounter.idle_damage_applied,
-        serverHP: serverHP
-      };
-    } else if (initialDrainRef.current.active && serverHP !== initialDrainRef.current.serverHP) {
-      // Abort drain if the server HP changed (e.g. user dealt damage)
-      initialDrainRef.current.active = false;
-    }
-
-    const isInitialDrain = initialDrainRef.current.active;
-    const preDamageHP = isInitialDrain ? initialDrainRef.current.preDamageHP : serverHP;
-
-    const updateHP = () => {
-      const elapsedSeconds = Math.max(0, (Date.now() - serverTime) / 1000);
-      const idleDamage = elapsedSeconds * dps;
-      const newDisplayHP = Math.floor(Math.max(minHP, serverHP - idleDamage));
-      
-      if (window.isOfflineModalOpen) {
-        setDisplayHP(prev => {
-          if (prev === 0) return isInitialDrain ? preDamageHP : newDisplayHP;
-          return prev;
-        });
-        return;
-      }
-
-      setDisplayHP(prev => {
-        // Handle initialization
-        if (prev === 0) {
-            return isInitialDrain ? preDamageHP : newDisplayHP;
-        }
-
-        // Handle the fast initial drain from preDamageHP to serverHP
-        if (isInitialDrain && prev > newDisplayHP) {
-            // Drain 5% of max HP per frame or a fixed amount to make it fast but visible
-            const drainAmount = Math.max(Math.floor(maxHP * 0.02), 10);
-            const nextHP = Math.max(newDisplayHP, prev - drainAmount);
-            if (nextHP <= newDisplayHP) {
-                initialDrainRef.current.active = false; // Finished draining
-            }
-            return nextHP;
-        }
-
-        // Normal idle ticks
-        if (prev !== 0 && newDisplayHP < prev && !isInitialDrain) {
-          const damageAmt = prev - newDisplayHP;
-          const id = Date.now();
-          setIdleDamageFloats(curr => [...curr, { id, value: damageAmt }]);
-          
-          bossSpriteControls.start({
-            x: [0, -3, 3, -1, 1, 0],
-            scale: [1, 1.02, 0.99, 1],
-            filter: ["brightness(1.2)", "brightness(1)"],
-            transition: { duration: 0.25, ease: "easeOut" }
-          });
-          
-          playSound('boss_idle_tick');
-        }
-        return newDisplayHP;
-      });
-    };
-
-    updateHP();
-    // Use requestAnimationFrame style interval for the fast drain, or just stick to 100ms if draining, otherwise 1000ms
-    const interval = setInterval(updateHP, 100);
-    return () => clearInterval(interval);
-  }, [activeEncounter, activeBossTemplate, bossSpriteControls]);
 
 
   // Если нет активного босса, показываем заглушку "Призвать"
@@ -309,31 +223,6 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                   }}
                 />
               </motion.div>
-              {/* Idle Damage floats */}
-              <AnimatePresence>
-                {idleDamageFloats.map((float) => (
-                  <motion.div
-                    key={float.id}
-                    initial={{ opacity: 1, y: 0, scale: 0.8 }}
-                    animate={{ opacity: 0, y: -40, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    onAnimationComplete={() => {
-                      setIdleDamageFloats(curr => curr.filter(item => item.id !== float.id));
-                    }}
-                    className="absolute font-mono font-black pointer-events-none text-center z-10"
-                    style={{
-                      top: `${30 + Math.random() * 20}%`, // Randomize start position slightly
-                      left: `${40 + Math.random() * 20}%`,
-                      color: "#cbd5e1", // slate-300
-                      fontSize: "16px",
-                      textShadow: "0px 2px 4px rgba(0,0,0,0.8)",
-                    }}
-                  >
-                    -{float.value}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
               {/* Damage float */}
               <AnimatePresence>
                 {damageFloat && (
@@ -398,11 +287,6 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                 </motion.svg>
               </div>
               
-              {/* Idle Stats Bar */}
-              <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground/60 border-t border-border/30 pt-1.5 mt-1">
-                <span>{t("boss_panel_extra.idle_dps", "⚡ Idle DPS:")} {dps.toFixed(2)} ({ (dps * 3600).toFixed(0) }{t("boss_panel_extra.per_hr", "/hr")})</span>
-                <span>{t("boss_panel_extra.eta", "⏱️ ETA:")} {formatETA((bossHP - minHP) / dps)}</span>
-              </div>
               <div className="flex justify-between items-end">
                 <div>
                   <div className="text-[10px] font-mono text-muted-foreground/50 italic">{activeBossTemplate.name}</div>
