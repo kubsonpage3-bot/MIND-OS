@@ -203,12 +203,12 @@ export default function SkillPanel({ classId }) {
             }}
             className="p-3 rounded-xl border space-y-2 relative overflow-hidden"
             style={{
-              borderColor: state.available ? `${cls.color}60` : "#1e1a38",
-              background: "#0a0818",
+              borderColor: state.available ? `${cls.color}60` : "var(--habit-border)",
+              background: state.available ? `${cls.color}0c` : "var(--habit-panel)",
               imageRendering: "pixelated",
             }}
           >
-            <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
               style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 3px, #ffffff 3px, #ffffff 4px)" }} />
 
             <PixelFlash active={isFlashing} color={cls.color} />
@@ -221,7 +221,7 @@ export default function SkillPanel({ classId }) {
 
             <div className="flex items-start justify-between gap-2 relative">
               <div className="min-w-0">
-                <div className="font-mono text-xs font-bold flex items-center gap-1.5" style={{ color: state.available ? cls.color : "#4a4060" }}>
+                <div className="font-mono text-xs font-bold flex items-center gap-1.5" style={{ color: state.available ? cls.color : "var(--habit-dim)" }}>
                   {state.available && (
                     <motion.span
                       animate={{ opacity: [1, 0.3, 1] }}
@@ -231,13 +231,13 @@ export default function SkillPanel({ classId }) {
                   )}
                   {String(t(`rpgData.skills.${skill.id}.name`, skill.name))}
                 </div>
-                <div className="text-[10px] font-mono text-muted-foreground/50 mt-0.5 leading-relaxed">{String(t(`rpgData.skills.${skill.id}.desc`, skill.desc))}</div>
+                <div className="text-[10px] font-mono text-muted-foreground/70 mt-0.5 leading-relaxed">{String(t(`rpgData.skills.${skill.id}.desc`, skill.desc))}</div>
               </div>
               <div className="shrink-0 text-right">
                 <div className="text-[10px] font-mono font-bold" style={{ color: state.hasMana ? cls.color : "#ef4444" }}>
                   {skill.mana} MP
                 </div>
-                <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 tracking-widest">
+                <div className="text-[9px] font-mono text-muted-foreground/50 mt-0.5 tracking-widest">
                   {formatCountdown(state.remaining, t)}
                 </div>
               </div>
@@ -247,11 +247,11 @@ export default function SkillPanel({ classId }) {
               onClick={() => activateSkill(skill)}
               disabled={!state.available}
               whileTap={state.available ? { scale: 0.92, y: 2 } : {}}
-              className="w-full py-1.5 text-[10px] font-mono font-bold rounded-none transition-colors relative overflow-hidden"
+              className="w-full py-1.5 text-[10px] font-mono font-bold rounded-lg transition-colors relative overflow-hidden"
               style={{
-                background: state.available ? `${cls.color}25` : "#1e1a38",
-                color: state.available ? cls.color : "#4a4060",
-                border: `2px solid ${state.available ? cls.color + "80" : "#1e1a38"}`,
+                background: state.available ? `${cls.color}25` : "var(--habit-purple-light, rgba(0,0,0,0.04))",
+                color: state.available ? cls.color : "var(--habit-dim)",
+                border: `1.5px solid ${state.available ? cls.color + "80" : "var(--habit-border)"}`,
                 cursor: state.available ? "pointer" : "not-allowed",
                 imageRendering: "pixelated",
               }}

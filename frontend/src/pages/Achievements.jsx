@@ -40,8 +40,8 @@ function BossMedalCard({ boss, defeated }) {
       animate={{ opacity: 1, y: 0 }}
       className="relative flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all"
       style={{
-        borderColor: defeated ? `${boss.color}60` : "#1e1a38",
-        background: defeated ? `${boss.color}0a` : "#0a0818",
+        borderColor: defeated ? `${boss.color}60` : "var(--habit-border)",
+        background: defeated ? `${boss.color}10` : "var(--habit-panel)",
         boxShadow: defeated ? `0 0 20px ${boss.color}30, inset 0 0 20px ${boss.color}08` : "none",
       }}
     >
@@ -56,10 +56,10 @@ function BossMedalCard({ boss, defeated }) {
         {defeated ? boss.medal : "🔒"}
       </motion.div>
       <div className="text-center">
-        <div className="font-mono text-[10px] font-black tracking-wider" style={{ color: defeated ? boss.color : "#4a4060" }}>
+        <div className="font-mono text-[10px] font-black tracking-wider" style={{ color: defeated ? boss.color : "var(--habit-dim)" }}>
           {String(t(`bosses.${boss.id}`, boss.name))}
         </div>
-        <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 italic">{defeated ? replaceBossNames(t(`achievements_page.medal_desc_${boss.id}`, boss.desc), t) : "???"}</div>
+        <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5 italic">{defeated ? replaceBossNames(t(`achievements_page.medal_desc_${boss.id}`, boss.desc), t) : "???"}</div>
       </div>
       {defeated && (
         <motion.div
@@ -83,8 +83,8 @@ function AchievementCard({ ach, isUnlocked }) {
       whileHover={isUnlocked ? { scale: 1.04 } : {}}
       className="relative p-3 rounded-xl border text-center cursor-pointer transition-all"
       style={{
-        borderColor: isUnlocked ? `${ach.color}60` : "#1e1a38",
-        background: isUnlocked ? `${ach.color}0d` : "#0a0818",
+        borderColor: isUnlocked ? `${ach.color}60` : "var(--habit-border)",
+        background: isUnlocked ? `${ach.color}10` : "var(--habit-panel)",
         boxShadow: isUnlocked ? `0 0 10px ${ach.color}30` : "none",
         filter: isUnlocked ? "none" : "grayscale(1) opacity(0.4)",
       }}
@@ -97,7 +97,7 @@ function AchievementCard({ ach, isUnlocked }) {
       >
         {isUnlocked ? ach.icon : "🔒"}
       </motion.div>
-      <div className="text-[9px] font-mono font-bold" style={{ color: isUnlocked ? ach.color : "#4a4060" }}>
+      <div className="text-[9px] font-mono font-bold" style={{ color: isUnlocked ? ach.color : "var(--habit-dim)" }}>
         {isUnlocked ? String(t(`rpgData.achievements.${ach.id}.name`, ach.name)) : "???"}
       </div>
       {isUnlocked && showTip && (

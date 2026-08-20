@@ -420,8 +420,8 @@ export default function AlliesPanel({ onSpendGold }) {
                   disabled={gold < selected.recruitCost || revealState !== "idle"}
                   className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all"
                   style={{
-                    borderColor: gold >= selected.recruitCost ? "#f0c040" : "#1e1a38",
-                    color: gold >= selected.recruitCost ? "#f0c040" : "#4a4060",
+                    borderColor: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-border)",
+                    color: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-dim)",
                     background: gold >= selected.recruitCost ? "#f0c04015" : "transparent",
                   }}
                 >
@@ -433,8 +433,8 @@ export default function AlliesPanel({ onSpendGold }) {
                   disabled={gold < (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0)}
                   className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all"
                   style={{
-                    borderColor: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "#1e1a38",
-                    color: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "#4a4060",
+                    borderColor: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-border)",
+                    color: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-dim)",
                     background: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? `${selected.color}15` : "transparent",
                   }}
                 >

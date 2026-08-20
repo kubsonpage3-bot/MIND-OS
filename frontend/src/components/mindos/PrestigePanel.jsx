@@ -168,7 +168,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
                   onClick={confirm}
                   disabled={input !== "REBIRTH"}
                   className="flex-1 py-2 text-xs font-mono rounded-lg font-black transition-all"
-                  style={{ background: input === "REBIRTH" ? "#dc2626" : "#1e1a38", color: input === "REBIRTH" ? "#fff" : "#4a4060" }}
+                  style={{ background: input === "REBIRTH" ? "#dc2626" : "var(--habit-purple-light, rgba(0,0,0,0.05))", color: input === "REBIRTH" ? "#fff" : "var(--habit-dim)" }}
                 >{t('prestige.confirmRebirth')}</button>
               </div>
             </div>

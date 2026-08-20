@@ -942,8 +942,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                       whileTap={canAfford && !((!item.consumable) && owned) ? { scale: 0.88, y: 2 } : {}}
                       className="w-full mt-auto py-2 text-[10px] font-mono font-bold rounded border transition-colors shrink-0 relative overflow-hidden"
                       style={{
-                        borderColor: canAfford && !(!item.consumable && owned) ? "#f0c040" : "#1e293b",
-                        color: canAfford && !(!item.consumable && owned) ? "#f0c040" : "#475569",
+                        borderColor: canAfford && !(!item.consumable && owned) ? "#f0c040" : "var(--habit-border)",
+                        color: canAfford && !(!item.consumable && owned) ? "#f0c040" : "var(--habit-dim)",
                         background: canAfford && !(!item.consumable && owned) ? "#f0c04015" : "transparent",
                         opacity: (!item.consumable && owned) ? 0.4 : 1,
                       }}
@@ -1022,8 +1022,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
               disabled={gold < selectedItem.cost || (!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))}
               className="w-full py-3 text-xs font-mono font-bold rounded border transition-colors relative overflow-hidden"
               style={{
-                borderColor: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c040" : "#1e293b",
-                color: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c040" : "#475569",
+                borderColor: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c040" : "var(--habit-border)",
+                color: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c040" : "var(--habit-dim)",
                 background: (gold >= selectedItem.cost && !(!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id))) ? "#f0c04015" : "transparent",
                 opacity: (!selectedItem.consumable && inventory.some(i => i.id === selectedItem.id)) ? 0.4 : 1,
               }}

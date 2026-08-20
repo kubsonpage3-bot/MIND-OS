@@ -155,10 +155,10 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                           onClick={() => setForm({ ...form, difficulty: d.id })}
                           className="flex-1 px-3 py-2.5 text-xs font-mono rounded border-2 transition-all"
                           style={{
-                            borderColor: form.difficulty === d.id ? d.color : "#1e293b",
-                            color: form.difficulty === d.id ? d.color : "#64748b",
+                            borderColor: form.difficulty === d.id ? d.color : "var(--habit-border)",
+                            color: form.difficulty === d.id ? d.color : "var(--habit-dim)",
                             background: form.difficulty === d.id ? `${d.color}15` : "transparent",
-                            boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
                           }}
                         >
                           {d.label}
@@ -178,10 +178,10 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                             onClick={() => setForm({ ...form, priority: p })}
                             className="flex-1 py-2 text-xs font-mono rounded border-2 transition-all uppercase"
                             style={{
-                              borderColor: form.priority === p ? PRIORITY_COLORS[p] : "#1e293b",
-                              color: form.priority === p ? PRIORITY_COLORS[p] : "#64748b",
+                              borderColor: form.priority === p ? PRIORITY_COLORS[p] : "var(--habit-border)",
+                              color: form.priority === p ? PRIORITY_COLORS[p] : "var(--habit-dim)",
                               background: form.priority === p ? `${PRIORITY_COLORS[p]}15` : "transparent",
-                              boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
                             }}
                           >
                             {p}

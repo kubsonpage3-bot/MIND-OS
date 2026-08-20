@@ -268,28 +268,28 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const selectedNode = GRAPH_DATA.nodes.find(n => n.id === selectedNodeId);
 
   return (
-    <div className="relative flex flex-col h-[600px] bg-[var(--habit-panel)] rounded-xl overflow-hidden border border-[var(--habit-border)]/10">
+    <div className="relative flex flex-col h-[600px] bg-[var(--habit-panel)] rounded-xl overflow-hidden border border-[var(--habit-border)]">
       
       {/* Header Overlay */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-[#0a0a0f] to-transparent pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-[var(--habit-panel)] via-[var(--habit-panel)]/80 to-transparent pointer-events-none">
         <div className="flex items-center justify-between pointer-events-auto">
-          <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">{t('skill_tree.title')}</div>
+          <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-widest">{t('skill_tree.title')}</div>
           <div className="flex items-center gap-2">
             <div className="text-xs font-mono font-bold" style={{ color: "#f0c040", textShadow: "0 0 10px rgba(240,192,64,0.5)" }}>
               {sp} SP
             </div>
             <button
               onClick={() => setShowPresetSave(true)}
-              className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors bg-black/50 backdrop-blur"
-              style={{ borderColor: "#f0c04040", color: "#f0c040" }}
+              className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-mono border rounded-lg transition-colors bg-[var(--habit-panel)] shadow-sm hover:border-[#f0c040]"
+              style={{ borderColor: "var(--habit-border)", color: "#f0c040" }}
             >
               <Save className="w-2.5 h-2.5" /> {t('skill_tree.btn_save')}
             </button>
             <button
               onClick={() => setShowRespec(true)}
               disabled={unlocked.length === 0}
-              className="flex items-center gap-1 px-2 py-1 text-[9px] font-mono border rounded transition-colors bg-black/50 backdrop-blur disabled:opacity-30"
-              style={{ borderColor: "#ef444440", color: "#ef4444" }}
+              className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-mono border rounded-lg transition-colors bg-[var(--habit-panel)] shadow-sm disabled:opacity-30 hover:border-[#ef4444]"
+              style={{ borderColor: "var(--habit-border)", color: "#ef4444" }}
             >
               <RotateCcw className="w-2.5 h-2.5" /> {t('skill_tree.btn_respec')}
             </button>
@@ -303,7 +303,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               <button
                 key={p.name}
                 onClick={() => loadPreset(p)}
-                className="px-2 py-1 text-[9px] font-mono rounded border transition-colors bg-black/50 backdrop-blur hover:bg-primary/20"
+                className="px-2 py-1 text-[9px] font-mono rounded border transition-colors bg-[var(--habit-panel)] hover:bg-primary/20"
                 style={{ borderColor: "rgba(240,192,64,0.3)", color: "#f0c040" }}
               >
                 📋 {p.name}
@@ -704,12 +704,12 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute bottom-0 left-0 right-0 z-40 border-t bg-black/95 backdrop-blur-md p-3 md:p-4"
-            style={{ borderTopColor: `${selectedNode.color}40` }}
+            className="absolute bottom-0 left-0 right-0 z-40 border-t bg-[var(--habit-panel)]/95 backdrop-blur-md p-3 md:p-4 text-[var(--habit-text)] shadow-2xl"
+            style={{ borderTopColor: `${selectedNode.color}60` }}
           >
             <button 
               onClick={() => setSelectedNodeId(null)}
-              className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-white"
+              className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-[var(--habit-text)]"
             >
               <X size={16} />
             </button>
