@@ -62,7 +62,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   const [shopTab, setShopTab] = useState(() => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
-      return p.get("shopTab") || "chests";
+      const val = p.get("shopTab");
+      return (val && val !== "inventory") ? val : "chests";
     }
     return "chests";
   });
@@ -72,7 +73,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
     const p = new URLSearchParams(location.search);
     const tab = p.get("shopTab");
     if (tab) {
-      setShopTab(tab);
+      setShopTab(tab === "inventory" ? "chests" : tab);
     }
   }, [location.search]);
   const [activeSlot, setActiveSlot] = useState(null);
@@ -822,7 +823,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             );
           })()}
           <div className="flex gap-1 flex-wrap">
-            {["chests", "consumables", "scrolls", "inventory", "allies", "mutators"].map(tab => {
+            {["chests", "consumables", "scrolls", "allies", "mutators"].map(tab => {
               const isTabLocked = (tab === "allies" && alliesLocked) || (tab === "mutators" && mutatorsLocked);
               return (
                 <button key={tab} onClick={() => setShopTab(tab)}
@@ -852,9 +853,6 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                 <InventoryPanel gs={{ inventory, consumables: activeEffectsMap }} onSave={() => { }} onToggleEquip={equipItem} />
               </div>
             </div>
-          )}
-          {shopTab === "inventory" && (
-            <InventoryPanel gs={{ inventory, consumables: activeEffectsMap }} onSave={() => { }} onToggleEquip={equipItem} />
           )}
           {shopTab === "allies" && (
             alliesLocked ? (
