@@ -47,14 +47,15 @@ export function usePomodoro() {
   /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
   const saveSessionMutation = useMutation({
     mutationFn: (sessionData) => djangoApi.pomodoro.saveSession(sessionData),
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Phase 2: State Synchronization Protocol (NO ZOMBIE CACHES)
+      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'heatmap'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
-      
-      // If pomodoros give generic character XP later, invalidate 'player-stats' here.
-      // Currently, it's a standalone system.
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['logs'] });
     },
     onError: (error) => {
       console.error('Failed to save Pomodoro session:', error);
@@ -95,12 +96,18 @@ export function usePomodoro() {
 
   const completeActiveSessionMutation = useMutation({
     mutationFn: (data) => djangoApi.pomodoro.completeActiveSession(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'heatmap'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['logs'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      if (data?.gold_earned && data?.xp_earned) {
+        toast.success(`Focus logged! +${data.xp_earned} XP, +${data.gold_earned}G`);
+      }
     },
   });
 

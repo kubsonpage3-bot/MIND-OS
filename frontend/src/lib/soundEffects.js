@@ -1,4 +1,4 @@
-﻿// Sound effects for MIND OS
+// Sound effects for MIND OS
 // Uses Web Audio API for synthesized sounds (no external files needed)
 
 let audioContext = null;
@@ -239,6 +239,14 @@ const playSoundEffects = {
     });
     playTone(65.41, 1.2, "sine", 0.14, 0.50);
     playNoise(0.40, 0.08, 0.55);
+  },
+
+  // POMODORO
+  pomodoro_complete: () => {
+    playTone(523.25, 0.15, "sine", 0.14);
+    playTone(659.25, 0.15, "sine", 0.12, 0.12);
+    playTone(783.99, 0.20, "sine", 0.11, 0.24);
+    playTone(1046.50, 0.35, "sine", 0.10, 0.36);
   },
 
   // UI

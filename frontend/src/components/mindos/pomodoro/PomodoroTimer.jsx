@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useProfileSync } from '@/hooks/useProfileSync';
 import { computeEfficiency, ACTIVITIES, MASTERY_COEFFICIENTS, CATEGORY_ICONS, resolveMasteryCategory } from '@/lib/cognitiveEngine';
+import { playSound } from '@/lib/soundEffects';
 import toast from 'react-hot-toast';
 import { LocalNotificationsService } from '@/utils/localNotifications';
 
@@ -274,6 +275,9 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     setJustCompleted(true);
     setTimeout(() => setJustCompleted(false), 2500);
 
+    playSound("pomodoro_complete");
+    resetActiveSession();
+
     // ── SSOT: Save session to Django backend ───────────────────────────────────
     const duration =
       currentMode === 'work' ? currentPreset.work
@@ -403,82 +407,10 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
       return;
     }
 
+    playSound("pomodoro_complete");
+
+    // completeActiveSession handles PomodoroSession, TrainingSession, XP/Gold, and stats
     completeActiveSession({ rating: rating || 3 });
-
-    const activityKey = selectedActivity;
-    const hours = linkedDuration / 60; // 0.5 or 1.0
-
-    saveSession({
-      duration: linkedDuration,
-      mode: 'work',
-      label: allActivities[activityKey]?.label || 'Activity Focus',
-      completed: true,
-    });
-
-    if (onLog && activityKey) {
-      const category = (() => {
-        if (!activityKey) return "";
-        const act = allActivities[activityKey];
-        if (act?.isCustom) {
-          return resolveMasteryCategory(null, act.category);
-        }
-        return resolveMasteryCategory(activityKey);
-      })();
-
-      const categoryStreakDays = (() => {
-        if (!category || !profile?.category_streaks) return 0;
-        const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
-        
-        const todayStr = today.toISOString().split("T")[0];
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
-        
-        const streakData = profile.category_streaks[category];
-        if (streakData && typeof streakData === "object") {
-          const lastActive = streakData.last_active_date;
-          if (lastActive === todayStr || lastActive === yesterdayStr) {
-            return streakData.days || 0;
-          }
-        }
-        return 0;
-      })();
-
-      const categoryHoursToday = (() => {
-        if (!category) return 0;
-        const today = new Date().toDateString();
-        const todayLogs = logs.filter(l => new Date(l.created_at).toDateString() === today);
-        return todayLogs.reduce((sum, l) => {
-          let logCat = "";
-          if (l.activity_key.startsWith("custom_task_")) {
-            const taskId = l.activity_key.replace("custom_task_", "");
-            const task = tasks.find(t => String(t.id) === String(taskId));
-            if (task) {
-              logCat = resolveMasteryCategory(null, task.category);
-            }
-          } else {
-            logCat = resolveMasteryCategory(l.activity_key);
-          }
-          if (logCat === category) {
-            return sum + (l.hours || 0);
-          }
-          return sum;
-        }, 0);
-      })();
-
-      const computedEff = computeEfficiency({
-        focus: rating,
-        streakDays: profile?.streak || 0,
-        hoursToday,
-        subjectHoursToday,
-        categoryHoursToday,
-        categoryStreakDays,
-        statFoc: profile?.total_stats?.foc || 5,
-        statMem: profile?.total_stats?.mem || 5,
-      });
-
-      onLog(activityKey, hours, rating, computedEff, () => {});
-    }
 
     setJustCompleted(true);
     setTimeout(() => setJustCompleted(false), 2500);
@@ -487,7 +419,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     setMode(linkedDuration === 30 ? 'break' : 'longBreak');
     setTimeLeft(restDuration * 60);
     setLinkedMode(false);
-  }, [linkedDuration, selectedActivity, allActivities, saveSession, onLog, profile, hoursToday, subjectHoursToday, resetTimer, logs, tasks]);
+  }, [linkedDuration, resetActiveSession, completeActiveSession, preset.work]);
 
   useEffect(() => {
     if (!showRatingOverlay) return;

@@ -31,7 +31,17 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        session = serializer.save(user=self.request.user)
+        if session.completed and session.mode == "work":
+            ActivePomodoroSession.objects.filter(user=self.request.user).delete()
+            profile = UserProfile.objects.filter(user=self.request.user).first()
+            if profile:
+                duration = session.duration or 25
+                gold_earned = max(10, int(duration * 2))
+                xp_earned = max(15, int(duration * 3))
+                profile.gold += gold_earned
+                profile.xp += xp_earned
+                profile.save(update_fields=["gold", "xp"])
 
     @action(detail=False, methods=["get"])
     def heatmap(self, request):
