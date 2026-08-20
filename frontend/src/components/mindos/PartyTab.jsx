@@ -24,6 +24,7 @@ const FALLBACK_SPRITES = {
 };
 
 function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
+  const { t } = useTranslation();
   const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
   const hpPct = member.max_hp > 0 ? Math.min((member.hp / member.max_hp) * 100, 100) : 0;
   const [showBuffs, setShowBuffs] = useState(false);

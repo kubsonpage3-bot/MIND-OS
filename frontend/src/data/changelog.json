@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.63",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed the Party tab crashing with 'Something went wrong rendering this tab' — the member card was missing its translation hook."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.62",
     "date": "2026-08-20",
     "changes": [
