@@ -946,17 +946,8 @@ class BossEncounterView(generics.ListAPIView):
 
     def get_queryset(self):
         encounters = list(BossEncounter.objects.filter(user=self.request.user))
-        from api.services.combat_service import apply_idle_damage
-
         for encounter in encounters:
-            if not encounter.is_defeated:
-                damage = apply_idle_damage(encounter)
-                setattr(encounter, "idle_damage_applied", damage)
-                if damage > 0:
-                    encounter.save(update_fields=["hp_current", "last_idle_tick_at"])
-            else:
-                setattr(encounter, "idle_damage_applied", 0)
-
+            setattr(encounter, "idle_damage_applied", 0)
         return encounters
 
 

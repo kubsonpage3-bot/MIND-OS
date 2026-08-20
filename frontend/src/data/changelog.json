@@ -1,5 +1,28 @@
 [
   {
+    "version": "0.8.64",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Removed the Idle DPS system entirely — boss damage now comes purely from your active work and training sessions."
+      },
+      {
+        "type": "balance",
+        "text": "Training sessions now deal ~1.8× more boss damage than task clicks, and sessions of 45+ minutes receive an additional 1.8× Deep Work bonus — making focused deep work the most powerful way to raid bosses."
+      },
+      {
+        "type": "balance",
+        "text": "SSS boss rewards nerfed from 50–60k Gold / 20–25k XP down to 20k Gold / 12k XP — still massive, but no longer economy-breaking."
+      },
+      {
+        "type": "balance",
+        "text": "Scroll expiry windows are now tier-based: E/D bosses expire in 7 days (urgent), C/B in 14 days, A/S/SS in 30 days, and SSS bosses give 90 days to finish."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.63",
     "date": "2026-08-20",
     "changes": [

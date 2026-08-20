@@ -1081,9 +1081,6 @@ class BossEncounter(models.Model):
     expires_at = models.DateTimeField(
         null=True, blank=True, verbose_name="Время истечения"
     )
-    last_idle_tick_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Последний тик урона"
-    )
 
     class Meta:
         verbose_name = "Битва с боссом"

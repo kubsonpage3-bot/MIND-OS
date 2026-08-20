@@ -26,56 +26,6 @@ BOSS_RANK_STATS = {
 POSSIBLE_STATS = ["pwr", "def", "foc", "mem", "spd", "lck"]
 
 
-def get_user_idle_dps(profile):
-    """
-    Calculates the current idle DPS for a user profile.
-    Currently returns a base rate of 0.1 DPS (no streak or ally bonuses).
-    """
-    return 0.1
-
-
-def apply_idle_damage(encounter):
-    """
-    Applies idle damage based on elapsed time since last calculation.
-    Capped at 24 hours of offline time.
-    Boss HP cannot drop below 5% from idle damage alone.
-    Returns the amount of idle damage actually applied.
-    """
-    now = timezone.now()
-
-    last_tick = encounter.last_idle_tick_at or encounter.started_at
-    elapsed_seconds = max(0, (now - last_tick).total_seconds())
-
-    # Cap at 24 hours
-    elapsed_seconds = min(elapsed_seconds, 24 * 3600)
-
-    dps = get_user_idle_dps(encounter.user.profile)
-    idle_damage = int(elapsed_seconds * dps)
-
-    if idle_damage <= 0:
-        # DO NOT reset last_idle_tick_at if no damage was applied, otherwise we lose fractional seconds!
-        return 0
-
-    min_hp = int(encounter.boss.hp_max * 0.05)
-
-    original_hp = encounter.hp_current
-    new_hp = max(min_hp, encounter.hp_current - idle_damage)
-
-    if original_hp <= min_hp:
-        new_hp = original_hp
-
-    damage_applied = original_hp - new_hp
-
-    encounter.hp_current = new_hp
-    # Advance the tick only by the consumed time to preserve remainder
-    from datetime import timedelta
-
-    consumed_seconds = idle_damage / dps
-    encounter.last_idle_tick_at = last_tick + timedelta(seconds=consumed_seconds)
-
-    return damage_applied
-
-
 @transaction.atomic
 def calculate_damage(user, encounter_id, base_damage):
     try:
@@ -87,9 +37,6 @@ def calculate_damage(user, encounter_id, base_damage):
 
     if encounter.is_defeated:
         return 0
-
-    # First apply idle damage
-    apply_idle_damage(encounter)
 
     final_damage = float(base_damage)
 

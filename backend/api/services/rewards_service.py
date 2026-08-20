@@ -10,6 +10,14 @@
 # REBALANCE NOTE (2026-08-18): XP rewards reduced ~50% across all task tiers.
 #   trivial: 5 → 3 | easy: 15 → 6 | medium: 25 → 12 | hard: 50 → 24
 #   Gold and HP penalties are unchanged. Rank thresholds are unchanged.
+#
+# BOSS DAMAGE REBALANCE (2026-08-20):
+#   - Idle DPS system REMOVED entirely.
+#   - DMG_PER_XP (for Habits/Dailies/Todos) unchanged at 3.33.
+#   - TRAINING_DMG_PER_XP = 6.0 — Training sessions deal ~1.8x more boss
+#     damage than quick task clicks, rewarding sustained deep work.
+#   - DEEP_WORK_BONUS applied when session >= DEEP_WORK_THRESHOLD_H (45m).
+#     Deep Work multiplier: 1.8× on boss damage only (not XP/Gold).
 # ──────────────────────────────────────────────────────────────────────────────
 
 BASE_XP = 3
@@ -20,6 +28,9 @@ TIER_MULTIPLIER = {
     "hard": 8,
 }
 DMG_PER_XP = 3.33
+TRAINING_DMG_PER_XP = 6.0  # Training sessions deal ~1.8x more boss dmg
+DEEP_WORK_THRESHOLD_H = 0.75  # 45+ minutes = Deep Work bonus session
+DEEP_WORK_DMG_MULTIPLIER = 1.8  # Multiplied on training boss dmg for 45+ min
 GOLD_PER_XP = 0.5
 
 # Training: TRAINING_MULTIPLIER is now 1.0 — all scaling comes from
@@ -71,18 +82,26 @@ def task_rewards(tier: str) -> dict:
 def training_rewards(tier: str, hours: float, focus: float) -> dict:
     """
     Training reward = BASE_XP × TIER × TRAINING_MULTIPLIER × hours × focus_factor(focus).
-    hours and focus MUST be clamped here, never trusted from client input upstream.
+    Boss damage uses TRAINING_DMG_PER_XP (6.0) instead of DMG_PER_XP (3.33).
+    Sessions >= DEEP_WORK_THRESHOLD_H (45 min) get DEEP_WORK_DMG_MULTIPLIER (1.8×)
+    on boss damage only — rewarding sustained focus over task-clicking.
 
-    Anchor: tier="hard", hours=1.0, focus=8 → 50 XP exactly.
+    hours and focus MUST be clamped here, never trusted from client input upstream.
+    Anchor: tier="hard", hours=1.0, focus=8 → 24 XP, ~259 boss DMG (with Deep Work).
     """
     hours = clamp(hours, 0, MAX_SESSION_HOURS)
     ff = focus_factor(focus)
-    base = task_rewards(tier)
+    base_xp = BASE_XP * TIER_MULTIPLIER[tier]
     scale = TRAINING_MULTIPLIER * hours * ff
+
+    raw_dmg = round(base_xp * TRAINING_DMG_PER_XP * scale)
+    deep_work = hours >= DEEP_WORK_THRESHOLD_H
+    final_dmg = round(raw_dmg * DEEP_WORK_DMG_MULTIPLIER) if deep_work else raw_dmg
+
     return {
-        "xp": round(base["xp"] * scale),
-        "gold": round(base["gold"] * scale),
-        "dmg": round(base["dmg"] * scale),
+        "xp": round(base_xp * scale),
+        "gold": round(base_xp * GOLD_PER_XP * scale),
+        "dmg": final_dmg,
     }
 
 

@@ -177,7 +177,7 @@ SCROLL_BOSSES = [
         "name": "Nameless God",
         "price": 4000,
         "bossHP": 600000,
-        "reward": {"gold": 50000, "xp": 20000, "mp": 200, "sp": 60},
+        "reward": {"gold": 20000, "xp": 12000, "mp": 200, "sp": 60},
         "uniqueItem": "mask_nameless",
     },
     {
@@ -186,13 +186,26 @@ SCROLL_BOSSES = [
         "name": "Final Dusk",
         "price": 4200,
         "bossHP": 700000,
-        "reward": {"gold": 60000, "xp": 25000, "mp": 200, "sp": 60},
+        "reward": {"gold": 20000, "xp": 12000, "mp": 200, "sp": 60},
         "uniqueItem": "blade_final_dusk",
     },
 ]
 
 SCROLL_BOSSES_DICT = {b["id"]: b for b in SCROLL_BOSSES}
 
+# Adaptive scroll expiry window per rank — Frontend + Backend share this mapping.
+# Lower ranks give a short deadline to create urgency.
+# SSS bosses need 2-3 months of sustained effort, so 90 days is appropriate.
+SCROLL_BOSS_DAYS_LIMIT = {
+    "E": 7,
+    "D": 7,
+    "C": 14,
+    "B": 14,
+    "A": 30,
+    "S": 30,
+    "SS": 30,
+    "SSS": 90,
+}
 
 RANK_THRESHOLDS = [
     {"id": "E", "min": 0},
