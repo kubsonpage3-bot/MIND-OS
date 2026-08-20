@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.67",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Cleaned up all 39 Mutator icon graphics to have 100% transparent backgrounds, eliminating all dark edges, corner artifacts, and background boxes."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.66",
     "date": "2026-08-20",
     "changes": [
