@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, CATEGORY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES, resolveMasteryCategory } from "@/lib/cognitiveEngine";
+import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, MASTERY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES, resolveMasteryCategory } from "@/lib/cognitiveEngine";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Zap, Trash2, RotateCcw } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
@@ -64,8 +64,9 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
     tasks.forEach(t => {
       if (t.type === 'button') {
         const key = `custom_task_${t.id}`;
+        const masteryKey = (t.mastery_category || "").toLowerCase();
+        const coeff = MASTERY_COEFFICIENTS[masteryKey] || MASTERY_COEFFICIENTS["humanities"];
         const category = t.category || "Other";
-        const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
         list[key] = {
           label: t.name || t.title,
           icon: t.icon || CATEGORY_ICONS[category] || "🔘",

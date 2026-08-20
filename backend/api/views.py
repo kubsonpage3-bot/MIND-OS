@@ -1533,7 +1533,13 @@ class TrainingLogView(generics.GenericAPIView):
 
             # Update cognitive stats using backend calculation
             eff_total = float(data.get("efficiency", 1.0))
-            gains = calculate_cognitive_gains(activity, hours, eff_total, profile)
+            gains = calculate_cognitive_gains(
+                activity,
+                hours,
+                eff_total,
+                profile,
+                mastery_category=task.mastery_category if task else "",
+            )
             if lyra_zero_rewards:
                 gains = {k: 0.0 for k in gains}
 

@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.60",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Custom activities now receive proper intelligence gains based on their Mastery Area (Body / Sciences / Languages / Spirit / Humanities). Before this fix, custom activities like Psychology gave ~40x less Gc than built-in History — now they are on par with comparable built-in activities."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.59",
     "date": "2026-08-20",
     "changes": [

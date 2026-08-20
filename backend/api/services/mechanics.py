@@ -54,6 +54,14 @@ COGNITIVE_COEFFICIENTS = {
     "other": {"gf": 0.40, "ps": 0.40, "gc": 0.40, "vm": 0.40},
 }
 
+MASTERY_CATEGORY_COEFFICIENTS = {
+    "body": {"gf": 0.50, "gc": 0.00, "ps": 0.80, "vm": 0.00},
+    "sciences": {"gf": 1.00, "gc": 0.20, "ps": 0.80, "vm": 0.00},
+    "languages": {"gf": 0.00, "gc": 1.00, "ps": 0.40, "vm": 1.20},
+    "spirit": {"gf": 0.00, "gc": 1.00, "ps": 0.00, "vm": 1.00},
+    "humanities": {"gf": 0.20, "gc": 1.20, "ps": 0.00, "vm": 0.40},
+}
+
 
 def calculate_training_efficiency(
     profile,
@@ -151,14 +159,15 @@ def calculate_training_efficiency(
     return round(total, 3)
 
 
-def calculate_cognitive_gains(activity, hours, eff_total, profile):
+def calculate_cognitive_gains(activity, hours, eff_total, profile, mastery_category=""):
     # Normalize activity key (e.g., lowercase)
     activity_key = activity.lower() if isinstance(activity, str) else "other"
-    # Fallback for custom tasks mapped to categories
+    # For custom tasks: resolve via mastery_category preset, then fall back to "other"
     if activity_key not in COGNITIVE_COEFFICIENTS:
-        activity_key = "other"
-
-    coeffs = COGNITIVE_COEFFICIENTS[activity_key]
+        cat = str(mastery_category).lower().strip()
+        coeffs = MASTERY_CATEGORY_COEFFICIENTS.get(cat, COGNITIVE_COEFFICIENTS["other"])
+    else:
+        coeffs = COGNITIVE_COEFFICIENTS[activity_key]
 
     def get_growth_multiplier(current, ceiling):
         if ceiling <= 0:

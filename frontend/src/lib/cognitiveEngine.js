@@ -291,14 +291,23 @@ export const CATEGORY_COEFFICIENTS = {
   Other: { gf: 0.02, ps: 0.02, gc: 0.02, vm: 0.02 },
 };
 
+export const MASTERY_COEFFICIENTS = {
+  body:       { gf: 0.50, gc: 0.00, ps: 0.80, vm: 0.00 },
+  sciences:   { gf: 1.00, gc: 0.20, ps: 0.80, vm: 0.00 },
+  languages:  { gf: 0.00, gc: 1.00, ps: 0.40, vm: 1.20 },
+  spirit:     { gf: 0.00, gc: 1.00, ps: 0.00, vm: 1.00 },
+  humanities: { gf: 0.20, gc: 1.20, ps: 0.00, vm: 0.40 },
+};
+
 export function getActivityDetails(key, tasks = []) {
   if (ACTIVITIES[key]) return ACTIVITIES[key];
   if (typeof key === "string" && key.startsWith("custom_task_")) {
     const taskId = parseInt(key.replace("custom_task_", ""), 10);
     const task = tasks.find(t => t.id === taskId);
     if (task) {
+      const masteryKey = (task.mastery_category || "").toLowerCase();
+      const coeff = MASTERY_COEFFICIENTS[masteryKey] || MASTERY_COEFFICIENTS["humanities"];
       const category = task.category || "Other";
-      const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
       return {
         label: task.name || task.title,
         icon: task.icon || CATEGORY_ICONS[category] || "🔘",

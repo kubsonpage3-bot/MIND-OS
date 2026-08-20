@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useProfileSync } from '@/hooks/useProfileSync';
-import { computeEfficiency, ACTIVITIES, CATEGORY_COEFFICIENTS, CATEGORY_ICONS, resolveMasteryCategory } from '@/lib/cognitiveEngine';
+import { computeEfficiency, ACTIVITIES, MASTERY_COEFFICIENTS, CATEGORY_ICONS, resolveMasteryCategory } from '@/lib/cognitiveEngine';
 import toast from 'react-hot-toast';
 import { LocalNotificationsService } from '@/utils/localNotifications';
 
@@ -192,8 +192,9 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     tasks.forEach(t => {
       if (t.type === 'button') {
         const key = `custom_task_${t.id}`;
+        const masteryKey = (t.mastery_category || "").toLowerCase();
+        const coeff = MASTERY_COEFFICIENTS[masteryKey] || MASTERY_COEFFICIENTS["humanities"];
         const category = t.category || "Other";
-        const coeff = CATEGORY_COEFFICIENTS[category] || CATEGORY_COEFFICIENTS["Other"];
         list[key] = {
           label: t.name || t.title,
           icon: t.icon || CATEGORY_ICONS[category] || "🔘",
