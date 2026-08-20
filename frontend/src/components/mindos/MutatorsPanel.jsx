@@ -130,7 +130,10 @@ export default function MutatorsPanel({ onSpendGold }) {
   };
 
   const byCategory = {};
-  MUTATORS.filter(m => !m.disabled).forEach(m => { if (!byCategory[m.cat]) byCategory[m.cat] = []; byCategory[m.cat].push(m); });
+  MUTATORS.filter(m => !m.disabled && (isPurchased(m.id) || isActive(m.id))).forEach(m => {
+    if (!byCategory[m.cat]) byCategory[m.cat] = [];
+    byCategory[m.cat].push(m);
+  });
 
   const activeMutatorsList = MUTATORS.filter(m => !m.disabled);
   const totalMutators = activeMutatorsList.length;
@@ -285,6 +288,18 @@ export default function MutatorsPanel({ onSpendGold }) {
           })}
         </div>
       </div>
+
+      {unlockedCount === 0 && (
+        <div className="p-6 rounded-2xl border border-dashed border-border/80 bg-card/20 text-center space-y-2">
+          <div className="text-2xl">🔮</div>
+          <div className="font-mono text-xs font-bold text-foreground">
+            {t("mutators_ui.no_discovered", "No Mutators Discovered Yet")}
+          </div>
+          <div className="font-mono text-[10px] text-muted-foreground/60 max-w-xs mx-auto">
+            {t("mutators_ui.no_discovered_desc", "Open Mutator Chests above to decrypt and unlock ancient game modifiers!")}
+          </div>
+        </div>
+      )}
 
       {Object.entries(CAT_LABELS).map(([cat, cfg]) => {
         const muts = byCategory[cat] || [];

@@ -62,9 +62,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   const [shopTab, setShopTab] = useState(() => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
-      return p.get("shopTab") || "gear";
+      return p.get("shopTab") || "chests";
     }
-    return "gear";
+    return "chests";
   });
 
   const location = useLocation();
@@ -449,7 +449,6 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
     }
   };
 
-  const gearItems = shopItems.filter(i => !i.consumable);
   const consumables = shopItems.filter(i => i.consumable);
 
   // If no class chosen, show selector
@@ -738,7 +737,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
             const seed = Math.abs((year * 366 + dayOfYear * 31 + d.getMonth() * 7) ^ 0x5F3759DF);
 
-            const allItems = shopItems.length > 0 ? [...shopItems] : [{ id: "placeholder", label: "Loading...", cost: 100, tier: "Common", consumable: true }];
+            const consumableShopItems = shopItems.filter(i => i.consumable);
+            const allItems = consumableShopItems.length > 0 ? consumableShopItems : [{ id: "placeholder", label: "Loading...", cost: 100, tier: "Common", consumable: true }];
             const featuredItem = allItems[seed % allItems.length];
             const discountPct = 25 + (seed % 4) * 5; // 25%, 30%, 35%, or 40%
             const discountedCost = Math.max(1, Math.round(featuredItem.cost * (1 - discountPct / 100)));
@@ -822,7 +822,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             );
           })()}
           <div className="flex gap-1 flex-wrap">
-            {["gear", "consumables", "scrolls", "chests", "inventory", "allies", "mutators"].map(tab => {
+            {["chests", "consumables", "scrolls", "inventory", "allies", "mutators"].map(tab => {
               const isTabLocked = (tab === "allies" && alliesLocked) || (tab === "mutators" && mutatorsLocked);
               return (
                 <button key={tab} onClick={() => setShopTab(tab)}
@@ -871,10 +871,11 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
               </>
             )
           )}
-          <div className={`${shopTab === "gear" || shopTab === "consumables" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1" : "space-y-2"}`}>
-            {(shopTab === "scrolls" || shopTab === "chests" || shopTab === "inventory" || shopTab === "allies" || shopTab === "mutators") ? null : (shopTab === "gear" ? gearItems : consumables)
-              .sort((a, b) => a.cost - b.cost)
-              .map((item, idx) => {
+          {shopTab === "consumables" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
+              {consumables
+                .sort((a, b) => a.cost - b.cost)
+                .map((item, idx) => {
                 const canAfford = gold >= item.cost;
                 const owned = inventory.some(i => i.id === item.id);
                 const isBought = boughtItem === item.id;
@@ -958,7 +959,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                   </GameCard>
                 );
               })}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

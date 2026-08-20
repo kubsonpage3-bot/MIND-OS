@@ -219,7 +219,7 @@
     "efficiency": "эфф."
   },
   "shop_tabs": {
-    "gear": "Снаряжение",
+    "chests": "Сундуки",
     "consumables": "Расходники",
     "scrolls": "Свитки",
     "inventory": "Инвентарь",
@@ -1501,7 +1501,9 @@
     "btn_activate": "АКТИВИРОВАТЬ МУТАТОР",
     "btn_chest_only": "🎁 ТОЛЬКО ИЗ СУНДУКА",
     "btn_conflict_blocked": "⚠️ ЗАБЛОКИРОВАНО КОНФЛИКТОМ",
-    "btn_limit_reached": "ДОСТИГНУТ ЛИМИТ (МАКС. {{max}})"
+    "btn_limit_reached": "ДОСТИГНУТ ЛИМИТ (МАКС. {{max}})",
+    "no_discovered": "Мутаторы ещё не открыты",
+    "no_discovered_desc": "Открывай сундуки мутаторов выше, чтобы расшифровать и разблокировать древние модификаторы!"
   },
   "items": {
     "data_ring": {

@@ -1102,12 +1102,15 @@ class BossSummonView(generics.GenericAPIView):
 class ShopItemListView(generics.ListAPIView):
     """
     GET /api/shop/items/
-    Returns all items available for purchase.
+    Returns all consumable items available for direct purchase in the shop.
+    Gear items can only be obtained via loot chests.
     """
 
     permission_classes = [IsAuthenticated]
     serializer_class = ItemSerializer
-    queryset = Item.objects.prefetch_related("effects").filter(is_purchasable=True)
+    queryset = Item.objects.prefetch_related("effects").filter(
+        is_purchasable=True, item_type=Item.ItemType.CONSUMABLE
+    )
     pagination_class = None
 
 

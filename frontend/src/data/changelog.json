@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.8.65",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Gear items can now only be obtained by unlocking Loot Chests in the Decryptor Shop — direct gear purchasing has been removed from the shop."
+      },
+      {
+        "type": "feature",
+        "text": "Made Chests the primary first tab in the Shop, and cleaned up the shop interface so only consumables and supplies are listed for direct buy."
+      },
+      {
+        "type": "feature",
+        "text": "Undiscovered Mutators are now hidden from the Mutators panel, revealing themselves progressively in their categories as you decrypt and unlock them from Mutator Chests."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.64",
     "date": "2026-08-20",
     "changes": [

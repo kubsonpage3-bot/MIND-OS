@@ -15,6 +15,13 @@ def buy_item(user, item_id: str):
     except Item.DoesNotExist:
         return False, f"Item with code '{item_id}' not found in database", profile
 
+    if item.item_type == Item.ItemType.EQUIPMENT:
+        return (
+            False,
+            f"Gear [{item.name}] cannot be purchased directly. Open loot chests to discover gear!",
+            profile,
+        )
+
     from api.services.mechanics import apply_active_mutators, get_passive_multipliers
 
     mutator_effects = apply_active_mutators(profile, {}, trigger_side_effects=False)

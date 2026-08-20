@@ -219,7 +219,7 @@
     "efficiency": "eff."
   },
   "shop_tabs": {
-    "gear": "Gear",
+    "chests": "Chests",
     "consumables": "Consumables",
     "scrolls": "Scrolls",
     "inventory": "Inventory",
@@ -1501,7 +1501,9 @@
     "btn_activate": "ACTIVATE MUTATOR",
     "btn_chest_only": "🎁 CHEST ONLY",
     "btn_conflict_blocked": "⚠️ BLOCKED BY CONFLICT",
-    "btn_limit_reached": "SLOT LIMIT REACHED (MAX {{max}})"
+    "btn_limit_reached": "SLOT LIMIT REACHED (MAX {{max}})",
+    "no_discovered": "No Mutators Discovered Yet",
+    "no_discovered_desc": "Open Mutator Chests above to decrypt and unlock ancient game modifiers!"
   },
   "items": {
     "data_ring": {
