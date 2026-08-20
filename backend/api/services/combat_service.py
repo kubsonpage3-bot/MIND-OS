@@ -131,17 +131,17 @@ def process_boss_death(user, encounter):
 
 def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     """
-    Рассчитывает базовый урон по HP при провале привычки или дейлика (до применения DEF в calculate_task_outcome).
-    Диапазон базового урона:
-      - Trivial: ~3–4 HP
-      - Easy: ~6–8 HP
-      - Medium: ~9–12 HP (5 пропущенных дейликов ≈ 35–45 HP)
-      - Hard: ~15–20 HP
-      - Critical: ~21–28 HP
-    Для запущенных/красных задач (value < 0) урон масштабируется выше (до 2–3×).
+    Рассчитывает урон по HP при провале привычки или дейлика.
+    Диапазон: ~1–20 HP в зависимости от сложности, task value и стата DEF.
+
+    DEF снижает урон от: пропущенных дейликов, отрицательных привычек.
+    Каждое очко DEF даёт 3.5% снижения урона, максимум 55%.
     """
-    BASE_DAMAGE = 6
-    DIFF_MULT = {"trivial": 0.5, "easy": 1.0, "medium": 1.5, "hard": 2.5, "critical": 3.5}
+    # Базовый урон 2 для всех сложностей — множитель DIFF_MULT даёт реальное различие.
+    # Итоговый диапазон при нейтральной задаче (value≈0): trivial≈1, easy≈2, medium≈3, hard≈5, critical≈7
+    # Красная задача (value≈-47): trivial≈4, easy≈7, medium≈14, hard≈21, critical≈28
+    BASE_DAMAGE = 2
+    DIFF_MULT = {"trivial": 0.5, "easy": 1, "medium": 2, "hard": 3, "critical": 4}
 
     difficulty = getattr(task, "difficulty", "medium")
     if difficulty not in DIFF_MULT:
@@ -151,12 +151,18 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
 
     task_value = getattr(task, "value", 0.0)
     if task_value < 0:
-        value_mult = 1.0 + abs(task_value) / 15.0
+        value_mult = 1 + abs(task_value) / 15.0
     else:
-        value_mult = max(0.6, 1.0 - task_value / 30.0)
+        value_mult = max(0.5, 1 - task_value / 30.0)
+
+    # DEF стат — реальный, из снаряжения + класса + skill tree + prestige.
+    # Чем выше DEF, тем меньше урон от пропущенных дейликов и минус-привычек.
+    total_stats = profile.total_stats if isinstance(profile.total_stats, dict) else {}
+    con_stat = max(1, total_stats.get("def", 1))
+    con_reduction = min(0.55, (con_stat - 1) * 0.035)
 
     raw = BASE_DAMAGE * diff_mult * value_mult * checklist_ratio
-    damage = max(1, round(raw))
+    damage = max(1, round(raw * (1 - con_reduction)))
 
     return int(damage)
 
