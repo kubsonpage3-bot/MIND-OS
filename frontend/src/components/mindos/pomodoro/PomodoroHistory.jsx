@@ -4,10 +4,18 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
+/** Helper to format Date to YYYY-MM-DD in local time */
+function formatLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /** Extract last 10 completed sessions from sessionsData (DRF paginated or raw array) */
 function useRecentSessions(sessionsData) {
   return useMemo(() => {
-    const list = sessionsData?.results ?? sessionsData ?? [];
+    const list = sessionsData?.results ?? (Array.isArray(sessionsData) ? sessionsData : []);
     return list.filter(s => s.completed).slice(0, 10);
   }, [sessionsData]);
 }
@@ -15,6 +23,7 @@ function useRecentSessions(sessionsData) {
 /** Aggregate heatmap into last 8 calendar weeks (Mon–Sun buckets) */
 function useWeeklyBreakdown(heatmapData) {
   return useMemo(() => {
+    if (!heatmapData) return [];
     const weeks = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -22,20 +31,19 @@ function useWeeklyBreakdown(heatmapData) {
     for (let w = 7; w >= 0; w--) {
       const weekStart = new Date(today);
       // Go back to Monday of the current week first
-      const dayOfWeek = (today.getDay() + 6) % 7; // Mon=0
+      const dayOfWeek = (today.getDay() + 6) % 7; // Mon=0 .. Sun=6
       weekStart.setDate(today.getDate() - dayOfWeek - w * 7);
 
       let total = 0;
       for (let d = 0; d < 7; d++) {
         const day = new Date(weekStart);
         day.setDate(weekStart.getDate() + d);
-        const key = day.toISOString().slice(0, 10);
+        const key = formatLocalDateKey(day);
         total += heatmapData?.[key] || 0;
       }
 
-      const labelDate = new Date(weekStart);
-      const label = `${labelDate.getDate()} ${labelDate.toLocaleString('en', { month: 'short' })}`;
-      weeks.push({ label, total, weekStart: weekStart.toISOString().slice(0, 10) });
+      const label = `${weekStart.getDate()} ${weekStart.toLocaleString('en', { month: 'short' })}`;
+      weeks.push({ label, total, weekStart: formatLocalDateKey(weekStart) });
     }
     return weeks;
   }, [heatmapData]);
@@ -44,7 +52,7 @@ function useWeeklyBreakdown(heatmapData) {
 /** Find peak focus hour from sessions list */
 function usePeakHour(sessionsData) {
   return useMemo(() => {
-    const list = sessionsData?.results ?? sessionsData ?? [];
+    const list = sessionsData?.results ?? (Array.isArray(sessionsData) ? sessionsData : []);
     const hours = new Array(24).fill(0);
     for (const s of list) {
       if (!s.started_at) continue;
@@ -64,9 +72,10 @@ function usePeakHour(sessionsData) {
 function HeatmapCanvas({ heatmapData }) {
   const canvasRef = useRef(null);
   const [tooltip, setTooltip] = useState(null);
+  const cellsRef = useRef([]);
 
   useEffect(() => {
-    if (!canvasRef.current || !heatmapData) return;
+    if (!canvasRef.current) return;
 
     const draw = () => {
       if (!canvasRef.current) return;
@@ -79,7 +88,7 @@ function HeatmapCanvas({ heatmapData }) {
       const rows = 7;
       const step = cellSize + cellGap;
       const maxCols = 53;
-      const cols = Math.min(maxCols, Math.floor(availWidth / step));
+      const cols = Math.max(12, Math.min(maxCols, Math.floor(availWidth / step)));
 
       canvas.width = cols * step + 1;
       canvas.height = rows * step + 16; // +16 for month labels
@@ -95,53 +104,63 @@ function HeatmapCanvas({ heatmapData }) {
         4: '#c084fc',
       };
 
-      // Build cells array (newest = bottom-right)
-      const cells = new Array(cols * rows).fill(null).map(() => ({ count: 0, date: '' }));
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const todayDayOfWeek = (today.getDay() + 6) % 7; // Mon=0 .. Sun=6
 
-      for (const [dateStr, count] of Object.entries(heatmapData)) {
-        const d = new Date(dateStr);
-        d.setHours(0, 0, 0, 0);
-        const diffDays = Math.floor((today - d) / 86400000);
-        if (diffDays < cols * rows) {
-          const index = cols * rows - 1 - diffDays;
-          if (index >= 0) {
-            cells[index] = { count, date: dateStr };
+      // Build grid cells: column cols-1, row todayDayOfWeek corresponds to today
+      const cells = new Array(cols * rows).fill(null);
+
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          const index = c * rows + r;
+          const diffDays = ((cols - 1) - c) * 7 + (todayDayOfWeek - r);
+          if (diffDays < 0) {
+            cells[index] = { count: 0, date: '', inFuture: true };
+          } else {
+            const cellDate = new Date(today);
+            cellDate.setDate(today.getDate() - diffDays);
+            const dateStr = formatLocalDateKey(cellDate);
+            const count = (heatmapData && heatmapData[dateStr]) || 0;
+            cells[index] = { count, date: dateStr, inFuture: false, dateObj: cellDate };
           }
         }
       }
+      cellsRef.current = cells;
 
-      // Track which month labels we've drawn to avoid duplicates
+      // Track which month labels we've drawn
       const drawnMonths = new Set();
 
       for (let c = 0; c < cols; c++) {
-        // Month label on first cell of each month
-        const cellDate = new Date(today);
-        cellDate.setDate(today.getDate() - (cols * rows - 1 - c * rows));
-        const monthKey = `${cellDate.getFullYear()}-${cellDate.getMonth()}`;
-        if (!drawnMonths.has(monthKey)) {
-          drawnMonths.add(monthKey);
-          ctx.fillStyle = 'rgba(255,255,255,0.3)';
-          ctx.font = '8px monospace';
-          ctx.fillText(
-            cellDate.toLocaleString('en', { month: 'short' }),
-            c * step,
-            9
-          );
+        const topCell = cells[c * rows];
+        if (topCell && !topCell.inFuture && topCell.dateObj) {
+          const monthKey = `${topCell.dateObj.getFullYear()}-${topCell.dateObj.getMonth()}`;
+          if (!drawnMonths.has(monthKey) && topCell.dateObj.getDate() <= 7) {
+            drawnMonths.add(monthKey);
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.font = '8px monospace';
+            ctx.fillText(
+              topCell.dateObj.toLocaleString('en', { month: 'short' }),
+              c * step,
+              9
+            );
+          }
         }
 
         for (let r = 0; r < rows; r++) {
           const x = c * step;
           const y = r * step + 14;
           const index = c * rows + r;
-          const val = cells[index]?.count || 0;
+          const cell = cells[index];
 
+          if (cell?.inFuture) continue;
+
+          const val = cell?.count || 0;
           let colorKey = 0;
           if (val > 0) colorKey = 1;
-          if (val >= 3) colorKey = 2;
-          if (val >= 6) colorKey = 3;
-          if (val >= 10) colorKey = 4;
+          if (val >= 2) colorKey = 2;
+          if (val >= 4) colorKey = 3;
+          if (val >= 8) colorKey = 4;
 
           ctx.fillStyle = colors[colorKey];
           ctx.beginPath();
@@ -153,7 +172,9 @@ function HeatmapCanvas({ heatmapData }) {
 
     draw();
     const observer = new ResizeObserver(draw);
-    observer.observe(canvasRef.current.parentElement);
+    if (canvasRef.current.parentElement) {
+      observer.observe(canvasRef.current.parentElement);
+    }
     window.addEventListener('resize', draw);
     return () => {
       observer.disconnect();
@@ -162,7 +183,7 @@ function HeatmapCanvas({ heatmapData }) {
   }, [heatmapData]);
 
   const handleMouseMove = (e) => {
-    if (!canvasRef.current || !heatmapData) return;
+    if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top - 14;
@@ -173,18 +194,14 @@ function HeatmapCanvas({ heatmapData }) {
     const cols = Math.floor(canvasRef.current.width / step);
     if (c < 0 || c >= cols || r < 0 || r >= rows) { setTooltip(null); return; }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffDays = (cols * rows - 1) - (c * rows + r);
-    const d = new Date(today);
-    d.setDate(today.getDate() - diffDays);
-    const dateStr = d.toISOString().slice(0, 10);
-    const count = heatmapData[dateStr] || 0;
-    setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, date: dateStr, count });
+    const index = c * rows + r;
+    const cell = cellsRef.current?.[index];
+    if (!cell || cell.inFuture || !cell.date) { setTooltip(null); return; }
+    setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, date: cell.date, count: cell.count });
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full overflow-x-auto">
       <canvas
         ref={canvasRef}
         className="block"
@@ -194,7 +211,7 @@ function HeatmapCanvas({ heatmapData }) {
       />
       {tooltip && (
         <div
-          className="absolute z-10 bg-black/90 border border-white/10 rounded px-2 py-1 text-[9px] font-mono pointer-events-none"
+          className="absolute z-10 bg-black/90 border border-white/10 rounded px-2 py-1 text-[9px] font-mono pointer-events-none whitespace-nowrap shadow-lg"
           style={{ left: tooltip.x + 8, top: tooltip.y - 28 }}
         >
           <span className="text-white/70">{tooltip.date}</span>

@@ -4,6 +4,14 @@ import { Brain, Clock, Zap, Target, Award, Calendar, TrendingUp, Trophy } from '
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 
+/** Helper to format Date to YYYY-MM-DD in local time */
+function formatLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /** Compute sessions per day for the last 7 days from heatmapData */
 function useWeeklyData(heatmapData) {
   return useMemo(() => {
@@ -13,7 +21,7 @@ function useWeeklyData(heatmapData) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       d.setHours(0, 0, 0, 0);
-      const key = d.toISOString().slice(0, 10);
+      const key = formatLocalDateKey(d);
       result.push({
         label: days[d.getDay()],
         date: key,
@@ -34,12 +42,15 @@ function useEfficiency(heatmapData) {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
     cutoff.setHours(0, 0, 0, 0);
+    const cutoffKey = formatLocalDateKey(cutoff);
 
     for (const [dateStr, count] of Object.entries(heatmapData)) {
-      const d = new Date(dateStr);
-      if (d >= cutoff && count > 0) {
+      if (dateStr >= cutoffKey && count > 0) {
         activeDays++;
-        dayCounts[d.getDay()] += count;
+        // Parse dateStr (YYYY-MM-DD) safely into local date
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        dayCounts[dateObj.getDay()] += count;
       }
     }
 
