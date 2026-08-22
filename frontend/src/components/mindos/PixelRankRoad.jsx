@@ -219,60 +219,125 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         })}
       </div>
 
-      {/* Ascendant path — always visible as motivation */}
-      <div className="mt-4 border-t pt-3 space-y-2" style={{ borderColor: "rgba(202,138,4,0.25)" }}>
-        {/* Section header */}
-        <div className="flex items-center justify-between">
-          <div className="font-game text-[9px] tracking-widest uppercase" style={{ color: "rgba(202,138,4,0.6)" }}>
-            ✦ Ascendant Path
-          </div>
-          {!profile?.prestige_count && (
-            <div className="font-game text-[8px]" style={{ color: "rgba(202,138,4,0.4)" }}>
-              Reach SSS to unlock
-            </div>
-          )}
-        </div>
+      {/* Ascendant Path — only visible after first prestige */}
+      {(profile?.prestige_count || 0) > 0 && (() => {
+        const prestigeCount = profile.prestige_count;
 
-        {/* Completed prestige levels */}
-        {profile?.prestige_count > 0 && Array.from({ length: profile.prestige_count }, (_, i) => {
-          const level = i + 1;
-          const isCurrent = level === profile.prestige_count;
-          return (
-            <div key={level}
-              className="px-4 py-2 rounded-lg border flex justify-between items-center font-game text-[10px]"
-              style={{
-                borderColor: isCurrent ? "rgba(202,138,4,0.7)" : "rgba(202,138,4,0.15)",
-                background: isCurrent ? "rgba(202,138,4,0.08)" : "transparent",
-                color: isCurrent ? "#ca8a04" : "rgba(202,138,4,0.35)",
-              }}
-            >
-              <span>{isCurrent ? "✦" : "✓"} ASCENDANT {toRoman(level)}</span>
-              <span style={{ fontSize: 8 }}>{isCurrent ? "CURRENT" : "COMPLETED"}</span>
-            </div>
-          );
-        })}
+        // Bonus formula per ascendant level
+        const getLevelBonuses = (level) => ({
+          statsPct: level * 10,
+          maxHp: 100 + level * 50,
+          skillPoints: level * 5,
+        });
 
-        {/* Preview of next ascendant level (locked) */}
-        <div
-          className="px-4 py-2.5 rounded-lg border flex justify-between items-center font-game text-[10px] relative overflow-hidden"
-          style={{
-            borderColor: "rgba(202,138,4,0.20)",
-            background: "rgba(202,138,4,0.03)",
-            color: "rgba(202,138,4,0.35)",
-          }}
-        >
-          {/* Lock overlay */}
-          <span>🔒 ASCENDANT {toRoman((profile?.prestige_count || 0) + 1)}</span>
-          <div className="flex flex-col items-end gap-0.5">
-            <span style={{ fontSize: 7, color: "rgba(202,138,4,0.4)" }}>
-              +10% all stats · +50 HP · +5 SP
-            </span>
-            <span style={{ fontSize: 7, color: "rgba(202,138,4,0.3)" }}>
-              Requires SSS rank
-            </span>
+        // All visible levels: earned ones + 1 locked next
+        const visibleLevels = [
+          ...Array.from({ length: prestigeCount }, (_, i) => ({
+            level: i + 1,
+            status: i + 1 < prestigeCount ? 'completed' : 'current',
+          })),
+          { level: prestigeCount + 1, status: 'locked' },
+        ];
+
+        return (
+          <div className="mt-5 border-t pt-4 space-y-2" style={{ borderColor: "rgba(202,138,4,0.30)" }}>
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-game text-[9px] tracking-widest uppercase font-bold" style={{ color: "rgba(202,138,4,0.75)" }}>
+                ✦ Ascendant Path
+              </span>
+              <span className="font-game text-[7px]" style={{ color: "rgba(202,138,4,0.35)" }}>
+                · prestige to advance
+              </span>
+            </div>
+
+            {visibleLevels.map(({ level, status }) => {
+              const bonuses = getLevelBonuses(level);
+              const isCurrent = status === 'current';
+              const isCompleted = status === 'completed';
+              const isLocked = status === 'locked';
+
+              return (
+                <motion.div
+                  key={level}
+                  initial={isCurrent ? { opacity: 0, x: -8 } : false}
+                  animate={isCurrent ? { opacity: 1, x: 0 } : false}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="relative px-4 py-2.5 rounded-xl border flex items-center justify-between font-game text-[10px] overflow-hidden"
+                  style={{
+                    borderColor: isCurrent
+                      ? "rgba(202,138,4,0.75)"
+                      : isCompleted
+                      ? "rgba(202,138,4,0.18)"
+                      : "rgba(202,138,4,0.12)",
+                    background: isCurrent
+                      ? "rgba(202,138,4,0.09)"
+                      : isCompleted
+                      ? "rgba(202,138,4,0.03)"
+                      : "rgba(202,138,4,0.02)",
+                    boxShadow: isCurrent
+                      ? "0 0 18px rgba(202,138,4,0.20), inset 0 1px 0 rgba(202,138,4,0.15)"
+                      : "none",
+                    color: isCurrent
+                      ? "#ca8a04"
+                      : isCompleted
+                      ? "rgba(202,138,4,0.40)"
+                      : "rgba(202,138,4,0.28)",
+                  }}
+                >
+                  {/* Current level shine overlay */}
+                  {isCurrent && (
+                    <div className="absolute inset-0 pointer-events-none rounded-xl"
+                      style={{ background: "linear-gradient(135deg, rgba(202,138,4,0.08) 0%, transparent 60%)" }}
+                    />
+                  )}
+
+                  {/* Left: icon + label */}
+                  <div className="flex items-center gap-2.5 relative z-10">
+                    {/* Status icon / pulsing dot for current */}
+                    <div className="relative flex items-center justify-center w-4 h-4 shrink-0">
+                      {isCurrent && (
+                        <>
+                          <span className="absolute w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping opacity-60" />
+                          <span className="w-2 h-2 rounded-full bg-yellow-400" />
+                        </>
+                      )}
+                      {isCompleted && (
+                        <span className="text-[10px]">✓</span>
+                      )}
+                      {isLocked && (
+                        <span className="text-[11px]">🔒</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="font-black tracking-wider" style={{ fontSize: 10 }}>
+                        ASCENDANT {toRoman(level)}
+                      </div>
+                      {/* Bonus line */}
+                      <div className="mt-0.5" style={{ fontSize: 7, color: isCurrent ? "rgba(202,138,4,0.7)" : "rgba(202,138,4,0.28)" }}>
+                        +{bonuses.statsPct}% stats · {bonuses.maxHp} HP · +{bonuses.skillPoints} SP
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: status label */}
+                  <div className="relative z-10 flex flex-col items-end gap-0.5">
+                    <span className="font-black tracking-widest" style={{ fontSize: 7 }}>
+                      {isCurrent ? "CURRENT" : isCompleted ? "DONE" : "LOCKED"}
+                    </span>
+                    {isLocked && (
+                      <span style={{ fontSize: 6, color: "rgba(202,138,4,0.25)" }}>
+                        reach SSS → prestige
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-        </div>
-      </div>
+        );
+      })()}
     </div>
   );
 }
