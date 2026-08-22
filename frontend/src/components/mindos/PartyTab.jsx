@@ -1,14 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { djangoApi, getMediaUrl } from '@/api/djangoClient';
 import { getRankDisplayData } from '@/lib/rankEngine';
-import { Copy, Check, Users, LogOut, UserPlus, Swords, Settings, Shield } from 'lucide-react';
-import { Crown, MessageSquare, Zap } from 'lucide-react';
+import { Copy, Check, Users, LogOut, UserPlus, Swords, Settings, Shield, Send } from 'lucide-react';
+import { Crown, MessageSquare, Zap, BarChart2 } from 'lucide-react';
 import PartyMemberProfileSheet from './PartyMemberProfileSheet';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { CLASSES, CLASS_SPRITES } from '@/constants/rpgData';
+import { toast } from 'react-hot-toast';
 
 // ─── Member Card ─────────────────────────────────────────────────────────────
 
@@ -55,6 +56,10 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
     { code: 'mana_surge',   icon: '💙', label: '+20 MP',    cls: 'text-blue-400 border-blue-500/20 bg-blue-500/10' },
     { code: 'streak_shield', icon: '🛡️', label: 'Shield',   cls: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
   ];
+
+  // Cooldown: buff_cooldown_hours from API
+  const buffCooldownH = member.buff_cooldown_hours || 0;
+  const buffReady = buffCooldownH === 0;
 
   return (
     <motion.div
@@ -125,10 +130,14 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
             <div className="flex items-center gap-1">
               {onBuff && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); setShowBuffs(!showBuffs); }}
-                  className="p-1 rounded-md transition-all hover:bg-white/10"
+                  onClick={(e) => { e.stopPropagation(); if (buffReady) setShowBuffs(!showBuffs); }}
+                  className="p-1 rounded-md transition-all hover:bg-white/10 flex flex-col items-center gap-0"
+                  title={buffReady ? 'Send Buff' : `Buff cooldown: ${buffCooldownH}h left`}
                 >
-                  <Zap className="w-3.5 h-3.5 text-yellow-500" />
+                  <Zap className={`w-3.5 h-3.5 ${buffReady ? 'text-yellow-500' : 'text-gray-500'}`} />
+                  {!buffReady && (
+                    <span className="text-[6px] font-mono" style={{ color: 'var(--habit-dim)' }}>{buffCooldownH}h</span>
+                  )}
                 </button>
               )}
               {showKick && (
@@ -225,12 +234,16 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
 // ─── Achievement Badge ────────────────────────────────────────────────────────
 
 const ACHIEVEMENT_META = {
-  streak_7:    { icon: '🔥', label: '7-Day Streak' },
-  streak_30:   { icon: '🏆', label: '30-Day Streak' },
-  streak_100:  { icon: '💀', label: '100-Day Streak' },
-  full_house:  { icon: '👑', label: 'Full House' },
-  first_quest: { icon: '✅', label: 'First Quest' },
-  quest_master:{ icon: '🎯', label: 'Quest Master' },
+  streak_7:      { icon: '🔥', label: '7-Day Streak' },
+  streak_30:     { icon: '🏆', label: '30-Day Streak' },
+  streak_100:    { icon: '💀', label: '100-Day Streak' },
+  full_house:    { icon: '👑', label: 'Full House' },
+  first_quest:   { icon: '✅', label: 'First Quest' },
+  quest_master:  { icon: '🎯', label: 'Quest Master' },
+  buff_master:   { icon: '💪', label: 'Buff Master' },
+  all_streaks:   { icon: '🔗', label: 'All Streaks' },
+  quest_streak_3:{ icon: '⚡', label: 'Quest Streak III' },
+  top_scorer:    { icon: '🌟', label: 'Top Scorer' },
 };
 
 function PartyAchievementBadges({ achievements }) {
@@ -267,7 +280,7 @@ function PartyWeeklyQuestBlock({ quest }) {
     : 0;
 
   const questLabel = (quest.quest_type || '').replace(/_/g, ' ');
-  const daysLeft = quest.days_left ?? '?';
+    const daysLeft = quest.days_left ?? '?';
 
   return (
     <div
@@ -606,16 +619,34 @@ function NoPartyView({ onCreated, onJoined }) {
 function PartyFeedView({ party }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [chatMsg, setChatMsg] = useState('');
+  const chatInputRef = useRef(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ['party', 'feed'],
     queryFn: () => djangoApi.party.feed(),
-    refetchInterval: 15_000
+    refetchInterval: 10_000,
   });
 
   const reactMutation = useMutation({
     mutationFn: (/** @type {{eventId: number, emoji: string}} */ { eventId, emoji }) => djangoApi.party.react(eventId, emoji),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['party', 'feed'] })
   });
+
+  const chatMutation = useMutation({
+    mutationFn: (msg) => djangoApi.party.chat(msg),
+    onSuccess: () => {
+      setChatMsg('');
+      queryClient.invalidateQueries({ queryKey: ['party', 'feed'] });
+    },
+    onError: (err) => toast.error(err?.data?.error || 'Failed to send message'),
+  });
+
+  const handleSendChat = () => {
+    const msg = chatMsg.trim();
+    if (!msg || chatMutation.isPending) return;
+    chatMutation.mutate(msg);
+  };
 
   if (isLoading) {
     return (
@@ -631,10 +662,13 @@ function PartyFeedView({ party }) {
 
   const EVENT_CONFIG = {
     task_completed: { icon: '✅', label: 'completed', color: '#00cc88' },
-    level_up: { icon: '🆙', label: 'leveled up to', color: '#f59e0b' },
-    buff_sent: { icon: '💪', label: 'sent a buff:', color: '#7B61FF' },
-    milestone: { icon: '🏆', label: 'hit a milestone:', color: '#ffd700' },
-    default: { icon: '⚡', label: 'did something:', color: 'var(--habit-dim)' },
+    task:           { icon: '✅', label: 'completed', color: '#00cc88' },
+    level_up:       { icon: '🆙', label: 'leveled up to', color: '#f59e0b' },
+    rank_up:        { icon: '⭐', label: 'ranked up to', color: '#f0c040' },
+    buff_sent:      { icon: '💪', label: 'sent a buff:', color: '#7B61FF' },
+    milestone:      { icon: '🏆', label: 'hit a milestone:', color: '#ffd700' },
+    chat:           { icon: null, label: null, color: 'var(--habit-purple)' },
+    default:        { icon: '⚡', label: 'did something:', color: 'var(--habit-dim)' },
   };
 
   function relativeTime(dateStr) {
@@ -647,9 +681,40 @@ function PartyFeedView({ party }) {
 
   return (
     <div className="space-y-2">
+      {/* Chat Input */}
+      <div className="flex items-center gap-2 p-2 rounded-xl"
+        style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+      >
+        <input
+          ref={chatInputRef}
+          value={chatMsg}
+          onChange={e => setChatMsg(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSendChat()}
+          placeholder="Say something to the party... (Enter to send)"
+          maxLength={200}
+          className="flex-1 bg-transparent outline-none text-[11px] font-mono"
+          style={{ color: 'var(--habit-text)' }}
+        />
+        <span className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+          {chatMsg.length}/200
+        </span>
+        <button
+          onClick={handleSendChat}
+          disabled={!chatMsg.trim() || chatMutation.isPending}
+          className="p-1.5 rounded-lg transition-all"
+          style={{
+            background: chatMsg.trim() ? 'var(--habit-purple)' : 'var(--habit-border)',
+            opacity: chatMsg.trim() ? 1 : 0.4,
+          }}
+        >
+          <Send className="w-3 h-3 text-white" />
+        </button>
+      </div>
+
       <AnimatePresence>
         {events.map(event => {
           const cfg = EVENT_CONFIG[event.event_type] || EVENT_CONFIG.default;
+          const isChat = event.event_type === 'chat';
           const isReacted = event.user_reacted;
           return (
             <motion.div
@@ -657,55 +722,84 @@ function PartyFeedView({ party }) {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               className="rounded-xl overflow-hidden"
-              style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+              style={{
+                background: isChat ? 'transparent' : 'var(--habit-panel)',
+                border: isChat ? 'none' : '1px solid var(--habit-border)',
+              }}
             >
-              {/* Colored top accent bar */}
-              <div className="h-0.5 w-full" style={{ background: cfg.color }} />
-              <div className="p-3 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base shrink-0">{cfg.icon}</span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-mono font-bold text-xs" style={{ color: 'var(--habit-text)' }}>
-                          {event.username}
-                        </span>
-                        <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-                          {cfg.label}
-                        </span>
-                        <span className="text-[10px] font-mono font-semibold truncate max-w-[120px]" style={{ color: cfg.color }}>
-                          {event.content}
-                        </span>
-                      </div>
+              {/* Colored top accent bar (non-chat only) */}
+              {!isChat && <div className="h-0.5 w-full" style={{ background: cfg.color }} />}
+
+              {isChat ? (
+                // ─── Chat bubble ─────────────────────────────────────────────
+                <div className="flex items-start gap-2 px-1 py-1">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: 'var(--habit-purple)', fontSize: 9, color: 'white', fontWeight: 800 }}
+                  >
+                    {(event.username || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--habit-purple)' }}>
+                        {event.username}
+                      </span>
+                      <span className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+                        {relativeTime(event.created_at)}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--habit-text)' }}>
+                      {event.content}
                     </div>
                   </div>
-                  <span className="text-[9px] font-mono shrink-0" style={{ color: 'var(--habit-dim)' }}>
-                    {relativeTime(event.created_at)}
-                  </span>
                 </div>
-                {/* Reactions */}
-                <div className="flex gap-1.5">
-                  {['🔥', '👏', '💪', '🎉'].map(emoji => {
-                    const count = event.reactions?.filter(r => r.emoji === emoji).length || 0;
-                    const myReact = event.user_reacted === emoji;
-                    return (
-                      <button
-                        key={emoji}
-                        onClick={() => reactMutation.mutate({ eventId: event.id, emoji })}
-                        className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md transition-all"
-                        style={{
-                          background: myReact ? `${cfg.color}33` : 'var(--habit-border)',
-                          border: `1px solid ${myReact ? cfg.color : 'transparent'}`,
-                          transform: myReact ? 'scale(1.08)' : 'scale(1)',
-                        }}
-                      >
-                        <span className="text-xs">{emoji}</span>
-                        {count > 0 && <span className="text-[9px] font-mono font-bold" style={{ color: myReact ? cfg.color : 'var(--habit-dim)' }}>{count}</span>}
-                      </button>
-                    );
-                  })}
+              ) : (
+                // ─── Regular feed event ──────────────────────────────────────
+                <div className="p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base shrink-0">{cfg.icon}</span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-xs" style={{ color: 'var(--habit-text)' }}>
+                            {event.username}
+                          </span>
+                          <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+                            {cfg.label}
+                          </span>
+                          <span className="text-[10px] font-mono font-semibold truncate max-w-[120px]" style={{ color: cfg.color }}>
+                            {event.content}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-mono shrink-0" style={{ color: 'var(--habit-dim)' }}>
+                      {relativeTime(event.created_at)}
+                    </span>
+                  </div>
+                  {/* Reactions */}
+                  <div className="flex gap-1.5">
+                    {['🔥', '👏', '💪', '🎉'].map(emoji => {
+                      const count = event.reactions?.filter(r => r.emoji === emoji).length || 0;
+                      const myReact = event.user_reacted === emoji;
+                      return (
+                        <button
+                          key={emoji}
+                          onClick={() => reactMutation.mutate({ eventId: event.id, emoji })}
+                          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md transition-all"
+                          style={{
+                            background: myReact ? `${cfg.color}33` : 'var(--habit-border)',
+                            border: `1px solid ${myReact ? cfg.color : 'transparent'}`,
+                            transform: myReact ? 'scale(1.08)' : 'scale(1)',
+                          }}
+                        >
+                          <span className="text-xs">{emoji}</span>
+                          {count > 0 && <span className="text-[9px] font-mono font-bold" style={{ color: myReact ? cfg.color : 'var(--habit-dim)' }}>{count}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           );
         })}
@@ -718,7 +812,7 @@ function PartyFeedView({ party }) {
             <span className="text-4xl">🌑</span>
             <div className="text-center">
               <div className="text-[12px] font-mono font-bold" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.noActivity')}</div>
-              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>{t('partyTab.completeTaskFeed')}</div>
+              <div className="text-[10px] font-mono mt-1" style={{ color: 'var(--habit-dim)', opacity: 0.6 }}>Type a message above or complete tasks to fill the feed!</div>
             </div>
           </motion.div>
         )}
@@ -875,8 +969,13 @@ function PartyView({ party }) {
 
   const buffMutation = useMutation({
     mutationFn: (/** @type {{username: string, code: string}} */ { username, code }) => djangoApi.party.buff(username, code),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['party', 'feed'] });
+      queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
+      toast.success(`Buff sent to ${variables.username}! 💪`, { duration: 3000 });
+    },
+    onError: (err) => {
+      toast.error(err?.data?.error || 'Failed to send buff');
     }
   });
 
@@ -953,6 +1052,23 @@ function PartyView({ party }) {
             </button>
           </div>
         </div>
+
+        {/* Party Stats Block */}
+        {party.party_stats && (
+          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+            {[
+              { icon: '⚡', label: 'Weekly XP', value: (party.party_stats.total_weekly_xp || 0).toLocaleString() },
+              { icon: '🔥', label: 'Avg Streak', value: `${party.party_stats.avg_streak || 0}d` },
+              { icon: '✅', label: 'Total Tasks', value: (party.party_stats.total_tasks_completed || 0).toLocaleString() },
+            ].map(({ icon, label, value }) => (
+              <div key={label} className="flex flex-col items-center gap-0.5">
+                <span className="text-base">{icon}</span>
+                <span className="text-[10px] font-mono font-black" style={{ color: 'var(--habit-text)' }}>{value}</span>
+                <span className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Achievements row */}
         {party.achievements && party.achievements.length > 0 && (

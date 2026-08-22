@@ -1435,6 +1435,7 @@ class Party(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     streak = models.PositiveIntegerField(default=0, verbose_name="Party Streak")
     last_streak_update_date = models.DateField(null=True, blank=True)
+    quest_streak = models.PositiveIntegerField(default=0, verbose_name="Consecutive Quests Completed")
     member_cap = models.PositiveSmallIntegerField(
         default=8,
         verbose_name="Member cap",
@@ -1497,8 +1498,11 @@ class PartyEvent(models.Model):
     EVENT_TYPES = (
         ("task", "Task Completed"),
         ("level_up", "Level Up"),
+        ("buff_sent", "Buff Sent"),
+        ("rank_up", "Rank Up"),
         ("ally_unlock", "Ally Unlocked"),
         ("milestone", "Milestone Reached"),
+        ("chat", "Chat Message"),
     )
 
     party = models.ForeignKey(

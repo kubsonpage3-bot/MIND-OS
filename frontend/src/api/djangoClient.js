@@ -474,6 +474,10 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ receiver_username: username, effect_code: code })
     }),
+    chat: (message) => djangoFetch('/party/chat/', {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+    }),
     leaderboard: () => djangoFetch('/party/leaderboard/'),
     updateSettings: (data) => djangoFetch('/party/settings/', {
       method: 'PATCH',

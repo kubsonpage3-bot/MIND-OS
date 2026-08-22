@@ -83,7 +83,7 @@ export default function ActivePartyWidget() {
     <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
         <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>
-          ⚔️ {t('settings.active_party', 'ACTIVE PARTY')}
+          ⚔️ {t('settings.active_party', 'ACTIVE ALLIES')}
         </span>
       </div>
       

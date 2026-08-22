@@ -48,6 +48,7 @@ from .views import (
     PartyMemberProfileView,
     PartySettingsView,
     PartyWeeklyQuestView,
+    PartyChatView,
     MarkGuideSeenView,
     FeatureEventView,
     health_check,
@@ -200,6 +201,7 @@ urlpatterns = [
     ),
     path("party/settings/", PartySettingsView.as_view(), name="party-settings"),
     path("party/quest/", PartyWeeklyQuestView.as_view(), name="party-quest"),
+    path("party/chat/", PartyChatView.as_view(), name="party-chat"),
     # ─── Push Notifications ───────────────────────────────────────────────────
     path(
         "notifications/subscribe/", PushSubscribeView.as_view(), name="push-subscribe"

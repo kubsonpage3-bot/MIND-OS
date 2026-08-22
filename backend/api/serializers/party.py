@@ -28,6 +28,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     did_dailies_today = serializers.SerializerMethodField()
     weekly_tasks_done = serializers.SerializerMethodField()
+    buff_cooldown_hours = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -50,6 +51,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "role",
             "did_dailies_today",
             "weekly_tasks_done",
+            "buff_cooldown_hours",
         )
         read_only_fields = fields
 
@@ -105,17 +107,41 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             return False
 
     def get_weekly_tasks_done(self, obj) -> int:
+        """Count tasks completed this ISO week (resets Monday), not rolling 7 days."""
         from django.utils import timezone
         from datetime import timedelta
         from api.models import Task
 
         try:
-            week_ago = timezone.now() - timedelta(days=7)
+            today = timezone.now().date()
+            # Monday of the current ISO week
+            week_start = today - timedelta(days=today.weekday())
+            week_start_dt = timezone.make_aware(
+                timezone.datetime.combine(week_start, timezone.datetime.min.time())
+            )
             return Task.objects.filter(
                 user=obj.user,
                 is_completed=True,
-                last_completed_at__gte=week_ago,
+                last_completed_at__gte=week_start_dt,
             ).count()
+        except Exception:
+            return 0
+
+    def get_buff_cooldown_hours(self, obj) -> int:
+        """Hours remaining until this member can receive/send another buff. 0 = ready."""
+        from django.utils import timezone
+
+        try:
+            mem = obj.user.party_membership
+            if not mem.last_buff_sent_at:
+                return 0
+            last_sent = mem.last_buff_sent_at
+            # last_buff_sent_at is a DateField — calculate hours based on date diff
+            today = timezone.now().date()
+            days_elapsed = (today - last_sent).days
+            elapsed_h = days_elapsed * 24
+            remaining = max(0, 24 - elapsed_h)
+            return int(remaining)
         except Exception:
             return 0
 
@@ -133,6 +159,7 @@ class PartySerializer(serializers.ModelSerializer):
     )
     achievements = serializers.SerializerMethodField()
     weekly_quest = serializers.SerializerMethodField()
+    party_stats = serializers.SerializerMethodField()
 
     class Meta:
         model = Party
@@ -145,11 +172,13 @@ class PartySerializer(serializers.ModelSerializer):
             "member_count",
             "member_cap",
             "streak",
+            "quest_streak",
             "members",
             "created_by",
             "created_by_username",
             "achievements",
             "weekly_quest",
+            "party_stats",
         )
         read_only_fields = fields
 
@@ -169,18 +198,49 @@ class PartySerializer(serializers.ModelSerializer):
 
     def get_weekly_quest(self, obj) -> dict | None:
         from api.services.party_service import get_or_create_weekly_quest
+        from datetime import date
 
         try:
             quest = get_or_create_weekly_quest(obj)
+            today = date.today()
+            # Days until next Monday (end of ISO week)
+            days_left = (7 - today.weekday()) % 7 or 7
             return {
                 "quest_type": quest.quest_type,
                 "target_value": quest.target_value,
                 "current_value": quest.current_value,
                 "is_completed": quest.is_completed,
                 "week_key": quest.week_key,
+                "days_left": days_left,
             }
         except Exception:
             return None
+
+    def get_party_stats(self, obj) -> dict:
+        """Aggregate stats across all party members."""
+        try:
+            memberships = obj.memberships.select_related("user__profile").all()
+            total_weekly_xp = 0
+            total_tasks = 0
+            streaks = []
+            for mem in memberships:
+                profile = mem.user.profile
+                total_weekly_xp += profile.weekly_xp or 0
+                streaks.append(profile.streak or 0)
+                # Total completed tasks (rough count)
+                from api.models import Task
+                total_tasks += Task.objects.filter(
+                    user=mem.user, is_completed=True
+                ).count()
+            avg_streak = round(sum(streaks) / len(streaks), 1) if streaks else 0
+            return {
+                "total_weekly_xp": total_weekly_xp,
+                "avg_streak": avg_streak,
+                "total_tasks_completed": total_tasks,
+                "member_count": len(streaks),
+            }
+        except Exception:
+            return {}
 
 
 class PartyEventReactionSerializer(serializers.ModelSerializer):

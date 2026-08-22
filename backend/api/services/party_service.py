@@ -1,9 +1,10 @@
 """
-Party service — all business logic for create / join / leave / buff / quest / settings.
+Party service — all business logic for create / join / leave / buff / quest / settings / chat.
 Views must NOT contain any of this math.
 """
 
 import logging
+import random
 from django.db import transaction
 from django.utils import timezone
 from api.exceptions import GameLogicError
@@ -54,6 +55,35 @@ PARTY_BUFFS = {
         "duration_h": 36,
     },
 }
+
+# ─── Weekly Quest Types ────────────────────────────────────────────────────────
+
+QUEST_TYPES = [
+    "tasks_completed",
+    "xp_earned",
+    "dailies_completed",
+    "streak_maintained",
+]
+
+# Target scaling per quest type (multiplied by member count)
+QUEST_TARGETS = {
+    "tasks_completed": 15,    # 15 tasks per member
+    "xp_earned": 300,         # 300 XP per member
+    "dailies_completed": 10,  # 10 dailies per member
+    "streak_maintained": 5,   # 5 streak-days per member
+}
+
+QUEST_MIN_TARGETS = {
+    "tasks_completed": 30,
+    "xp_earned": 500,
+    "dailies_completed": 20,
+    "streak_maintained": 10,
+}
+
+# ─── Quest Rewards ─────────────────────────────────────────────────────────────
+
+QUEST_GOLD_REWARD = 200
+QUEST_XP_REWARD = 500
 
 
 def create_party(user, name: str):
@@ -279,15 +309,12 @@ def send_buff(sender, receiver_username: str, effect_code: str):
     except Exception:
         raise GameLogicError("You are not in a party.")
 
-    # Cooldown check: 24h per sender
-    if (
-        sender_mem.last_buff_sent_at
-        and (timezone.now() - sender_mem.last_buff_sent_at).total_seconds() < 86400
-    ):
-        hours_left = int(
-            24 - (timezone.now() - sender_mem.last_buff_sent_at).total_seconds() / 3600
-        )
-        raise GameLogicError(f"You can send another buff in {hours_left}h.")
+    # Cooldown check: 24h per sender (based on DateField — compare dates)
+    if sender_mem.last_buff_sent_at:
+        today = timezone.now().date()
+        days_elapsed = (today - sender_mem.last_buff_sent_at).days
+        if days_elapsed < 1:
+            raise GameLogicError("You can send another buff tomorrow.")
 
     try:
         receiver_mem = PartyMembership.objects.get(
@@ -337,8 +364,11 @@ def send_buff(sender, receiver_username: str, effect_code: str):
                 },
             )
 
-        sender_mem.last_buff_sent_at = timezone.now()
+        sender_mem.last_buff_sent_at = timezone.now().date()
         sender_mem.save(update_fields=["last_buff_sent_at"])
+
+    # Track total buffs sent for buff_master achievement
+    _check_buff_master_achievement(party)
 
     from api.models import PartyEvent
 
@@ -349,7 +379,32 @@ def send_buff(sender, receiver_username: str, effect_code: str):
         message=f"sent {buff_def['icon']} {buff_def['label']} to {receiver_username}",
     )
 
-    return {"message": f"Buff sent to {receiver_username}!"}
+    return {"message": f"Buff sent to {receiver_username}!", "buff": buff_def["label"]}
+
+
+def send_chat(user, message: str):
+    """Send a chat message to the party feed."""
+    from api.models import PartyEvent
+
+    message = message.strip()
+    if not message:
+        raise GameLogicError("Message cannot be empty.")
+    if len(message) > 200:
+        raise GameLogicError("Message too long (max 200 characters).")
+
+    try:
+        membership = user.party_membership
+        party = membership.party
+    except Exception:
+        raise GameLogicError("You are not in a party.")
+
+    event = PartyEvent.objects.create(
+        party=party,
+        member=membership,
+        event_type="chat",
+        message=message,
+    )
+    return event
 
 
 # ─── Weekly Quest ──────────────────────────────────────────────────────────────
@@ -362,27 +417,35 @@ def _get_week_key() -> str:
 
 
 def get_or_create_weekly_quest(party):
-    """Return the current week's quest for the party, creating it if it doesn't exist."""
+    """Return the current week's quest for the party, creating it if it doesn't exist.
+    Quest type is randomly chosen per week from QUEST_TYPES.
+    """
     from api.models import PartyWeeklyQuest
 
     week_key = _get_week_key()
-    member_count = party.memberships.count()
-    # Scale target with party size: 50 tasks per member, minimum 30
-    target = max(30, member_count * 15)
+    member_count = max(1, party.memberships.count())
+
+    # Deterministic random: seed with party id + week key so all members see same type
+    rng = random.Random(f"{party.id}-{week_key}")
+    quest_type = rng.choice(QUEST_TYPES)
+
+    base = QUEST_TARGETS.get(quest_type, 15)
+    min_target = QUEST_MIN_TARGETS.get(quest_type, 30)
+    target = max(min_target, member_count * base)
 
     quest, created = PartyWeeklyQuest.objects.get_or_create(
         party=party,
         week_key=week_key,
-        defaults={"quest_type": "tasks_completed", "target_value": target},
+        defaults={"quest_type": quest_type, "target_value": target},
     )
     return quest
 
 
-def add_quest_progress(party, amount: int = 1):
+def add_quest_progress(party, amount: int = 1, progress_type: str = "tasks_completed"):
     """
     Increment the current week's quest progress.
-    If quest reaches target, mark complete, create feed event, and award achievement.
-    Safe to call from task_service — any exception is caught upstream.
+    If quest reaches target, mark complete, create feed event, award achievement,
+    and distribute QUEST_GOLD_REWARD gold + QUEST_XP_REWARD XP to all members.
     """
     from api.models import PartyWeeklyQuest, PartyEvent
 
@@ -400,6 +463,10 @@ def add_quest_progress(party, amount: int = 1):
     if quest.is_completed:
         return  # Already done this week
 
+    # Only count progress that matches the quest type
+    if quest.quest_type != progress_type:
+        return
+
     quest.current_value += amount
     if quest.current_value >= quest.target_value:
         quest.current_value = quest.target_value
@@ -407,10 +474,13 @@ def add_quest_progress(party, amount: int = 1):
         quest.completed_at = timezone.now()
         quest.save(update_fields=["current_value", "is_completed", "completed_at"])
 
+        # Distribute rewards to all members
+        _distribute_quest_rewards(party, quest)
+
         PartyEvent.objects.create(
             party=party,
             event_type="milestone",
-            message=f"🏆 Weekly Quest completed! {quest.quest_type.replace('_', ' ').title()} — {quest.target_value} done!",
+            message=f"🏆 Weekly Quest completed! {quest.quest_type.replace('_', ' ').title()} — {quest.target_value} done! All members receive {QUEST_GOLD_REWARD}💰 + {QUEST_XP_REWARD}⚡ XP!",
         )
         # Check quest achievements
         _award_achievement(party, "first_quest")
@@ -419,8 +489,59 @@ def add_quest_progress(party, amount: int = 1):
         ).count()
         if completed_count >= 5:
             _award_achievement(party, "quest_master")
+
+        # Update quest_streak
+        party.quest_streak = (party.quest_streak or 0) + 1
+        party.save(update_fields=["quest_streak"])
+
+        if party.quest_streak >= 3:
+            _award_achievement(party, "quest_streak_3")
     else:
         quest.save(update_fields=["current_value"])
+
+
+def _distribute_quest_rewards(party, quest):
+    """Award gold and XP to all current party members."""
+    from api.models import UserProfile
+
+    memberships = party.memberships.select_related("user__profile").all()
+    for mem in memberships:
+        try:
+            profile = UserProfile.objects.select_for_update().get(user=mem.user)
+            profile.gold = (profile.gold or 0) + QUEST_GOLD_REWARD
+            profile.xp = (profile.xp or 0) + QUEST_XP_REWARD
+            profile.save(update_fields=["gold", "xp"])
+        except Exception as e:
+            logger.warning("Failed to reward %s: %s", mem.user.username, e)
+
+
+def _check_buff_master_achievement(party):
+    """Count total buffs sent across party history and award buff_master if >= 50."""
+    from api.models import PartyEvent
+
+    total_buffs = PartyEvent.objects.filter(
+        party=party, event_type="buff_sent"
+    ).count()
+    if total_buffs >= 49:  # +1 will be created after this call
+        _award_achievement(party, "buff_master")
+
+
+def check_all_streaks_achievement(party):
+    """Award all_streaks if every member has a streak >= 7."""
+    try:
+        memberships = party.memberships.select_related("user__profile").all()
+        if not memberships:
+            return
+        if all((mem.user.profile.streak or 0) >= 7 for mem in memberships):
+            _award_achievement(party, "all_streaks")
+    except Exception:
+        pass
+
+
+def check_top_scorer_achievement(party, weekly_xp: int):
+    """Award top_scorer if someone earned 1000+ XP in a week."""
+    if weekly_xp >= 1000:
+        _award_achievement(party, "top_scorer")
 
 
 # ─── Achievements ─────────────────────────────────────────────────────────────
@@ -444,6 +565,10 @@ def _award_achievement(party, code: str):
             "full_house": "👑 Full House",
             "first_quest": "✅ First Weekly Quest",
             "quest_master": "🎯 Quest Master",
+            "buff_master": "💪 Buff Master",
+            "all_streaks": "🔗 All Streaks",
+            "quest_streak_3": "⚡ Quest Streak III",
+            "top_scorer": "🌟 Top Scorer",
         }
         label = LABELS.get(code, code)
         PartyEvent.objects.create(
@@ -462,6 +587,8 @@ def check_streak_achievements(party):
         _award_achievement(party, "streak_30")
     if party.streak >= 100:
         _award_achievement(party, "streak_100")
+    # Also check all_streaks whenever party streak changes
+    check_all_streaks_achievement(party)
 
 
 # ─── Party Settings ───────────────────────────────────────────────────────────

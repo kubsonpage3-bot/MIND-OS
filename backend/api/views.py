@@ -2823,6 +2823,31 @@ class PartyFeedView(generics.GenericAPIView):
         return Response(serializer.data)
 
 
+class PartyChatView(generics.GenericAPIView):
+    """POST /api/party/chat/ — Send a chat message to the party feed."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from api.services.party_service import send_chat
+        from api.serializers.party import PartyEventSerializer
+
+        message = request.data.get("message", "").strip()
+        if not message:
+            return Response(
+                {"error": "Message cannot be empty."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            event = send_chat(request.user, message)
+            return Response(
+                PartyEventSerializer(event, context={"request": request}).data,
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class PartyEventReactView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
