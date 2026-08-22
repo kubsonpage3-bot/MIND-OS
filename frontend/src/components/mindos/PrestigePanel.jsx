@@ -81,70 +81,130 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
         )}
       </AnimatePresence>
 
-      <div className="p-4 rounded-2xl border space-y-3"
+      {/* ── Premium Prestige Progress Card ── */}
+      <div className="rounded-2xl border overflow-hidden relative"
         style={{
-          borderColor: canPrestige ? "#f0c04060" : "var(--habit-border)",
+          borderColor: canPrestige ? "#f0c04055" : "var(--habit-border)",
           background: "var(--habit-panel)",
-          boxShadow: canPrestige ? "0 0 16px #f0c04030" : "none"
+          boxShadow: canPrestige
+            ? "0 0 24px #f0c04022, 0 2px 12px rgba(0,0,0,0.18)"
+            : "0 2px 8px rgba(0,0,0,0.10)",
         }}
       >
-        <div className="flex items-center justify-between">
-          <div className="font-mono text-xs font-bold" style={{ color: canPrestige ? "#f0c040" : "var(--habit-dim)" }}>
-            {t('prestige.prestige')}
-          </div>
-          {count > 0 && (
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold"
-              style={{ background: "#f0c04020", color: "#f0c040", border: "1px solid #f0c04040" }}>
-              ×{count}
+        {/* Top glow strip when can prestige */}
+        {canPrestige && (
+          <div className="absolute top-0 left-0 right-0 h-[2px]"
+            style={{ background: "linear-gradient(90deg, transparent, #f0c040, transparent)" }}
+          />
+        )}
+
+        <div className="p-4 space-y-3">
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono font-black tracking-widest uppercase"
+                style={{ color: canPrestige ? "#f0c040" : "var(--habit-dim)" }}>
+                ✦ {t('prestige.prestige')}
+              </span>
+              {count > 0 && (
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded font-black"
+                  style={{ background: "#f0c04025", color: "#f0c040", border: "1px solid #f0c04050" }}>
+                  ×{count}
+                </span>
+              )}
+            </div>
+            {/* Next prestige label */}
+            <span className="text-[8px] font-mono" style={{ color: "var(--habit-dim)" }}>
+              {canPrestige
+                ? `→ ASCENDANT ${['','I','II','III','IV','V','VI','VII','VIII','IX','X'][count + 1] ?? count + 1}`
+                : `→ ASCENDANT ${['','I','II','III','IV','V','VI','VII','VIII','IX','X'][count + 1] ?? count + 1}`
+              }
             </span>
+          </div>
+
+          {/* XP Progress bar */}
+          <div className="space-y-1.5">
+            <div className="relative h-3 rounded-full overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, (rankXP / xpRequired) * 100)}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full rounded-full relative overflow-hidden"
+                style={{
+                  background: canPrestige
+                    ? "linear-gradient(90deg, #ca8a04, #f0c040, #fde68a)"
+                    : "linear-gradient(90deg, #92400e, #ca8a04)",
+                  boxShadow: canPrestige ? "0 0 10px #f0c04066" : "none",
+                }}
+              >
+                {/* Shimmer */}
+                <div className="absolute inset-0 opacity-30"
+                  style={{ background: "repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.3) 4px, rgba(255,255,255,0.3) 6px)" }}
+                />
+              </motion.div>
+              {/* Percent label inside bar */}
+              {rankXP > 0 && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[7px] font-mono font-black"
+                    style={{ color: "rgba(255,255,255,0.7)", textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>
+                    {Math.min(100, Math.round((rankXP / xpRequired) * 100))}%
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* XP numbers row */}
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-mono" style={{ color: "var(--habit-dim)" }}>
+                <span style={{ color: canPrestige ? "#f0c040" : "var(--habit-text)", fontWeight: 700 }}>
+                  {Math.round(rankXP).toLocaleString()}
+                </span>
+                {" / "}{xpRequired.toLocaleString()} XP
+              </span>
+              {!canPrestige && (
+                <span className="text-[8px] font-mono" style={{ color: "var(--habit-dim)" }}>
+                  {(xpRequired - rankXP).toLocaleString()} XP to go
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Active bonuses (compact row) — only if has prestige */}
+          {count > 0 && (
+            <div className="flex items-center gap-3 pt-1 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              {[
+                { label: "XP", value: `×${xpMult.toFixed(2)}`, color: "#86efac" },
+                { label: "Gold", value: `×${goldMult.toFixed(2)}`, color: "#f0c040" },
+                { label: "DMG", value: `×${dmgMult.toFixed(2)}`, color: "#f87171" },
+                { label: "HP", value: String(maxHp), color: "#60a5fa" },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="flex flex-col items-center gap-0.5 flex-1">
+                  <span className="text-[7px] font-mono" style={{ color: "var(--habit-dim)" }}>{label}</span>
+                  <span className="text-[9px] font-mono font-black" style={{ color }}>{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Initiate button */}
+          {canPrestige && (
+            <motion.button
+              onClick={() => setOpen(true)}
+              animate={{ boxShadow: ["0 0 8px #f0c04040", "0 0 20px #f0c04080", "0 0 8px #f0c04040"] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="w-full py-2.5 text-xs font-mono font-black rounded-xl relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #92400e, #ca8a04)", color: "#fde68a", border: "1px solid #f0c04060" }}
+            >
+              <span className="relative z-10 tracking-widest uppercase">⚡ {t('prestige.initiate')}</span>
+              {/* Shine */}
+              <div className="absolute inset-0 opacity-20"
+                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 60%)" }} />
+            </motion.button>
           )}
         </div>
-
-        {!canPrestige ? (
-          <div className="text-[10px] font-mono text-muted-foreground/40 leading-relaxed">
-            Reach {xpRequired} {t('prestige.xpToUnlock')} {rankXP.toFixed(0)} / {xpRequired} XP
-            <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${Math.min(100, (rankXP / xpRequired) * 100)}%`, background: "#f0c040" }} />
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setOpen(true)}
-            className="w-full py-2 text-xs font-mono font-black rounded-lg transition-all"
-            style={{ background: "#f0c04020", color: "#f0c040", border: "2px solid #f0c040", boxShadow: "0 0 12px #f0c04040" }}
-          >
-            {t('prestige.initiate')}
-          </button>
-        )}
       </div>
-      {/* Active bonuses display for prestige veterans */}
-      {count > 0 && (
-        <div className="rounded-xl border px-3 py-2 space-y-1"
-          style={{ borderColor: "#f0c04030", background: "#f0c04008" }}
-        >
-          <div className="text-[9px] font-mono font-bold tracking-widest uppercase" style={{ color: "#f0c04080" }}>
-            Active Prestige Bonuses
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-            <div className="text-[9px] font-mono flex justify-between">
-              <span style={{ color: "var(--habit-dim)" }}>XP Mult</span>
-              <span style={{ color: "#86efac" }}>×{xpMult.toFixed(2)}</span>
-            </div>
-            <div className="text-[9px] font-mono flex justify-between">
-              <span style={{ color: "var(--habit-dim)" }}>Gold Mult</span>
-              <span style={{ color: "#f0c040" }}>×{goldMult.toFixed(2)}</span>
-            </div>
-            <div className="text-[9px] font-mono flex justify-between">
-              <span style={{ color: "var(--habit-dim)" }}>DMG Mult</span>
-              <span style={{ color: "#f87171" }}>×{dmgMult.toFixed(2)}</span>
-            </div>
-            <div className="text-[9px] font-mono flex justify-between">
-              <span style={{ color: "var(--habit-dim)" }}>Max HP</span>
-              <span style={{ color: "#60a5fa" }}>{maxHp}</span>
-            </div>
-          </div>
-        </div>
-      )}
 
 
       {open && (
