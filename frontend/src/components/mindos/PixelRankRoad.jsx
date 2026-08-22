@@ -219,25 +219,60 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         })}
       </div>
 
-      {/* Prestige rows */}
-      {profile?.prestige_count > 0 && (
-        <div className="mt-4 border-t border-yellow-500/30 pt-3 space-y-2">
-          {Array.from({ length: profile?.prestige_count ?? 0 }, (_, i) => {
-            const level = i + 1;
-            const isCurrent = level === profile.prestige_count;
-            return (
-              <div key={level} className={`mt-2 px-4 py-2 rounded-lg border text-sm font-pixel flex justify-between
-                ${isCurrent
-                  ? 'border-yellow-400 text-yellow-400 bg-yellow-500/10'
-                  : 'border-yellow-500/20 text-yellow-600/40'
-                }`}>
-                <span>{isCurrent ? '✦' : '✓'} ASCENDANT {toRoman(level)}</span>
-                <span>{isCurrent ? 'CURRENT' : 'COMPLETED'}</span>
-              </div>
-            );
-          })}
+      {/* Ascendant path — always visible as motivation */}
+      <div className="mt-4 border-t pt-3 space-y-2" style={{ borderColor: "rgba(202,138,4,0.25)" }}>
+        {/* Section header */}
+        <div className="flex items-center justify-between">
+          <div className="font-game text-[9px] tracking-widest uppercase" style={{ color: "rgba(202,138,4,0.6)" }}>
+            ✦ Ascendant Path
+          </div>
+          {!profile?.prestige_count && (
+            <div className="font-game text-[8px]" style={{ color: "rgba(202,138,4,0.4)" }}>
+              Reach SSS to unlock
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Completed prestige levels */}
+        {profile?.prestige_count > 0 && Array.from({ length: profile.prestige_count }, (_, i) => {
+          const level = i + 1;
+          const isCurrent = level === profile.prestige_count;
+          return (
+            <div key={level}
+              className="px-4 py-2 rounded-lg border flex justify-between items-center font-game text-[10px]"
+              style={{
+                borderColor: isCurrent ? "rgba(202,138,4,0.7)" : "rgba(202,138,4,0.15)",
+                background: isCurrent ? "rgba(202,138,4,0.08)" : "transparent",
+                color: isCurrent ? "#ca8a04" : "rgba(202,138,4,0.35)",
+              }}
+            >
+              <span>{isCurrent ? "✦" : "✓"} ASCENDANT {toRoman(level)}</span>
+              <span style={{ fontSize: 8 }}>{isCurrent ? "CURRENT" : "COMPLETED"}</span>
+            </div>
+          );
+        })}
+
+        {/* Preview of next ascendant level (locked) */}
+        <div
+          className="px-4 py-2.5 rounded-lg border flex justify-between items-center font-game text-[10px] relative overflow-hidden"
+          style={{
+            borderColor: "rgba(202,138,4,0.20)",
+            background: "rgba(202,138,4,0.03)",
+            color: "rgba(202,138,4,0.35)",
+          }}
+        >
+          {/* Lock overlay */}
+          <span>🔒 ASCENDANT {toRoman((profile?.prestige_count || 0) + 1)}</span>
+          <div className="flex flex-col items-end gap-0.5">
+            <span style={{ fontSize: 7, color: "rgba(202,138,4,0.4)" }}>
+              +10% all stats · +50 HP · +5 SP
+            </span>
+            <span style={{ fontSize: 7, color: "rgba(202,138,4,0.3)" }}>
+              Requires SSS rank
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
