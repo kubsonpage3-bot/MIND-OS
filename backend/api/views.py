@@ -1266,9 +1266,12 @@ class PrestigeView(generics.GenericAPIView):
             else:
                 profile.rank_xp = 0
 
+            # Grant +5 Skill Points as promised in UI
+            profile.skill_points = (profile.skill_points or 0) + 5
+
             profile.save()
 
-            # Free skill tree respec
+            # Free skill tree respec (refunds all spent nodes back as skill points)
             respec_skill_nodes(request.user, free=True)
 
             # Reset training tasks if they exist in the DB (safe check for 'rank' field)

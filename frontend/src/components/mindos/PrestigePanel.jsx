@@ -18,7 +18,13 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const count = profile?.prestige_count || prestige?.count || 0;
   const xpRequired = profile?.prestige_xp_required || 8000;
   const canPrestige = rankXP >= xpRequired;
-  
+
+  // Active multiplier bonuses from previous prestiges
+  const xpMult = profile?.total_stats?.xp_multiplier || profile?.xp_multiplier || 1.0;
+  const goldMult = profile?.total_stats?.gold_multiplier || profile?.gold_multiplier || 1.0;
+  const dmgMult = profile?.total_stats?.damage_multiplier || profile?.damage_multiplier || 1.0;
+  const maxHp = profile?.hp_max || profile?.max_hp || 100;
+
   const prestigeMutation = useMutation({
     mutationFn: () => djangoApi.profile.prestige(),
     onSuccess: () => {
@@ -111,6 +117,35 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
           </button>
         )}
       </div>
+      {/* Active bonuses display for prestige veterans */}
+      {count > 0 && (
+        <div className="rounded-xl border px-3 py-2 space-y-1"
+          style={{ borderColor: "#f0c04030", background: "#f0c04008" }}
+        >
+          <div className="text-[9px] font-mono font-bold tracking-widest uppercase" style={{ color: "#f0c04080" }}>
+            Active Prestige Bonuses
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+            <div className="text-[9px] font-mono flex justify-between">
+              <span style={{ color: "var(--habit-dim)" }}>XP Mult</span>
+              <span style={{ color: "#86efac" }}>×{xpMult.toFixed(2)}</span>
+            </div>
+            <div className="text-[9px] font-mono flex justify-between">
+              <span style={{ color: "var(--habit-dim)" }}>Gold Mult</span>
+              <span style={{ color: "#f0c040" }}>×{goldMult.toFixed(2)}</span>
+            </div>
+            <div className="text-[9px] font-mono flex justify-between">
+              <span style={{ color: "var(--habit-dim)" }}>DMG Mult</span>
+              <span style={{ color: "#f87171" }}>×{dmgMult.toFixed(2)}</span>
+            </div>
+            <div className="text-[9px] font-mono flex justify-between">
+              <span style={{ color: "var(--habit-dim)" }}>Max HP</span>
+              <span style={{ color: "#60a5fa" }}>{maxHp}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {open && (
         <div
@@ -144,10 +179,9 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
                   t('prestige.gain_items.0', { pct: (count + 1) * 10 }),
                   t('prestige.gain_items.1', { iq: 15 + count * 5 }),
                   t('prestige.gain_items.2'),
-                  t('prestige.gain_items.3'),
-                  t('prestige.gain_items.4', { count: count + 1 }),
+                  t('prestige.gain_items.3', { count: count + 1 }),
+                  t('prestige.gain_items.4'),
                   t('prestige.gain_items.5'),
-                  t('prestige.gain_items.6'),
                 ].map((item, i) => (
                   <div key={i} className="text-yellow-400/70">✦ {item}</div>
                 ))}

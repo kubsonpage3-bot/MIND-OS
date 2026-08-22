@@ -753,7 +753,7 @@
   },
   "prestige": {
     "cancel": "Cancel",
-    "confirmRebirth": "Type REBIRTH to confirm",
+    "confirmRebirth": "Confirm Rebirth",
     "initiate": "Initiate Prestige",
     "prestige": "Prestige",
     "reborn": "REBORN",
@@ -772,15 +772,14 @@
       "All items in inventory",
       "All Gold",
       "All recruited and upgraded Allies",
-      "All skill tree nodes",
+      "Free Skill Tree respec (all points refunded)",
       "All achievements and titles",
       "All cognitive metrics and IQ"
     ],
     "gain_items": [
       "All RPG Stats permanently +{{pct}}%",
-      "IQ ceiling permanently +{{iq}}%",
-      "Loot rarity permanently upgraded",
-      "Enchantment pool expands",
+      "IQ ceiling permanently +{{iq}} points",
+      "Max HP permanently +50",
       "Prestige ×{{count}} badge",
       "+5 Skill Points immediately",
       "Prestige-exclusive achievement"
