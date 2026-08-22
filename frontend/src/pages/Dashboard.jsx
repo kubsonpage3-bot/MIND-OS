@@ -221,6 +221,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
+  const isCarouselTab = BOTTOM_TABS.includes(activeSection) || ["history", "pomodoro", "calendar", "stats"].includes(activeSection);
   
   // Group tool sections under a single key so the page doesn't unmount when switching sub-tabs
   const getTabKey = (sec) => {
@@ -276,6 +277,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const [visitedIndices, setVisitedIndices] = useState([activeTabIndex]);
 
   useEffect(() => {
+    if (!isCarouselTab) return;
     setVisitedIndices((prev) => {
       const next = [...prev];
       if (!next.includes(activeTabIndex)) {
@@ -294,7 +296,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (next.length === prev.length) return prev;
       return next;
     });
-  }, [activeTabIndex, isTransitioning]);
+  }, [activeTabIndex, isTransitioning, isCarouselTab]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -306,7 +308,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   }, []);
 
   useEffect(() => {
-    if (!isMobile) {
+    if (!isMobile || !isCarouselTab) {
       dragX.set(0);
       return;
     }
@@ -319,7 +321,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         setIsTransitioning(false);
       });
     }
-  }, [activeTabIndex, containerWidth, isMobile]);
+  }, [activeTabIndex, containerWidth, isMobile, isCarouselTab]);
 
   useEffect(() => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -332,6 +334,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     let lastMoveX = 0;
 
     const handleStart = (e) => {
+      if (!isCarouselTab) return;
       if (document.body.classList.contains('dnd-dragging') || modalStack.length > 0) return;
       if (e.target.closest('.overflow-x-auto, .overflow-x-scroll, .touch-none, [data-no-swipe], nav')) return;
       if (e.touches.length !== 1) return;
@@ -442,7 +445,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       document.removeEventListener('touchend', handleEnd);
       document.removeEventListener('touchcancel', handleEnd);
     };
-  }, [onSectionChange]);
+  }, [onSectionChange, isCarouselTab]);
 
 
   const [badgeNotif, setBadgeNotif] = useState(null);
@@ -997,8 +1000,13 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               </div>
             }>
               <div className="w-full h-auto overflow-hidden relative">
-                {!isMobile ? (
-                  <div className="w-full h-auto px-0 md:px-4">
+                {!isMobile || !isCarouselTab ? (
+                  <div
+                    className="w-full h-auto px-0 md:px-4"
+                    style={{
+                      paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined,
+                    }}
+                  >
                     {renderSectionContent(activeSection)}
                   </div>
                 ) : (
