@@ -985,7 +985,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   return (
     <div className="flex flex-col flex-1 min-h-full font-inter bg-transparent text-[var(--habit-text)]">
       <GuestBanner onConvertClick={() => setIsConvertGuestModalOpen(true)} />
-      <main ref={containerRef} className="flex-1 w-full max-w-7xl mx-auto px-0 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+      <main ref={containerRef} className="flex-1 w-full max-w-7xl mx-auto px-0 md:px-4 py-2 md:py-6 space-y-2.5 md:space-y-6">
         <AchievementTracker />
         <AchievementToast />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
@@ -1007,7 +1007,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         </AnimatePresence>
 
         {/* Main content area */}
-        <div className="rounded-none md:rounded-2xl p-0 py-3 md:p-5 overflow-x-hidden" style={{ background: 'transparent' }}>
+        <div className="rounded-none md:rounded-2xl p-0 py-1 md:p-5 overflow-x-hidden" style={{ background: 'transparent' }}>
           <TabErrorBoundary tabKey={activeTab}>
             <Suspense fallback={
               <div className="flex items-center justify-center py-20">
@@ -1019,14 +1019,14 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                   <div
                     className="w-full h-auto px-0 md:px-4"
                     style={{
-                      paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined,
+                      paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 12px)" : undefined,
                     }}
                   >
                     {renderSectionContent(activeSection)}
                   </div>
                 ) : (
                   <motion.div
-                    className="flex flex-row w-full h-auto"
+                    className="flex flex-row items-start w-full h-auto"
                     style={{
                       x: dragX,
                       willChange: "transform",
@@ -1057,7 +1057,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                             isActive ? "pointer-events-auto" : "pointer-events-none"
                           }`}
                           style={{
-                            paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined,
+                            paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 12px)" : undefined,
+                            height: isActive ? "auto" : 0,
+                            maxHeight: isActive ? "none" : 0,
+                            overflow: isActive ? "visible" : "hidden",
                             contain: "paint layout",
                             willChange: "transform",
                             backfaceVisibility: "hidden"

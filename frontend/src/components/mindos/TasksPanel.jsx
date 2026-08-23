@@ -86,7 +86,7 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
       {/* Mobile: show only the active tab */}
       <div className="md:hidden">
         {taskTab === 'tasks' && (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3 md:gap-6">
             <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('habit'); setCreateModalOpen(true); }} />
             <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('daily'); setCreateModalOpen(true); }} />
             <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
