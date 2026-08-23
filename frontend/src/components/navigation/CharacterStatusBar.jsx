@@ -116,7 +116,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
         </button>
 
         {/* Bars (Middle: HP, MP, XP) */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-3 py-2 md:px-5 md:py-2.5">
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-5 md:py-2.5">
           <PixelBar
             pct={hpPct}
             fillColor={theme?.hpColor || "#f74e52"}
@@ -144,9 +144,9 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
         {/* Right section: Gold/Rank/Streak + Portrait */}
         <div className="shrink-0 flex items-stretch border-l border-purple-500/20 bg-black/20">
           {/* Info block: Rank, Gold, Streak */}
-          <div className="flex flex-col items-end justify-center gap-1 pr-3 pl-2 py-2">
+          <div className="flex flex-col items-end justify-center gap-0.5 pr-2 pl-1.5 py-1.5 sm:gap-1 sm:pr-3 sm:pl-2 sm:py-2">
             <div
-              className="font-mono font-bold text-[10px] px-2 py-0.5 rounded border"
+              className="font-mono font-bold text-[8.5px] sm:text-[10px] px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded border"
               style={{
                 background: `${rankColor}18`,
                 color: rankColor,
@@ -158,13 +158,13 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
               RANK {rankId}
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-[11px]">🪙</span>
-              <span className="font-mono text-[10px] font-bold" style={{ color: "#ffbe5d" }}>
+              <span className="text-[10px] sm:text-[11px]">🪙</span>
+              <span className="font-mono text-[9px] sm:text-[10px] font-bold" style={{ color: "#ffbe5d" }}>
                 {normalizeGold(gameState.gold)}G
               </span>
             </div>
             {streak > 0 && (
-              <div className="font-mono text-[10px] font-bold text-orange-400 flex items-center gap-0.5">
+              <div className="font-mono text-[9px] sm:text-[10px] font-bold text-orange-400 flex items-center gap-0.5">
                 <span>🔥</span>
                 <span>{streak}d</span>
               </div>
@@ -173,18 +173,16 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
 
           {/* Portrait with Glowing Tactical Border */}
           <div
-            className="flex items-center justify-center shrink-0 overflow-hidden relative"
+            className="flex items-center justify-center shrink-0 overflow-hidden relative w-14 min-h-[56px] sm:w-[68px] sm:min-h-[68px]"
             style={{
-              width: 68,
-              minHeight: 68,
               background: `radial-gradient(circle, ${classColor}22 0%, rgba(0,0,0,0.6) 100%)`,
               borderLeft: `1px solid ${classColor}55`,
               imageRendering: "pixelated",
             }}
           >
             {classData.chosen
-              ? <PixelCharacter rankId={rankId} rankColor={classColor} size={60} hideLabel={true} />
-              : <span style={{ fontSize: 26 }}>⚔️</span>}
+              ? <PixelCharacter rankId={rankId} rankColor={classColor} size={52} hideLabel={true} />
+              : <span style={{ fontSize: 22 }}>⚔️</span>}
           </div>
         </div>
       </div>

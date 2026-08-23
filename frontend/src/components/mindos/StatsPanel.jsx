@@ -213,6 +213,7 @@ export default function StatsPanel({ profile, logs }) {
 
         {/* ── ENERGY BATTERY ────────────────────────────── */}
         <Card3D
+          className="col-span-2 sm:col-span-1"
           style={{
             background: `linear-gradient(145deg, ${batteryColor}10, ${batteryColor}04)`,
             borderColor: `${batteryColor}35`,

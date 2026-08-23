@@ -78,7 +78,7 @@ const TOOLS_TABS = [
 const CHARACTER_TABS = [
   { id: "overview", label: "dashboard.tab_stats" },
   { id: "skills", label: "dashboard.tab_skills" },
-  { id: "achievements", label: "dashboard.tab_achv" },
+  { id: "rival", label: "dashboard.tab_rival" },
   { id: "shop", label: "dashboard.tab_shop" },
 ];
 
@@ -213,7 +213,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const { t } = useTranslation();
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" ? window.innerWidth < 768 : false);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 768px)");
     setIsMobile(media.matches);
@@ -303,8 +303,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   useEffect(() => {
     if (!containerRef.current) return;
+    setContainerWidth(containerRef.current.getBoundingClientRect().width);
     const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
+      if (entries[0]) {
+        setContainerWidth(entries[0].contentRect.width);
+      }
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
@@ -315,9 +318,10 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       dragX.set(0);
       return;
     }
-    if (containerWidth > 0) {
+    const cw = containerWidth || containerRef.current?.getBoundingClientRect().width || (typeof window !== "undefined" ? window.innerWidth : 0);
+    if (cw > 0) {
       setIsTransitioning(true);
-      const anim = animate(dragX, -(activeTabIndex * containerWidth), {
+      const anim = animate(dragX, -(activeTabIndex * cw), {
         type: 'spring', stiffness: 380, damping: 36, mass: 0.8
       });
       anim.then(() => {
@@ -335,6 +339,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     let velocityX = 0;
     let lastMoveTime = 0;
     let lastMoveX = 0;
+    let cachedCw = 0;
 
     const handleStart = (e) => {
       if (!isCarouselTab) return;
@@ -348,6 +353,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       velocityX = 0;
       lastMoveTime = Date.now();
       lastMoveX = touch.clientX;
+      cachedCw = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
       dragX.stop();
     };
 
@@ -381,7 +387,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         lastMoveTime = now;
         lastMoveX = touch.clientX;
 
-        const cw = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
+        const cw = cachedCw || window.innerWidth;
         const currentIdx = activeIndexRef.current;
         const baseOffset = -(currentIdx * cw);
         let targetX = baseOffset + dx;
@@ -404,7 +410,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (isHorizontal !== true) return;
       isHorizontal = null;
 
-      const cw = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
+      const cw = cachedCw || window.innerWidth;
       const currentIdx = activeIndexRef.current;
       const baseOffset = -(currentIdx * cw);
       const distValue = dragX.get() - baseOffset;
@@ -920,7 +926,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 onChange={onSubItemChange}
               />
               <div className="py-2">
-                <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={currentSub} />
+                {currentSub === "rival" ? (
+                  <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={profile?.streak || 0} logs={logs} />
+                ) : (
+                  <CharacterTab profile={profile} logs={logs} rankXP={rankXPData.rankXP} currentRankId={rankXPData.currentRank} subTab={currentSub} />
+                )}
               </div>
             </>
           );
@@ -1021,7 +1031,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                     style={{
                       x: dragX,
                       willChange: "transform",
-                      transformStyle: "preserve-3d",
                       backfaceVisibility: "hidden"
                     }}
                   >
@@ -1054,7 +1063,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                             overflow: isCurrentlyVisible ? "visible" : "hidden",
                             visibility: isCurrentlyVisible ? "visible" : "hidden",
                             willChange: "transform",
-                            transformStyle: "preserve-3d",
                             backfaceVisibility: "hidden"
                           }}
                         >
