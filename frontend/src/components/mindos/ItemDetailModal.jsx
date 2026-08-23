@@ -25,42 +25,63 @@ export default function ItemDetailModal({ item, isOpen, onClose, actionButton, t
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+          }}
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.95, y: 10 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, y: 10 }}
+            initial={{ scale: 0.88, y: 15, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.88, y: 15, opacity: 0 }}
+            transition={{ type: "spring", damping: 22, stiffness: 350 }}
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
-            className="w-full max-w-sm bg-[var(--habit-panel)] border rounded-xl overflow-hidden shadow-2xl flex flex-col"
-            style={{ borderColor: `${tierColor}50` }}
+            className="w-full max-w-sm bg-[var(--habit-panel,#121218)] border rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+            style={{
+              borderColor: `${tierColor}55`,
+              boxShadow: `0 0 45px ${tierColor}30, 0 10px 30px rgba(0,0,0,0.8)`,
+            }}
           >
+            {/* Top ambient glow bar */}
+            <div 
+              className="h-1 w-full" 
+              style={{ background: `linear-gradient(90deg, transparent, ${tierColor}, transparent)` }} 
+            />
+
             {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-[var(--habit-border)] bg-[var(--habit-panel)]/50">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--habit-border,#222)] bg-black/20">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--habit-dim,#888)]">
                 {t('inventory.item_details', 'Item Details')}
               </span>
               <button 
                 onClick={onClose}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Body */}
-            <div className="p-6 flex flex-col items-center text-center space-y-4">
+            <div className="p-5 flex flex-col items-center text-center space-y-4 max-h-[75vh] overflow-y-auto">
               {/* Icon */}
               <div 
-                className="w-20 h-20 rounded border flex items-center justify-center shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800/50"
-                style={{ borderColor: `${tierColor}50`, imageRendering: "pixelated" }}
+                className="w-20 h-20 rounded-2xl border-2 flex items-center justify-center shrink-0 overflow-hidden relative"
+                style={{
+                  background: `radial-gradient(circle at 50% 50%, ${tierColor}25 0%, var(--habit-panel) 85%)`,
+                  borderColor: tierColor,
+                  boxShadow: `0 0 20px ${tierColor}40`,
+                }}
               >
                 <img 
                   src={displayIcon} 
                   alt={displayTitle} 
                   className="w-full h-full object-contain p-2" 
-                  style={{ imageRendering: "pixelated" }} 
+                  style={{
+                    imageRendering: "pixelated",
+                    filter: `drop-shadow(0 0 6px ${tierColor}80)`,
+                  }} 
                 />
               </div>
 
@@ -70,21 +91,34 @@ export default function ItemDetailModal({ item, isOpen, onClose, actionButton, t
                   {displayTitle}
                 </h2>
                 {displaySubtitle && (
-                  <div className="text-[10px] font-mono text-muted-foreground/50 tracking-widest uppercase mt-1">
+                  <div 
+                    className="text-[10px] font-mono font-bold tracking-widest uppercase mt-1 px-2 py-0.5 rounded-full inline-block border"
+                    style={{
+                      color: tierColor,
+                      borderColor: `${tierColor}50`,
+                      background: `${tierColor}15`,
+                    }}
+                  >
                     {displaySubtitle}
                   </div>
                 )}
               </div>
 
               {/* Description */}
-              <div className="text-sm font-mono text-slate-300 leading-relaxed max-h-[55vh] overflow-y-auto w-full pr-1">
+              <div 
+                className="text-xs font-mono text-[var(--habit-dim,#aaa)] leading-relaxed w-full p-3 rounded-xl border text-left"
+                style={{
+                  background: 'rgba(0,0,0,0.2)',
+                  borderColor: 'var(--habit-border, #2a2a35)',
+                }}
+              >
                 {displayDescription}
               </div>
             </div>
 
             {/* Footer / Action */}
             {actionButton && (
-              <div className="p-4 border-t border-[var(--habit-border)] bg-[var(--habit-panel)]/50">
+              <div className="p-4 border-t border-[var(--habit-border,#222)] bg-black/30">
                 {actionButton}
               </div>
             )}

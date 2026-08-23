@@ -1626,9 +1626,75 @@
       "name": "Elixir of Life",
       "desc": "Restores HP to 100% and grants 10 minutes of complete damage immunity."
     },
+    "health_potion": {
+      "name": "Elixir of Vitality",
+      "desc": "Restores +50 HP instantly."
+    },
+    "daily_xp_surge": {
+      "name": "XP Surge Scroll",
+      "desc": "+100% double XP gain for 2 hours."
+    },
+    "daily_gold_rush": {
+      "name": "Gold Rush Token",
+      "desc": "Instantly grants +200 Gold."
+    },
+    "focus_scroll": {
+      "name": "Scroll of Focus",
+      "desc": "Reduces skill cooldowns by 50% & gives +25% XP."
+    },
     "placeholder": {
       "name": "Loading...",
       "desc": "Loading..."
+    }
+  },
+  "consumables": {
+    "effect": "Effect",
+    "duration": "Duration",
+    "trigger": "Trigger",
+    "how_it_works": "How It Works",
+    "active_now": "Active Now",
+    "currently_active": "BUFF ACTIVE",
+    "already_active": "ALREADY ACTIVE",
+    "use_item": "USE ITEM",
+    "using": "USING...",
+    "sell_for_gold": "SELL FOR GOLD",
+    "selling": "SELLING...",
+    "categories": {
+      "healing": "Healing Potion",
+      "buff": "Combat & XP Buff",
+      "utility": "Utility & Shield",
+      "wealth": "Economy & Wealth",
+      "cognition": "Cognitive Stimulant"
+    },
+    "durations": {
+      "small_heal": "Instant",
+      "medium_heal": "Instant",
+      "health_potion": "Instant",
+      "large_heal": "Instant",
+      "elixir": "10 Minutes",
+      "focus_stim": "1 Focus Session",
+      "memory_patch": "Permanent",
+      "boss_damage_plus": "1 Focus Session",
+      "xp_booster": "24 Hours",
+      "daily_xp_surge": "2 Hours",
+      "streak_shield": "1 Use (Auto)",
+      "daily_gold_rush": "Instant",
+      "focus_scroll": "2 Hours"
+    },
+    "mechanics": {
+      "small_heal": "Instantly heals your character for 20 HP up to your maximum health pool. Essential for recovering from missed habits or failed tasks.",
+      "medium_heal": "Instantly heals your character for 50 HP. A reliable mid-tier healing flask to keep you in the fight during intense study/work weeks.",
+      "health_potion": "Standard revitalizing potion restoring 50 HP upon consumption.",
+      "large_heal": "A potent high-grade brew that restores 100 HP in one gulp. Ideal for surviving high-penalty legendary quest failures.",
+      "elixir": "The ultimate restorative draught. Instantly refills your Health to maximum and shields you from all incoming damage penalties for 10 minutes.",
+      "focus_stim": "Enhances cognitive focus. Your next Pomodoro session calculates 30% bonus productivity points and extra focus experience.",
+      "memory_patch": "Directly upgrades your mental growth coefficient (Gc), permanently increasing the rate at which you earn discipline and XP from completed tasks.",
+      "boss_damage_plus": "Imbues your strikes with explosive energy. During your next focus session, all damage dealt to the active Raid Boss is multiplied by 1.5x.",
+      "xp_booster": "Multiplies all XP earned from habits, dailies, to-dos, and Pomodoros by 1.5x for a full 24 hours. Stacks with character rank perks.",
+      "daily_xp_surge": "Unleashes a surge of cognitive momentum. For 2 hours, all XP gained from all tasks and sessions is doubled (2x). Great for sprint sessions!",
+      "streak_shield": "A protective safety talisman. If you fail to complete your daily habits before midnight, this shield automatically breaks instead of resetting your streak counter.",
+      "daily_gold_rush": "Directly converts ancient bullion into 200 Gold in your character wallet. Useful for quickly purchasing gear or unlocking new companion slots.",
+      "focus_scroll": "An arcane scroll that accelerates character skill recharges by 2x while simultaneously providing a 25% experience bonus for 2 hours."
     }
   },
   "allies": {

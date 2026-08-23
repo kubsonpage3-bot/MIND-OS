@@ -7,6 +7,7 @@ import { getMediaUrl, djangoApi } from "@/api/djangoClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/ui/GameCard";
 import { useTranslation } from "react-i18next";
+import ConsumableDetailModal from "./ConsumableDetailModal";
 // Consumable effects are handled server-side via the shop buy endpoint.
 // Do NOT track consumable state in localStorage — use the backend profile as SSOT.
 
@@ -14,6 +15,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [tab, setTab] = useState("gear");
   const [toast, setToast] = useState(null);
   const [usedId, setUsedId] = useState(null);
+  const [selectedConsumable, setSelectedConsumable] = useState(null);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -256,7 +258,8 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0, scale: isUsed ? [1, 1.03, 1] : 1 }}
                 transition={{ delay: idx * 0.04, scale: isUsed ? { duration: 0.3 } : {} }}
-                className="flex flex-col text-center p-3 relative"
+                className="flex flex-col text-center p-3 relative cursor-pointer hover:border-opacity-80 transition-all"
+                onClick={() => setSelectedConsumable(item)}
               >
                 {/* Scanlines */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -269,7 +272,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                   style={{ imageRendering: "pixelated", background: "var(--habit-panel)", borderColor: `${effectColor}60` }}>
                   <img src={getMediaUrl(item.icon_url) || '/static/items/default.webp'} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} />
                   {count > 1 && (
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-mono font-black"
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-mono font-black shadow"
                       style={{ background: effectColor, color: "#000" }}>{count}</div>
                   )}
                 </div>
@@ -288,7 +291,8 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                   </div>
                 </div>
 
-                <div className="mt-3 shrink-0 flex flex-col gap-1 z-10 relative">
+                {/* Direct quick action buttons */}
+                <div className="mt-3 shrink-0 flex flex-col gap-1 z-10 relative" onClick={(e) => e.stopPropagation()}>
                   <motion.button
                     onClick={() => applyConsumable(item)}
                     disabled={alreadyActive}
@@ -328,6 +332,29 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
           })}
         </div>
       )}
+
+      {/* Consumable Detail Modal (Allies Style) */}
+      {selectedConsumable && (() => {
+        const itemCode = selectedConsumable.code || selectedConsumable.id;
+        const activeData = consumables_active[itemCode];
+        const isActive = activeData?.active && (!activeData?.expiresAt || Date.now() < activeData.expiresAt);
+        const count = selectedConsumable.quantity || consumablesOwned.filter(i => (i.id === selectedConsumable.id || i.code === itemCode)).length;
+
+        return (
+          <ConsumableDetailModal
+            item={selectedConsumable}
+            isOpen={!!selectedConsumable}
+            onClose={() => setSelectedConsumable(null)}
+            count={count}
+            isActive={isActive}
+            activeData={activeData}
+            onConsume={applyConsumable}
+            onSell={(itemToSell) => sellMutation.mutate(itemToSell.id)}
+            isConsuming={consumeMutation.isPending}
+            isSelling={sellMutation.isPending}
+          />
+        );
+      })()}
     </div>
   );
 }

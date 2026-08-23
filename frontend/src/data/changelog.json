@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.74",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Interactive Consumables Detail Modal: tap any consumable in inventory to inspect exact stat effects, durations, trigger conditions, plain-English mechanics, glowing tier auras, and direct use/sell actions."
+      }
+    ]
+  },
+  {
     "version": "0.8.73",
     "date": "2026-08-23",
     "changes": [
