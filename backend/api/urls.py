@@ -67,6 +67,14 @@ from .views import (
 )
 from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
 from .views_pomodoro import PomodoroSessionViewSet
+from .views_nutrition import (
+    FoodItemListView,
+    FoodItemDetailView,
+    MealEntryListView,
+    MealEntryDeleteView,
+    NutritionCalendarView,
+    NutriGoalView,
+)
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
 # TaskViewSet → /api/tasks/
@@ -224,4 +232,23 @@ urlpatterns = [
     ),
     # ——— Playstyle Titles —————————————————─────────────────────────
     path("profile/equip-title/", EquipTitleView.as_view(), name="profile-equip-title"),
+    # ─── Nutrition (NutriLog) ─────────────────────────────────────────────────
+    path("nutrition/foods/", FoodItemListView.as_view(), name="nutrition-foods"),
+    path(
+        "nutrition/foods/<int:pk>/",
+        FoodItemDetailView.as_view(),
+        name="nutrition-food-detail",
+    ),
+    path("nutrition/meals/", MealEntryListView.as_view(), name="nutrition-meals"),
+    path(
+        "nutrition/meals/<int:pk>/",
+        MealEntryDeleteView.as_view(),
+        name="nutrition-meal-delete",
+    ),
+    path(
+        "nutrition/calendar/",
+        NutritionCalendarView.as_view(),
+        name="nutrition-calendar",
+    ),
+    path("nutrition/goal/", NutriGoalView.as_view(), name="nutrition-goal"),
 ]

@@ -27,6 +27,7 @@ const TasksPanel = lazy(() => import("@/components/mindos/TasksPanel"));
 const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
+const NutritionTab = lazy(() => import("@/components/mindos/NutritionTab"));
 import { isMobileApp } from "@/utils/platformUtils";
 import { syncWidgetStats } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
@@ -72,6 +73,7 @@ const TOOLS_TABS = [
   { id: "stats", label: "dashboard.tab_projections" },
   { id: "pomodoro", label: "dashboard.tab_pomodoro" },
   { id: "calendar", label: "dashboard.tab_calendar" },
+  { id: "nutrition", label: "dashboard.tab_nutrition" },
 ];
 
 const CHARACTER_TABS = [
@@ -820,7 +822,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   }
 
   const renderSectionContent = (sectionToRender) => {
-    const isTools = ["history", "pomodoro", "calendar", "stats"].includes(sectionToRender);
+    const isTools = ["history", "pomodoro", "calendar", "stats", "nutrition"].includes(sectionToRender);
     return (
       <>
         {sectionToRender === "dashboard" && (
@@ -953,6 +955,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
               <CalendarPanel />
             </PremiumGate>
           </TabPanel>
+        )}
+        {sectionToRender === "nutrition" && (
+          <NutritionTab />
         )}
 
         {sectionToRender === "settings" && (() => {

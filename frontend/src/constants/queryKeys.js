@@ -16,3 +16,9 @@ export const TASKS_QUERY_KEY = ["tasks"];
  * @returns {[string, string]}
  */
 export const rawTasksQueryKey = (name) => ["tasks", name];
+
+// ─── Nutrition (NutriLog) ────────────────────────────────────────────────────
+export const NUTRITION_MEALS_KEY = (dateStr) => ["nutrition", "meals", dateStr];
+export const NUTRITION_CALENDAR_KEY = (month) => ["nutrition", "calendar", month];
+export const FOOD_ITEMS_KEY = (search = "") => ["nutrition", "foods", search];
+export const NUTRI_GOAL_KEY = ["nutrition", "goal"];

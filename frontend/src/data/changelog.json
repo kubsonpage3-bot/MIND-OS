@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.68",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added NutriLog — a full food diary tab in the Tools section. Track what you eat each day, log meals by type (Breakfast/Lunch/Dinner/Snack), see animated КБЖУ rings, browse 7-day history with a color-coded date strip, set daily calorie and macro goals, and build your personal food catalog with search."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.67",
     "date": "2026-08-20",
     "changes": [

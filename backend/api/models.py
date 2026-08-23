@@ -1435,7 +1435,9 @@ class Party(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     streak = models.PositiveIntegerField(default=0, verbose_name="Party Streak")
     last_streak_update_date = models.DateField(null=True, blank=True)
-    quest_streak = models.PositiveIntegerField(default=0, verbose_name="Consecutive Quests Completed")
+    quest_streak = models.PositiveIntegerField(
+        default=0, verbose_name="Consecutive Quests Completed"
+    )
     member_cap = models.PositiveSmallIntegerField(
         default=8,
         verbose_name="Member cap",
@@ -1775,3 +1777,130 @@ class ActivePomodoroSession(models.Model):
 
     def __str__(self):
         return f"ActivePomodoro {self.user.username} ({self.remaining_seconds()}s left)"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Дневник питания (NutriLog)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class FoodItem(models.Model):
+    """Личный справочник продуктов пользователя."""
+
+    UNIT_CHOICES = [
+        ("g", "Граммы"),
+        ("ml", "Миллилитры"),
+        ("pcs", "Штуки"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="food_items",
+        verbose_name="Пользователь",
+    )
+    name = models.CharField(max_length=200, verbose_name="Название")
+    calories_per_100 = models.FloatField(verbose_name="Калории на 100г/мл")
+    protein_per_100 = models.FloatField(default=0.0, verbose_name="Белки на 100г/мл")
+    fat_per_100 = models.FloatField(default=0.0, verbose_name="Жиры на 100г/мл")
+    carbs_per_100 = models.FloatField(default=0.0, verbose_name="Углеводы на 100г/мл")
+    unit = models.CharField(
+        max_length=5, choices=UNIT_CHOICES, default="g", verbose_name="Единица"
+    )
+    is_favorite = models.BooleanField(default=False, verbose_name="Избранное")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Продукт"
+        verbose_name_plural = "Продукты"
+        ordering = ["-is_favorite", "name"]
+        indexes = [
+            models.Index(fields=["user", "is_favorite"]),
+            models.Index(fields=["user", "name"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.calories_per_100} ккал/100)"
+
+
+class MealEntry(models.Model):
+    """Запись приёма пищи за конкретный день."""
+
+    MEAL_CHOICES = [
+        ("breakfast", "Завтрак"),
+        ("lunch", "Обед"),
+        ("dinner", "Ужин"),
+        ("snack", "Снэк"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="meal_entries",
+        verbose_name="Пользователь",
+    )
+    food_item = models.ForeignKey(
+        FoodItem,
+        on_delete=models.CASCADE,
+        related_name="meal_entries",
+        verbose_name="Продукт",
+    )
+    date = models.DateField(db_index=True, verbose_name="Дата")
+    meal_type = models.CharField(
+        max_length=20, choices=MEAL_CHOICES, default="snack", verbose_name="Приём пищи"
+    )
+    amount = models.FloatField(verbose_name="Количество (г/мл/шт)")
+
+    # Денормализованные значения — считаются при сохранении, не в runtime
+    calories = models.FloatField(verbose_name="Калории")
+    protein = models.FloatField(default=0.0, verbose_name="Белки")
+    fat = models.FloatField(default=0.0, verbose_name="Жиры")
+    carbs = models.FloatField(default=0.0, verbose_name="Углеводы")
+
+    note = models.CharField(
+        max_length=300, blank=True, default="", verbose_name="Заметка"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Запись питания"
+        verbose_name_plural = "Записи питания"
+        ordering = ["date", "meal_type", "created_at"]
+        indexes = [
+            models.Index(fields=["user", "date"]),
+        ]
+
+    def save(self, *args, **kwargs) -> None:
+        """Авто-пересчёт КБЖУ при сохранении."""
+        ratio = self.amount / 100.0
+        self.calories = round(self.food_item.calories_per_100 * ratio, 2)
+        self.protein = round(self.food_item.protein_per_100 * ratio, 2)
+        self.fat = round(self.food_item.fat_per_100 * ratio, 2)
+        self.carbs = round(self.food_item.carbs_per_100 * ratio, 2)
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.date} | {self.meal_type} | {self.food_item.name} {self.amount}{self.food_item.unit}"
+
+
+class NutriGoal(models.Model):
+    """Цели питания пользователя (одна запись на пользователя)."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="nutri_goal",
+        verbose_name="Пользователь",
+    )
+    calories = models.FloatField(default=2000.0, verbose_name="Цель ккал/день")
+    protein = models.FloatField(default=150.0, verbose_name="Цель белки г/день")
+    fat = models.FloatField(default=65.0, verbose_name="Цель жиры г/день")
+    carbs = models.FloatField(default=250.0, verbose_name="Цель углеводы г/день")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Цель питания"
+        verbose_name_plural = "Цели питания"
+
+    def __str__(self) -> str:
+        return f"NutriGoal {self.user.username} ({self.calories} ккал)"

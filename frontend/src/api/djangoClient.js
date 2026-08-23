@@ -524,4 +524,34 @@ export const djangoApi = {
         body: JSON.stringify({ completed_ids: completedIds }),
       }),
   },
+
+  nutrition: {
+    getFoods: (search = '', favoritesOnly = false) => {
+      const params = new URLSearchParams();
+      if (search) params.set('q', search);
+      if (favoritesOnly) params.set('favorites', '1');
+      const qs = params.toString();
+      return djangoFetch(`/nutrition/foods/${qs ? `?${qs}` : ''}`);
+    },
+    createFood: (data) =>
+      djangoFetch('/nutrition/foods/', { method: 'POST', body: JSON.stringify(data) }),
+    updateFood: (id, data) =>
+      djangoFetch(`/nutrition/foods/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteFood: (id) =>
+      djangoFetch(`/nutrition/foods/${id}/`, { method: 'DELETE' }),
+
+    getMeals: (dateStr) =>
+      djangoFetch(`/nutrition/meals/?date=${dateStr}`),
+    addMeal: (data) =>
+      djangoFetch('/nutrition/meals/', { method: 'POST', body: JSON.stringify(data) }),
+    deleteMeal: (id) =>
+      djangoFetch(`/nutrition/meals/${id}/`, { method: 'DELETE' }),
+
+    getCalendar: (month) =>
+      djangoFetch(`/nutrition/calendar/?month=${month}`),
+
+    getGoal: () => djangoFetch('/nutrition/goal/'),
+    updateGoal: (data) =>
+      djangoFetch('/nutrition/goal/', { method: 'PATCH', body: JSON.stringify(data) }),
+  },
 };
