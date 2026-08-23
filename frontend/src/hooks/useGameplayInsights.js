@@ -4,20 +4,24 @@ import { djangoApi } from '@/api/djangoClient';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { rawTasksQueryKey } from '@/constants/queryKeys';
 
-const DISMISS_COOLDOWN_MS = 48 * 60 * 60 * 1000; // 48 hours
-const GLOBAL_GRACE_PERIOD_MS = 60 * 60 * 1000; // 1 hour
+// Cooldown after user closes a specific insight (7 days instead of 48h)
+const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+// Global quiet period after closing any insight (2 hours instead of 1h)
+const GLOBAL_GRACE_PERIOD_MS = 2 * 60 * 60 * 1000;
+// Initial quiet delay on app startup before showing any toast (5 seconds)
+const INITIAL_STARTUP_DELAY_MS = 5000;
 
 export function useGameplayInsights() {
   const { profile } = useDjangoAuth();
   const queryClient = useQueryClient();
   const [now, setNow] = useState(Date.now());
+  const [mountedAt] = useState(Date.now());
 
-  // Auto-refresh the 'now' timestamp every minute so cooldowns properly expire
-  // and insights reappear if the app is left open.
+  // Auto-refresh the 'now' timestamp every 15s so countdowns and cooldowns work seamlessly
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 60000);
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -51,13 +55,9 @@ export function useGameplayInsights() {
       });
     },
     onMutate: async (insightId) => {
-      // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['userprofile'] });
-      
-      // Snapshot the previous value
       const previousProfile = queryClient.getQueryData(['userprofile']);
       
-      // Optimistically update to new value
       if (previousProfile) {
         const currentTimeStr = new Date().toISOString();
         queryClient.setQueryData(['userprofile'], {
@@ -78,7 +78,6 @@ export function useGameplayInsights() {
       }
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure sync
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
     }
   });
@@ -86,11 +85,16 @@ export function useGameplayInsights() {
   const activeInsight = useMemo(() => {
     if (!profile) return null;
 
-    // Check global grace period
+    // 1. Initial startup grace period (prevent instant popup on app open)
+    if (now - mountedAt < INITIAL_STARTUP_DELAY_MS) {
+      return null;
+    }
+
+    // 2. Check global quiet grace period after any dismissed insight
     if (profile.last_insight_dismissed_at) {
       const lastDismissedTime = new Date(profile.last_insight_dismissed_at).getTime();
       if (now - lastDismissedTime < GLOBAL_GRACE_PERIOD_MS) {
-        return null; // Don't show any insights during the grace period
+        return null;
       }
     }
 
@@ -110,7 +114,10 @@ export function useGameplayInsights() {
       if (!isDismissed('prestige')) {
         return {
           id: 'prestige',
-          icon: '⭐',
+          category: 'ascension',
+          badge: '👑 ASCENSION',
+          color: '#fbbf24',
+          icon: '👑',
           title: 'insights.prestige.title',
           description: 'insights.prestige.description',
           cta: 'insights.prestige.cta',
@@ -126,6 +133,9 @@ export function useGameplayInsights() {
       if (!isDismissed('no_boss')) {
         return {
           id: 'no_boss',
+          category: 'boss',
+          badge: '👹 BOSS ENCOUNTER',
+          color: '#f87171',
           icon: '👹',
           title: 'insights.no_boss.title',
           description: 'insights.no_boss.description',
@@ -143,7 +153,10 @@ export function useGameplayInsights() {
       if (!isDismissed('unspent_sp')) {
         return {
           id: 'unspent_sp',
-          icon: '🧬',
+          category: 'skills',
+          badge: '⚡ SKILL TREE',
+          color: '#a78bfa',
+          icon: '⚡',
           title: 'insights.unspent_sp.title',
           description: 'insights.unspent_sp.description',
           cta: 'insights.unspent_sp.cta',
@@ -165,6 +178,9 @@ export function useGameplayInsights() {
       if (!isDismissed('dailies_risk')) {
         return {
           id: 'dailies_risk',
+          category: 'dailies',
+          badge: '⚠️ STREAK ALERT',
+          color: '#f59e0b',
           icon: '⚠️',
           title: 'insights.dailies_risk.title',
           description: 'insights.dailies_risk.description',
@@ -182,6 +198,9 @@ export function useGameplayInsights() {
       if (!isDismissed('no_mutators')) {
         return {
           id: 'no_mutators',
+          category: 'mutators',
+          badge: '🧪 MUTATORS',
+          color: '#34d399',
           icon: '🧪',
           title: 'insights.no_mutators.title',
           description: 'insights.no_mutators.description',
@@ -200,6 +219,9 @@ export function useGameplayInsights() {
       if (!isDismissed('no_allies')) {
         return {
           id: 'no_allies',
+          category: 'allies',
+          badge: '🤝 PARTY SQUAD',
+          color: '#60a5fa',
           icon: '🤝',
           title: 'insights.no_allies.title',
           description: 'insights.no_allies.description',
@@ -217,6 +239,9 @@ export function useGameplayInsights() {
       if (!isDismissed('excess_gold')) {
         return {
           id: 'excess_gold',
+          category: 'treasury',
+          badge: '💰 TREASURY',
+          color: '#fbbf24',
           icon: '💰',
           title: 'insights.excess_gold.title',
           description: 'insights.excess_gold.description',
@@ -234,6 +259,9 @@ export function useGameplayInsights() {
       if (!isDismissed('rival_discovery')) {
         return {
           id: 'rival_discovery',
+          category: 'rival',
+          badge: '⚔️ RIVAL DISCOVERY',
+          color: '#c084fc',
           icon: '🤺',
           title: 'insights.rival_discovery.title',
           description: 'insights.rival_discovery.description',
@@ -245,7 +273,7 @@ export function useGameplayInsights() {
     }
 
     return null;
-  }, [profile, encountersData, tasksData, now]);
+  }, [profile, encountersData, tasksData, now, mountedAt]);
 
   return { activeInsight, dismissInsight };
 }
