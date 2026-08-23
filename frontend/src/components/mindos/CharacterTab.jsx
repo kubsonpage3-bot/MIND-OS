@@ -22,6 +22,7 @@ import ClassSelector from "./ClassSelector";
 import SkillPanel from "./SkillPanel";
 import SkillTreePanel from "./SkillTreePanel";
 import AlliesPanel from "./AlliesPanel";
+import { showRewardToast } from "./RewardToast";
 
 import MutatorsPanel from "./MutatorsPanel";
 import TabGuideModal from "./TabGuideModal";
@@ -318,42 +319,42 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
     mutationFn: (/** @type {any} */ buyData) => djangoApi.shop.buy(buyData.item_id),
     onMutate: async (/** @type {any} */ buyData) => {
       await queryClient.cancelQueries({ queryKey: ["userprofile"] });
+      await queryClient.cancelQueries({ queryKey: ["inventory"] });
       /** @type {any} */
       const prevProfile = queryClient.getQueryData(["userprofile"]);
 
       if (prevProfile) {
-        const item = shopItems.find(i => i.id === buyData.item_id);
-        const healAmount = item && item.consumable ? (item.healAmount || 0) : 0;
-        const newHp = healAmount
-          ? Math.min(prevProfile.hp_max, prevProfile.hp + healAmount)
-          : prevProfile.hp;
-
-        const newInventory = healAmount
-          ? prevProfile.inventory
-          : [...(prevProfile.inventory || []), { id: buyData.item_id }];
-
         queryClient.setQueryData(["userprofile"], {
           ...prevProfile,
           gold: Math.max(0, prevProfile.gold - buyData.cost),
-          hp: newHp,
-          inventory: newInventory
         });
       }
 
       setBoughtItem(buyData.item_id);
-      triggerBurst(buyData.heal_amount ? "#ef4444" : "#f0c040", 10);
+      triggerBurst("#f0c040", 10);
       setTimeout(() => setBoughtItem(null), 800);
 
       return { prevProfile };
+    },
+    onSuccess: (data, buyData) => {
+      const item = shopItems.find(i => i.id === buyData.item_id);
+      const itemName = item?.label || buyData.item_id;
+      showRewardToast({
+        label: String(t('shop.bought_toast', `Purchased ${itemName}! Added to Inventory.`, { name: itemName })),
+        gold: -buyData.cost,
+      });
     },
     onError: (err, buyData, context) => {
       if (context?.prevProfile) {
         queryClient.setQueryData(["userprofile"], context.prevProfile);
       }
+      showRewardToast({ label: `❌ Purchase failed: ${err.message || 'Error'}` });
       console.error("Shop purchase failed:", err);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
     }
   });
 

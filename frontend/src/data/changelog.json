@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.76",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed Shop purchasing & inventory synchronization: items bought in Shop are immediately added to Inventory with real-time cache updates and clear notification toasts."
+      }
+    ]
+  },
+  {
     "version": "0.8.75",
     "date": "2026-08-23",
     "changes": [

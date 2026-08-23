@@ -1324,26 +1324,32 @@ def test_task_rewards_ratio_constant():
 @pytest.mark.django_db
 def test_training_over_task_ratio_constant():
     from api.services.rewards_service import (
-        task_rewards,
         training_rewards,
         focus_factor,
         TIER_MULTIPLIER,
         TRAINING_MULTIPLIER,
+        BASE_XP,
+        TRAINING_DMG_PER_XP,
+        DEEP_WORK_THRESHOLD_H,
+        DEEP_WORK_DMG_MULTIPLIER,
+        GOLD_PER_XP,
     )
 
     for tier in TIER_MULTIPLIER:
         for hours, focus in [(1.0, 7.0), (3.0, 9.0)]:
             t_rewards = training_rewards(tier, hours, focus)
-            t_base = task_rewards(tier)
+            base_xp = BASE_XP * TIER_MULTIPLIER[tier]
             ff = focus_factor(focus)
             scale = TRAINING_MULTIPLIER * hours * ff
-            assert t_rewards["xp"] == pytest.approx(round(t_base["xp"] * scale), abs=1)
-            assert t_rewards["gold"] == pytest.approx(
-                round(t_base["gold"] * scale), abs=1
+            assert t_rewards["xp"] == round(base_xp * scale)
+            assert t_rewards["gold"] == round(base_xp * GOLD_PER_XP * scale)
+            # Boss damage uses TRAINING_DMG_PER_XP and DEEP_WORK multiplier
+            raw_dmg = round(base_xp * TRAINING_DMG_PER_XP * scale)
+            deep_work = hours >= DEEP_WORK_THRESHOLD_H
+            expected_dmg = (
+                round(raw_dmg * DEEP_WORK_DMG_MULTIPLIER) if deep_work else raw_dmg
             )
-            assert t_rewards["dmg"] == pytest.approx(
-                round(t_base["dmg"] * scale), abs=1
-            )
+            assert t_rewards["dmg"] == expected_dmg
 
 
 @pytest.mark.django_db

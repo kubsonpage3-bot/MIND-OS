@@ -6,6 +6,9 @@
     "tools": "Stats",
     "settings": "Settings"
   },
+  "shop": {
+    "bought_toast": "Purchased {{name}}! Added to Inventory."
+  },
   "sidebar": {
     "apps": {
       "mind": "MIND OS",

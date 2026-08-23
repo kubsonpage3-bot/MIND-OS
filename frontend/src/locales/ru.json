@@ -6,6 +6,9 @@
     "tools": "Статы",
     "settings": "Настройки"
   },
+  "shop": {
+    "bought_toast": "Куплено: {{name}}! Предмет добавлен в Инвентарь."
+  },
   "sidebar": {
     "apps": {
       "mind": "MIND OS",
