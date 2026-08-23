@@ -27,8 +27,8 @@ const TasksPanel = lazy(() => import("@/components/mindos/TasksPanel"));
 const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
-const NutritionTab = lazy(() => import("@/components/mindos/NutritionTab"));
-import { isMobileApp } from "@/utils/platformUtils";
+
+
 import { syncWidgetStats } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
@@ -73,7 +73,6 @@ const TOOLS_TABS = [
   { id: "stats", label: "dashboard.tab_projections" },
   { id: "pomodoro", label: "dashboard.tab_pomodoro" },
   { id: "calendar", label: "dashboard.tab_calendar" },
-  { id: "nutrition", label: "dashboard.tab_nutrition" },
 ];
 
 const CHARACTER_TABS = [
@@ -202,7 +201,7 @@ function MetricPanel3D({ children }) {
 
 const BOTTOM_TABS = ["dashboard", "tasks", "character", "tools", "settings"];
 const getSectionIndex = (sec) => {
-  if (["history", "pomodoro", "calendar", "stats", "nutrition"].includes(sec)) return 3; // "tools" is at index 3
+  if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return 3; // "tools" is at index 3
   const idx = BOTTOM_TABS.indexOf(sec);
   return idx === -1 ? 0 : idx;
 };
@@ -223,11 +222,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
   // Map sections to tab IDs
   const activeTab = activeSection || "dashboard";
-  const isCarouselTab = BOTTOM_TABS.includes(activeSection) || ["history", "pomodoro", "calendar", "stats", "nutrition"].includes(activeSection);
+  const isCarouselTab = BOTTOM_TABS.includes(activeSection) || ["history", "pomodoro", "calendar", "stats"].includes(activeSection);
   
   // Group tool sections under a single key so the page doesn't unmount when switching sub-tabs
   const getTabKey = (sec) => {
-    if (["history", "pomodoro", "calendar", "stats", "nutrition"].includes(sec)) return "tools";
+    if (["history", "pomodoro", "calendar", "stats"].includes(sec)) return "tools";
     return sec || "dashboard";
   };
   const activeTabKey = getTabKey(activeSection);
@@ -822,7 +821,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   }
 
   const renderSectionContent = (sectionToRender) => {
-    const isTools = ["history", "pomodoro", "calendar", "stats", "nutrition"].includes(sectionToRender);
+    const isTools = ["history", "pomodoro", "calendar", "stats"].includes(sectionToRender);
     return (
       <>
         {sectionToRender === "dashboard" && (
@@ -956,9 +955,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
             </PremiumGate>
           </TabPanel>
         )}
-        {sectionToRender === "nutrition" && (
-          <NutritionTab />
-        )}
+
 
         {sectionToRender === "settings" && (() => {
           const currentSub = getValidSubTab("settings", activeSubItem);
@@ -1038,7 +1035,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                       }
 
                       const sectionToRender = tabKey === "tools"
-                        ? (["history", "pomodoro", "calendar", "stats", "nutrition"].includes(activeSection) ? activeSection : "history")
+                        ? (["history", "pomodoro", "calendar", "stats"].includes(activeSection) ? activeSection : "history")
                         : tabKey;
 
                       const isCurrentlyVisible = isActive || (isTransitioning && Math.abs(idx - activeTabIndex) <= 1);

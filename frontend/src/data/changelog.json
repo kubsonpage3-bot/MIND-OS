@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.70",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Moved the food diary (NutriLog) to Life OS. Life OS is now a dedicated food journal with КБЖУ tracking, meal log, calendar, and daily goals."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.69",
     "date": "2026-08-23",
     "changes": [
