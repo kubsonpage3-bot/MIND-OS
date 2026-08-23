@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { djangoApi } from '@/api/djangoClient';
 import {
   NUTRITION_MEALS_KEY,
@@ -10,15 +11,16 @@ import { toast } from '@/components/ui/use-toast';
 import { Search, Star, Camera, X, Globe, User, Loader2 } from 'lucide-react';
 
 const MEAL_TYPES = [
-  { id: 'breakfast', label: 'Завтрак', icon: '🌅' },
-  { id: 'lunch',     label: 'Обед',    icon: '☀️' },
-  { id: 'dinner',    label: 'Ужин',    icon: '🌙' },
-  { id: 'snack',     label: 'Снэк',    icon: '🍎' },
+  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅' },
+  { id: 'lunch',     key: 'lunch',     defaultLabel: 'Lunch',     icon: '☀️' },
+  { id: 'dinner',    key: 'dinner',    defaultLabel: 'Dinner',    icon: '🌙' },
+  { id: 'snack',     key: 'snack',     defaultLabel: 'Snack',     icon: '🍎' },
 ];
 
 const QUICK_PORTIONS = [50, 100, 150, 200, 300];
 
 export default function AddMealModal({ dateStr, initialMealType = 'breakfast', onClose }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
 
@@ -64,13 +66,13 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
     onSuccess: () => {
       invalidate();
       toast({
-        title: '🍽️ Блюдо добавлено!',
-        description: `${selectedFood?.name} — ${amount}${selectedFood?.unit || 'г'} (${Math.round((selectedFood?.calories_per_100 * amount) / 100)} ккал)`,
+        title: t('nutrition.add_modal.added_toast_title', '🍽️ Meal added!'),
+        description: `${selectedFood?.name} — ${amount}${selectedFood?.unit || t('nutrition.g', 'g')} (${Math.round((selectedFood?.calories_per_100 * amount) / 100)} ${t('nutrition.kcal', 'kcal')})`,
       });
       onClose();
     },
     onError: (e) =>
-      toast({ title: 'Ошибка добавления', description: e?.message || 'Попробуй снова', variant: 'destructive' }),
+      toast({ title: t('nutrition.add_modal.add_error', 'Failed to add meal'), description: e?.message || 'Try again', variant: 'destructive' }),
   });
 
   const createFoodMut = useMutation({
@@ -80,9 +82,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
       queryClient.invalidateQueries({ queryKey: ['nutrition', 'search-global'] });
       setSelectedFood({ ...item, is_custom: true });
       setTab('search');
-      toast({ title: '✅ Продукт сохранён в справочник', description: item.name });
+      toast({ title: t('nutrition.add_modal.food_saved_toast', '✅ Food saved to catalog'), description: item.name });
     },
-    onError: (e) => toast({ title: 'Ошибка', description: e?.message, variant: 'destructive' }),
+    onError: (e) => toast({ title: t('nutrition.error', 'Error'), description: e?.message, variant: 'destructive' }),
   });
 
   const toggleFavMut = useMutation({
@@ -127,8 +129,8 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
   function handleCreateFood() {
     const { name, calories_per_100 } = newFood;
-    if (!name.trim()) return toast({ title: 'Введи название продукта', variant: 'destructive' });
-    if (!calories_per_100) return toast({ title: 'Введи калории на 100г', variant: 'destructive' });
+    if (!name.trim()) return toast({ title: t('nutrition.add_modal.enter_name_error', 'Enter food name'), variant: 'destructive' });
+    if (!calories_per_100) return toast({ title: t('nutrition.add_modal.enter_cal_error', 'Enter calories per 100g'), variant: 'destructive' });
 
     createFoodMut.mutate({
       name: newFood.name.trim(),
@@ -177,7 +179,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <span style={{ fontWeight: 900, fontSize: 18, color: 'var(--habit-text)' }}>
-            🍽️ Добавить приём пищи
+            {t('nutrition.add_modal.title', '🍽️ Add Meal')}
           </span>
           <button onClick={onClose} className="text-2xl opacity-50 hover:opacity-100 transition-opacity">
             ×
@@ -186,7 +188,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
         {/* Meal Type Selector */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {MEAL_TYPES.map(({ id, label, icon }) => (
+          {MEAL_TYPES.map(({ id, key, defaultLabel, icon }) => (
             <button
               key={id}
               onClick={() => setMealType(id)}
@@ -198,7 +200,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 cursor: 'pointer',
               }}
             >
-              {icon} {label}
+              {icon} {t(`nutrition.meals.${key}`, defaultLabel)}
             </button>
           ))}
         </div>
@@ -206,8 +208,8 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
         {/* Tabs: Search vs New Food */}
         <div className="flex gap-2 mb-4">
           {[
-            ['search', '🔍 Поиск продуктов'],
-            ['new', '➕ Создать продукт'],
+            ['search', t('nutrition.add_modal.search_tab', '🔍 Search Food')],
+            ['new', t('nutrition.add_modal.create_tab', '➕ Create Food')],
           ].map(([id, label]) => (
             <button
               key={id}
@@ -233,7 +235,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Поиск по названию, бренду или базе..."
+                placeholder={t('nutrition.add_modal.search_placeholder', 'Search by name, brand, or database...')}
                 className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm outline-none font-medium"
                 style={{
                   background: 'var(--habit-border)',
@@ -251,7 +253,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
             <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto mb-4 scrollbar-thin">
               {userFoods.length === 0 && globalFoods.length === 0 && !isSearching && (
                 <div className="text-center py-6 opacity-40 text-xs">
-                  {search ? 'Ничего не найдено в базе' : 'Введи название блюда или перейди в «Создать продукт»'}
+                  {search
+                    ? t('nutrition.add_modal.not_found', 'Nothing found in database')
+                    : t('nutrition.add_modal.search_hint', 'Enter food name or switch to «Create Food»')}
                 </div>
               )}
 
@@ -259,7 +263,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               {userFoods.length > 0 && (
                 <div className="mb-2">
                   <div className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--habit-dim)] mb-1 px-1 flex items-center gap-1">
-                    <User size={11} /> Мои сохранённые продукты
+                    <User size={11} /> {t('nutrition.add_modal.my_saved_foods', 'My Saved Foods')}
                   </div>
                   <div className="space-y-1">
                     {userFoods.map((food) => {
@@ -281,7 +285,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                               {food.name}
                             </div>
                             <div className="text-[10px] text-[var(--habit-gold,#f59e0b)] font-mono font-bold mt-0.5">
-                              {food.calories_per_100} ккал / 100{food.unit} · Б:{food.protein_per_100} Ж:{food.fat_per_100} У:{food.carbs_per_100}
+                              {food.calories_per_100} {t('nutrition.kcal', 'kcal')} / 100{food.unit || t('nutrition.g', 'g')} · {t('nutrition.macros.p_short', 'P')}:{food.protein_per_100} {t('nutrition.macros.f_short', 'F')}:{food.fat_per_100} {t('nutrition.macros.c_short', 'C')}:{food.carbs_per_100}
                             </div>
                           </div>
 
@@ -309,7 +313,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               {globalFoods.length > 0 && (
                 <div>
                   <div className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--habit-dim)] mb-1 px-1 flex items-center gap-1">
-                    <Globe size={11} /> Глобальная база (Open Food Facts)
+                    <Globe size={11} /> {t('nutrition.add_modal.global_database', 'Global Database (Open Food Facts)')}
                   </div>
                   <div className="space-y-1">
                     {globalFoods.map((food) => {
@@ -332,7 +336,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                               {food.brand && <span className="opacity-50 text-[10px] ml-1">({food.brand})</span>}
                             </div>
                             <div className="text-[10px] text-[var(--habit-blue,#3b82f6)] font-mono font-bold mt-0.5">
-                              {food.calories_per_100} ккал / 100г · Б:{food.protein_per_100} Ж:{food.fat_per_100} У:{food.carbs_per_100}
+                              {food.calories_per_100} {t('nutrition.kcal', 'kcal')} / 100{t('nutrition.g', 'g')} · {t('nutrition.macros.p_short', 'P')}:{food.protein_per_100} {t('nutrition.macros.f_short', 'F')}:{food.fat_per_100} {t('nutrition.macros.c_short', 'C')}:{food.carbs_per_100}
                             </div>
                           </div>
                         </motion.button>
@@ -349,12 +353,14 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
         {tab === 'new' && (
           <div className="flex flex-col gap-2.5 mb-4">
             <div>
-              <label className="text-[11px] font-bold text-[var(--habit-dim)] mb-1 block">Название продукта *</label>
+              <label className="text-[11px] font-bold text-[var(--habit-dim)] mb-1 block">
+                {t('nutrition.add_modal.food_name_label', 'Food Name *')}
+              </label>
               <input
                 type="text"
                 value={newFood.name}
                 onChange={(e) => setNewFood((p) => ({ ...p, name: e.target.value }))}
-                placeholder="напр. Гречневая каша варёная"
+                placeholder={t('nutrition.add_modal.food_name_placeholder', 'e.g. Boiled oatmeal porridge')}
                 className="w-full px-3 py-2 rounded-xl text-xs outline-none"
                 style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
               />
@@ -362,7 +368,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[11px] font-bold text-[var(--habit-gold,#f59e0b)] mb-1 block">Калории на 100г *</label>
+                <label className="text-[11px] font-bold text-[var(--habit-gold,#f59e0b)] mb-1 block">
+                  {t('nutrition.add_modal.calories_label', 'Calories per 100g *')}
+                </label>
                 <input
                   type="number"
                   value={newFood.calories_per_100}
@@ -374,7 +382,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[var(--habit-blue,#3b82f6)] mb-1 block">Белки (г)</label>
+                <label className="text-[11px] font-bold text-[var(--habit-blue,#3b82f6)] mb-1 block">
+                  {t('nutrition.add_modal.protein_label', 'Protein (g)')}
+                </label>
                 <input
                   type="number"
                   value={newFood.protein_per_100}
@@ -386,7 +396,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[var(--habit-orange,#f97316)] mb-1 block">Жиры (г)</label>
+                <label className="text-[11px] font-bold text-[var(--habit-orange,#f97316)] mb-1 block">
+                  {t('nutrition.add_modal.fat_label', 'Fat (g)')}
+                </label>
                 <input
                   type="number"
                   value={newFood.fat_per_100}
@@ -398,7 +410,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[var(--habit-green,#10b981)] mb-1 block">Углеводы (г)</label>
+                <label className="text-[11px] font-bold text-[var(--habit-green,#10b981)] mb-1 block">
+                  {t('nutrition.add_modal.carbs_label', 'Carbs (g)')}
+                </label>
                 <input
                   type="number"
                   value={newFood.carbs_per_100}
@@ -421,7 +435,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 cursor: 'pointer',
               }}
             >
-              {createFoodMut.isPending ? 'Сохраняю...' : '✅ Сохранить в справочник'}
+              {createFoodMut.isPending
+                ? t('nutrition.add_modal.saving', 'Saving...')
+                : t('nutrition.add_modal.save_to_catalog', '✅ Save to Catalog')}
             </button>
           </div>
         )}
@@ -442,7 +458,10 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 {selectedFood.name}
               </span>
               <span className="text-[10px] opacity-60 font-mono">
-                Базово: {selectedFood.calories_per_100} ккал / 100{selectedFood.unit}
+                {t('nutrition.add_modal.base_macro', 'Base: {{calories}} kcal / 100{{unit}}', {
+                  calories: selectedFood.calories_per_100,
+                  unit: selectedFood.unit || t('nutrition.g', 'g'),
+                })}
               </span>
             </div>
 
@@ -459,14 +478,14 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                     cursor: 'pointer',
                   }}
                 >
-                  {p}{selectedFood.unit}
+                  {p}{selectedFood.unit || t('nutrition.g', 'g')}
                 </button>
               ))}
             </div>
 
             {/* Amount input */}
             <div className="flex items-center gap-2 mb-2.5">
-              <label className="text-xs font-bold opacity-60">Точный вес:</label>
+              <label className="text-xs font-bold opacity-60">{t('nutrition.add_modal.exact_weight', 'Exact weight:')}</label>
               <input
                 type="number"
                 value={amount}
@@ -476,16 +495,16 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 className="w-24 px-2.5 py-1 rounded-lg text-sm text-center outline-none font-bold"
                 style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
               />
-              <span className="text-xs opacity-60 font-bold">{selectedFood.unit}</span>
+              <span className="text-xs opacity-60 font-bold">{selectedFood.unit || t('nutrition.g', 'g')}</span>
             </div>
 
             {/* Calculated Macros Preview */}
             {preview && (
               <div className="flex gap-3 text-xs font-bold pt-2 border-t border-[rgba(245,158,11,0.15)]">
-                <span style={{ color: 'var(--habit-gold, #f59e0b)' }}>{preview.calories} ккал</span>
-                <span style={{ color: 'var(--habit-blue, #3b82f6)' }}>Б {preview.protein}г</span>
-                <span style={{ color: 'var(--habit-orange, #f97316)' }}>Ж {preview.fat}г</span>
-                <span style={{ color: 'var(--habit-green, #10b981)' }}>У {preview.carbs}г</span>
+                <span style={{ color: 'var(--habit-gold, #f59e0b)' }}>{preview.calories} {t('nutrition.kcal', 'kcal')}</span>
+                <span style={{ color: 'var(--habit-blue, #3b82f6)' }}>{t('nutrition.macros.p_short', 'P')} {preview.protein}{t('nutrition.g', 'g')}</span>
+                <span style={{ color: 'var(--habit-orange, #f97316)' }}>{t('nutrition.macros.f_short', 'F')} {preview.fat}{t('nutrition.g', 'g')}</span>
+                <span style={{ color: 'var(--habit-green, #10b981)' }}>{t('nutrition.macros.c_short', 'C')} {preview.carbs}{t('nutrition.g', 'g')}</span>
               </div>
             )}
           </motion.div>
@@ -496,7 +515,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Заметка к приёму пищи (необязательно)..."
+            placeholder={t('nutrition.add_modal.note_placeholder', 'Meal note (optional)...')}
             className="w-full px-3 py-2 rounded-xl text-xs outline-none"
             style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
           />
@@ -517,7 +536,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               style={{ background: 'var(--habit-border)' }}
             >
               <Camera size={14} />
-              <span>{photoPreview ? 'Изменить фото' : 'Прикрепить фото'}</span>
+              <span>{photoPreview ? t('nutrition.add_modal.change_photo', 'Change photo') : t('nutrition.add_modal.attach_photo', 'Attach photo')}</span>
             </button>
 
             {photoPreview && (
@@ -555,7 +574,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
             boxShadow: canSubmit ? '0 0 20px rgba(245,158,11,0.3)' : 'none',
           }}
         >
-          {addMealMut.isPending ? '⏳ Сохраняю...' : '🍽️ Добавить в дневник'}
+          {addMealMut.isPending ? t('nutrition.add_modal.saving', 'Saving...') : t('nutrition.add_modal.add_to_diary', '🍽️ Add to Diary')}
         </motion.button>
       </motion.div>
     </motion.div>

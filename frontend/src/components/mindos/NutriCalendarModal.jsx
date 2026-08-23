@@ -1,23 +1,26 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { djangoApi } from '@/api/djangoClient';
 import { NUTRITION_CALENDAR_KEY } from '@/constants/queryKeys';
 import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from 'lucide-react';
 
-const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const WEEKDAYS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEKDAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 function getMonthDetails(year, month) {
   // month is 1-indexed
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
   const daysInMonth = lastDay.getDate();
-  // Monday is index 0 in RU
+  // Monday is index 0
   const startDayOfWeek = (firstDay.getDay() + 6) % 7;
   return { daysInMonth, startDayOfWeek };
 }
 
 export default function NutriCalendarModal({ selectedDate, onSelectDate, onClose, goalCalories = 2000 }) {
+  const { t, i18n } = useTranslation();
   const [currentDate, setCurrentDate] = useState(() => {
     const [y, m] = selectedDate.split('-').map(Number);
     return new Date(y, m - 1, 1);
@@ -48,10 +51,12 @@ export default function NutriCalendarModal({ selectedDate, onSelectDate, onClose
     setCurrentDate(new Date(year, month, 1));
   };
 
-  const monthLabel = currentDate.toLocaleDateString('ru-RU', {
+  const monthLabel = currentDate.toLocaleDateString(i18n.language === 'ru' ? 'ru-RU' : 'en-US', {
     month: 'long',
     year: 'numeric',
   });
+
+  const weekdays = i18n.language === 'ru' ? WEEKDAYS_RU : WEEKDAYS_EN;
 
   return (
     <motion.div
@@ -114,7 +119,7 @@ export default function NutriCalendarModal({ selectedDate, onSelectDate, onClose
 
         {/* Weekday headers */}
         <div className="grid grid-cols-7 gap-1 text-center mb-2">
-          {WEEKDAYS.map((wd) => (
+          {weekdays.map((wd) => (
             <div
               key={wd}
               style={{
@@ -220,15 +225,15 @@ export default function NutriCalendarModal({ selectedDate, onSelectDate, onClose
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--habit-border)] text-[10px] font-bold text-[var(--habit-dim)]">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[var(--habit-green,#10b981)]" />
-            <span>Норма (±15%)</span>
+            <span>{t('nutrition.calendar.normal', 'Goal Met (±15%)')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[var(--habit-gold,#f59e0b)]" />
-            <span>Недобор</span>
+            <span>{t('nutrition.calendar.under', 'Under')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[var(--habit-red,#ef4444)]" />
-            <span>Перебор</span>
+            <span>{t('nutrition.calendar.over', 'Over')}</span>
           </div>
         </div>
       </motion.div>

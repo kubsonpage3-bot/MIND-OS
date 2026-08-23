@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.8.73",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Visual & Motion Polish for Nutrition Tracker in Life OS: animated macro ring count-up, glowing SVG meters, fluid liquid water intake bar, Lucide iconography, sliding active day pill, and meal category accent borders."
+      }
+    ]
+  },
+  {
+    "version": "0.8.72",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added full English internationalization support to Life OS and the Nutrition Food Diary, including meal logs, macro rings, water tracking, and modals."
+      }
+    ]
+  },
+  {
     "version": "0.8.71",
     "date": "2026-08-23",
     "changes": [
