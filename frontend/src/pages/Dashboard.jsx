@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense, startTransition } from "react";
 
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -272,34 +272,29 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const activeSectionRef = useRef(activeSection);
   const dragX = useMotionValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const isTransitioningRef = useRef(false);
   const activeTabIndex = getSectionIndex(activeSection);
   const activeIndexRef = useRef(activeTabIndex);
   activeIndexRef.current = activeTabIndex;
 
-  const [visitedIndices, setVisitedIndices] = useState([activeTabIndex]);
+  const [visitedIndices, setVisitedIndices] = useState(() => {
+    const init = [activeTabIndex];
+    if (activeTabIndex > 0) init.push(activeTabIndex - 1);
+    if (activeTabIndex < BOTTOM_TABS.length - 1) init.push(activeTabIndex + 1);
+    return init;
+  });
 
   useEffect(() => {
     if (!isCarouselTab) return;
     setVisitedIndices((prev) => {
-      const next = [...prev];
-      if (!next.includes(activeTabIndex)) {
-        next.push(activeTabIndex);
-      }
-      if (isTransitioning) {
-        const prevIdx = activeTabIndex - 1;
-        const nextIdx = activeTabIndex + 1;
-        if (prevIdx >= 0 && !next.includes(prevIdx)) {
-          next.push(prevIdx);
-        }
-        if (nextIdx < BOTTOM_TABS.length && !next.includes(nextIdx)) {
-          next.push(nextIdx);
-        }
-      }
-      if (next.length === prev.length) return prev;
-      return next;
+      const next = new Set(prev);
+      next.add(activeTabIndex);
+      if (activeTabIndex > 0) next.add(activeTabIndex - 1);
+      if (activeTabIndex < BOTTOM_TABS.length - 1) next.add(activeTabIndex + 1);
+      if (next.size === prev.length) return prev;
+      return Array.from(next);
     });
-  }, [activeTabIndex, isTransitioning, isCarouselTab]);
+  }, [activeTabIndex, isCarouselTab]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -320,12 +315,12 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     }
     const cw = containerWidth || containerRef.current?.getBoundingClientRect().width || (typeof window !== "undefined" ? window.innerWidth : 0);
     if (cw > 0) {
-      setIsTransitioning(true);
+      isTransitioningRef.current = true;
       const anim = animate(dragX, -(activeTabIndex * cw), {
         type: 'spring', stiffness: 380, damping: 36, mass: 0.8
       });
       anim.then(() => {
-        setIsTransitioning(false);
+        isTransitioningRef.current = false;
       });
     }
   }, [activeTabIndex, containerWidth, isMobile, isCarouselTab]);
@@ -376,7 +371,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
       if (isHorizontal === true) {
         if (e.cancelable) e.preventDefault();
-        setIsTransitioning(true);
+        isTransitioningRef.current = true;
 
         const now = Date.now();
         const dt = now - lastMoveTime;
@@ -425,11 +420,15 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       if (wantsForward && currentIdx < BOTTOM_TABS.length - 1) {
         const nextTab = BOTTOM_TABS[currentIdx + 1];
         hapticLight();
-        onSectionChange(nextTab === 'tools' ? 'history' : nextTab);
+        startTransition(() => {
+          onSectionChange(nextTab === 'tools' ? 'history' : nextTab);
+        });
       } else if (wantsBack && currentIdx > 0) {
         const prevTab = BOTTOM_TABS[currentIdx - 1];
         hapticLight();
-        onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
+        startTransition(() => {
+          onSectionChange(prevTab === 'tools' ? 'history' : prevTab);
+        });
       } else {
         const anim = animate(dragX, baseOffset, {
           type: 'spring',
@@ -438,7 +437,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
           mass: 0.8,
         });
         anim.then(() => {
-          setIsTransitioning(false);
+          isTransitioningRef.current = false;
         });
       }
     };
@@ -1042,7 +1041,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                         return (
                           <div
                             key={tabKey}
-                            className="w-full shrink-0 h-0 overflow-hidden"
+                            className="w-full shrink-0 h-0 overflow-hidden pointer-events-none"
                           />
                         );
                       }
@@ -1051,17 +1050,15 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                         ? (["history", "pomodoro", "calendar", "stats"].includes(activeSection) ? activeSection : "history")
                         : tabKey;
 
-                      const isCurrentlyVisible = isActive || (isTransitioning && Math.abs(idx - activeTabIndex) <= 1);
-
                       return (
                         <div
                           key={tabKey}
-                          className="w-full shrink-0 overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0"
+                          className={`w-full shrink-0 overflow-x-hidden touch-pan-y px-0 md:px-4 md:pb-0 ${
+                            isActive ? "pointer-events-auto" : "pointer-events-none"
+                          }`}
                           style={{
                             paddingBottom: isMobile ? "calc(var(--bottom-bar-height) + 24px)" : undefined,
-                            height: isCurrentlyVisible ? "auto" : 0,
-                            overflow: isCurrentlyVisible ? "visible" : "hidden",
-                            visibility: isCurrentlyVisible ? "visible" : "hidden",
+                            contain: "paint layout",
                             willChange: "transform",
                             backfaceVisibility: "hidden"
                           }}
