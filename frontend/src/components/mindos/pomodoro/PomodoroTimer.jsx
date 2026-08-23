@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useProfileSync } from '@/hooks/useProfileSync';
-import { computeEfficiency, ACTIVITIES, MASTERY_COEFFICIENTS, CATEGORY_ICONS, resolveMasteryCategory } from '@/lib/cognitiveEngine';
+import { ACTIVITIES, MASTERY_COEFFICIENTS, CATEGORY_ICONS } from '@/lib/cognitiveEngine';
 import { playSound } from '@/lib/soundEffects';
 import toast from 'react-hot-toast';
 import { LocalNotificationsService } from '@/utils/localNotifications';

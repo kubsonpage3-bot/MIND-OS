@@ -2794,3 +2794,22 @@ WARNING 2026-07-27 10:15:53,893 log 19756 18588 Forbidden: /api/calendar/events/
 WARNING 2026-07-27 10:16:12,416 log 20836 19956 Bad Request: /api/profile/
 WARNING 2026-07-27 10:16:16,750 log 20836 19956 Forbidden: /api/calendar/events/
 WARNING 2026-07-27 10:16:46,690 log 19756 18588 Bad Request: /api/tasks/3923/sacrifice/
+WARNING 2026-08-21 09:07:56,042 log 22932 22952 Unauthorized: /api/analytics/event/
+WARNING 2026-08-21 09:07:59,540 log 22932 22952 Bad Request: /api/analytics/event/
+WARNING 2026-08-21 09:08:20,221 log 22932 22952 Bad Request: /api/auth/register/
+WARNING 2026-08-23 14:29:44,844 log 14720 24932 Unauthorized: /api/analytics/event/
+WARNING 2026-08-23 14:29:47,046 log 14720 24932 Bad Request: /api/analytics/event/
+WARNING 2026-08-23 14:29:55,894 log 14720 24932 Bad Request: /api/auth/register/
+WARNING 2026-08-23 14:31:12,778 log 14720 24932 Bad Request: /api/profile/
+WARNING 2026-08-23 14:31:16,799 log 14720 24932 Forbidden: /api/calendar/events/
+WARNING 2026-08-23 14:31:55,118 log 14720 24932 Bad Request: /api/tasks/76/sacrifice/
+WARNING 2026-08-23 14:32:11,709 log 14720 24932 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-23 14:32:12,305 log 14720 24932 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-23 14:32:14,487 log 14720 24932 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-23 14:32:14,979 log 14720 24932 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-23 14:32:48,441 log 14720 24932 Forbidden: /api/party/members/184/profile/
+WARNING 2026-08-23 14:32:50,156 log 14720 24932 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-23 14:33:25,707 task_service 14720 24932 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-23 14:34:18,114 task_service 14720 24932 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-23 14:35:04,453 log 14720 24932 Bad Request: /api/profile/
+WARNING 2026-08-23 14:35:15,892 log 14720 10916 Bad Request: /api/mutators/chest/open/

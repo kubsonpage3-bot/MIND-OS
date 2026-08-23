@@ -21,4 +21,8 @@ export const rawTasksQueryKey = (name) => ["tasks", name];
 export const NUTRITION_MEALS_KEY = (dateStr) => ["nutrition", "meals", dateStr];
 export const NUTRITION_CALENDAR_KEY = (month) => ["nutrition", "calendar", month];
 export const FOOD_ITEMS_KEY = (search = "") => ["nutrition", "foods", search];
+export const GLOBAL_FOOD_KEY = (query = "") => ["nutrition", "search-global", query];
+export const NUTRITION_WATER_KEY = (dateStr) => ["nutrition", "water", dateStr];
+export const NUTRITION_COMBOS_KEY = ["nutrition", "combos"];
+export const NUTRITION_TRENDS_KEY = (days = 30) => ["nutrition", "trends", days];
 export const NUTRI_GOAL_KEY = ["nutrition", "goal"];

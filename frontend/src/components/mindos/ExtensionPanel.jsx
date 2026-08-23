@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Puzzle, Copy, Check, RefreshCw, Unlink, Wifi, WifiOff } from 'lucide-react';
+import { Copy, Check, RefreshCw, Unlink, Wifi, WifiOff } from 'lucide-react';
 import { djangoFetch } from '@/api/djangoClient';
 
 // ── API functions ──────────────────────────────────────────────────────────

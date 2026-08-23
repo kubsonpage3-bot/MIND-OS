@@ -11,7 +11,6 @@ import ResetPanel from "@/components/mindos/ResetPanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
 import GuidesPanel from "@/components/mindos/GuidesPanel";
 import ChangelogPanel from "@/components/mindos/ChangelogPanel";
-import ExtensionPanel from "@/components/mindos/ExtensionPanel";
 import changelogData from "@/data/changelog.json";
 
 export const SETTINGS_TABS = [

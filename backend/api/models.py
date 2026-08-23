@@ -1860,6 +1860,7 @@ class MealEntry(models.Model):
     note = models.CharField(
         max_length=300, blank=True, default="", verbose_name="Заметка"
     )
+    photo_url = models.TextField(blank=True, default="", verbose_name="Фото блюда")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1896,6 +1897,9 @@ class NutriGoal(models.Model):
     protein = models.FloatField(default=150.0, verbose_name="Цель белки г/день")
     fat = models.FloatField(default=65.0, verbose_name="Цель жиры г/день")
     carbs = models.FloatField(default=250.0, verbose_name="Цель углеводы г/день")
+    water_ml = models.PositiveIntegerField(
+        default=2000, verbose_name="Цель вода мл/день"
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -1904,3 +1908,115 @@ class NutriGoal(models.Model):
 
     def __str__(self) -> str:
         return f"NutriGoal {self.user.username} ({self.calories} ккал)"
+
+
+class GlobalFoodCache(models.Model):
+    """Кеш продуктов из Open Food Facts и глобальных баз."""
+
+    name = models.CharField(max_length=255, db_index=True, verbose_name="Название")
+    brand = models.CharField(
+        max_length=255, blank=True, default="", verbose_name="Бренд"
+    )
+    barcode = models.CharField(
+        max_length=64, blank=True, default="", db_index=True, verbose_name="Штрихкод"
+    )
+    calories_per_100 = models.FloatField(default=0.0, verbose_name="Ккал на 100г")
+    protein_per_100 = models.FloatField(default=0.0, verbose_name="Белки на 100г")
+    fat_per_100 = models.FloatField(default=0.0, verbose_name="Жиры на 100г")
+    carbs_per_100 = models.FloatField(default=0.0, verbose_name="Углеводы на 100г")
+    unit = models.CharField(max_length=5, default="g", verbose_name="Единица")
+    image_url = models.TextField(blank=True, default="", verbose_name="Ссылка на фото")
+    source = models.CharField(
+        max_length=32, default="openfoodfacts", verbose_name="Источник"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Глобальный продукт (кеш)"
+        verbose_name_plural = "Глобальные продукты (кеш)"
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["barcode"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.brand}) - {self.calories_per_100} kcal"
+
+
+class SavedMealCombo(models.Model):
+    """Сохранённый набор блюд/комбо-приём пищи пользователя."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="saved_meal_combos",
+        verbose_name="Пользователь",
+    )
+    name = models.CharField(max_length=200, verbose_name="Название комбо")
+    default_meal_type = models.CharField(
+        max_length=20,
+        choices=MealEntry.MEAL_CHOICES,
+        default="breakfast",
+        verbose_name="Приём по умолчанию",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Сохранённое комбо блюд"
+        verbose_name_plural = "Сохранённые комбо блюд"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} - {self.name}"
+
+
+class MealComboItem(models.Model):
+    """Элемент сохранённого комбо блюда."""
+
+    combo = models.ForeignKey(
+        SavedMealCombo,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name="Комбо",
+    )
+    food_item = models.ForeignKey(
+        FoodItem,
+        on_delete=models.CASCADE,
+        related_name="combo_items",
+        verbose_name="Продукт",
+    )
+    amount = models.FloatField(default=100.0, verbose_name="Количество (г/мл/шт)")
+
+    class Meta:
+        verbose_name = "Элемент комбо"
+        verbose_name_plural = "Элементы комбо"
+
+    def __str__(self) -> str:
+        return f"{self.combo.name} -> {self.food_item.name} ({self.amount})"
+
+
+class WaterLog(models.Model):
+    """Лог выпитой воды за конкретный день."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="water_logs",
+        verbose_name="Пользователь",
+    )
+    date = models.DateField(db_index=True, verbose_name="Дата")
+    amount_ml = models.PositiveIntegerField(default=0, verbose_name="Выпито мл")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Лог воды"
+        verbose_name_plural = "Логи воды"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "date"], name="unique_user_daily_water"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} {self.date}: {self.amount_ml}ml"

@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.8.71",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Full overhaul of the Food Diary in Life OS: added Open Food Facts global food database search, collapsible meal cards with category subtotals, saved combo meals, daily water tracking, 7/30-day nutrition trend charts, and an expandable month calendar."
+      }
+    ]
+  },
+
+  {
     "version": "0.8.70",
     "date": "2026-08-23",
     "changes": [

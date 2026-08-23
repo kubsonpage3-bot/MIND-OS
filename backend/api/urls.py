@@ -70,9 +70,15 @@ from .views_pomodoro import PomodoroSessionViewSet
 from .views_nutrition import (
     FoodItemListView,
     FoodItemDetailView,
+    GlobalFoodSearchView,
     MealEntryListView,
     MealEntryDeleteView,
+    WaterLogView,
+    SavedMealComboListView,
+    SavedMealComboDetailView,
+    SavedMealComboLogView,
     NutritionCalendarView,
+    NutritionTrendsView,
     NutriGoalView,
 )
 
@@ -239,16 +245,36 @@ urlpatterns = [
         FoodItemDetailView.as_view(),
         name="nutrition-food-detail",
     ),
+    path(
+        "nutrition/search-global/",
+        GlobalFoodSearchView.as_view(),
+        name="nutrition-search-global",
+    ),
     path("nutrition/meals/", MealEntryListView.as_view(), name="nutrition-meals"),
     path(
         "nutrition/meals/<int:pk>/",
         MealEntryDeleteView.as_view(),
         name="nutrition-meal-delete",
     ),
+    path("nutrition/water/", WaterLogView.as_view(), name="nutrition-water"),
+    path(
+        "nutrition/combos/", SavedMealComboListView.as_view(), name="nutrition-combos"
+    ),
+    path(
+        "nutrition/combos/<int:pk>/",
+        SavedMealComboDetailView.as_view(),
+        name="nutrition-combo-detail",
+    ),
+    path(
+        "nutrition/combos/<int:pk>/log/",
+        SavedMealComboLogView.as_view(),
+        name="nutrition-combo-log",
+    ),
     path(
         "nutrition/calendar/",
         NutritionCalendarView.as_view(),
         name="nutrition-calendar",
     ),
+    path("nutrition/trends/", NutritionTrendsView.as_view(), name="nutrition-trends"),
     path("nutrition/goal/", NutriGoalView.as_view(), name="nutrition-goal"),
 ]

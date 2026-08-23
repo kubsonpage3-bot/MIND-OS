@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { djangoApi } from '@/api/djangoClient';
 import { useProfileSync } from '@/hooks/useProfileSync';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { Bell, BellOff, Volume2 } from 'lucide-react';
+import { Bell, BellOff } from 'lucide-react';
 
 const DEFAULT_PRESET = { work: '25', break: '5', longBreak: '15', cycles: '4' };
 

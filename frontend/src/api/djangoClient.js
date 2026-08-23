@@ -540,6 +540,9 @@ export const djangoApi = {
     deleteFood: (id) =>
       djangoFetch(`/nutrition/foods/${id}/`, { method: 'DELETE' }),
 
+    searchGlobal: (query = '') =>
+      djangoFetch(`/nutrition/search-global/?q=${encodeURIComponent(query)}`),
+
     getMeals: (dateStr) =>
       djangoFetch(`/nutrition/meals/?date=${dateStr}`),
     addMeal: (data) =>
@@ -547,8 +550,24 @@ export const djangoApi = {
     deleteMeal: (id) =>
       djangoFetch(`/nutrition/meals/${id}/`, { method: 'DELETE' }),
 
+    getWater: (dateStr) =>
+      djangoFetch(`/nutrition/water/?date=${dateStr}`),
+    updateWater: (data) =>
+      djangoFetch('/nutrition/water/', { method: 'POST', body: JSON.stringify(data) }),
+
+    getCombos: () =>
+      djangoFetch('/nutrition/combos/'),
+    createCombo: (data) =>
+      djangoFetch('/nutrition/combos/', { method: 'POST', body: JSON.stringify(data) }),
+    deleteCombo: (id) =>
+      djangoFetch(`/nutrition/combos/${id}/`, { method: 'DELETE' }),
+    logCombo: (id, data) =>
+      djangoFetch(`/nutrition/combos/${id}/log/`, { method: 'POST', body: JSON.stringify(data) }),
+
     getCalendar: (month) =>
       djangoFetch(`/nutrition/calendar/?month=${month}`),
+    getTrends: (days = 30) =>
+      djangoFetch(`/nutrition/trends/?days=${days}`),
 
     getGoal: () => djangoFetch('/nutrition/goal/'),
     updateGoal: (data) =>

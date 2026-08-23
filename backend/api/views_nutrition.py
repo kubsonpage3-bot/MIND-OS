@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class FoodItemListView(APIView):
     """
-    GET  /api/nutrition/foods/          — список продуктов (с поиском ?q=)
+    GET  /api/nutrition/foods/          — список продуктов пользователя (с поиском ?q=)
     POST /api/nutrition/foods/          — создать новый продукт
     """
 
@@ -70,6 +70,19 @@ class FoodItemDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except GameLogicError as e:
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GlobalFoodSearchView(APIView):
+    """
+    GET /api/nutrition/search-global/?q=... — глобальный поиск продуктов (User + Cache + Open Food Facts)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get("q", "")
+        data = nutrition_service.search_global_foods(request.user, query)
+        return Response(data)
 
 
 class MealEntryListView(APIView):
@@ -118,6 +131,100 @@ class MealEntryDeleteView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
+class WaterLogView(APIView):
+    """
+    GET  /api/nutrition/water/?date=YYYY-MM-DD — данные о воде за день
+    POST /api/nutrition/water/                 — обновить воду (delta_ml или amount_ml)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        date_str = request.query_params.get("date")
+        try:
+            day = date.fromisoformat(date_str) if date_str else date.today()
+        except ValueError:
+            return Response({"error": "Неверный формат даты."}, status=400)
+        data = nutrition_service.get_water_log(request.user, day)
+        return Response(data)
+
+    def post(self, request):
+        date_str = request.data.get("date")
+        try:
+            day = date.fromisoformat(date_str) if date_str else date.today()
+        except ValueError:
+            return Response({"error": "Неверный формат даты."}, status=400)
+
+        delta = request.data.get("delta_ml")
+        amount = request.data.get("amount_ml")
+        data = nutrition_service.update_water_log(
+            request.user, day, delta_ml=delta, amount_ml=amount
+        )
+        return Response(data)
+
+
+class SavedMealComboListView(APIView):
+    """
+    GET  /api/nutrition/combos/ — список сохранённых комбо
+    POST /api/nutrition/combos/ — создать новое комбо
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = nutrition_service.list_combos(request.user)
+        return Response(data)
+
+    def post(self, request):
+        try:
+            combo = nutrition_service.create_combo(request.user, request.data)
+            return Response(combo, status=status.HTTP_201_CREATED)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SavedMealComboDetailView(APIView):
+    """
+    DELETE /api/nutrition/combos/<id>/ — удалить комбо
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            nutrition_service.delete_combo(request.user, pk)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
+class SavedMealComboLogView(APIView):
+    """
+    POST /api/nutrition/combos/<id>/log/ — залогировать комбо за 1 клик
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        date_str = request.data.get("date")
+        try:
+            day = date.fromisoformat(date_str) if date_str else date.today()
+        except ValueError:
+            return Response({"error": "Неверный формат даты."}, status=400)
+
+        meal_type = request.data.get("meal_type")
+        try:
+            entries = nutrition_service.log_combo(
+                request.user, pk, day, meal_type=meal_type
+            )
+            return Response(
+                MealEntrySerializer(entries, many=True).data,
+                status=status.HTTP_201_CREATED,
+            )
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class NutritionCalendarView(APIView):
     """
     GET /api/nutrition/calendar/?month=2026-08  — суммы по дням месяца
@@ -137,6 +244,23 @@ class NutritionCalendarView(APIView):
             return Response({"error": "Формат: ?month=YYYY-MM"}, status=400)
 
         data = nutrition_service.get_calendar_summary(request.user, year, month)
+        return Response(data)
+
+
+class NutritionTrendsView(APIView):
+    """
+    GET /api/nutrition/trends/?days=30 — аналитика и тренды питания
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            days = int(request.query_params.get("days", 30))
+            days = min(max(days, 7), 90)
+        except ValueError:
+            days = 30
+        data = nutrition_service.get_trends(request.user, days=days)
         return Response(data)
 
 
