@@ -795,19 +795,28 @@ html[data-theme="cyberpunk"] .task-card {
   border-radius: 16px;
 }
 
-/* ─── FANTASY BORDER ─── */
+/* ─── FANTASY & PIXEL ART SYSTEM ─── */
 .fantasy-border {
   border: 2px solid rgba(123,97,255,0.3);
   box-shadow: 0 0 12px rgba(123,97,255,0.1), inset 0 0 20px rgba(123,97,255,0.03);
 }
 
-/* ─── PIXEL ART ─── */
 .pixel-art {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-/* ─── AAA CYBER-PIXEL RPG DESIGN SYSTEM ─── */
+/* 16-Bit RPG Pixel Panel with Stepped Corners */
+.pixel-panel-frame {
+  position: relative;
+  background: var(--habit-panel);
+  border: 2px solid var(--habit-border);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
 /* Cut-corner tactical pixel panel */
 .pixel-panel {
@@ -824,33 +833,46 @@ html[data-theme="cyberpunk"] .task-card {
   position: relative;
 }
 
-/* Tactical Corner Brackets (┌ ┐ └ ┘) */
-.pixel-bracket-box {
+/* Tactical & Arcane Corner Brackets (┌ ┐ └ ┘) */
+.pixel-bracket-box,
+.pixel-corner-brackets {
   position: relative;
 }
-.pixel-bracket-box::before {
+.pixel-bracket-box::before,
+.pixel-corner-brackets::before {
   content: '';
   position: absolute;
   top: -1px;
   left: -1px;
   width: 8px;
   height: 8px;
-  border-top: 2px solid rgba(139, 92, 246, 0.7);
-  border-left: 2px solid rgba(139, 92, 246, 0.7);
+  border-top: 2px solid var(--habit-purple);
+  border-left: 2px solid var(--habit-purple);
   pointer-events: none;
   z-index: 5;
 }
-.pixel-bracket-box::after {
+.pixel-bracket-box::after,
+.pixel-corner-brackets::after {
   content: '';
   position: absolute;
   bottom: -1px;
   right: -1px;
   width: 8px;
   height: 8px;
-  border-bottom: 2px solid rgba(139, 92, 246, 0.7);
-  border-right: 2px solid rgba(139, 92, 246, 0.7);
+  border-bottom: 2px solid var(--habit-purple);
+  border-right: 2px solid var(--habit-purple);
   pointer-events: none;
   z-index: 5;
+}
+
+/* Golden corner variant */
+.pixel-corner-gold::before {
+  border-top-color: #ffbe5d !important;
+  border-left-color: #ffbe5d !important;
+}
+.pixel-corner-gold::after {
+  border-bottom-color: #ffbe5d !important;
+  border-right-color: #ffbe5d !important;
 }
 
 /* Ambient Scanlines */
@@ -871,24 +893,49 @@ html[data-theme="cyberpunk"] .task-card {
   pointer-events: none;
 }
 
-/* Segmented LED Pixel Bar (Grid notches) */
+/* Segmented 8-bit / 16-bit gauge overlay */
+.pixel-meter-pattern,
 .pixel-led-stripes {
   background-image: repeating-linear-gradient(
     90deg,
     transparent,
-    transparent 4px,
-    rgba(0, 0, 0, 0.4) 4px,
-    rgba(0, 0, 0, 0.4) 6px
+    transparent 3px,
+    rgba(0, 0, 0, 0.35) 3px,
+    rgba(0, 0, 0, 0.35) 5px
   );
 }
 
-/* Neon Glow Pulse */
-@keyframes neon-pulse {
-  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 4px currentColor); }
-  50% { opacity: 1; filter: drop-shadow(0 0 10px currentColor); }
+/* Pixel Summon Altar Glow Animation */
+@keyframes rune-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.04); }
+  100% { transform: rotate(360deg) scale(1); }
 }
-.animate-neon-pulse {
-  animation: neon-pulse 2.5s infinite ease-in-out;
+
+.animate-rune-spin {
+  animation: rune-spin 20s linear infinite;
+}
+
+/* Subtle float idle animation for boss & loot */
+@keyframes pixel-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-pixel-float {
+  animation: pixel-float 3.5s ease-in-out infinite;
+}
+
+/* Ambient Battle Fog */
+@keyframes fog-drift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fog-drift {
+  background-size: 200% 200%;
+  animation: fog-drift 12s ease infinite;
 }
 
 /* ─── SAFE AREA INSETS (PWA / notch / home indicator) ─── */

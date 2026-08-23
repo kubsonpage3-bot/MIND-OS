@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ScrollText } from 'lucide-react';
+import { Scroll, Sparkles } from 'lucide-react';
 import { QUOTES } from '../../constants/quotes';
 
 export default function DailyQuoteWidget() {
@@ -16,68 +16,70 @@ export default function DailyQuoteWidget() {
 
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="mb-4 rounded-none border-x-0 border-y border-l-4 md:border md:border-l-4 md:rounded-lg overflow-hidden bg-[var(--habit-panel)] shadow-sm relative pixel-bracket-box backdrop-blur-md"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="mb-4 rounded-xl border relative overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] pixel-corner-brackets pixel-corner-gold"
       style={{
-        borderTopColor: "rgba(139, 92, 246, 0.2)",
-        borderRightColor: "rgba(139, 92, 246, 0.2)",
-        borderBottomColor: "rgba(139, 92, 246, 0.2)",
-        borderLeftColor: "var(--habit-purple)",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.35)"
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
       }}
     >
-      {/* Background scanline & radial gradient */}
-      <div className="absolute inset-0 pixel-scanlines opacity-10 pointer-events-none" />
+      {/* Ambient background with warm parchment / arcane glow */}
       <div 
-        className="absolute inset-0 z-0 pointer-events-none"
+        className="absolute inset-0 z-0 pointer-events-none opacity-40"
         style={{
-          background: "radial-gradient(circle at 10% 50%, rgba(123, 97, 255, 0.15) 0%, transparent 65%)",
+          background: "radial-gradient(circle at 10% 30%, rgba(255, 190, 93, 0.12) 0%, rgba(123, 97, 255, 0.06) 50%, transparent 80%)",
         }}
       />
+
+      {/* Subtle pixel grid texture */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.025]"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, var(--habit-text) 1px, transparent 0)",
+          backgroundSize: "12px 12px"
+        }}
+      />
+
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--habit-border)] bg-black/10 relative z-10">
+        <div className="flex items-center gap-2">
+          <Scroll className="w-3.5 h-3.5 text-[#ffbe5d] animate-pulse" />
+          <span className="font-game text-[9px] text-[#ffbe5d] tracking-widest uppercase font-bold">
+            ✦ SCRIPTURE OF THE DAY ✦
+          </span>
+        </div>
+        <div className="flex items-center gap-1 opacity-60">
+          <Sparkles className="w-3 h-3 text-[#ffbe5d]" />
+          <span className="font-game text-[8px] text-[var(--habit-dim)] uppercase">WISDOM SCROLL</span>
+        </div>
+      </div>
       
-      <div className="p-6 md:p-8 flex flex-row items-center gap-5 md:gap-6 relative z-10">
-        {/* Icon */}
-        <div className="shrink-0 flex items-center justify-center">
-          <ScrollText 
-            size={38} 
-            style={{ 
-              color: "var(--habit-purple)", 
-              filter: "drop-shadow(0 0 6px rgba(var(--habit-purple-rgb, 123, 97, 255), 0.4))" 
-            }} 
-            className="opacity-90" 
-          />
+      {/* Content */}
+      <div className="p-4 md:p-5 flex flex-row items-center gap-4 relative z-10">
+        {/* Animated Pixel-like Icon Altar */}
+        <div className="shrink-0 hidden sm:flex flex-col items-center justify-center w-12 h-12 rounded-lg border border-[#ffbe5d]/30 bg-[#ffbe5d]/10 relative">
+          <span className="text-xl select-none filter drop-shadow-[0_0_8px_rgba(255,190,93,0.5)]">📜</span>
+          <div className="absolute -bottom-1 w-6 h-0.5 bg-[#ffbe5d]/60 rounded-full" />
         </div>
         
         {/* Quote & Reference */}
-        <div className="flex flex-col relative z-10">
-          <span 
-            className="italic text-base md:text-lg mb-2 relative leading-relaxed" 
-            style={{ color: "var(--habit-text)", fontFamily: "'Nunito', sans-serif" }}
+        <div className="flex-1 flex flex-col justify-center">
+          <p 
+            className="italic text-sm md:text-[15px] leading-relaxed text-[var(--habit-text)] relative font-medium"
+            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
           >
             "{quote.text}"
-          </span>
-          <span 
-            className="text-xs font-bold uppercase tracking-[0.15em] mt-1 flex items-center gap-1.5" 
-            style={{ color: "var(--habit-text)", opacity: 0.8 }}
-          >
-            <span style={{ color: "var(--habit-purple)", opacity: 0.8 }}>—</span> {quote.ref}
-          </span>
-        </div>
-        
-        {/* Decorative huge quotation mark */}
-        <div 
-          className="absolute -right-2 -top-4 select-none pointer-events-none"
-          style={{ 
-            color: "var(--habit-purple)", 
-            opacity: 0.15, 
-            fontFamily: "serif",
-            fontSize: "120px",
-            lineHeight: 1
-          }}
-        >
-          ❝
+          </p>
+          <div className="mt-2.5 flex items-center gap-2">
+            <span className="inline-block w-4 h-0.5 bg-[#ffbe5d]" />
+            <span 
+              className="font-game text-[9px] text-[#ffbe5d] font-bold tracking-widest uppercase px-2 py-0.5 rounded border border-[#ffbe5d]/30 bg-[#ffbe5d]/10"
+              style={{ textShadow: "0 0 8px rgba(255, 190, 93, 0.4)" }}
+            >
+              {quote.ref}
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>
