@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.78",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "AAA Cyber-Pixel RPG UI Overhaul: Upgraded Desktop Dashboard with tactical bracket panels, segmented LED Vitality bars, rotating holographic IQ radar, and glowing power cell indicators."
+      }
+    ]
+  },
+  {
     "version": "0.8.77",
     "date": "2026-08-23",
     "changes": [

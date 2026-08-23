@@ -807,6 +807,90 @@ html[data-theme="cyberpunk"] .task-card {
   image-rendering: crisp-edges;
 }
 
+/* ─── AAA CYBER-PIXEL RPG DESIGN SYSTEM ─── */
+
+/* Cut-corner tactical pixel panel */
+.pixel-panel {
+  background: rgba(18, 14, 30, 0.78);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  clip-path: polygon(
+    0 10px, 10px 0,
+    calc(100% - 10px) 0, 100% 10px,
+    100% calc(100% - 10px), calc(100% - 10px) 100%,
+    10px 100%, 0 calc(100% - 10px)
+  );
+  box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.04), 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* Tactical Corner Brackets (┌ ┐ └ ┘) */
+.pixel-bracket-box {
+  position: relative;
+}
+.pixel-bracket-box::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid rgba(139, 92, 246, 0.7);
+  border-left: 2px solid rgba(139, 92, 246, 0.7);
+  pointer-events: none;
+  z-index: 5;
+}
+.pixel-bracket-box::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 2px solid rgba(139, 92, 246, 0.7);
+  border-right: 2px solid rgba(139, 92, 246, 0.7);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Ambient Scanlines */
+.pixel-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+
+/* Cyber CRT Vignette */
+.cyber-vignette {
+  background: radial-gradient(circle at 50% 35%, transparent 55%, rgba(9, 7, 18, 0.65) 100%);
+  pointer-events: none;
+}
+
+/* Segmented LED Pixel Bar (Grid notches) */
+.pixel-led-stripes {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.4) 4px,
+    rgba(0, 0, 0, 0.4) 6px
+  );
+}
+
+/* Neon Glow Pulse */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 4px currentColor); }
+  50% { opacity: 1; filter: drop-shadow(0 0 10px currentColor); }
+}
+.animate-neon-pulse {
+  animation: neon-pulse 2.5s infinite ease-in-out;
+}
+
 /* ─── SAFE AREA INSETS (PWA / notch / home indicator) ─── */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
 .pt-safe { padding-top:    env(safe-area-inset-top,    0px);  }

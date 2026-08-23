@@ -92,47 +92,64 @@ export default function MetricBar({ metricKey, current, ceiling, showHoursHint =
       </div>
 
       {/* Progress track */}
-      <div className="relative h-3.5 rounded-full overflow-hidden border border-white/5 flex items-center bg-black/20" style={{ background: colors.track }}>
+      <div
+        className="relative h-4 overflow-hidden border flex items-center bg-black/40"
+        style={{
+          borderColor: "rgba(255, 255, 255, 0.1)",
+          background: colors.track,
+          boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.7)",
+        }}
+      >
         {/* Fill */}
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full"
+          className="absolute inset-y-0 left-0"
           animate={{ width: `${displayPct}%` }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{
             background: colors.gradient,
-            boxShadow: `0 0 10px ${colors.glow}, inset 0 1px 0 rgba(255,255,255,0.15)`,
+            boxShadow: `0 0 12px ${colors.glow}, inset 0 1px 0 rgba(255,255,255,0.3)`,
           }}
-        />
+        >
+          {/* LED Segmented Notches */}
+          <div className="absolute inset-0 pixel-led-stripes opacity-30 pointer-events-none" />
+
+          {/* Glowing Lead Head */}
+          <div
+            className="absolute top-0 right-0 bottom-0 w-1.5 bg-white opacity-90"
+            style={{ boxShadow: `0 0 8px ${colors.glow}` }}
+          />
+        </motion.div>
         
         {/* Shimmer sweep */}
         <motion.div
-          className="absolute inset-y-0 rounded-full pointer-events-none"
+          className="absolute inset-y-0 pointer-events-none"
           style={{
-            width: "40%",
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
+            width: "35%",
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
           }}
-          animate={{ left: ["-40%", "120%"] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+          animate={{ left: ["-35%", "135%"] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 2.5 }}
         />
 
         {/* Ceiling Tick line directly on the bar */}
         <div 
-          className="absolute right-0 top-0 bottom-0 w-0.5 z-10" 
-          style={{ backgroundColor: colors.bar, opacity: 0.6 }}
+          className="absolute right-0 top-0 bottom-0 w-1 z-10" 
+          style={{ backgroundColor: colors.bar, opacity: 0.8 }}
         />
         
         {/* Ceiling value label inside track at the right */}
         <span 
-          className="absolute right-2 text-[8px] font-mono font-bold pointer-events-none z-10 select-none"
-          style={{ color: colors.text, opacity: 0.8 }}
+          className="absolute right-2 text-[9px] font-mono font-bold pointer-events-none z-10 select-none"
+          style={{ color: colors.text, textShadow: "0 0 4px rgba(0,0,0,0.8)" }}
         >
           {ceiling}
         </span>
       </div>
 
-      {/* Floor label only */}
-      <div className="flex justify-between" style={{ fontFamily: "'Nunito'", fontSize: 9, color: "#878190" }}>
-        <span>80</span>
+      {/* Floor and ceiling hint */}
+      <div className="flex justify-between font-mono text-[9px] text-muted-foreground">
+        <span>MIN: 80</span>
+        <span className="text-white/60">CAP: {ceiling}</span>
       </div>
     </div>
   );

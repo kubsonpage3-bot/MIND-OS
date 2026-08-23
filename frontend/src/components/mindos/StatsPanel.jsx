@@ -63,22 +63,19 @@ function Card3D({ children, style, className = "", onClick }) {
           willChange: "transform",
           ...style,
         }}
-        className="relative rounded-2xl p-3.5 text-center flex flex-col items-center justify-between h-[142px] w-full overflow-hidden cursor-default select-none border"
+        className="relative rounded-lg p-3 text-center flex flex-col items-center justify-between h-[142px] w-full overflow-hidden cursor-default select-none border pixel-bracket-box backdrop-blur-md"
         whileHover={{ scale: 1.03, z: 25 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
-        {/* Inner shine layer (3D depth illusion) */}
+        {/* Inner scanline & shine layer */}
         <div
-          className="absolute inset-0 rounded-2xl pointer-events-none"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(0,0,0,0.15) 100%)",
-            zIndex: 1,
-          }}
+          className="absolute inset-0 pixel-scanlines opacity-20 pointer-events-none"
+          style={{ zIndex: 1 }}
         />
         {/* Top-edge highlight */}
         <div
-          className="absolute top-0 left-4 right-4 h-px pointer-events-none"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)", zIndex: 2 }}
+          className="absolute top-0 left-2 right-2 h-[1px] pointer-events-none"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)", zIndex: 2 }}
         />
         {/* Content sits above layers with 3D preserve context */}
         <div className="relative z-10 flex flex-col items-center justify-between w-full h-full" style={{ transformStyle: "preserve-3d" }}>

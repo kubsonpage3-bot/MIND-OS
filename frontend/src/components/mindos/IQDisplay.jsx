@@ -203,21 +203,36 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
         {/* Orbit particles */}
         {particles.map((p, i) => <OrbitParticle key={i} {...p} />)}
 
-        {/* Inner circle */}
-        <div
-          className="relative z-10 flex flex-col items-center justify-center w-24 h-24 rounded-full"
+        {/* Holographic Radar Sweep */}
+        <motion.div
+          className="absolute rounded-full pointer-events-none"
           style={{
-            background: "radial-gradient(circle, #f8f6ff 0%, #f0eeff 100%)",
-            boxShadow: `0 0 0 2px ${level.color}44, 0 4px 24px rgba(123,97,255,0.2)`,
+            width: 120,
+            height: 120,
+            background: `conic-gradient(from 0deg, transparent 0deg, ${level.color}25 60deg, transparent 70deg)`,
+            borderRadius: "50%",
+          }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Inner Tactical Cyber Core */}
+        <div
+          className="relative z-10 flex flex-col items-center justify-center w-24 h-24 rounded-full border"
+          style={{
+            background: "radial-gradient(circle, #18142a 0%, #0c0916 100%)",
+            borderColor: `${level.color}55`,
+            boxShadow: `0 0 16px ${level.color}33, inset 0 0 12px rgba(0,0,0,0.8)`,
           }}
         >
           <motion.div
             key={Math.round(displayIQ * 10)}
-            style={{ fontFamily: "'PixeloidSans'", fontSize: "1.25rem", color: level.color, lineHeight: 1 }}
+            className="font-mono font-bold text-xl tracking-tight"
+            style={{ color: level.color, textShadow: `0 0 10px ${level.color}88`, lineHeight: 1 }}
           >
             {displayIQ.toFixed(1)}
           </motion.div>
-          <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 8, color: "#878190", marginTop: 4, letterSpacing: "0.1em" }}>
+          <div className="font-mono text-[9px] font-bold text-muted-foreground mt-1 tracking-widest uppercase">
             IQ
           </div>
         </div>
@@ -229,8 +244,8 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
             animate={{ opacity: 1, y: -32, scale: 1.1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.6 }}
-            className="absolute top-4 right-0 z-20"
-            style={{ fontFamily: "'PixeloidSans'", fontSize: 9, color: "#22c55e", pointerEvents: "none", textShadow: "0 0 8px #22c55e66" }}
+            className="absolute top-4 right-0 z-20 font-mono font-bold text-xs"
+            style={{ color: "#22c55e", pointerEvents: "none", textShadow: "0 0 10px #22c55e" }}
           >
             {gained}
           </motion.div>
@@ -245,13 +260,12 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
         className="mt-3 text-center"
       >
         <div
-          className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full animate-pulse"
+          className="font-mono text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded border"
           style={{
-            fontFamily: "'Nunito'",
             color: level.color,
-            border: `2px solid ${level.color}55`,
+            borderColor: `${level.color}66`,
             background: `${level.color}15`,
-            boxShadow: `0 0 12px ${level.color}33`,
+            boxShadow: `0 0 14px ${level.color}40`,
           }}
         >
           {level.title}
@@ -260,8 +274,8 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
 
       {/* Potential IQ */}
       <div className="mt-2 text-center">
-        <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "#878190" }}>
-          Potential: <span style={{ color: "#c4c2cc", fontWeight: 700 }}>{potentialIQ.toFixed(1)}</span>
+        <span className="font-mono text-[11px] text-muted-foreground">
+          POTENTIAL: <span className="text-white font-bold">{potentialIQ.toFixed(1)}</span>
         </span>
       </div>
     </div>

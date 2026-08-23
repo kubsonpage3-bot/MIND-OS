@@ -19,20 +19,21 @@ export default function DailyQuoteWidget() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="mb-4 rounded-none border-x-0 border-y border-l-4 md:border md:border-l-4 md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] shadow-sm relative"
+      className="mb-4 rounded-none border-x-0 border-y border-l-4 md:border md:border-l-4 md:rounded-lg overflow-hidden bg-[var(--habit-panel)] shadow-sm relative pixel-bracket-box backdrop-blur-md"
       style={{
-        borderTopColor: "var(--habit-border)",
-        borderRightColor: "var(--habit-border)",
-        borderBottomColor: "var(--habit-border)",
-        borderLeftColor: "var(--habit-purple)"
+        borderTopColor: "rgba(139, 92, 246, 0.2)",
+        borderRightColor: "rgba(139, 92, 246, 0.2)",
+        borderBottomColor: "rgba(139, 92, 246, 0.2)",
+        borderLeftColor: "var(--habit-purple)",
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.35)"
       }}
     >
-      {/* Background radial gradient emanating from the left */}
+      {/* Background scanline & radial gradient */}
+      <div className="absolute inset-0 pixel-scanlines opacity-10 pointer-events-none" />
       <div 
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at 10% 50%, var(--habit-purple) 0%, transparent 60%)",
-          opacity: 0.08
+          background: "radial-gradient(circle at 10% 50%, rgba(123, 97, 255, 0.15) 0%, transparent 65%)",
         }}
       />
       

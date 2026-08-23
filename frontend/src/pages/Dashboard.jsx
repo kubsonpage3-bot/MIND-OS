@@ -191,8 +191,10 @@ function MetricPanel3D({ children }) {
           transformStyle: "preserve-3d",
           willChange: "transform",
         }}
-        className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-md relative transition-shadow duration-300 hover:shadow-xl"
+        className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-lg overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-lg relative pixel-bracket-box backdrop-blur-md"
       >
+        {/* Subtle scanline overlay */}
+        <div className="absolute inset-0 pixel-scanlines opacity-10 pointer-events-none" />
         {children}
       </motion.div>
     </div>
@@ -855,7 +857,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
                 </motion.div>
 
                 <div className="flex items-center gap-2 px-4 pt-4 pb-2 relative z-10">
-                  <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>{"📊 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}</span>
+                  <span className="font-mono font-bold text-xs tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
+                    {"📊 " + t("dashboard.metrics", "COGNITIVE METRICS").toUpperCase()}
+                  </span>
                 </div>
                 <div className="px-4 pb-4 relative z-10">
                   <div className="flex flex-col md:flex-row gap-4">
@@ -878,7 +882,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
             <DailyQuoteWidget />
             <ActivePartyWidget />
 
-            <div className="mt-4 px-2 pb-3 bg-[var(--habit-panel)] border border-[var(--habit-border)] rounded-2xl shadow-sm pt-3">
+            <div className="mt-4 px-2 pb-3 bg-[var(--habit-panel)] border border-[var(--habit-border)] rounded-lg shadow-sm pt-3 pixel-bracket-box relative overflow-hidden backdrop-blur-md">
+              <div className="absolute inset-0 pixel-scanlines opacity-10 pointer-events-none" />
               <BossPanel currentScore={rankXPData.rankXP || 0} onBossDamage={handleBossDamage} externalDamage={externalDamage} />
             </div>
 

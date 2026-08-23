@@ -80,16 +80,18 @@ export default function ActivePartyWidget() {
   };
 
   return (
-    <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-2xl overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
-      <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.06em", color: "var(--habit-text)" }}>
+    <div className="mb-4 rounded-none border-x-0 border-y md:border md:rounded-lg overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm pixel-bracket-box backdrop-blur-md relative">
+      {/* Background subtle scanline */}
+      <div className="absolute inset-0 pixel-scanlines opacity-10 pointer-events-none" />
+      <div className="flex items-center gap-2 px-4 pt-4 pb-2 relative z-10">
+        <span className="font-mono font-bold text-xs tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
           ⚔️ {t('settings.active_party', 'ACTIVE ALLIES')}
         </span>
       </div>
       
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 relative z-10">
         {allEmpty ? (
-          <p className="text-sm text-center py-2" style={{ color: "var(--habit-dim)" }}>
+          <p className="font-mono text-xs text-center py-2" style={{ color: "var(--habit-dim)" }}>
             {t('settings.recruit_allies_hint', 'Recruit allies in Shop → Allies to strengthen your party')}
           </p>
         ) : null}
@@ -105,25 +107,24 @@ export default function ActivePartyWidget() {
                 <div 
                   key={`slot-${index}`}
                   onClick={() => setSelectedAlly(ally)}
-                  className={`border ${rankClass} rounded-xl p-3 flex flex-col items-center gap-1 cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5`}
+                  className={`border ${rankClass} rounded-lg p-3 flex flex-col items-center gap-1.5 cursor-pointer transition-all hover:scale-[1.02] bg-black/20 hover:bg-white/5 pixel-bracket-box`}
                 >
-                  <OptimizedImage src={ally.image} className="w-16 h-16 rounded-lg object-contain" style={{ imageRendering: 'pixelated' }} />
-                  <span className="text-xs font-bold text-center truncate w-full" style={{ color: "var(--habit-text)" }}>{ally.name}</span>
-                  <span className="text-[10px] text-center truncate w-full font-bold" style={{ color: "var(--habit-green)" }}>+{currentBuff}</span>
+                  <OptimizedImage src={ally.image} className="w-16 h-16 rounded object-contain" style={{ imageRendering: 'pixelated' }} />
+                  <span className="font-mono text-xs font-bold text-center truncate w-full" style={{ color: "var(--habit-text)" }}>{ally.name}</span>
+                  <span className="font-mono text-[10px] text-center truncate w-full font-bold text-green-400">+{currentBuff}</span>
                 </div>
               );
             } else {
               return (
                 <div 
                   key={`slot-${index}`}
-                  className="border border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors"
-                  style={{ borderColor: "var(--habit-border)" }}
+                  className="border border-dashed border-purple-500/30 rounded-lg p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all hover:border-purple-500/60 hover:bg-purple-500/5 bg-black/10"
                   onClick={handleEmptyClick}
                 >
-                  <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ background: "var(--habit-purple-light)" }}>
-                    <span className="text-2xl" style={{ color: "var(--habit-purple)", opacity: 0.5 }}>+</span>
+                  <div className="w-14 h-14 rounded flex items-center justify-center border border-dashed border-purple-500/20" style={{ background: "rgba(123, 97, 255, 0.08)" }}>
+                    <span className="text-xl text-purple-400/60 font-mono">+</span>
                   </div>
-                  <span className="text-xs mt-1" style={{ color: "var(--habit-dim)" }}>{t('settings.add_ally', 'Add Ally')}</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">{t('settings.add_ally', 'Add Ally')}</span>
                 </div>
               );
             }
