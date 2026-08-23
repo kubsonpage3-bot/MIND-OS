@@ -1334,7 +1334,9 @@ def calc_new_value(current: float, event: str, task_type: str) -> float:
     range_val = (TV_MAX - current) if event == "complete" else (current - TV_MIN)
     squeeze = max(0.1, min(1.0, range_val / 15.0))
 
-    return max(TV_MIN, min(TV_MAX, current + delta * squeeze))
+    effective_delta = max(-1.0, min(1.0, delta * squeeze))
+
+    return max(TV_MIN, min(TV_MAX, current + effective_delta))
 
 
 @transaction.atomic

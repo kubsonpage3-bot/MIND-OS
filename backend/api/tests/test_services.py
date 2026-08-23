@@ -1576,3 +1576,25 @@ def test_task_value_multiplier_bounds(user):
     assert r_neutral["xp"] == 12
     assert r_neutral["gold"] == 6
 
+
+@pytest.mark.django_db
+def test_calc_new_value_clamped_delta():
+    from api.services.task_service import calc_new_value
+
+    # Test complete and fail events across varied current values
+    test_values = [-47.0, -20.0, -5.0, 0.0, 5.0, 15.0, 21.0]
+    for val in test_values:
+        for task_type in ["daily", "habit"]:
+            new_complete = calc_new_value(val, "complete", task_type)
+            delta_complete = new_complete - val
+            assert delta_complete >= 0.0, f"Complete delta should be >= 0 for {val}"
+            assert (
+                delta_complete <= 1.0001
+            ), f"Complete delta {delta_complete} exceeded 1.0 for {val}"
+
+            new_fail = calc_new_value(val, "fail", task_type)
+            delta_fail = val - new_fail
+            assert delta_fail >= 0.0, f"Fail delta should decrease value for {val}"
+            assert (
+                delta_fail <= 1.0001
+            ), f"Fail delta {delta_fail} exceeded 1.0 for {val}"

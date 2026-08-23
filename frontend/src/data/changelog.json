@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.75",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Smooth Task Value progression: Task Value (TV) changes are now capped at maximum ±1.0 per completion or missed daily, eliminating sudden multi-point jumps."
+      }
+    ]
+  },
+  {
     "version": "0.8.74",
     "date": "2026-08-23",
     "changes": [

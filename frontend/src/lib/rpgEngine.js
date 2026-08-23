@@ -48,16 +48,17 @@ export function calcNewTaskValue(currentValue, event, taskType) {
 
   let delta;
   if (event === "complete") {
-    // Каждое выполнение снижает ценность (монотонное уменьшение награды)
-    // Чем ниже текущий value, тем меньше он падает (плавное дно)
-    delta = -(1 + Math.abs(currentValue) * 0.1) * decay;
+    // Выполнение сдвигает ценность в плюс
+    delta = (1 + Math.abs(currentValue) * 0.1) * decay;
   } else {
-    // fail: ценность растёт в минусовую сторону
+    // fail: ценность сдвигается в минус
     const multiplier = taskType === "daily" ? 1.5 : 1.0;
-    delta = +(1 + Math.abs(currentValue) * 0.1) * multiplier;
+    delta = -(1 + Math.abs(currentValue) * 0.1) * multiplier;
   }
 
-  const newValue = currentValue + delta;
+  // Ограничиваем изменение максимум на ±1.0 за одно действие
+  const clampedDelta = Math.max(-1.0, Math.min(1.0, delta));
+  const newValue = currentValue + clampedDelta;
   return Math.max(TASK_VALUE_LIMITS.min, Math.min(TASK_VALUE_LIMITS.max, newValue));
 }
 
