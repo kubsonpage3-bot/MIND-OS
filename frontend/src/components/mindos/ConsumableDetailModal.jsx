@@ -22,15 +22,15 @@ export default function ConsumableDetailModal({
   useHardwareBack(isOpen, onClose);
   const { t } = useTranslation();
 
-  if (!isOpen || !item) return null;
+  if (typeof document === 'undefined') return null;
 
-  const itemCode = item.code || item.id || '';
+  const itemCode = item?.code || item?.id || '';
   const meta = getConsumableMeta(itemCode);
-  const tier = item.tier || meta.tier || 'D';
+  const tier = item?.tier || meta.tier || 'D';
   const tierColor = getTierColor(tier) || '#8b5cf6';
   const category = CONSUMABLE_CATEGORIES[meta.category] || CONSUMABLE_CATEGORIES.utility;
-  const iconUrl = getMediaUrl(item.icon_url) || '/static/items/default.webp';
-  const title = t(`items.${itemCode}.name`, item.label || item.name || meta.shortDesc || 'Consumable');
+  const iconUrl = item?.icon_url ? getMediaUrl(item.icon_url) : '/static/items/default.webp';
+  const title = item ? t(`items.${itemCode}.name`, item.label || item.name || meta.shortDesc || 'Consumable') : '';
   
   // Dynamic duration calculation if currently active
   const timeLeftStr = activeData?.expiresAt 
@@ -48,20 +48,21 @@ export default function ConsumableDetailModal({
     }
   };
 
-  return typeof document !== 'undefined'
-    ? createPortal(
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
-            style={{
-              paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
-              paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
-            }}
-            onClick={onClose}
-          >
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && item && (
+        <motion.div
+          key="consumable-modal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+          }}
+          onClick={onClose}
+        >
             <motion.div
               initial={{ scale: 0.88, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -331,8 +332,9 @@ export default function ConsumableDetailModal({
               </div>
             </motion.div>
           </motion.div>
-        </AnimatePresence>,
-        document.body
-      )
-    : null;
+        )}
+      </AnimatePresence>,
+      document.body
+    );
 }
+

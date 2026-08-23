@@ -334,27 +334,18 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
       )}
 
       {/* Consumable Detail Modal (Allies Style) */}
-      {selectedConsumable && (() => {
-        const itemCode = selectedConsumable.code || selectedConsumable.id;
-        const activeData = consumables_active[itemCode];
-        const isActive = activeData?.active && (!activeData?.expiresAt || Date.now() < activeData.expiresAt);
-        const count = selectedConsumable.quantity || consumablesOwned.filter(i => (i.id === selectedConsumable.id || i.code === itemCode)).length;
-
-        return (
-          <ConsumableDetailModal
-            item={selectedConsumable}
-            isOpen={!!selectedConsumable}
-            onClose={() => setSelectedConsumable(null)}
-            count={count}
-            isActive={isActive}
-            activeData={activeData}
-            onConsume={applyConsumable}
-            onSell={(itemToSell) => sellMutation.mutate(itemToSell.id)}
-            isConsuming={consumeMutation.isPending}
-            isSelling={sellMutation.isPending}
-          />
-        );
-      })()}
+      <ConsumableDetailModal
+        item={selectedConsumable}
+        isOpen={!!selectedConsumable}
+        onClose={() => setSelectedConsumable(null)}
+        count={selectedConsumable ? (selectedConsumable.quantity || consumablesOwned.filter(i => (i.id === selectedConsumable.id || (selectedConsumable.code && i.code === selectedConsumable.code))).length) : 1}
+        isActive={selectedConsumable ? (consumables_active[selectedConsumable.code || selectedConsumable.id]?.active && (!consumables_active[selectedConsumable.code || selectedConsumable.id]?.expiresAt || Date.now() < consumables_active[selectedConsumable.code || selectedConsumable.id]?.expiresAt)) : false}
+        activeData={selectedConsumable ? consumables_active[selectedConsumable.code || selectedConsumable.id] : null}
+        onConsume={applyConsumable}
+        onSell={(itemToSell) => sellMutation.mutate(itemToSell.id)}
+        isConsuming={consumeMutation.isPending}
+        isSelling={sellMutation.isPending}
+      />
     </div>
   );
 }
