@@ -22,14 +22,19 @@ def buy_item(user, item_id: str):
             profile,
         )
 
+    from api.services.profile_service import get_rank_info
+    from api.constants import get_rank_price_multiplier
     from api.services.mechanics import apply_active_mutators, get_passive_multipliers
+
+    rank_id = get_rank_info(profile).get("current_id", "E")
+    rank_mult = get_rank_price_multiplier(rank_id)
 
     mutator_effects = apply_active_mutators(profile, {}, trigger_side_effects=False)
     passive_effects = get_passive_multipliers(profile, {})
     shop_mult = mutator_effects.get("shop_cost_mult", 1.0) * passive_effects.get(
         "shop_cost_mult", 1.0
     )
-    actual_cost = int(item.cost * shop_mult)
+    actual_cost = int(item.cost * rank_mult * shop_mult)
 
     if profile.gold < actual_cost:
         return False, "Not enough gold", profile

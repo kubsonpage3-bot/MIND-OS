@@ -29,7 +29,12 @@ class ConsumablesTests(TestCase):
         # Get or create items
         self.small_heal, _ = Item.objects.get_or_create(
             code="small_heal",
-            defaults={"name": "Small Heal", "item_type": "consumable", "hp_boost": 20, "cost": 10},
+            defaults={
+                "name": "Small Heal",
+                "item_type": "consumable",
+                "hp_boost": 20,
+                "cost": 10,
+            },
         )
         self.xp_booster, _ = Item.objects.get_or_create(
             code="xp_booster",
@@ -171,11 +176,65 @@ class ConsumablesTests(TestCase):
         self.assertEqual(encounter.hp_current, 850)  # 1000 - 150
 
     def test_buy_consumable_goes_to_inventory(self):
+        # Update small_heal cost to 200 for clean test
+        self.small_heal.cost = 200
+        self.small_heal.save()
+        self.profile.gold = 1000
+        self.profile.rank_xp = 0  # Rank E
+        self.profile.save()
+
         success, msg, profile = buy_item(self.user, "small_heal")
         self.assertTrue(success)
+        self.assertEqual(profile.gold, 800)  # 1000 - 200 * 1.0
 
         # User already had 2 small_heals, should now have 3
         inv_item = InventoryItem.objects.get(
             user_profile=self.profile, item__code="small_heal"
         )
         self.assertEqual(inv_item.quantity, 3)
+
+    def test_rank_price_scaling(self):
+        self.small_heal.cost = 200
+        self.small_heal.save()
+
+        # Test on D-Rank (1.5x)
+        self.profile.rank_xp = 250  # D-Rank is 200-599
+        self.profile.gold = 1000
+        self.profile.save()
+
+        success, msg, profile = buy_item(self.user, "small_heal")
+        self.assertTrue(success)
+        # 200 * 1.5 = 300, 1000 - 300 = 700
+        self.assertEqual(profile.gold, 700)
+
+        # Test on SSS-Rank (17.09x)
+        self.profile.rank_xp = 8500  # SSS-Rank is 8000+
+        self.profile.gold = 5000
+        self.profile.save()
+
+        success, msg, profile = buy_item(self.user, "small_heal")
+        self.assertTrue(success)
+        # 200 * 17.09 = 3418, 5000 - 3418 = 1582
+        self.assertEqual(profile.gold, 1582)
+
+    def test_daily_gold_rush_rank_scaled(self):
+        gold_token, _ = Item.objects.get_or_create(
+            code="daily_gold_rush",
+            defaults={
+                "name": "Gold Rush Token",
+                "item_type": "consumable",
+                "cost": 600,
+            },
+        )
+        InventoryItem.objects.create(
+            user_profile=self.profile, item=gold_token, quantity=1
+        )
+
+        # On D-Rank (1.5x): 200 * 1.5 = 300 gold reward
+        self.profile.rank_xp = 300
+        self.profile.gold = 100
+        self.profile.save()
+
+        success, msg, profile = consume_item(self.user, "daily_gold_rush")
+        self.assertTrue(success)
+        self.assertEqual(profile.gold, 400)  # 100 + 300

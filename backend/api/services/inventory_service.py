@@ -55,9 +55,15 @@ def consume_item(user, item_code: str):
         # Profile fields need saving
         pass
 
-    # Apply Daily Gold Rush (Instant +200 Gold)
+    # Apply Daily Gold Rush (Instant Gold scaled by rank multiplier)
     if item.code == "daily_gold_rush":
-        profile.gold = max(0, profile.gold + 200)
+        from api.services.profile_service import get_rank_info
+        from api.constants import get_rank_price_multiplier
+
+        rank_id = get_rank_info(profile).get("current_id", "E")
+        rank_mult = get_rank_price_multiplier(rank_id)
+        gold_reward = round(200 * rank_mult)
+        profile.gold = max(0, profile.gold + gold_reward)
 
     # Apply Duration / Usage Effects (Buffs)
     buff_mapping: dict[str, dict[str, Any]] = {

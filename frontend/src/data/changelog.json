@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.8.77",
+    "date": "2026-08-23",
+    "changes": [
+      {
+        "type": "balance",
+        "text": "Rank-based Shop Economy: Consumables now scale dynamically with character Rank (from 200G base at Rank E, scaling 1.5x per tier up to Rank SSS), keeping the gold economy meaningful at every progression stage."
+      }
+    ]
+  },
+  {
     "version": "0.8.76",
     "date": "2026-08-23",
     "changes": [

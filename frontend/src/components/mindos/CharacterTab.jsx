@@ -151,6 +151,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
     }
   });
 
+  const consumables = useMemo(() => shopItems.filter(i => i.consumable), [shopItems]);
+
   const { data: activeEffectsData } = useQuery({
     queryKey: ['active_effects'],
     queryFn: () => djangoApi.skills.getActiveEffects(),
@@ -451,8 +453,6 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
     }
   };
 
-  const consumables = shopItems.filter(i => i.consumable);
-
   // If no class chosen, show selector
   if (!classData.chosen) {
     return <ClassSelector onChoose={handleChooseClass} isPremium={profile?.is_premium || false} />;
@@ -722,9 +722,14 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
         <div className="space-y-3">
           <TabGuideModal guideId="shop" profile={profile} />
           <div className="flex items-center justify-between">
-            <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
-              <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> {t('character.shop_title')}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs text-muted-foreground uppercase flex items-center gap-1.5">
+                <FantasyIcon size={14}><ShoppingCart /></FantasyIcon> {t('character.shop_title')}
+              </span>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400 font-bold">
+                {currentRankIdValue} RANK
+              </span>
+            </div>
             <span className="font-mono text-xs font-bold" style={{ color: "#f0c040" }}>
               🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
             </span>
@@ -745,13 +750,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             const discountPct = 25 + (seed % 4) * 5; // 25%, 30%, 35%, or 40%
             const discountedCost = Math.max(1, Math.round(featuredItem.cost * (1 - discountPct / 100)));
 
-            const bonusPool = [
-              { id: "daily_xp_surge", label: "XP Surge Scroll", tier: "Epic", cost: 140, consumable: true, effect: "+100% XP gain for 2h", icon_url: "/static/items/daily_xp_surge.webp" },
-              { id: "daily_gold_rush", label: "Gold Rush Token", tier: "Rare", cost: 110, consumable: true, effect: "Instantly grants +200 Gold", icon_url: "/static/items/daily_gold_rush.webp" },
-              { id: "health_potion", label: "Elixir of Vitality", tier: "Uncommon", cost: 30, consumable: true, effect: "Restores +50 HP instantly", icon_url: "/static/items/health_potion.webp" },
-              { id: "focus_scroll", label: "Scroll of Focus", tier: "Epic", cost: 160, consumable: true, effect: "Reduces cooldowns & +25% XP", icon_url: "/static/items/focus_scroll.webp" },
-            ];
-            const bonusItem = bonusPool[seed % bonusPool.length];
+            const bonusPoolCodes = ["daily_xp_surge", "daily_gold_rush", "health_potion", "focus_scroll"];
+            const bonusItemCode = bonusPoolCodes[seed % bonusPoolCodes.length];
+            const bonusItem = shopItems.find(i => i.id === bonusItemCode) || featuredItem;
             const isBonusDay = seed % 4 === 0; // Every 4 days an exclusive bonus item appears
             const dealItem = isBonusDay ? bonusItem : { ...featuredItem, cost: discountedCost };
             const dealTierColor = getTierColor(dealItem.tier);

@@ -218,6 +218,21 @@ RANK_THRESHOLDS = [
     {"id": "SSS", "min": 8000},
 ]
 
+RANK_ORDER = ["E", "D", "C", "B", "A", "S", "SS", "SSS"]
+
+
+def get_rank_price_multiplier(rank_id: str) -> float:
+    """
+    Returns the economic price multiplier for shop consumables based on rank.
+    Each tier increases by 1.5x (E=1.0x, D=1.5x, C=2.25x, B=3.38x, A=5.06x, S=7.59x, SS=11.39x, SSS=17.09x).
+    """
+    try:
+        idx = RANK_ORDER.index(str(rank_id).upper())
+    except (ValueError, AttributeError):
+        idx = 0
+    return round(1.5**idx, 2)
+
+
 HUMANITIES_RANK_THRESHOLDS = [
     {"id": "E", "min": 0},
     {"id": "D", "min": 200},
