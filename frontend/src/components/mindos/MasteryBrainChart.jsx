@@ -179,7 +179,7 @@ export default function MasteryBrainChart({
   }, [subjectStats]);
 
   return (
-    <div className={`relative w-full flex items-center justify-center select-none py-2 ${className}`} style={{ minHeight: height }}>
+    <div className={`relative w-full max-w-[460px] mx-auto flex items-center justify-center select-none py-1 ${className}`} style={{ minHeight: height }}>
       {/* Background ambient radial glow matching MIND OS hero cards */}
       <div 
         className="absolute inset-0 pointer-events-none rounded-3xl blur-3xl opacity-30 transition-all duration-700"
@@ -192,7 +192,7 @@ export default function MasteryBrainChart({
 
       <svg
         viewBox="0 0 500 415"
-        className="w-full h-full max-h-full overflow-visible drop-shadow-[0_8px_32px_rgba(0,0,0,0.85)]"
+        className="w-full max-w-[440px] h-auto max-h-[290px] overflow-visible drop-shadow-[0_8px_32px_rgba(0,0,0,0.85)] mx-auto"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
