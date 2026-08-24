@@ -39,6 +39,7 @@ export function applyAppearanceSettings(settings) {
     const fs = FONT_SIZES[settings.fontSize];
     if (fs) {
       root.style.setProperty("--font-size-base", fs.base);
+      root.style.fontSize = fs.base;
       document.body.style.fontSize = fs.base;
     }
   }
