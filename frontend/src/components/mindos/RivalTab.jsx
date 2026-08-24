@@ -657,23 +657,23 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
         <div className="space-y-3">
           {[
             {
-              label: t('rivalTab.hoursMetric'),
-              you: playerWeeklyHours,
-              rival: johanWeeklyHours,
+              label: t('rivalTab.hoursMetric', 'Hours'),
+              you: playerHoursWeek,
+              rival: johanWeekHours,
               fmt: v => `${v.toFixed(1)}h`,
               youColor: '#7B61FF',
               rivalColor: '#00e5ff',
             },
             {
-              label: t('rivalTab.avgFocusMetric'),
-              you: playerWeeklyAvgFocus,
-              rival: johanWeeklyAvgFocus,
+              label: t('rivalTab.avgFocusMetric', 'Avg Focus'),
+              you: playerAvgFocus,
+              rival: johanAvgFocus,
               fmt: v => v > 0 ? `${v.toFixed(1)}/10` : '—',
               youColor: '#7B61FF',
               rivalColor: '#00e5ff',
             },
             {
-              label: t('rivalTab.subjectsMetric'),
+              label: t('rivalTab.subjectsMetric', 'Subjects'),
               you: playerSubjectsWeek,
               rival: johanSubjectsWeek,
               fmt: v => `${v}`,
@@ -681,9 +681,9 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
               rivalColor: '#00e5ff',
             },
             {
-              label: t('rivalTab.rankXpMetric'),
+              label: t('rivalTab.rankXpMetric', 'Rank XP'),
               you: playerWeeklyRankXP,
-              rival: johanWeeklyRankXP,
+              rival: johanWeekRankXP,
               fmt: v => v.toFixed(1),
               youColor: '#7B61FF',
               rivalColor: '#00e5ff',
