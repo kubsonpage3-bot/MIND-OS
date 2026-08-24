@@ -8,9 +8,9 @@ export const ACCENT_PALETTES = [
 ];
 
 export const FONT_SIZES = {
-  small: { base: "13px", heading: "0.85rem" },
-  medium: { base: "15px", heading: "1rem" },
-  large: { base: "17px", heading: "1.15rem" },
+  small: { base: "14px", heading: "0.9rem" },
+  medium: { base: "16px", heading: "1.05rem" },
+  large: { base: "18.5px", heading: "1.2rem" },
 };
 
 export function applyAppearanceSettings(settings) {
