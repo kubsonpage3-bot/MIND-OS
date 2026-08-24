@@ -8,9 +8,9 @@ export const ACCENT_PALETTES = [
 ];
 
 export const FONT_SIZES = {
-  small: { base: "15px", heading: "0.95rem" },
-  medium: { base: "17px", heading: "1.1rem" },
-  large: { base: "20px", heading: "1.3rem" },
+  small: { base: "15px", heading: "0.95rem", sidebarWidth: "250px", sidebarCollapsedWidth: "64px" },
+  medium: { base: "17px", heading: "1.1rem", sidebarWidth: "270px", sidebarCollapsedWidth: "68px" },
+  large: { base: "20px", heading: "1.3rem", sidebarWidth: "300px", sidebarCollapsedWidth: "76px" },
 };
 
 export function applyAppearanceSettings(settings) {
@@ -34,11 +34,13 @@ export function applyAppearanceSettings(settings) {
     }
   }
 
-  // Font size
+  // Font size & Proportional Sidebar Width
   if (settings.fontSize) {
     const fs = FONT_SIZES[settings.fontSize];
     if (fs) {
       root.style.setProperty("--font-size-base", fs.base);
+      root.style.setProperty("--sidebar-expanded-width", fs.sidebarWidth);
+      root.style.setProperty("--sidebar-collapsed-width", fs.sidebarCollapsedWidth);
       root.style.fontSize = fs.base;
       document.body.style.fontSize = fs.base;
     }

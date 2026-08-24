@@ -237,7 +237,9 @@ export default function AppShell({ defaultTab = "mind" }) {
     <div
       className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300"
       style={{
-        "--sidebar-current-width": sidebarCollapsed ? "64px" : "256px",
+        "--sidebar-current-width": sidebarCollapsed
+          ? "var(--sidebar-collapsed-width, 68px)"
+          : "var(--sidebar-expanded-width, 270px)",
       }}
     >
       {/* HP damage red screen flash */}
