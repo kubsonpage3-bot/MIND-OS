@@ -461,21 +461,31 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 py-2 rounded-2xl" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", padding: "10px 16px" }}>
-        <div className="flex items-center gap-2">
+      <div
+        className="flex items-center justify-between rounded-2xl relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%)",
+          border: "1.5px solid rgba(147,51,234,0.25)",
+          boxShadow: "0 4px 18px rgba(0,0,0,0.5)",
+          padding: "10px 16px",
+        }}
+      >
+        <div className="flex items-center gap-2.5">
           {onBack && (
             <button
               onClick={onBack}
-              className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent"
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-white/10"
               style={{ color: classColor }}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
           )}
-          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14, color: classColor }}>{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : ""}</span>
+          <span className="font-pixel font-bold text-sm" style={{ color: classColor }}>
+            {chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : "Wanderer"}
+          </span>
           {profile?.prestige_count > 0 && (
-            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 8, background: "var(--habit-border)", color: "var(--habit-gold)", border: "1px solid var(--habit-border)", padding: "2px 6px", borderRadius: 4 }}>
-              ×{profile?.prestige_count} PRESTIGE
+            <span className="font-pixel text-[9px] bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+              ★ ×{profile.prestige_count} PRESTIGE
             </span>
           )}
         </div>
@@ -483,14 +493,15 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           <button
             onClick={handleShare}
             disabled={isSharing}
-            className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-accent/50 disabled:opacity-50"
-            style={{ color: "var(--habit-gold)" }}
+            className="flex items-center justify-center w-8 h-8 rounded-xl transition-all bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] hover:border-amber-500/40 disabled:opacity-50"
+            style={{ color: "#fbbf24" }}
             title="Share Progress"
           >
             <Share2 className="w-4 h-4" />
           </button>
-          <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 15, color: "var(--habit-gold)" }}>
-            🪙 <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
+          <span className="font-pixel font-black text-sm flex items-center gap-1" style={{ color: "#fbbf24", textShadow: "0 0 10px rgba(251,191,36,0.3)" }}>
+            <span>🪙</span>
+            <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
           </span>
         </div>
       </div>
@@ -501,45 +512,122 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
       {subTab === "overview" && (
         <div className="space-y-4">
           <TabGuideModal guideId="character" profile={profile} />
-          {/* Character sprite */}
-          <div className="rounded-2xl p-5 flex flex-col items-center gap-3"
+
+          {/* 🏛️ Hero Sanctuary (Пьедестал Чемпиона) */}
+          <div
+            className="rounded-2xl p-5 flex flex-col items-center gap-4 relative overflow-hidden"
             style={{
-              background: `radial-gradient(circle at 50% 50%, ${currentRank.color}18 0%, var(--habit-panel) 80%)`,
-              border: `2px solid ${currentRank.color}44`,
-              boxShadow: `0 4px 20px ${currentRank.color}18`,
-            }}>
-            <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} hideLabel={true} />
-            <div className="font-mono text-xs font-black tracking-widest" style={{ color: classColor }}>{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : ""}</div>
-            <div className="font-mono text-sm font-bold px-3 py-1 rounded-lg"
-              style={{ color: currentRank.color, background: `${currentRank.color}20`, border: `1px solid ${currentRank.color}50` }}>
-              {currentRank.id} — {t(`ranks.${currentRank.id}`, currentRank.label)}
+              background: `radial-gradient(ellipse at 50% 35%, ${currentRank.color}25 0%, rgba(20,10,28,0.95) 60%, rgba(8,5,12,0.98) 100%)`,
+              border: `1.5px solid ${currentRank.color}44`,
+              boxShadow: `0 8px 32px rgba(0,0,0,0.8), inset 0 0 25px rgba(0,0,0,0.7), 0 0 20px ${currentRank.color}15`,
+            }}
+          >
+            {/* Gothic Corner Brackets */}
+            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2" style={{ borderColor: `${currentRank.color}80` }} />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2" style={{ borderColor: `${currentRank.color}80` }} />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2" style={{ borderColor: `${currentRank.color}80` }} />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2" style={{ borderColor: `${currentRank.color}80` }} />
+
+            {/* Sanctuary Protocol Header */}
+            <div className="w-full flex items-center justify-between border-b border-white/[0.08] pb-2.5 text-[10px] font-pixel">
+              <div className="flex items-center gap-2" style={{ color: currentRank.color }}>
+                <span className="animate-pulse">✦</span>
+                <span className="tracking-widest uppercase">{t('character.sanctuary', 'Hero Sanctuary')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {profile?.level && (
+                  <span className="px-2 py-0.5 rounded bg-black/60 border border-white/10 text-amber-300 font-bold text-[9px] font-pixel shadow-inner">
+                    LV.{profile.level}
+                  </span>
+                )}
+                {profile?.prestige_count > 0 && (
+                  <span className="px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/40 text-amber-300 font-bold text-[9px] font-pixel">
+                    ★ {profile.prestige_count} PRESTIGE
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.lore`, chosenClass.lore)) : ""}"</div>
+
+            {/* Character Pedestal with Magic Aura */}
+            <div className="relative flex items-center justify-center my-1">
+              {/* Rotating Rune Circle behind character */}
+              <motion.div
+                className="absolute w-44 h-44 rounded-full border border-dashed pointer-events-none opacity-25"
+                style={{ borderColor: currentRank.color }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.div
+                className="absolute w-36 h-36 rounded-full border pointer-events-none opacity-20"
+                style={{ borderColor: classColor, boxShadow: `0 0 25px ${classColor}50` }}
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <PixelCharacter rankId={currentRank.id} rankColor={currentRank.color} size={160} hideLabel={true} />
+            </div>
+
+            {/* Hero Title & Class Crest */}
+            <div className="flex flex-col items-center gap-2 text-center z-10">
+              <div
+                className="font-pixel font-bold text-lg tracking-wider capitalize"
+                style={{ color: classColor, textShadow: `0 0 14px ${classColor}60` }}
+              >
+                {chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : "Wanderer"}
+              </div>
+
+              {/* Rank Medallion */}
+              <div
+                className="font-pixel text-xs font-bold px-3.5 py-1.5 rounded-xl border flex items-center gap-2 shadow-lg"
+                style={{
+                  color: currentRank.color,
+                  background: 'rgba(10,5,15,0.9)',
+                  borderColor: `${currentRank.color}60`,
+                  boxShadow: `0 0 16px ${currentRank.color}30, inset 0 0 8px ${currentRank.color}15`,
+                }}
+              >
+                <span className="text-amber-400">⚜</span>
+                <span>{currentRank.id} — {t(`ranks.${currentRank.id}`, currentRank.label)}</span>
+                <span className="text-amber-400">⚜</span>
+              </div>
+
+              {chosenClass?.lore && (
+                <p className="text-[10px] font-mono text-muted-foreground/60 italic max-w-md px-2 mt-0.5 leading-relaxed">
+                  "{String(t(`rpgData.classes.${chosenClass.id}.lore`, chosenClass.lore))}"
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Retro Pixel RPG HUD: HP + Mana Bars */}
-          <div className="rounded-2xl p-4 space-y-3.5 relative overflow-hidden" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
-            {/* HP Bar with Pixel HUD framing */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] font-pixel">
+          {/* ❤️💧 Vitals HUD: Segmented HP + MANA Bars */}
+          <div
+            className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%)",
+              border: "1.5px solid rgba(147,51,234,0.25)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+            }}
+          >
+            {/* HP Bar */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-pixel">
                 <span className="flex items-center gap-1.5 text-red-400">
                   <span className="animate-pulse">❤️</span> HP
                 </span>
-                <span className="font-mono font-bold tracking-wider" style={{ color: hpColor }}>
+                <span className="font-pixel font-bold tracking-wider text-red-300">
                   <AnimatedNumber value={Math.round(charHp)} /> / {charMaxHp}
                 </span>
               </div>
-              <div className="h-3 rounded-md bg-black/60 border border-red-500/30 p-[2px] overflow-hidden relative" style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)" }}>
+              <div className="h-3.5 rounded-md bg-black/80 border border-red-950/80 p-[1.5px] overflow-hidden relative shadow-inner">
                 <motion.div
-                  className="h-full rounded-sm relative overflow-hidden"
+                  className="h-full rounded-[2px] relative overflow-hidden"
                   animate={{ width: `${hpPct}%` }}
                   transition={ANIM_CONFIG.springBar}
                   style={{
-                    background: `linear-gradient(90deg, #dc2626 0%, #ef4444 60%, #f87171 100%)`,
-                    boxShadow: `0 0 10px rgba(239,68,68,0.7)`
+                    background: `linear-gradient(90deg, #7f1d1d 0%, #dc2626 40%, #ef4444 80%, #fca5a5 100%)`,
+                    boxShadow: `0 0 12px rgba(239,68,68,0.7)`
                   }}
                 >
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.35)_24%,rgba(0,0,0,0.35)_26%,transparent_27%)] bg-[length:20px_100%]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.4)_24%,rgba(0,0,0,0.4)_26%,transparent_27%)] bg-[length:16px_100%]" />
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-8"
                     animate={{ x: ["-100%", "500%"] }}
@@ -549,27 +637,27 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
               </div>
             </div>
 
-            {/* MANA Bar with Pixel HUD framing */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] font-pixel">
-                <span className="flex items-center gap-1.5" style={{ color: classColor }}>
-                  <span className="animate-pulse">🔮</span> MANA
+            {/* MANA Bar */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-pixel">
+                <span className="flex items-center gap-1.5 text-cyan-400">
+                  <span className="animate-pulse">💧</span> MANA
                 </span>
-                <span className="font-mono font-bold tracking-wider" style={{ color: classColor }}>
-                  <AnimatedNumber value={Math.round(profile?.mana || 0)} /> / {profile?.mana_max || chosenClass.maxMana}
+                <span className="font-pixel font-bold tracking-wider text-cyan-300">
+                  <AnimatedNumber value={Math.round(profile?.mana || 0)} /> / {profile?.mana_max || chosenClass?.maxMana || 100}
                 </span>
               </div>
-              <div className="h-3 rounded-md bg-black/60 border border-cyan-500/30 p-[2px] overflow-hidden relative" style={{ borderColor: `${classColor}40`, boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)" }}>
+              <div className="h-3.5 rounded-md bg-black/80 border border-blue-950/80 p-[1.5px] overflow-hidden relative shadow-inner">
                 <motion.div
-                  className="h-full rounded-sm relative overflow-hidden"
-                  animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass.maxMana)) * 100)}%` }}
+                  className="h-full rounded-[2px] relative overflow-hidden"
+                  animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass?.maxMana || 100)) * 100)}%` }}
                   transition={ANIM_CONFIG.springBar}
                   style={{
-                    background: `linear-gradient(90deg, #0284c7 0%, ${classColor} 70%, #67e8f9 100%)`,
-                    boxShadow: `0 0 10px ${classColor}80`
+                    background: `linear-gradient(90deg, #1e3a8a 0%, #2563eb 40%, #0284c7 80%, #38bdf8 100%)`,
+                    boxShadow: `0 0 12px rgba(56,189,248,0.7)`
                   }}
                 >
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.35)_24%,rgba(0,0,0,0.35)_26%,transparent_27%)] bg-[length:20px_100%]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.4)_24%,rgba(0,0,0,0.4)_26%,transparent_27%)] bg-[length:16px_100%]" />
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-8"
                     animate={{ x: ["-100%", "500%"] }}
@@ -580,31 +668,32 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             </div>
           </div>
 
-          {/* Unified Stats Panel */}
-          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)" }}>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                ⚡ {t('character.character_stats')}
+          {/* ⚡ Runic Attributes Matrix (Матрица Характеристик) */}
+          <div
+            className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(20,12,30,0.95) 0%, rgba(10,6,16,0.98) 100%)",
+              border: "1.5px solid rgba(147,51,234,0.25)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+              <span className="font-pixel text-[11px] text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+                <span>⚡</span> {t('character.character_stats', 'CHARACTER ATTRIBUTES')}
               </span>
-              {(profile?.unspent_stat_points || 0) > 0 && (
-                <span className="font-mono text-xs text-primary flex items-center gap-1 font-bold animate-pulse">
-                  <FantasyIcon size={12}><Hexagon /></FantasyIcon> {profile?.unspent_stat_points} {t('character.pts_label')}
+              {(profile?.unspent_stat_points || 0) > 0 ? (
+                <span className="font-pixel text-[10px] px-2.5 py-0.5 rounded-md bg-amber-950/70 border border-amber-500/50 text-amber-300 font-bold flex items-center gap-1 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.4)]">
+                  <span>✨</span> {profile?.unspent_stat_points} {t('character.pts_label', 'POINTS')}
+                </span>
+              ) : (
+                <span className="text-[9px] font-pixel text-muted-foreground/50">
+                  TOTAL = BASE + CLASS + EQUIP
                 </span>
               )}
             </div>
 
-            {/* Stats table with breakdown */}
-            <div className="space-y-2">
-              {/* Header */}
-              <div className="grid grid-cols-6 gap-2 text-[8px] font-mono text-muted-foreground/50 uppercase tracking-wider pb-2 border-b border-border/40">
-                <div className="text-left col-span-2">{t('character.stat_effect')}</div>
-                <div className="text-center">{t('character.col_class')}</div>
-                <div className="text-center">{t('character.col_equip')}</div>
-                <div className="text-center">{t('character.col_base')}</div>
-                <div className="text-right">{t('character.col_total')}</div>
-              </div>
-
-              {/* Stat rows */}
+            {/* 2-Column Grid of Attribute Slabs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {Object.entries(statBreakdown).map(([key, breakdown]) => {
                 const cfg = STAT_CONFIG[key];
                 const canUpgrade = (profile?.unspent_stat_points || 0) > 0;
@@ -620,67 +709,113 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                 const totalValue = breakdown.total;
                 let effectLabel = "";
                 if (key === "pwr") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.pwr_effect_short')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.pwr_effect_short', 'Boss XP')}`;
                 } else if (key === "def") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.def_effect_short')} `;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.def_effect_short', 'Dmg Taken')}`;
                 } else if (key === "foc") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.foc_effect_short')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.foc_effect_short', 'Focus Amp')}`;
                 } else if (key === "mem") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.mem_effect_short')}`;
+                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.mem_effect_short', 'Mana Cost')}`;
                 } else if (key === "spd") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.spd_effect_short')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.spd_effect_short', 'Speed')}`;
                 } else if (key === "lck") {
-                  effectLabel = `+${totalValue}% ${t('character.lck_effect_short')}`;
+                  effectLabel = `+${totalValue}% ${t('character.lck_effect_short', 'Gold/Drop')}`;
                 }
+
                 return (
-                  <div key={key} className="grid grid-cols-6 gap-2 items-center text-[9px] font-mono hover:bg-white/[0.02] p-1 rounded transition-colors">
-                    <div className="col-span-2 text-left flex items-center gap-1.5">
-                      <span className="text-xs">{statIcon}</span>
-                      <div>
-                        <div className="font-bold font-pixel text-[10px]" style={{ color: cfg.color }}>{cfg.label}</div>
-                        <div className="text-[7.5px] font-mono" style={{ color: cfg.color + "bb" }}>{effectLabel}</div>
+                  <motion.div
+                    key={key}
+                    whileHover={{ scale: 1.01 }}
+                    className="p-2.5 rounded-xl border flex items-center justify-between gap-2.5 relative overflow-hidden"
+                    style={{
+                      background: "rgba(10,5,15,0.85)",
+                      borderColor: canUpgrade ? `${cfg.color}50` : "rgba(255,255,255,0.06)",
+                      boxShadow: canUpgrade ? `0 0 10px ${cfg.color}20` : "none",
+                    }}
+                  >
+                    {/* Left: Icon & Names */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0 border"
+                        style={{
+                          background: `${cfg.color}15`,
+                          borderColor: `${cfg.color}40`,
+                          boxShadow: `0 0 8px ${cfg.color}25`,
+                        }}
+                      >
+                        {statIcon}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-pixel font-bold text-xs" style={{ color: cfg.color }}>
+                            {cfg.label}
+                          </span>
+                          <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-black/60 text-slate-300/80 border border-white/5 truncate">
+                            {effectLabel}
+                          </span>
+                        </div>
+                        {/* Breakdown pills */}
+                        <div className="flex items-center gap-1 text-[8px] font-mono mt-0.5 text-muted-foreground/60">
+                          <span title="Class bonus" style={{ color: breakdown.class > 0 ? classColor : 'inherit' }}>
+                            C:{breakdown.class > 0 ? `+${breakdown.class}` : breakdown.class}
+                          </span>
+                          <span>•</span>
+                          <span title="Equipment bonus" style={{ color: breakdown.equip > 0 ? '#f0c040' : 'inherit' }}>
+                            E:{breakdown.equip > 0 ? `+${breakdown.equip}` : breakdown.equip}
+                          </span>
+                          <span>•</span>
+                          <span title="Base points">
+                            B:{breakdown.points}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-center font-semibold" style={{ color: breakdown.class > 0 ? classColor : '#64748b' }}>
-                      {breakdown.class > 0 ? `+${breakdown.class}` : breakdown.class}
-                    </div>
-                    <div className="text-center font-semibold" style={{ color: breakdown.equip > 0 ? '#f0c040' : '#64748b' }}>
-                      {breakdown.equip > 0 ? `+${breakdown.equip}` : breakdown.equip}
-                    </div>
-                    <div className="text-center flex items-center justify-center gap-1 font-semibold">
-                      <span style={{ color: breakdown.points > 0 ? '#3b82f6' : '#64748b' }}>
-                        {breakdown.points > 0 ? `+${breakdown.points}` : breakdown.points}
+
+                    {/* Right: Total + Upgrade Button */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-pixel font-black text-sm" style={{ color: cfg.color, textShadow: `0 0 8px ${cfg.color}40` }}>
+                        {breakdown.total}
                       </span>
                       {canUpgrade && (
-                        <button onClick={() => upgradeStat(key)}
-                          className="w-4 h-4 pixel-btn border border-primary/60 text-primary hover:scale-110 active:scale-95 font-bold leading-none flex items-center justify-center transition-transform rounded"
-                          style={{ background: "rgba(240,192,64,0.2)", boxShadow: "0 0 8px rgba(240,192,64,0.4)" }}>
-                          +
+                        <button
+                          onClick={() => upgradeStat(key)}
+                          className="px-2 py-1 rounded-md font-pixel font-bold text-xs transition-all flex items-center justify-center"
+                          style={{
+                            background: "linear-gradient(90deg, #b45309 0%, #f59e0b 100%)",
+                            border: "1px solid #fbbf24",
+                            color: "white",
+                            boxShadow: "0 0 8px rgba(245,158,11,0.5)",
+                          }}
+                          title={`Upgrade ${cfg.label}`}
+                        >
+                          +1
                         </button>
                       )}
                     </div>
-                    <div className="text-right font-bold font-pixel text-xs text-foreground">{breakdown.total}</div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
-
-            {/* Formula explanation */}
-            <div className="text-[8px] font-mono text-muted-foreground/40 pt-2 border-t border-border/40">
-              {t('character.formula')}
-            </div>
           </div>
 
-          {/* Equipment slots */}
-          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)" }}>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                🛡️ {t('character.equipment')}
+          {/* 🛡️ Gothic Armory (Реликварий Экипировки - 8 слотов) */}
+          <div
+            className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(20,10,30,0.95) 0%, rgba(10,5,15,0.98) 100%)",
+              border: "1.5px solid rgba(147,51,234,0.25)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+              <span className="font-pixel text-[11px] text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+                <span>🛡️</span> {t('character.equipment', 'ARMORY OF RELICS')}
               </span>
-              <span className="text-[10px] font-pixel text-muted-foreground/60">
+              <span className="text-[9px] font-pixel text-muted-foreground/60 px-2 py-0.5 rounded bg-black/60 border border-white/5">
                 {Object.values(equipped).filter(Boolean).length} / 8 EQUIPPED
               </span>
             </div>
+
             <div className="grid grid-cols-4 gap-2.5">
               {SLOT_KEYS.map((slot) => {
                 const eq = equipped[slot];
@@ -708,9 +843,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                     className="aspect-square rounded-xl border flex flex-col items-center justify-center relative cursor-pointer transition-all p-1.5 overflow-hidden group"
                     style={{
                       background: eq 
-                        ? `radial-gradient(circle at 50% 30%, ${tierColor}25 0%, rgba(10,14,24,0.95) 100%)` 
-                        : "rgba(255,255,255,0.02)",
-                      borderColor: eq ? `${tierColor}80` : "var(--habit-border)",
+                        ? `radial-gradient(circle at 50% 30%, ${tierColor}25 0%, rgba(10,5,15,0.95) 100%)` 
+                        : "rgba(10,5,15,0.7)",
+                      borderColor: eq ? `${tierColor}80` : "rgba(255,255,255,0.06)",
                       boxShadow: eq ? `0 0 14px ${tierColor}33, inset 0 0 10px ${tierColor}15` : "inset 0 1px 4px rgba(0,0,0,0.5)",
                     }}
                   >
@@ -730,8 +865,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                         <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2" style={{ borderColor: tierColor }} />
 
                         {/* Item Icon / Graphic with glow */}
-                        <div className="w-9 h-9 rounded-lg border overflow-hidden flex items-center justify-center bg-black/60 mb-1 shrink-0 relative"
-                          style={{ borderColor: `${tierColor}60`, imageRendering: 'pixelated', boxShadow: `0 0 8px ${tierColor}40` }}>
+                        <div className="w-10 h-10 rounded-lg border overflow-hidden flex items-center justify-center bg-black/70 mb-1 shrink-0 relative"
+                          style={{ borderColor: `${tierColor}60`, imageRendering: 'pixelated', boxShadow: `0 0 10px ${tierColor}40` }}>
                           {eq.icon_url ? (
                             <img src={getMediaUrl(eq.icon_url)} alt={itemName} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
                           ) : (
@@ -745,9 +880,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                         </span>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center gap-1 opacity-40 group-hover:opacity-75 transition-opacity">
-                        <span className="text-lg filter grayscale group-hover:grayscale-0 transition-all">{slotWatermark}</span>
-                        <span className="text-[7.5px] font-pixel uppercase tracking-wider text-muted-foreground text-center">
+                      <div className="flex flex-col items-center justify-center gap-1 opacity-35 group-hover:opacity-75 transition-opacity">
+                        <span className="text-xl filter grayscale group-hover:grayscale-0 transition-all">{slotWatermark}</span>
+                        <span className="text-[7px] font-pixel uppercase tracking-wider text-muted-foreground text-center">
                           {slotLabel}
                         </span>
                       </div>
