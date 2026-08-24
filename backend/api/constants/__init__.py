@@ -779,7 +779,7 @@ ALLIES_CONFIG = {
                 "desc": "Every 4th task completed in a day grants a free chest, but tasks 1-3 yield -15% gold"
             },
             5: {
-                "desc": "Completing all active Dailies in a day deals 600 boss damage and restores full mana"
+                "desc": "Completing all active Dailies in a day deals 600 boss damage"
             },
         },
     },

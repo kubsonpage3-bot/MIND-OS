@@ -1230,7 +1230,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             if all_completed:
                 final_damage_dealt += 600
-                profile.mana = profile.total_stats.get("mana_max", 100)
 
         # Vivian Level 4: Life Drain
         vivian_level = recruited_allies.get("vivian", 0)

@@ -22,6 +22,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
     character_image = serializers.ImageField(source="avatar", read_only=True)
     max_hp = serializers.SerializerMethodField()
+    max_mana = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
     max_streak = serializers.SerializerMethodField()
     total_tasks_completed = serializers.SerializerMethodField()
@@ -44,6 +45,8 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "prestige_count",
             "hp",
             "max_hp",
+            "mana",
+            "max_mana",
             "rank_info",
             "total_tasks_completed",
             "max_streak",
@@ -57,6 +60,9 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
 
     def get_max_hp(self, obj) -> int:
         return obj.max_hp
+
+    def get_max_mana(self, obj) -> int:
+        return obj.max_mana
 
     def get_max_streak(self, obj) -> int:
         try:

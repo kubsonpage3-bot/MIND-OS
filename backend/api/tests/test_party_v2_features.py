@@ -84,42 +84,56 @@ def test_buff_arsenal_all_types(owner, member, party):
     """Test all 6 buff types sent from owner to member, resetting cooldown between sends."""
     join_party(member, party.invite_code)
     sender_mem = owner.party_membership
+    owner.profile.mana = 500
+    owner.profile.save()
 
     def send_and_reset_cooldown(code):
         sender_mem.last_buff_sent_at = None
         sender_mem.save(update_fields=["last_buff_sent_at"])
         send_buff(owner, member.username, code)
 
-    # 1. heal_1 (+15 HP)
+    # 1. heal_1 (+15 HP, costs 20 MP)
     member.profile.hp = 50
     member.profile.save()
     send_and_reset_cooldown("heal_1")
     member.profile.refresh_from_db()
     assert member.profile.hp == 65
 
-    # 2. heal_2 (+30 HP)
+    # 2. heal_2 (+30 HP, costs 40 MP)
     send_and_reset_cooldown("heal_2")
     member.profile.refresh_from_db()
     assert member.profile.hp == 95
 
-    # 3. mana_surge (+20 MP)
+    # 3. mana_surge (+20 MP, costs 25 MP)
     member.profile.mana = 10
     member.profile.save()
     send_and_reset_cooldown("mana_surge")
     member.profile.refresh_from_db()
     assert member.profile.mana == 30
 
-    # 4. xp_boost_24h (creates ActiveEffect)
+    # 4. xp_boost_24h (creates ActiveEffect, costs 50 MP)
     send_and_reset_cooldown("xp_boost_24h")
     assert ActiveEffect.objects.filter(user=member, skill_id="xp_boost_24h").exists()
 
-    # 5. gold_boost_12h (creates ActiveEffect)
+    # 5. gold_boost_12h (creates ActiveEffect, costs 35 MP)
     send_and_reset_cooldown("gold_boost_12h")
     assert ActiveEffect.objects.filter(user=member, skill_id="gold_boost_12h").exists()
 
-    # 6. streak_shield (creates ActiveEffect)
+    # 6. streak_shield (creates ActiveEffect, costs 60 MP)
     send_and_reset_cooldown("streak_shield")
     assert ActiveEffect.objects.filter(user=member, skill_id="streak_shield").exists()
+
+
+@pytest.mark.django_db
+def test_buff_insufficient_mana(owner, member, party):
+    """Test that sending a buff fails when sender has insufficient mana."""
+    join_party(member, party.invite_code)
+    owner.profile.mana = 10  # heal_1 costs 20 MP
+    owner.profile.save()
+
+    with pytest.raises(GameLogicError) as exc_info:
+        send_buff(owner, member.username, "heal_1")
+    assert "Not enough Mana" in str(exc_info.value)
 
 
 @pytest.mark.django_db

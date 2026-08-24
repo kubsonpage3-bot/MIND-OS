@@ -24,35 +24,41 @@ PARTY_BUFFS = {
         "icon": "💚",
         "hp": 15,
         "duration_h": 0,
+        "mana_cost": 20,
     },
     "heal_2": {
         "label": "Big Heal",
         "icon": "💖",
         "hp": 30,
         "duration_h": 0,
+        "mana_cost": 40,
     },
     "xp_boost_24h": {
         "label": "+25% XP",
         "icon": "⚡",
         "xp_mult": 1.25,
         "duration_h": 24,
+        "mana_cost": 50,
     },
     "gold_boost_12h": {
         "label": "+20% Gold",
         "icon": "💰",
         "gold_mult": 1.20,
         "duration_h": 12,
+        "mana_cost": 35,
     },
     "mana_surge": {
         "label": "+20 Mana",
         "icon": "💙",
         "mana": 20,
         "duration_h": 0,
+        "mana_cost": 25,
     },
     "streak_shield": {
         "label": "Streak Shield",
         "icon": "🛡️",
         "duration_h": 36,
+        "mana_cost": 60,
     },
 }
 
@@ -328,6 +334,13 @@ def send_buff(sender, receiver_username: str, effect_code: str):
         raise GameLogicError("You cannot buff yourself.")
 
     with transaction.atomic():
+        sender_profile = UserProfile.objects.select_for_update().get(user=sender)
+        mana_cost = buff_def.get("mana_cost", 0)
+        if sender_profile.mana < mana_cost:
+            raise GameLogicError(
+                f"Not enough Mana ({sender_profile.mana}/{mana_cost} MP). Complete tasks to restore Mana!"
+            )
+
         receiver_profile = UserProfile.objects.select_for_update().get(user=receiver)
 
         if buff_def.get("duration_h", 0) == 0:
@@ -364,6 +377,11 @@ def send_buff(sender, receiver_username: str, effect_code: str):
                 },
             )
 
+        # Deduct sender mana
+        if mana_cost > 0:
+            sender_profile.mana -= mana_cost
+            sender_profile.save(update_fields=["mana"])
+
         sender_mem.last_buff_sent_at = timezone.now().date()
         sender_mem.save(update_fields=["last_buff_sent_at"])
 
@@ -379,7 +397,12 @@ def send_buff(sender, receiver_username: str, effect_code: str):
         message=f"sent {buff_def['icon']} {buff_def['label']} to {receiver_username}",
     )
 
-    return {"message": f"Buff sent to {receiver_username}!", "buff": buff_def["label"]}
+    return {
+        "message": f"Buff sent to {receiver_username}!",
+        "buff": buff_def["label"],
+        "mana_cost": mana_cost,
+        "new_mana": sender_profile.mana,
+    }
 
 
 def send_chat(user, message: str):

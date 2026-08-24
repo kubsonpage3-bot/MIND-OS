@@ -26,9 +26,15 @@ const FALLBACK_SPRITES = {
 
 function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   const { t } = useTranslation();
+  const { profile } = useDjangoAuth();
   const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
   const hpPct = member.max_hp > 0 ? Math.min((member.hp / member.max_hp) * 100, 100) : 0;
+  const maxMp = member.max_mana || member.mana_max || 100;
+  const mpPct = maxMp > 0 ? Math.min(((member.mana ?? 0) / maxMp) * 100, 100) : 0;
   const [showBuffs, setShowBuffs] = useState(false);
+
+  const myMana = profile?.mana ?? 0;
+  const myMaxMana = profile?.max_mana || profile?.mana_max || 100;
 
   const charClass = member.character_class?.toLowerCase();
   const rankId = member.rank_info?.current_id || 'F';
@@ -49,12 +55,12 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   }
 
   const BUFF_DEFS = [
-    { code: 'heal_1',        icon: '🩸', label: 'Heal +15 HP',    desc: 'Restores 15 HP to this ally', color: '#f87171', bg: 'rgba(127,29,29,0.5)', border: 'rgba(239,68,68,0.4)' },
-    { code: 'heal_2',        icon: '💖', label: 'Heal +30 HP',    desc: 'Restores 30 HP to this ally', color: '#f472b6', bg: 'rgba(131,24,67,0.5)', border: 'rgba(244,114,182,0.4)' },
-    { code: 'xp_boost_24h',  icon: '⚡', label: '+25% XP (24h)', desc: 'Boosts XP gain by 25% for 24 hours', color: '#facc15', bg: 'rgba(120,53,15,0.5)', border: 'rgba(234,179,8,0.4)' },
-    { code: 'gold_boost_12h',icon: '🪙', label: '+20% Gold (12h)', desc: 'Boosts gold drops by 20% for 12 hours', color: '#fb923c', bg: 'rgba(120,53,15,0.5)', border: 'rgba(251,146,60,0.4)' },
-    { code: 'mana_surge',    icon: '🔮', label: '+20 Mana',       desc: 'Grants 20 Mana points to this ally', color: '#c084fc', bg: 'rgba(88,28,135,0.5)', border: 'rgba(192,132,252,0.4)' },
-    { code: 'streak_shield', icon: '🛡️', label: 'Streak Shield',  desc: 'Protects their streak for 1 day', color: '#60a5fa', bg: 'rgba(30,58,138,0.5)', border: 'rgba(96,165,250,0.4)' },
+    { code: 'heal_1',        icon: '🩸', label: 'Heal +15 HP',    desc: 'Restores 15 HP to this ally', manaCost: 20, color: '#f87171', bg: 'rgba(127,29,29,0.5)', border: 'rgba(239,68,68,0.4)' },
+    { code: 'mana_surge',    icon: '🔮', label: '+20 Mana',       desc: 'Transfers 20 Mana points to ally', manaCost: 25, color: '#c084fc', bg: 'rgba(88,28,135,0.5)', border: 'rgba(192,132,252,0.4)' },
+    { code: 'gold_boost_12h',icon: '🪙', label: '+20% Gold (12h)', desc: 'Boosts gold drops by 20% for 12h', manaCost: 35, color: '#fb923c', bg: 'rgba(120,53,15,0.5)', border: 'rgba(251,146,60,0.4)' },
+    { code: 'heal_2',        icon: '💖', label: 'Heal +30 HP',    desc: 'Restores 30 HP to this ally', manaCost: 40, color: '#f472b6', bg: 'rgba(131,24,67,0.5)', border: 'rgba(244,114,182,0.4)' },
+    { code: 'xp_boost_24h',  icon: '⚡', label: '+25% XP (24h)', desc: 'Boosts XP gain by 25% for 24h', manaCost: 50, color: '#facc15', bg: 'rgba(120,53,15,0.5)', border: 'rgba(234,179,8,0.4)' },
+    { code: 'streak_shield', icon: '🛡️', label: 'Streak Shield',  desc: 'Protects their streak for 1 day', manaCost: 60, color: '#60a5fa', bg: 'rgba(30,58,138,0.5)', border: 'rgba(96,165,250,0.4)' },
   ];
 
   const buffCooldownH = member.buff_cooldown_hours || 0;
@@ -150,7 +156,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
                     className="absolute -top-2 right-8 text-[11px] font-pixel font-bold text-amber-300 pointer-events-none z-10 whitespace-nowrap"
                     style={{ textShadow: '0 0 10px rgba(251,191,36,0.8)' }}
                   >
-                    ✦ Blessed!
+                    {buffFloat}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -205,27 +211,54 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
             </span>
           </div>
 
-          {/* Dark Fantasy Segmented HP Bar */}
-          <div className="mt-2 space-y-1">
-            <div className="flex justify-between text-[9px] font-pixel">
-              <span className="text-red-400 flex items-center gap-1">
-                ❤️ HP
-              </span>
-              <span className="text-red-300/80">
-                {member.hp} / {member.max_hp}
-              </span>
+          {/* Dark Fantasy HP & MP Bars */}
+          <div className="mt-2 space-y-1.5">
+            {/* Segmented HP Bar */}
+            <div className="space-y-0.5">
+              <div className="flex justify-between text-[9px] font-pixel">
+                <span className="text-red-400 flex items-center gap-1">
+                  ❤️ HP
+                </span>
+                <span className="text-red-300/80">
+                  {member.hp} / {member.max_hp}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-sm bg-black/80 border border-red-950/80 p-[1px] overflow-hidden">
+                <motion.div
+                  className="h-full rounded-[1px]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${hpPct}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  style={{
+                    background: 'linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #ef4444 100%)',
+                    boxShadow: '0 0 8px rgba(239,68,68,0.5)',
+                  }}
+                />
+              </div>
             </div>
-            <div className="h-2 w-full rounded-sm bg-black/80 border border-red-950/80 p-[1px] overflow-hidden">
-              <motion.div
-                className="h-full rounded-[1px]"
-                initial={{ width: 0 }}
-                animate={{ width: `${hpPct}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                style={{
-                  background: 'linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #ef4444 100%)',
-                  boxShadow: '0 0 8px rgba(239,68,68,0.5)',
-                }}
-              />
+
+            {/* Segmented MP Bar */}
+            <div className="space-y-0.5">
+              <div className="flex justify-between text-[8px] font-pixel">
+                <span className="text-cyan-400 flex items-center gap-1">
+                  💧 MP
+                </span>
+                <span className="text-cyan-300/80">
+                  {member.mana ?? 0} / {maxMp}
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-sm bg-black/80 border border-blue-950/80 p-[1px] overflow-hidden">
+                <motion.div
+                  className="h-full rounded-[1px]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${mpPct}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  style={{
+                    background: 'linear-gradient(90deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%)',
+                    boxShadow: '0 0 6px rgba(56,189,248,0.5)',
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -241,7 +274,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
         </div>
       </div>
 
-      {/* Buff Altar */}
+      {/* Buff Altar with Mana System */}
       <AnimatePresence>
         {showBuffs && (
           <motion.div
@@ -252,41 +285,65 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
             className="overflow-hidden"
           >
             <div
-              className="mt-2 pt-3 border-t space-y-2"
+              className="mt-2 pt-3 border-t space-y-2.5"
               style={{ borderColor: 'rgba(234,179,8,0.2)' }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center gap-1.5 text-[9px] font-pixel text-amber-300/80 uppercase tracking-widest">
-                <span>🕯️</span>
-                <span>Choose a blessing to send</span>
-                <span className="ml-auto text-[8px] text-slate-500">1 per 8h</span>
+              <div className="flex items-center justify-between text-[9px] font-pixel text-amber-300/80 uppercase tracking-widest">
+                <span className="flex items-center gap-1">
+                  <span>🕯️</span>
+                  <span>Choose blessing</span>
+                </span>
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-950/70 border border-blue-500/40 text-cyan-300 font-bold shadow-[0_0_8px_rgba(56,189,248,0.25)]">
+                  💧 MANA: {myMana} / {myMaxMana} MP
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {BUFF_DEFS.map(b => (
-                  <motion.button
-                    key={b.code}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => {
-                      onBuff(b.code);
-                      setShowBuffs(false);
-                      setBuffFloat(b.label);
-                      setTimeout(() => setBuffFloat(null), 1000);
-                    }}
-                    className="flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all group"
-                    style={{
-                      background: b.bg,
-                      borderColor: b.border,
-                      color: b.color,
-                    }}
-                  >
-                    <span className="text-xl shrink-0">{b.icon}</span>
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-pixel font-bold leading-none">{b.label}</div>
-                      <div className="text-[8px] font-mono text-slate-400 mt-0.5 leading-tight truncate">{b.desc}</div>
-                    </div>
-                  </motion.button>
-                ))}
+              <div className="grid grid-cols-2 gap-2">
+                {BUFF_DEFS.map(b => {
+                  const canAfford = myMana >= b.manaCost;
+                  return (
+                    <motion.button
+                      key={b.code}
+                      whileHover={canAfford ? { scale: 1.02 } : {}}
+                      whileTap={canAfford ? { scale: 0.97 } : {}}
+                      disabled={!canAfford}
+                      onClick={() => {
+                        if (!canAfford) {
+                          toast.error(`Not enough Mana! Need ${b.manaCost} MP (you have ${myMana} MP).`);
+                          return;
+                        }
+                        onBuff(b.code);
+                        setShowBuffs(false);
+                        setBuffFloat(`🔮 -${b.manaCost} MP ✦ Blessed!`);
+                        setTimeout(() => setBuffFloat(null), 1200);
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-xl border text-left transition-all relative overflow-hidden"
+                      style={{
+                        background: canAfford ? b.bg : 'rgba(10,5,15,0.6)',
+                        borderColor: canAfford ? b.border : 'rgba(255,255,255,0.06)',
+                        color: canAfford ? b.color : '#6b7280',
+                        opacity: canAfford ? 1 : 0.45,
+                        cursor: canAfford ? 'pointer' : 'not-allowed',
+                      }}
+                      title={canAfford ? b.desc : `Requires ${b.manaCost} MP (You have ${myMana} MP)`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl shrink-0">{b.icon}</span>
+                        <div className="min-w-0">
+                          <div className="text-[10px] font-pixel font-bold leading-none">{b.label}</div>
+                          <div className="text-[8px] font-mono text-slate-400 mt-0.5 leading-tight truncate">{b.desc}</div>
+                        </div>
+                      </div>
+                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-pixel font-bold shrink-0 border ${
+                        canAfford
+                          ? 'bg-blue-950/80 border-cyan-500/40 text-cyan-300 shadow-[0_0_6px_rgba(56,189,248,0.3)]'
+                          : 'bg-red-950/50 border-red-500/30 text-red-400'
+                      }`}>
+                        💧 {b.manaCost} MP
+                      </span>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
@@ -1096,6 +1153,7 @@ function PartyView({ party }) {
   const buffMutation = useMutation({
     mutationFn: (/** @type {{username: string, code: string}} */ { username, code }) => djangoApi.party.buff(username, code),
     onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['party', 'feed'] });
       queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
       toast.success(`Buff sent to ${variables.username}! 💪`, { duration: 3000 });
