@@ -11,7 +11,7 @@ import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { CLASSES, CLASS_SPRITES } from '@/constants/rpgData';
 import { toast } from 'react-hot-toast';
 
-// ─── Member Card ─────────────────────────────────────────────────────────────
+// ─── Member Card (Dark Fantasy Champion Slab) ───────────────────────────────
 
 const FALLBACK_SPRITES = {
   F:   "/images/webp/993830219_generated_image.webp",
@@ -33,7 +33,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   const charClass = member.character_class?.toLowerCase();
   const rankId = member.rank_info?.current_id || 'F';
   const classInfo = CLASSES[charClass] || null;
-  const classColor = classInfo?.color || '#878190';
+  const classColor = classInfo?.color || '#a855f7';
   const didDailyToday = member.did_dailies_today === true;
 
   let spriteUrl = null;
@@ -49,15 +49,14 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   }
 
   const BUFF_DEFS = [
-    { code: 'heal_1',        icon: '💚', label: '+15 HP',    cls: 'text-green-400 border-green-500/20 bg-green-500/10' },
-    { code: 'heal_2',        icon: '💖', label: '+30 HP',    cls: 'text-pink-400 border-pink-500/20 bg-pink-500/10' },
-    { code: 'xp_boost_24h', icon: '⚡', label: '+25% XP',  cls: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
-    { code: 'gold_boost_12h', icon: '💰', label: '+20% Gold', cls: 'text-amber-400 border-amber-500/20 bg-amber-500/10' },
-    { code: 'mana_surge',   icon: '💙', label: '+20 MP',    cls: 'text-blue-400 border-blue-500/20 bg-blue-500/10' },
-    { code: 'streak_shield', icon: '🛡️', label: 'Shield',   cls: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
+    { code: 'heal_1',        icon: '🩸', label: 'Blood Mend (+15)',    cls: 'text-red-400 border-red-500/30 bg-red-950/40 hover:border-red-400' },
+    { code: 'heal_2',        icon: '💖', label: 'Soul Restore (+30)', cls: 'text-pink-400 border-pink-500/30 bg-pink-950/40 hover:border-pink-400' },
+    { code: 'xp_boost_24h',  icon: '⚡', label: 'Arcane Surge (+25%)', cls: 'text-yellow-400 border-yellow-500/30 bg-amber-950/40 hover:border-yellow-400' },
+    { code: 'gold_boost_12h',icon: '🪙', label: 'Cursed Spoils (+20%)', cls: 'text-amber-400 border-amber-500/30 bg-amber-950/40 hover:border-amber-400' },
+    { code: 'mana_surge',    icon: '🔮', label: 'Void Mana (+20 MP)', cls: 'text-purple-400 border-purple-500/30 bg-purple-950/40 hover:border-purple-400' },
+    { code: 'streak_shield', icon: '🛡️', label: 'Iron Aegis (Shield)', cls: 'text-blue-400 border-blue-500/30 bg-blue-950/40 hover:border-blue-400' },
   ];
 
-  // Cooldown: buff_cooldown_hours from API
   const buffCooldownH = member.buff_cooldown_hours || 0;
   const buffReady = buffCooldownH === 0;
 
@@ -65,18 +64,30 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`p-3 rounded-xl flex flex-col gap-2 ${onClick ? 'cursor-pointer' : ''}`}
-      style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+      whileHover={{ y: -2 }}
+      className={`p-3.5 rounded-xl flex flex-col gap-2.5 relative overflow-hidden transition-all duration-200 ${onClick ? 'cursor-pointer' : ''}`}
+      style={{
+        background: 'linear-gradient(135deg, rgba(22,15,30,0.95) 0%, rgba(10,7,14,0.98) 100%)',
+        border: '1.5px solid rgba(147,51,234,0.2)',
+        boxShadow: '0 4px 18px rgba(0,0,0,0.6)',
+      }}
       onClick={onClick}
     >
+      {/* Gothic Corner Accents */}
+      <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-red-500/40" />
+      <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-red-500/40" />
+      <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-red-500/40" />
+      <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-red-500/40" />
+
       <div className="flex items-center gap-3">
-        {/* Portrait + daily status dot */}
+        {/* Champion Portrait + Soul Orb */}
         <div className="relative shrink-0">
           <div
-            className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ring-1 ring-black/20 dark:ring-white/10 shadow-sm"
+            className="w-11 h-11 rounded-lg overflow-hidden flex items-center justify-center border-2 shadow-lg"
             style={{
-              background: 'var(--habit-panel)',
+              background: 'radial-gradient(circle, rgba(147,51,234,0.2) 0%, rgba(5,3,8,0.9) 100%)',
               borderColor: classColor,
+              boxShadow: `0 0 12px ${classColor}33`,
             }}
           >
             {spriteUrl ? (
@@ -87,42 +98,40 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
                 style={{ imageRendering: 'pixelated' }}
               />
             ) : (
-              <span className="font-mono font-black text-sm uppercase" style={{ color: 'var(--habit-dim)' }}>
+              <span className="font-pixel font-black text-sm uppercase text-amber-300">
                 {member.username?.charAt(0) || '?'}
               </span>
             )}
           </div>
-          {/* Daily status dot */}
+          {/* Soul status indicator */}
           <span
-            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--habit-bg)]"
-            style={{ background: didDailyToday ? '#00cc88' : '#ef4444' }}
-            title={didDailyToday ? t('party_extra.dailies_done', 'Dailies done today ✓') : t('party_extra.dailies_not_done', 'Dailies not done today')}
-          />
+            className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-black flex items-center justify-center text-[7px]"
+            style={{
+              background: didDailyToday ? '#22c55e' : '#ef4444',
+              boxShadow: didDailyToday ? '0 0 8px #22c55e' : '0 0 8px #ef4444',
+            }}
+            title={didDailyToday ? t('party_extra.dailies_done', 'Soul Awake ✓') : t('party_extra.dailies_not_done', 'In Slumber')}
+          >
+            {didDailyToday ? '✦' : '✖'}
+          </span>
         </div>
 
-        {/* Info */}
+        {/* Info & Stats */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span
-                className="font-mono font-bold text-sm truncate"
-                style={{ color: 'var(--habit-text)' }}
-              >
+              <span className="font-pixel font-bold text-sm truncate text-slate-100">
                 {member.username}
               </span>
               {isOwner && (
-                <Crown className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 shrink-0" />
+                <Crown className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
               )}
-              <span
-                className="text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0"
-                style={{ background: 'var(--habit-border)', color: 'var(--habit-dim)' }}
-              >
+              <span className="text-[10px] font-pixel px-1.5 py-0.5 rounded bg-black/60 text-amber-300/80 border border-amber-500/20 shrink-0">
                 Lv.{member.level}
               </span>
-              {/* Rank badge */}
               <span
-                className="px-1.5 py-0.5 rounded text-[10px] font-bold border"
-                style={{ background: `${rank.color}22`, color: rank.color, borderColor: `${rank.color}66` }}
+                className="px-2 py-0.5 rounded text-[10px] font-pixel font-bold border"
+                style={{ background: `${rank.color}22`, color: rank.color, borderColor: `${rank.color}66`, boxShadow: `0 0 6px ${rank.color}33` }}
               >
                 {rank.id === 'ASC' ? rank.label : rank.id}
               </span>
@@ -131,25 +140,29 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
               {onBuff && (
                 <button
                   onClick={(e) => { e.stopPropagation(); if (buffReady) setShowBuffs(!showBuffs); }}
-                  className="p-1 rounded-md transition-all hover:bg-white/10 flex flex-col items-center gap-0"
-                  title={buffReady ? 'Send Buff' : `Buff cooldown: ${buffCooldownH}h left`}
+                  className="px-2 py-1 rounded-md transition-all border flex items-center gap-1 text-[10px] font-pixel"
+                  style={{
+                    background: buffReady ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.4)',
+                    borderColor: buffReady ? 'rgba(234,179,8,0.5)' : 'rgba(255,255,255,0.1)',
+                    color: buffReady ? '#fbbf24' : '#6b7280',
+                    boxShadow: buffReady ? '0 0 8px rgba(234,179,8,0.3)' : 'none',
+                  }}
+                  title={buffReady ? 'Bless Champion' : `Blessing cooldown: ${buffCooldownH}h left`}
                 >
-                  <Zap className={`w-3.5 h-3.5 ${buffReady ? 'text-yellow-500' : 'text-gray-500'}`} />
-                  {!buffReady && (
-                    <span className="text-[6px] font-mono" style={{ color: 'var(--habit-dim)' }}>{buffCooldownH}h</span>
-                  )}
+                  <Zap className={`w-3 h-3 ${buffReady ? 'text-amber-400 fill-amber-400 animate-pulse' : 'text-gray-500'}`} />
+                  <span>{buffReady ? 'BLESS' : `${buffCooldownH}h`}</span>
                 </button>
               )}
               {showKick && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(t('party_extra.kick_confirm', `Are you sure you want to kick ${member.username} from the party?`, { name: member.username }))) {
+                    if (confirm(t('party_extra.kick_confirm', `Banish ${member.username} from the Order?`, { name: member.username }))) {
                       onKick();
                     }
                   }}
-                  className="p-1 rounded-md transition-all hover:bg-red-500/10 text-red-400 shrink-0"
-                  title={t('party_extra.kick_tooltip', 'Kick Member')}
+                  className="p-1 rounded-md transition-all bg-red-950/40 border border-red-500/40 hover:bg-red-900/60 text-red-400 shrink-0"
+                  title={t('party_extra.kick_tooltip', 'Banish Member')}
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -157,35 +170,37 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] font-mono capitalize text-purple-300 font-semibold">
               {member.character_class}
             </span>
-            <span className="text-[10px] font-mono" style={{ color: '#f59e0b' }}>
+            <span className="text-[10px] font-pixel text-amber-400 flex items-center gap-0.5">
               🔥 {member.streak}d
             </span>
-            <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+            <span className="text-[9px] font-mono text-muted-foreground/60">
               {member.joined ? new Date(member.joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
             </span>
           </div>
 
-          {/* HP bar */}
-          <div className="mt-1.5 space-y-0.5">
-            <div className="flex justify-between">
-              <span className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-                HP
+          {/* Dark Fantasy Segmented HP Bar */}
+          <div className="mt-2 space-y-1">
+            <div className="flex justify-between text-[9px] font-pixel">
+              <span className="text-red-400 flex items-center gap-1">
+                ❤️ HP
               </span>
-              <span className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-                {member.hp}/{member.max_hp}
+              <span className="text-red-300/80">
+                {member.hp} / {member.max_hp}
               </span>
             </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
-              <div
-                className="h-full rounded-full transition-all duration-700"
+            <div className="h-2 w-full rounded-sm bg-black/80 border border-red-950/80 p-[1px] overflow-hidden">
+              <motion.div
+                className="h-full rounded-[1px]"
+                initial={{ width: 0 }}
+                animate={{ width: `${hpPct}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 style={{
-                  width: `${hpPct}%`,
-                  background: hpPct > 50 ? '#00cc88' : hpPct > 25 ? '#f59e0b' : '#ef4444',
-                  boxShadow: hpPct > 50 ? '0 0 4px #00cc8866' : '0 0 4px #ef444466',
+                  background: 'linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #ef4444 100%)',
+                  boxShadow: '0 0 8px rgba(239,68,68,0.5)',
                 }}
               />
             </div>
@@ -194,33 +209,36 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
 
         {/* Rank XP */}
         <div className="shrink-0 text-right">
-          <div className="text-[10px] font-mono" style={{ color: rank.color }}>
-            {Math.floor(member.rank_xp)} / {member.rank_info?.next_threshold}
+          <div className="text-[11px] font-pixel font-bold" style={{ color: rank.color, textShadow: `0 0 8px ${rank.color}50` }}>
+            {Math.floor(member.rank_xp)}
           </div>
-          <div className="text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-            {t('party_extra.rank_xp', 'Rank XP')}
+          <div className="text-[8px] font-pixel text-muted-foreground/60 uppercase tracking-widest">
+            {t('party_extra.rank_xp', 'GLORY XP')}
           </div>
         </div>
       </div>
 
-      {/* Buff menu — 6 types in 2 rows of 3 */}
+      {/* Runic Blessing Altar (Buff menu) */}
       <AnimatePresence>
         {showBuffs && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-white/5 pt-2"
+            className="overflow-hidden border-t border-purple-500/20 pt-2.5 mt-1"
           >
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="text-[9px] font-pixel text-amber-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <span>🕯️</span> <span>ALTAR OF BLESSINGS</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               {BUFF_DEFS.map(b => (
                 <button
                   key={b.code}
                   onClick={(e) => { e.stopPropagation(); onBuff(b.code); setShowBuffs(false); }}
-                  className={`py-1.5 text-[9px] font-mono rounded border flex flex-col items-center gap-0.5 ${b.cls}`}
+                  className={`py-2 px-2 text-[9px] font-pixel rounded-lg border flex items-center justify-start gap-2 transition-transform hover:scale-102 ${b.cls}`}
                 >
-                  <span className="text-sm">{b.icon}</span>
-                  <span>{b.label}</span>
+                  <span className="text-base">{b.icon}</span>
+                  <span className="truncate">{b.label}</span>
                 </button>
               ))}
             </div>
@@ -231,19 +249,19 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
   );
 }
 
-// ─── Achievement Badge ────────────────────────────────────────────────────────
+// ─── Achievement Badges (Gothic Medallions) ────────────────────────────────────
 
 const ACHIEVEMENT_META = {
-  streak_7:      { icon: '🔥', label: '7-Day Streak' },
-  streak_30:     { icon: '🏆', label: '30-Day Streak' },
-  streak_100:    { icon: '💀', label: '100-Day Streak' },
-  full_house:    { icon: '👑', label: 'Full House' },
-  first_quest:   { icon: '✅', label: 'First Quest' },
-  quest_master:  { icon: '🎯', label: 'Quest Master' },
-  buff_master:   { icon: '💪', label: 'Buff Master' },
-  all_streaks:   { icon: '🔗', label: 'All Streaks' },
-  quest_streak_3:{ icon: '⚡', label: 'Quest Streak III' },
-  top_scorer:    { icon: '🌟', label: 'Top Scorer' },
+  streak_7:      { icon: '🔥', label: '7-Day Embers' },
+  streak_30:     { icon: '🏆', label: '30-Day Pyre' },
+  streak_100:    { icon: '💀', label: '100-Day Immortal' },
+  full_house:    { icon: '👑', label: 'Grand Coven' },
+  first_quest:   { icon: '🩸', label: 'First Blood' },
+  quest_master:  { icon: '🎯', label: 'Abyssal Slayer' },
+  buff_master:   { icon: '🕯️', label: 'High Priest' },
+  all_streaks:   { icon: '🔗', label: 'Soulbound' },
+  quest_streak_3:{ icon: '⚡', label: 'Wrath III' },
+  top_scorer:    { icon: '🌟', label: 'Exalted Paragon' },
 };
 
 function PartyAchievementBadges({ achievements }) {
@@ -257,9 +275,15 @@ function PartyAchievementBadges({ achievements }) {
             key={a.code}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.05 }}
             title={`${meta.label} — ${new Date(a.unlocked_at).toLocaleDateString()}`}
-            className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold cursor-help"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', border: '1px solid var(--habit-purple)44' }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-pixel cursor-help border"
+            style={{
+              background: 'linear-gradient(135deg, rgba(30,15,40,0.8) 0%, rgba(10,5,15,0.95) 100%)',
+              borderColor: 'rgba(234,179,8,0.3)',
+              color: '#fde047',
+              boxShadow: '0 0 8px rgba(234,179,8,0.15)',
+            }}
           >
             <span>{meta.icon}</span>
             <span>{meta.label}</span>
@@ -270,7 +294,7 @@ function PartyAchievementBadges({ achievements }) {
   );
 }
 
-// ─── Weekly Quest Block ───────────────────────────────────────────────────────
+// ─── Weekly Quest Block (Abyssal Covenant Quest) ──────────────────────────────
 
 function PartyWeeklyQuestBlock({ quest }) {
   if (!quest) return null;
@@ -280,56 +304,64 @@ function PartyWeeklyQuestBlock({ quest }) {
     : 0;
 
   const questLabel = (quest.quest_type || '').replace(/_/g, ' ');
-    const daysLeft = quest.days_left ?? '?';
+  const daysLeft = quest.days_left ?? '?';
 
   return (
     <div
-      className="p-3 rounded-xl space-y-2"
-      style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+      className="p-4 rounded-xl space-y-3 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(25,10,30,0.95) 0%, rgba(12,6,18,0.98) 100%)',
+        border: '1.5px solid rgba(220,38,38,0.3)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+      }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="text-base">⚔️</span>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>
-            Weekly Quest
+      <div className="flex items-center justify-between border-b border-red-500/20 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-red-500 text-lg animate-pulse">⚔️</span>
+          <span className="text-[11px] font-pixel text-red-400 uppercase tracking-widest">
+            COVENANT_CRUSADE // ABYSSAL_RAID
           </span>
         </div>
         {quest.is_completed ? (
-          <span className="text-[10px] font-mono font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
-            ✓ Completed!
+          <span className="text-[10px] font-pixel font-bold text-amber-300 bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-500/50 shadow-[0_0_10px_rgba(251,191,36,0.4)]">
+            👑 VICTORY ACHIEVED!
           </span>
         ) : (
-          <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-            {daysLeft}d left
+          <span className="text-[10px] font-pixel text-amber-400 bg-black/60 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1">
+            <span>⏳</span> {daysLeft}d left
           </span>
         )}
       </div>
 
-      <div className="space-y-1">
-        <div className="flex justify-between">
-          <span className="text-[10px] font-mono capitalize" style={{ color: 'var(--habit-dim)' }}>
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs font-pixel">
+          <span className="capitalize text-slate-300">
             {questLabel}
           </span>
-          <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--habit-text)' }}>
-            {quest.current_value} / {quest.target_value}
+          <span className="text-amber-400 font-bold">
+            {quest.current_value} / {quest.target_value} ({pct}%)
           </span>
         </div>
-        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+        
+        {/* Boss HP / Raid Progress Bar */}
+        <div className="h-3 w-full rounded-sm bg-black/90 border border-red-950 p-[1px] overflow-hidden relative">
           <motion.div
-            className="h-full rounded-full"
+            className="h-full rounded-[1px]"
             initial={{ width: 0 }}
             animate={{ width: `${pct}%` }}
             transition={{ duration: 1, ease: 'easeOut' }}
             style={{
               background: quest.is_completed
-                ? 'linear-gradient(90deg, #00cc88, #00e5ff)'
-                : 'linear-gradient(90deg, #7B61FF, #00e5ff)',
-              boxShadow: '0 0 6px #7B61FF44',
+                ? 'linear-gradient(90deg, #991b1b 0%, #eab308 50%, #fef08a 100%)'
+                : 'linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%)',
+              boxShadow: '0 0 12px rgba(220,38,38,0.6)',
             }}
           />
-        </div>
-        <div className="text-right text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
-          {pct}% complete
+          {/* Milestone markers */}
+          <div className="absolute inset-0 flex justify-between px-[25%] pointer-events-none opacity-40">
+            <div className="w-[1px] h-full bg-white/40" />
+            <div className="w-[1px] h-full bg-white/40" />
+          </div>
         </div>
       </div>
     </div>
@@ -355,9 +387,9 @@ function PartySettingsModal({ party, onClose }) {
   });
 
   const inputStyle = {
-    background: 'var(--habit-bg)',
-    border: '1px solid var(--habit-border)',
-    color: 'var(--habit-text)',
+    background: 'rgba(10,7,15,0.95)',
+    border: '1px solid rgba(147,51,234,0.3)',
+    color: '#f3e8ff',
     fontFamily: "'Nunito'",
     fontSize: 13,
     borderRadius: 10,
@@ -373,72 +405,79 @@ function PartySettingsModal({ party, onClose }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="w-full max-w-sm rounded-2xl p-5 space-y-4"
-        style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+        className="w-full max-w-sm rounded-2xl p-5 space-y-4 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(20,12,28,0.98) 0%, rgba(8,5,12,0.99) 100%)',
+          border: '1.5px solid rgba(147,51,234,0.4)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between">
-          <span className="font-mono font-bold text-sm" style={{ color: 'var(--habit-text)' }}>⚙️ Party Settings</span>
-          <button onClick={onClose} className="text-[var(--habit-dim)] hover:text-[var(--habit-text)] transition-colors text-xl leading-none">×</button>
+        <div className="flex items-center justify-between border-b border-purple-500/20 pb-2">
+          <span className="font-pixel text-sm text-purple-300">⚙️ COVENANT_SETTINGS</span>
+          <button onClick={onClose} className="text-muted-foreground hover:text-white transition-colors text-xl leading-none">×</button>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label className="text-[10px] font-mono uppercase tracking-wider block mb-1" style={{ color: 'var(--habit-dim)' }}>Party Name</label>
-            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} maxLength={64} placeholder="Party name" />
+            <label className="text-[10px] font-pixel text-muted-foreground uppercase tracking-wider block mb-1">Covenant Name</label>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} maxLength={64} placeholder="Order name" />
           </div>
           <div>
-            <label className="text-[10px] font-mono uppercase tracking-wider block mb-1" style={{ color: 'var(--habit-dim)' }}>Description <span className="normal-case">(optional, 140 chars)</span></label>
+            <label className="text-[10px] font-pixel text-muted-foreground uppercase tracking-wider block mb-1">Pledge & Lore <span className="normal-case text-[9px]">(140 chars)</span></label>
             <textarea
               style={{ ...inputStyle, minHeight: 60 }}
               value={description}
               onChange={e => setDescription(e.target.value)}
               maxLength={140}
-              placeholder="Tell the world what your party is about..."
+              placeholder="Inscribe the mission of your brotherhood..."
             />
-            <div className="text-right text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>{description.length}/140</div>
+            <div className="text-right text-[9px] font-mono text-muted-foreground/60">{description.length}/140</div>
           </div>
           <div>
-            <label className="text-[10px] font-mono uppercase tracking-wider block mb-1" style={{ color: 'var(--habit-dim)' }}>Member Cap: {memberCap}</label>
+            <label className="text-[10px] font-pixel text-muted-foreground uppercase tracking-wider block mb-1">Max Champions: {memberCap}</label>
             <input
               type="range" min={2} max={8} step={1}
               value={memberCap}
               onChange={e => setMemberCap(Number(e.target.value))}
               className="w-full accent-purple-500"
             />
-            <div className="flex justify-between text-[9px] font-mono" style={{ color: 'var(--habit-dim)' }}>
+            <div className="flex justify-between text-[9px] font-mono text-muted-foreground/60">
               <span>2</span><span>8</span>
             </div>
           </div>
         </div>
 
         {error && (
-          <div className="text-xs font-mono px-3 py-2 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid #ef444444', color: '#ef4444' }}>{error}</div>
+          <div className="text-xs font-mono px-3 py-2 rounded-xl bg-red-950/40 border border-red-500/40 text-red-400">{error}</div>
         )}
 
         <button
           disabled={!name.trim() || updateMutation.isPending}
           onClick={() => updateMutation.mutate({ name: name.trim(), description, member_cap: memberCap })}
-          className="w-full py-2.5 rounded-xl font-mono font-bold text-sm transition-all"
-          style={{ background: 'var(--habit-purple)', color: 'white', opacity: name.trim() ? 1 : 0.5 }}
+          className="w-full py-2.5 rounded-xl font-pixel font-bold text-sm transition-all"
+          style={{
+            background: 'linear-gradient(90deg, #7c3aed 0%, #9333ea 100%)',
+            color: 'white',
+            boxShadow: '0 0 14px rgba(147,51,234,0.4)',
+            opacity: name.trim() ? 1 : 0.5,
+          }}
         >
-          {updateMutation.isPending ? 'Saving...' : 'Save Settings'}
+          {updateMutation.isPending ? 'Inscribing...' : 'Save Settings'}
         </button>
       </motion.div>
     </motion.div>
   );
 }
 
-
-
-// ─── Invite Code Display ──────────────────────────────────────────────────────
+// ─── Invite Code Display (Blood Seal Summoning Cipher) ─────────────────────────
 
 function InviteCodeDisplay({ code }) {
   const { t } = useTranslation();
@@ -453,36 +492,46 @@ function InviteCodeDisplay({ code }) {
 
   return (
     <div
-      className="p-3 rounded-xl flex items-center justify-between gap-3"
-      style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+      className="p-3.5 rounded-xl flex items-center justify-between gap-3 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%)',
+        border: '1.5px solid rgba(147,51,234,0.3)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+      }}
     >
       <div>
-        <div className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.inviteCodeLabel')}</div>
+        <div className="text-[9px] font-pixel uppercase tracking-widest text-purple-300/80 mb-1 flex items-center gap-1">
+          <span>📜</span> <span>RUNE_OF_SUMMONING // BLOOD_SEAL</span>
+        </div>
         <div
-          className="font-mono font-black text-2xl tracking-[0.3em]"
-          style={{ color: 'var(--habit-purple)', letterSpacing: '0.3em' }}
+          className="font-pixel font-black text-2xl tracking-[0.3em] text-purple-400"
+          style={{ textShadow: '0 0 12px rgba(168,85,247,0.6)' }}
         >
           {code}
         </div>
-        <div className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--habit-dim)' }}>{t('partyTab.inviteDesc')}</div>
+        <div className="text-[9px] font-mono text-muted-foreground/60 mt-0.5">
+          {t('partyTab.inviteDesc', 'Bestow this secret glyph upon allies to summon them to your Order.')}
+        </div>
       </div>
       <button
         onClick={handleCopy}
-        className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+        className="shrink-0 px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all text-xs font-pixel"
         style={{
-          background: copied ? '#00cc8822' : 'var(--habit-border)',
-          border: `1px solid ${copied ? '#00cc88' : 'var(--habit-border)'}`,
-          color: copied ? '#00cc88' : 'var(--habit-dim)',
+          background: copied ? 'rgba(34,197,94,0.2)' : 'rgba(147,51,234,0.2)',
+          border: `1px solid ${copied ? '#22c55e' : '#a855f7'}`,
+          color: copied ? '#4ade80' : '#e9d5ff',
+          boxShadow: copied ? '0 0 12px rgba(34,197,94,0.4)' : '0 0 8px rgba(147,51,234,0.2)',
         }}
         title={t('partyTab.copyInvite')}
       >
-        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+        <span>{copied ? 'SEALED ✓' : 'INSCRIBE'}</span>
       </button>
     </div>
   );
 }
 
-// ─── No-Party State ───────────────────────────────────────────────────────────
+// ─── No-Party State (Dark Fantasy Summoning Altars) ───────────────────────────
 
 function NoPartyView({ onCreated, onJoined }) {
   const { t } = useTranslation();
@@ -497,7 +546,7 @@ function NoPartyView({ onCreated, onJoined }) {
       queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
       onCreated?.();
     },
-    onError: (/** @type {any} */ err) => setError(err?.data?.error || err?.message || 'Failed to create party.'),
+    onError: (/** @type {any} */ err) => setError(err?.data?.error || err?.message || 'Failed to forge covenant.'),
   });
 
   const joinMutation = useMutation({
@@ -506,46 +555,41 @@ function NoPartyView({ onCreated, onJoined }) {
       queryClient.invalidateQueries({ queryKey: ['party', 'members'] });
       onJoined?.();
     },
-    onError: (/** @type {any} */ err) => setError(err?.data?.error || err?.message || 'Failed to join party.'),
+    onError: (/** @type {any} */ err) => setError(err?.data?.error || err?.message || 'Failed to answer summon.'),
   });
 
   const inputStyle = {
-    background: 'var(--habit-bg)',
-    border: '1px solid var(--habit-border)',
-    color: 'var(--habit-text)',
+    background: 'rgba(10,5,15,0.95)',
+    border: '1.5px solid rgba(147,51,234,0.3)',
+    color: '#f3e8ff',
     fontFamily: "'Nunito'",
     fontSize: 13,
     borderRadius: 10,
-    padding: '8px 12px',
+    padding: '9px 14px',
     width: '100%',
     outline: 'none',
   };
 
-  const btnStyle = (active) => ({
-    fontFamily: "'Nunito'",
-    fontWeight: 800,
-    fontSize: 12,
-    borderRadius: 10,
-    padding: '8px 16px',
-    border: 'none',
-    cursor: active ? 'pointer' : 'not-allowed',
-    opacity: active ? 1 : 0.4,
-    transition: 'all 0.15s',
-  });
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Altar 1: Forge a Covenant */}
       <div
-        className="p-4 rounded-xl space-y-2"
-        style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+        className="p-5 rounded-2xl space-y-3 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(28,12,30,0.95) 0%, rgba(12,6,16,0.98) 100%)',
+          border: '1.5px solid rgba(220,38,38,0.35)',
+          boxShadow: '0 4px 20px rgba(220,38,38,0.15)',
+        }}
       >
-        <div className="flex items-center gap-2 mb-1">
-          <Swords className="w-3.5 h-3.5" style={{ color: 'var(--habit-purple)' }} />
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>{t('partyTab.createParty')}</span>
+        <div className="flex items-center gap-2 border-b border-red-500/20 pb-2">
+          <Swords className="w-4 h-4 text-red-400 animate-pulse" />
+          <span className="text-xs font-pixel text-red-300 uppercase tracking-widest">
+            🩸 FORGE A NEW COVENANT
+          </span>
         </div>
         <input
           style={inputStyle}
-          placeholder={t('partyTab.partyNamePlaceholder')}
+          placeholder="Name your Order (e.g. Knights of Abyss)..."
           value={createName}
           onChange={(e) => { setCreateName(e.target.value); setError(''); }}
           maxLength={64}
@@ -554,28 +598,37 @@ function NoPartyView({ onCreated, onJoined }) {
         <button
           onClick={() => createMutation.mutate()}
           disabled={!createName.trim() || createMutation.isPending}
+          className="w-full py-2.5 rounded-xl font-pixel font-bold text-xs transition-all flex items-center justify-center gap-2"
           style={{
-            ...btnStyle(!!createName.trim() && !createMutation.isPending),
-            background: 'var(--habit-purple)',
-            color: 'white',
-            boxShadow: createName.trim() ? '0 2px 12px var(--habit-purple-glow)' : 'none',
+            background: createName.trim() ? 'linear-gradient(90deg, #991b1b 0%, #dc2626 100%)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${createName.trim() ? '#ef4444' : 'rgba(255,255,255,0.1)'}`,
+            color: createName.trim() ? 'white' : '#6b7280',
+            boxShadow: createName.trim() ? '0 0 14px rgba(239,68,68,0.4)' : 'none',
+            cursor: createName.trim() ? 'pointer' : 'not-allowed',
           }}
         >
-          {createMutation.isPending ? t('partyTab.creatingBtn') : t('partyTab.createParty')}
+          {createMutation.isPending ? 'FORGING ORDER...' : '⚔️ FORGE COVENANT'}
         </button>
       </div>
 
+      {/* Altar 2: Join by Summoning Glyph */}
       <div
-        className="p-4 rounded-xl space-y-2"
-        style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+        className="p-5 rounded-2xl space-y-3 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(20,10,32,0.95) 0%, rgba(8,5,18,0.98) 100%)',
+          border: '1.5px solid rgba(168,85,247,0.35)',
+          boxShadow: '0 4px 20px rgba(168,85,247,0.15)',
+        }}
       >
-        <div className="flex items-center gap-2 mb-1">
-          <UserPlus className="w-3.5 h-3.5" style={{ color: '#00e5ff' }} />
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--habit-text)' }}>{t('partyTab.joinParty')}</span>
+        <div className="flex items-center gap-2 border-b border-purple-500/20 pb-2">
+          <UserPlus className="w-4 h-4 text-purple-400" />
+          <span className="text-xs font-pixel text-purple-300 uppercase tracking-widest">
+            🗝️ ENTER SUMMONING GLYPH
+          </span>
         </div>
         <input
-          style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700 }}
-          placeholder={t('partyTab.inviteCode')}
+          style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.25em', fontWeight: 800 }}
+          placeholder="6-DIGIT GLYPH (E.G. P7N197)"
           value={joinCode}
           onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setError(''); }}
           maxLength={6}
@@ -584,14 +637,16 @@ function NoPartyView({ onCreated, onJoined }) {
         <button
           onClick={() => joinMutation.mutate()}
           disabled={joinCode.trim().length !== 6 || joinMutation.isPending}
+          className="w-full py-2.5 rounded-xl font-pixel font-bold text-xs transition-all flex items-center justify-center gap-2"
           style={{
-            ...btnStyle(joinCode.trim().length === 6 && !joinMutation.isPending),
-            background: '#00e5ff22',
-            color: '#00e5ff',
-            border: '1px solid #00e5ff44',
+            background: joinCode.trim().length === 6 ? 'linear-gradient(90deg, #7c3aed 0%, #9333ea 100%)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${joinCode.trim().length === 6 ? '#a855f7' : 'rgba(255,255,255,0.1)'}`,
+            color: joinCode.trim().length === 6 ? 'white' : '#6b7280',
+            boxShadow: joinCode.trim().length === 6 ? '0 0 14px rgba(168,85,247,0.4)' : 'none',
+            cursor: joinCode.trim().length === 6 ? 'pointer' : 'not-allowed',
           }}
         >
-          {joinMutation.isPending ? t('partyTab.joiningBtn') : t('partyTab.joinBtn')}
+          {joinMutation.isPending ? 'ANSWERING SUMMON...' : '🔮 ANSWER SUMMON'}
         </button>
       </div>
 
@@ -601,8 +656,7 @@ function NoPartyView({ onCreated, onJoined }) {
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="px-3 py-2 rounded-xl text-xs font-mono"
-            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid #ef444444', color: '#ef4444' }}
+            className="px-3 py-2 rounded-xl text-xs font-pixel bg-red-950/50 border border-red-500/50 text-red-400 text-center"
           >
             {error}
           </motion.div>
@@ -991,47 +1045,64 @@ function PartyView({ party }) {
 
   return (
     <div className="space-y-4">
-      {/* Party Dashboard Header */}
+      {/* Gothic Warband Sanctuary Header */}
       <div
-        className="p-4 rounded-xl space-y-3"
-        style={{ background: 'var(--habit-panel)', border: '1px solid var(--habit-border)' }}
+        className="p-5 rounded-2xl space-y-4 relative overflow-hidden"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.18) 0%, rgba(12,7,18,0.98) 75%)',
+          border: '1.5px solid rgba(220,38,38,0.35)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 0 20px rgba(0,0,0,0.8)',
+        }}
       >
+        {/* Gothic Corner Brackets */}
+        <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-red-500/60" />
+        <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-red-500/60" />
+        <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-red-500/60" />
+        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-red-500/60" />
+
+        <div className="flex items-center justify-between border-b border-red-500/20 pb-2.5 text-[10px] font-pixel">
+          <div className="flex items-center gap-2 text-red-400">
+            <span className="animate-pulse">⚔️</span>
+            <span>ORDER_OF_CRUSADE // WARBAND_SANCTUARY</span>
+          </div>
+          {/* Soul Crystal Slots Indicator */}
+          <div className="flex items-center gap-1 text-[11px]" title={`${party.member_count} of ${memberCap} slots filled`}>
+            {Array.from({ length: memberCap }).map((_, i) => (
+              <span key={i} className={i < party.member_count ? "text-red-500 drop-shadow-[0_0_4px_rgba(239,68,68,0.8)]" : "text-slate-700"}>
+                {i < party.member_count ? "◆" : "◇"}
+              </span>
+            ))}
+          </div>
+        </div>
+
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1 min-w-0">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <Users className="w-4 h-4 shrink-0" style={{ color: 'var(--habit-purple)' }} />
-              <span className="font-mono font-black text-base truncate" style={{ color: 'var(--habit-text)' }}>
+              <span className="font-pixel font-bold text-xl truncate text-slate-100" style={{ textShadow: '0 0 12px rgba(220,38,38,0.5)' }}>
                 {party.name}
               </span>
-              <span
-                className="text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0"
-                style={{ background: 'var(--habit-border)', color: 'var(--habit-dim)' }}
-              >
-                {party.member_count}/{memberCap} members
+              <span className="text-[10px] font-pixel px-2 py-0.5 rounded bg-black/60 text-red-300 border border-red-500/30 shrink-0">
+                {party.member_count}/{memberCap} CHAMPIONS
               </span>
               {party.streak > 0 && (
-                <span
-                  className="text-[10px] font-mono px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0"
-                  style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid #f59e0b40' }}
-                >
-                  🔥 {party.streak}d streak
+                <span className="text-[10px] font-pixel px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/40 flex items-center gap-1 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                  🔥 {party.streak}d PYRE
                 </span>
               )}
             </div>
             {party.description && (
-              <p className="text-xs font-mono text-left opacity-80 leading-relaxed" style={{ color: 'var(--habit-text)' }}>
-                {party.description}
+              <p className="text-xs font-mono text-left text-slate-300/80 leading-relaxed italic">
+                "{party.description}"
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {isCurrentUserOwner && (
               <button
                 onClick={() => setShowSettingsModal(true)}
-                className="p-2 rounded-lg transition-all hover:bg-white/10"
-                style={{ border: '1px solid var(--habit-border)', color: 'var(--habit-dim)' }}
-                title="Party Settings"
+                className="p-2 rounded-xl transition-all bg-black/50 border border-purple-500/30 hover:border-purple-400 text-purple-300"
+                title="Covenant Settings"
               >
                 <Settings className="w-4 h-4" />
               </button>
@@ -1039,32 +1110,33 @@ function PartyView({ party }) {
             <button
               onClick={handleLeave}
               disabled={leaveMutation.isPending}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-pixel font-bold transition-all"
               style={{
-                background: 'rgba(239,68,68,0.1)',
-                border: '1px solid #ef444440',
-                color: '#ef4444',
+                background: 'rgba(153,27,27,0.2)',
+                border: '1.5px solid rgba(239,68,68,0.4)',
+                color: '#f87171',
+                boxShadow: '0 0 8px rgba(239,68,68,0.2)',
                 opacity: leaveMutation.isPending ? 0.5 : 1,
               }}
             >
               <LogOut className="w-3.5 h-3.5" />
-              {leaveMutation.isPending ? 'Leaving…' : 'Leave'}
+              {leaveMutation.isPending ? 'BANISHING…' : 'LEAVE'}
             </button>
           </div>
         </div>
 
-        {/* Party Stats Block */}
+        {/* Warband Telemetry Altar Tiles */}
         {party.party_stats && (
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+          <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-red-500/20">
             {[
-              { icon: '⚡', label: 'Weekly XP', value: (party.party_stats.total_weekly_xp || 0).toLocaleString() },
-              { icon: '🔥', label: 'Avg Streak', value: `${party.party_stats.avg_streak || 0}d` },
-              { icon: '✅', label: 'Total Tasks', value: (party.party_stats.total_tasks_completed || 0).toLocaleString() },
-            ].map(({ icon, label, value }) => (
-              <div key={label} className="flex flex-col items-center gap-0.5">
-                <span className="text-base">{icon}</span>
-                <span className="text-[10px] font-mono font-black" style={{ color: 'var(--habit-text)' }}>{value}</span>
-                <span className="text-[8px] font-mono" style={{ color: 'var(--habit-dim)' }}>{label}</span>
+              { icon: '⚡', label: 'ARCANE GLORY', value: (party.party_stats.total_weekly_xp || 0).toLocaleString(), color: '#facc15' },
+              { icon: '🔥', label: 'SOUL PYRE', value: `${party.party_stats.avg_streak || 0}d`, color: '#f97316' },
+              { icon: '🗡️', label: 'SLAIN QUESTS', value: (party.party_stats.total_tasks_completed || 0).toLocaleString(), color: '#f87171' },
+            ].map(({ icon, label, value, color }) => (
+              <div key={label} className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-black/60 border border-white/[0.06] shadow-inner">
+                <span className="text-lg">{icon}</span>
+                <span className="text-xs font-pixel font-black mt-0.5" style={{ color, textShadow: `0 0 8px ${color}50` }}>{value}</span>
+                <span className="text-[8px] font-pixel text-muted-foreground/60 tracking-wider mt-0.5">{label}</span>
               </div>
             ))}
           </div>
@@ -1072,9 +1144,9 @@ function PartyView({ party }) {
 
         {/* Achievements row */}
         {party.achievements && party.achievements.length > 0 && (
-          <div className="pt-2 border-t border-white/5">
-            <div className="text-[9px] font-mono uppercase tracking-wider mb-1.5" style={{ color: 'var(--habit-dim)' }}>
-              Party Achievements
+          <div className="pt-2.5 border-t border-red-500/20">
+            <div className="text-[9px] font-pixel uppercase tracking-widest text-amber-300/80 mb-2 flex items-center gap-1">
+              <span>🏅</span> <span>WARBAND_MEDALLIONS</span>
             </div>
             <PartyAchievementBadges achievements={party.achievements} />
           </div>
@@ -1082,37 +1154,34 @@ function PartyView({ party }) {
       </div>
 
       {leaveError && (
-        <div className="px-3 py-2 rounded-xl text-xs font-mono" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid #ef444444', color: '#ef4444' }}>
+        <div className="px-3 py-2 rounded-xl text-xs font-pixel bg-red-950/60 border border-red-500/50 text-red-400 text-center">
           {leaveError}
         </div>
       )}
 
       {/* Sub-tab switcher */}
-      <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDown={(e) => e.stopPropagation()}>
+      <div className="flex gap-1.5 p-1 rounded-2xl overflow-x-auto bg-black/60 border border-red-950/80" onPointerDown={(e) => e.stopPropagation()}>
         {[
-          { id: "members", label: "MEMBERS" },
-          { id: "feed", label: "FEED" },
-          { id: "leaderboard", label: "RANKING" },
+          { id: "members", label: "CHAMPIONS" },
+          { id: "feed", label: "CHRONICLES" },
+          { id: "leaderboard", label: "HALL OF FAME" },
         ].map((t) => {
           const isActive = activeTab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className="flex-1 px-3 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5"
+              className="flex-1 px-3 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs font-pixel"
               style={{
-                fontFamily: "'Nunito'",
-                fontWeight: isActive ? 800 : 600,
-                fontSize: 11,
-                background: isActive ? "var(--habit-purple)" : "transparent",
-                color: isActive ? "var(--habit-sidebar-active-text)" : "var(--habit-dim)",
-                boxShadow: isActive ? "0 2px 8px var(--habit-purple-glow)" : "none",
-                letterSpacing: "0.08em",
+                background: isActive ? "linear-gradient(90deg, #7f1d1d 0%, #991b1b 100%)" : "transparent",
+                color: isActive ? "#ffffff" : "#9ca3af",
+                boxShadow: isActive ? "0 0 12px rgba(220,38,38,0.5)" : "none",
+                border: `1px solid ${isActive ? "rgba(239,68,68,0.5)" : "transparent"}`,
               }}
             >
-              {t.id === 'members' && <Users className="w-3 h-3" />}
-              {t.id === 'feed' && <MessageSquare className="w-3 h-3" />}
-              {t.id === 'leaderboard' && <Crown className="w-3 h-3" />}
+              {t.id === 'members' && <Users className="w-3.5 h-3.5" />}
+              {t.id === 'feed' && <MessageSquare className="w-3.5 h-3.5" />}
+              {t.id === 'leaderboard' && <Crown className="w-3.5 h-3.5" />}
               {t.label}
             </button>
           );
