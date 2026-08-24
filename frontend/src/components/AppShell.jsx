@@ -234,7 +234,12 @@ export default function AppShell({ defaultTab = "mind" }) {
 
   // Native swipe is now handled beautifully by Framer Motion drag="x" in Dashboard.jsx
   return (
-    <div className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300">
+    <div
+      className="fixed inset-0 flex flex-col md:flex-row h-dvh overflow-hidden bg-transparent text-[var(--habit-text)] transition-colors duration-300"
+      style={{
+        "--sidebar-current-width": sidebarCollapsed ? "64px" : "256px",
+      }}
+    >
       {/* HP damage red screen flash */}
       {hpFlash && (
         <motion.div
@@ -279,9 +284,7 @@ export default function AppShell({ defaultTab = "mind" }) {
 
       <div
         ref={mainScrollRef}
-        className={`relative z-10 overflow-y-auto overscroll-y-none overflow-x-hidden md:transition-all md:duration-300 md:pb-8 flex-1 w-full flex flex-col min-w-0 ${
-          sidebarCollapsed ? "md:ml-16" : "md:ml-64"
-        }`}
+        className="relative z-10 overflow-y-auto overscroll-y-none overflow-x-hidden md:transition-[margin-left] md:duration-250 md:pb-8 flex-1 w-full flex flex-col min-w-0 md:ml-[var(--sidebar-current-width)]"
         style={{
           background: "var(--habit-bg)",
         }}

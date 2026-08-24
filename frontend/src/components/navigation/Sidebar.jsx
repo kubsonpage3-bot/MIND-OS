@@ -370,7 +370,7 @@ export default function Sidebar({
       <aside
         className="hidden md:flex flex-col fixed left-0 top-0 z-40 h-dvh"
         style={{
-          width: collapsed ? 64 : 256,
+          width: "var(--sidebar-current-width, 256px)",
           background: "var(--habit-sidebar)",
           boxShadow: "4px 0 20px rgba(0,0,0,0.25)",
           transition: "width 0.25s ease, background-color 0.3s ease",
