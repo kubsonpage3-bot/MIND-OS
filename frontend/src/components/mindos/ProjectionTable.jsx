@@ -202,12 +202,29 @@ export default function ProjectionTable({ profile, logs, tasks = [] }) {
       </div>
 
       {/* Brain Chart */}
-      <div className="border-t border-border pt-5 space-y-4">
-        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">🧠 MASTERY BRAIN</div>
-        <div className="h-[250px] w-full">
+      <div
+        className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(20,10,32,0.95) 0%, rgba(10,5,18,0.98) 100%)",
+          border: "1.5px solid rgba(147,51,234,0.25)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+        }}
+      >
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="font-pixel text-[11px] text-purple-300 uppercase tracking-widest flex items-center gap-1.5">
+              <span>🧠</span> MASTERY BRAIN CORTEX
+            </span>
+          </div>
+          <span className="text-[9px] font-pixel text-muted-foreground/60 px-2 py-0.5 rounded bg-black/60 border border-white/5">
+            5 COGNITIVE DOMAINS
+          </span>
+        </div>
+
+        <div className="w-full flex items-center justify-center py-1">
           <MasteryBrainChart
             subjectStats={subjectStats}
-            height="250px"
+            height="290px"
           />
         </div>
       </div>
