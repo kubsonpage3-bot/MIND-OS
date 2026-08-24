@@ -48,6 +48,15 @@ const STAT_CONFIG = {
   lck: { label: "LCK", desc: "Luck — Gold drop bonus", color: "#eab308" },
 };
 
+const STAT_ICONS = {
+  pwr: "/images/stats/pwr.jpg",
+  def: "/images/stats/def.jpg",
+  foc: "/images/stats/foc.jpg",
+  mem: "/images/stats/mem.jpg",
+  spd: "/images/stats/spd.jpg",
+  lck: "/images/stats/lck.jpg",
+};
+
 const SLOT_KEYS = ["headware", "neural_link", "core", "arms", "legs", "offhand", "ring1", "ring2"];
 
 const TIER_ORDER = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
@@ -736,14 +745,21 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                     {/* Left: Icon & Names */}
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0 border"
+                        className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border relative bg-black/60 flex items-center justify-center"
                         style={{
-                          background: `${cfg.color}15`,
-                          borderColor: `${cfg.color}40`,
-                          boxShadow: `0 0 8px ${cfg.color}25`,
+                          borderColor: `${cfg.color}50`,
+                          boxShadow: `0 0 10px ${cfg.color}30`,
                         }}
                       >
-                        {statIcon}
+                        <img
+                          src={STAT_ICONS[key]}
+                          alt={cfg.label}
+                          className="w-full h-full object-cover"
+                          style={{ imageRendering: 'pixelated' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
