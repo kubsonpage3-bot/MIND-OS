@@ -331,21 +331,52 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             const isSelected = selectedActivity === key;
             const totalHours = subjectTotalHours[key] || 0;
             const isPendingDelete = confirmDelete === key;
+            const cat = activity.category || "Other";
+            const catColor = {
+              STEM: "#3b82f6",
+              Languages: "#00cc88",
+              "Humanities & Arts": "#eab308",
+              "Health & Fitness": "#ef4444",
+              Mindfulness: "#9944ff",
+              "Rest & Recovery": "#f97316",
+              "Social & Communication": "#a855f7",
+              "Reading & Writing": "#22c55e",
+              "Work & Career": "#06b6d4",
+            }[cat] || "#6366f1";
 
             return (
               <div key={key} className="relative h-full flex flex-col">
-                <button
+                <motion.button
+                  whileHover={{ y: -3, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => !deleteMode && handleSelectActivity(key)}
-                  className="w-full h-full min-h-[160px] sm:min-h-[175px] flex flex-col justify-between group relative p-3 sm:p-3.5 rounded-xl transition-all duration-200 text-left overflow-hidden"
+                  className="w-full h-full min-h-[165px] sm:min-h-[180px] flex flex-col justify-between group relative p-3 sm:p-3.5 rounded-xl transition-colors text-left overflow-hidden"
                   style={{
-                    background: deleteMode ? "rgba(247,78,82,0.05)" : isSelected ? "var(--habit-purple-light)" : "var(--habit-panel)",
-                    border: deleteMode ? "1.5px solid rgba(247,78,82,0.3)" : isSelected ? "1.5px solid var(--habit-purple)" : "1.5px solid var(--habit-border)",
-                    boxShadow: isSelected ? "0 2px 14px var(--habit-purple-glow)" : "0 1px 4px rgba(0,0,0,0.05)",
+                    background: deleteMode 
+                      ? "rgba(247,78,82,0.08)" 
+                      : isSelected 
+                        ? `radial-gradient(circle at 50% 0%, ${catColor}30 0%, var(--habit-panel) 90%)` 
+                        : "var(--habit-panel)",
+                    border: deleteMode 
+                      ? "1.5px solid rgba(247,78,82,0.4)" 
+                      : isSelected 
+                        ? `1.5px solid ${catColor}` 
+                        : "1.5px solid var(--habit-border)",
+                    boxShadow: isSelected ? `0 0 16px ${catColor}40` : "0 1px 4px rgba(0,0,0,0.15)",
                   }}
                 >
+                  {/* Category Corner Brackets */}
+                  <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ borderColor: catColor }} />
+                  <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ borderColor: catColor }} />
+                  <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ borderColor: catColor }} />
+                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ borderColor: catColor }} />
+
                   {/* Top Header: Icon + Rank Badge */}
                   <div className="flex items-center justify-between gap-2 w-full">
-                    <div className="text-xl sm:text-2xl leading-none">{activity.icon}</div>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xl sm:text-2xl bg-black/40 border border-white/10 group-hover:scale-110 transition-transform"
+                      style={{ boxShadow: `inset 0 0 8px ${catColor}20` }}>
+                      {activity.icon}
+                    </div>
                     <SubjectRankBadge hours={totalHours} />
                   </div>
 
@@ -371,7 +402,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                       {activeMetrics.map(([mk, mc]) => (
                         <span
                           key={mk}
-                          className={`text-[9px] sm:text-[10px] font-pixel font-bold px-1.5 py-0.5 rounded bg-${mc.color}/10 text-${mc.color}`}
+                          className={`text-[9px] sm:text-[10px] font-pixel font-bold px-1.5 py-0.5 rounded bg-${mc.color}/10 text-${mc.color} border border-${mc.color}/20`}
                         >
                           +{mc.abbr}
                         </span>
@@ -379,7 +410,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                     </div>
                     <SubjectRankProgressBar hours={totalHours} className="mt-2" />
                   </div>
-                </button>
+                </motion.button>
 
                 {/* Delete button overlay */}
                 {deleteMode && (
@@ -417,7 +448,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
-            className="p-4 rounded-2xl space-y-4"
+            className="p-4 rounded-2xl space-y-4 relative overflow-hidden"
             style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-purple-light)", boxShadow: "0 4px 20px var(--habit-purple-glow)" }}
           >
             <div className="flex items-center justify-between">
@@ -460,13 +491,14 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
               </div>
             )}
 
-            {/* Focus rating */}
-            <div className="space-y-2">
+            {/* Neural Overclock Focus rating */}
+            <div className="space-y-2 p-3 rounded-xl bg-black/40 border border-purple-500/30">
               <div className="flex items-center justify-between">
-                <span className="text-xl font-pixel text-muted-foreground uppercase tracking-widest">{t('training.focus_quality')}</span>
-                <span className="font-pixel text-2xl" style={{ color: focusColors[focusRating] }}>
-                  {focusRating}/10
-                  {" — "}{getFocusLabel(focusRating)}
+                <span className="text-xs font-pixel text-purple-300 uppercase tracking-widest flex items-center gap-1.5">
+                  ⚡ {t('training.focus_quality')}
+                </span>
+                <span className="font-pixel text-base" style={{ color: focusColors[focusRating] }}>
+                  {focusRating}/10 — {getFocusLabel(focusRating)}
                 </span>
               </div>
               <div className="flex gap-1.5">
@@ -474,10 +506,12 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                   <button
                     key={n}
                     onClick={() => setFocusRating(n)}
-                    className="flex-1 h-6 rounded transition-all duration-150"
+                    className="flex-1 h-7 rounded-sm transition-all duration-150 relative overflow-hidden border"
                     style={{
-                      backgroundColor: n <= focusRating ? focusColors[focusRating] : "rgba(255,255,255,0.06)",
-                      opacity: n <= focusRating ? 1 : 0.4,
+                      backgroundColor: n <= focusRating ? focusColors[focusRating] : "rgba(255,255,255,0.04)",
+                      borderColor: n <= focusRating ? `${focusColors[focusRating]}cc` : "rgba(255,255,255,0.08)",
+                      boxShadow: n === focusRating ? `0 0 10px ${focusColors[focusRating]}` : undefined,
+                      opacity: n <= focusRating ? 1 : 0.35,
                     }}
                   />
                 ))}

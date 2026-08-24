@@ -27,16 +27,16 @@ export function SubjectRankProgressBar({ hours = 0, className = "" }) {
   const rank = getSubjectRank(hours);
   const next = getNextSubjectRank(hours);
   const progressPct = next ? Math.min(100, ((hours - rank.min) / (next.min - rank.min)) * 100) : 100;
-  const isSSS = rank.id === "SSS";
+  const isSSS = rank.id === "SSS" || rank.id === "SS" || rank.id === "S";
 
   return (
-    <div className={`h-1 w-full rounded-full bg-black/30 dark:bg-white/10 overflow-hidden ${className}`}>
+    <div className={`h-1.5 w-full rounded-sm bg-black/50 border border-white/10 p-[1px] overflow-hidden ${className}`}>
       <div
-        className="h-full rounded-full transition-all duration-500"
+        className="h-full rounded-[1px] transition-all duration-500"
         style={{
           width: `${progressPct}%`,
-          background: rank.color,
-          animation: isSSS ? "pulse-glow 1.5s ease-in-out infinite" : undefined,
+          background: `linear-gradient(90deg, ${rank.color}99 0%, ${rank.color} 100%)`,
+          boxShadow: isSSS ? `0 0 6px ${rank.color}` : undefined,
         }}
       />
     </div>
@@ -51,7 +51,7 @@ export default function SubjectRankBadge({ hours = 0, showProgress = false, clas
   const rank = getSubjectRank(hours);
   const next = getNextSubjectRank(hours);
   const hoursToGo = next ? Math.max(0, next.min - hours).toFixed(1) : 0;
-  const isSSS = rank.id === "SSS";
+  const isHighRank = rank.id === "S" || rank.id === "SS" || rank.id === "SSS";
 
   const handleMouseEnter = () => {
     if (badgeRef.current) {
@@ -74,12 +74,12 @@ export default function SubjectRankBadge({ hours = 0, showProgress = false, clas
         onClick={(e) => e.stopPropagation()}
       >
         <span
-          className="text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded leading-none flex items-center justify-center min-w-[18px] text-center"
+          className="text-[10px] font-pixel font-bold px-2 py-0.5 rounded leading-none flex items-center justify-center min-w-[22px] text-center relative overflow-hidden"
           style={{
             color: rank.color,
-            background: `${rank.color}22`,
-            border: `1px solid ${rank.color}44`,
-            animation: isSSS ? "pulse-glow 1s ease-in-out infinite" : undefined,
+            background: isHighRank ? `${rank.color}25` : "rgba(0,0,0,0.5)",
+            border: `1px solid ${rank.color}80`,
+            boxShadow: isHighRank ? `0 0 10px ${rank.color}50` : `0 0 4px ${rank.color}20`,
           }}
         >
           {rank.id}

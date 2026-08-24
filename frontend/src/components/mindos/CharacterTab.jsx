@@ -517,48 +517,77 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.lore`, chosenClass.lore)) : ""}"</div>
           </div>
 
-          {/* HP + Mana bars */}
-          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-                <span>HP</span>
-                <span style={{ color: hpColor }}>
-                  <AnimatedNumber value={Math.round(charHp)} />/{charMaxHp}
+          {/* Retro Pixel RPG HUD: HP + Mana Bars */}
+          <div className="rounded-2xl p-4 space-y-3.5 relative overflow-hidden" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+            {/* HP Bar with Pixel HUD framing */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-pixel">
+                <span className="flex items-center gap-1.5 text-red-400">
+                  <span className="animate-pulse">❤️</span> HP
+                </span>
+                <span className="font-mono font-bold tracking-wider" style={{ color: hpColor }}>
+                  <AnimatedNumber value={Math.round(charHp)} /> / {charMaxHp}
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="h-3 rounded-md bg-black/60 border border-red-500/30 p-[2px] overflow-hidden relative" style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)" }}>
                 <motion.div
-                  className="h-full rounded-full"
+                  className="h-full rounded-sm relative overflow-hidden"
                   animate={{ width: `${hpPct}%` }}
                   transition={ANIM_CONFIG.springBar}
-                  style={{ background: hpColor, boxShadow: `0 0 6px ${hpColor}66` }}
-                />
+                  style={{
+                    background: `linear-gradient(90deg, #dc2626 0%, #ef4444 60%, #f87171 100%)`,
+                    boxShadow: `0 0 10px rgba(239,68,68,0.7)`
+                  }}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.35)_24%,rgba(0,0,0,0.35)_26%,transparent_27%)] bg-[length:20px_100%]" />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-8"
+                    animate={{ x: ["-100%", "500%"] }}
+                    transition={{ repeat: Infinity, duration: 2.2, ease: "linear" }}
+                  />
+                </motion.div>
               </div>
             </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] font-mono text-muted-foreground/50">
-                <span>MANA</span>
-                <span style={{ color: classColor }}>
-                  <AnimatedNumber value={Math.round(profile?.mana || 0)} />/{profile?.mana_max || chosenClass.maxMana}
+
+            {/* MANA Bar with Pixel HUD framing */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-pixel">
+                <span className="flex items-center gap-1.5" style={{ color: classColor }}>
+                  <span className="animate-pulse">🔮</span> MANA
+                </span>
+                <span className="font-mono font-bold tracking-wider" style={{ color: classColor }}>
+                  <AnimatedNumber value={Math.round(profile?.mana || 0)} /> / {profile?.mana_max || chosenClass.maxMana}
                 </span>
               </div>
-              <div className="h-2 rounded-none bg-muted overflow-hidden mt-1" style={{ imageRendering: "pixelated" }}>
+              <div className="h-3 rounded-md bg-black/60 border border-cyan-500/30 p-[2px] overflow-hidden relative" style={{ borderColor: `${classColor}40`, boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)" }}>
                 <motion.div
-                  className="h-full"
+                  className="h-full rounded-sm relative overflow-hidden"
                   animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass.maxMana)) * 100)}%` }}
                   transition={ANIM_CONFIG.springBar}
-                  style={{ background: classColor, boxShadow: `0 0 6px ${classColor}66` }}
-                />
+                  style={{
+                    background: `linear-gradient(90deg, #0284c7 0%, ${classColor} 70%, #67e8f9 100%)`,
+                    boxShadow: `0 0 10px ${classColor}80`
+                  }}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.35)_24%,rgba(0,0,0,0.35)_26%,transparent_27%)] bg-[length:20px_100%]" />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-8"
+                    animate={{ x: ["-100%", "500%"] }}
+                    transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                  />
+                </motion.div>
               </div>
             </div>
           </div>
 
           {/* Unified Stats Panel */}
-          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)" }}>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('character.character_stats')}</span>
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                ⚡ {t('character.character_stats')}
+              </span>
               {(profile?.unspent_stat_points || 0) > 0 && (
-                <span className="font-mono text-xs text-primary flex items-center gap-1">
+                <span className="font-mono text-xs text-primary flex items-center gap-1 font-bold animate-pulse">
                   <FantasyIcon size={12}><Hexagon /></FantasyIcon> {profile?.unspent_stat_points} {t('character.pts_label')}
                 </span>
               )}
@@ -579,7 +608,15 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
               {Object.entries(statBreakdown).map(([key, breakdown]) => {
                 const cfg = STAT_CONFIG[key];
                 const canUpgrade = (profile?.unspent_stat_points || 0) > 0;
-                // Compute live effect label based on totalValue
+                const statIcon = {
+                  pwr: "⚔️",
+                  def: "🛡️",
+                  foc: "🎯",
+                  mem: "🧠",
+                  spd: "⚡",
+                  lck: "🍀"
+                }[key] || "✨";
+
                 const totalValue = breakdown.total;
                 let effectLabel = "";
                 if (key === "pwr") {
@@ -596,30 +633,33 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                   effectLabel = `+${totalValue}% ${t('character.lck_effect_short')}`;
                 }
                 return (
-                  <div key={key} className="grid grid-cols-6 gap-2 items-center text-[9px] font-mono">
-                    <div className="col-span-2 text-left">
-                      <div className="font-bold" style={{ color: cfg.color }}>{cfg.label}</div>
-                      <div className="text-[7px] font-mono" style={{ color: cfg.color + "99" }}>{effectLabel}</div>
+                  <div key={key} className="grid grid-cols-6 gap-2 items-center text-[9px] font-mono hover:bg-white/[0.02] p-1 rounded transition-colors">
+                    <div className="col-span-2 text-left flex items-center gap-1.5">
+                      <span className="text-xs">{statIcon}</span>
+                      <div>
+                        <div className="font-bold font-pixel text-[10px]" style={{ color: cfg.color }}>{cfg.label}</div>
+                        <div className="text-[7.5px] font-mono" style={{ color: cfg.color + "bb" }}>{effectLabel}</div>
+                      </div>
                     </div>
-                    <div className="text-center" style={{ color: breakdown.class > 0 ? classColor : '#64748b' }}>
+                    <div className="text-center font-semibold" style={{ color: breakdown.class > 0 ? classColor : '#64748b' }}>
                       {breakdown.class > 0 ? `+${breakdown.class}` : breakdown.class}
                     </div>
-                    <div className="text-center" style={{ color: breakdown.equip > 0 ? '#f0c040' : '#64748b' }}>
+                    <div className="text-center font-semibold" style={{ color: breakdown.equip > 0 ? '#f0c040' : '#64748b' }}>
                       {breakdown.equip > 0 ? `+${breakdown.equip}` : breakdown.equip}
                     </div>
-                    <div className="text-center flex items-center justify-center gap-1">
+                    <div className="text-center flex items-center justify-center gap-1 font-semibold">
                       <span style={{ color: breakdown.points > 0 ? '#3b82f6' : '#64748b' }}>
                         {breakdown.points > 0 ? `+${breakdown.points}` : breakdown.points}
                       </span>
                       {canUpgrade && (
                         <button onClick={() => upgradeStat(key)}
-                          className="w-4 h-4 pixel-btn border-2 border-primary/40 text-primary hover:bg-primary/30 font-bold leading-none flex items-center justify-center"
-                          style={{ background: "rgba(240,192,64,0.15)", boxShadow: "0 1px 0 rgba(0,0,0,0.4)" }}>
+                          className="w-4 h-4 pixel-btn border border-primary/60 text-primary hover:scale-110 active:scale-95 font-bold leading-none flex items-center justify-center transition-transform rounded"
+                          style={{ background: "rgba(240,192,64,0.2)", boxShadow: "0 0 8px rgba(240,192,64,0.4)" }}>
                           +
                         </button>
                       )}
                     </div>
-                    <div className="text-right font-bold text-foreground">{breakdown.total}</div>
+                    <div className="text-right font-bold font-pixel text-xs text-foreground">{breakdown.total}</div>
                   </div>
                 );
               })}
@@ -632,25 +672,46 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           </div>
 
           {/* Equipment slots */}
-          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
-            <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('character.equipment')}</span>
-            <div className="grid grid-cols-4 gap-2">
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)" }}>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                🛡️ {t('character.equipment')}
+              </span>
+              <span className="text-[10px] font-pixel text-muted-foreground/60">
+                {Object.values(equipped).filter(Boolean).length} / 8 EQUIPPED
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2.5">
               {SLOT_KEYS.map((slot) => {
                 const eq = equipped[slot];
                 const slotLabel = t(`slots.${slot}`, slot.toUpperCase().replace('_', ' '));
                 const tierColor = eq ? getTierColor(eq.tier || eq.gear_class) : null;
                 const itemName = eq ? (eq.label || eq.name || eq.code) : null;
+                const slotWatermark = {
+                  headware: "👑",
+                  neural_link: "📜",
+                  core: "💎",
+                  arms: "⚔️",
+                  legs: "👢",
+                  offhand: "🛡️",
+                  ring1: "💍",
+                  ring2: "💍"
+                }[slot] || "📦";
 
                 return (
-                  <div
+                  <motion.div
                     key={slot}
+                    whileHover={{ scale: 1.04, y: -2 }}
+                    whileTap={{ scale: 0.96 }}
                     onClick={() => setActiveSlot(slot)}
                     title={eq ? `${itemName} (${slotLabel})` : slotLabel}
-                    className="aspect-square rounded-xl border flex flex-col items-center justify-center relative cursor-pointer hover:scale-[1.02] transition-all p-1 overflow-hidden"
+                    className="aspect-square rounded-xl border flex flex-col items-center justify-center relative cursor-pointer transition-all p-1.5 overflow-hidden group"
                     style={{
-                      background: eq ? `${tierColor}10` : "var(--muted, rgba(255,255,255,0.03))",
-                      borderColor: eq ? `${tierColor}70` : "var(--habit-border, rgba(255,255,255,0.1))",
-                      boxShadow: eq ? `0 0 10px ${tierColor}20` : "none",
+                      background: eq 
+                        ? `radial-gradient(circle at 50% 30%, ${tierColor}25 0%, rgba(10,14,24,0.95) 100%)` 
+                        : "rgba(255,255,255,0.02)",
+                      borderColor: eq ? `${tierColor}80` : "var(--habit-border)",
+                      boxShadow: eq ? `0 0 14px ${tierColor}33, inset 0 0 10px ${tierColor}15` : "inset 0 1px 4px rgba(0,0,0,0.5)",
                     }}
                   >
                     {eq ? (
@@ -659,34 +720,39 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                         <button
                           onClick={e => { e.stopPropagation(); unequip(slot); }}
                           title="Unequip item"
-                          className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/60 hover:bg-red-500/80 text-white/70 hover:text-white flex items-center justify-center text-[9px] font-bold z-10 transition-colors"
+                          className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/80 hover:bg-red-500 text-white/70 hover:text-white flex items-center justify-center text-[9px] font-bold z-10 transition-colors shadow"
                         >
                           ✕
                         </button>
 
-                        {/* Item Icon / Graphic */}
-                        <div className="w-8 h-8 rounded border overflow-hidden flex items-center justify-center bg-black/40 mb-0.5 shrink-0"
-                          style={{ borderColor: `${tierColor}50`, imageRendering: 'pixelated' }}>
+                        {/* Rarity Corner Accent */}
+                        <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2" style={{ borderColor: tierColor }} />
+                        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2" style={{ borderColor: tierColor }} />
+
+                        {/* Item Icon / Graphic with glow */}
+                        <div className="w-9 h-9 rounded-lg border overflow-hidden flex items-center justify-center bg-black/60 mb-1 shrink-0 relative"
+                          style={{ borderColor: `${tierColor}60`, imageRendering: 'pixelated', boxShadow: `0 0 8px ${tierColor}40` }}>
                           {eq.icon_url ? (
                             <img src={getMediaUrl(eq.icon_url)} alt={itemName} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
                           ) : (
-                            <span className="font-mono text-xs font-black" style={{ color: tierColor }}>{itemName[0]}</span>
+                            <span className="font-pixel text-sm font-bold" style={{ color: tierColor }}>{itemName[0]}</span>
                           )}
                         </div>
 
                         {/* Item Name */}
-                        <span className="text-[8px] font-mono font-bold text-center truncate w-full px-0.5" style={{ color: tierColor }}>
+                        <span className="text-[8px] font-pixel font-bold text-center truncate w-full px-0.5" style={{ color: tierColor }}>
                           {itemName}
                         </span>
                       </>
                     ) : (
-                      <>
-                        <span className="text-[8px] font-mono font-bold text-muted-foreground/40 text-center uppercase tracking-wider">
+                      <div className="flex flex-col items-center justify-center gap-1 opacity-40 group-hover:opacity-75 transition-opacity">
+                        <span className="text-lg filter grayscale group-hover:grayscale-0 transition-all">{slotWatermark}</span>
+                        <span className="text-[7.5px] font-pixel uppercase tracking-wider text-muted-foreground text-center">
                           {slotLabel}
                         </span>
-                      </>
+                      </div>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

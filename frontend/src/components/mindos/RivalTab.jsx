@@ -412,130 +412,171 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
         </>
       )}
 
-      {/* 🗡️ Rival tab (existing Johan content) 🗡️ */}
       {activeTab === "rival" && (
-      <>
-      <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
+        <>
+          <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
 
-      <AnimatePresence>
-        {sessionToast && (
+          <AnimatePresence>
+            {sessionToast && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                className="fixed bottom-20 right-4 z-50 px-4 py-2 rounded-xl text-xs font-mono"
+                style={{ background: "#0a1a25", border: "1px solid #00e5ff44", color: "#00e5ff", boxShadow: "0 4px 20px rgba(0,229,255,0.2)" }}
+              >
+                {sessionToast}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="fixed bottom-20 right-4 z-50 px-4 py-2 rounded-xl text-xs font-mono"
-            style={{ background: "#0a1a25", border: "1px solid #00e5ff44", color: "#00e5ff", boxShadow: "0 4px 20px rgba(0,229,255,0.2)" }}
-          >
-            {sessionToast}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        className="rounded-xl border p-4 space-y-3"
+            className="rounded-2xl border p-5 space-y-4 relative overflow-hidden"
         animate={{
           borderColor: cardBorderColor,
           boxShadow: rivalAhead && pctDiff > 0.05
-            ? ['0 0 8px #ef444444', '0 0 22px #ef444488', '0 0 8px #ef444444']
+            ? ['0 0 12px rgba(239,68,68,0.3)', '0 0 26px rgba(239,68,68,0.6)', '0 0 12px rgba(239,68,68,0.3)']
             : cardShadow,
         }}
         transition={rivalAhead && pctDiff > 0.05
           ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
           : { duration: 0.3 }
         }
-        style={{ background: "#060c14" }}
+        style={{
+          background: "radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.08) 0%, rgba(6,12,20,0.98) 75%)"
+        }}
       >
-        <div className="flex items-center justify-between pt-2 border-t border-border/30">
-          <div className="text-[10px] font-mono text-muted-foreground/50">🔔 RIVAL ALERTS</div>
-          <button
-            onClick={() => {
-              const newVal = !rivalEnabled;
-              setRivalEnabled(newVal);
-              const updatedData = { ...savedRivalData, rivalEnabled: newVal };
-              rivalDataMutation.mutate(updatedData);
-              if (newVal && "Notification" in window && Notification.permission !== "granted") {
-                Notification.requestPermission();
-              }
-            }}
-            className={`w-10 h-5 rounded-full transition-colors relative ${rivalEnabled ? "bg-primary/60" : "bg-muted"}`}
-          >
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${rivalEnabled ? "left-5" : "left-0.5"}`} />
-          </button>
+        <div className="flex items-center justify-between pb-2 border-b border-cyan-500/20 text-[10px] font-pixel">
+          <div className="flex items-center gap-2 text-cyan-400">
+            <span className="animate-pulse">⚔️</span>
+            <span>SHADOW_PROTOCOL // DUEL_MATRIX</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-mono text-muted-foreground/60">ALERTS</span>
+            <button
+              onClick={() => {
+                const newVal = !rivalEnabled;
+                setRivalEnabled(newVal);
+                const updatedData = { ...savedRivalData, rivalEnabled: newVal };
+                rivalDataMutation.mutate(updatedData);
+                if (newVal && "Notification" in window && Notification.permission !== "granted") {
+                  Notification.requestPermission();
+                }
+              }}
+              className={`w-9 h-4.5 rounded-full transition-colors relative ${rivalEnabled ? "bg-cyan-500/60" : "bg-muted"}`}
+            >
+              <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform ${rivalEnabled ? "left-5" : "left-0.5"}`} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <GhostAvatar
-            overtook={rivalAhead && pctDiff > 0.05}
-            playerOvertook={cardFlash === "green"}
-          />
+        <div className="flex items-start gap-4">
+          <div className="relative">
+            <GhostAvatar
+              overtook={rivalAhead && pctDiff > 0.05}
+              playerOvertook={cardFlash === "green"}
+            />
+            <div className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded bg-black/80 border border-cyan-500/60 text-[8px] font-pixel text-cyan-300">
+              AI_RIVAL
+            </div>
+          </div>
           <div className="flex-1 min-w-0">
-            <div className="font-mono font-black text-lg tracking-widest" style={{ color: "#00e5ff", fontVariantLigatures: "none" }}>
-              {RIVAL_NAME}<span className="text-xs opacity-50 ml-1">_Ω</span>
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <div className="font-mono font-black text-lg tracking-widest flex items-center gap-1.5" style={{ color: "#00e5ff", fontVariantLigatures: "none" }}>
+                {RIVAL_NAME}<span className="text-xs text-cyan-400/50">_Ω</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-pixel font-bold text-[10px] px-2 py-0.5 rounded shadow"
+                  style={{ color: rivalRank.color, background: `${rivalRank.color}25`, border: `1px solid ${rivalRank.color}60` }}>
+                  {rivalRank.id}
+                </span>
+                <span className="font-pixel text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-300">
+                  🔥 {johanStreak}d
+                </span>
+              </div>
             </div>
-            <div className="mt-1 text-xs font-mono italic" style={{ color: msgObj.color, minHeight: 18 }}>
-              {isTyping ? <TypingDots /> : `"${msgObj.text}"`}
+
+            <div className="mt-2 p-2 rounded-lg bg-black/50 border border-cyan-500/20 relative overflow-hidden font-mono text-xs">
+              <div className="text-[8px] font-pixel text-cyan-500/50 mb-0.5">TELEMETRY_LOG //</div>
+              <div className="italic tracking-wide" style={{ color: msgObj.color, minHeight: 18 }}>
+                {isTyping ? <TypingDots /> : `"${msgObj.text}"`}
+                <span className="inline-block w-1.5 h-3 bg-cyan-400 ml-1 animate-pulse" />
+              </div>
             </div>
-            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-bold text-xs px-2 py-0.5 rounded"
-                style={{ color: rivalRank.color, background: `${rivalRank.color}22`, border: `1px solid ${rivalRank.color}44` }}>
-                {rivalRank.id}
-              </span>
-              <span className="font-mono text-xs" style={{ color: "rgba(0,229,255,0.6)" }}>
-                🔥 {johanStreak} days
-              </span>
+
+            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
               {rivalData.currentPattern === "surge" && (
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid #ef444444" }}>{t('rivalTab.surge')}</span>
+                <span className="font-pixel text-[9px] px-2 py-0.5 rounded animate-pulse" style={{ background: "rgba(239,68,68,0.25)", color: "#ef4444", border: "1px solid #ef444480" }}>⚡ {t('rivalTab.surge')}</span>
               )}
               {rivalData.currentPattern === "weak" && (
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid #94a3b844" }}>{t('rivalTab.light')}</span>
+                <span className="font-pixel text-[9px] px-2 py-0.5 rounded" style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid #94a3b844" }}>{t('rivalTab.light')}</span>
               )}
               {(rivalData.johanCooldownDays || 0) > 0 && (
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded animate-pulse" style={{ background: "rgba(0,204,136,0.15)", color: "#00cc88", border: "1px solid #00cc8844" }}>⚡ RECOVERY WINDOW</span>
+                <span className="font-pixel text-[9px] px-2 py-0.5 rounded animate-pulse" style={{ background: "rgba(0,204,136,0.2)", color: "#00cc88", border: "1px solid #00cc8860" }}>✨ RECOVERY WINDOW</span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Dual rank XP bars */}
-        <div className="space-y-2">
-          <div className="space-y-1">
-            <div className="flex justify-between text-[9px] font-mono" style={{ color: 'rgba(0,229,255,0.6)' }}>
-              <span>{RIVAL_NAME} {t('rivalTab.rankXp')}</span>
-              <span>{johanXP.toFixed(1)} XP</span>
-            </div>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
-                animate={{ width: `${Math.min((johanXP / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
-                transition={{ duration: 0.7 }}
-                style={{ background: "#00e5ff", boxShadow: "0 0 6px #00e5ff66" }}
-              />
-            </div>
+        <div className="p-3 rounded-xl bg-black/40 border border-border/50 space-y-2.5">
+          <div className="flex items-center justify-between text-[10px] font-pixel">
+            <span className="text-cyan-400">{RIVAL_NAME}</span>
+            <span className="px-2 py-0.5 rounded bg-black/80 border border-primary/40 text-primary font-bold text-[9px]">
+              VS
+            </span>
+            <span style={{ color: playerRank.color }}>YOU</span>
           </div>
-          <div className="space-y-1">
-            <div className="flex justify-between text-[9px] font-mono" style={{ color: playerRank.color }}>
-              <span>{t('rivalTab.youRankXp')}</span>
-              <span>{(playerRankXP || 0).toFixed(1)} XP</span>
-            </div>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
-                animate={{ width: `${Math.min(((playerRankXP || 0) / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
-                transition={{ duration: 0.7, delay: 0.1 }}
-                style={{ background: playerRank.color, boxShadow: `0 0 6px ${playerRank.color}66` }}
-              />
-            </div>
-          </div>
-        </div>
 
-        <div className="text-xs font-mono font-semibold" style={{ color: rivalAhead ? "#ff8800" : "#00cc88" }}>
-          {rivalAhead
-            ? `⚠ ${RIVAL_NAME} is ahead by ${diff.toFixed(1)} XP — close the gap`
-            : `✓ You lead by ${diff.toFixed(1)} XP — maintain your edge`}
-          {isClosing && (
-            <span className="ml-2 text-[9px] px-1.5 py-0.5 rounded font-mono font-bold"
-              style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid #ef444440" }}>{t('rivalTab.closing')}</span>
-          )}
+          <div className="grid grid-cols-2 gap-2 items-center">
+            <div className="space-y-1">
+              <div className="flex justify-between text-[9px] font-mono text-cyan-400/80">
+                <span>{johanXP.toFixed(1)} XP</span>
+                <span className="text-[8px] opacity-60">{rivalRank.id}</span>
+              </div>
+              <div className="h-2.5 rounded bg-black/60 border border-cyan-500/40 p-[1px] overflow-hidden">
+                <motion.div
+                  className="h-full rounded-sm"
+                  animate={{ width: `${Math.min((johanXP / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
+                  transition={{ duration: 0.7 }}
+                  style={{
+                    background: "linear-gradient(90deg, #0284c7 0%, #00e5ff 100%)",
+                    boxShadow: "0 0 8px rgba(0,229,255,0.7)"
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between text-[9px] font-mono" style={{ color: playerRank.color }}>
+                <span className="text-[8px] opacity-60">{playerRank.id}</span>
+                <span>{(playerRankXP || 0).toFixed(1)} XP</span>
+              </div>
+              <div className="h-2.5 rounded bg-black/60 border p-[1px] overflow-hidden" style={{ borderColor: `${playerRank.color}60` }}>
+                <motion.div
+                  className="h-full rounded-sm"
+                  animate={{ width: `${Math.min(((playerRankXP || 0) / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
+                  transition={{ duration: 0.7, delay: 0.1 }}
+                  style={{
+                    background: `linear-gradient(90deg, #f59e0b 0%, ${playerRank.color} 100%)`,
+                    boxShadow: `0 0 8px ${playerRank.color}80`
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1 text-xs font-mono font-semibold">
+            <span style={{ color: rivalAhead ? "#ff8800" : "#00cc88" }}>
+              {rivalAhead
+                ? `⚠ ${RIVAL_NAME} leads by ${diff.toFixed(1)} XP`
+                : `✓ You lead by ${diff.toFixed(1)} XP`}
+            </span>
+            {isClosing && (
+              <span className="text-[9px] px-2 py-0.5 rounded font-pixel text-red-400 bg-red-950/60 border border-red-500/40 animate-pulse">
+                {t('rivalTab.closing')}
+              </span>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -597,35 +638,42 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
         </div>
 
         {playerTodayHours === 0 && new Date().getHours() >= 15 && rivalTodayHours > 0 && (
-          <div className="px-3 py-2 rounded-xl"
-            style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 12, border: "1.5px solid #f59e0b", color: "#f59e0b", background: "rgba(245,158,11,0.06)" }}>
-            {RIVAL_NAME} {t('rivalTab.hasAlreadyLogged')} {rivalTodayHours.toFixed(1)}{t('rivalTab.youHaveZero')}
+          <div className="px-3 py-2 rounded-xl text-xs font-mono bg-red-500/10 border border-red-500/30 text-red-400">
+            {t('rivalTab.slackingWarning', `${RIVAL_NAME} is grinding while you rest. Log a session to stay competitive.`)}
           </div>
         )}
       </div>
 
-      <div className="rounded-2xl overflow-hidden" style={{ background: "var(--habit-panel)", border: "1px solid var(--habit-border)" }}>
-        <div className="px-4 py-2.5" style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 11, color: "var(--habit-dim)", letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: "1px solid var(--habit-border)" }}>{t('rivalTab.weeklyComparison')}</div>
-        <div className="p-4 space-y-3">
+      <div className="rounded-2xl p-4 space-y-3" style={{ background: "var(--habit-panel)", border: "1.5px solid var(--habit-border)" }}>
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            ⚔️ {t('rivalTab.weeklyComparison')}
+          </span>
+          <span className="text-[10px] font-pixel text-cyan-400">
+            HEAD-TO-HEAD
+          </span>
+        </div>
+
+        <div className="space-y-3">
           {[
             {
-              label: 'Hours',
-              you: playerHoursWeek,
-              rival: johanWeekHours,
+              label: t('rivalTab.hoursMetric'),
+              you: playerWeeklyHours,
+              rival: johanWeeklyHours,
               fmt: v => `${v.toFixed(1)}h`,
               youColor: '#7B61FF',
               rivalColor: '#00e5ff',
             },
             {
-              label: 'Avg Focus',
-              you: playerAvgFocus,
-              rival: johanAvgFocus,
-              fmt: v => v.toFixed(1),
+              label: t('rivalTab.avgFocusMetric'),
+              you: playerWeeklyAvgFocus,
+              rival: johanWeeklyAvgFocus,
+              fmt: v => v > 0 ? `${v.toFixed(1)}/10` : '—',
               youColor: '#7B61FF',
               rivalColor: '#00e5ff',
             },
             {
-              label: 'Subjects',
+              label: t('rivalTab.subjectsMetric'),
               you: playerSubjectsWeek,
               rival: johanSubjectsWeek,
               fmt: v => `${v}`,
@@ -633,9 +681,9 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
               rivalColor: '#00e5ff',
             },
             {
-              label: 'Rank XP',
+              label: t('rivalTab.rankXpMetric'),
               you: playerWeeklyRankXP,
-              rival: johanWeekRankXP,
+              rival: johanWeeklyRankXP,
               fmt: v => v.toFixed(1),
               youColor: '#7B61FF',
               rivalColor: '#00e5ff',
@@ -646,37 +694,42 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
             const rivalPct = (rival / maxVal) * 100;
             const youWin = you >= rival;
             return (
-              <div key={label}>
-                <div className="flex justify-between items-center mb-1">
-                  <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "var(--habit-dim)" }}>{label}</span>
-                  <div className="flex items-center gap-3">
-                    <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: youWin ? '#00cc88' : '#ef4444' }}>
+              <div key={label} className="p-2 rounded-xl bg-black/30 border border-white/[0.04] space-y-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-pixel text-[11px] text-muted-foreground flex items-center gap-1">
+                    {youWin ? <span className="text-yellow-400">👑</span> : <span className="text-cyan-400">⚔️</span>}
+                    {label}
+                  </span>
+                  <div className="flex items-center gap-3 font-mono text-[11px]">
+                    <span className={`font-bold ${youWin ? 'text-emerald-400' : 'text-muted-foreground'}`}>
                       {t('rivalTab.youLabel')} {fmt(you)}
                     </span>
-                    <span style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11, color: !youWin ? '#00cc88' : 'rgba(100,116,139,0.6)' }}>
+                    <span className={`font-bold ${!youWin ? 'text-cyan-400' : 'text-muted-foreground/60'}`}>
                       {RIVAL_NAME}: {fmt(rival)}
                     </span>
                   </div>
                 </div>
-                {/* YOU bar */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: youColor, width: 24 }}>{t('rivalTab.youGraph')}</span>
-                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+                    <span className="font-pixel text-[8px] text-purple-400 w-6">{t('rivalTab.youGraph')}</span>
+                    <div className="flex-1 h-2 rounded bg-black/60 overflow-hidden border border-purple-500/30">
                       <motion.div
-                        className="h-full rounded-full"
+                        className="h-full rounded-sm"
                         initial={{ width: 0 }}
                         animate={{ width: `${youPct}%` }}
                         transition={{ duration: 0.8, ease: 'easeOut' }}
-                        style={{ background: youColor, boxShadow: youWin ? `0 0 6px ${youColor}88` : 'none' }}
+                        style={{
+                          background: "linear-gradient(90deg, #6366f1 0%, #a855f7 100%)",
+                          boxShadow: youWin ? `0 0 8px rgba(168,85,247,0.7)` : 'none'
+                        }}
                       />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span style={{ fontFamily: "'Nunito'", fontSize: 9, color: rivalColor, width: 24 }}>{t('rivalTab.j')}</span>
-                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--habit-border)' }}>
+                    <span className="font-pixel text-[8px] text-cyan-400 w-6">{t('rivalTab.j')}</span>
+                    <div className="flex-1 h-2 rounded bg-black/60 overflow-hidden border border-cyan-500/30">
                       <motion.div
-                        className="h-full rounded-full"
+                        className="h-full rounded-sm"
                         initial={{ width: 0 }}
                         animate={{ width: `${rivalPct}%` }}
                         transition={{ duration: 0.8, delay: 0.1, ease: 'easeOut' }}
