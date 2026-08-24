@@ -1263,11 +1263,6 @@ function PartyView({ party }) {
       <AnimatePresence mode="wait">
         {activeTab === 'members' && (
           <motion.div key="members" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="space-y-3">
-            {/* Weekly Quest Block */}
-            {party.weekly_quest && (
-              <PartyWeeklyQuestBlock quest={party.weekly_quest} />
-            )}
-
             <InviteCodeDisplay code={party.invite_code} />
             <div className="space-y-2">
               {(party.members || []).map((member) => (
