@@ -1106,15 +1106,16 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
 function WelcomeBackCheckin() {
   const { needsCheckin, dailies, submitCheckin, isSubmitting } = useDailyCheckin();
-  const [dismissed, setDismissed] = useState(false);
 
-  const handleSubmit = (completedIds) => {
+  const handleSubmit = (completedIds, callbacks = {}) => {
     submitCheckin(completedIds, {
-      onSettled: () => setDismissed(true),
+      onSuccess: (data) => {
+        callbacks.onSuccess?.(data);
+      },
     });
   };
 
-  if (!needsCheckin || dismissed || dailies.length === 0) return null;
+  if (!needsCheckin || dailies.length === 0) return null;
 
   return (
     <AnimatePresence>
@@ -1125,4 +1126,4 @@ function WelcomeBackCheckin() {
       />
     </AnimatePresence>
   );
-}
+}
