@@ -1106,8 +1106,60 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
 function WelcomeBackCheckin() {
   const { needsCheckin, dailies, submitCheckin, isSubmitting } = useDailyCheckin();
+  const [testOpen, setTestOpen] = useState(false);
+
+  useEffect(() => {
+    // 1. URL trigger: ?checkin=1 or ?welcome=1
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkin') === '1' || params.get('welcome') === '1' || params.get('test_checkin') === '1') {
+      setTestOpen(true);
+    }
+
+    // 2. Global console helpers
+    window.openDawnReport = () => setTestOpen(true);
+    window.openWelcomeBack = () => setTestOpen(true);
+
+    return () => {
+      delete window.openDawnReport;
+      delete window.openWelcomeBack;
+    };
+  }, []);
+
+  const sampleDailies = [
+    { id: 99901, title: 'Работа / Программирование', difficulty: 'medium', category: 'Work & Career', streak: 5 },
+    { id: 99902, title: 'Химия / Теория', difficulty: 'trivial', category: 'STEM', streak: 1 },
+    { id: 99903, title: 'Математика / Практика', difficulty: 'hard', category: 'STEM', streak: 12 },
+    { id: 99904, title: 'Физика / Эксперименты', difficulty: 'trivial', category: 'STEM', streak: 2 },
+    { id: 99905, title: 'Тренировка / Body', difficulty: 'easy', category: 'Health & Fitness', streak: 7 },
+  ];
+
+  const effectiveDailies = (dailies && dailies.length > 0) ? dailies : sampleDailies;
+  const isVisible = (needsCheckin && dailies.length > 0) || testOpen;
 
   const handleSubmit = (completedIds, callbacks = {}) => {
+    if (testOpen && !needsCheckin) {
+      // Simulate real reward calculations for preview mode
+      setTimeout(() => {
+        const completed = effectiveDailies.filter(d => completedIds.includes(d.id));
+        const missed = effectiveDailies.filter(d => !completedIds.includes(d.id));
+        const totalXp = completed.reduce((sum, d) => sum + (d.difficulty === 'hard' ? 60 : d.difficulty === 'easy' ? 15 : 30), 0);
+        const totalGold = completed.reduce((sum, d) => sum + (d.difficulty === 'hard' ? 30 : d.difficulty === 'easy' ? 8 : 15), 0);
+        const totalDmg = missed.reduce((sum, d) => sum + (d.difficulty === 'hard' ? 30 : d.difficulty === 'easy' ? 8 : 15), 0);
+
+        callbacks.onSuccess?.({
+          total_xp: totalXp,
+          total_gold: totalGold,
+          total_dmg: totalDmg,
+          died: false,
+          log: [
+            ...completed.map(d => ({ type: 'checkin_done', id: d.id, title: d.title, xp: 30, gold: 15 })),
+            ...missed.map(d => ({ type: 'checkin_missed', id: d.id, title: d.title, damage: 15 })),
+          ],
+        });
+      }, 500);
+      return;
+    }
+
     submitCheckin(completedIds, {
       onSuccess: (data) => {
         callbacks.onSuccess?.(data);
@@ -1115,12 +1167,12 @@ function WelcomeBackCheckin() {
     });
   };
 
-  if (!needsCheckin || dailies.length === 0) return null;
+  if (!isVisible) return null;
 
   return (
     <AnimatePresence>
       <WelcomeBackModal
-        dailies={dailies}
+        dailies={effectiveDailies}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />

@@ -2518,11 +2518,22 @@ class DailyCheckinView(generics.GenericAPIView):
             today = timezone.now().date()
             yesterday = today - __import__("datetime").timedelta(days=1)
 
+            force_test = request.query_params.get("force") in ["1", "true", "True"]
+
             needs_checkin = (
-                profile.last_login_date is not None
-                and profile.last_login_date <= yesterday
-                and len(yesterday_missed) > 0
+                (
+                    profile.last_login_date is not None
+                    and profile.last_login_date <= yesterday
+                    and len(yesterday_missed) > 0
+                )
+                or force_test
             )
+
+            if force_test and not yesterday_missed:
+                from api.models import Task
+                user_dailies = list(Task.objects.filter(user=request.user, task_type=Task.TaskType.DAILY))
+                if user_dailies:
+                    yesterday_missed = user_dailies
 
             data = [
                 {
