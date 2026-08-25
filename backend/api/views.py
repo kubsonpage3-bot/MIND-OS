@@ -1810,7 +1810,6 @@ class TrainingLogView(generics.GenericAPIView):
             final_damage_dealt = int(
                 (raw_boss_dmg + damage_dealt)
                 * profile.damage_multiplier
-                * boss_dmg_mult
             )
             is_crit = outcome.get("is_crit", False)
 
@@ -2535,16 +2534,28 @@ class DailyCheckinView(generics.GenericAPIView):
                 if user_dailies:
                     yesterday_missed = user_dailies
 
-            data = [
-                {
-                    "id": t.id,
-                    "title": t.title,
-                    "difficulty": t.difficulty,
-                    "category": t.category or "",
-                    "streak": t.streak,
-                }
-                for t in yesterday_missed
-            ]
+            from api.services.combat_service import calculate_fail_damage
+
+            data = []
+            for t in yesterday_missed:
+                rewards = t.get_rewards()
+                base_xp = rewards.get("xp", 0)
+                base_gold = rewards.get("gold", 0)
+                final_xp = max(0, int(base_xp * profile.xp_multiplier))
+                final_gold = max(0, int(base_gold * profile.gold_multiplier))
+                fail_dmg = calculate_fail_damage(t, profile)
+                data.append(
+                    {
+                        "id": t.id,
+                        "title": t.title,
+                        "difficulty": t.difficulty,
+                        "category": t.category or "",
+                        "streak": t.streak,
+                        "xp": final_xp,
+                        "gold": final_gold,
+                        "hp_damage": fail_dmg,
+                    }
+                )
 
             return Response(
                 {"needs_checkin": needs_checkin, "dailies": data},

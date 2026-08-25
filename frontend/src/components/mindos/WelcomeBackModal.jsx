@@ -17,10 +17,10 @@ const CATEGORY_COLORS = {
 };
 
 const DIFF_CONFIG = {
-  trivial: { color: '#64748b', label: 'TRIVIAL', xp: 5,  gold: 3  },
-  easy:    { color: '#22c55e', label: 'EASY',    xp: 15, gold: 8  },
-  medium:  { color: '#f59e0b', label: 'MEDIUM',  xp: 30, gold: 15 },
-  hard:    { color: '#ef4444', label: 'HARD',    xp: 60, gold: 30 },
+  trivial: { color: '#64748b', label: 'TRIVIAL', xp: 3,  gold: 2,  dmg: 1 },
+  easy:    { color: '#22c55e', label: 'EASY',    xp: 6,  gold: 3,  dmg: 2 },
+  medium:  { color: '#f59e0b', label: 'MEDIUM',  xp: 12, gold: 6,  dmg: 4 },
+  hard:    { color: '#ef4444', label: 'HARD',    xp: 24, gold: 12, dmg: 8 },
 };
 
 // ─── Runic corner accent ─────────────────────────────────────────────────────
@@ -63,6 +63,8 @@ function PixelCheck({ color }) {
 function QuestRow({ task, checked, onToggle, index }) {
   const accentColor = CATEGORY_COLORS[task.category] || '#9944ff';
   const diff = DIFF_CONFIG[task.difficulty?.toLowerCase()] || DIFF_CONFIG.medium;
+  const taskXp = task.xp ?? diff.xp;
+  const taskGold = task.gold ?? diff.gold;
 
   return (
     <motion.button
@@ -138,7 +140,7 @@ function QuestRow({ task, checked, onToggle, index }) {
               className="font-pixel text-[9px]"
               style={{ color: '#22c55e' }}
             >
-              +{diff.xp}XP +{diff.gold}G
+              +{taskXp}XP +{taskGold}G
             </motion.span>
           )}
         </div>
@@ -324,16 +326,23 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
   const missedCount  = dailies.length - checkedCount;
 
   const estXp = [...checked].reduce((sum, id) => {
-    const task = dailies.find(d => d.id === id);
-    return sum + (DIFF_CONFIG[task?.difficulty?.toLowerCase()]?.xp || 30);
+    const task = dailies.find((d) => d.id === id);
+    if (!task) return sum;
+    const diff = DIFF_CONFIG[task?.difficulty?.toLowerCase()] || DIFF_CONFIG.medium;
+    return sum + (task.xp ?? diff.xp);
   }, 0);
   const estGold = [...checked].reduce((sum, id) => {
-    const task = dailies.find(d => d.id === id);
-    return sum + (DIFF_CONFIG[task?.difficulty?.toLowerCase()]?.gold || 15);
+    const task = dailies.find((d) => d.id === id);
+    if (!task) return sum;
+    const diff = DIFF_CONFIG[task?.difficulty?.toLowerCase()] || DIFF_CONFIG.medium;
+    return sum + (task.gold ?? diff.gold);
   }, 0);
   const estDmg = dailies
-    .filter(d => !checked.has(d.id))
-    .reduce((sum, d) => sum + Math.round((DIFF_CONFIG[d.difficulty?.toLowerCase()]?.xp || 30) * 0.5), 0);
+    .filter((d) => !checked.has(d.id))
+    .reduce((sum, d) => {
+      const diff = DIFF_CONFIG[d.difficulty?.toLowerCase()] || DIFF_CONFIG.medium;
+      return sum + (d.hp_damage ?? diff.dmg);
+    }, 0);
 
   return (
     <motion.div

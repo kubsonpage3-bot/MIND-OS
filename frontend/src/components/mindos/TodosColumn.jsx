@@ -328,6 +328,9 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       const isCrit = data.gamification_result?.is_crit || false;
       const itemDropped = data.gamification_result?.item_dropped || null;
       const bossDmg = combatResult?.damage_dealt || 0;
+      const bossDefeated = combatResult?.boss_defeated || false;
+      const bossGold = combatResult?.rewards?.boss_gold || data?.rewards?.boss_gold || 0;
+      const bossXp = combatResult?.rewards?.boss_xp || data?.rewards?.boss_xp || 0;
 
       showRewardToast({
         xp: Math.abs(data.xp_change),
@@ -335,6 +338,9 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
         boss: isCompleting ? bossDmg : 0,
         isCrit,
         itemDropped,
+        bossDefeated: isCompleting && bossDefeated,
+        bossGold: isCompleting ? bossGold : 0,
+        bossXp: isCompleting ? bossXp : 0,
         label: `${icon} ${sign}${Math.abs(data.xp_change)} XP  ${sign}${Math.abs(data.gold_change)} Gold`,
       });
       

@@ -118,26 +118,26 @@ def check_and_grant_achievements(user):
                 total_gold_reward += ach_data.get("gold", 0)
                 total_sp_reward += ach_data.get("sp", 0)
 
-    if new_achievements and hasattr(user, "profile"):
-        # We need to use F expressions or direct additions securely
-        profile = getattr(user, "profile")
-        profile.gold += total_gold_reward
-        profile.skill_points += total_sp_reward
+    if new_achievements:
+        from api.models import UserProfile, UnlockedSkill
 
-        from api.models import UnlockedSkill
+        profile = UserProfile.objects.select_for_update().filter(user=user).first()
+        if profile:
+            profile.gold += total_gold_reward
+            profile.skill_points += total_sp_reward
 
-        if UnlockedSkill.objects.filter(
-            user_profile=user.profile, skill_code="omniscience"
-        ).exists():
-            for _ in new_achievements:
-                user.profile.gf = min(user.profile.gf_ceiling, user.profile.gf + 0.3)
-                user.profile.gc = min(user.profile.gc_ceiling, user.profile.gc + 0.3)
-                user.profile.ps = min(user.profile.ps_ceiling, user.profile.ps + 0.3)
-                user.profile.vm = min(user.profile.vm_ceiling, user.profile.vm + 0.3)
-            user.profile.save(
-                update_fields=["gold", "skill_points", "gf", "gc", "ps", "vm"]
-            )
-        else:
-            user.profile.save(update_fields=["gold", "skill_points"])
+            if UnlockedSkill.objects.filter(
+                user_profile=profile, skill_code="omniscience"
+            ).exists():
+                for _ in new_achievements:
+                    profile.gf = min(profile.gf_ceiling, profile.gf + 0.3)
+                    profile.gc = min(profile.gc_ceiling, profile.gc + 0.3)
+                    profile.ps = min(profile.ps_ceiling, profile.ps + 0.3)
+                    profile.vm = min(profile.vm_ceiling, profile.vm + 0.3)
+                profile.save(
+                    update_fields=["gold", "skill_points", "gf", "gc", "ps", "vm"]
+                )
+            else:
+                profile.save(update_fields=["gold", "skill_points"])
 
     return new_achievements

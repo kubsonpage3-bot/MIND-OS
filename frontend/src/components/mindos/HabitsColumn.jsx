@@ -348,12 +348,26 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         const effectNotes = combatResult?.effect_notes || [];
         const isCrit = res?.gamification_result?.is_crit || false;
         const itemDropped = res?.gamification_result?.item_dropped || null;
+        const bossDefeated = combatResult?.boss_defeated || false;
+        const bossGold = combatResult?.rewards?.boss_gold || res?.rewards?.boss_gold || 0;
+        const bossXp = combatResult?.rewards?.boss_xp || res?.rewards?.boss_xp || 0;
 
         onRankXP?.(xpEarned);
-        if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', combatResult?.boss_defeated, combatResult, res?.rewards);
+        if (bossDmg > 0) onBossDamage(bossDmg, task.difficulty === 'hard', bossDefeated, combatResult, res?.rewards);
 
         playSound('gold_earned');
-        showRewardToast({ xp: xpEarned, gold: goldEarned, boss: bossDmg, effectNotes, label: task.name, isCrit, itemDropped });
+        showRewardToast({
+          xp: xpEarned,
+          gold: goldEarned,
+          boss: bossDmg,
+          effectNotes,
+          label: task.name,
+          isCrit,
+          itemDropped,
+          bossDefeated,
+          bossGold,
+          bossXp,
+        });
       } else {
         playSound('habit_negative');
         error();

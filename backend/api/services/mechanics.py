@@ -310,8 +310,13 @@ def calculate_task_outcome(
             final_gold *= crit_mult
             damage_dealt *= crit_mult
 
-        # Luck (LCK): Acts as a multiplier for Gold. Formula: Final_Gold * (1 + (LCK / 100))  # noqa: E501
-        final_gold = final_gold * (1 + (lck / 100.0))
+        # Luck (LCK): Acts as a multiplier for Gold.
+        # Balanced formula with soft diminishing returns above 100 LCK to prevent runaway gold inflation
+        if lck <= 100:
+            lck_gold_mult = 1.0 + (lck / 100.0)
+        else:
+            lck_gold_mult = 2.0 + ((lck - 100) * 0.005)
+        final_gold = final_gold * lck_gold_mult
 
         # Drop chance: LCK * 0.2% to find a random item.
         drop_chance = lck * 0.002 + passive_effects.get("drop_chance_bonus", 0.0)
@@ -386,7 +391,11 @@ def calculate_task_outcome(
 
         spd_bonus = spd * 0.5
         final_gold_lost = base_gold + spd_bonus
-        final_gold_lost = final_gold_lost * (1 + (lck / 100.0))
+        if lck <= 100:
+            lck_gold_lost_mult = 1.0 + (lck / 100.0)
+        else:
+            lck_gold_lost_mult = 2.0 + ((lck - 100) * 0.005)
+        final_gold_lost = final_gold_lost * lck_gold_lost_mult
 
         result["xp_lost"] = int(final_xp_lost)
         result["gold_lost"] = int(final_gold_lost)
@@ -411,10 +420,10 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     if not active_encounter:
         return None
 
-    if is_crit:
-        final_damage_dealt *= 2
+    # Note: final_damage_dealt passed from callers already accounts for damage multipliers
+    # and crit multipliers. Do not re-multiply crit here.
 
-    # Apply Active Effects specifically for boss damage
+    # Apply Active Effects specifically for boss damage (e.g. boss_damage_plus consumable)
     from api.models import ActiveEffect
     from django.db.models import Q
 

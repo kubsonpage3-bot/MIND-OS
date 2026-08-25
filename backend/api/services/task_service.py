@@ -1159,8 +1159,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task_value = max(0.0, getattr(task, "value", 1.0))
             task_base_dmg = int(base_dmg * task_value)
 
-        boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
-
         system_overload_mult = (
             3.0 if skill_effects.get("system_overload_triggered") else 1.0
         )
@@ -1171,7 +1169,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             int(
                 (task_base_dmg + (damage_dealt or 0))
                 * profile.damage_multiplier
-                * boss_dmg_mult
                 * system_overload_mult
                 * battle_fury_mult
             ),
@@ -1290,8 +1287,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         if combat_result and combat_result.get("boss_defeated"):
             boss_rewards = combat_result.get("rewards", {})
-            rewards["xp"] += boss_rewards.get("boss_xp", 0)
-            rewards["gold"] += boss_rewards.get("boss_gold", 0)
+            rewards["boss_xp"] = boss_rewards.get("boss_xp", 0)
+            rewards["boss_gold"] = boss_rewards.get("boss_gold", 0)
+            rewards["boss_sp"] = boss_rewards.get("boss_sp", 0)
 
         profile.save()
 

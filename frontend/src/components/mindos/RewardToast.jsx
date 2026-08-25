@@ -1,20 +1,77 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { normalizeGold } from "@/lib/utils";
 
 let _showToast = null;
 
-export function showRewardToast({ xp = 0, gold = 0, boss = 0, streak = 0, label = "", effectNotes = [], isCrit = false, itemDropped = null, type = "success" }) {
-  if (_showToast) _showToast({ xp, gold, boss, streak, label, effectNotes, isCrit, itemDropped, type });
+export function showRewardToast({
+  xp = 0,
+  gold = 0,
+  boss = 0,
+  streak = 0,
+  label = "",
+  effectNotes = [],
+  isCrit = false,
+  itemDropped = null,
+  type = "success",
+  bossDefeated = false,
+  bossGold = 0,
+  bossXp = 0,
+}) {
+  if (_showToast)
+    _showToast({
+      xp,
+      gold,
+      boss,
+      streak,
+      label,
+      effectNotes,
+      isCrit,
+      itemDropped,
+      type,
+      bossDefeated,
+      bossGold,
+      bossXp,
+    });
 }
 
 export default function RewardToast() {
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
-    _showToast = ({ xp, gold, boss, streak, label, effectNotes, isCrit, itemDropped, type }) => {
+    _showToast = ({
+      xp,
+      gold,
+      boss,
+      streak,
+      label,
+      effectNotes,
+      isCrit,
+      itemDropped,
+      type,
+      bossDefeated,
+      bossGold,
+      bossXp,
+    }) => {
       const id = Date.now();
-      setToasts((prev) => [...prev.slice(-3), { id, xp, gold, boss, streak, label, effectNotes, isCrit, itemDropped, type }]);
+      setToasts((prev) => [
+        ...prev.slice(-3),
+        {
+          id,
+          xp,
+          gold,
+          boss,
+          streak,
+          label,
+          effectNotes,
+          isCrit,
+          itemDropped,
+          type,
+          bossDefeated,
+          bossGold,
+          bossXp,
+        },
+      ]);
       setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
     };
     return () => {
@@ -138,6 +195,22 @@ function ToastItem({ t }) {
           </motion.span>
         )}
       </div>
+
+      {t.bossDefeated && (t.bossGold > 0 || t.bossXp > 0) && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative mt-2 pt-1.5 border-t border-amber-500/25 flex items-center justify-between gap-2 font-hud text-xs text-amber-300 font-bold"
+        >
+          <span className="flex items-center gap-1">
+            <span>🏆</span> BOSS SLAIN!
+          </span>
+          <span className="flex items-center gap-1.5">
+            {t.bossGold > 0 && <span className="text-[#f0c040]">+{normalizeGold(t.bossGold)} G</span>}
+            {t.bossXp > 0 && <span className="text-[#a78bfa]">+{t.bossXp} XP</span>}
+          </span>
+        </motion.div>
+      )}
 
       {t.itemDropped && (
         <div className="relative mt-1.5 flex items-center gap-1.5">

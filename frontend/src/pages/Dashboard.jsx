@@ -1126,11 +1126,11 @@ function WelcomeBackCheckin() {
   }, []);
 
   const sampleDailies = [
-    { id: 99901, title: 'Работа / Программирование', difficulty: 'medium', category: 'Work & Career', streak: 5 },
-    { id: 99902, title: 'Химия / Теория', difficulty: 'trivial', category: 'STEM', streak: 1 },
-    { id: 99903, title: 'Математика / Практика', difficulty: 'hard', category: 'STEM', streak: 12 },
-    { id: 99904, title: 'Физика / Эксперименты', difficulty: 'trivial', category: 'STEM', streak: 2 },
-    { id: 99905, title: 'Тренировка / Body', difficulty: 'easy', category: 'Health & Fitness', streak: 7 },
+    { id: 99901, title: 'Работа / Программирование', difficulty: 'medium', category: 'Work & Career', streak: 5, xp: 12, gold: 6, hp_damage: 4 },
+    { id: 99902, title: 'Химия / Теория', difficulty: 'trivial', category: 'STEM', streak: 1, xp: 3, gold: 2, hp_damage: 1 },
+    { id: 99903, title: 'Бег / Тренировка', difficulty: 'hard', category: 'Health & Fitness', streak: 12, xp: 24, gold: 12, hp_damage: 8 },
+    { id: 99904, title: 'Физика / Задачи', difficulty: 'trivial', category: 'STEM', streak: 2, xp: 3, gold: 2, hp_damage: 1 },
+    { id: 99905, title: 'Языки / English', difficulty: 'easy', category: 'Languages', streak: 7, xp: 6, gold: 3, hp_damage: 2 },
   ];
 
   const effectiveDailies = (dailies && dailies.length > 0) ? dailies : sampleDailies;
@@ -1142,9 +1142,9 @@ function WelcomeBackCheckin() {
       setTimeout(() => {
         const completed = effectiveDailies.filter(d => completedIds.includes(d.id));
         const missed = effectiveDailies.filter(d => !completedIds.includes(d.id));
-        const totalXp = completed.reduce((sum, d) => sum + (d.difficulty === 'hard' ? 60 : d.difficulty === 'easy' ? 15 : 30), 0);
-        const totalGold = completed.reduce((sum, d) => sum + (d.difficulty === 'hard' ? 30 : d.difficulty === 'easy' ? 8 : 15), 0);
-        const totalDmg = missed.reduce((sum, d) => sum + (d.difficulty === 'hard' ? 30 : d.difficulty === 'easy' ? 8 : 15), 0);
+        const totalXp = completed.reduce((sum, d) => sum + (d.xp || (d.difficulty === 'hard' ? 24 : d.difficulty === 'medium' ? 12 : d.difficulty === 'easy' ? 6 : 3)), 0);
+        const totalGold = completed.reduce((sum, d) => sum + (d.gold || (d.difficulty === 'hard' ? 12 : d.difficulty === 'medium' ? 6 : d.difficulty === 'easy' ? 3 : 2)), 0);
+        const totalDmg = missed.reduce((sum, d) => sum + (d.hp_damage || (d.difficulty === 'hard' ? 8 : d.difficulty === 'medium' ? 4 : d.difficulty === 'easy' ? 2 : 1)), 0);
 
         callbacks.onSuccess?.({
           total_xp: totalXp,
@@ -1152,8 +1152,8 @@ function WelcomeBackCheckin() {
           total_dmg: totalDmg,
           died: false,
           log: [
-            ...completed.map(d => ({ type: 'checkin_done', id: d.id, title: d.title, xp: 30, gold: 15 })),
-            ...missed.map(d => ({ type: 'checkin_missed', id: d.id, title: d.title, damage: 15 })),
+            ...completed.map(d => ({ type: 'checkin_done', id: d.id, title: d.title, xp: d.xp || 12, gold: d.gold || 6 })),
+            ...missed.map(d => ({ type: 'checkin_missed', id: d.id, title: d.title, damage: d.hp_damage || 4 })),
           ],
         });
       }, 500);
