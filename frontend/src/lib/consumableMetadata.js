@@ -144,18 +144,39 @@ export const CONSUMABLE_METADATA = {
   },
 };
 
-export function getConsumableMeta(itemCode) {
-  const code = (itemCode || '').toLowerCase();
-  return (
-    CONSUMABLE_METADATA[code] || {
-      code,
-      category: 'utility',
-      tier: 'D',
-      effectValue: 'Special Effect',
-      duration: 'Instant / Buff',
-      trigger: 'On Use',
-      shortDesc: 'Consumable inventory item.',
-      howItWorks: 'Consuming this item applies its unique effects and buff parameters to your character profile.',
+export function getConsumableMeta(itemOrCode) {
+  const code = typeof itemOrCode === 'string'
+    ? (itemOrCode || '').toLowerCase()
+    : ((itemOrCode?.code || itemOrCode?.id) || '').toLowerCase();
+
+  const base = CONSUMABLE_METADATA[code] || {
+    code,
+    category: 'utility',
+    tier: 'D',
+    effectValue: 'Special Effect',
+    duration: 'Instant / Buff',
+    trigger: 'On Use',
+    shortDesc: 'Consumable inventory item.',
+    howItWorks: 'Consuming this item applies its unique effects and buff parameters to your character profile.',
+  };
+
+  if (typeof itemOrCode === 'object' && itemOrCode) {
+    let dynamicEffect = base.effectValue;
+    if (itemOrCode.healAmount || itemOrCode.hp_boost) {
+      dynamicEffect = `+${itemOrCode.healAmount || itemOrCode.hp_boost} HP`;
+    } else if (itemOrCode.stats && Object.keys(itemOrCode.stats).length > 0) {
+      dynamicEffect = Object.entries(itemOrCode.stats).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(' · ');
+    } else if (itemOrCode.effect) {
+      dynamicEffect = itemOrCode.effect;
     }
-  );
+
+    return {
+      ...base,
+      tier: itemOrCode.tier || base.tier,
+      effectValue: dynamicEffect,
+      shortDesc: itemOrCode.desc || itemOrCode.description || base.shortDesc,
+    };
+  }
+
+  return base;
 }

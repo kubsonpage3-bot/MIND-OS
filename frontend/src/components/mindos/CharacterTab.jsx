@@ -28,6 +28,7 @@ import MutatorsPanel from "./MutatorsPanel";
 import TabGuideModal from "./TabGuideModal";
 import GameCard from "@/components/ui/GameCard";
 import ItemDetailModal from "./ItemDetailModal";
+import ConsumableDetailModal from "./ConsumableDetailModal";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
@@ -89,6 +90,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedConsumable, setSelectedConsumable] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
   const { bursts, trigger: triggerBurst } = usePixelBurst();
 
@@ -978,7 +980,16 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             const canBuyDeal = gold >= dealItem.cost && (!isOwned || dealItem.consumable);
 
             return (
-              <div className="rounded-xl border px-3 py-2 relative overflow-hidden backdrop-blur-md transition-all"
+              <div
+                onClick={() => {
+                  try { playSound('click'); } catch(e) {}
+                  if (dealItem.consumable) {
+                    setSelectedConsumable(dealItem);
+                  } else {
+                    setSelectedItem(dealItem);
+                  }
+                }}
+                className="rounded-xl border px-3 py-2 relative overflow-hidden backdrop-blur-md transition-all cursor-pointer hover:border-amber-400/50"
                 style={{ borderColor: "rgba(240,192,64,0.3)", background: "rgba(240,192,64,0.05)", boxShadow: "0 0 12px rgba(240,192,64,0.06)" }}>
                 {/* Subtle Shimmer */}
                 <motion.div className="absolute inset-0 pointer-events-none"
@@ -1017,7 +1028,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                     <div className="text-right">
                       {!isBonusDay && (
                         <div className="text-[9px] font-mono line-through text-muted-foreground/40 leading-none">{featuredItem.cost}G</div>
@@ -1025,9 +1036,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                       <div className="text-xs font-mono font-bold leading-tight" style={{ color: "#f0c040" }}>{dealItem.cost}G</div>
                     </div>
                     <button
-                      onClick={() => { buyItem(dealItem); }}
+                      onClick={(e) => { e.stopPropagation(); buyItem(dealItem); }}
                       disabled={!canBuyDeal}
-                      className="px-2.5 py-1 text-[10px] font-mono font-bold rounded border transition-all shrink-0 disabled:opacity-30 flex items-center justify-center"
+                      className="px-2.5 py-1 text-[10px] font-mono font-bold rounded border transition-all shrink-0 disabled:opacity-30 flex items-center justify-center cursor-pointer"
                       style={{
                         borderColor: canBuyDeal ? "#f0c040" : "rgba(240,192,64,0.2)",
                         color: canBuyDeal ? "#f0c040" : "rgba(240,192,64,0.4)",
@@ -1119,7 +1130,10 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                     }}
                     className="flex flex-col text-center p-3 relative cursor-pointer"
                     style={{ imageRendering: "pixelated" }}
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => {
+                      try { playSound('click'); } catch (e) {}
+                      setSelectedConsumable(item);
+                    }}
                   >
                     {/* Pixel scanlines */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -1225,10 +1239,24 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
         document.body
       )}
 
-      {/* Shared Item Detail Modal */}
+      {/* Consumable Detail Modal (Allies / Boss Style) */}
+      <ConsumableDetailModal
+        item={selectedConsumable}
+        isOpen={!!selectedConsumable}
+        onClose={() => setSelectedConsumable(null)}
+        onBuy={(item) => buyItem(item)}
+        cost={selectedConsumable?.cost}
+        gold={gold}
+        isBought={boughtItem === selectedConsumable?.id}
+        inInventoryCount={selectedConsumable ? (inventory || []).filter(i => (i.id === selectedConsumable.id || (selectedConsumable.code && i.code === selectedConsumable.code))).length : 0}
+        isActive={selectedConsumable ? (activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.active && (!activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.expiresAt || Date.now() < activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.expiresAt)) : false}
+        activeData={selectedConsumable ? activeEffectsMap[selectedConsumable.code || selectedConsumable.id] : null}
+      />
+
+      {/* Shared Item Detail Modal for non-consumables / gear */}
       <ItemDetailModal
         item={selectedItem}
-        isOpen={!!selectedItem}
+        isOpen={!!selectedItem && !selectedItem.consumable}
         onClose={() => setSelectedItem(null)}
         title={selectedItem?.label}
         tierColor={selectedItem ? getTierColor(selectedItem.tier) : undefined}

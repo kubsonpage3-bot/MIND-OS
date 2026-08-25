@@ -1663,6 +1663,11 @@
     "using": "USING...",
     "sell_for_gold": "SELL FOR GOLD",
     "selling": "SELLING...",
+    "buy_item": "BUY ITEM",
+    "not_enough_gold": "NOT ENOUGH GOLD",
+    "bought": "BOUGHT!",
+    "in_inventory": "In Inventory",
+    "need_more_gold": "Need {{amount}}G more",
     "categories": {
       "healing": "Healing Potion",
       "buff": "Combat & XP Buff",

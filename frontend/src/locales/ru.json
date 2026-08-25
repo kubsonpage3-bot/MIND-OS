@@ -1663,6 +1663,11 @@
     "using": "ПРИМЕНЕНИЕ...",
     "sell_for_gold": "ПРОДАТЬ ЗА ЗОЛОТО",
     "selling": "ПРОДАЖА...",
+    "buy_item": "КУПИТЬ",
+    "not_enough_gold": "НЕДОСТАТОЧНО ЗОЛОТА",
+    "bought": "КУПЛЕНО!",
+    "in_inventory": "В инвентаре",
+    "need_more_gold": "Не хватает {{amount}}G",
     "categories": {
       "healing": "Зелье лечения",
       "buff": "Боевой & XP Бафф",
