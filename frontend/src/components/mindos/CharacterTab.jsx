@@ -609,75 +609,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             </div>
           </div>
 
-          {/* ❤️💧 Vitals HUD: Segmented HP + MANA Bars */}
-          <div
-            className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%)",
-              border: "1.5px solid rgba(147,51,234,0.25)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
-            }}
-          >
-            {/* HP Bar */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-pixel">
-                <span className="flex items-center gap-1.5 text-red-400">
-                  <span className="animate-pulse">❤️</span> HP
-                </span>
-                <span className="font-pixel font-bold tracking-wider text-red-300">
-                  <AnimatedNumber value={Math.round(charHp)} /> / {charMaxHp}
-                </span>
-              </div>
-              <div className="h-3.5 rounded-md bg-black/80 border border-red-950/80 p-[1.5px] overflow-hidden relative shadow-inner">
-                <motion.div
-                  className="h-full rounded-[2px] relative overflow-hidden"
-                  animate={{ width: `${hpPct}%` }}
-                  transition={ANIM_CONFIG.springBar}
-                  style={{
-                    background: `linear-gradient(90deg, #7f1d1d 0%, #dc2626 40%, #ef4444 80%, #fca5a5 100%)`,
-                    boxShadow: `0 0 12px rgba(239,68,68,0.7)`
-                  }}
-                >
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.4)_24%,rgba(0,0,0,0.4)_26%,transparent_27%)] bg-[length:16px_100%]" />
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-8"
-                    animate={{ x: ["-100%", "500%"] }}
-                    transition={{ repeat: Infinity, duration: 2.2, ease: "linear" }}
-                  />
-                </motion.div>
-              </div>
-            </div>
 
-            {/* MANA Bar */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-pixel">
-                <span className="flex items-center gap-1.5 text-cyan-400">
-                  <span className="animate-pulse">💧</span> MANA
-                </span>
-                <span className="font-pixel font-bold tracking-wider text-cyan-300">
-                  <AnimatedNumber value={Math.round(profile?.mana || 0)} /> / {profile?.mana_max || chosenClass?.maxMana || 100}
-                </span>
-              </div>
-              <div className="h-3.5 rounded-md bg-black/80 border border-blue-950/80 p-[1.5px] overflow-hidden relative shadow-inner">
-                <motion.div
-                  className="h-full rounded-[2px] relative overflow-hidden"
-                  animate={{ width: `${Math.min(100, ((profile?.mana || 0) / (profile?.mana_max || chosenClass?.maxMana || 100)) * 100)}%` }}
-                  transition={ANIM_CONFIG.springBar}
-                  style={{
-                    background: `linear-gradient(90deg, #1e3a8a 0%, #2563eb 40%, #0284c7 80%, #38bdf8 100%)`,
-                    boxShadow: `0 0 12px rgba(56,189,248,0.7)`
-                  }}
-                >
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_23%,rgba(0,0,0,0.4)_24%,rgba(0,0,0,0.4)_26%,transparent_27%)] bg-[length:16px_100%]" />
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-8"
-                    animate={{ x: ["-100%", "500%"] }}
-                    transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-                  />
-                </motion.div>
-              </div>
-            </div>
-          </div>
 
           {/* ⚡ Runic Attributes Matrix (Матрица Характеристик) */}
           <div
