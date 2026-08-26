@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Plus, X, RefreshCw, Filter, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, RefreshCw } from "lucide-react";
 import { useProfileMount } from "@/utils/perf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
