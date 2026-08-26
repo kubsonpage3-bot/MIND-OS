@@ -1364,14 +1364,37 @@ class TrainingLogView(generics.GenericAPIView):
             except (ValueError, Task.DoesNotExist):
                 pass
 
-        SCIENCE_ACTIVITIES = {"mathematics", "physics", "chess", "coding"}
+        ACTIVITY_CATEGORY_MAP = {
+            "mathematics": "Sciences",
+            "physics": "Sciences",
+            "chemistry": "Sciences",
+            "biology": "Sciences",
+            "computer_science": "Sciences",
+            "coding": "Sciences",
+            "chess": "Sciences",
+            "history": "Humanities & Arts",
+            "philosophy": "Humanities & Arts",
+            "reading": "Humanities & Arts",
+            "psychology": "Humanities & Arts",
+            "creative_answers": "Humanities & Arts",
+            "english": "Languages",
+            "german": "Languages",
+            "vocabulary": "Languages",
+            "languages": "Languages",
+            "exercise": "Health & Fitness",
+            "running": "Health & Fitness",
+            "prayer": "Mindfulness",
+        }
+
+        SCIENCE_ACTIVITIES = {"mathematics", "physics", "chess", "coding", "chemistry", "biology", "computer_science"}
         EXERCISE_ACTIVITIES = {"exercise", "running"}
-        LANGUAGE_ACTIVITIES = {"english", "german", "languages"}
+        LANGUAGE_ACTIVITIES = {"english", "german", "languages", "vocabulary"}
         PRAYER_ACTIVITIES = {"prayer"}
 
-        task_category = task.category if task else "Other"
+        task_category = task.category if task else ACTIVITY_CATEGORY_MAP.get(activity, "Other")
 
         is_science = activity in SCIENCE_ACTIVITIES or task_category in {
+            "Sciences",
             "STEM",
             "Math",
             "Physics",
@@ -1799,6 +1822,13 @@ class TrainingLogView(generics.GenericAPIView):
                         cat_data["last_active_date"] = today_str
                 streaks[current_category] = cat_data
                 profile.category_streaks = streaks
+
+            if task_category:
+                if profile.last_completed_category == task_category:
+                    profile.same_category_streak += 1
+                else:
+                    profile.same_category_streak = 1
+                    profile.last_completed_category = task_category
 
             profile.save()
 
