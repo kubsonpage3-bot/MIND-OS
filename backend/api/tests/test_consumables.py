@@ -262,3 +262,15 @@ class ConsumablesTests(TestCase):
         # A-tier base cost is 3500, sell rate is 30% -> 3500 * 0.30 = 1050G
         self.assertEqual(profile.gold, 1050)
 
+    def test_consume_item_api_endpoint(self):
+        from rest_framework.test import APIClient
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        response = client.post("/api/inventory/small_heal/consume/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("detail", response.data)
+        self.assertIn("profile", response.data)
+        self.assertEqual(response.data["profile"]["hp"], 30)
+
+

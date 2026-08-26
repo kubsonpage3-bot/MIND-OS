@@ -1195,7 +1195,7 @@ class ConsumeItemView(generics.GenericAPIView):
             return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
 
         profile_fresh = UserProfile.objects.prefetch_related(
-            "inventory_items__item__effects", "active_effects"
+            "inventory_items__item__effects"
         ).get(user=request.user)
 
         return Response(
