@@ -39,7 +39,7 @@ function getTrainingRewards(tier, hours, focus) {
   };
 }
 
-export default function ActivityLogger({ onLog, isLogging, profile, logs = [], tasks = [] }) {
+export default function ActivityLogger({ onLog, isLogging, profile, logs = [], tasks = [], subjectTotals = {} }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [trainTab, setTrainTab] = useState("log"); // "log" | "create"
@@ -94,14 +94,18 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
     todayLogs.forEach(l => {
       subjectHoursMap[l.activity_key] = (subjectHoursMap[l.activity_key] || 0) + (l.hours || 0);
     });
-    // Total hours per subject across all logs
-    const subjectTotalHours = {};
+
+    // Total lifetime hours per subject across all sessions from backend DB aggregation
+    const subjectTotalHours = { ...(subjectTotals || {}) };
     logs.forEach(l => {
-      subjectTotalHours[l.activity_key] = (subjectTotalHours[l.activity_key] || 0) + (l.hours || 0);
+      if (subjectTotalHours[l.activity_key] === undefined) {
+        subjectTotalHours[l.activity_key] = (subjectTotalHours[l.activity_key] || 0) + (l.hours || 0);
+      }
     });
+
     const recentFocusRatings = logs.slice(0, 5).map(l => l.focus_rating || 5);
     return { hoursToday, subjectHoursMap, recentFocusRatings, subjectTotalHours };
-  }, [logs]);
+  }, [logs, subjectTotals]);
 
   const subjectHoursToday = selectedActivity ? (subjectHoursMap[selectedActivity] || 0) : 0;
   const isQuestionsMode = selectedActivity && allActivities[selectedActivity]?.inputType === "questions";

@@ -1315,12 +1315,25 @@ class TrainingLogView(generics.GenericAPIView):
     def get(self, request):
         from api.models import TrainingSession
         from api.serializers.tasks import TrainingSessionSerializer
+        from django.db.models import Sum
 
-        recent = TrainingSession.objects.filter(
+        user_sessions = TrainingSession.objects.filter(
             user_profile__user=request.user
-        ).order_by("-created_at")[:20]
+        )
+        recent = user_sessions.order_by("-created_at")[:50]
+
+        # Aggregate lifetime hours per activity_key
+        totals_qs = user_sessions.values("activity_key").annotate(total_hours=Sum("hours"))
+        subject_totals = {
+            item["activity_key"]: round(float(item["total_hours"] or 0), 2)
+            for item in totals_qs
+        }
+
         return Response(
-            {"log": TrainingSessionSerializer(recent, many=True).data},
+            {
+                "log": TrainingSessionSerializer(recent, many=True).data,
+                "subject_totals": subject_totals,
+            },
             status=status.HTTP_200_OK,
         )
 

@@ -899,13 +899,13 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         {(sectionToRender === "train" || sectionToRender === "training") && (
           <TabPanel title={"⚔️ " + t("sidebar.sections.train", "TRAINING").toUpperCase()}>
             <TabGuideModal guideId="training" profile={profile} />
-            <ActivityLogger onLog={handleLog} isLogging={logTraining.isPending} profile={profile} logs={logs} tasks={tasks} />
+            <ActivityLogger onLog={handleLog} isLogging={logTraining.isPending} profile={profile} logs={logs} tasks={tasks} subjectTotals={trainingLogsData?.subject_totals} />
           </TabPanel>
         )}
 
         {sectionToRender === "tasks" && (
           <div className="py-2">
-            <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} />
+            <TasksPanel tasks={tasks} onXpGain={handleXpGain} onBossDamage={handleBossDamage} onRankXP={handleTaskRankXP} subTab={activeSubItem} onRewardFly={handleRewardFly} onLog={handleLog} profile={profile} logs={logs} subjectTotals={trainingLogsData?.subject_totals} />
           </div>
         )}
 

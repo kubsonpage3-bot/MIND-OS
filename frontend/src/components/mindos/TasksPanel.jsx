@@ -1,6 +1,7 @@
-import { useState, memo, useMemo } from 'react';
+import { useState, memo, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfileMount } from '@/utils/perf';
+import { Plus } from "lucide-react";
 
 import HabitsColumn from "./HabitsColumn";
 import DailiesColumn from "./DailiesColumn";
@@ -17,7 +18,7 @@ const TASK_TABS = [
   { id: 'activities', label: 'Activities' },
 ];
 
-function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly, onLog, profile, logs = [] }) {
+function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly, onLog, profile, logs = [], subjectTotals = {} }) {
   useProfileMount("TasksPanel");
   const queryClient = useQueryClient();
   const [taskTab, setTaskTab] = useState('tasks');
@@ -38,6 +39,13 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
   const habits = useMemo(() => taskList.filter(t => t.type === 'habit'), [taskList]);
   const dailies = useMemo(() => taskList.filter(t => t.type === 'daily'), [taskList]);
   const todos = useMemo(() => taskList.filter(t => t.type === 'todo'), [taskList]);
+
+  // Sync subTab from header if provided (e.g. from mobile header or parent tab selector)
+  useEffect(() => {
+    if (subTab && (subTab === 'tasks' || subTab === 'activities')) {
+      setTaskTab(subTab);
+    }
+  }, [subTab]);
 
   const createTask = async () => {
     if (!form.name.trim()) return;
@@ -69,19 +77,39 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
     }
   };
 
-  const openCreateModal = (type) => {
-    setFormType(type);
-    setForm(prev => ({ ...prev, type: type, name: '' }));
-    setCreateModalOpen(true);
-  };
-
-
   return (
     <>
       <TabGuideModal guideId="tasks" profile={profile} />
 
-      {/* Mobile sub-tab bar */}
-      <PillTabBar tabs={TASK_TABS} activeTab={taskTab} onChange={setTaskTab} sticky={true} />
+      <div className="flex items-center justify-between gap-4 mb-4">
+        {/* Toggle pill: Tasks vs Activities */}
+        <div className="flex bg-muted/30 p-1 rounded-xl border border-border/40">
+          {TASK_TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setTaskTab(tab.id)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-pixel uppercase tracking-wider transition-all duration-200 ${
+                taskTab === tab.id
+                  ? 'bg-primary text-primary-foreground shadow-sm font-bold scale-[1.02]'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Create Task Button: Only visible on 'tasks' tab */}
+        {taskTab === 'tasks' && (
+          <button
+            onClick={() => { setFormType('habit'); setCreateModalOpen(true); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-pixel uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Task
+          </button>
+        )}
+      </div>
 
       {/* Mobile: show only the active tab */}
       <div className="md:hidden">
@@ -92,7 +120,7 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
             <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
           </div>
         )}
-        {taskTab === 'activities' && <ActivityLogger onLog={onLog} profile={profile} logs={logs} tasks={tasks} isLogging={false} />}
+        {taskTab === 'activities' && <ActivityLogger onLog={onLog} profile={profile} logs={logs} tasks={tasks} subjectTotals={subjectTotals} isLogging={false} />}
       </div>
 
       {/* Desktop: side-by-side layout (unchanged) */}
