@@ -1209,6 +1209,8 @@ class LootChest(models.Model):
     class ChestType(models.TextChoices):
         STANDARD = "standard_cache", "Standard Cache"
         QUANTUM = "quantum_safe", "Quantum Safe"
+        APEX = "apex_vault", "Apex Vault"
+        SOVEREIGN = "sovereign_reliquary", "Sovereign Reliquary"
 
     chest_type = models.CharField(
         max_length=30,
