@@ -27,8 +27,7 @@ const TasksPanel = lazy(() => import("@/components/mindos/TasksPanel"));
 const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
-
-
+import { isMobileApp } from "@/utils/platformUtils";
 import { syncWidgetStats } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";

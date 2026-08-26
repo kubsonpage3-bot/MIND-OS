@@ -158,7 +158,6 @@ function EventBlock({ event, colDate, handlers }) {
         touchAction: isPending ? "auto" : "none",
       }}
     >
-      {/* Background Accent Tint */}
       <div
         className="absolute inset-0 pointer-events-none opacity-15"
         style={{
@@ -191,7 +190,6 @@ function EventBlock({ event, colDate, handlers }) {
 
       {!isTask && !isPending && (
         <>
-          {/* Resize Grip Handle */}
           <div
             onPointerDown={(e) => {
               e.stopPropagation();
@@ -203,7 +201,6 @@ function EventBlock({ event, colDate, handlers }) {
             <div className="w-6 h-0.5 rounded-full bg-slate-400/70" />
           </div>
 
-          {/* Delete Button */}
           <button
             onPointerDown={(e) => {
               e.stopPropagation();
@@ -233,7 +230,6 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }
       style={{ height: HOUR_PX * 24 }}
       onClick={(e) => onGridClick(e, dateStr)}
     >
-      {/* Hour Lines */}
       {HOURS.map((h) => (
         <div
           key={h}
@@ -249,12 +245,10 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }
         />
       ))}
 
-      {/* Events */}
       {dayEvents.map((ev) => (
         <EventBlock key={ev.id} event={ev} colDate={colDate} handlers={handlers} />
       ))}
 
-      {/* Live Time Laser if today */}
       {isToday && <LiveTimeIndicator />}
     </div>
   );
@@ -265,7 +259,7 @@ export default function CalendarPanel() {
   const queryClient = useQueryClient();
   const { profile: djangoProfile } = useDjangoAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState("week"); // 'day' | 'week' | 'month'
+  const [view, setView] = useState("week");
   const [events, setEvents] = useState([]);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -290,7 +284,6 @@ export default function CalendarPanel() {
     enabled: !!djangoProfile,
   });
 
-  // Sync local events state with API data when it loads
   useEffect(() => {
     setEvents(
       apiEvents.map((e) => ({
@@ -305,7 +298,6 @@ export default function CalendarPanel() {
     );
   }, [apiEvents]);
 
-  // Mutations
   const createEventMut = useMutation({
     mutationFn: (ev) =>
       djangoFetch("/calendar/events/", {
@@ -361,13 +353,11 @@ export default function CalendarPanel() {
     color: "#a855f7",
   });
 
-  // Drag & Scroll refs
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
   const gridRef = useRef(null);
   const scrollRef = useRef(null);
 
-  // Auto-scroll to current hour on load or when switching to Today
   const scrollToNow = useCallback(() => {
     if (scrollRef.current) {
       const now = new Date();
@@ -512,7 +502,6 @@ export default function CalendarPanel() {
     return allEvents.filter((e) => e.category === categoryFilter);
   };
 
-  // ── DRAG: move event (Robust & Unchanged Mathematical Engine) ────────────
   const onDragStart = useCallback((e, event, colDate) => {
     e.stopPropagation();
     if (e.currentTarget && typeof e.currentTarget.setPointerCapture === "function") {
@@ -543,7 +532,6 @@ export default function CalendarPanel() {
         newStart = newEnd - duration;
       }
 
-      // Auto-scroll when pointer is near edges
       if (scrollRef.current) {
         const sr = scrollRef.current.getBoundingClientRect();
         const ZONE = 64;
@@ -599,7 +587,6 @@ export default function CalendarPanel() {
     window.addEventListener("pointerup", onUp);
   }, [updateEventMut]);
 
-  // ── RESIZE: bottom handle (Robust & Unchanged Mathematical Engine) ────────
   const onResizeStart = useCallback((e, event) => {
     e.stopPropagation();
     if (e.currentTarget && typeof e.currentTarget.setPointerCapture === "function") {
@@ -659,7 +646,6 @@ export default function CalendarPanel() {
     window.addEventListener("pointerup", onUp);
   }, [updateEventMut]);
 
-  // ── CLICK ON GRID to create event ────────────────────────────────────────
   const onGridClick = useCallback((e, dateStr) => {
     if (dragRef.current || resizeRef.current) return;
     if (e.target !== e.currentTarget) return;
@@ -687,7 +673,6 @@ export default function CalendarPanel() {
   const weekDays = getWeekDays(currentDate);
   const currentDateStr = getLocalDateStr(currentDate);
 
-  // Apply quick duration preset to new event
   const applyPresetDuration = (mins) => {
     const startM = timeToMins(newEvent.startTime);
     const endM = Math.min(24 * 60, startM + mins);
@@ -698,7 +683,6 @@ export default function CalendarPanel() {
     <div className="space-y-3.5 select-none font-mono">
       {/* ── TOP CONTROL BAR ────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-3 flex-wrap bg-[#0f0e1a] p-3 rounded-xl border border-[#2a2640] shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
-        {/* Navigation & Date Label */}
         <div className="flex items-center gap-2">
           <button
             onClick={goToPrev}
@@ -743,9 +727,7 @@ export default function CalendarPanel() {
           </button>
         </div>
 
-        {/* View Switchers & Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Category Filter Dropdown / Quick Chips */}
           <div className="flex items-center gap-1 border border-[#2a2640] bg-[#141224] rounded-lg p-1">
             {["all", "tasks", "custom"].map((cat) => (
               <button
@@ -773,7 +755,6 @@ export default function CalendarPanel() {
             Sync Tasks
           </Button>
 
-          {/* Day / Week / Month View Switcher */}
           <div className="flex gap-1 border border-[#2a2640] bg-[#141224] rounded-lg p-1">
             {["day", "week", "month"].map((v) => (
               <button
@@ -791,7 +772,6 @@ export default function CalendarPanel() {
             ))}
           </div>
 
-          {/* New Event Button */}
           <button
             onClick={() => {
               setEditingEvent(null);
@@ -812,7 +792,6 @@ export default function CalendarPanel() {
         </div>
       </div>
 
-      {/* Sync Panel Drawer */}
       {showSyncPanel && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -823,14 +802,12 @@ export default function CalendarPanel() {
         </motion.div>
       )}
 
-      {/* View Instructions */}
       {view !== "month" && (
         <p className="text-[10px] font-mono text-muted-foreground/60 text-center">
           Drag events to reschedule · Double-click to edit · Drag bottom edge to resize
         </p>
       )}
 
-      {/* ── MAIN CALENDAR GRID ────────────────────────────────────────────── */}
       {view === "month" ? (
         <CalendarMonthView
           currentDate={currentDate}
@@ -848,10 +825,8 @@ export default function CalendarPanel() {
             style={{ maxHeight: "70vh" }}
             ref={scrollRef}
           >
-            {/* ── DAY VIEW ──────────────────────────────────────────────────── */}
             {view === "day" && (
               <div className="flex relative">
-                {/* Hour timeline labels */}
                 <div
                   className="w-14 shrink-0 relative bg-[#0e0d1a] border-r border-[#232038]"
                   style={{ height: HOUR_PX * 24 }}
@@ -878,10 +853,8 @@ export default function CalendarPanel() {
               </div>
             )}
 
-            {/* ── WEEK VIEW ─────────────────────────────────────────────────── */}
             {view === "week" && (
               <div>
-                {/* Sticky Week Day Headers */}
                 <div
                   className="grid sticky top-0 z-20 bg-[#121022] border-b border-[#2a2640] shadow-sm"
                   style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }}
@@ -921,13 +894,11 @@ export default function CalendarPanel() {
                   })}
                 </div>
 
-                {/* Week Hours & Columns Grid */}
                 <div
                   className="grid relative"
                   style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }}
                   ref={gridRef}
                 >
-                  {/* Hour timeline labels */}
                   <div
                     className="relative bg-[#0e0d1a] border-r border-[#232038]"
                     style={{ height: HOUR_PX * 24 }}
@@ -943,7 +914,6 @@ export default function CalendarPanel() {
                     ))}
                   </div>
 
-                  {/* 7 Day Columns */}
                   {weekDays.map((day, i) => {
                     const ds = getLocalDateStr(day);
                     return (
@@ -984,7 +954,6 @@ export default function CalendarPanel() {
               exit={{ scale: 0.95, y: 10 }}
               className="bg-[#121124] border-2 border-[#362f54] shadow-[0_0_25px_rgba(0,0,0,0.8),inset_0_0_15px_rgba(168,85,247,0.08)] rounded-xl p-6 max-w-md w-full space-y-4 font-mono text-slate-200"
             >
-              {/* Header */}
               <div className="flex items-center justify-between border-b border-[#2a2640] pb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-primary text-sm">◆</span>
@@ -1003,7 +972,6 @@ export default function CalendarPanel() {
                 </button>
               </div>
 
-              {/* Title & Description */}
               <div className="space-y-2">
                 <label className="text-[10px] font-mono text-muted-foreground block">
                   EVENT TITLE
@@ -1033,7 +1001,6 @@ export default function CalendarPanel() {
                 />
               </div>
 
-              {/* Date */}
               <div className="space-y-1">
                 <label className="text-[10px] font-mono text-muted-foreground block">
                   DATE
@@ -1048,7 +1015,6 @@ export default function CalendarPanel() {
                 />
               </div>
 
-              {/* Time Range */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-mono text-muted-foreground mb-1 block">
@@ -1078,7 +1044,6 @@ export default function CalendarPanel() {
                 </div>
               </div>
 
-              {/* Quick Duration Presets */}
               <div>
                 <label className="text-[10px] font-mono text-muted-foreground mb-1 block">
                   QUICK DURATION
@@ -1097,7 +1062,6 @@ export default function CalendarPanel() {
                 </div>
               </div>
 
-              {/* Color Swatches */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-mono text-muted-foreground block">
                   COLOR ACCENT
@@ -1120,7 +1084,6 @@ export default function CalendarPanel() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-2 pt-2 border-t border-[#2a2640]">
                 <Button
                   onClick={addOrUpdateEvent}
