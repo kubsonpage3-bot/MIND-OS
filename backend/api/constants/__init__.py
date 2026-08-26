@@ -8,6 +8,18 @@ def get_prestige_xp_required(count: int) -> int:
 BASE_SELL_RATE = 0.30
 MARKET_KNOWLEDGE_SELL_RATE = 0.60
 
+GEAR_TIER_BASE_COSTS = {
+    "E": 100,
+    "D": 250,
+    "C": 600,
+    "B": 1500,
+    "A": 3500,
+    "S": 8000,
+    "SS": 20000,
+    "SSS": 50000,
+}
+
+
 SCROLL_BOSSES = [
     {
         "id": "misted_wanderer",
@@ -221,16 +233,25 @@ RANK_THRESHOLDS = [
 RANK_ORDER = ["E", "D", "C", "B", "A", "S", "SS", "SSS"]
 
 
+RANK_PRICE_MULTIPLIERS = {
+    "E": 1.0,
+    "D": 1.25,
+    "C": 1.50,
+    "B": 1.80,
+    "A": 2.20,
+    "S": 2.70,
+    "SS": 3.30,
+    "SSS": 4.00,
+}
+
+
 def get_rank_price_multiplier(rank_id: str) -> float:
     """
     Returns the economic price multiplier for shop consumables based on rank.
-    Each tier increases by 1.5x (E=1.0x, D=1.5x, C=2.25x, B=3.38x, A=5.06x, S=7.59x, SS=11.39x, SSS=17.09x).
+    Smooth progression: E=1.0x, D=1.25x, C=1.5x, B=1.8x, A=2.2x, S=2.7x, SS=3.3x, SSS=4.0x.
     """
-    try:
-        idx = RANK_ORDER.index(str(rank_id).upper())
-    except (ValueError, AttributeError):
-        idx = 0
-    return round(1.5**idx, 2)
+    return RANK_PRICE_MULTIPLIERS.get(str(rank_id).upper(), 1.0)
+
 
 
 HUMANITIES_RANK_THRESHOLDS = [

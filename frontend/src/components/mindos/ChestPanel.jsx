@@ -105,13 +105,31 @@ export default function ChestPanel() {
   };
 
   const getChestDesign = (chestType) => {
+    if (chestType === "sovereign_reliquary") {
+      return {
+        themeColor: "#c084fc",
+        glowColor: "#a855f7",
+        bgGradient: "linear-gradient(135deg, rgba(88, 28, 135, 0.35) 0%, rgba(15, 10, 28, 0.95) 80%)",
+        borderColor: "rgba(192, 132, 252, 0.5)",
+        btnBg: "border-purple-500/40 text-purple-300 bg-purple-500/15 hover:bg-purple-500/25"
+      };
+    }
+    if (chestType === "apex_vault") {
+      return {
+        themeColor: "#f59e0b",
+        glowColor: "#d97706",
+        bgGradient: "linear-gradient(135deg, rgba(180, 83, 9, 0.3) 0%, rgba(28, 18, 8, 0.95) 80%)",
+        borderColor: "rgba(245, 158, 11, 0.45)",
+        btnBg: "border-amber-500/40 text-amber-400 bg-amber-500/15 hover:bg-amber-500/25"
+      };
+    }
     if (chestType === "quantum_safe") {
       return {
-        themeColor: "#a855f7",
-        glowColor: "#f59e0b",
-        bgGradient: "linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(15, 12, 30, 0.95) 80%)",
-        borderColor: "rgba(168, 85, 247, 0.4)",
-        btnBg: "border-purple-500/40 text-purple-400 bg-purple-500/10 hover:bg-purple-500/20"
+        themeColor: "#00e5ff",
+        glowColor: "#0284c7",
+        bgGradient: "linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(8, 20, 32, 0.95) 80%)",
+        borderColor: "rgba(0, 229, 255, 0.4)",
+        btnBg: "border-cyan-500/40 text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20"
       };
     }
     return {

@@ -11,6 +11,22 @@ import ConsumableDetailModal from "./ConsumableDetailModal";
 // Consumable effects are handled server-side via the shop buy endpoint.
 // Do NOT track consumable state in localStorage — use the backend profile as SSOT.
 
+const GEAR_TIER_BASE_COSTS = {
+  E: 100,
+  D: 250,
+  C: 600,
+  B: 1500,
+  A: 3500,
+  S: 8000,
+  SS: 20000,
+  SSS: 50000,
+};
+
+function getItemSellValue(item) {
+  const baseCost = item.cost || (item.gear_class ? (GEAR_TIER_BASE_COSTS[item.gear_class] || 100) : 10);
+  return Math.max(1, Math.floor(baseCost * 0.30));
+}
+
 export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const [tab, setTab] = useState("gear");
   const [toast, setToast] = useState(null);
@@ -19,6 +35,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
   const { bursts, trigger: triggerBurst } = usePixelBurst();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+
 
   const sellMutation = useMutation({
     mutationFn: (itemId) => djangoApi.shop.sell(itemId, 1),
@@ -219,10 +236,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                       whileTap={{ scale: 0.9 }}
                       onClick={() => sellMutation.mutate(item.id)}
                       disabled={sellMutation.isPending}
-                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center"
+                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center gap-1"
                     >
-                      <Coins className="w-3 h-3 mr-1" />
-                      SELL
+                      <Coins className="w-3 h-3" />
+                      SELL (+{getItemSellValue(item)}G)
                     </motion.button>
                   )}
                 </div>

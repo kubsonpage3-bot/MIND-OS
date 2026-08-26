@@ -79,7 +79,11 @@ def sell_item(user, item_id: str, quantity: int = 1):
     if inv_item.quantity < quantity:
         return False, "Not enough items to sell", profile
 
-    from api.constants import BASE_SELL_RATE, MARKET_KNOWLEDGE_SELL_RATE
+    from api.constants import (
+        BASE_SELL_RATE,
+        MARKET_KNOWLEDGE_SELL_RATE,
+        GEAR_TIER_BASE_COSTS,
+    )
     from api.models import UnlockedSkill
 
     ratio = (
@@ -90,9 +94,17 @@ def sell_item(user, item_id: str, quantity: int = 1):
         else BASE_SELL_RATE
     )
 
-    # Calculate sell value
+    # Calculate sell value (with fallback to tier base cost if item.cost is 0)
     base_value = inv_item.item.cost
-    sell_value = int(base_value * ratio) * quantity
+    if (not base_value or base_value == 0) and inv_item.item.gear_class:
+        base_value = GEAR_TIER_BASE_COSTS.get(
+            str(inv_item.item.gear_class).upper(), 100
+        )
+    elif not base_value:
+        base_value = 10
+
+    sell_value = max(1, int(base_value * ratio)) * quantity
+
 
     import random
 

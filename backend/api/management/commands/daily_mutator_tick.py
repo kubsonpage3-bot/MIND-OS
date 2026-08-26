@@ -83,24 +83,25 @@ class Command(BaseCommand):
                         f"penalty: -{penalty}G"
                     )
 
-                # 3. Compound: Add +1G per 100G of the remaining balance
+                # 3. Compound: Add +1G per 100G of the remaining balance (max 300G/day cap)
                 if "compound" in active_ids:
                     # Calculate on the balance AFTER deductions
-                    interest = (p.gold // 100) * 1
+                    interest = min(300, (p.gold // 100) * 1)
                     p.gold += interest
                     logger.info(
                         f"Compound applied for {p.user.username}: "
                         f"+{interest}G on {p.gold - interest}G balance"
                     )
 
-                # 4. Alchemist: Convert Mana to Gold (1 Mana = 2 Gold)
+                # 4. Alchemist: Convert Mana to Gold (1 Mana = 2 Gold, max 200G/day cap)
                 if "alchemist" in active_ids:
-                    mana_gold = p.mana * 2
+                    mana_gold = min(200, p.mana * 2)
                     p.gold += mana_gold
                     p.mana = 0
                     logger.info(
                         f"Alchemist applied for {p.user.username}: converted {mana_gold // 2} Mana to +{mana_gold}G"
                     )
+
 
                 # Mark cron as run
                 p.last_daily_cron_at = today

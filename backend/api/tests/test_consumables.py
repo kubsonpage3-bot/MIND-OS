@@ -197,25 +197,25 @@ class ConsumablesTests(TestCase):
         self.small_heal.cost = 200
         self.small_heal.save()
 
-        # Test on D-Rank (1.5x)
+        # Test on D-Rank (1.25x)
         self.profile.rank_xp = 250  # D-Rank is 200-599
         self.profile.gold = 1000
         self.profile.save()
 
         success, msg, profile = buy_item(self.user, "small_heal")
         self.assertTrue(success)
-        # 200 * 1.5 = 300, 1000 - 300 = 700
-        self.assertEqual(profile.gold, 700)
+        # 200 * 1.25 = 250, 1000 - 250 = 750
+        self.assertEqual(profile.gold, 750)
 
-        # Test on SSS-Rank (17.09x)
+        # Test on SSS-Rank (4.0x)
         self.profile.rank_xp = 8500  # SSS-Rank is 8000+
         self.profile.gold = 5000
         self.profile.save()
 
         success, msg, profile = buy_item(self.user, "small_heal")
         self.assertTrue(success)
-        # 200 * 17.09 = 3418, 5000 - 3418 = 1582
-        self.assertEqual(profile.gold, 1582)
+        # 200 * 4.0 = 800, 5000 - 800 = 4200
+        self.assertEqual(profile.gold, 4200)
 
     def test_daily_gold_rush_rank_scaled(self):
         gold_token, _ = Item.objects.get_or_create(
@@ -230,11 +230,35 @@ class ConsumablesTests(TestCase):
             user_profile=self.profile, item=gold_token, quantity=1
         )
 
-        # On D-Rank (1.5x): 200 * 1.5 = 300 gold reward
+        # On D-Rank (1.25x): 200 * 1.25 = 250 gold reward
         self.profile.rank_xp = 300
         self.profile.gold = 100
         self.profile.save()
 
         success, msg, profile = consume_item(self.user, "daily_gold_rush")
         self.assertTrue(success)
-        self.assertEqual(profile.gold, 400)  # 100 + 300
+        self.assertEqual(profile.gold, 350)  # 100 + 250
+
+    def test_sell_gear_fallback_value(self):
+        from api.services.shop_service import sell_item
+        # Create an A-tier equipment item with cost = 0
+        a_gear, _ = Item.objects.get_or_create(
+            code="test_a_helm",
+            defaults={
+                "name": "Test A Helm",
+                "item_type": Item.ItemType.EQUIPMENT,
+                "gear_class": "A",
+                "cost": 0,
+            },
+        )
+        InventoryItem.objects.create(
+            user_profile=self.profile, item=a_gear, quantity=1
+        )
+        self.profile.gold = 0
+        self.profile.save()
+
+        success, msg, profile = sell_item(self.user, "test_a_helm", 1)
+        self.assertTrue(success)
+        # A-tier base cost is 3500, sell rate is 30% -> 3500 * 0.30 = 1050G
+        self.assertEqual(profile.gold, 1050)
+
