@@ -38,6 +38,12 @@ public class WidgetSyncPlugin extends Plugin {
         summaryIntent.setPackage(ctx.getPackageName());
         ctx.sendBroadcast(summaryIntent);
 
+        // 4. Trigger Quick Actions Widget
+        Intent quickIntent = new Intent(ctx, QuickActionsWidgetProvider.class);
+        quickIntent.setAction(QuickActionsWidgetProvider.ACTION_UPDATE_QUICK);
+        quickIntent.setPackage(ctx.getPackageName());
+        ctx.sendBroadcast(quickIntent);
+
         call.resolve();
     }
 

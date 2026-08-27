@@ -88,6 +88,15 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
       setShopTab(tab === "inventory" ? "chests" : tab);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    const handleOpenShopTab = (e) => {
+      const targetTab = e.detail?.tab || "chests";
+      setShopTab(targetTab);
+    };
+    window.addEventListener("mindos:open_shop_tab", handleOpenShopTab);
+    return () => window.removeEventListener("mindos:open_shop_tab", handleOpenShopTab);
+  }, []);
   const [activeSlot, setActiveSlot] = useState(null);
   const [boughtItem, setBoughtItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);

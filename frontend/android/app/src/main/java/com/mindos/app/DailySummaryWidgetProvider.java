@@ -19,26 +19,28 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent != null ? intent.getAction() : null;
-        if (ACTION_UPDATE_SUMMARY.equals(action)
-                || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)
-                || RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET.equals(action)) {
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            ComponentName componentName = new ComponentName(context, DailySummaryWidgetProvider.class);
-            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
-            for (int appWidgetId : appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId);
-            }
+        if (ACTION_UPDATE_SUMMARY.equals(action) || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action) || RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET.equals(action) || DailiesWidgetProvider.ACTION_UPDATE_DAILIES.equals(action)) {
+            refreshAllWidgets(context);
         }
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+            updateSummaryWidget(context, appWidgetManager, appWidgetId);
         }
     }
 
-    private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+    public static void refreshAllWidgets(Context context) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName componentName = new ComponentName(context, DailySummaryWidgetProvider.class);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
+        for (int appWidgetId : appWidgetIds) {
+            updateSummaryWidget(context, appWidgetManager, appWidgetId);
+        }
+    }
+
+    public static void updateSummaryWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.daily_summary_widget);
 
         // Click to open Dailies in app
@@ -76,22 +78,23 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
             }
 
             int leftCount = Math.max(0, totalCount - doneCount);
+            int percent = totalCount > 0 ? Math.round((doneCount * 100f) / totalCount) : 0;
 
-            // FIX: Use string resources instead of hardcoded English strings
-            views.setTextViewText(R.id.summary_streak_text,
-                    String.format(context.getString(R.string.widget_summary_streak), streak));
+            views.setTextViewText(R.id.summary_streak_text, streak > 0 ? (streak + " Day Streak") : "No Streak");
             views.setTextViewText(R.id.summary_done_count, String.valueOf(doneCount));
-            views.setTextViewText(R.id.summary_done_label,
-                    context.getString(R.string.widget_summary_done_label));
+            views.setTextViewText(R.id.summary_total_count, "/" + totalCount);
+            views.setTextViewText(R.id.summary_percent_badge, percent + "%");
             views.setProgressBar(R.id.summary_progress_bar, Math.max(1, totalCount), doneCount, false);
 
-            if (leftCount == 0 && totalCount > 0) {
-                views.setTextViewText(R.id.summary_left_text,
-                        context.getString(R.string.widget_summary_all_clear));
+            if (totalCount > 0 && doneCount == totalCount) {
+                views.setTextViewText(R.id.summary_done_label, "✦ Daily Quests Cleared! ✦");
+                views.setTextViewText(R.id.summary_left_text, "All Complete");
             } else {
-                views.setTextViewText(R.id.summary_left_text,
-                        String.format(context.getString(R.string.widget_summary_left), leftCount));
+                views.setTextViewText(R.id.summary_done_label, "Dailies Completed");
+                views.setTextViewText(R.id.summary_left_text, leftCount + " left to do");
             }
+
+            views.setTextViewText(R.id.summary_reset_text, " • Reset 00:00");
 
         } catch (Exception e) {
             e.printStackTrace();

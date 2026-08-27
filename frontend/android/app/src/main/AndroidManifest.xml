@@ -55,6 +55,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.mindos.app.ACTION_UPDATE_DAILIES" />
+                <action android:name="com.mindos.app.ACTION_TOGGLE_DAILY" />
                 <action android:name="com.mindos.app.ACTION_UPDATE_WIDGET" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
@@ -80,6 +81,9 @@
             android:permission="android.permission.BIND_APPWIDGET">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_QUICK" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_WIDGET" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_DAILIES" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/quick_actions_widget_info" />

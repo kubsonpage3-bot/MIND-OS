@@ -29,7 +29,7 @@ const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
 import { isMobileApp } from "@/utils/platformUtils";
-import { syncWidgetStats, getWidgetLaunchIntentAction } from "@/utils/widget";
+import { syncWidgetStats, getWidgetLaunchIntentAction, processPendingWidgetActions } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
@@ -640,43 +640,49 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         sp: profile.skill_points || profile.sp || 0,
         streak: profile.daily_streak || profile.streak || 0,
         level: profile.level || 1,
-        avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default",
-        username: profile.username || profile.display_name || "",
-        gf: profile.gf ?? 100.0,
-        gc: profile.gc ?? 100.0,
-        ps: profile.ps ?? 100.0,
-        vm: profile.vm ?? 100.0,
-        gf_ceiling: profile.gf_ceiling ?? 105.0,
-        gc_ceiling: profile.gc_ceiling ?? 105.0,
-        ps_ceiling: profile.ps_ceiling ?? 105.0,
-        vm_ceiling: profile.vm_ceiling ?? 105.0,
+        avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
       }, rawDailies);
     }
-  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id, profile?.gold, profile?.skill_points, profile?.sp, profile?.daily_streak, profile?.streak, profile?.level, profile?.username, profile?.gf, profile?.gc, profile?.ps, profile?.vm, tasks]);
+  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id, profile?.gold, profile?.skill_points, profile?.sp, profile?.daily_streak, profile?.streak, profile?.level, tasks]);
 
-  // Handle widget launch action intents
+  // Handle widget launch action intents & flush pending widget toggles
   useEffect(() => {
     const handleWidgetAction = async () => {
+      // 1. Process any pending daily toggles done directly on home screen widgets
+      await processPendingWidgetActions(async (taskId, isCompleting) => {
+        try {
+          const res = await djangoApi.tasks.complete(taskId, isCompleting);
+          if (res?.profile) {
+            queryClient.setQueryData(["userprofile"], res.profile);
+          }
+          queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+        } catch (err) {
+          console.error("Failed to sync widget task completion:", err);
+        }
+      });
+
+      // 2. Process launch intents
       const action = await getWidgetLaunchIntentAction();
       if (!action) return;
 
       if (action === "create_habit" || action === "create_daily" || action === "create_todo") {
-        setActiveTab("tasks");
+        if (typeof onSectionChange === "function") onSectionChange("tasks");
         window.dispatchEvent(new CustomEvent("mindos:open_task_modal", {
           detail: { type: action.replace("create_", "") }
         }));
       } else if (action === "open_chest") {
-        setActiveTab("character");
-        setSubTab("chest");
+        if (typeof onSectionChange === "function") onSectionChange("character");
+        if (typeof onSubItemChange === "function") onSubItemChange("shop");
+        window.dispatchEvent(new CustomEvent("mindos:open_shop_tab", { detail: { tab: "chests" } }));
       } else if (action === "open_dailies") {
-        setActiveTab("tasks");
+        if (typeof onSectionChange === "function") onSectionChange("tasks");
       }
     };
 
     handleWidgetAction();
     window.addEventListener("focus", handleWidgetAction);
     return () => window.removeEventListener("focus", handleWidgetAction);
-  }, []);
+  }, [onSectionChange, onSubItemChange, queryClient]);
 
   const updateProfile = useMutation({
     /**

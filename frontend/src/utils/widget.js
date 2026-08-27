@@ -7,7 +7,7 @@ const WidgetSync = registerPlugin('WidgetSync');
 /**
  * Saves character stats and dailies to Capacitor Preferences and triggers native Android widgets refresh.
  * @param {Object} profile - { hp, max_hp, mp, max_mp, xp, max_xp, class, rank, theme, gold, sp, streak, level }
- * @param {Array} [dailies] - Optional list of daily tasks [{ id, title, completed, category, difficulty }]
+ * @param {Array} [dailies] - Optional list of daily tasks [{ id, title, completed, category, difficulty, streak, value }]
  */
 export const syncWidgetStats = async (profile, dailies = null) => {
   if (!Capacitor.isNativePlatform()) return;
@@ -30,16 +30,6 @@ export const syncWidgetStats = async (profile, dailies = null) => {
           streak: profile.streak ?? 0,
           level: profile.level ?? 1,
           avatar_res_name: profile.avatar_res_name || 'avatar_default',
-          username: profile.username || profile.display_name || '',
-          // Cognitive IQ metrics — needed for IQ mini-bars in widget
-          gf: profile.gf ?? 100.0,
-          gc: profile.gc ?? 100.0,
-          ps: profile.ps ?? 100.0,
-          vm: profile.vm ?? 100.0,
-          gf_ceiling: profile.gf_ceiling ?? 105.0,
-          gc_ceiling: profile.gc_ceiling ?? 105.0,
-          ps_ceiling: profile.ps_ceiling ?? 105.0,
-          vm_ceiling: profile.vm_ceiling ?? 105.0,
         })
       });
     }
@@ -48,9 +38,11 @@ export const syncWidgetStats = async (profile, dailies = null) => {
       const sanitizedDailies = dailies.map(d => ({
         id: d.id,
         title: d.name || d.title || 'Daily Task',
-        completed: Boolean(d.done || d.is_completed || d.completed_today || d.completed),
-        category: d.category || 'misc',
+        completed: Boolean(d.done || d.is_completed || d.completedToday || d.completed_today || d.completed),
+        category: d.category || 'Other',
         difficulty: d.difficulty || 'medium',
+        streak: d.streak || 0,
+        value: d.value ?? d.rpgValue ?? 0,
       }));
 
       await Preferences.set({
@@ -77,5 +69,41 @@ export const getWidgetLaunchIntentAction = async () => {
     return res?.action || null;
   } catch (error) {
     return null;
+  }
+};
+
+/**
+ * Flushes any pending toggle actions recorded directly on Android home screen widgets.
+ * @param {Function} onCompleteTask - Callback `async (taskId, isCompleting) => Promise<void>`
+ */
+export const processPendingWidgetActions = async (onCompleteTask) => {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const res = await Preferences.get({ key: 'mindos_pending_widget_actions' });
+    if (!res?.value) return;
+
+    let actions = [];
+    try {
+      actions = JSON.parse(res.value);
+    } catch {
+      actions = [];
+    }
+
+    if (!Array.isArray(actions) || actions.length === 0) return;
+
+    // Reset pending queue immediately to avoid duplicate dispatch
+    await Preferences.set({ key: 'mindos_pending_widget_actions', value: '[]' });
+
+    for (const item of actions) {
+      if (item.action === 'toggle_daily' && item.taskId && typeof onCompleteTask === 'function') {
+        try {
+          await onCompleteTask(item.taskId, Boolean(item.isCompleted));
+        } catch (err) {
+          console.error(`Failed to process widget toggle for task ${item.taskId}:`, err);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to process pending widget actions:', error);
   }
 };
