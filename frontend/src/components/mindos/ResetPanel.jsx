@@ -163,9 +163,9 @@ export default function ResetPanel() {
           <button
             onClick={resetTrainingActivities}
             disabled={resetting}
-            className="w-full py-2 rounded-lg border border-blue-500/40 text-blue-400 font-mono text-xs hover:bg-blue-500/10 transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg border border-blue-500/40 text-blue-400 font-mono text-xs hover:bg-blue-500/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {resetting ? "Resetting..." : "Reset Activities to Rank F"}
+            {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_activities_btn", "Reset Activities to Rank F")}
           </button>
         </motion.div>
 
@@ -182,9 +182,9 @@ export default function ResetPanel() {
           <button
             onClick={resetStreak}
             disabled={resetting}
-            className="w-full py-2 rounded-lg border border-[var(--habit-border)] text-muted-foreground font-mono text-xs hover:bg-accent transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg border border-[var(--habit-border)] text-muted-foreground font-mono text-xs hover:bg-accent transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {resetting ? "Resetting..." : "Reset Streak"}
+            {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_streak_btn", "Reset Streak")}
           </button>
         </motion.div>
 
@@ -202,9 +202,9 @@ export default function ResetPanel() {
           <button
             onClick={resetTasks}
             disabled={resetting}
-            className="w-full py-2 rounded-lg border border-orange-500/40 text-orange-400 font-mono text-xs hover:bg-orange-500/10 transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg border border-orange-500/40 text-orange-400 font-mono text-xs hover:bg-orange-500/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {resetting ? "Clearing..." : "Clear Tasks"}
+            {resetting ? t("reset_ui.clearing", "Clearing...") : t("reset_panel.clear_tasks_btn", "Clear Tasks")}
           </button>
         </motion.div>
       </div>
@@ -225,9 +225,9 @@ export default function ResetPanel() {
           <button
             onClick={resetAllies}
             disabled={resetting}
-            className="w-full py-2 rounded-lg border border-purple-500/40 text-purple-400 font-mono text-xs hover:bg-purple-500/10 transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg border border-purple-500/40 text-purple-400 font-mono text-xs hover:bg-purple-500/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {resetting ? "Resetting..." : "Reset Allies"}
+            {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_allies_btn", "Reset Allies")}
           </button>
         </motion.div>
 
@@ -245,9 +245,9 @@ export default function ResetPanel() {
           <button
             onClick={resetSkillTree}
             disabled={resetting}
-            className="w-full py-2 rounded-lg border border-blue-500/40 text-blue-400 font-mono text-xs hover:bg-blue-500/10 transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg border border-blue-500/40 text-blue-400 font-mono text-xs hover:bg-blue-500/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {resetting ? "Resetting..." : "Reset Skills"}
+            {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_skills_btn", "Reset Skills")}
           </button>
         </motion.div>
       </div>
@@ -267,9 +267,9 @@ export default function ResetPanel() {
         <button
           onClick={resetStats}
           disabled={resetting}
-          className="w-full py-2 rounded-lg border border-red-500/40 text-red-400 font-mono text-xs hover:bg-red-500/10 transition-colors"
+          className="w-full py-2 rounded-lg border border-red-500/40 text-red-400 font-mono text-xs hover:bg-red-500/10 transition-colors cursor-pointer"
         >
-          {resetting ? "Resetting..." : "Reset Progress"}
+          {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_progress_btn", "Reset Progress")}
         </button>
       </motion.div>
 
@@ -281,15 +281,15 @@ export default function ResetPanel() {
       >
         <div className="flex items-center gap-2">
           <Trash2 className="w-3.5 h-3.5 text-red-500" />
-          <span className="font-mono text-xs font-bold text-red-500">⚠ Nuclear Reset</span>
+          <span className="font-mono text-xs font-bold text-red-500">⚠ {t("reset_panel.nuclear_title", "Nuclear Reset")}</span>
         </div>
         <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.nuclear_desc")}</p>
         <button
           onClick={resetAllData}
           disabled={resetting}
-          className="w-full py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 font-mono text-xs font-bold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+          className="w-full py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 font-mono text-xs font-bold hover:bg-red-500/30 transition-colors disabled:opacity-50 cursor-pointer"
         >
-          {resetting ? "Deleting..." : "DELETE ALL DATA"}
+          {resetting ? t("reset_ui.deleting", "Deleting...") : t("reset_panel.delete_all_btn", "DELETE ALL DATA")}
         </button>
       </motion.div>
     </div>

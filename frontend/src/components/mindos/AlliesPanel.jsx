@@ -418,34 +418,34 @@ export default function AlliesPanel({ onSpendGold }) {
                 <button
                   onClick={() => recruit(selected)}
                   disabled={gold < selected.recruitCost || revealState !== "idle"}
-                  className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all"
+                  className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all cursor-pointer"
                   style={{
                     borderColor: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-border)",
                     color: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-dim)",
                     background: gold >= selected.recruitCost ? "#f0c04015" : "transparent",
                   }}
                 >
-                  {revealState !== "idle" ? "SUMMONING..." : `RECRUIT — ${selected.recruitCost}G`}
+                  {revealState !== "idle" ? t('allies_panel.summoning', 'SUMMONING...') : `${t('allies_panel.recruit', 'RECRUIT')} — ${selected.recruitCost}G`}
                 </button>
               ) : (levels[selected.id] || 1) < 5 ? (
                 <button
                   onClick={() => upgrade(selected)}
                   disabled={gold < (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0)}
-                  className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all"
+                  className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all cursor-pointer"
                   style={{
                     borderColor: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-border)",
                     color: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-dim)",
                     background: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? `${selected.color}15` : "transparent",
                   }}
                 >
-                  UPGRADE → Lv{(levels[selected.id] || 1) + 1} — {selected.upgradeCosts[(levels[selected.id] || 1) - 1]}G
+                  {t('allies_panel.upgrade', 'UPGRADE')} → Lv{(levels[selected.id] || 1) + 1} — {selected.upgradeCosts[(levels[selected.id] || 1) - 1]}G
                 </button>
               ) : (
-                <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">{t('allies_panel.max_level')}</div>
+                <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">{t('allies_panel.max_level', 'MAX LEVEL REACHED')}</div>
               )}
 
-              <button onClick={closeDetail} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors">
-                CLOSE
+              <button onClick={closeDetail} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-pointer">
+                {t('common.close', 'CLOSE')}
               </button>
             </motion.div>
           </motion.div>

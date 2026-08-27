@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import { djangoApi } from "@/api/djangoClient";
@@ -8,6 +9,7 @@ import ClassSelector from "@/components/mindos/ClassSelector";
 import { Sparkles, UserCheck } from "lucide-react";
 
 export default function SelectClass() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -35,7 +37,7 @@ export default function SelectClass() {
       navigate("/");
     },
     onError: (err) => {
-      setErrorMsg(err?.message || "Initialization failed. Please try again.");
+      setErrorMsg(err?.message || t("select_class.init_failed", "Initialization failed. Please try again."));
     },
   });
 
@@ -54,11 +56,11 @@ export default function SelectClass() {
         <div className="text-center mb-6 space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-mono uppercase tracking-widest">
             <Sparkles className="w-3.5 h-3.5" />
-            {isChanging ? "CLASS RECALIBRATION" : "SELECT CLASS ARCHITECTURE"}
+            {isChanging ? t("select_class.class_recalibration", "CLASS RECALIBRATION") : t("select_class.select_architecture", "SELECT CLASS ARCHITECTURE")}
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-purple-300">
-            CHOOSE YOUR CLASS
+            {t("select_class.choose_class_title", "CHOOSE YOUR CLASS")}
           </h1>
         </div>
 
@@ -76,7 +78,7 @@ export default function SelectClass() {
         {completeOnboardingMutation.isPending && (
           <div className="mt-4 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 text-center font-mono text-xs text-purple-300 animate-pulse flex items-center justify-center gap-2">
             <UserCheck className="w-4 h-4 animate-bounce" />
-            INITIALIZING NEURAL LINK & SETTING CLASS...
+            {t("select_class.initializing", "INITIALIZING NEURAL LINK & SETTING CLASS...")}
           </div>
         )}
       </div>

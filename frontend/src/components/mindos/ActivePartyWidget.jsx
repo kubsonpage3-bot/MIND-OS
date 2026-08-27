@@ -31,9 +31,9 @@ const RANK_COLORS = {
 };
 
 const SLOT_ROLES = [
-  { role: "VANGUARD", icon: Shield },
-  { role: "SPECIALIST", icon: Zap },
-  { role: "SUPPORT", icon: Sparkles }
+  { id: "vanguard", role: "VANGUARD", icon: Shield },
+  { id: "specialist", role: "SPECIALIST", icon: Zap },
+  { id: "support", role: "SUPPORT", icon: Sparkles }
 ];
 
 export default function ActivePartyWidget() {
@@ -115,7 +115,7 @@ export default function ActivePartyWidget() {
           <span className="font-game text-[10px] text-[var(--habit-text)] tracking-wider uppercase font-black flex items-center gap-2">
             {t('settings.active_party', 'ACTIVE PARTY')}
             <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[var(--habit-purple)]/20 text-[var(--habit-purple)] border border-[var(--habit-purple)]/40 font-bold">
-              {activeCount}/3 ALLIES
+              {activeCount}/3 {t('active_party.allies_badge', 'ALLIES')}
             </span>
           </span>
         </div>
@@ -156,7 +156,7 @@ export default function ActivePartyWidget() {
                   <div className="w-full flex items-center justify-between mb-1">
                     <span className="font-game text-[7px] text-[var(--habit-dim)] flex items-center gap-0.5">
                       <RoleIcon className="w-2.5 h-2.5" />
-                      {slotConfig.role}
+                      {t(`active_party.slot_roles.${slotConfig.id}`, slotConfig.role)}
                     </span>
                     <span 
                       className="font-game text-[7px] px-1 py-0.2 rounded font-black uppercase"
@@ -209,9 +209,11 @@ export default function ActivePartyWidget() {
                   <div className="w-full flex items-center justify-between mb-1">
                     <span className="font-game text-[7px] text-[var(--habit-dim)] flex items-center gap-0.5">
                       <RoleIcon className="w-2.5 h-2.5 opacity-60" />
-                      {slotConfig.role}
+                      {t(`active_party.slot_roles.${slotConfig.id}`, slotConfig.role)}
                     </span>
-                    <span className="font-game text-[7px] text-[var(--habit-dim)] opacity-50">EMPTY</span>
+                    <span className="font-game text-[7px] text-[var(--habit-dim)] opacity-50">
+                      {t('active_party.empty_slot', 'EMPTY')}
+                    </span>
                   </div>
 
                   {/* Summon Altar Circle */}
@@ -230,10 +232,10 @@ export default function ActivePartyWidget() {
                   {/* Summon Label */}
                   <div className="w-full text-center mt-1">
                     <div className="font-game text-[8.5px] font-bold text-[var(--habit-purple)] tracking-wider">
-                      + SUMMON
+                      {t('active_party.summon', '+ SUMMON')}
                     </div>
                     <div className="font-game text-[6.5px] text-[var(--habit-dim)]">
-                      [ TAP TO RECRUIT ]
+                      {t('active_party.tap_to_recruit', '[ TAP TO RECRUIT ]')}
                     </div>
                   </div>
                 </motion.div>

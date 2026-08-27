@@ -133,11 +133,11 @@ export const METRIC_CONFIG = {
 };
 
 export const LEVEL_TITLES = [
-  { min: 0, max: 105, title: "Awakening", color: "#94a3b8" },
-  { min: 106, max: 110, title: "Grinder", color: "#f59e0b" },
-  { min: 111, max: 115, title: "Sharpened", color: "#3b82f6" },
-  { min: 116, max: 120, title: "Elite", color: "#a855f7" },
-  { min: 121, max: 999, title: "Ceiling Breaker", color: "#22c55e" },
+  { id: "awakening", min: 0, max: 105, title: "Awakening", color: "#94a3b8" },
+  { id: "grinder", min: 106, max: 110, title: "Grinder", color: "#f59e0b" },
+  { id: "sharpened", min: 111, max: 115, title: "Sharpened", color: "#3b82f6" },
+  { id: "elite", min: 116, max: 120, title: "Elite", color: "#a855f7" },
+  { id: "ceiling_breaker", min: 121, max: 999, title: "Ceiling Breaker", color: "#22c55e" },
 ];
 
 export function getLevelTitle(iq) {

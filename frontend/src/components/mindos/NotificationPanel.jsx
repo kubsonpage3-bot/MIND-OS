@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Bell, BellOff, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -42,6 +43,7 @@ function sendNotification(title, body, icon) {
 }
 
 export default function NotificationPanel() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState(loadNotificationSettings);
   const [showModal, setShowModal] = useState(false);
   const [permStatus, setPermStatus] = useState("default");
@@ -82,7 +84,7 @@ export default function NotificationPanel() {
     if (perm === "granted") {
       setSettings({ ...settings, enabled: true });
       saveNotificationSettings({ ...settings, enabled: true });
-      setToast({ type: "success", message: "Notifications enabled" });
+      setToast({ type: "success", message: t("notifications.enabled_toast", "Notifications enabled") });
       setTimeout(() => setToast(null), 3000);
     }
   };
@@ -90,7 +92,7 @@ export default function NotificationPanel() {
   const handleDisable = () => {
     setSettings({ ...settings, enabled: false });
     saveNotificationSettings({ ...settings, enabled: false });
-    setToast({ type: "info", message: "Notifications disabled" });
+    setToast({ type: "info", message: t("notifications.disabled_toast", "Notifications disabled") });
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -111,7 +113,7 @@ export default function NotificationPanel() {
       "Your notification system is working. Time to train!",
       "/favicon.ico"
     );
-    setToast({ type: "success", message: "Test notification sent" });
+    setToast({ type: "success", message: t("notifications.test_toast", "Test notification sent") });
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -120,13 +122,13 @@ export default function NotificationPanel() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-            Notifications
+            {t("notifications.title", "Notifications")}
           </span>
           <button
             onClick={() => setShowModal(true)}
-            className="text-[10px] font-mono text-primary hover:text-primary/80"
+            className="text-[10px] font-mono text-primary hover:text-primary/80 cursor-pointer"
           >
-            SETTINGS →
+            {t("notifications.settings_btn", "SETTINGS →")}
           </button>
         </div>
 
@@ -139,12 +141,12 @@ export default function NotificationPanel() {
             )}
             <div className="flex-1">
               <div className="text-xs font-semibold">
-                {settings.enabled ? "Daily Reminder Active" : "Notifications Disabled"}
+                {settings.enabled ? t("notifications.reminder_active", "Daily Reminder Active") : t("notifications.disabled", "Notifications Disabled")}
               </div>
               <div className="text-[10px] font-mono text-muted-foreground/60">
                 {settings.enabled 
-                  ? `⏰ ${settings.time} daily · Rival alerts: ${settings.rivalEnabled ? "ON" : "OFF"}`
-                  : "Enable to receive daily training reminders"}
+                  ? t("notifications.active_hint", { time: settings.time, rival: settings.rivalEnabled ? "ON" : "OFF", defaultValue: `⏰ ${settings.time} daily · Rival alerts: ${settings.rivalEnabled ? "ON" : "OFF"}` })
+                  : t("notifications.disabled_hint", "Enable to receive daily training reminders")}
               </div>
             </div>
           </div>
@@ -159,8 +161,8 @@ export default function NotificationPanel() {
         >
           <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[85svh] overflow-y-auto">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm font-bold tracking-wider">NOTIFICATION SETTINGS</span>
-              <button onClick={() => setShowModal(false)}>
+              <span className="font-mono text-sm font-bold tracking-wider">{t("notifications.modal_title", "NOTIFICATION SETTINGS")}</span>
+              <button onClick={() => setShowModal(false)} className="cursor-pointer">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
@@ -168,32 +170,32 @@ export default function NotificationPanel() {
             {/* Permission status */}
             {permStatus === "unsupported" && (
               <div className="text-xs text-red-400 font-mono bg-red-500/10 border border-red-500/30 rounded-lg p-2">
-                ⚠ Your browser doesn't support notifications
+                {t("notifications.unsupported", "⚠ Your browser doesn't support notifications")}
               </div>
             )}
             {permStatus === "denied" && (
               <div className="text-xs text-amber-400 font-mono bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
-                ⚠ Notifications blocked — enable in browser settings
+                {t("notifications.denied", "⚠ Notifications blocked — enable in browser settings")}
               </div>
             )}
 
             {/* Enable/Disable */}
             <div className="space-y-2">
-              <label className="text-[10px] font-mono text-muted-foreground uppercase">Daily Reminder</label>
+              <label className="text-[10px] font-mono text-muted-foreground uppercase">{t("notifications.daily_reminder", "Daily Reminder")}</label>
               {settings.enabled ? (
                 <button
                   onClick={handleDisable}
-                  className="w-full py-2 rounded-lg border border-red-500/40 text-red-400 text-xs font-mono hover:bg-red-500/10 transition-colors"
+                  className="w-full py-2 rounded-lg border border-red-500/40 text-red-400 text-xs font-mono hover:bg-red-500/10 transition-colors cursor-pointer"
                 >
-                  DISABLE NOTIFICATIONS
+                  {t("notifications.disable_btn", "DISABLE NOTIFICATIONS")}
                 </button>
               ) : (
                 <button
                   onClick={handleEnable}
                   disabled={permStatus === "unsupported" || permStatus === "denied"}
-                  className="w-full py-2 rounded-lg border border-primary/40 text-primary text-xs font-mono hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-2 rounded-lg border border-primary/40 text-primary text-xs font-mono hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  ENABLE NOTIFICATIONS
+                  {t("notifications.enable_btn", "ENABLE NOTIFICATIONS")}
                 </button>
               )}
             </div>
@@ -201,7 +203,7 @@ export default function NotificationPanel() {
             {/* Time picker */}
             {settings.enabled && (
               <div className="space-y-2">
-                <label className="text-[10px] font-mono text-muted-foreground uppercase">Reminder Time</label>
+                <label className="text-[10px] font-mono text-muted-foreground uppercase">{t("notifications.reminder_time", "Reminder Time")}</label>
                 <input
                   type="time"
                   value={settings.time}
@@ -215,14 +217,14 @@ export default function NotificationPanel() {
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-semibold">Rival Activity Alerts</div>
+                  <div className="text-xs font-semibold">{t("notifications.rival_alerts", "Rival Activity Alerts")}</div>
                   <div className="text-[10px] font-mono text-muted-foreground/60">
-                    Get notified when JOHAN starts training
+                    {t("notifications.rival_desc", "Get notified when JOHAN starts training")}
                   </div>
                 </div>
                 <button
                   onClick={handleRivalToggle}
-                  className={`w-10 h-5 rounded-full transition-colors ${
+                  className={`w-10 h-5 rounded-full transition-colors cursor-pointer ${
                     settings.rivalEnabled ? "bg-primary" : "bg-muted"
                   }`}
                 >
@@ -239,9 +241,9 @@ export default function NotificationPanel() {
             {settings.enabled && (
               <button
                 onClick={handleTestNotification}
-                className="w-full py-2 rounded-lg border border-border text-xs font-mono hover:bg-accent transition-colors"
+                className="w-full py-2 rounded-lg border border-border text-xs font-mono hover:bg-accent transition-colors cursor-pointer"
               >
-                SEND TEST NOTIFICATION
+                {t("notifications.send_test", "SEND TEST NOTIFICATION")}
               </button>
             )}
           </div>

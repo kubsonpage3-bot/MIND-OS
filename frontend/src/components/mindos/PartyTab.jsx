@@ -179,7 +179,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
                     style={buffReady ? { animation: 'pulse 2s infinite' } : {}}
                   />
                   {buffReady
-                    ? <span>{showBuffs ? 'CLOSE ✕' : '⚡ BLESS'}</span>
+                    ? <span>{showBuffs ? t('party_extra.close', 'CLOSE ✕') : t('party_extra.bless', '⚡ BLESS')}</span>
                     : <span>⏳ {buffCooldownH}h</span>
                   }
                 </button>
@@ -692,7 +692,7 @@ function NoPartyView({ onCreated, onJoined }) {
         <div className="flex items-center gap-2 border-b border-red-500/20 pb-2">
           <Swords className="w-4 h-4 text-red-400 animate-pulse" />
           <span className="text-xs font-pixel text-red-300 uppercase tracking-widest">
-            🩸 FORGE A NEW COVENANT
+            {t('party_extra.forge_title', '🩸 FORGE A NEW COVENANT')}
           </span>
         </div>
         <input
@@ -706,7 +706,7 @@ function NoPartyView({ onCreated, onJoined }) {
         <button
           onClick={() => createMutation.mutate()}
           disabled={!createName.trim() || createMutation.isPending}
-          className="w-full py-2.5 rounded-xl font-pixel font-bold text-xs transition-all flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl font-pixel font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
             background: createName.trim() ? 'linear-gradient(90deg, #991b1b 0%, #dc2626 100%)' : 'rgba(255,255,255,0.05)',
             border: `1px solid ${createName.trim() ? '#ef4444' : 'rgba(255,255,255,0.1)'}`,
@@ -715,7 +715,7 @@ function NoPartyView({ onCreated, onJoined }) {
             cursor: createName.trim() ? 'pointer' : 'not-allowed',
           }}
         >
-          {createMutation.isPending ? 'FORGING ORDER...' : '⚔️ FORGE COVENANT'}
+          {createMutation.isPending ? 'FORGING ORDER...' : t('party_extra.forge_btn', '⚔️ FORGE COVENANT')}
         </button>
       </div>
 
@@ -731,7 +731,7 @@ function NoPartyView({ onCreated, onJoined }) {
         <div className="flex items-center gap-2 border-b border-purple-500/20 pb-2">
           <UserPlus className="w-4 h-4 text-purple-400" />
           <span className="text-xs font-pixel text-purple-300 uppercase tracking-widest">
-            🗝️ ENTER SUMMONING GLYPH
+            {t('party_extra.join_title', '🗝️ ENTER SUMMONING GLYPH')}
           </span>
         </div>
         <input
@@ -745,7 +745,7 @@ function NoPartyView({ onCreated, onJoined }) {
         <button
           onClick={() => joinMutation.mutate()}
           disabled={joinCode.trim().length !== 6 || joinMutation.isPending}
-          className="w-full py-2.5 rounded-xl font-pixel font-bold text-xs transition-all flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl font-pixel font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
             background: joinCode.trim().length === 6 ? 'linear-gradient(90deg, #7c3aed 0%, #9333ea 100%)' : 'rgba(255,255,255,0.05)',
             border: `1px solid ${joinCode.trim().length === 6 ? '#a855f7' : 'rgba(255,255,255,0.1)'}`,
@@ -754,7 +754,7 @@ function NoPartyView({ onCreated, onJoined }) {
             cursor: joinCode.trim().length === 6 ? 'pointer' : 'not-allowed',
           }}
         >
-          {joinMutation.isPending ? 'ANSWERING SUMMON...' : '🔮 ANSWER SUMMON'}
+          {joinMutation.isPending ? 'ANSWERING SUMMON...' : t('party_extra.join_btn', '🔮 ANSWER SUMMON')}
         </button>
       </div>
 
@@ -1126,6 +1126,7 @@ function PartyLeaderboardView() {
 // ─── Has-Party State ──────────────────────────────────────────────────────────
 
 function PartyView({ party }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { profile } = useDjangoAuth();
   const [activeTab, setActiveTab] = useState('members');
@@ -1295,13 +1296,13 @@ function PartyView({ party }) {
           { id: "members", label: "Members" },
           { id: "feed", label: "Activity" },
           { id: "leaderboard", label: "Rankings" },
-        ].map((t) => {
-          const isActive = activeTab === t.id;
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
           return (
             <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className="flex-1 px-3 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs font-pixel"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-1 px-3 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs font-pixel cursor-pointer"
               style={{
                 background: isActive ? "linear-gradient(90deg, #7f1d1d 0%, #991b1b 100%)" : "transparent",
                 color: isActive ? "#ffffff" : "#9ca3af",
@@ -1309,10 +1310,10 @@ function PartyView({ party }) {
                 border: `1px solid ${isActive ? "rgba(239,68,68,0.5)" : "transparent"}`,
               }}
             >
-              {t.id === 'members' && <Users className="w-3.5 h-3.5" />}
-              {t.id === 'feed' && <MessageSquare className="w-3.5 h-3.5" />}
-              {t.id === 'leaderboard' && <Crown className="w-3.5 h-3.5" />}
-              {t.label}
+              {tab.id === 'members' && <Users className="w-3.5 h-3.5" />}
+              {tab.id === 'feed' && <MessageSquare className="w-3.5 h-3.5" />}
+              {tab.id === 'leaderboard' && <Crown className="w-3.5 h-3.5" />}
+              {t(`partyTab.tabs.${tab.id}`, tab.label)}
             </button>
           );
         })}

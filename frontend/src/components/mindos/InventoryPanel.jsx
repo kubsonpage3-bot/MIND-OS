@@ -115,10 +115,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
 
       {/* Sub-tabs */}
       <div className="flex gap-1">
-        {["gear", "consumables"].map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-3 py-1 text-[10px] font-mono uppercase rounded transition-all ${tab === t ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-          >{t}</button>
+        {["gear", "consumables"].map(tb => (
+          <button key={tb} onClick={() => setTab(tb)}
+            className={`px-3 py-1 text-[10px] font-mono uppercase rounded transition-all cursor-pointer ${tab === tb ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >{t(`inventory_panel.${tb}_tab`, tb)}</button>
         ))}
       </div>
 
@@ -203,7 +203,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                             {itemName}
                           </div>
                         </div>
-                        {equipped_now && <div className="mt-1"><span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: `${tierColor}30`, color: tierColor }}>EQUIPPED</span></div>}
+                        {equipped_now && <div className="mt-1"><span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: `${tierColor}30`, color: tierColor }}>{t('inventory_panel.equipped', 'EQUIPPED')}</span></div>}
                         <div className="text-[9px] font-mono text-muted-foreground/80 font-semibold mt-1 truncate px-1" style={{ color: `${tierColor}d0` }}>
                           {statsFormatted}
                         </div>
@@ -221,14 +221,14 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                 <div className="mt-3 shrink-0 flex flex-col gap-1 z-10 relative">
                   {!equipped_now ? (
                     <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
-                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all"
+                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all cursor-pointer"
                       style={{ borderColor: `${tierColor}60`, color: tierColor, background: `${tierColor}15` }}
-                    >EQUIP</motion.button>
+                    >{t('inventory_panel.equip', 'EQUIP')}</motion.button>
                   ) : (
                     <motion.button whileTap={{ scale: 0.9 }} onClick={() => onToggleEquip(item)}
-                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all opacity-50"
+                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all opacity-50 cursor-pointer"
                       style={{ borderColor: "#1e293b", color: "#4a4060", background: "transparent" }}
-                    >UNEQUIP</motion.button>
+                    >{t('inventory_panel.unequip', 'UNEQUIP')}</motion.button>
                   )}
 
                   {!equipped_now && (
@@ -236,10 +236,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                       whileTap={{ scale: 0.9 }}
                       onClick={() => sellMutation.mutate(item.id)}
                       disabled={sellMutation.isPending}
-                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center gap-1"
+                      className="w-full px-2 py-1.5 text-[9px] font-mono font-bold rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Coins className="w-3 h-3" />
-                      SELL (+{getItemSellValue(item)}G)
+                      {t('inventory_panel.sell', 'SELL')} (+{getItemSellValue(item)}G)
                     </motion.button>
                   )}
                 </div>
@@ -300,7 +300,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     <div className="mt-1">
                       <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 1 }}
                         className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded"
-                        style={{ background: `${effectColor}30`, color: effectColor }}>ACTIVE</motion.span>
+                        style={{ background: `${effectColor}30`, color: effectColor }}>{t('inventory_panel.active', 'ACTIVE')}</motion.span>
                     </div>
                   )}
                   <div className="text-[9px] font-mono mt-1 text-muted-foreground/50 truncate px-1" style={{ color: `${effectColor}bb` }}>
@@ -314,7 +314,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     onClick={() => applyConsumable(item)}
                     disabled={alreadyActive}
                     whileTap={!alreadyActive && !consumeMutation.isPending ? { scale: 0.9 } : {}}
-                    className="w-full px-2 py-1.5 text-[9px] font-mono font-black rounded border transition-all relative overflow-hidden flex items-center justify-center gap-1"
+                    className="w-full px-2 py-1.5 text-[9px] font-mono font-black rounded border transition-all relative overflow-hidden flex items-center justify-center gap-1 cursor-pointer"
                     style={{
                       borderColor: alreadyActive ? "#1e293b" : effectColor,
                       color: alreadyActive ? "#4a4060" : effectColor,
@@ -330,7 +330,7 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                       />
                     )}
                     <span className="relative z-10 flex items-center justify-center gap-1">
-                      {alreadyActive ? "■ ACTIVE" : <><Zap className="w-3 h-3" /> USE</>}
+                      {alreadyActive ? `■ ${t('inventory_panel.active', 'ACTIVE')}` : <><Zap className="w-3 h-3" /> {t('inventory_panel.use', 'USE')}</>}
                     </span>
                   </motion.button>
 
@@ -338,10 +338,10 @@ export default function InventoryPanel({ gs, onSave, onToggleEquip }) {
                     whileTap={{ scale: 0.9 }}
                     onClick={() => sellMutation.mutate(item.id)}
                     disabled={sellMutation.isPending}
-                    className="w-full px-2 py-1.5 text-[9px] font-mono font-black rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center"
+                    className="w-full px-2 py-1.5 text-[9px] font-mono font-black rounded border transition-all border-amber-500/40 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center cursor-pointer"
                   >
                     <Coins className="w-3 h-3 mr-1" />
-                    SELL
+                    {t('inventory_panel.sell', 'SELL')}
                   </motion.button>
                 </div>
               </GameCard>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { getLevelTitle, calculateIQ } from "@/lib/cognitiveEngine";
 
 const METRIC_COLORS = {
@@ -24,6 +25,7 @@ function OrbitParticle({ angle, radius, color, size, delay }) {
 
 // Glow ring with gradient segments for Gf, Gc, Ps, Vm
 export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeiling, vmCeiling }) {
+  const { t } = useTranslation();
   const safeGf = gf || 100.0;
   const safeGc = gc || 100.0;
   const safePs = ps || 100.0;
@@ -268,14 +270,14 @@ export default function IQDisplay({ gf, gc, ps, vm, gfCeiling, gcCeiling, psCeil
             boxShadow: `0 0 14px ${level.color}40`,
           }}
         >
-          {level.title}
+          {t(`iq_levels.${level.id || level.title.toLowerCase().replace(' ', '_')}`, level.title)}
         </div>
       </motion.div>
 
       {/* Potential IQ */}
       <div className="mt-2 text-center">
         <span className="font-mono text-[11px] text-muted-foreground">
-          POTENTIAL: <span className="text-white font-bold">{potentialIQ.toFixed(1)}</span>
+          {t('iq_display.potential', 'POTENTIAL:')} <span className="text-white font-bold">{potentialIQ.toFixed(1)}</span>
         </span>
       </div>
     </div>

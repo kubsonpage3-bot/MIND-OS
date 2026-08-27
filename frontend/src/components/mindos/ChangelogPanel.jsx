@@ -1,10 +1,12 @@
 // @ts-nocheck
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import GameCard from "@/components/ui/GameCard";
 import changelogData from "@/data/changelog.json";
 import { djangoApi } from "@/api/djangoClient";
 
 export default function ChangelogPanel() {
+  const { t } = useTranslation();
   // When viewed, mark latest version as seen
   useEffect(() => {
     if (changelogData.length > 0) {
@@ -29,8 +31,8 @@ export default function ChangelogPanel() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col mb-6">
-        <span className="font-mono text-2xl font-bold tracking-widest text-white uppercase">System Updates</span>
-        <span className="text-sm text-muted-foreground">Recent changes, patches, and features.</span>
+        <span className="font-mono text-2xl font-bold tracking-widest text-white uppercase">{t('changelog.title', 'System Updates')}</span>
+        <span className="text-sm text-muted-foreground">{t('changelog.subtitle', 'Recent changes, patches, and features.')}</span>
       </div>
 
       <div className="space-y-8">
@@ -44,7 +46,7 @@ export default function ChangelogPanel() {
               <h3 className="font-mono text-3xl font-black text-white tracking-tighter">v{release.version}</h3>
               <span className="font-mono text-sm text-muted-foreground/60">{release.date}</span>
               {i === 0 && (
-                <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full bg-green-500/10">Latest</span>
+                <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full bg-green-500/10">{t('changelog.latest', 'Latest')}</span>
               )}
             </div>
             
@@ -52,7 +54,7 @@ export default function ChangelogPanel() {
               {release.changes.map((change, j) => (
                 <div key={j} className="flex items-start gap-3">
                   <span className={`shrink-0 mt-0.5 font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${getTypeColor(change.type)}`}>
-                    {change.type}
+                    {t(`changelog.types.${change.type}`, change.type)}
                   </span>
                   <span className="text-sm text-slate-300 leading-relaxed">
                     {change.text}

@@ -31,11 +31,11 @@ export default function ChestPanel() {
   });
 
   const stages = [
-    "ESTABLISHING CONTEXT UPLINK...",
-    "EXTRACTING ENCRYPTED DATA BLOCKS...",
-    "DECRYPTING SECURITY CORE...",
-    "REASSEMBLING CYBERNETIC PROTOCOL...",
-    "DECRYPTION COMPLETE!"
+    t("chest_panel.stages.0", "ESTABLISHING CONTEXT UPLINK..."),
+    t("chest_panel.stages.1", "EXTRACTING ENCRYPTED DATA BLOCKS..."),
+    t("chest_panel.stages.2", "DECRYPTING SECURITY CORE..."),
+    t("chest_panel.stages.3", "REASSEMBLING CYBERNETIC PROTOCOL..."),
+    t("chest_panel.stages.4", "DECRYPTION COMPLETE!")
   ];
 
   // Mutate: open chest
@@ -70,7 +70,7 @@ export default function ChestPanel() {
     onError: (err) => {
       setDecryptingChest(null);
       playSound('error');
-      setErrorMessage(err.message || "Decryption failed.");
+      setErrorMessage(err.message || t("chest_panel.decryption_failed", "Decryption failed."));
       setTimeout(() => setErrorMessage(null), 4000);
     }
   });
@@ -86,7 +86,7 @@ export default function ChestPanel() {
     },
     onError: (err) => {
       playSound('error');
-      setErrorMessage(err.message || "Failed to equip item.");
+      setErrorMessage(err.message || t("chest_panel.failed_to_equip", "Failed to equip item."));
       setTimeout(() => setErrorMessage(null), 4000);
     }
   });
@@ -95,7 +95,7 @@ export default function ChestPanel() {
     if (decryptingChest || openMutation.isPending) return;
     if (gold < chest.cost_gold) {
       playSound('error');
-      setErrorMessage("Insufficient Credits");
+      setErrorMessage(t("chest_panel.insufficient_credits", "Insufficient Credits"));
       setTimeout(() => setErrorMessage(null), 4000);
       return;
     }
@@ -145,7 +145,7 @@ export default function ChestPanel() {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-3">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <span className="font-mono text-xs text-muted-foreground/60 tracking-wider">LOADING CACHE MANIFEST...</span>
+        <span className="font-mono text-xs text-muted-foreground/60 tracking-wider">{t('chest_panel.loading', 'LOADING CACHE MANIFEST...')}</span>
       </div>
     );
   }
@@ -155,9 +155,9 @@ export default function ChestPanel() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Database className="w-4 h-4 text-muted-foreground" />
-        <span className="font-mono text-xs font-bold text-foreground uppercase tracking-wider">Decryptor Shop</span>
+        <span className="font-mono text-xs font-bold text-foreground uppercase tracking-wider">{t('chest_panel.title', 'Decryptor Shop')}</span>
         <span className="font-mono text-[10px] text-muted-foreground/50">
-          (Unlock rare cyberware and weapon caches)
+          {t('chest_panel.subtitle', '(Unlock rare cyberware and weapon caches)')}
         </span>
       </div>
 
@@ -198,7 +198,7 @@ export default function ChestPanel() {
 
               <div className="flex items-center gap-2 text-green-400 border-b border-green-500/20 pb-3 mb-4">
                 <Terminal className="w-4 h-4 animate-pulse" />
-                <span className="font-bold tracking-widest">DECRYPTOR SYSTEM ACTIVE</span>
+                <span className="font-bold tracking-widest">{t('chest_panel.decryptor_active', 'DECRYPTOR SYSTEM ACTIVE')}</span>
               </div>
 
               <div className="space-y-3 font-mono text-[10px] min-h-[140px]">
@@ -220,7 +220,7 @@ export default function ChestPanel() {
               {/* Progress bar */}
               <div className="mt-4">
                 <div className="flex justify-between text-[8px] text-muted-foreground mb-1">
-                  <span>PROGRESS</span>
+                  <span>{t('chest_panel.progress', 'PROGRESS')}</span>
                   <span>{Math.round(((decryptionStage + 1) / stages.length) * 100)}%</span>
                 </div>
                 <div className="h-2 w-full bg-gray-900 border border-gray-800 overflow-hidden relative">
@@ -297,7 +297,7 @@ export default function ChestPanel() {
 
               {/* Rarity Drop Rates */}
               <div className="mt-4 p-2 bg-black/45 border border-white/5 rounded">
-                <span className="font-mono text-[9px] text-muted-foreground/50 tracking-widest uppercase">Decryption Matrix</span>
+                <span className="font-mono text-[9px] text-muted-foreground/50 tracking-widest uppercase">{t('chest_panel.decryption_matrix', 'Decryption Matrix')}</span>
                 <div className="grid gap-1 mt-2 text-[10px] font-mono" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(32px, 1fr))' }}>
                   {Object.entries(chest.drop_rates).map(([cls, rate]) => {
                     const color = getGearClassColor(cls);
@@ -337,17 +337,17 @@ export default function ChestPanel() {
                 <button
                   onClick={() => handleOpenChest(chest)}
                   disabled={decryptingChest || openMutation.isPending}
-                  className={`w-full h-11 font-mono text-xs font-bold border transition-all flex items-center justify-center gap-2 select-none active:scale-[0.98] ${design.btnBg} disabled:opacity-40 disabled:pointer-events-none`}
+                  className={`w-full h-11 font-mono text-xs font-bold border transition-all flex items-center justify-center gap-2 select-none active:scale-[0.98] cursor-pointer ${design.btnBg} disabled:opacity-40 disabled:pointer-events-none`}
                 >
                   {openMutation.isPending && decryptingChest?.chest_type === chest.chest_type ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      DECRYPTING...
+                      {t('chest_panel.decrypting', 'DECRYPTING...')}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      DECRYPT CACHE ({chest.cost_gold}G)
+                      {t('chest_panel.decrypt_cache', { gold: chest.cost_gold, defaultValue: `DECRYPT CACHE (${chest.cost_gold}G)` })}
                     </>
                   )}
                 </button>
@@ -385,13 +385,13 @@ export default function ChestPanel() {
               {/* Close Button */}
               <button 
                 onClick={() => setWonItem(null)} 
-                className="absolute top-3 right-3 text-muted-foreground/60 hover:text-white transition-colors p-1"
+                className="absolute top-3 right-3 text-muted-foreground/60 hover:text-white transition-colors p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <span className="font-mono text-[9px] font-bold text-green-400 tracking-widest block mb-1">
-                [ DECRYPTION COMPLETE ]
+                {t('chest_panel.decryption_complete', '[ DECRYPTION COMPLETE ]')}
               </span>
 
               {/* Item rarity class */}
@@ -454,7 +454,7 @@ export default function ChestPanel() {
               {wonItem.stats && Object.keys(wonItem.stats).length > 0 && (
                 <div className="mt-4 p-3 bg-white/[0.02] border border-white/[0.04] rounded text-left">
                   <div className="text-[8px] font-mono text-muted-foreground/45 uppercase tracking-widest text-left mb-1.5">
-                    Modifications
+                    {t('chest_panel.modifications', 'Modifications')}
                   </div>
                   <div className="space-y-1">
                     {Object.entries(wonItem.stats).map(([stat, val]) => (
@@ -468,7 +468,7 @@ export default function ChestPanel() {
               )}
 
               <div className="text-[8px] font-mono text-muted-foreground/30 uppercase tracking-wider mt-3">
-                Slot: {wonItem.slot_type?.replace('_', ' ') || "unknown"}
+                {t('chest_panel.slot', { slot: wonItem.slot_type?.replace('_', ' ') || "unknown", defaultValue: `Slot: ${wonItem.slot_type?.replace('_', ' ') || "unknown"}` })}
               </div>
 
               {/* Action options */}
@@ -487,21 +487,21 @@ export default function ChestPanel() {
                     {equipMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin text-black" />
                     ) : (
-                      "EQUIP CYBERWARE"
+                      t('chest_panel.equip_cyberware', 'EQUIP CYBERWARE')
                     )}
                   </button>
                 ) : (
                   <div className="h-11 font-mono text-xs font-bold border border-green-500/30 text-green-400 bg-green-500/10 flex items-center justify-center gap-1.5 select-none rounded">
                     <CheckCircle2 className="w-4 h-4" />
-                    EQUIPPED TO SYSTEM
+                    {t('chest_panel.equipped_to_system', 'EQUIPPED TO SYSTEM')}
                   </div>
                 )}
                 
                 <button
                   onClick={() => setWonItem(null)}
-                  className="h-11 font-mono text-xs font-bold border border-white/10 text-muted-foreground hover:text-white hover:bg-white/[0.02] flex items-center justify-center select-none active:scale-[0.98]"
+                  className="h-11 font-mono text-xs font-bold border border-white/10 text-muted-foreground hover:text-white hover:bg-white/[0.02] flex items-center justify-center select-none active:scale-[0.98] cursor-pointer"
                 >
-                  DISMISS
+                  {t('chest_panel.dismiss', 'DISMISS')}
                 </button>
               </div>
             </motion.div>

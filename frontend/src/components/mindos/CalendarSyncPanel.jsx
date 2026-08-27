@@ -92,17 +92,19 @@ export default function CalendarSyncPanel({ tasks = [] }) {
           <FantasyIcon size={20} className="text-primary">
             <Calendar />
           </FantasyIcon>
-          <span className="font-mono text-sm font-bold text-foreground">Google Calendar Sync</span>
+          <span className="font-mono text-sm font-bold text-foreground">
+            {t('calendar_ui.google_calendar_sync', 'Google Calendar Sync')}
+          </span>
         </div>
         <p className="text-xs text-muted-foreground mb-4">
-          Sync your MIND OS tasks with Google Calendar to never miss your workouts and classes.
+          {t('calendar_ui.google_calendar_desc', 'Sync your MIND OS tasks with Google Calendar to never miss your workouts and classes.')}
         </p>
         <Button
           onClick={handleConnect}
           disabled={isConnecting}
           variant="fantasy"
           size="sm"
-          className="w-full font-mono tracking-wider"
+          className="w-full font-mono tracking-wider cursor-pointer"
         >
           {isConnecting ? (
             <motion.span
@@ -114,7 +116,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
           ) : (
             <FantasyIcon size={16}><Link /></FantasyIcon>
           )}
-          {isConnecting ? 'Connecting...' : 'Connect Google Calendar'}
+          {isConnecting ? t('calendar_ui.connecting', 'Connecting...') : t('calendar_ui.connect_google', 'Connect Google Calendar')}
         </Button>
         {error && (
           <div className="mt-3 flex items-center gap-2 text-xs text-red-400">
@@ -139,22 +141,22 @@ export default function CalendarSyncPanel({ tasks = [] }) {
           onClick={handleDisconnect}
           variant="ghost"
           size="sm"
-          className="text-xs text-muted-foreground hover:text-red-400"
+          className="text-xs text-muted-foreground hover:text-red-400 cursor-pointer"
         >
           <FantasyIcon size={14}><Unlink /></FantasyIcon>
-          Disconnect
+          {t('calendar_ui.disconnect', 'Disconnect')}
         </Button>
       </div>
 
       {/* Synced tasks */}
       <div className="space-y-2">
         <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-          Tasks to Sync ({dailiesWithDueDate.length + todosWithDueDate.length})
+          {t('calendar_ui.tasks_to_sync', { count: dailiesWithDueDate.length + todosWithDueDate.length, defaultValue: `Tasks to Sync (${dailiesWithDueDate.length + todosWithDueDate.length})` })}
         </div>
         
         {dailiesWithDueDate.length === 0 && todosWithDueDate.length === 0 && (
           <div className="text-xs text-muted-foreground/50 text-center py-4">
-            No tasks with scheduled time or due date
+            {t('calendar_ui.no_scheduled_tasks', 'No tasks with scheduled time or due date')}
           </div>
         )}
 
@@ -167,7 +169,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold text-foreground truncate">{task.name}</div>
               <div className="text-[10px] text-muted-foreground">
-                Daily at {task.scheduledTime} • {t("categories." + task.category, task.category)}
+                {t('calendar_ui.daily_at', 'Daily at')} {task.scheduledTime} • {t("categories." + task.category, task.category)}
               </div>
             </div>
             <Button
@@ -175,7 +177,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
               disabled={isSyncing}
               variant="fantasy"
               size="sm"
-              className="shrink-0"
+              className="shrink-0 cursor-pointer"
             >
               {isSyncing ? (
                 <motion.span
@@ -200,7 +202,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold text-foreground truncate">{task.name}</div>
               <div className="text-[10px] text-muted-foreground">
-                Due {task.dueDate} • {t("categories." + task.category, task.category)}
+                {t('calendar_ui.due', 'Due')} {task.dueDate} • {t("categories." + task.category, task.category)}
               </div>
             </div>
             <Button
@@ -208,7 +210,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
               disabled={isSyncing}
               variant="fantasy"
               size="sm"
-              className="shrink-0"
+              className="shrink-0 cursor-pointer"
             >
               {isSyncing ? (
                 <motion.span
@@ -228,7 +230,7 @@ export default function CalendarSyncPanel({ tasks = [] }) {
       {/* Last sync info */}
       {lastSync && (
         <div className="text-[9px] font-mono text-muted-foreground/50 text-center">
-          Last synced: {lastSync.toLocaleString()}
+          {t('calendar_ui.last_synced', 'Last synced:')} {lastSync.toLocaleString()}
         </div>
       )}
 

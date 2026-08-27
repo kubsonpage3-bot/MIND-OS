@@ -1,9 +1,13 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Scroll, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { QUOTES } from '../../constants/quotes';
 
 export default function DailyQuoteWidget() {
+  const { t, i18n } = useTranslation();
+  const isRu = i18n.language?.startsWith('ru');
+
   const quote = useMemo(() => {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 0);
@@ -13,6 +17,9 @@ export default function DailyQuoteWidget() {
     
     return QUOTES[dayOfYear % QUOTES.length];
   }, []);
+
+  const quoteText = isRu && quote?.ruText ? quote.ruText : quote?.text;
+  const quoteRef = isRu && quote?.ruRef ? quote.ruRef : quote?.ref;
 
   return (
     <motion.div 
@@ -46,12 +53,14 @@ export default function DailyQuoteWidget() {
         <div className="flex items-center gap-2">
           <Scroll className="w-3.5 h-3.5 text-[#ffbe5d] animate-pulse" />
           <span className="font-game text-[9px] text-[#ffbe5d] tracking-widest uppercase font-bold">
-            ✦ SCRIPTURE OF THE DAY ✦
+            {t('daily_quote.title', '✦ SCRIPTURE OF THE DAY ✦')}
           </span>
         </div>
         <div className="flex items-center gap-1 opacity-60">
           <Sparkles className="w-3 h-3 text-[#ffbe5d]" />
-          <span className="font-game text-[8px] text-[var(--habit-dim)] uppercase">WISDOM SCROLL</span>
+          <span className="font-game text-[8px] text-[var(--habit-dim)] uppercase">
+            {t('daily_quote.badge', 'WISDOM SCROLL')}
+          </span>
         </div>
       </div>
       
@@ -69,7 +78,7 @@ export default function DailyQuoteWidget() {
             className="italic text-sm md:text-[15px] leading-relaxed text-[var(--habit-text)] relative font-medium"
             style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
           >
-            "{quote.text}"
+            "{quoteText}"
           </p>
           <div className="mt-2.5 flex items-center gap-2">
             <span className="inline-block w-4 h-0.5 bg-[#ffbe5d]" />
@@ -77,7 +86,7 @@ export default function DailyQuoteWidget() {
               className="font-game text-[9px] text-[#ffbe5d] font-bold tracking-widest uppercase px-2 py-0.5 rounded border border-[#ffbe5d]/30 bg-[#ffbe5d]/10"
               style={{ textShadow: "0 0 8px rgba(255, 190, 93, 0.4)" }}
             >
-              {quote.ref}
+              {quoteRef}
             </span>
           </div>
         </div>

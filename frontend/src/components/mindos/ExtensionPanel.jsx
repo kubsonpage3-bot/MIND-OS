@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Check, RefreshCw, Unlink, Wifi, WifiOff } from 'lucide-react';
@@ -13,6 +14,7 @@ const fetchStatus   = () => djangoFetch('extension/web-status/');
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function ExtensionPanel() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [copied, setCopied]   = useState(false);
   const [codeData, setCodeData] = useState(null); // { code, expires_at }
@@ -75,7 +77,7 @@ export default function ExtensionPanel() {
                 color: paired ? '#22c55e' : 'var(--habit-dim)',
               }}
             >
-              {isLoading ? 'Checking…' : paired ? 'Extension Connected' : 'Not Connected'}
+              {isLoading ? t('extension_ui.checking', 'Checking…') : paired ? t('extension_ui.connected', 'Extension Connected') : t('extension_ui.not_connected', 'Not Connected')}
             </span>
           </div>
 
@@ -83,7 +85,7 @@ export default function ExtensionPanel() {
             <button
               onClick={() => revokeMutation.mutate()}
               disabled={revokeMutation.isPending}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer"
               style={{
                 fontFamily: "'Nunito'", fontWeight: 700, fontSize: 11,
                 background: 'rgba(220,38,38,0.1)', color: '#ef4444',
@@ -91,15 +93,15 @@ export default function ExtensionPanel() {
               }}
             >
               <Unlink className="w-3 h-3" />
-              {revokeMutation.isPending ? 'Disconnecting…' : 'Disconnect'}
+              {revokeMutation.isPending ? t('extension_ui.disconnecting', 'Disconnecting…') : t('extension_ui.disconnect', 'Disconnect')}
             </button>
           )}
         </div>
 
         <p style={{ fontSize: 12, color: 'var(--habit-dim)', lineHeight: 1.6 }}>
           {paired
-            ? 'Your Firefox extension is synced. Gold, HP and the blocklist are shared with this account.'
-            : 'Connect the MIND OS Firefox extension to sync gold, HP, and your site blocklist.'}
+            ? t('extension_ui.desc_connected', 'Your Firefox extension is synced. Gold, HP and the blocklist are shared with this account.')
+            : t('extension_ui.desc_not_connected', 'Connect the MIND OS Firefox extension to sync gold, HP, and your site blocklist.')}
         </p>
       </div>
 
@@ -110,21 +112,21 @@ export default function ExtensionPanel() {
           style={{ background: 'var(--habit-card)', borderColor: 'var(--habit-border)' }}
         >
           <p style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, color: 'var(--habit-text)' }}>
-            How to connect
+            {t('extension_ui.how_to_connect', 'How to connect')}
           </p>
           <ol
             className="space-y-1"
             style={{ fontSize: 12, color: 'var(--habit-dim)', lineHeight: 1.7, paddingLeft: 16 }}
           >
-            <li>1. Install the MIND OS Companion extension in Firefox</li>
-            <li>2. Click <strong>Generate Code</strong> below — valid for 10 minutes</li>
-            <li>3. Open the extension popup → enter the code → click Connect</li>
+            <li>1. {t('extension_ui.step1', 'Install the MIND OS Companion extension in Firefox')}</li>
+            <li>2. {t('extension_ui.step2_prefix', 'Click')} <strong>{t('extension_ui.generate_code_btn', 'Generate Code')}</strong> {t('extension_ui.step2_suffix', 'below — valid for 10 minutes')}</li>
+            <li>3. {t('extension_ui.step3', 'Open the extension popup → enter the code → click Connect')}</li>
           </ol>
 
           <button
             onClick={() => generateMutation.mutate()}
             disabled={generateMutation.isPending}
-            className="w-full py-2.5 rounded-xl transition-all font-bold"
+            className="w-full py-2.5 rounded-xl transition-all font-bold cursor-pointer"
             style={{
               fontFamily: "'Nunito'", fontWeight: 800, fontSize: 14,
               background: 'var(--habit-purple)', color: '#fff',
@@ -132,7 +134,7 @@ export default function ExtensionPanel() {
               opacity: generateMutation.isPending ? 0.7 : 1,
             }}
           >
-            {generateMutation.isPending ? '⏳ Generating…' : '🔑 Generate Pairing Code'}
+            {generateMutation.isPending ? t('extension_ui.generating_code', '⏳ Generating…') : t('extension_ui.generate_code_full', '🔑 Generate Pairing Code')}
           </button>
 
           <AnimatePresence>
@@ -145,7 +147,7 @@ export default function ExtensionPanel() {
                 style={{ background: 'var(--habit-sidebar)', borderColor: 'var(--habit-purple)' }}
               >
                 <p style={{ fontSize: 11, color: 'var(--habit-dim)', marginBottom: 8, fontWeight: 700 }}>
-                  PAIRING CODE — enter in extension popup
+                  {t('extension_ui.pairing_code_header', 'PAIRING CODE — enter in extension popup')}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <span
@@ -158,7 +160,7 @@ export default function ExtensionPanel() {
                   </span>
                   <button
                     onClick={copyCode}
-                    className="p-2 rounded-lg transition-all"
+                    className="p-2 rounded-lg transition-all cursor-pointer"
                     style={{ background: 'var(--habit-border)', color: 'var(--habit-dim)' }}
                     title="Copy"
                   >
@@ -167,7 +169,7 @@ export default function ExtensionPanel() {
                 </div>
                 {expiresIn > 0 && (
                   <p style={{ fontSize: 11, color: 'var(--habit-dim)', marginTop: 8 }}>
-                    Expires in ~{Math.ceil(expiresIn / 60)} min
+                    {t('extension_ui.expires_in', { min: Math.ceil(expiresIn / 60), defaultValue: `Expires in ~${Math.ceil(expiresIn / 60)} min` })}
                   </p>
                 )}
                 <button
@@ -176,7 +178,7 @@ export default function ExtensionPanel() {
                   className="mt-3 text-xs underline transition-all"
                   style={{ color: 'var(--habit-dim)', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  Generate new code
+                  {t('extension_ui.generate_new_code', 'Generate new code')}
                 </button>
               </motion.div>
             )}
@@ -184,7 +186,7 @@ export default function ExtensionPanel() {
 
           {generateMutation.isError && (
             <p style={{ fontSize: 12, color: '#ef4444', textAlign: 'center' }}>
-              Failed to generate code. Try again.
+              {t('extension_ui.generate_error', 'Failed to generate code. Try again.')}
             </p>
           )}
         </div>
@@ -196,15 +198,15 @@ export default function ExtensionPanel() {
         style={{ background: 'rgba(124,58,237,0.06)', borderColor: 'rgba(124,58,237,0.2)' }}
       >
         <p style={{ fontSize: 12, color: 'var(--habit-dim)', lineHeight: 1.7 }}>
-          <strong style={{ color: 'var(--habit-text)' }}>What the extension does:</strong>
+          <strong style={{ color: 'var(--habit-text)' }}>{t('extension_ui.what_it_does', 'What the extension does:')}</strong>
           <br />
-          🛡 Blocks distracting sites (you set which ones)
+          🛡 {t('extension_ui.feat_blocks', 'Blocks distracting sites (you set which ones)')}
           <br />
-          🔓 Pay gold to temporarily unblock — costs configured per site
+          🔓 {t('extension_ui.feat_pay_gold', 'Pay gold to temporarily unblock — costs configured per site')}
           <br />
-          ⏱ Pomodoro timer synced with your MIND OS sessions
+          ⏱ {t('extension_ui.feat_pomodoro', 'Pomodoro timer synced with your MIND OS sessions')}
           <br />
-          🪙 Real-time gold &amp; HP bar from your profile
+          🪙 {t('extension_ui.feat_realtime_bar', 'Real-time gold & HP bar from your profile')}
         </p>
       </div>
     </div>

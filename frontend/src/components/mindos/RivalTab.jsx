@@ -379,15 +379,15 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
       {/* ── Sub-tab switcher: RIVAL | PARTY ── */}
       <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "var(--habit-border)" }} onPointerDown={(e) => e.stopPropagation()}>
         {[
-          { id: "rival", label: "RIVAL" },
-          { id: "party", label: "PARTY" },
+          { id: "rival", label: t('rivalTab.rivalSubTab', 'RIVAL') },
+          { id: "party", label: t('rivalTab.partySubTab', 'PARTY') },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="flex-1 px-3 py-1.5 rounded-xl transition-all"
+              className="flex-1 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
               style={{
                 fontFamily: "'Nunito'",
                 fontWeight: isActive ? 800 : 600,
@@ -582,12 +582,12 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
 
       <div className="space-y-2">
         <div className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">
-          {RIVAL_NAME} — TODAY
+          {RIVAL_NAME} — {t('lifeos_tasks.today', 'TODAY')}
           {rivalData.currentPattern === "morning" && (
-            <span className="ml-2 text-[9px]" style={{ color: "#f59e0b" }}>☀ Morning Person</span>
+            <span className="ml-2 text-[9px]" style={{ color: "#f59e0b" }}>☀ {t('rivalTab.morning_person', 'Morning Person')}</span>
           )}
           {rivalData.currentPattern === "night" && (
-            <span className="ml-2 text-[9px]" style={{ color: "#7B61FF" }}>🌙 Night Owl</span>
+            <span className="ml-2 text-[9px]" style={{ color: "#7B61FF" }}>🌙 {t('rivalTab.night_owl', 'Night Owl')}</span>
           )}
         </div>
 

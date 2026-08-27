@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import i18n from '@/lib/i18n';
 
 export const LocalNotificationsService = {
   // Request permission
@@ -79,8 +80,8 @@ export const LocalNotificationsService = {
           notifications: [
             {
               id: 1001,
-              title: "⚡ MIND OS — Training Session",
-              body: "Time to log your daily activity. Every session counts toward your rank.",
+              title: i18n.t("local_notifications.daily_title", "⚡ MIND OS — Training Session"),
+              body: i18n.t("local_notifications.daily_body", "Time to log your daily activity. Every session counts toward your rank."),
               schedule: {
                 on: {
                   hour: parseInt(hour, 10),
@@ -113,8 +114,8 @@ export const LocalNotificationsService = {
           notifications: [
             {
               id: 1002,
-              title: "Streak at Risk! ⚠️",
-              body: "You haven't logged any activity today. Complete a task before midnight to preserve your streak!",
+              title: i18n.t("local_notifications.streak_title", "Streak at Risk! ⚠️"),
+              body: i18n.t("local_notifications.streak_body", "You haven't logged any activity today. Complete a task before midnight to preserve your streak!"),
               schedule: {
                 on: {
                   hour: parseInt(hour, 10),

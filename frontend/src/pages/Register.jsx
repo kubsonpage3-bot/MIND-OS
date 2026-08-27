@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { Loader2 } from 'lucide-react';
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { register } = useDjangoAuth();
   const [username, setUsername] = useState('');
@@ -18,7 +20,7 @@ export default function Register() {
     setError(null);
 
     if (password !== password2) {
-      setError('Passwords do not match');
+      setError(t('auth.passwords_dont_match', 'Passwords do not match'));
       return;
     }
 
@@ -32,7 +34,7 @@ export default function Register() {
         err.data?.username?.[0] ||
         err.data?.email?.[0] ||
         err.message ||
-        'Registration failed';
+        t('auth.registration_failed', 'Registration failed');
       setError(msg);
     } finally {
       setLoading(false);
@@ -61,14 +63,14 @@ export default function Register() {
             MIND OS
           </h1>
           <p className="mt-2 text-xs font-mono tracking-wide text-slate-400 uppercase">
-            Create your neural profile
+            {t('auth.create_profile_subtitle', 'Create your neural profile')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="username" className="mb-1 block text-xs font-mono uppercase tracking-wider text-slate-400">
-              Username
+              {t('auth.username', 'Username')}
             </label>
             <input
               id="username"
@@ -83,7 +85,7 @@ export default function Register() {
 
           <div>
             <label htmlFor="email" className="mb-1 block text-xs font-mono uppercase tracking-wider text-slate-400">
-              Email
+              {t('auth.email', 'Email')}
             </label>
             <input
               id="email"
@@ -98,7 +100,7 @@ export default function Register() {
 
           <div>
             <label htmlFor="password" className="mb-1 block text-xs font-mono uppercase tracking-wider text-slate-400">
-              Password
+              {t('auth.password', 'Password')}
             </label>
             <input
               id="password"
@@ -113,7 +115,7 @@ export default function Register() {
 
           <div>
             <label htmlFor="password2" className="mb-1 block text-xs font-mono uppercase tracking-wider text-slate-400">
-              Confirm password
+              {t('auth.confirm_password', 'Confirm password')}
             </label>
             <input
               id="password2"
@@ -137,14 +139,14 @@ export default function Register() {
             disabled={loading}
             className="flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-mono text-sm font-bold text-white hover:bg-indigo-500 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.4)]"
           >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : '► INITIALIZE PROFILE'}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.initialize_profile', '► INITIALIZE PROFILE')}
           </button>
         </form>
 
         <p className="mt-6 text-center text-xs font-mono text-slate-400 uppercase tracking-wide">
-          Already have an account?{' '}
+          {t('auth.already_have_account', 'Already have an account?')}{' '}
           <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-bold underline transition-colors">
-            Sign In
+            {t('auth.sign_in', 'Sign In')}
           </Link>
         </p>
       </div>

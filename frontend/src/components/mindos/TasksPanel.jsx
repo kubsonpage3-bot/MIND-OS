@@ -1,6 +1,7 @@
 import { useState, memo, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfileMount } from '@/utils/perf';
+import { useTranslation } from 'react-i18next';
 import { Plus } from "lucide-react";
 
 import HabitsColumn from "./HabitsColumn";
@@ -14,12 +15,13 @@ import { showRewardToast } from "./RewardToast";
 import PillTabBar from "@/components/ui/PillTabBar";
 
 const TASK_TABS = [
-  { id: 'tasks',     label: 'Tasks' },
-  { id: 'activities', label: 'Activities' },
+  { id: 'tasks',     labelKey: 'task_modal.tab_tasks', defaultLabel: 'Tasks' },
+  { id: 'activities', labelKey: 'task_modal.tab_activities', defaultLabel: 'Activities' },
 ];
 
 function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRewardFly, onLog, profile, logs = [], subjectTotals = {} }) {
   useProfileMount("TasksPanel");
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [taskTab, setTaskTab] = useState('tasks');
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
@@ -90,11 +92,11 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
               onClick={() => setTaskTab(tab.id)}
               className={`px-4 py-1.5 rounded-lg text-xs font-pixel uppercase tracking-wider transition-all duration-200 ${
                 taskTab === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-sm font-bold scale-[1.02]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
+                   ? 'bg-primary text-primary-foreground shadow-sm font-bold scale-[1.02]'
+                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+               }`}
             >
-              {tab.label}
+              {t(tab.labelKey, tab.defaultLabel)}
             </button>
           ))}
         </div>
@@ -103,10 +105,10 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
         {taskTab === 'tasks' && (
           <button
             onClick={() => { setFormType('habit'); setCreateModalOpen(true); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-pixel uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-pixel uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            New Task
+            {t('task_modal.new_task_btn', 'New Task')}
           </button>
         )}
       </div>

@@ -61,6 +61,7 @@ function PixelCheck({ color }) {
 
 // ─── Single daily quest row ──────────────────────────────────────────────────
 function QuestRow({ task, checked, onToggle, index }) {
+  const { t } = useTranslation();
   const accentColor = CATEGORY_COLORS[task.category] || '#9944ff';
   const diff = DIFF_CONFIG[task.difficulty?.toLowerCase()] || DIFF_CONFIG.medium;
   const taskXp = task.xp ?? diff.xp;
@@ -115,7 +116,7 @@ function QuestRow({ task, checked, onToggle, index }) {
           {task.streak > 0 && (
             <p className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: '#f59e0b' }}>
               🔥 <span className="font-pixel">{task.streak}</span>
-              <span style={{ color: 'rgba(255,255,255,0.35)' }}>DAY STREAK</span>
+              <span style={{ color: 'rgba(255,255,255,0.35)' }}>{t('stats_panel.day_streak', 'DAY STREAK')}</span>
             </p>
           )}
         </div>
@@ -123,7 +124,7 @@ function QuestRow({ task, checked, onToggle, index }) {
         {/* Right side: diff badge + est reward */}
         <div className="shrink-0 flex flex-col items-end gap-1">
           <span
-            className="font-pixel text-[9px] px-1.5 py-0.5 tracking-widest"
+            className="font-pixel text-[9px] px-1.5 py-0.5 tracking-widest uppercase"
             style={{
               color: diff.color,
               background: diff.color + '22',
@@ -131,7 +132,7 @@ function QuestRow({ task, checked, onToggle, index }) {
               borderRadius: 3,
             }}
           >
-            {diff.label}
+            {t(`difficulties.${task.difficulty?.toLowerCase() || 'medium'}`, diff.label)}
           </span>
           {checked && (
             <motion.span
@@ -175,6 +176,7 @@ function CountUp({ target, color, prefix = '+', suffix = '', duration = 1200 }) 
 
 // ─── Results Screen ──────────────────────────────────────────────────────────
 function ResultsScreen({ result, onDismiss }) {
+  const { t } = useTranslation();
   const { total_xp = 0, total_gold = 0, total_dmg = 0, died = false, log = [] } = result;
   const completedLog = log.filter(l => l.type === 'checkin_done');
   const missedLog    = log.filter(l => l.type === 'checkin_missed');
@@ -208,10 +210,10 @@ function ResultsScreen({ result, onDismiss }) {
           className="font-pixel uppercase tracking-widest"
           style={{ fontSize: 13, color: died ? '#ef4444' : '#c4a3ff', letterSpacing: '0.18em' }}
         >
-          {died ? 'FALLEN IN BATTLE' : 'DAY RESOLVED'}
+          {died ? t('welcome_back.fallen_battle', 'FALLEN IN BATTLE') : t('welcome_back.day_resolved', 'DAY RESOLVED')}
         </h2>
         <p className="text-[10px] font-mono mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Yesterday&apos;s deeds have been judged
+          {t('welcome_back.judged_desc', "Yesterday's deeds have been judged")}
         </p>
       </div>
 
@@ -220,23 +222,23 @@ function ResultsScreen({ result, onDismiss }) {
         {total_xp > 0 && (
           <div className="text-center">
             <CountUp target={total_xp} color="#a78bfa" prefix="+" suffix=" XP" />
-            <p className="text-[9px] font-pixel mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>EXPERIENCE</p>
+            <p className="text-[9px] font-pixel mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{t('welcome_back.experience', 'EXPERIENCE')}</p>
           </div>
         )}
         {total_gold > 0 && (
           <div className="text-center">
             <CountUp target={total_gold} color="#fbbf24" prefix="+" suffix=" G" duration={1000} />
-            <p className="text-[9px] font-pixel mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>GOLD</p>
+            <p className="text-[9px] font-pixel mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{t('welcome_back.gold', 'GOLD')}</p>
           </div>
         )}
         {total_dmg > 0 && (
           <div className="text-center">
             <CountUp target={Math.round(total_dmg)} color="#ef4444" prefix="-" suffix=" HP" duration={900} />
-            <p className="text-[9px] font-pixel mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>DAMAGE</p>
+            <p className="text-[9px] font-pixel mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{t('welcome_back.damage', 'DAMAGE')}</p>
           </div>
         )}
         {!hasSomething && (
-          <p className="text-[11px] font-pixel" style={{ color: 'rgba(255,255,255,0.4)' }}>NOTHING RESOLVED</p>
+          <p className="text-[11px] font-pixel" style={{ color: 'rgba(255,255,255,0.4)' }}>{t('welcome_back.nothing_resolved', 'NOTHING RESOLVED')}</p>
         )}
       </div>
 
@@ -291,17 +293,16 @@ function ResultsScreen({ result, onDismiss }) {
         </div>
         <button
           onClick={onDismiss}
-          className="w-full py-2.5 font-pixel text-[11px] tracking-widest uppercase relative overflow-hidden"
+          className="w-full py-2.5 font-pixel text-[11px] tracking-widest uppercase relative overflow-hidden cursor-pointer"
           style={{
             background: 'linear-gradient(135deg, #9444ff, #6622cc)',
             color: '#fff',
             borderRadius: 6,
             border: '1px solid rgba(148,68,255,0.5)',
             boxShadow: '0 4px 16px rgba(148,68,255,0.35)',
-            cursor: 'pointer',
           }}
         >
-          ENTER THE NEW DAY ⚔️
+          {t('welcome_back.enter_new_day', 'ENTER THE NEW DAY ⚔️')}
         </button>
       </div>
     </motion.div>
@@ -376,7 +377,7 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
           className="font-pixel uppercase tracking-widest mb-1"
           style={{ fontSize: 13, color: '#c4a3ff', letterSpacing: '0.18em' }}
         >
-          DAWN REPORT
+          {t('welcome_back.title', 'DAWN REPORT')}
         </h2>
         <p className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>
           {t('welcome_back.subtitle')}
@@ -391,7 +392,7 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
               color: '#a78bfa',
             }}
           >
-            ⚔️ {dailies.length} QUEST{dailies.length !== 1 ? 'S' : ''} PENDING
+            {t('welcome_back.quests_pending', { count: dailies.length, defaultValue: `⚔️ ${dailies.length} QUESTS PENDING` })}
           </span>
         </div>
       </div>
@@ -432,7 +433,7 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
         </div>
         {missedCount === 0 && checkedCount === dailies.length && dailies.length > 0 && (
           <p className="font-pixel text-[9px] text-center mt-1" style={{ color: '#22c55e' }}>
-            ★ PERFECT YESTERDAY! NO DAMAGE ★
+            {t('welcome_back.perfect_yesterday', '★ PERFECT YESTERDAY! NO DAMAGE ★')}
           </p>
         )}
       </div>
@@ -442,13 +443,12 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
         <button
           onClick={() => onSubmit([])}
           disabled={isSubmitting}
-          className="relative font-pixel text-[10px] px-4 py-2.5 tracking-wide uppercase disabled:opacity-40"
+          className="relative font-pixel text-[10px] px-4 py-2.5 tracking-wide uppercase disabled:opacity-40 cursor-pointer"
           style={{
             background: 'rgba(255,255,255,0.05)',
             color: 'rgba(255,255,255,0.45)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 6,
-            cursor: 'pointer',
           }}
         >
           <RunicCorners color="rgba(255,255,255,0.12)" size={8} />
@@ -460,14 +460,13 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
           whileHover={{ boxShadow: '0 4px 24px rgba(148,68,255,0.55)' }}
           onClick={() => onSubmit([...checked])}
           disabled={isSubmitting}
-          className="relative flex-1 font-pixel text-[11px] py-2.5 tracking-widest uppercase disabled:opacity-40 overflow-hidden"
+          className="relative flex-1 font-pixel text-[11px] py-2.5 tracking-widest uppercase disabled:opacity-40 overflow-hidden cursor-pointer"
           style={{
             background: 'linear-gradient(135deg, #9444ff, #6622cc)',
             color: '#fff',
             borderRadius: 6,
             border: '1px solid rgba(148,68,255,0.5)',
             boxShadow: '0 4px 16px rgba(148,68,255,0.35)',
-            cursor: 'pointer',
           }}
         >
           <motion.span
@@ -483,7 +482,7 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
                 transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }}
                 className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full"
               />
-              RESOLVING...
+              {t('welcome_back.resolving', 'RESOLVING...')}
             </span>
           ) : (
             t('welcome_back.start_day')

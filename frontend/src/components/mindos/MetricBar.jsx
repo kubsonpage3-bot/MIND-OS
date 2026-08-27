@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { METRIC_CONFIG } from "@/lib/cognitiveEngine";
 
 const COLOR_MAP = {
@@ -10,6 +11,7 @@ const COLOR_MAP = {
 };
 
 export default function MetricBar({ metricKey, current, ceiling, showHoursHint = false }) {
+  const { t } = useTranslation();
   const config = METRIC_CONFIG[metricKey];
   const [displayValue, setDisplayValue] = useState(current);
   const [animating, setAnimating] = useState(false);
@@ -61,7 +63,7 @@ export default function MetricBar({ metricKey, current, ceiling, showHoursHint =
             {config.abbr}
           </span>
           <span style={{ fontFamily: "'Nunito'", fontSize: 11, color: "#878190" }} className="hidden sm:inline">
-            {config.label}
+            {t(`metrics.${metricKey}.name`, config.label)}
           </span>
         </div>
         <div className="relative flex items-center gap-2">
@@ -148,8 +150,8 @@ export default function MetricBar({ metricKey, current, ceiling, showHoursHint =
 
       {/* Floor and ceiling hint */}
       <div className="flex justify-between font-mono text-[9px] text-muted-foreground">
-        <span>MIN: 80</span>
-        <span className="text-white/60">CAP: {ceiling}</span>
+        <span>{t('iq_display.min', 'MIN: 80')}</span>
+        <span className="text-white/60">{t('iq_display.cap', { ceiling, defaultValue: `CAP: ${ceiling}` })}</span>
       </div>
     </div>
   );

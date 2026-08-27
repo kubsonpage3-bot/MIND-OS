@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { Loader2 } from 'lucide-react';
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login, guestLogin } = useDjangoAuth();
   const [username, setUsername] = useState('');
@@ -13,10 +15,10 @@ export default function Login() {
 
   useEffect(() => {
     if (sessionStorage.getItem('mindos_session_expired') === 'true') {
-      setError('Session expired. Please log in again.');
+      setError(t('auth.session_expired', 'Session expired. Please log in again.'));
       sessionStorage.removeItem('mindos_session_expired');
     }
-  }, []);
+  }, [t]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +28,7 @@ export default function Login() {
       await login(username, password);
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.message || 'Invalid username or password');
+      setError(err.message || t('auth.invalid_credentials', 'Invalid username or password'));
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,7 @@ export default function Login() {
       await guestLogin();
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.message || 'Guest login failed');
+      setError(err.message || t('auth.guest_login_failed', 'Guest login failed'));
     } finally {
       setLoading(false);
     }
@@ -67,14 +69,14 @@ export default function Login() {
             MIND OS
           </h1>
           <p className="mt-2 text-xs font-mono tracking-wide text-slate-400 uppercase">
-            Sign in to your neural workspace
+            {t('auth.signin_subtitle', 'Sign in to your neural workspace')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="username" className="mb-1 block text-xs font-mono uppercase tracking-wider text-slate-400">
-              Username
+              {t('auth.username', 'Username')}
             </label>
             <input
               id="username"
@@ -89,7 +91,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="password" className="mb-1 block text-xs font-mono uppercase tracking-wider text-slate-400">
-              Password
+              {t('auth.password', 'Password')}
             </label>
             <input
               id="password"
@@ -114,7 +116,7 @@ export default function Login() {
               disabled={loading}
               className="flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-mono text-sm font-bold text-white hover:bg-indigo-500 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer shadow-[0_0_15px_rgba(99,102,241,0.4)]"
             >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : '► ACCESS CORE'}
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.access_core', '► ACCESS CORE')}
             </button>
 
             <button
@@ -123,15 +125,15 @@ export default function Login() {
               onClick={handleGuestLogin}
               className="flex w-full items-center justify-center rounded-lg border border-indigo-500/30 bg-slate-900/50 px-4 py-2.5 font-mono text-sm font-bold text-indigo-300 hover:bg-indigo-500/20 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
             >
-              CONTINUE AS GUEST
+              {t('auth.continue_as_guest', 'CONTINUE AS GUEST')}
             </button>
           </div>
         </form>
 
         <p className="mt-6 text-center text-xs font-mono text-slate-400 uppercase tracking-wide">
-          New user?{' '}
+          {t('auth.new_user', 'New user?')}{' '}
           <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-bold underline transition-colors">
-            Register Account
+            {t('auth.register_account', 'Register Account')}
           </Link>
         </p>
       </div>

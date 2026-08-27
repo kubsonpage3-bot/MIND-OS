@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Calendar, ExternalLink, Link2, CheckCircle, Copy, Info, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 
 export default function CalendarConnectPanel() {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
@@ -62,7 +64,7 @@ export default function CalendarConnectPanel() {
         className="p-8 text-center"
       >
         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-        <p className="text-[10px] font-mono text-muted-foreground">Loading connection status...</p>
+        <p className="text-[10px] font-mono text-muted-foreground">{t('calendar_ui.loading_status', 'Loading connection status...')}</p>
       </motion.div>
     );
   }
@@ -76,7 +78,9 @@ export default function CalendarConnectPanel() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4 text-primary" />
-        <span className="font-mono text-xs font-bold text-foreground">Google Calendar Integration</span>
+        <span className="font-mono text-xs font-bold text-foreground">
+          {t('calendar_ui.google_calendar_integration', 'Google Calendar Integration')}
+        </span>
       </div>
 
       {/* Connection Status */}
@@ -85,10 +89,10 @@ export default function CalendarConnectPanel() {
           <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
           <div className="space-y-2">
             <p className="text-xs font-mono text-muted-foreground leading-relaxed">
-              Sync your MIND OS tasks with Google Calendar to see your dailies and events in one place.
+              {t('calendar_ui.google_calendar_desc', 'Sync your MIND OS tasks with Google Calendar to see your dailies and events in one place.')}
             </p>
             <p className="text-xs font-mono text-muted-foreground leading-relaxed">
-              This integration uses OAuth 2.0 for secure authentication. Your credentials are never stored in the app.
+              {t('calendar_ui.oauth_notice', 'This integration uses OAuth 2.0 for secure authentication. Your credentials are never stored in the app.')}
             </p>
           </div>
         </div>
@@ -98,13 +102,13 @@ export default function CalendarConnectPanel() {
       {!isAuthenticated ? (
         <div className="p-4 rounded-xl border border-destructive/40 bg-destructive/10 space-y-3">
           <p className="text-xs font-mono text-destructive leading-relaxed">
-            Please log in to connect your Google Calendar.
+            {t('calendar_ui.login_required', 'Please log in to connect your Google Calendar.')}
           </p>
           <button
             onClick={() => window.location.hash = '#/login'}
-            className="w-full p-3 rounded-lg border border-destructive/40 bg-destructive/20 hover:bg-destructive/30 transition-colors text-xs font-mono text-destructive"
+            className="w-full p-3 rounded-lg border border-destructive/40 bg-destructive/20 hover:bg-destructive/30 transition-colors text-xs font-mono text-destructive cursor-pointer"
           >
-            Go to Login
+            {t('calendar_ui.go_to_login', 'Go to Login')}
           </button>
         </div>
       ) : isConnected ? (
@@ -113,18 +117,18 @@ export default function CalendarConnectPanel() {
           <div className="p-4 rounded-xl border border-green-500/40 bg-green-500/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              <span className="text-xs font-mono font-bold text-green-500">Connected</span>
+              <span className="text-xs font-mono font-bold text-green-500">{t('calendar_ui.connected', 'Connected')}</span>
             </div>
             <span className="text-[10px] font-mono text-muted-foreground">{connectorName}</span>
           </div>
           
           <button
             onClick={handleDisconnect}
-            className="w-full p-4 rounded-xl border border-destructive/40 bg-destructive/10 hover:bg-destructive/20 transition-all flex items-center justify-center gap-3 group"
+            className="w-full p-4 rounded-xl border border-destructive/40 bg-destructive/10 hover:bg-destructive/20 transition-all flex items-center justify-center gap-3 group cursor-pointer"
           >
             <LogOut className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
             <span className="text-xs font-mono font-bold text-destructive uppercase tracking-wider">
-              Disconnect
+              {t('calendar_ui.disconnect', 'Disconnect')}
             </span>
           </button>
         </div>
@@ -132,11 +136,11 @@ export default function CalendarConnectPanel() {
         /* Not Connected State */
         <button
           onClick={handleConnect}
-          className="w-full p-4 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all flex items-center justify-center gap-3 group"
+          className="w-full p-4 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all flex items-center justify-center gap-3 group cursor-pointer"
         >
           <Link2 className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
           <span className="text-xs font-mono font-bold text-primary uppercase tracking-wider">
-            Connect Google Calendar
+            {t('calendar_ui.connect_google', 'Connect Google Calendar')}
           </span>
           <ExternalLink className="w-3 h-3 text-primary opacity-60" />
         </button>
@@ -148,7 +152,7 @@ export default function CalendarConnectPanel() {
           <div className="flex items-center gap-2 mb-2">
             <Info className="w-3.5 h-3.5 text-muted-foreground" />
             <span className="font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              Integration Details
+              {t('calendar_ui.integration_details', 'Integration Details')}
             </span>
           </div>
           
@@ -159,7 +163,7 @@ export default function CalendarConnectPanel() {
                 <code className="text-foreground max-w-[150px] truncate">{connectorId}</code>
                 <button
                   onClick={copyConnectorId}
-                  className="p-1 hover:bg-primary/20 rounded transition-colors"
+                  className="p-1 hover:bg-primary/20 rounded transition-colors cursor-pointer"
                   title="Copy to clipboard"
                 >
                   {copied ? (
@@ -184,7 +188,7 @@ export default function CalendarConnectPanel() {
             <div className="flex justify-between items-center p-2 rounded bg-muted/30">
               <span className="text-muted-foreground">Connection Status:</span>
               <code className={isConnected ? "text-green-500" : "text-muted-foreground"}>
-                {isConnected ? "Active" : "Not connected"}
+                {isConnected ? t('calendar_ui.active', 'Active') : t('calendar_ui.not_connected', 'Not connected')}
               </code>
             </div>
           </div>
@@ -194,14 +198,14 @@ export default function CalendarConnectPanel() {
       {/* Instructions */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-2">
         <div className="font-mono text-[10px] font-bold mb-2 text-muted-foreground uppercase tracking-wider">
-          How It Works
+          {t('calendar_ui.how_it_works', 'How It Works')}
         </div>
         <ol className="text-[10px] font-mono text-muted-foreground/70 space-y-1.5 list-decimal list-inside">
-          <li>Click "Connect Google Calendar" above</li>
-          <li>Sign in with your Google account</li>
-          <li>Grant calendar permissions to MIND OS</li>
-          <li>Your dailies will automatically sync to your calendar</li>
-          <li>Manage sync settings in the Calendar panel</li>
+          <li>{t('calendar_ui.step1', 'Click "Connect Google Calendar" above')}</li>
+          <li>{t('calendar_ui.step2', 'Sign in with your Google account')}</li>
+          <li>{t('calendar_ui.step3', 'Grant calendar permissions to MIND OS')}</li>
+          <li>{t('calendar_ui.step4', 'Your dailies will automatically sync to your calendar')}</li>
+          <li>{t('calendar_ui.step5', 'Manage sync settings in the Calendar panel')}</li>
         </ol>
       </div>
 
@@ -214,7 +218,7 @@ export default function CalendarConnectPanel() {
       >
         <div className="flex items-center gap-3">
           <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-          <span className="text-xs font-mono text-foreground">Google Calendar Help</span>
+          <span className="text-xs font-mono text-foreground">{t('calendar_ui.google_calendar_help', 'Google Calendar Help')}</span>
         </div>
       </a>
     </motion.div>

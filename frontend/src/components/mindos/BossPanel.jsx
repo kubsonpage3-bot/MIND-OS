@@ -155,7 +155,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             )}
           </span>
           <span className="font-black text-[10px] uppercase px-2 py-0.5 rounded" style={{ color, background: `${color}15`, border: `1px solid ${color}40` }}>
-            {activeBossTemplate.boss}
+            {t(`scrolls.${activeBossTemplate.id}.boss`, activeBossTemplate.boss)}
           </span>
         </button>
 

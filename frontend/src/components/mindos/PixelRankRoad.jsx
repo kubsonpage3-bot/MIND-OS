@@ -90,13 +90,13 @@ export default function PixelRankRoad({ rankXP = 0 }) {
         <div className="flex items-center gap-2">
           <Trophy className="w-4 h-4 text-[#ffbe5d] animate-bounce" />
           <h3 className="font-game text-[10px] text-[var(--habit-text)] tracking-wider uppercase font-black">
-            ✦ {t("rankProgression", "RANK ROAD & ASCENSION")} ✦
+            ✦ {t("rank_road.title", "RANK ROAD & ASCENSION")} ✦
           </h3>
         </div>
 
         {nextRank ? (
           <div className="font-game text-[8.5px] text-[var(--habit-dim)] flex items-center gap-1.5">
-            <span className="opacity-70">{t("next", "NEXT")}:</span>
+            <span className="opacity-70">{t("rank_road.next", "NEXT")}:</span>
             <span 
               className="font-bold px-1.5 py-0.2 rounded border"
               style={{ 
@@ -112,7 +112,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
             </span>
           </div>
         ) : (
-          <div className="font-game text-[8.5px] text-[#ca8a04] font-bold">👑 {t("maxRankReached", "MAX RANK REACHED")}</div>
+          <div className="font-game text-[8.5px] text-[#ca8a04] font-bold">👑 {t("rank_road.max_reached", "MAX RANK REACHED")}</div>
         )}
       </div>
 
@@ -125,7 +125,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           <div className="flex justify-between items-center mb-2 font-game text-[8.5px]">
             <span className="text-[var(--habit-text)] font-bold tracking-wide flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-[var(--habit-purple)]" />
-              PROGRESS TO [ {nextRank.id} · {t(`ranks.${nextRank.id}`, nextRank.label).toUpperCase()} ]
+              {t("rank_road.progress_to", { rank: nextRank.id, label: t(`ranks.${nextRank.id}`, nextRank.label).toUpperCase(), defaultValue: `PROGRESS TO [ ${nextRank.id} · ${t(`ranks.${nextRank.id}`, nextRank.label).toUpperCase()} ]` })}
             </span>
             <span 
               className="font-black text-[9px]"
@@ -154,7 +154,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           </div>
 
           <div className="mt-2 text-[7.5px] font-game text-[var(--habit-dim)] text-center font-bold tracking-wider uppercase">
-            <span className="text-[var(--habit-text)]"><AnimatedNumber value={Math.max(0, Math.ceil(nextMin - rankXP))} /> XP</span> REMAINING TO ADVANCE
+            <span className="text-[var(--habit-text)]"><AnimatedNumber value={Math.max(0, Math.ceil(nextMin - rankXP))} /> XP</span> {t("rank_road.remaining_to_advance", "REMAINING TO ADVANCE")}
           </div>
         </div>
       )}
@@ -222,7 +222,7 @@ export default function PixelRankRoad({ rankXP = 0 }) {
                 {isCurrent && (
                   <div className="flex items-center gap-1 font-game text-[6.5px] font-black text-emerald-400 bg-emerald-500/20 px-1 py-0.2 rounded border border-emerald-500/40">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span>ACTIVE</span>
+                    <span>{t('rank_road.active_pill', 'ACTIVE')}</span>
                   </div>
                 )}
                 {isUnlocked && (

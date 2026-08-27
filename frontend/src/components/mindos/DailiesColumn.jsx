@@ -130,7 +130,7 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
         </div>
         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
           <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{diff.label}</span>
+          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{t(`difficulties.${diff.id}`, diff.label)}</span>
           {(task.streak || 0) > 0 && (
             <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
               <Flame size={10} strokeWidth={2.5} />
@@ -463,7 +463,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
     <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-purple)' }}>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>DAILIES</span>
+        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>{t('lifeos_columns.dailies', 'DAILIES')}</span>
         <button onClick={onAddClick} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
           <Plus size={16} className="text-white" strokeWidth={3} />
         </button>

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Plus, X, RefreshCw } from "lucide-react";
 import { useProfileMount } from "@/utils/perf";
 import { Button } from "@/components/ui/button";
@@ -256,6 +257,7 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }
 
 export default function CalendarPanel() {
   useProfileMount("CalendarPanel");
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { profile: djangoProfile } = useDjangoAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -721,9 +723,9 @@ export default function CalendarPanel() {
               setCurrentDate(new Date());
               scrollToNow();
             }}
-            className="px-2.5 py-1 text-[10px] font-mono font-bold border border-[#3b3558] bg-[#1a172c] hover:bg-[#25213e] text-purple-300 hover:text-purple-100 rounded-md transition-colors shadow-sm"
+            className="px-2.5 py-1 text-[10px] font-mono font-bold border border-[#3b3558] bg-[#1a172c] hover:bg-[#25213e] text-purple-300 hover:text-purple-100 rounded-md transition-colors shadow-sm cursor-pointer"
           >
-            TODAY
+            {t('calendar_ui.today', 'TODAY')}
           </button>
         </div>
 
@@ -734,13 +736,13 @@ export default function CalendarPanel() {
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
                 className={cn(
-                  "px-2.5 py-1 text-[10px] font-mono rounded font-medium transition-colors",
+                  "px-2.5 py-1 text-[10px] font-mono rounded font-medium transition-colors cursor-pointer",
                   categoryFilter === cat
                     ? "bg-[#2c264d] text-purple-200 border border-purple-500/40"
                     : "text-muted-foreground hover:text-slate-200"
                 )}
               >
-                {cat === "all" ? "All" : cat === "tasks" ? "Dailies" : "Custom"}
+                {cat === "all" ? t('calendar_ui.filter_all', 'All') : cat === "tasks" ? t('calendar_ui.filter_dailies', 'Dailies') : t('calendar_ui.filter_custom', 'Custom')}
               </button>
             ))}
           </div>
@@ -749,10 +751,10 @@ export default function CalendarPanel() {
             onClick={() => setShowSyncPanel(!showSyncPanel)}
             variant="outline"
             size="sm"
-            className="text-xs font-mono border-[#2a2640] bg-[#161426] hover:bg-[#221f38] text-slate-300"
+            className="text-xs font-mono border-[#2a2640] bg-[#161426] hover:bg-[#221f38] text-slate-300 cursor-pointer"
           >
             <RefreshCw className="w-3 h-3 mr-1.5" />
-            Sync Tasks
+            {t('calendar_ui.sync_tasks', 'Sync Tasks')}
           </Button>
 
           <div className="flex gap-1 border border-[#2a2640] bg-[#141224] rounded-lg p-1">
@@ -761,13 +763,13 @@ export default function CalendarPanel() {
                 key={v}
                 onClick={() => setView(v)}
                 className={cn(
-                  "px-3 py-1 text-xs font-mono font-bold rounded transition-colors",
+                  "px-3 py-1 text-xs font-mono font-bold rounded transition-colors cursor-pointer",
                   view === v
                     ? "bg-primary text-primary-foreground shadow-[0_0_10px_rgba(168,85,247,0.4)]"
                     : "text-muted-foreground hover:text-slate-200 hover:bg-[#201d36]"
                 )}
               >
-                {v.toUpperCase()}
+                {t(`calendar_ui.${v}`, v.toUpperCase())}
               </button>
             ))}
           </div>
@@ -785,9 +787,9 @@ export default function CalendarPanel() {
               });
               setShowForm(true);
             }}
-            className="flex items-center gap-1 px-3.5 py-1.5 text-xs font-mono font-bold bg-primary text-primary-foreground rounded-lg hover:opacity-90 shadow-[0_0_12px_rgba(168,85,247,0.3)] transition-opacity"
+            className="flex items-center gap-1 px-3.5 py-1.5 text-xs font-mono font-bold bg-primary text-primary-foreground rounded-lg hover:opacity-90 shadow-[0_0_12px_rgba(168,85,247,0.3)] transition-opacity cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" /> Event
+            <Plus className="w-3.5 h-3.5" /> {t('calendar_ui.add_event', 'Event')}
           </button>
         </div>
       </div>
@@ -804,7 +806,7 @@ export default function CalendarPanel() {
 
       {view !== "month" && (
         <p className="text-[10px] font-mono text-muted-foreground/60 text-center">
-          Drag events to reschedule · Double-click to edit · Drag bottom edge to resize
+          {t('calendar_ui.drag_hint', 'Drag events to reschedule · Double-click to edit · Drag bottom edge to resize')}
         </p>
       )}
 
@@ -877,7 +879,7 @@ export default function CalendarPanel() {
                             isToday ? "text-purple-300" : "text-muted-foreground/70"
                           )}
                         >
-                          {DAYS_EN[i]}
+                          {t(`calendar_ui.days_short.${i}`, DAYS_EN[i])}
                         </div>
                         <div
                           className={cn(
@@ -958,7 +960,7 @@ export default function CalendarPanel() {
                 <div className="flex items-center gap-2">
                   <span className="text-primary text-sm">◆</span>
                   <h3 className="font-mono font-bold text-sm text-white tracking-wide">
-                    {editingEvent ? "EDIT EVENT" : "NEW EVENT"}
+                    {editingEvent ? t('calendar_ui.edit_event', 'EDIT EVENT') : t('calendar_ui.new_event', 'NEW EVENT')}
                   </h3>
                 </div>
                 <button
@@ -966,18 +968,18 @@ export default function CalendarPanel() {
                     setShowForm(false);
                     setEditingEvent(null);
                   }}
-                  className="text-muted-foreground hover:text-white"
+                  className="text-muted-foreground hover:text-white cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-mono text-muted-foreground block">
-                  EVENT TITLE
+                <label className="text-[10px] font-mono text-muted-foreground block uppercase">
+                  {t('calendar_ui.event_title', 'EVENT TITLE')}
                 </label>
                 <Input
-                  placeholder="e.g. Mathematics Deep Work"
+                  placeholder={t('calendar_ui.event_title_placeholder', 'e.g. Mathematics Deep Work')}
                   value={newEvent.title}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, title: e.target.value })
@@ -988,11 +990,11 @@ export default function CalendarPanel() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-mono text-muted-foreground block">
-                  DESCRIPTION (OPTIONAL)
+                <label className="text-[10px] font-mono text-muted-foreground block uppercase">
+                  {t('calendar_ui.description_optional', 'DESCRIPTION (OPTIONAL)')}
                 </label>
                 <Textarea
-                  placeholder="Notes, goals or topics..."
+                  placeholder={t('calendar_ui.description_placeholder', 'Notes, goals or topics...')}
                   value={newEvent.description}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, description: e.target.value })
@@ -1002,8 +1004,8 @@ export default function CalendarPanel() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-mono text-muted-foreground block">
-                  DATE
+                <label className="text-[10px] font-mono text-muted-foreground block uppercase">
+                  {t('calendar_ui.date', 'DATE')}
                 </label>
                 <Input
                   type="date"
@@ -1017,8 +1019,8 @@ export default function CalendarPanel() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">
-                    START TIME
+                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">
+                    {t('calendar_ui.start_time', 'START TIME')}
                   </label>
                   <Input
                     type="time"
@@ -1030,8 +1032,8 @@ export default function CalendarPanel() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block">
-                    END TIME
+                  <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">
+                    {t('calendar_ui.end_time', 'END TIME')}
                   </label>
                   <Input
                     type="time"
@@ -1045,8 +1047,8 @@ export default function CalendarPanel() {
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground mb-1 block">
-                  QUICK DURATION
+                <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">
+                  {t('calendar_ui.quick_duration', 'QUICK DURATION')}
                 </label>
                 <div className="flex gap-1.5">
                   {DURATION_PRESETS.map((p) => (
@@ -1054,7 +1056,7 @@ export default function CalendarPanel() {
                       key={p.label}
                       type="button"
                       onClick={() => applyPresetDuration(p.mins)}
-                      className="px-2 py-1 text-[10px] font-mono font-bold bg-[#1d1a36] hover:bg-[#28234a] border border-[#372f58] rounded text-purple-200 hover:text-white transition-colors"
+                      className="px-2 py-1 text-[10px] font-mono font-bold bg-[#1d1a36] hover:bg-[#28234a] border border-[#372f58] rounded text-purple-200 hover:text-white transition-colors cursor-pointer"
                     >
                       {p.label}
                     </button>
@@ -1063,8 +1065,8 @@ export default function CalendarPanel() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-mono text-muted-foreground block">
-                  COLOR ACCENT
+                <label className="text-[10px] font-mono text-muted-foreground block uppercase">
+                  {t('calendar_ui.color_accent', 'COLOR ACCENT')}
                 </label>
                 <div className="flex gap-2 flex-wrap">
                   {EVENT_COLORS.map((c) => (
@@ -1073,7 +1075,7 @@ export default function CalendarPanel() {
                       type="button"
                       onClick={() => setNewEvent({ ...newEvent, color: c })}
                       className={cn(
-                        "w-6 h-6 rounded-md transition-all border",
+                        "w-6 h-6 rounded-md transition-all border cursor-pointer",
                         newEvent.color === c
                           ? "ring-2 ring-white scale-110 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                           : "border-transparent hover:scale-105 opacity-80 hover:opacity-100"
@@ -1087,10 +1089,10 @@ export default function CalendarPanel() {
               <div className="flex gap-2 pt-2 border-t border-[#2a2640]">
                 <Button
                   onClick={addOrUpdateEvent}
-                  className="flex-1 font-mono font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_10px_rgba(168,85,247,0.4)]"
+                  className="flex-1 font-mono font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_10px_rgba(168,85,247,0.4)] cursor-pointer"
                   disabled={!newEvent.title}
                 >
-                  {editingEvent ? "SAVE CHANGES" : "CREATE EVENT"}
+                  {editingEvent ? t('calendar_ui.save_changes', 'SAVE CHANGES') : t('calendar_ui.create_event', 'CREATE EVENT')}
                 </Button>
                 {editingEvent && (
                   <Button
@@ -1100,9 +1102,9 @@ export default function CalendarPanel() {
                       setShowForm(false);
                       setEditingEvent(null);
                     }}
-                    className="font-mono"
+                    className="font-mono cursor-pointer"
                   >
-                    DELETE
+                    {t('calendar_ui.delete', 'DELETE')}
                   </Button>
                 )}
               </div>

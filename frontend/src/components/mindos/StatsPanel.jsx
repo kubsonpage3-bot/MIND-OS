@@ -17,12 +17,12 @@ const RARITY_STYLES = {
 
 // ─── Streak heatmap tiers ──────────────────────────────────────────────────────
 const STREAK_TIERS = [
-  { min: 30, label: "LEGENDARY", color: "#FBBF24", glow: "rgba(251,191,36,0.7)",   bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.5)" },
-  { min: 15, label: "EPIC",      color: "#A78BFA", glow: "rgba(167,139,250,0.6)",  bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.4)" },
-  { min: 8,  label: "RARE",      color: "#60A5FA", glow: "rgba(96,165,250,0.55)",  bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.35)" },
-  { min: 4,  label: "UNCOMMON",  color: "#4ADE80", glow: "rgba(74,222,128,0.5)",   bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.3)" },
-  { min: 1,  label: "COMMON",    color: "#f97316", glow: "rgba(249,115,22,0.45)",  bg: "rgba(249,115,22,0.07)", border: "rgba(249,115,22,0.28)" },
-  { min: 0,  label: "COLD",      color: "#64748b", glow: "rgba(100,116,139,0.3)",  bg: "rgba(100,116,139,0.05)", border: "rgba(100,116,139,0.2)" },
+  { id: "legendary", min: 30, label: "LEGENDARY", color: "#FBBF24", glow: "rgba(251,191,36,0.7)",   bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.5)" },
+  { id: "epic",      min: 15, label: "EPIC",      color: "#A78BFA", glow: "rgba(167,139,250,0.6)",  bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.4)" },
+  { id: "rare",      min: 8,  label: "RARE",      color: "#60A5FA", glow: "rgba(96,165,250,0.55)",  bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.35)" },
+  { id: "uncommon",  min: 4,  label: "UNCOMMON",  color: "#4ADE80", glow: "rgba(74,222,128,0.5)",   bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.3)" },
+  { id: "common",    min: 1,  label: "COMMON",    color: "#f97316", glow: "rgba(249,115,22,0.45)",  bg: "rgba(249,115,22,0.07)", border: "rgba(249,115,22,0.28)" },
+  { id: "cold",      min: 0,  label: "COLD",      color: "#64748b", glow: "rgba(100,116,139,0.3)",  bg: "rgba(100,116,139,0.05)", border: "rgba(100,116,139,0.2)" },
 ];
 
 function getStreakTier(streak) {
@@ -187,7 +187,7 @@ export default function StatsPanel({ profile, logs }) {
           </motion.div>
 
           <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
-            Weekly XP
+            {t('stats_panel.weekly_xp', 'Weekly XP')}
           </div>
 
           {/* Segmented XP bar */}
@@ -239,7 +239,7 @@ export default function StatsPanel({ profile, logs }) {
           </div>
 
           <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", transform: "translateZ(15px)" }}>
-            Energy
+            {t('stats_panel.energy', 'Energy')}
           </div>
 
           {/* Battery breakdown */}
@@ -255,7 +255,13 @@ export default function StatsPanel({ profile, logs }) {
               whiteSpace: "nowrap"
             }}
           >
-            {`${batteryInfo.habits} hab · ${batteryInfo.todos} tod · ${batteryInfo.dailies} day · ${batteryInfo.hours} hr`}
+            {t('stats_panel.battery_breakdown', {
+              habits: batteryInfo.habits,
+              todos: batteryInfo.todos,
+              dailies: batteryInfo.dailies,
+              hours: batteryInfo.hours,
+              defaultValue: `${batteryInfo.habits} hab · ${batteryInfo.todos} tod · ${batteryInfo.dailies} day · ${batteryInfo.hours} hr`
+            })}
           </div>
         </Card3D>
 
@@ -266,6 +272,7 @@ export default function StatsPanel({ profile, logs }) {
 
 // ─── STREAK CARD (Clean & simplified) ─────────────────────────
 function StreakCard({ profile }) {
+  const { t } = useTranslation();
   const streak = profile?.streak || 0;
   const maxStreak = Math.max(streak, profile?.max_streak || 0);
   const tier = getStreakTier(streak);
@@ -314,7 +321,7 @@ function StreakCard({ profile }) {
 
       {/* Shield badge */}
       {isProtected && (
-        <div className="absolute top-1.5 right-1.5 z-20 animate-pulse" title="Streak Protected!">
+        <div className="absolute top-1.5 right-1.5 z-20 animate-pulse" title={t('stats_panel.streak_protected', 'Streak Protected!')}>
           <span className="text-sm drop-shadow-md">🛡️</span>
         </div>
       )}
@@ -365,7 +372,7 @@ function StreakCard({ profile }) {
 
       {/* Label */}
       <div style={{ fontFamily: "'Nunito'", fontSize: 9, fontWeight: 800, color: "#878190", textTransform: "uppercase", letterSpacing: "0.1em", zIndex: 10, transform: "translateZ(15px)" }}>
-        DAY STREAK
+        {t('stats_panel.day_streak', 'DAY STREAK')}
       </div>
 
       {/* Tier badge */}
@@ -383,7 +390,11 @@ function StreakCard({ profile }) {
           transform: "translateZ(20px)",
         }}
       >
-        {tier.label} · Best: {maxStreak}
+        {t('stats_panel.streak_tier_best', {
+          tier: t(`stats_panel.streak_tiers.${tier.id || tier.label.toLowerCase()}`, tier.label),
+          max: maxStreak,
+          defaultValue: `${t(`stats_panel.streak_tiers.${tier.id || tier.label.toLowerCase()}`, tier.label)} · Best: ${maxStreak}`
+        })}
       </motion.div>
     </Card3D>
   );

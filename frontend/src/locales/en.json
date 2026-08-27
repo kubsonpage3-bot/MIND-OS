@@ -572,7 +572,27 @@
     "btn_confirm": "CONFIRM",
     "preset_title": "SAVE BUILD PRESET",
     "preset_desc": "Saves your current {{count}} unlocked nodes. Max 3 presets.",
-    "preset_placeholder": "e.g. Study Week, Combat Build"
+    "preset_placeholder": "e.g. Study Week, Combat Build",
+    "nodes": {
+      "shield_slam": {
+        "name": "Удар щитом"
+      },
+      "blood_pact": {
+        "name": "Кровавый пакт"
+      },
+      "battle_fury": {
+        "name": "Боевая ярость"
+      },
+      "mind_over_matter": {
+        "name": "Сила разума"
+      },
+      "transcendence": {
+        "name": "Трансцендентность"
+      },
+      "iron_will": {
+        "desc": "+15% к прямому снижению урона по персонажу"
+      }
+    }
   },
   "achievements": {
     "unlocked": "🏆 UNLOCKED: {{name}}",
@@ -655,23 +675,30 @@
     "dataSecureInfo": "No personal identifiers are sent. Data is anonymized and used only for product improvements."
   },
   "rivalTab": {
-    "johan": "Johan",
-    "loading": "Loading rival data...",
-    "rankXp": "Rank XP",
-    "youRankXp": "Your Rank XP",
-    "surge": "⚡ SURGE",
-    "light": "light day",
-    "closing": "CLOSING",
+    "johan": "JOHAN",
+    "loading": "Connecting to neural rival...",
+    "surge": "SURGE",
+    "light": "LIGHT",
+    "closing": "GAP CLOSING",
+    "noSessionsToday": "No sessions logged yet today",
     "todayLabel": "Today:",
     "hLogged": "h logged",
-    "hasAlreadyLogged": "has already logged",
-    "youHaveZero": "h. You have: 0h.",
-    "noSessionsToday": "No sessions today yet.",
+    "slackingWarning": "{{name}} is grinding while you rest. Log a session to stay competitive.",
     "weeklyComparison": "WEEKLY COMPARISON",
-    "youLabel": "You",
-    "youGraph": "You",
-    "j": "J",
-    "last7Days": "LAST 7 DAYS"
+    "hoursMetric": "Hours",
+    "avgFocusMetric": "Avg Focus",
+    "subjectsMetric": "Subjects",
+    "rankXpMetric": "Rank XP",
+    "youLabel": "YOU:",
+    "youGraph": "YOU",
+    "j": "JOHAN",
+    "last7Days": "Last 7 Days Breakdown",
+    "rivalSubTab": "RIVAL",
+    "partySubTab": "PARTY",
+    "morning_person": "Morning Person",
+    "night_owl": "Night Owl",
+    "recovery_window": "RECOVERY WINDOW",
+    "you_btn": "YOU"
   },
   "projection": {
     "avgPace": "PROJECTIONS AT CURRENT AVG PACE",
@@ -708,33 +735,33 @@
     "skilltree_desc": "Resets all skill tree unlocks and refunds your SP.",
     "stats_title": "Progress & Stats",
     "stats_desc": "Resets cognitive stats, rank, gold, and class. This cannot be undone.",
-    "nuclear_desc": "Permanently deletes ALL data including tasks, logs, stats, and inventory. This cannot be undone."
+    "nuclear_desc": "Permanently deletes ALL data including tasks, logs, stats, and inventory. This cannot be undone.",
+    "reset_activities_btn": "Reset Activities to Rank F",
+    "reset_streak_btn": "Reset Streak",
+    "clear_tasks_btn": "Clear Tasks",
+    "reset_allies_btn": "Reset Allies",
+    "reset_skills_btn": "Reset Skills",
+    "reset_progress_btn": "Reset Progress",
+    "delete_all_btn": "DELETE ALL DATA"
   },
   "errorBoundary": {
     "renderError": "Something went wrong rendering this tab.",
     "retry": "Retry"
   },
   "partyTab": {
-    "completeTaskFeed": "Complete a task to start the feed!",
-    "completeToClimb": "Complete tasks and habits to climb the ranks!",
-    "copyInvite": "Copy invite code",
-    "createParty": "Create Party",
-    "creatingBtn": "Creating...",
-    "error": "Error loading party.",
-    "header": "PARTY",
-    "inviteCode": "Invite Code",
-    "inviteCodeLabel": "INVITE CODE",
-    "inviteDesc": "Share this with friends to invite them.",
-    "joiningBtn": "Joining...",
-    "joinParty": "Join Party",
-    "joinBtn": "Join",
-    "loading": "Loading party...",
-    "noActivity": "No activity yet.",
-    "noXpYet": "No XP earned yet this week.",
-    "partyNamePlaceholder": "Name your party...",
-    "resetsMonday": "Resets Monday",
-    "weeklyRank": "WEEKLY RANK",
-    "xpThisWeek": "XP THIS WEEK"
+    "header": "PARTY // WARBAND",
+    "loading": "Connecting to warband sanctuary...",
+    "error": "Failed to load warband data",
+    "copyInvite": "Copy summoning cipher",
+    "noXpYet": "No glory earned yet",
+    "completeToClimb": "Complete quests and habits to climb the ranks",
+    "inviteCodeLabel": "Invite Code",
+    "inviteHint": "Share this with friends to invite them.",
+    "tabs": {
+      "members": "Members",
+      "activity": "Activity",
+      "rankings": "Rankings"
+    }
   },
   "pomodoroPanel": {
     "apply": "Apply",
@@ -1507,7 +1534,27 @@
     "btn_conflict_blocked": "⚠️ BLOCKED BY CONFLICT",
     "btn_limit_reached": "SLOT LIMIT REACHED (MAX {{max}})",
     "no_discovered": "No Mutators Discovered Yet",
-    "no_discovered_desc": "Open Mutator Chests above to decrypt and unlock ancient game modifiers!"
+    "no_discovered_desc": "Open Mutator Chests above to decrypt and unlock ancient game modifiers!",
+    "mutators": {
+      "gravity_well": {
+        "name": "Гравитационный колодец"
+      },
+      "phase_shift": {
+        "name": "Фазовый сдвиг"
+      },
+      "quantum_decay": {
+        "name": "Квантовый распад"
+      },
+      "entropy_surge": {
+        "name": "Всплеск энтропии"
+      },
+      "temporal_drift": {
+        "name": "Временной дрифт"
+      },
+      "reality_anchor": {
+        "name": "Якорь реальности"
+      }
+    }
   },
   "items": {
     "data_ring": {
@@ -1707,6 +1754,78 @@
     }
   },
   "allies": {
+    "kira": {
+      "name": "KIRA",
+      "title": "The Analyst",
+      "lore": "She sees patterns where others see noise.",
+      "levels": [
+        "Science sessions give +5% Rank XP",
+        "Science bonus → +10%",
+        "+0.002 bonus Gf per Science session",
+        "Critical hits from Science tasks always trigger",
+        "Science subject rank thresholds -10%"
+      ]
+    },
+    "neko": {
+      "name": "NEKO",
+      "title": "The Dreamer",
+      "lore": "She turns every moment into something beautiful.",
+      "levels": [
+        "Daily task completions give +5% extra Gold",
+        "Streak bonus XP +8%",
+        "Mana restored +3 when completing a daily",
+        "Habit streaks never break on first miss",
+        "All Gold gains +15% permanently"
+      ]
+    },
+    "void": {
+      "name": "VOID",
+      "title": "The Abyss Walker",
+      "lore": "From darkness comes the sharpest clarity.",
+      "levels": [
+        "Boss damage +10% globally",
+        "Critical hit damage ×1.2",
+        "Defeating a boss restores +15 MP",
+        "Boss HP bars reduced by 5%",
+        "All boss damage ×1.5 permanently"
+      ]
+    },
+    "luna": {
+      "name": "LUNA",
+      "title": "The Cat Spirit",
+      "lore": "She purrs in binary, dreams in starlight.",
+      "levels": [
+        "Exercise sessions give +8% Rank XP",
+        "Missed daily HP loss -10%",
+        "HP regenerates +1 per completed daily",
+        "Auto-heal 5 HP after defeating a boss",
+        "Max HP increased by +20 permanently"
+      ]
+    },
+    "sakura": {
+      "name": "SAKURA",
+      "title": "The Pink Phantom",
+      "lore": "Her smile hides a thousand calculations.",
+      "levels": [
+        "Language sessions give +10% Rank XP",
+        "Gc and Vm gains +10% from all sources",
+        "Mana regenerates +5 per language session",
+        "All Rank XP from tasks +8%",
+        "Language subject ranks advance 20% faster"
+      ]
+    },
+    "hex": {
+      "name": "HEX",
+      "title": "The Cursed One",
+      "lore": "She whispers forbidden knowledge with a smirk.",
+      "levels": [
+        "Skill cooldowns reduced by 15%",
+        "Active skills cost -10 MP",
+        "Using a skill gives +20 boss damage",
+        "Skill cooldowns reduced by additional 20%",
+        "Once per day: use any skill at 0 MP cost"
+      ]
+    },
     "yuki": {
       "name": "YUKI",
       "title": "The Witch Bride",
@@ -1719,54 +1838,6 @@
         "After prestige: start at Rank C instead of F"
       ]
     },
-    "void": {
-      "name": "VOID",
-      "title": "The Abyss Walker",
-      "lore": "He feeds on the time you waste.",
-      "levels": [
-        "Boss damage +15%",
-        "Missed habit penalty reduced by 50%",
-        "Passive HP regen +5 per day",
-        "Critical strike chance +10% vs bosses",
-        "Once per week: skip a daily without breaking streak"
-      ]
-    },
-    "hex": {
-      "name": "HEX",
-      "title": "The Cursed One",
-      "lore": "Knowledge always comes at a price.",
-      "levels": [
-        "Gold gains +10%",
-        "Random chance to double task rewards",
-        "Shop discount 10%",
-        "Chance to find random consumable on completing a Hard task",
-        "Once per month: reset a skill tree node for free"
-      ]
-    },
-    "kira": {
-      "name": "KIRA",
-      "title": "The Analyst",
-      "lore": "Data never lies, but it doesn't always tell the truth.",
-      "levels": [
-        "Focus sessions grant +15% Mana",
-        "Increased loot drop chance from bosses",
-        "Unlocks detailed statistics on Dashboard",
-        "Coding tasks give +20% Rank XP",
-        "Once per day: instantly complete any one habit"
-      ]
-    },
-    "sakura": {
-      "name": "SAKURA",
-      "title": "The Pink Phantom",
-      "lore": "Too fast for regrets.",
-      "levels": [
-        "Increases Speed (SPD) by +3",
-        "Running/Exercise tasks yield +20% Gold",
-        "Chance to dodge damage when missing a task",
-        "Increases Max Mana by 10",
-        "Skill activations cost 5 less Mana"
-      ]
-    },
     "nene": {
       "name": "NENE",
       "title": "The Silent Scholar",
@@ -1777,30 +1848,6 @@
         "HP restored +2 per day passively",
         "All cognitive metric gains +10%",
         "Once per week: full mana restoration for free"
-      ]
-    },
-    "neko": {
-      "name": "NEKO",
-      "title": "The Dreamer",
-      "lore": "Sleeps on keyboards, wakes up for innovation.",
-      "levels": [
-        "Increases Luck (LCK) by +5",
-        "Chance to get double XP for creative tasks",
-        "Passive Mana regen +1 per hour",
-        "Reduces Boss Damage taken by 10%",
-        "Once per day: get a random beneficial buff"
-      ]
-    },
-    "luna": {
-      "name": "LUNA",
-      "title": "The Cat Spirit",
-      "lore": "She walks where the shadows are deep.",
-      "levels": [
-        "Increases Memory (MEM) by +4",
-        "Reading tasks give +25% Mana",
-        "Increases chance of critical task success",
-        "Bonus XP for late-night sessions",
-        "Hides one failed task from breaking streak"
       ]
     },
     "grier": {
@@ -1857,46 +1904,10 @@
       "lore": "His melodies synchronize with your focus cycles.",
       "levels": [
         "Logging different focus subject gives +20% Rank XP",
-        "Streak of 10+ days increases all core stats by +2",
-        "Boosts all other active allies' perks by +15% (ally_stat_mult +0.15)",
-        "Every 4th task completed in a day grants a free chest, but tasks 1-3 yield -15% gold",
-        "Completing all active Dailies in a day deals 600 boss damage and restores full mana"
-      ]
-    },
-    "bran": {
-      "name": "BRAN",
-      "title": "The Scrap Tinker",
-      "lore": "He cobbles scrap metal into mechanical wonders.",
-      "levels": [
-        "+8% item drop chance on tasks, but -10% Rank XP gains",
-        "Reduces gold cost of all shop items and loot chests by 15%",
-        "Salvaging/selling equipment yields double gold and 20% ingredient drop chance",
-        "+30% equipped gear stat bonuses, but lose 1 HP for every skill activated",
-        "Opening a Loot Chest has a 12% chance to refund its Gold cost entirely"
-      ]
-    },
-    "vivian": {
-      "name": "VIVIAN",
-      "title": "The Blood Priestess",
-      "lore": "She converts your vital blood into raw magical energy.",
-      "levels": [
-        "Activate skills using HP instead of Mana (1 HP = 2 Mana), but disables healing from shop potions",
-        "Lose 15 HP to reset a random skill cooldown (12h cooldown)",
-        "Task completion heals +2 HP per 10% missing health",
-        "Task completion heals you for 10% of damage dealt to the boss",
-        "At exactly 1 HP: 100% critical hit chance and double XP gains"
-      ]
-    },
-    "rhea": {
-      "name": "RHEA",
-      "title": "The Void Explorer",
-      "lore": "She maps space that does not exist.",
-      "levels": [
-        "With active mutator: shuffles stats every hour (+20% sum)",
-        "Once per day: Swap an active mutator with a random one from the pool",
-        "Gravity Well: extends daily deadline by 4h (to 4 AM) but missing them deals +30% HP damage",
-        "Task completion pulls boss HP down by 1.5% max HP at cost of 2 Mana",
-        "Increases max active mutators limit from 3 to 4, at cost of -30 permanent Max HP"
+        "Every 3 tasks completed grants +5 temporary Max HP for the day",
+        "Music/Creative sessions generate +50% Gold bonus",
+        "Completing tasks with 10.0 focus gives +100% boss damage",
+        "Permanent +10% boost to all stats while an ally is active"
       ]
     }
   },
@@ -2095,7 +2106,10 @@
       "title": "Meet Your Rival",
       "description": "Check out the Rival tab to see how you stack up against Johan.",
       "cta": "View Rival"
-    }
+    },
+    "deep_work": "Глубокая концентрация",
+    "deep_work_desc": "Продолжительные периоды непрерывной работы значительно ускоряют рост когнитивных метрик.",
+    "stem": "Точные науки"
   },
   "feature_lock": {
     "title": "Feature Locked",
@@ -2351,7 +2365,13 @@
     "syncing": "Syncing with Johan..."
   },
   "rival_taunts": {
-    "pressure_0": "RIVAL is calculating your endpoint.",
+    "slacking": "{{name}} logged {{hours}}h already today. You have: 0h.",
+    "pressure_day": "[Day {{days}}] {{taunt}}",
+    "overtook": "⚡ {{name}} overtook you by {{diff}} XP today. {{taunt}}",
+    "noticed": "{{name}} noticed your session. Adjusting pace.",
+    "streak_lead": "Your streak is longer. {{name}} is watching.",
+    "focus_taunt": "{{name}}: '...that focus score.'",
+    "pressure_0": "Rival is calculating your endpoint.",
     "pressure_1": "Day 4. The gap is structural now.",
     "pressure_2": "Johan doesn't plateau. You do.",
     "pressure_3": "Stop. Recalculate. Then grind.",
@@ -2374,13 +2394,7 @@
     "default_0": "Shadow Protocol Active — Monitoring your progress.",
     "default_1": "The race doesn't pause.",
     "default_2": "Johan is always logging somewhere.",
-    "default_3": "Your next session determines the gap.",
-    "slacking": "{{name}} logged {{hours}}h already today. You have: 0h.",
-    "pressure_day": "[Day {{days}}] {{taunt}}",
-    "overtook": "⚡ {{name}} overtook you by {{diff}} XP today. {{taunt}}",
-    "noticed": "{{name}} noticed your session. Adjusting pace.",
-    "streak_lead": "Your streak is longer. {{name}} is watching.",
-    "focus_taunt": "{{name}}: '...that focus score.'"
+    "default_3": "Your next session determines the gap."
   },
   "boss_panel_extra": {
     "idle_dps": "⚡ Idle DPS:",
@@ -2391,39 +2405,48 @@
     "reward": "Reward:"
   },
   "party_extra": {
-    "profile_title": "{{name}}'s Profile",
-    "loading": "Loading profile...",
-    "failed": "Failed to load profile.",
-    "joined": "Joined",
-    "max_streak": "Max Streak",
-    "tasks_done": "Tasks Done",
-    "rank_xp": "Rank XP",
-    "recruited_allies": "Recruited Allies ({{count}})",
-    "no_allies": "No allies recruited yet",
-    "kick_confirm": "Are you sure you want to kick {{name}} from the party?",
-    "kick_tooltip": "Kick Member",
-    "dailies_done": "Dailies done today ✓",
-    "dailies_not_done": "Dailies not done today"
+    "dailies_done": "Soul Awake ✓",
+    "dailies_not_done": "In Slumber",
+    "rank_xp": "GLORY XP",
+    "bless": "⚡ BLESS",
+    "close": "CLOSE ✕",
+    "forge_title": "🩸 FORGE A NEW COVENANT",
+    "forge_btn": "⚔️ FORGE COVENANT",
+    "join_title": "🗝️ ENTER SUMMONING GLYPH",
+    "join_btn": "🔮 ANSWER SUMMON"
   },
   "training_extra": {
     "expected_rewards": "Expected Rewards",
     "experience": "Experience",
     "gold": "Gold",
     "boss_dmg": "Boss DMG",
-    "log_btn": "Log"
+    "log_btn": "Log",
+    "focus_rating": "Уровень фокуса",
+    "focus_rating_sub": "Оцените глубину вашей концентрации во время сессии от 1 до 10.",
+    "gold_reward": "Награда золотом",
+    "xp_reward": "Награда опытом",
+    "boss_damage": "Урон по боссу",
+    "streak_bonus": "Бонус серии"
   },
   "brain_chart_extra": {
     "now": "now"
   },
   "welcome_back": {
-    "title": "Welcome Back!",
-    "subtitle": "Mark the dailies you completed yesterday:",
-    "completed": "{{count}} completed",
-    "missed": "{{count}} missed",
-    "skip": "Skip",
-    "saving": "Saving...",
-    "start_day": "Start New Day! 🚀",
-    "day_streak": "day streak"
+    "title": "DAWN REPORT",
+    "subtitle": "Review yesterday's unfinished dailies before starting today.",
+    "skip": "SKIP",
+    "start_day": "RESOLVE & START DAY ⚔️",
+    "resolving": "RESOLVING...",
+    "quests_pending": "⚔️ {{count}} QUESTS PENDING",
+    "perfect_yesterday": "★ PERFECT YESTERDAY! NO DAMAGE ★",
+    "fallen_battle": "FALLEN IN BATTLE",
+    "day_resolved": "DAY RESOLVED",
+    "judged_desc": "Yesterday's deeds have been judged",
+    "experience": "EXPERIENCE",
+    "gold": "GOLD",
+    "damage": "DAMAGE",
+    "nothing_resolved": "NOTHING RESOLVED",
+    "enter_new_day": "ENTER THE NEW DAY ⚔️"
   },
   "inventory_panel": {
     "title": "Inventory",
@@ -2433,7 +2456,13 @@
     "gear_tab": "gear",
     "consumables_tab": "consumables",
     "time_left": "{{hours}}h left",
-    "one_session": "1 session"
+    "one_session": "1 session",
+    "equip": "EQUIP",
+    "unequip": "UNEQUIP",
+    "equipped": "EQUIPPED",
+    "sell": "SELL",
+    "active": "ACTIVE",
+    "use": "USE"
   },
   "offline_summary": {
     "title": "WHILE YOU WERE OFFLINE",
@@ -2444,11 +2473,18 @@
     "continue_btn": "CONTINUE"
   },
   "allies_panel": {
-    "active_team_bonuses": "Active Team Bonuses",
+    "title": "Companions & Allies",
+    "subtitle": "(Recruit powerful neural allies to boost your stats and capabilities)",
+    "rank": "RANK",
     "abilities_by_level": "Abilities by Level",
-    "locked_ability": "Locked",
-    "max_level": "MAX LEVEL",
-    "rank": "RANK"
+    "locked_ability": "Locked ability",
+    "recruit": "RECRUIT",
+    "summoning": "SUMMONING...",
+    "upgrade": "UPGRADE",
+    "max_level": "MAX LEVEL REACHED",
+    "recruited": "Recruited",
+    "available": "Available",
+    "locked": "Locked"
   },
   "pomodoro_ui": {
     "linked_focus_mode": "LINKED FOCUS MODE",
@@ -2578,7 +2614,15 @@
       "goals_saved": "✅ Goals saved!"
     },
     "calendar": {
-      "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      "weekdays": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
       "normal": "Goal Met (±15%)",
       "under": "Under",
       "over": "Over"
@@ -2610,5 +2654,270 @@
       "macro_balance": "Macro Balance (grams)",
       "water": "Water:"
     }
+  },
+  "difficulties": {
+    "trivial": "Trivial",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
+  },
+  "iq_levels": {
+    "awakening": "Awakening",
+    "grinder": "Grinder",
+    "sharpened": "Sharpened",
+    "elite": "Elite",
+    "ceiling_breaker": "Ceiling Breaker"
+  },
+  "iq_display": {
+    "potential": "POTENTIAL:",
+    "min": "MIN: 80",
+    "cap": "CAP: {{ceiling}}",
+    "iq_label": "IQ"
+  },
+  "task_modal": {
+    "create_title": "CREATE NEW TASK",
+    "edit_title": "EDIT TASK",
+    "task_name": "Task Name",
+    "task_name_placeholder": "e.g. Morning Meditation, Read 30 min...",
+    "task_type": "Task Type",
+    "habit": "Habit",
+    "daily": "Daily Routine",
+    "todo": "To-Do / Quest",
+    "category": "Category",
+    "difficulty": "Difficulty",
+    "priority": "Priority",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "visible_in_calendar": "SHOW IN CALENDAR",
+    "repeat_schedule": "Repeat Schedule",
+    "save_changes": "SAVE CHANGES",
+    "create_task": "CREATE TASK",
+    "saving": "SAVING...",
+    "creating": "CREATING...",
+    "cancel": "Cancel",
+    "notes": "Notes (Optional)",
+    "notes_placeholder": "Add any additional context or instructions...",
+    "due_date": "Due Date",
+    "new_task_btn": "New Task",
+    "tab_tasks": "Tasks",
+    "tab_activities": "Activities"
+  },
+  "boss_defeat": {
+    "victory": "VICTORY!",
+    "slain_desc": "You have slain <1>{{bossName}}</1> and claimed its hoard.",
+    "gold_reward": "GOLD REWARD",
+    "xp_reward": "XP REWARD",
+    "sp_reward": "SKILL POINTS",
+    "rewards_added": "Rewards added to your account.",
+    "claim_rewards": "CLAIM REWARDS"
+  },
+  "stats_panel": {
+    "weekly_xp": "Weekly XP",
+    "energy": "Energy",
+    "day_streak": "DAY STREAK",
+    "streak_protected": "Streak Protected!",
+    "streak_tier_best": "{{tier}} · Best: {{max}}",
+    "battery_breakdown": "{{habits}} hab · {{todos}} tod · {{dailies}} day · {{hours}} hr",
+    "streak_tiers": {
+      "legendary": "LEGENDARY",
+      "epic": "EPIC",
+      "rare": "RARE",
+      "uncommon": "UNCOMMON",
+      "common": "COMMON",
+      "cold": "COLD"
+    }
+  },
+  "rank_road": {
+    "title": "RANK ROAD & ASCENSION",
+    "next": "NEXT",
+    "max_reached": "MAX RANK REACHED",
+    "progress_to": "PROGRESS TO [ {{rank}} · {{label}} ]",
+    "remaining_to_advance": "REMAINING TO ADVANCE",
+    "active_pill": "ACTIVE",
+    "hours_est": "~{{hours}}h",
+    "min_xp": "{{min}} XP"
+  },
+  "rankProgression": "RANK ROAD & ASCENSION",
+  "next": "NEXT",
+  "active_party": {
+    "title": "ACTIVE PARTY",
+    "allies_count": "{{count}}/3 ALLIES",
+    "recruit_hint": "RECRUIT IN SHOP →",
+    "roles": {
+      "vanguard": "VANGUARD",
+      "specialist": "SPECIALIST",
+      "support": "SUPPORT"
+    },
+    "empty": "EMPTY",
+    "summon": "+ SUMMON",
+    "tap_to_recruit": "[ TAP TO RECRUIT ]"
+  },
+  "daily_quote": {
+    "title": "✦ SCRIPTURE OF THE DAY ✦",
+    "badge": "WISDOM SCROLL"
+  },
+  "calendar_ui": {
+    "days_short": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ],
+    "event_title": "EVENT TITLE",
+    "event_title_ph": "e.g. Deep Work Session, Team Meeting...",
+    "description": "DESCRIPTION (OPTIONAL)",
+    "description_ph": "Add agenda, goals, or notes...",
+    "start_time": "START TIME",
+    "duration": "QUICK DURATION",
+    "create_event": "CREATE EVENT",
+    "saving": "SAVING...",
+    "delete_confirm": "Delete this calendar event?",
+    "edit_event": "EDIT EVENT",
+    "sync_google": "Google Calendar Integration",
+    "sync_desc": "Sync your MIND OS tasks with Google Calendar to see your dailies and events in one place.",
+    "sync_security": "This integration uses OAuth 2.0 for secure authentication. Your credentials are never stored in the app.",
+    "connected": "Connected",
+    "disconnected": "Not Connected",
+    "connect_btn": "Connect Google Calendar",
+    "disconnect_btn": "Disconnect Calendar",
+    "loading_status": "Loading connection status..."
+  },
+  "auth": {
+    "login_title": "Sign in to your neural workspace",
+    "register_title": "Create your neural profile",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "sign_in": "Sign In",
+    "signing_in": "Signing In...",
+    "sign_up": "Create Profile",
+    "creating_profile": "Creating Profile...",
+    "guest_login": "Try as Guest",
+    "no_account": "Don't have a profile?",
+    "have_account": "Already have a profile?",
+    "session_expired_err": "Session expired. Please log in again.",
+    "invalid_credentials": "Invalid username or password",
+    "guest_failed": "Guest login failed",
+    "passwords_dont_match": "Passwords do not match",
+    "registration_failed": "Registration failed"
+  },
+  "select_class": {
+    "recalibration": "CLASS RECALIBRATION",
+    "architecture": "SELECT CLASS ARCHITECTURE",
+    "choose_title": "CHOOSE YOUR CLASS",
+    "permanent_hint": "Choose your path. This choice is permanent.",
+    "class_selection": "Class Selection",
+    "selected_msg": "You have selected <1>{{name}}</1>.",
+    "confirm_btn": "CONFIRM SELECTION",
+    "processing": "PROCESSING...",
+    "initializing": "INITIALIZING NEURAL LINK & SETTING CLASS..."
+  },
+  "extension_ui": {
+    "title": "Browser Extension",
+    "subtitle": "Pair the MIND OS Chrome/Firefox extension to auto-complete habits and track screen time.",
+    "connected": "Extension Connected",
+    "not_connected": "Not Connected",
+    "checking": "Checking…",
+    "disconnect": "Disconnect",
+    "disconnecting": "Disconnecting…",
+    "active_sync": "Extension is active and syncing your browser habits automatically.",
+    "how_to_connect": "How to connect:",
+    "step1": "Open the MIND OS extension popup in your browser",
+    "step2": "Click Generate Code below — valid for 10 minutes",
+    "step3": "Paste the 6-digit code into the extension",
+    "generate_code": "Generate Code",
+    "generating": "Generating…",
+    "valid_for": "Code valid for",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "reset_ui": {
+    "success_alert": "Reset completed successfully.",
+    "error_alert": "Error resetting: {{msg}}",
+    "confirm_training": "Reset all activity logs to Rank F? This will delete all your logged sessions and restore all hidden activities. Cognitive stats (Gf/Gc/Ps/Vm) remain. Continue?",
+    "confirm_streak": "Reset your streak counter? This will set it to 0.",
+    "confirm_tasks": "Delete all tasks (habits, dailies, to-dos)? This cannot be undone.",
+    "confirm_allies": "Reset ally progress? All unlocked allies will be locked again.",
+    "confirm_skills": "Reset skill tree unlocks? All SP will be refunded.",
+    "confirm_stats": "Reset cognitive stats, rank, gold, class? This cannot be undone.",
+    "confirm_nuclear": "⚠️ WARNING: This will delete ALL progress. Cannot be undone. Continue?",
+    "prompt_nuclear": "Type 'RESET' to confirm:",
+    "btn_reset_training": "Reset Activities to Rank F",
+    "btn_reset_streak": "Reset Streak to 0",
+    "btn_reset_tasks": "Delete All Tasks",
+    "btn_reset_allies": "Reset Allies",
+    "btn_reset_skills": "Reset Skill Tree (Refund SP)",
+    "btn_reset_stats": "Reset Character & Stats",
+    "btn_nuclear": "NUCLEAR FACTORY RESET",
+    "resetting": "Resetting..."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "settings_btn": "SETTINGS →",
+    "reminder_active": "Daily Reminder Active",
+    "disabled": "Notifications Disabled",
+    "active_hint": "⏰ {{time}} daily · Rival alerts: {{rival}}",
+    "disabled_hint": "Enable to receive daily training reminders",
+    "modal_title": "NOTIFICATION SETTINGS",
+    "unsupported": "⚠ Your browser doesn't support notifications",
+    "denied": "⚠ Notifications blocked — enable in browser settings",
+    "daily_reminder": "Daily Reminder",
+    "disable_btn": "DISABLE NOTIFICATIONS",
+    "enable_btn": "ENABLE NOTIFICATIONS",
+    "reminder_time": "Reminder Time",
+    "rival_alerts": "Rival Activity Alerts",
+    "rival_desc": "Get notified when JOHAN starts training",
+    "send_test": "SEND TEST NOTIFICATION",
+    "enabled_toast": "Notifications enabled",
+    "disabled_toast": "Notifications disabled",
+    "test_toast": "Test notification sent"
+  },
+  "local_notifications": {
+    "daily_title": "⚡ MIND OS — Training Session",
+    "daily_body": "Time to log your daily activity. Every session counts toward your rank.",
+    "streak_title": "Streak at Risk! ⚠️",
+    "streak_body": "You haven't logged any activity today. Complete a task before midnight to preserve your streak!"
+  },
+  "changelog": {
+    "title": "System Updates",
+    "subtitle": "Recent changes, patches, and features.",
+    "latest": "Latest",
+    "types": {
+      "feature": "feature",
+      "fix": "fix",
+      "polish": "polish",
+      "balance": "balance"
+    }
+  },
+  "chest_panel": {
+    "title": "Decryptor Shop",
+    "subtitle": "(Unlock rare cyberware and weapon caches)",
+    "loading": "LOADING CACHE MANIFEST...",
+    "insufficient_credits": "Insufficient Credits",
+    "decryptor_active": "DECRYPTOR SYSTEM ACTIVE",
+    "progress": "PROGRESS",
+    "decryption_matrix": "Decryption Matrix",
+    "decrypt_cache": "DECRYPT CACHE ({{gold}}G)",
+    "decrypting": "DECRYPTING...",
+    "decryption_complete": "[ DECRYPTION COMPLETE ]",
+    "modifications": "Modifications",
+    "slot": "Slot: {{slot}}",
+    "equip_cyberware": "EQUIP CYBERWARE",
+    "equipped_to_system": "EQUIPPED TO SYSTEM",
+    "dismiss": "DISMISS",
+    "stages": [
+      "ESTABLISHING CONTEXT UPLINK...",
+      "EXTRACTING ENCRYPTED DATA BLOCKS...",
+      "DECRYPTING SECURITY CORE...",
+      "REASSEMBLING CYBERNETIC PROTOCOL...",
+      "DECRYPTION COMPLETE!"
+    ]
+  },
+  "inventory": {
+    "item_details": "Item Details"
   }
 }

@@ -30,8 +30,8 @@ export default function ClassSelector({ onChoose, isPremium }) {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-1">
-        <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest">Class Selection</div>
-        <div className="font-mono text-sm text-foreground/70">Choose your path. This choice is permanent.</div>
+        <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest">{t('select_class.class_selection', 'Class Selection')}</div>
+        <div className="font-mono text-sm text-foreground/70">{t('select_class.choose_path_desc', 'Choose your path. This choice is permanent.')}</div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -99,7 +99,7 @@ export default function ClassSelector({ onChoose, isPremium }) {
                   </span>
                 ))}
               </div>
-              <div className="text-[9px] font-mono text-muted-foreground/40">MANA {cls.maxMana}</div>
+              <div className="text-[9px] font-mono text-muted-foreground/40">{t('classes.mana', 'MANA')} {cls.maxMana}</div>
             </motion.button>
           );
         })}
@@ -121,15 +121,15 @@ export default function ClassSelector({ onChoose, isPremium }) {
             style={{ borderColor: selectedClass.color }}
           >
             <div className="text-xs font-mono text-center mb-4" style={{ color: selectedClass.color }}>
-              You have selected <span className="font-bold">{t(selectedClass.name)}</span>.
+              {t('select_class.you_have_selected', 'You have selected')} <span className="font-bold">{t(`rpgData.classes.${selectedClass.id}.name`, selectedClass.name)}</span>.
             </div>
             <button
               onClick={handleConfirm}
               disabled={isSubmitting}
-              className="w-full py-3 text-sm font-mono rounded-lg font-bold transition-all hover:brightness-125 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 text-sm font-mono rounded-lg font-bold transition-all hover:brightness-125 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               style={{ background: selectedClass.color, color: "#000", boxShadow: `0 0 20px ${selectedClass.color}60` }}
             >
-              {isSubmitting ? "PROCESSING..." : "CONFIRM SELECTION"}
+              {isSubmitting ? t('select_class.processing', 'PROCESSING...') : t('select_class.confirm_selection', 'CONFIRM SELECTION')}
             </button>
           </motion.div>
         )}

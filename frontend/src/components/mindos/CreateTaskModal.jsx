@@ -77,8 +77,10 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
-                <span className="font-mono text-base font-bold tracking-wider" style={{ color: "#f0c040" }}>{editMode ? "EDIT TASK" : "CREATE NEW TASK"}</span>
-                <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+                <span className="font-mono text-base font-bold tracking-wider" style={{ color: "#f0c040" }}>
+                  {editMode ? t('task_modal.edit_title', 'EDIT TASK') : t('task_modal.create_title', 'CREATE NEW TASK')}
+                </span>
+                <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                   <FantasyIcon size={22}><X /></FantasyIcon>
                 </button>
               </div>
@@ -88,9 +90,11 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                 <div className="space-y-5">
                   {/* Task Name */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Task Name</label>
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                      {t('task_modal.task_name', 'Task Name')}
+                    </label>
                     <Input
-                      placeholder="Enter task name..."
+                      placeholder={t('task_modal.task_name_placeholder', 'Enter task name...')}
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
                       className="font-mono text-sm h-11 text-slate-200 bg-black/20 border-white/10"
@@ -100,24 +104,30 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Type selector */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Task Type</label>
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                      {t('task_modal.task_type', 'Task Type')}
+                    </label>
                     <div className="flex gap-2">
-                      {["habit", "daily", "todo"].map(t => (
+                      {[
+                        { id: 'habit', label: t('task_modal.habit', 'Habit') },
+                        { id: 'daily', label: t('task_modal.daily', 'Daily Routine') },
+                        { id: 'todo', label: t('task_modal.todo', 'To-Do / Quest') }
+                      ].map(item => (
                         <button
-                          key={t}
+                          key={item.id}
                           onClick={() => {
-                            setFormType(t);
-                            setForm({ ...form, type: t });
+                            setFormType(item.id);
+                            setForm({ ...form, type: item.id });
                           }}
-                          className="flex-1 px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all uppercase"
+                          className="flex-1 px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all uppercase cursor-pointer"
                           style={{
-                            borderColor: formType === t ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.3)",
-                            color: formType === t ? "#f0c040" : "#64748b",
-                            background: formType === t ? "rgba(240,192,64,0.12)" : "rgba(255,255,255,0.02)",
+                            borderColor: formType === item.id ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.3)",
+                            color: formType === item.id ? "#f0c040" : "#64748b",
+                            background: formType === item.id ? "rgba(240,192,64,0.12)" : "rgba(255,255,255,0.02)",
                             boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
                           }}
                         >
-                          {t}
+                          {item.label}
                         </button>
                       ))}
                     </div>
@@ -125,13 +135,15 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Category selector */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Category</label>
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                      {t('task_modal.category', 'Category')}
+                    </label>
                     <div className="grid grid-cols-4 gap-1.5">
                       {CATEGORIES.map(c => (
                         <button
                           key={c}
                           onClick={() => setForm({ ...form, category: c })}
-                          className="aspect-square p-0 flex flex-col items-center justify-center text-center text-[9px] leading-[1.1] font-mono pixel-btn border-2 transition-all"
+                          className="aspect-square p-0 flex flex-col items-center justify-center text-center text-[9px] leading-[1.1] font-mono pixel-btn border-2 transition-all cursor-pointer"
                           style={{
                             borderColor: form.category === c ? "rgba(240,192,64,0.5)" : "rgba(148,163,184,0.25)",
                             color: form.category === c ? "#f0c040" : "#64748b",
@@ -147,13 +159,15 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Difficulty selector */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Difficulty</label>
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                      {t('task_modal.difficulty', 'Difficulty')}
+                    </label>
                     <div className="flex gap-2">
                       {DIFFICULTIES.map(d => (
                         <button
                           key={d.id}
                           onClick={() => setForm({ ...form, difficulty: d.id })}
-                          className="flex-1 px-3 py-2.5 text-xs font-mono rounded border-2 transition-all"
+                          className="flex-1 px-3 py-2.5 text-xs font-mono rounded border-2 transition-all cursor-pointer"
                           style={{
                             borderColor: form.difficulty === d.id ? d.color : "var(--habit-border)",
                             color: form.difficulty === d.id ? d.color : "var(--habit-dim)",
@@ -161,7 +175,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                             boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
                           }}
                         >
-                          {d.label}
+                          {t(`difficulties.${d.id}`, d.label)}
                         </button>
                       ))}
                     </div>
@@ -170,13 +184,15 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   {/* Todo-specific: Priority */}
                   {form.type === "todo" && (
                     <div>
-                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Priority</label>
+                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                        {t('task_modal.priority', 'Priority')}
+                      </label>
                       <div className="flex gap-2">
                         {PRIORITIES.map(p => (
                           <button
                             key={p}
                             onClick={() => setForm({ ...form, priority: p })}
-                            className="flex-1 py-2 text-xs font-mono rounded border-2 transition-all uppercase"
+                            className="flex-1 py-2 text-xs font-mono rounded border-2 transition-all uppercase cursor-pointer"
                             style={{
                               borderColor: form.priority === p ? PRIORITY_COLORS[p] : "var(--habit-border)",
                               color: form.priority === p ? PRIORITY_COLORS[p] : "var(--habit-dim)",
@@ -194,7 +210,9 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   {/* Todo-specific: Due Date */}
                   {form.type === "todo" && (
                     <div>
-                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Due Date</label>
+                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                        {t('task_modal.due_date', 'Due Date')}
+                      </label>
                       <Input
                         type="date"
                         value={form.dueDate}
@@ -208,7 +226,9 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   {form.type === "daily" && (
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">Start Time</label>
+                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">
+                          {t('task_modal.start_time', 'Start Time')}
+                        </label>
                         <Input
                           type="time"
                           value={form.scheduledTime || ""}
@@ -217,7 +237,9 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">End Time</label>
+                        <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">
+                          {t('task_modal.end_time', 'End Time')}
+                        </label>
                         <Input
                           type="time"
                           value={form.scheduledEndTime || ""}
@@ -231,23 +253,25 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   {/* Inline Time Error */}
                   {form.type === "daily" && form.scheduledTime && form.scheduledEndTime && form.scheduledEndTime <= form.scheduledTime && (
                     <p className="text-red-400 text-[10px] font-mono uppercase tracking-wider">
-                      ⚠️ End time must be after start time
+                      ⚠️ {t('calendar_ui.end_time_after_start', 'End time must be after start time')}
                     </p>
                   )}
 
                   {/* Daily-specific: Repeat Schedule (weekdays) */}
                   {form.type === "daily" && (
                     <div>
-                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">Repeat Schedule</label>
+                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">
+                        {t('task_modal.repeat_schedule', 'Repeat Schedule')}
+                      </label>
                       <div className="flex gap-1.5 justify-between">
                         {[
-                          { label: "M", flag: 1 },
-                          { label: "T", flag: 2 },
-                          { label: "W", flag: 4 },
-                          { label: "T", flag: 8 },
-                          { label: "F", flag: 16 },
-                          { label: "S", flag: 32 },
-                          { label: "S", flag: 64 },
+                          { label: t('calendar_ui.days_short.0', 'M')[0], flag: 1 },
+                          { label: t('calendar_ui.days_short.1', 'T')[0], flag: 2 },
+                          { label: t('calendar_ui.days_short.2', 'W')[0], flag: 4 },
+                          { label: t('calendar_ui.days_short.3', 'T')[0], flag: 8 },
+                          { label: t('calendar_ui.days_short.4', 'F')[0], flag: 16 },
+                          { label: t('calendar_ui.days_short.5', 'S')[0], flag: 32 },
+                          { label: t('calendar_ui.days_short.6', 'S')[0], flag: 64 },
                         ].map((day, idx) => {
                           const currentBitmask = form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127;
                           const isSelected = (currentBitmask & day.flag) > 0;
@@ -260,7 +284,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                                 if (newBitmask === 0) return;
                                 setForm({ ...form, repeatWeekdays: newBitmask });
                               }}
-                              className="w-10 h-10 rounded-full font-mono text-xs font-bold border-2 transition-all flex items-center justify-center"
+                              className="w-10 h-10 rounded-full font-mono text-xs font-bold border-2 transition-all flex items-center justify-center cursor-pointer"
                               style={{
                                 borderColor: isSelected ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.25)",
                                 color: isSelected ? "#f0c040" : "#64748b",
@@ -279,10 +303,12 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                   {/* Daily-specific: Show in Calendar toggle */}
                   {form.type === "daily" && (
                     <div>
-                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Show in Calendar</label>
+                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                        {t('task_modal.visible_in_calendar', 'Show in Calendar')}
+                      </label>
                       <button
                         onClick={() => setForm({ ...form, showInCalendar: !form.showInCalendar })}
-                        className="w-full px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all flex items-center justify-between"
+                        className="w-full px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all flex items-center justify-between cursor-pointer"
                         style={{
                           borderColor: form.showInCalendar ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.3)",
                           color: form.showInCalendar ? "#f0c040" : "#64748b",
@@ -290,7 +316,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                           boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
                         }}
                       >
-                        <span>{form.showInCalendar ? "VISIBLE IN CALENDAR" : "HIDDEN FROM CALENDAR"}</span>
+                        <span>{form.showInCalendar ? t('task_modal.visible_in_calendar', 'VISIBLE IN CALENDAR') : t('calendar_ui.hidden_calendar', 'HIDDEN FROM CALENDAR')}</span>
                         <span className="text-lg">{form.showInCalendar ? "✓" : "○"}</span>
                       </button>
                     </div>
@@ -298,9 +324,11 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Notes */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">Notes (Optional)</label>
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                      {t('task_modal.notes', 'Notes (Optional)')}
+                    </label>
                     <Textarea
-                      placeholder="Add notes..."
+                      placeholder={t('task_modal.notes_placeholder', 'Add notes...')}
                       value={form.notes}
                       onChange={e => setForm({ ...form, notes: e.target.value })}
                       className="h-24 text-xs font-mono text-slate-200 bg-black/20 border-white/10"
@@ -315,7 +343,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       <button
                         onClick={handleCreate}
                         disabled={isSubmitDisabled}
-                        className="w-full pixel-btn border-2 font-mono font-bold py-4 text-base tracking-wider"
+                        className="w-full pixel-btn border-2 font-mono font-bold py-4 text-base tracking-wider cursor-pointer"
                         style={{ 
                           borderColor: "#f0c040",
                           background: isSubmitDisabled ? "rgba(240,192,64,0.15)" : "rgba(240,192,64,0.25)",
@@ -324,7 +352,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                           opacity: isSubmitDisabled ? 0.5 : 1
                         }}
                       >
-                        {editMode ? "SAVE CHANGES" : "CREATE TASK"}
+                        {editMode ? t('task_modal.save_changes', 'SAVE CHANGES') : t('task_modal.create_task', 'CREATE TASK')}
                       </button>
                     );
                   })()}

@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { playSound } from '@/lib/soundEffects';
 import { useHardwareBack } from '@/utils/modalStack';
 
 export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards }) {
   useHardwareBack(isOpen, onClose);
+  const { t } = useTranslation();
   
   React.useEffect(() => {
     if (isOpen) {
@@ -43,35 +45,41 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
             <div className="text-6xl mb-4" style={{ filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }}>🏆</div>
             
             <h2 className="font-mono text-2xl font-black text-yellow-400 mb-2">
-              VICTORY!
+              {t('boss_defeat.victory', 'VICTORY!')}
             </h2>
             <p className="font-mono text-sm text-gray-300 mb-6">
-              You have slain <span className="font-bold text-red-400">{bossName}</span> and claimed its hoard.
+              {t('boss_defeat.slain_desc', { boss: bossName, defaultValue: `You have slain ${bossName} and claimed its hoard.` })}
             </p>
  
             <div className="space-y-3 mb-6 bg-black/40 rounded-xl p-4 border border-yellow-900/50">
               {bossGold > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-400">GOLD REWARD</span>
+                  <span className="font-mono text-xs text-gray-400">
+                    {t('boss_defeat.gold_reward', 'GOLD REWARD')}
+                  </span>
                   <span className="font-mono font-bold text-yellow-400">+{bossGold.toLocaleString()} G</span>
                 </div>
               )}
               {bossXp > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-400">XP REWARD</span>
+                  <span className="font-mono text-xs text-gray-400">
+                    {t('boss_defeat.xp_reward', 'XP REWARD')}
+                  </span>
                   <span className="font-mono font-bold text-purple-400">+{bossXp.toLocaleString()} XP</span>
                 </div>
               )}
               {bossSp > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-gray-400">SKILL POINTS</span>
+                  <span className="font-mono text-xs text-gray-400">
+                    {t('boss_defeat.skill_points', 'SKILL POINTS')}
+                  </span>
                   <span className="font-mono font-bold text-cyan-400">+{bossSp.toLocaleString()} SP</span>
                 </div>
               )}
               
               {(bossGold === 0 && bossXp === 0 && bossSp === 0) && (
                 <div className="text-center font-mono text-xs text-gray-500 italic">
-                  Rewards added to your account.
+                  {t('boss_defeat.rewards_added', 'Rewards added to your account.')}
                 </div>
               )}
             </div>
@@ -84,7 +92,7 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
                 boxShadow: "0 0 15px rgba(245, 158, 11, 0.4)"
               }}
             >
-              CLAIM REWARDS
+              {t('boss_defeat.claim_rewards', 'CLAIM REWARDS')}
             </button>
           </motion.div>
         </motion.div>

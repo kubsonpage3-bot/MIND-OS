@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -16,6 +17,7 @@ export default function CalendarMonthView({
   onSelectDate,
   categoryFilter = "all",
 }) {
+  const { t } = useTranslation();
   const todayStr = getLocalDateStr(new Date());
 
   // Compute month grid (including leading/trailing padding days from previous/next month)
@@ -68,7 +70,7 @@ export default function CalendarMonthView({
               idx > 0 && "border-l border-[#2a2640]/50"
             )}
           >
-            {day}
+            {t(`calendar_ui.days_short.${idx}`, day)}
           </div>
         ))}
       </div>
@@ -148,7 +150,7 @@ export default function CalendarMonthView({
 
                 {dayEvents.length > 3 && (
                   <div className="text-[9px] font-mono text-muted-foreground/80 pl-1">
-                    +{dayEvents.length - 3} more...
+                    +{dayEvents.length - 3} {t('calendar_ui.more', 'more...')}
                   </div>
                 )}
               </div>
