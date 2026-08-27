@@ -157,3 +157,75 @@ def test_habit_completion_via_api_and_backfill():
     assert history_data["stats"]["habits_count"] >= 1
     assert UserActivityLog.objects.filter(user=user3).count() >= 1
 
+
+@pytest.mark.django_db
+def test_task_revert_sync_with_activity_history():
+    user4 = User.objects.create_user(username="revertuser", password="password123")
+    client4 = APIClient()
+    client4.force_authenticate(user=user4)
+
+    # 1. Create a Daily task
+    daily = Task.objects.create(
+        user=user4,
+        task_type=Task.TaskType.DAILY,
+        title="Workout Routine",
+        category="Health & Fitness",
+        difficulty="medium",
+    )
+
+    # 2. Complete Daily
+    res_comp = client4.post(f"/api/tasks/{daily.id}/complete/", {"is_positive": True}, format="json")
+    assert res_comp.status_code == 200
+    xp_earned = res_comp.json()["xp_earned"]
+    assert xp_earned > 0
+
+    # Verify history before revert
+    res_hist1 = client4.get("/api/history/")
+    assert res_hist1.status_code == 200
+    h1_data = res_hist1.json()
+    assert h1_data["stats"]["dailies_count"] == 1
+    assert h1_data["stats"]["total_xp"] == xp_earned
+    assert len(h1_data["results"]) == 1
+
+    # 3. Uncomplete/Revert Daily
+    res_rev = client4.post(f"/api/tasks/{daily.id}/complete/", {"is_positive": False}, format="json")
+    assert res_rev.status_code == 200
+
+    # Verify history after revert: log is cleanly deleted, XP/count back to 0
+    res_hist2 = client4.get("/api/history/")
+    assert res_hist2.status_code == 200
+    h2_data = res_hist2.json()
+    assert h2_data["stats"]["dailies_count"] == 0
+    assert h2_data["stats"]["total_xp"] == 0
+    assert len(h2_data["results"]) == 0
+    # 4. Re-complete Daily: should create exactly 1 log without duplicates
+    res_comp2 = client4.post(f"/api/tasks/{daily.id}/complete/", {"is_positive": True}, format="json")
+    assert res_comp2.status_code == 200
+    xp_earned2 = res_comp2.json()["xp_earned"]
+    res_hist3 = client4.get("/api/history/")
+    assert res_hist3.status_code == 200
+    h3_data = res_hist3.json()
+    assert h3_data["stats"]["dailies_count"] == 1
+    assert h3_data["stats"]["total_xp"] == xp_earned2
+    assert len(h3_data["results"]) == 1
+
+    # 5. Test Todo toggle revert
+    todo = Task.objects.create(
+        user=user4,
+        task_type=Task.TaskType.TODO,
+        title="Submit report",
+        category="STEM",
+        difficulty="hard",
+    )
+    res_todo_comp = client4.post(f"/api/tasks/{todo.id}/toggle/")
+    assert res_todo_comp.status_code == 200
+    assert res_todo_comp.json()["completed"] is True
+    assert UserActivityLog.objects.filter(user=user4, task=todo).count() == 1
+
+    # Uncomplete todo
+    res_todo_uncomp = client4.post(f"/api/tasks/{todo.id}/toggle/")
+    assert res_todo_uncomp.status_code == 200
+    assert res_todo_uncomp.json()["completed"] is False
+    assert UserActivityLog.objects.filter(user=user4, task=todo).count() == 0
+
+

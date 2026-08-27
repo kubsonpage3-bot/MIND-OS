@@ -2104,8 +2104,22 @@ class ActivityHistoryView(generics.GenericAPIView):
             except Exception as e:
                 logger.warning("Backfill habit logs error: %s", e)
 
+        # Clean up any legacy uncomplete logs if present
+        UserActivityLog.objects.filter(
+            user=user,
+            activity_type__in=[
+                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+            ],
+        ).delete()
+
         # ── Base Queryset ─────────────────────────────────────────────
-        qs = UserActivityLog.objects.filter(user=user)
+        qs = UserActivityLog.objects.filter(user=user).exclude(
+            activity_type__in=[
+                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+            ]
+        )
 
         # Apply Type Filter
         if activity_type_filter == "study":
@@ -2118,19 +2132,9 @@ class ActivityHistoryView(generics.GenericAPIView):
                 ]
             )
         elif activity_type_filter == "daily":
-            qs = qs.filter(
-                activity_type__in=[
-                    UserActivityLog.ActivityType.DAILY,
-                    UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
-                ]
-            )
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.DAILY)
         elif activity_type_filter == "todo":
-            qs = qs.filter(
-                activity_type__in=[
-                    UserActivityLog.ActivityType.TODO,
-                    UserActivityLog.ActivityType.TODO_UNCOMPLETE,
-                ]
-            )
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.TODO)
         elif activity_type_filter == "pomodoro":
             qs = qs.filter(activity_type=UserActivityLog.ActivityType.POMODORO)
 

@@ -1309,6 +1309,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
             if not isinstance(task.last_reward_data, dict):
                 task.last_reward_data = {}
+            task.last_reward_data["xp_earned"] = final_xp
+            task.last_reward_data["gold_earned"] = final_gold
             if combat_result:
                 task.last_reward_data["encounter_id"] = combat_result.get(
                     "encounter_id"
@@ -1316,7 +1318,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 task.last_reward_data["damage_dealt"] = combat_result.get(
                     "damage_dealt", 0
                 )
-                task.save(update_fields=["last_reward_data"])
+            task.save(update_fields=["last_reward_data"])
 
         if combat_result and combat_result.get("boss_defeated"):
             boss_rewards = combat_result.get("rewards", {})
@@ -1333,59 +1335,68 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     try:
         from api.models import UserActivityLog
 
-        if task.task_type == Task.TaskType.HABIT:
-            act_type = (
-                UserActivityLog.ActivityType.HABIT_POS
-                if is_positive
-                else UserActivityLog.ActivityType.HABIT_NEG
+        if not is_positive and task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
+            # Uncomplete/Revert: remove the most recent completion log for this task so history is 100% synced
+            latest_log = (
+                UserActivityLog.objects.filter(
+                    user=user,
+                    task=task,
+                    activity_type__in=[
+                        UserActivityLog.ActivityType.DAILY,
+                        UserActivityLog.ActivityType.TODO,
+                    ],
+                )
+                .order_by("-created_at")
+                .first()
             )
-            act_streak = task.pos_streak if is_positive else task.neg_streak
-            act_hp_lost = (
-                final_damage if (not is_positive and "final_damage" in locals()) else 0
-            )
-        elif task.task_type == Task.TaskType.DAILY:
-            act_type = (
-                UserActivityLog.ActivityType.DAILY
-                if is_positive
-                else UserActivityLog.ActivityType.DAILY_UNCOMPLETE
-            )
-            act_streak = task.streak
-            act_hp_lost = 0
+            if latest_log:
+                latest_log.delete()
         else:
-            act_type = (
-                UserActivityLog.ActivityType.TODO
-                if is_positive
-                else UserActivityLog.ActivityType.TODO_UNCOMPLETE
-            )
-            act_streak = 0
-            act_hp_lost = 0
+            if task.task_type == Task.TaskType.HABIT:
+                act_type = (
+                    UserActivityLog.ActivityType.HABIT_POS
+                    if is_positive
+                    else UserActivityLog.ActivityType.HABIT_NEG
+                )
+                act_streak = task.pos_streak if is_positive else task.neg_streak
+                act_hp_lost = (
+                    final_damage if (not is_positive and "final_damage" in locals()) else 0
+                )
+            elif task.task_type == Task.TaskType.DAILY:
+                act_type = UserActivityLog.ActivityType.DAILY
+                act_streak = task.streak
+                act_hp_lost = 0
+            else:
+                act_type = UserActivityLog.ActivityType.TODO
+                act_streak = 0
+                act_hp_lost = 0
 
-        UserActivityLog.objects.create(
-            user=user,
-            activity_type=act_type,
-            task=task,
-            title=task.title,
-            category=getattr(task, "category", "Other") or "Other",
-            icon=getattr(task, "icon", "") or "",
-            difficulty=getattr(task, "difficulty", "medium") or "medium",
-            xp_earned=rewards.get("xp", 0) if is_positive else 0,
-            gold_earned=rewards.get("gold", 0) if is_positive else 0,
-            hp_lost=act_hp_lost,
-            mana_gained=mana_gained if is_positive else 0,
-            boss_damage=(
-                final_damage_dealt
-                if (is_positive and "final_damage_dealt" in locals())
-                else 0
-            ),
-            streak_value=act_streak,
-            metadata={
-                "is_positive": is_positive,
-                "value_after": task.value,
-                "combat_result": combat_result if combat_result else None,
-            },
-        )
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type=act_type,
+                task=task,
+                title=task.title,
+                category=getattr(task, "category", "Other") or "Other",
+                icon=getattr(task, "icon", "") or "",
+                difficulty=getattr(task, "difficulty", "medium") or "medium",
+                xp_earned=rewards.get("xp", 0) if is_positive else 0,
+                gold_earned=rewards.get("gold", 0) if is_positive else 0,
+                hp_lost=act_hp_lost,
+                mana_gained=mana_gained if is_positive else 0,
+                boss_damage=(
+                    final_damage_dealt
+                    if (is_positive and "final_damage_dealt" in locals())
+                    else 0
+                ),
+                streak_value=act_streak,
+                metadata={
+                    "is_positive": is_positive,
+                    "value_after": task.value,
+                    "combat_result": combat_result if combat_result else None,
+                },
+            )
     except Exception as e:
-        logger.warning("Failed to create UserActivityLog for task %s: %s", task.id, e)
+        logger.warning("Failed to update UserActivityLog for task %s: %s", task.id, e)
 
     return {
         "detail": "Task completed!",
