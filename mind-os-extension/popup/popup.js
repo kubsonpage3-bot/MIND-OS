@@ -25,7 +25,7 @@ const streakBadge  = $('streakBadge');
 const manaBarFill  = $('manaBarFill');
 const manaValue    = $('manaValue');
 
-const tabs         = document.querySelectorAll('.tab');
+const dockBtns     = document.querySelectorAll('.dock-btn');
 const tabContents  = document.querySelectorAll('.tab-content');
 
 // Timer
@@ -268,14 +268,14 @@ function renderStats() {
   if (manaBarFill) manaBarFill.style.width = `${manaPct}%`;
 }
 
-// ─── Tab nav ─────────────────────────────────────────────────────────────────
+// ─── Dock nav ─────────────────────────────────────────────────────────────────
 
-tabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
-    tabs.forEach((t) => t.classList.remove('active'));
+dockBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    dockBtns.forEach((b) => b.classList.remove('active'));
     tabContents.forEach((c) => c.classList.add('hidden'));
-    tab.classList.add('active');
-    $(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+    btn.classList.add('active');
+    $(`tab-${btn.dataset.tab}`).classList.remove('hidden');
   });
 });
 
@@ -474,20 +474,14 @@ if (extConfirmRatingBtn) {
 }
 
 function updateCharBadge(modeStr) {
-  if (!extCharBadge) return;
-  extCharBadge.className = `char-badge char-${modeStr}`;
+  const badge = $('extCharBadge');
+  if (!badge) return;
   if (modeStr === 'break') {
-    extCharIcon.textContent = '⚡';
-    extCharName.textContent = 'LIGHTNING';
-    extCharMode.textContent = '· SHORT BREAK';
+    badge.textContent = '⚡ LIGHTNING · BREAK';
   } else if (modeStr === 'longBreak') {
-    extCharIcon.textContent = '🔥';
-    extCharName.textContent = 'SUMMONER';
-    extCharMode.textContent = '· LONG REST';
+    badge.textContent = '🔥 SUMMONER · REST';
   } else {
-    extCharIcon.textContent = '💖';
-    extCharName.textContent = 'BEATRIX';
-    extCharMode.textContent = '· FOCUS MODE';
+    badge.textContent = '💖 BEATRIX · FOCUS';
   }
 }
 
@@ -581,7 +575,7 @@ async function openPomodoroSession() {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
     const apiBase = await getApiBase();
-    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/start/`, {
+    const res = await fetch(`${apiBase}/api/pomodoro/sessions/active-session/start/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -593,6 +587,11 @@ async function openPomodoroSession() {
         mode: 'work',
       }),
     });
+    if (res.ok) {
+      const data = await res.json();
+      // Capture session id so completePomodoroSession can use it
+      if (data.id) pomodoroSessionId = data.id;
+    }
   } catch (e) {
     console.error('[MIND OS] openPomodoroSession error:', e);
   }
@@ -634,12 +633,15 @@ async function notifyResetSession() {
 
 // Mark session complete → triggers gold/XP reward on backend
 async function completePomodoroSession() {
-  if (!pomodoroSessionId) return;
   try {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
     const apiBase = await getApiBase();
-    await fetch(`${apiBase}/api/pomodoro/sessions/${pomodoroSessionId}/complete/`, {
+    // Use specific session id if captured, otherwise fall back to active-session endpoint
+    const endpoint = pomodoroSessionId
+      ? `${apiBase}/api/pomodoro/sessions/${pomodoroSessionId}/complete/`
+      : `${apiBase}/api/pomodoro/sessions/active-session/complete/`;
+    await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -941,76 +943,7 @@ saveDefaultsBtn.addEventListener('click', () => {
   setTimeout(() => defaultsSaved.classList.add('hidden'), 2000);
 });
 
-// ─── HISTORY TAB ─────────────────────────────────────────────────────────────
-
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-async function loadHistoryStats() {
-  try {
-    const { extensionToken } = await browser.storage.local.get('extensionToken');
-    if (!extensionToken) return;
-
-    const apiBase = await getApiBase();
-    const res = await fetch(`${apiBase}/api/pomodoro/sessions/stats/`, {
-      headers: { Authorization: `Bearer ${extensionToken}` },
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-
-    // 4 stat cards
-    $('histTodayPomos').textContent  = data.today_pomodoros ?? '0';
-    $('histTotalHours').textContent  = data.total_hours ? Number(data.total_hours).toFixed(1) : '0';
-    $('histTotalPomos').textContent  = data.total_pomodoros ?? '0';
-    $('histBestStreak').textContent  = (data.best_streak ?? '0') + 'd';
-
-    // Weekly bar chart from heatmap_data (last 7 days)
-    renderWeeklyBars(data.heatmap_data || {});
-  } catch (e) {
-    console.error('[MIND OS] loadHistoryStats error:', e);
-  }
-}
-
-function renderWeeklyBars(heatmapData) {
-  const weeklyBarsEl = $('weeklyBars');
-  if (!weeklyBarsEl) return;
-  weeklyBarsEl.innerHTML = '';
-
-  // Build last 7 days array (oldest → newest)
-  const days = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
-    days.push({ key, label: DAY_LABELS[d.getDay()], isToday: i === 0 });
-  }
-
-  // Find max for scaling
-  const counts = days.map((d) => heatmapData[d.key] || 0);
-  const max = Math.max(...counts, 1);
-
-  days.forEach(({ key, label, isToday }, idx) => {
-    const count = counts[idx];
-    const heightPct = Math.max(8, (count / max) * 100); // min 8% so bar is visible
-
-    const col = document.createElement('div');
-    col.className = 'weekly-bar-col';
-    col.innerHTML = `
-      <div class="weekly-bar ${count > 0 ? 'has-data' : ''} ${isToday ? 'today' : ''}"
-           style="height: ${heightPct}%"
-           title="${label}: ${count} session${count !== 1 ? 's' : ''}">
-      </div>
-      <span class="weekly-bar-label">${label.slice(0, 1)}</span>
-    `;
-    weeklyBarsEl.appendChild(col);
-  });
-}
-
-// Load history when its tab is clicked
-document.querySelector('[data-tab="history"]')?.addEventListener('click', loadHistoryStats);
-
-const histRefreshBtn = $('histRefreshBtn');
-if (histRefreshBtn) histRefreshBtn.addEventListener('click', loadHistoryStats);
+// History tab removed from extension — full history is on the main MIND OS site.
 
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 
