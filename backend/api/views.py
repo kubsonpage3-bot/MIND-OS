@@ -1972,10 +1972,9 @@ class ActivityHistoryView(generics.GenericAPIView):
         search_query = request.query_params.get("search", "").strip()
 
         # ── Data Backfill for Existing Users ─────────────────────────
-        # If user has no UserActivityLog records yet, synthesize from TrainingSession and completed Tasks
-        if not UserActivityLog.objects.filter(user=user).exists():
+        # 1. Backfill TrainingSession if user has training sessions but no STUDY logs
+        if not UserActivityLog.objects.filter(user=user, activity_type=UserActivityLog.ActivityType.STUDY).exists():
             try:
-                # 1. Backfill TrainingSession
                 training_sessions = TrainingSession.objects.filter(
                     user_profile__user=user
                 ).order_by("created_at")
@@ -2020,19 +2019,28 @@ class ActivityHistoryView(generics.GenericAPIView):
                     UserActivityLog.objects.filter(id=log_entry.id).update(
                         created_at=ts.created_at
                     )
+            except Exception as e:
+                logger.warning("Backfill training logs error: %s", e)
 
-                # 2. Backfill completed Tasks (if completed)
+        # 2. Backfill completed Dailies/Todos if no DAILY or TODO logs exist
+        if not UserActivityLog.objects.filter(
+            user=user,
+            activity_type__in=[UserActivityLog.ActivityType.DAILY, UserActivityLog.ActivityType.TODO]
+        ).exists():
+            try:
                 completed_tasks = Task.objects.filter(
-                    user=user, is_completed=True, last_completed_at__isnull=False
+                    user=user,
+                    task_type__in=[Task.TaskType.DAILY, Task.TaskType.TODO],
+                    is_completed=True,
+                    last_completed_at__isnull=False
                 )
                 for t in completed_tasks:
                     rewards = t.get_rewards()
-                    act_type = UserActivityLog.ActivityType.TODO
-                    if t.task_type == Task.TaskType.DAILY:
-                        act_type = UserActivityLog.ActivityType.DAILY
-                    elif t.task_type == Task.TaskType.HABIT:
-                        act_type = UserActivityLog.ActivityType.HABIT_POS
-
+                    act_type = (
+                        UserActivityLog.ActivityType.DAILY
+                        if t.task_type == Task.TaskType.DAILY
+                        else UserActivityLog.ActivityType.TODO
+                    )
                     log_entry = UserActivityLog(
                         user=user,
                         activity_type=act_type,
@@ -2046,7 +2054,7 @@ class ActivityHistoryView(generics.GenericAPIView):
                         streak_value=(
                             t.streak
                             if t.task_type == Task.TaskType.DAILY
-                            else t.pos_streak
+                            else 0
                         ),
                         metadata={"backfilled": True},
                     )
@@ -2056,7 +2064,45 @@ class ActivityHistoryView(generics.GenericAPIView):
                             created_at=t.last_completed_at
                         )
             except Exception as e:
-                logger.warning("Backfill activity logs error: %s", e)
+                logger.warning("Backfill task logs error: %s", e)
+
+        # 3. Backfill Habits if user has habit completions but no HABIT logs exist
+        if not UserActivityLog.objects.filter(
+            user=user,
+            activity_type__in=[UserActivityLog.ActivityType.HABIT_POS, UserActivityLog.ActivityType.HABIT_NEG]
+        ).exists():
+            try:
+                habit_tasks = Task.objects.filter(
+                    user=user,
+                    task_type=Task.TaskType.HABIT
+                ).filter(
+                    Q(completion_count__gt=0) | Q(pos_streak__gt=0) | Q(neg_streak__gt=0) | Q(last_completed_at__isnull=False)
+                )
+                for t in habit_tasks:
+                    rewards = t.get_rewards()
+                    count = max(1, t.completion_count or t.pos_streak or 1)
+                    for _ in range(min(count, 10)):
+                        log_entry = UserActivityLog(
+                            user=user,
+                            activity_type=UserActivityLog.ActivityType.HABIT_POS,
+                            task=t,
+                            title=t.title,
+                            category=t.category or "Other",
+                            icon=t.icon or "",
+                            difficulty=t.difficulty or "medium",
+                            xp_earned=rewards.get("xp", 0),
+                            gold_earned=rewards.get("gold", 0),
+                            streak_value=t.pos_streak or 1,
+                            metadata={"backfilled": True},
+                        )
+                        log_entry.save()
+                        ts_date = t.last_completed_at or t.created_at
+                        if ts_date:
+                            UserActivityLog.objects.filter(id=log_entry.id).update(
+                                created_at=ts_date
+                            )
+            except Exception as e:
+                logger.warning("Backfill habit logs error: %s", e)
 
         # ── Base Queryset ─────────────────────────────────────────────
         qs = UserActivityLog.objects.filter(user=user)

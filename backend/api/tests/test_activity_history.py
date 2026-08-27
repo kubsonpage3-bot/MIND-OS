@@ -90,3 +90,70 @@ def test_activity_history_endpoint_and_logging():
     search_results = res_search.json()["results"]
     assert len(search_results) == 1
     assert "Quantum" in search_results[0]["title"]
+
+
+@pytest.mark.django_db
+def test_habit_completion_via_api_and_backfill():
+    user2 = User.objects.create_user(username="habituser", password="password123")
+    client = APIClient()
+    client.force_authenticate(user=user2)
+
+    # 1. Create a habit
+    habit = Task.objects.create(
+        user=user2,
+        task_type=Task.TaskType.HABIT,
+        title="Drink 2L Water",
+        category="Health & Fitness",
+        difficulty="easy",
+    )
+
+    # 2. Complete via POST /api/tasks/{id}/complete/
+    res = client.post(f"/api/tasks/{habit.id}/complete/", {"is_positive": True}, format="json")
+    assert res.status_code == 200
+    habit.refresh_from_db()
+    assert habit.pos_streak == 1
+    assert habit.completion_count == 1
+    assert habit.last_completed_at is not None
+
+    # Check UserActivityLog
+    logs = UserActivityLog.objects.filter(user=user2, task=habit)
+    assert logs.count() == 1
+    log = logs.first()
+    assert log.activity_type == UserActivityLog.ActivityType.HABIT_POS
+    assert log.title == "Drink 2L Water"
+    assert log.category == "Health & Fitness"
+    assert log.streak_value == 1
+
+    # 3. Complete negative via API
+    res_neg = client.post(f"/api/tasks/{habit.id}/complete/", {"is_positive": False}, format="json")
+    assert res_neg.status_code == 200
+    logs_all = UserActivityLog.objects.filter(user=user2, task=habit)
+    assert logs_all.count() == 2
+    assert logs_all.filter(activity_type=UserActivityLog.ActivityType.HABIT_NEG).exists()
+
+    # 4. Test backfill scenario: user with pre-existing completed habit but 0 logs
+    user3 = User.objects.create_user(username="preexisting_user", password="password123")
+    client3 = APIClient()
+    client3.force_authenticate(user=user3)
+
+    Task.objects.create(
+        user=user3,
+        task_type=Task.TaskType.HABIT,
+        title="Read 10 pages",
+        category="Reading & Writing",
+        difficulty="medium",
+        completion_count=2,
+        pos_streak=2,
+    )
+
+    # User3 has 0 logs currently
+    assert UserActivityLog.objects.filter(user=user3).count() == 0
+
+    # Querying /api/history/ triggers automatic backfill
+    res_history = client3.get("/api/history/")
+    assert res_history.status_code == 200
+    history_data = res_history.json()
+    assert len(history_data["results"]) >= 1
+    assert history_data["stats"]["habits_count"] >= 1
+    assert UserActivityLog.objects.filter(user=user3).count() >= 1
+

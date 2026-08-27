@@ -325,6 +325,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     elif task.task_type == Task.TaskType.HABIT:
         task.completion_count += 1
+        task.last_completed_at = timezone.now()
         task.value = calc_new_value(
             task.value, "complete" if is_positive else "fail", "habit"
         )
