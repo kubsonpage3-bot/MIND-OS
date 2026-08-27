@@ -23,10 +23,10 @@ function getTaskValueColor(tv) {
 }
 
 const DIFFICULTIES = [
+  { id: 'trivial',  label: 'Trivial',  color: '#64748b' },
   { id: 'easy',     label: 'Easy',     color: '#22c55e' },
   { id: 'medium',   label: 'Medium',   color: '#f59e0b' },
   { id: 'hard',     label: 'Hard',     color: '#ef4444' },
-  { id: 'critical', label: 'Critical', color: '#a855f7' },
 ];
 
 const CATEGORY_COLORS = {
@@ -157,7 +157,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', type: 'todo', category: 'Other', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
+    notes: '', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
   });
   const [formType, setFormType] = useState('todo');
   const [editingTask, setEditingTask] = useState(null);
@@ -219,7 +219,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowForm(false);
-      setForm({ name: '', type: 'todo', category: 'Math', difficulty: 'medium', notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127 });
+      setForm({ name: '', type: 'todo', category: 'Math', difficulty: 'medium', notes: '', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127 });
     }
   });
 
@@ -294,7 +294,6 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       category: task.category || 'Other',
       difficulty: task.difficulty || 'medium',
       notes: task.notes || '',
-      priority: task.priority || 'medium',
       dueDate: task.due_date || '',
       scheduledTime: task.scheduled_time || '',
       scheduledEndTime: task.scheduled_end_time || '',
@@ -350,6 +349,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['activityHistory'] });
       queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
       queryClient.invalidateQueries({ queryKey: ['active_effects'] });
       if (itemDropped || !isCompleting) {

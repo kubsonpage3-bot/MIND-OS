@@ -618,7 +618,10 @@ def check_streak_achievements(party):
 
 
 def update_party_settings(
-    owner, name: str = None, description: str = None, member_cap: int = None
+    owner,
+    name: str | None = None,
+    description: str | None = None,
+    member_cap: int | None = None,
 ):
     try:
         membership = owner.party_membership

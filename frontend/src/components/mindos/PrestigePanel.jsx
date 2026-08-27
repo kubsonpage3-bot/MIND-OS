@@ -238,7 +238,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
                 <div className="text-yellow-400 font-bold mb-1">{t('prestige.you_will_gain')}</div>
                 {[
                   t('prestige.gain_items.0', { pct: (count + 1) * 10 }),
-                  t('prestige.gain_items.1', { iq: 15 + count * 5 }),
+                  t('prestige.gain_items.1', { iq: 5 }),
                   t('prestige.gain_items.2'),
                   t('prestige.gain_items.3', { count: count + 1 }),
                   t('prestige.gain_items.4'),

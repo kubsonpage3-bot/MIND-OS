@@ -444,6 +444,38 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.last_reward_data["hp_lost"] = final_damage
 
             task.save()
+
+            # ── Record unified UserActivityLog for negative habit ────
+            try:
+                from api.models import UserActivityLog
+
+                UserActivityLog.objects.create(
+                    user=user,
+                    activity_type=UserActivityLog.ActivityType.HABIT_NEG,
+                    task=task,
+                    title=task.title,
+                    category=getattr(task, "category", "Other") or "Other",
+                    icon=getattr(task, "icon", "") or "",
+                    difficulty=getattr(task, "difficulty", "medium") or "medium",
+                    xp_earned=xp_gained,
+                    gold_earned=0,
+                    hp_lost=final_damage,
+                    mana_gained=0,
+                    boss_damage=0,
+                    streak_value=task.neg_streak,
+                    metadata={
+                        "is_positive": False,
+                        "value_after": task.value,
+                        "penalty": {"hp": -final_damage},
+                    },
+                )
+            except Exception as e:
+                logger.warning(
+                    "Failed to create UserActivityLog for negative habit %s: %s",
+                    task.id,
+                    e,
+                )
+
             return {
                 "detail": "Habit deviation noted.",
                 "penalty": {"hp": -final_damage},
@@ -1295,6 +1327,64 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         # Check achievements at the very end
         unlocked_achievements = check_and_grant_achievements(user)
+
+    # ── Record unified UserActivityLog ───────────────────────────────
+    try:
+        from api.models import UserActivityLog
+
+        if task.task_type == Task.TaskType.HABIT:
+            act_type = (
+                UserActivityLog.ActivityType.HABIT_POS
+                if is_positive
+                else UserActivityLog.ActivityType.HABIT_NEG
+            )
+            act_streak = task.pos_streak if is_positive else task.neg_streak
+            act_hp_lost = (
+                final_damage if (not is_positive and "final_damage" in locals()) else 0
+            )
+        elif task.task_type == Task.TaskType.DAILY:
+            act_type = (
+                UserActivityLog.ActivityType.DAILY
+                if is_positive
+                else UserActivityLog.ActivityType.DAILY_UNCOMPLETE
+            )
+            act_streak = task.streak
+            act_hp_lost = 0
+        else:
+            act_type = (
+                UserActivityLog.ActivityType.TODO
+                if is_positive
+                else UserActivityLog.ActivityType.TODO_UNCOMPLETE
+            )
+            act_streak = 0
+            act_hp_lost = 0
+
+        UserActivityLog.objects.create(
+            user=user,
+            activity_type=act_type,
+            task=task,
+            title=task.title,
+            category=getattr(task, "category", "Other") or "Other",
+            icon=getattr(task, "icon", "") or "",
+            difficulty=getattr(task, "difficulty", "medium") or "medium",
+            xp_earned=rewards.get("xp", 0) if is_positive else 0,
+            gold_earned=rewards.get("gold", 0) if is_positive else 0,
+            hp_lost=act_hp_lost,
+            mana_gained=mana_gained if is_positive else 0,
+            boss_damage=(
+                final_damage_dealt
+                if (is_positive and "final_damage_dealt" in locals())
+                else 0
+            ),
+            streak_value=act_streak,
+            metadata={
+                "is_positive": is_positive,
+                "value_after": task.value,
+                "combat_result": combat_result if combat_result else None,
+            },
+        )
+    except Exception as e:
+        logger.warning("Failed to create UserActivityLog for task %s: %s", task.id, e)
 
     return {
         "detail": "Task completed!",

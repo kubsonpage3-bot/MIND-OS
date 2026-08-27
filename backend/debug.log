@@ -2949,3 +2949,128 @@ Traceback (most recent call last):
     return super().execute(query, params)
            ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
 django.db.utils.OperationalError: database table is locked: api_userprofile
+WARNING 2026-08-27 11:41:12,840 views_pomodoro 4908 1916 Failed to create UserActivityLog for pomodoro: 'PomodoroSession' object has no attribute 'task'
+ERROR 2026-08-27 11:41:13,364 task_service 4908 1916 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 11:41:13,846 task_service 4908 1916 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 11:42:10,974 log 13588 7920 Bad Request: /api/training/log/
+WARNING 2026-08-27 11:46:58,667 views_pomodoro 16744 3428 Failed to create UserActivityLog for pomodoro: 'PomodoroSession' object has no attribute 'task'
+WARNING 2026-08-27 11:46:58,965 views_pomodoro 16744 3428 Failed to create UserActivityLog for pomodoro: 'PomodoroSession' object has no attribute 'task'
+WARNING 2026-08-27 11:46:59,273 views_pomodoro 16744 3428 Failed to create UserActivityLog for pomodoro: 'PomodoroSession' object has no attribute 'task'
+WARNING 2026-08-27 11:47:00,065 log 16744 3428 Unauthorized: /api/analytics/event/
+WARNING 2026-08-27 11:47:00,886 log 16744 3428 Bad Request: /api/analytics/event/
+WARNING 2026-08-27 11:47:05,112 log 16744 3428 Bad Request: /api/auth/register/
+WARNING 2026-08-27 11:47:08,049 log 16744 3428 Bad Request: /api/profile/
+WARNING 2026-08-27 11:47:08,720 log 16744 3428 Forbidden: /api/calendar/events/
+WARNING 2026-08-27 11:47:16,036 log 16744 3428 Bad Request: /api/tasks/1/sacrifice/
+WARNING 2026-08-27 11:47:16,536 log 16744 3428 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 11:47:16,558 log 16744 3428 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 11:47:16,625 log 16744 3428 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 11:47:16,643 log 16744 3428 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-27 11:47:29,035 log 16744 3428 Forbidden: /api/party/members/1/profile/
+WARNING 2026-08-27 11:47:29,618 log 16744 3428 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-27 11:47:35,461 task_service 16744 3428 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 11:47:38,543 task_service 16744 3428 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 11:47:42,801 log 16744 3428 Bad Request: /api/profile/
+ERROR 2026-08-27 11:47:43,731 log 16744 20392 Internal Server Error: /api/mutators/chest/open/
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database table is locked: api_userprofile
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kubso\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\api\tests\test_new_mutators.py", line 496, in perform_request
+    response = client.post("/api/mutators/chest/open/")
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 295, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 209, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 233, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 676, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 285, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 237, in request
+    request = super().request(**kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 1092, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\api\views.py", line 3483, in post
+    profile = UserProfile.objects.select_for_update().get(user=request.user)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database table is locked: api_userprofile
+ERROR 2026-08-27 11:50:34,870 task_service 19256 16804 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 11:50:38,027 task_service 19256 16804 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]

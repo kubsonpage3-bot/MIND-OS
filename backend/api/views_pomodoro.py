@@ -43,6 +43,25 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 profile.xp += xp_earned
                 profile.save(update_fields=["gold", "xp"])
 
+                try:
+                    from api.models import UserActivityLog
+
+                    UserActivityLog.objects.create(
+                        user=self.request.user,
+                        activity_type=UserActivityLog.ActivityType.POMODORO,
+                        task=None,
+                        title=session.label if session.label else f"Pomodoro ({duration}m)",
+                        category="Focus",
+                        icon="⏱️",
+                        hours=round(duration / 60.0, 2),
+                        xp_earned=xp_earned,
+                        gold_earned=gold_earned,
+                        metadata={"duration_minutes": duration, "mode": session.mode},
+                    )
+                except Exception as e:
+                    logger.warning("Failed to create UserActivityLog for pomodoro: %s", e)
+
+
     @action(detail=False, methods=["get"])
     def heatmap(self, request):
         """
@@ -306,6 +325,38 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
             profile.gold += gold_earned
             profile.xp += xp_earned
             profile.save(update_fields=["gold", "xp", "gf", "gc", "ps", "vm"])
+
+            try:
+                from api.models import UserActivityLog
+
+                pom_title = task.title if task else (activity_key or f"Pomodoro ({duration}m)")
+                pom_cat = task.category if task else "Focus"
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type=UserActivityLog.ActivityType.POMODORO,
+                    task=task,
+                    title=pom_title,
+                    category=pom_cat,
+                    icon="⏱️",
+                    hours=hours,
+                    focus_rating=float(rating) if rating else None,
+                    xp_earned=xp_earned,
+                    gold_earned=gold_earned,
+                    cognitive_gains={
+                        "gf": gf_gain if activity_key else 0,
+                        "gc": gc_gain if activity_key else 0,
+                        "ps": ps_gain if activity_key else 0,
+                        "vm": vm_gain if activity_key else 0,
+                    }
+                    if activity_key
+                    else {},
+                    metadata={
+                        "duration_minutes": duration,
+                        "activity_key": activity_key,
+                    },
+                )
+            except Exception as e:
+                logger.warning("Failed to create UserActivityLog for pomodoro: %s", e)
 
         return Response(
             {

@@ -695,8 +695,9 @@ class TaskViewSet(viewsets.ModelViewSet):
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
 
                 # Check Lyra Level 2
+                from api.models import RecruitedAlly
                 active_codes = profile.active_allies or []
-                lyra_ally = profile.recruited_allies.filter(ally_code="lyra").first()
+                lyra_ally = RecruitedAlly.objects.filter(user_profile=profile, ally_code="lyra").first()
                 if "lyra" not in active_codes or not lyra_ally or lyra_ally.level < 2:
                     return Response(
                         {"detail": "Lyra (Level 2+) must be recruited and active."},
@@ -1245,11 +1246,11 @@ class PrestigeView(generics.GenericAPIView):
             profile.gold_multiplier = round(profile.gold_multiplier + 0.15 + p_bonus, 4)
             profile.xp_multiplier = round(profile.xp_multiplier + 0.15 + p_bonus, 4)
 
-            # Increase IQ ceilings permanently by 15%
-            profile.gf_ceiling = round(profile.gf_ceiling * 1.15, 2)
-            profile.gc_ceiling = round(profile.gc_ceiling * 1.15, 2)
-            profile.ps_ceiling = round(profile.ps_ceiling * 1.15, 2)
-            profile.vm_ceiling = round(profile.vm_ceiling * 1.15, 2)
+            # Increase IQ ceilings permanently by flat +5.0 points per prestige
+            profile.gf_ceiling = round(profile.gf_ceiling + 5.0, 2)
+            profile.gc_ceiling = round(profile.gc_ceiling + 5.0, 2)
+            profile.ps_ceiling = round(profile.ps_ceiling + 5.0, 2)
+            profile.vm_ceiling = round(profile.vm_ceiling + 5.0, 2)
 
             profile.level = 1
             profile.xp = 0
@@ -1463,10 +1464,11 @@ class TrainingLogView(generics.GenericAPIView):
             active_ids = [
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
+            from api.models import RecruitedAlly
             active_codes = profile.active_allies or []
             recruited_allies = {
                 a.ally_code: a.level
-                for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+                for a in RecruitedAlly.objects.filter(user_profile=profile, ally_code__in=active_codes)
             }
 
             # Lyra Level 3 Decaying Focus
@@ -1820,10 +1822,10 @@ class TrainingLogView(generics.GenericAPIView):
                     cat_data = {"days": 1, "last_active_date": today_str}
                 else:
                     last_active_str = cat_data.get("last_active_date")
-                    if last_active_str != today_str:
+                    if last_active_str and last_active_str != today_str:
                         try:
                             last_active_date = datetime.strptime(
-                                last_active_str, "%Y-%m-%d"
+                                str(last_active_str), "%Y-%m-%d"
                             ).date()
                             yesterday = timezone.now().date() - timedelta(days=1)
                             if last_active_date == yesterday:
@@ -1877,6 +1879,51 @@ class TrainingLogView(generics.GenericAPIView):
             "inventory_items__item__effects"
         ).get(user=request.user)
 
+        # ── Record unified UserActivityLog ───────────────────────────
+        try:
+            from api.models import UserActivityLog, Task
+
+            task_ref = None
+            title = activity
+            icon = "📚"
+            if activity.startswith("custom_task_"):
+                try:
+                    task_id = int(activity.replace("custom_task_", ""))
+                    task_ref = Task.objects.filter(id=task_id).first()
+                    if task_ref:
+                        title = task_ref.title
+                        icon = task_ref.icon or "🔘"
+                except Exception:
+                    pass
+
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type=UserActivityLog.ActivityType.STUDY,
+                task=task_ref,
+                title=title,
+                category=current_category or "Other",
+                icon=icon,
+                hours=hours,
+                focus_rating=focus_rating,
+                xp_earned=final_xp,
+                gold_earned=final_gold if "final_gold" in locals() else 0,
+                boss_damage=(
+                    final_damage_dealt if "final_damage_dealt" in locals() else 0
+                ),
+                cognitive_gains={
+                    "gf": gf_gain,
+                    "gc": gc_gain,
+                    "ps": ps_gain,
+                    "vm": vm_gain,
+                },
+                metadata={
+                    "activity_key": activity,
+                    "efficiency": eff_total,
+                },
+            )
+        except Exception as e:
+            logger.warning("Failed to create UserActivityLog for training: %s", e)
+
         return Response(
             {
                 "detail": "Training logged successfully.",
@@ -1889,6 +1936,232 @@ class TrainingLogView(generics.GenericAPIView):
                 "ps_gain": ps_gain,
                 "vm_gain": vm_gain,
                 "item_dropped": outcome.get("item_dropped"),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Единая история активности (Unified Activity & Event History)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class ActivityHistoryView(generics.GenericAPIView):
+    """
+    GET /api/history/
+    Unified User Activity Feed and Analytics.
+    Returns completed study sessions, habits, dailies, todos, and pomodoro sessions.
+    Supports filtering by:
+    - type: 'all' | 'study' | 'habit' | 'daily' | 'todo' | 'pomodoro'
+    - days: '1' | '7' | '30' | '365' | 'all'
+    - search: text query
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from api.models import UserActivityLog, TrainingSession, Task
+        from api.serializers.tasks import UserActivityLogSerializer
+        from django.db.models import Sum, Count, Q
+        from datetime import timedelta
+        from django.utils import timezone
+
+        user = request.user
+        activity_type_filter = request.query_params.get("type", "all").strip().lower()
+        days_param = request.query_params.get("days", "30").strip().lower()
+        search_query = request.query_params.get("search", "").strip()
+
+        # ── Data Backfill for Existing Users ─────────────────────────
+        # If user has no UserActivityLog records yet, synthesize from TrainingSession and completed Tasks
+        if not UserActivityLog.objects.filter(user=user).exists():
+            try:
+                # 1. Backfill TrainingSession
+                training_sessions = TrainingSession.objects.filter(
+                    user_profile__user=user
+                ).order_by("created_at")
+                for ts in training_sessions:
+                    title = ts.activity_key
+                    icon = "📚"
+                    category = "Other"
+                    if ts.activity_key.startswith("custom_task_"):
+                        try:
+                            tid = int(ts.activity_key.replace("custom_task_", ""))
+                            t_obj = Task.objects.filter(id=tid).first()
+                            if t_obj:
+                                title = t_obj.title
+                                icon = t_obj.icon or "🔘"
+                                category = t_obj.category or "Other"
+                        except Exception:
+                            pass
+
+                    log_entry = UserActivityLog(
+                        user=user,
+                        activity_type=UserActivityLog.ActivityType.STUDY,
+                        title=title,
+                        category=category,
+                        icon=icon,
+                        hours=ts.hours,
+                        focus_rating=ts.focus_rating,
+                        xp_earned=ts.xp_earned,
+                        gold_earned=0,
+                        boss_damage=0,
+                        cognitive_gains={
+                            "gf": ts.gf_gain,
+                            "gc": ts.gc_gain,
+                            "ps": ts.ps_gain,
+                            "vm": ts.vm_gain,
+                        },
+                        metadata={
+                            "activity_key": ts.activity_key,
+                            "efficiency": ts.efficiency,
+                        },
+                    )
+                    log_entry.save()
+                    UserActivityLog.objects.filter(id=log_entry.id).update(
+                        created_at=ts.created_at
+                    )
+
+                # 2. Backfill completed Tasks (if completed)
+                completed_tasks = Task.objects.filter(
+                    user=user, is_completed=True, last_completed_at__isnull=False
+                )
+                for t in completed_tasks:
+                    rewards = t.get_rewards()
+                    act_type = UserActivityLog.ActivityType.TODO
+                    if t.task_type == Task.TaskType.DAILY:
+                        act_type = UserActivityLog.ActivityType.DAILY
+                    elif t.task_type == Task.TaskType.HABIT:
+                        act_type = UserActivityLog.ActivityType.HABIT_POS
+
+                    log_entry = UserActivityLog(
+                        user=user,
+                        activity_type=act_type,
+                        task=t,
+                        title=t.title,
+                        category=t.category or "Other",
+                        icon=t.icon or "",
+                        difficulty=t.difficulty or "medium",
+                        xp_earned=rewards.get("xp", 0),
+                        gold_earned=rewards.get("gold", 0),
+                        streak_value=(
+                            t.streak
+                            if t.task_type == Task.TaskType.DAILY
+                            else t.pos_streak
+                        ),
+                        metadata={"backfilled": True},
+                    )
+                    log_entry.save()
+                    if t.last_completed_at:
+                        UserActivityLog.objects.filter(id=log_entry.id).update(
+                            created_at=t.last_completed_at
+                        )
+            except Exception as e:
+                logger.warning("Backfill activity logs error: %s", e)
+
+        # ── Base Queryset ─────────────────────────────────────────────
+        qs = UserActivityLog.objects.filter(user=user)
+
+        # Apply Type Filter
+        if activity_type_filter == "study":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.STUDY)
+        elif activity_type_filter == "habit":
+            qs = qs.filter(
+                activity_type__in=[
+                    UserActivityLog.ActivityType.HABIT_POS,
+                    UserActivityLog.ActivityType.HABIT_NEG,
+                ]
+            )
+        elif activity_type_filter == "daily":
+            qs = qs.filter(
+                activity_type__in=[
+                    UserActivityLog.ActivityType.DAILY,
+                    UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                ]
+            )
+        elif activity_type_filter == "todo":
+            qs = qs.filter(
+                activity_type__in=[
+                    UserActivityLog.ActivityType.TODO,
+                    UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+                ]
+            )
+        elif activity_type_filter == "pomodoro":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.POMODORO)
+
+        # Apply Date Filter
+        if days_param != "all":
+            try:
+                days_int = int(days_param)
+                since_date = timezone.now() - timedelta(days=days_int)
+                qs = qs.filter(created_at__gte=since_date)
+            except (ValueError, TypeError):
+                pass
+
+        # Apply Search Query
+        if search_query:
+            qs = qs.filter(
+                Q(title__icontains=search_query) | Q(category__icontains=search_query)
+            )
+
+        # Order by newest first
+        results = qs.order_by("-created_at")[:250]
+
+        # ── Aggregate Stats (Lifetime for user) ───────────────────────
+        all_user_logs = UserActivityLog.objects.filter(user=user)
+        total_hours = round(
+            float(
+                all_user_logs.filter(
+                    activity_type=UserActivityLog.ActivityType.STUDY
+                ).aggregate(Sum("hours"))["hours__sum"]
+                or 0
+            ),
+            2,
+        )
+        total_xp = int(
+            all_user_logs.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0
+        )
+        total_gold = int(
+            all_user_logs.aggregate(Sum("gold_earned"))["gold_earned__sum"] or 0
+        )
+        total_boss_damage = int(
+            all_user_logs.aggregate(Sum("boss_damage"))["boss_damage__sum"] or 0
+        )
+
+        habits_count = all_user_logs.filter(
+            activity_type__in=[
+                UserActivityLog.ActivityType.HABIT_POS,
+                UserActivityLog.ActivityType.HABIT_NEG,
+            ]
+        ).count()
+        dailies_count = all_user_logs.filter(
+            activity_type=UserActivityLog.ActivityType.DAILY
+        ).count()
+        todos_count = all_user_logs.filter(
+            activity_type=UserActivityLog.ActivityType.TODO
+        ).count()
+        study_count = all_user_logs.filter(
+            activity_type=UserActivityLog.ActivityType.STUDY
+        ).count()
+        pomodoro_count = all_user_logs.filter(
+            activity_type=UserActivityLog.ActivityType.POMODORO
+        ).count()
+        tasks_completed_count = habits_count + dailies_count + todos_count
+
+        return Response(
+            {
+                "results": UserActivityLogSerializer(results, many=True).data,
+                "stats": {
+                    "total_hours": total_hours,
+                    "total_xp": total_xp,
+                    "total_gold": total_gold,
+                    "total_boss_damage": total_boss_damage,
+                    "tasks_completed_count": tasks_completed_count,
+                    "habits_count": habits_count,
+                    "dailies_count": dailies_count,
+                    "todos_count": todos_count,
+                    "study_count": study_count,
+                    "pomodoro_count": pomodoro_count,
+                },
             },
             status=status.HTTP_200_OK,
         )
@@ -2057,10 +2330,11 @@ class VivianDarkSacrificeView(generics.GenericAPIView):
 
         try:
             with transaction.atomic():
-                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                from api.models import RecruitedAlly
                 active_codes = profile.active_allies or []
 
-                vivian_recruited = profile.recruited_allies.filter(
+                vivian_recruited = RecruitedAlly.objects.filter(
+                    user_profile=profile,
                     ally_code="vivian"
                 ).first()
                 if (
@@ -2144,7 +2418,7 @@ class RheaChaosControlView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from api.models import UserProfile
+        from api.models import UserProfile, RecruitedAlly
         from api.constants.mutators import MUTATORS_CONFIG
         from django.db import transaction
         from django.utils import timezone
@@ -2156,7 +2430,8 @@ class RheaChaosControlView(generics.GenericAPIView):
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
                 active_codes = profile.active_allies or []
 
-                rhea_recruited = profile.recruited_allies.filter(
+                rhea_recruited = RecruitedAlly.objects.filter(
+                    user_profile=profile,
                     ally_code="rhea"
                 ).first()
                 if (

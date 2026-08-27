@@ -47,6 +47,10 @@ def test_prestige_snowball_mechanic():
     assert profile.prestige_count == 1
     assert profile.rank_xp == 0
     assert profile.unlocked_skills.count() == 0
+    assert profile.gf_ceiling == 110.0
+    assert profile.gc_ceiling == 110.0
+    assert profile.ps_ceiling == 110.0
+    assert profile.vm_ceiling == 110.0
 
     # Cycle 2
     print("\n--- Prestige Cycle 2 ---")
@@ -64,6 +68,10 @@ def test_prestige_snowball_mechanic():
     print(f"Max Mana: {profile.mana_max}")
     print(f"Multiplier XP: {profile.total_stats['xp_multiplier']}")
     print(f"Multiplier Gold: {profile.total_stats['gold_multiplier']}")
+    assert profile.gf_ceiling == 115.0
+    assert profile.gc_ceiling == 115.0
+    assert profile.ps_ceiling == 115.0
+    assert profile.vm_ceiling == 115.0
 
     # Cycle 3
     print("\n--- Prestige Cycle 3 ---")
@@ -81,6 +89,10 @@ def test_prestige_snowball_mechanic():
     print(f"Max Mana: {profile.mana_max}")
     print(f"Multiplier XP: {profile.total_stats['xp_multiplier']}")
     print(f"Multiplier Gold: {profile.total_stats['gold_multiplier']}")
+    assert profile.gf_ceiling == 120.0
+    assert profile.gc_ceiling == 120.0
+    assert profile.ps_ceiling == 120.0
+    assert profile.vm_ceiling == 120.0
 
     # Cycle 4
     print("\n--- Prestige Cycle 4 ---")
@@ -98,3 +110,7 @@ def test_prestige_snowball_mechanic():
     print(f"Max Mana: {profile.mana_max}")
     print(f"Multiplier XP: {profile.total_stats['xp_multiplier']}")
     print(f"Multiplier Gold: {profile.total_stats['gold_multiplier']}")
+    assert profile.gf_ceiling == 125.0
+    assert profile.gc_ceiling == 125.0
+    assert profile.ps_ceiling == 125.0
+    assert profile.vm_ceiling == 125.0

@@ -721,6 +721,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       }
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["trainingLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["activityHistory"] });
       queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
       queryClient.invalidateQueries({ queryKey: ["active_effects"] });
       refreshProfile();

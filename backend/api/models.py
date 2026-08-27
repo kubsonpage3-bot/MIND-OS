@@ -344,7 +344,7 @@ class UserProfile(models.Model):
         Возвращает бонусы характеристик на основе выбранного класса персонажа.
         """
         # Convert class name to lowercase to match dict keys (e.g. "The Linguist" -> "linguist" or just handle direct ids)  # noqa: E501
-        class_id = str(self.character_class).lower().strip()
+        class_id = (self.character_class or "").lower().strip()
         # Fallback if the user has a class name instead of ID, try to clean it
         if class_id.startswith("the "):
             class_id = class_id[4:]
@@ -544,7 +544,7 @@ class UserProfile(models.Model):
         """
         Computed max mana. Base depends on class, +15% per prestige + level-up bonus + Yuki Level 2 bonus (if active).
         """
-        class_key = str(self.character_class).lower().strip()
+        class_key = (self.character_class or "").lower().strip()
         if class_key.startswith("the "):
             class_key = class_key[4:]
 
@@ -935,10 +935,10 @@ class Task(models.Model):
         """
         task_value = self.value
         if task_value < 0:
-            value_mod = min(2.0, 1.0 + abs(float(task_value)) * 0.05)
+            value_mod = min(2.0, 1.0 + abs(task_value) * 0.05)
         else:
             scale = 0.06 if self.task_type == self.TaskType.TODO else 0.04
-            value_mod = max(0.6, 1.0 - float(task_value) * scale)
+            value_mod = max(0.6, 1.0 - task_value * scale)
 
         # Hours bonus: only for Todo/Daily (not Habit — Habits use streak for scaling)
         hours_bonus = 1.0
@@ -947,8 +947,10 @@ class Task(models.Model):
             if estimated_hours > 0:
                 hours_bonus = min(2.0, 1.0 + float(estimated_hours) * 0.15)
 
-        xp_reward = round(self.xp_reward * value_mod * hours_bonus)
-        gold_reward = round(self.gold_reward * value_mod * hours_bonus)
+        base_xp = self.xp_reward if self.xp_reward is not None else 10
+        base_gold = self.gold_reward if self.gold_reward is not None else 8
+        xp_reward = round(base_xp * value_mod * hours_bonus)
+        gold_reward = round(base_gold * value_mod * hours_bonus)
 
         return {
             "xp": max(0, xp_reward),
@@ -1393,6 +1395,93 @@ class TrainingSession(models.Model):
         return (
             f"{self.user_profile.user.username} - {self.activity_key} ({self.hours}h)"
         )
+
+
+class UserActivityLog(models.Model):
+    """
+    Unified Activity and Event Log for MIND OS.
+    Tracks all user accomplishments across:
+    - study: Study/Training sessions with focus and cognitive gains
+    - habit_pos: Positive habit triggers (+XP, +Gold, pos_streak)
+    - habit_neg: Negative habit fails (-HP, neg_streak)
+    - daily: Completed daily tasks (+XP, +Gold, streak, boss_damage)
+    - daily_uncomplete: Reverted daily completion
+    - todo: Completed one-off tasks (+XP, +Gold)
+    - todo_uncomplete: Reverted todo completion
+    - pomodoro: Completed Pomodoro focus sessions
+    """
+
+    class ActivityType(models.TextChoices):
+        STUDY = "study", "Предмет / Учёба"
+        HABIT_POS = "habit_pos", "Привычка (+)"
+        HABIT_NEG = "habit_neg", "Привычка (-)"
+        DAILY = "daily", "Дейлик"
+        DAILY_UNCOMPLETE = "daily_uncomplete", "Отмена дейлика"
+        TODO = "todo", "To-Do"
+        TODO_UNCOMPLETE = "todo_uncomplete", "Отмена To-Do"
+        POMODORO = "pomodoro", "Помодоро"
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="activity_logs",
+        verbose_name="Пользователь",
+    )
+    activity_type = models.CharField(
+        max_length=20,
+        choices=ActivityType.choices,
+        default=ActivityType.STUDY,
+        verbose_name="Тип активности",
+    )
+    task = models.ForeignKey(
+        "Task",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="activity_logs",
+        verbose_name="Связанная задача",
+    )
+    title = models.CharField(max_length=255, verbose_name="Название")
+    category = models.CharField(
+        max_length=50, default="Other", blank=True, verbose_name="Категория"
+    )
+    icon = models.CharField(
+        max_length=50, blank=True, default="", verbose_name="Иконка"
+    )
+    hours = models.FloatField(default=0.0, verbose_name="Часы")
+    focus_rating = models.FloatField(
+        null=True, blank=True, verbose_name="Рейтинг фокуса"
+    )
+    xp_earned = models.IntegerField(default=0, verbose_name="Полученный опыт")
+    gold_earned = models.IntegerField(default=0, verbose_name="Полученное золото")
+    hp_lost = models.IntegerField(default=0, verbose_name="Потерянное HP")
+    mana_gained = models.IntegerField(default=0, verbose_name="Полученная мана")
+    boss_damage = models.IntegerField(default=0, verbose_name="Урон боссу")
+    streak_value = models.IntegerField(default=0, verbose_name="Значение стрика")
+    difficulty = models.CharField(
+        max_length=20, default="medium", blank=True, verbose_name="Сложность"
+    )
+    cognitive_gains = models.JSONField(
+        default=dict, blank=True, verbose_name="Когнитивные приросты"
+    )
+    metadata = models.JSONField(
+        default=dict, blank=True, verbose_name="Дополнительные метаданные"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, db_index=True, verbose_name="Дата и время"
+    )
+
+    class Meta:
+        verbose_name = "Лог активности"
+        verbose_name_plural = "Логи активности"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["user", "activity_type", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"[{self.user.username}] {self.activity_type}: {self.title} ({self.created_at})"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

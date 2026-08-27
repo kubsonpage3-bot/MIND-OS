@@ -22,6 +22,7 @@ from .views import (
     BossSummonView,
     PrestigeView,
     TrainingLogView,
+    ActivityHistoryView,
     CraftItemView,
     RecipeListView,
     ToggleEquipView,
@@ -186,6 +187,9 @@ urlpatterns = [
         name="mutator-chest-open",
     ),
     path("tasks/<int:task_id>/deja-vu/", DejaVuView.as_view(), name="deja-vu"),
+    # ── Тренировки и История Активности ──────────────────────────
+    path("training/log/", TrainingLogView.as_view(), name="training-log"),
+    path("history/", ActivityHistoryView.as_view(), name="activity-history"),
     # ─── Крафт ──────────────────────────────────────────────────────────────────
     path("crafting/recipes/", RecipeListView.as_view(), name="crafting-recipes"),
     path("crafting/craft/", CraftItemView.as_view(), name="crafting-craft"),

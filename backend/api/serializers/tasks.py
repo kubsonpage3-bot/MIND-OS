@@ -168,3 +168,36 @@ class TrainingSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingSession
         fields = "__all__"
+
+
+class UserActivityLogSerializer(serializers.ModelSerializer):
+    activity_type_display = serializers.CharField(
+        source="get_activity_type_display", read_only=True
+    )
+
+    class Meta:
+        from api.models import UserActivityLog
+
+        model = UserActivityLog
+        fields = (
+            "id",
+            "activity_type",
+            "activity_type_display",
+            "task",
+            "title",
+            "category",
+            "icon",
+            "hours",
+            "focus_rating",
+            "xp_earned",
+            "gold_earned",
+            "hp_lost",
+            "mana_gained",
+            "boss_damage",
+            "streak_value",
+            "difficulty",
+            "cognitive_gains",
+            "metadata",
+            "created_at",
+        )
+

@@ -15,8 +15,6 @@ const DIFFICULTIES = [
   { id: "medium", label: "Medium", color: "#f59e0b" },
   { id: "hard", label: "Hard", color: "#ef4444" },
 ];
-const PRIORITIES = ["low", "medium", "high", "critical"];
-const PRIORITY_COLORS = { low: "#22c55e", medium: "#f59e0b", high: "#ef4444", critical: "#a855f7" };
 import { useHardwareBack } from "@/utils/modalStack";
 
 export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate, editMode = false }) {
@@ -181,32 +179,6 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       ))}
                     </div>
                   </div>
-
-                  {/* Todo-specific: Priority */}
-                  {form.type === "todo" && (
-                    <div>
-                      <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
-                        {t('task_modal.priority', 'Priority')}
-                      </label>
-                      <div className="flex gap-2">
-                        {PRIORITIES.map(p => (
-                          <button
-                            key={p}
-                            onClick={() => setForm({ ...form, priority: p })}
-                            className="flex-1 py-2 text-xs font-mono rounded border-2 transition-all uppercase cursor-pointer"
-                            style={{
-                              borderColor: form.priority === p ? PRIORITY_COLORS[p] : "var(--habit-border)",
-                              color: form.priority === p ? PRIORITY_COLORS[p] : "var(--habit-dim)",
-                              background: form.priority === p ? `${PRIORITY_COLORS[p]}15` : "transparent",
-                              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-                            }}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Todo-specific: Due Date */}
                   {form.type === "todo" && (

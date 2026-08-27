@@ -31,45 +31,38 @@ const TASK_TYPES = [
   { id: "button", label: "Button", desc: "Manual session log" },
 ];
 
-const PRIORITIES = [
-  { id: "low", label: "Low", color: "#22c55e" },
+const DIFFICULTIES = [
+  { id: "trivial", label: "Trivial", color: "#64748b" },
+  { id: "easy", label: "Easy", color: "#22c55e" },
   { id: "medium", label: "Medium", color: "#f59e0b" },
-  { id: "high", label: "High", color: "#ef4444" },
-  { id: "critical", label: "Critical", color: "#a855f7" },
+  { id: "hard", label: "Hard", color: "#ef4444" },
 ];
 
-const PRIORITY_TO_DIFFICULTY = {
-  low: "trivial",
-  medium: "easy",
-  high: "medium",
-  critical: "hard"
-};
-
 const TRAINING_REWARDS = {
-  low: { xp: 20, gold: 10, bossDamage: 20 },
-  medium: { xp: 35, gold: 20, bossDamage: 45 },
-  high: { xp: 50, gold: 35, bossDamage: 70 },
-  critical: { xp: 70, gold: 60, bossDamage: 100 },
+  trivial: { xp: 20, gold: 10, bossDamage: 20 },
+  easy: { xp: 35, gold: 20, bossDamage: 45 },
+  medium: { xp: 50, gold: 35, bossDamage: 70 },
+  hard: { xp: 70, gold: 60, bossDamage: 100 },
 };
 
 const TASK_REWARDS = {
-  low: { xp: 3, gold: 1, bossDamage: 10, hpDamage: 5 },
-  medium: { xp: 9, gold: 4, bossDamage: 30, hpDamage: 10 },
-  high: { xp: 15, gold: 7, bossDamage: 50, hpDamage: 20 },
-  critical: { xp: 30, gold: 14, bossDamage: 100, hpDamage: 40 },
+  trivial: { xp: 1, gold: 1, bossDamage: 10, hpDamage: 5 },
+  easy: { xp: 5, gold: 3, bossDamage: 30, hpDamage: 10 },
+  medium: { xp: 15, gold: 7, bossDamage: 50, hpDamage: 20 },
+  hard: { xp: 40, gold: 15, bossDamage: 100, hpDamage: 40 },
 };
 
 const getInitialForm = (isButton) => {
-  const defaultPriority = "medium";
+  const defaultDifficulty = "medium";
   const rewardsMap = isButton ? TRAINING_REWARDS : TASK_REWARDS;
-  const defaultRewards = rewardsMap[defaultPriority];
+  const defaultRewards = rewardsMap[defaultDifficulty];
   return {
     name: "",
     icon: "⭐",
     type: isButton ? "button" : "daily",
     category: "Other",
     masteryCategory: isButton ? "spirit" : "",
-    priority: defaultPriority,
+    difficulty: defaultDifficulty,
     notes: "",
     dueDate: "",
     xpReward: defaultRewards.xp,
@@ -102,7 +95,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         category: form.category || "Other",
         mastery_category: form.type === "button" ? form.masteryCategory : "",
         notes: form.notes || "",
-        difficulty: PRIORITY_TO_DIFFICULTY[form.priority] || "medium",
+        difficulty: form.difficulty || "medium",
         due_date: form.dueDate || null,
         
         // Custom rewards and session defaults (with safety fallback values)
@@ -134,12 +127,12 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
     });
   };
 
-  const handlePrioritySelect = (priorityId) => {
+  const handleDifficultySelect = (diffId) => {
     const rewardsMap = form.type === "button" ? TRAINING_REWARDS : TASK_REWARDS;
-    const rewards = rewardsMap[priorityId] || rewardsMap["medium"];
+    const rewards = rewardsMap[diffId] || rewardsMap["medium"];
     setForm(prev => ({
       ...prev,
-      priority: priorityId,
+      difficulty: diffId,
       xpReward: rewards.xp,
       goldReward: rewards.gold,
       bossDamage: rewards.bossDamage,
@@ -154,7 +147,7 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         next.masteryCategory = CATEGORY_TO_MASTERY[prev.category];
       }
       const rewardsMap = typeId === "button" ? TRAINING_REWARDS : TASK_REWARDS;
-      const rewards = rewardsMap[prev.priority] || rewardsMap["medium"];
+      const rewards = rewardsMap[prev.difficulty] || rewardsMap["medium"];
       next.xpReward = rewards.xp;
       next.goldReward = rewards.gold;
       next.bossDamage = rewards.bossDamage;
@@ -315,19 +308,19 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         </div>
       )}
 
-      {/* Priority */}
+      {/* Difficulty */}
       <div className="space-y-1.5">
-        <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.priority", "Priority")}</div>
+        <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.difficulty", "Difficulty")}</div>
         <div className="grid grid-cols-4 gap-2">
-          {PRIORITIES.map(p => (
-            <button key={p.id} type="button" onClick={() => handlePrioritySelect(p.id)}
+          {DIFFICULTIES.map(d => (
+            <button key={d.id} type="button" onClick={() => handleDifficultySelect(d.id)}
               className="py-1.5 text-[10px] font-mono font-bold rounded-lg border transition-all cursor-pointer"
               style={{
-                borderColor: form.priority === p.id ? p.color : "var(--habit-border)",
-                color: form.priority === p.id ? p.color : "var(--habit-dim)",
-                background: form.priority === p.id ? `${p.color}20` : "transparent",
+                borderColor: form.difficulty === d.id ? d.color : "var(--habit-border)",
+                color: form.difficulty === d.id ? d.color : "var(--habit-dim)",
+                background: form.difficulty === d.id ? `${d.color}20` : "transparent",
               }}>
-              {t(`task_form.priorities.${p.id}`, p.label)}
+              {t(`difficulties.${d.id}`, d.label)}
             </button>
           ))}
         </div>

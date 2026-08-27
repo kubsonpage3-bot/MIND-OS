@@ -446,6 +446,19 @@ export const djangoApi = {
       }),
   },
 
+  history: {
+    getHistory: (filters = {}) => {
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          queryParams.append(key, val);
+        }
+      });
+      const queryString = queryParams.toString();
+      return djangoFetch(`/history/${queryString ? `?${queryString}` : ''}`);
+    },
+  },
+
     party: {
     members: () => djangoFetch('/party/members/'),
     memberProfile: (userId) => djangoFetch(`/party/members/${userId}/profile/`),

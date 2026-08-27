@@ -178,7 +178,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', type: 'daily', category: 'Other', difficulty: 'medium',
-    notes: '', priority: 'medium', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
+    notes: '', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
   });
   const [formType, setFormType] = useState('daily');
   const [editingTask, setEditingTask] = useState(null);
@@ -329,7 +329,6 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       category: task.category || 'Other',
       difficulty: task.difficulty || 'medium',
       notes: task.notes || '',
-      priority: task.priority || 'medium',
       dueDate: task.due_date || '',
       scheduledTime: task.scheduled_time || '',
       scheduledEndTime: task.scheduled_end_time || '',
@@ -441,6 +440,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["activityHistory"] });
       queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
       queryClient.invalidateQueries({ queryKey: ["active_effects"] });
     }
