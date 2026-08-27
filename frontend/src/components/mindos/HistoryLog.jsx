@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -28,12 +28,60 @@ const CATEGORY_ACCENTS = {
 };
 
 const TYPE_CONFIG = {
-  daily:      { color: "#10b981", bg: "rgba(16,185,129,0.10)",  border: "rgba(16,185,129,0.28)",  icon: "📅", label: "Daily"    },
-  todo:       { color: "#8b5cf6", bg: "rgba(139,92,246,0.10)", border: "rgba(139,92,246,0.28)",  icon: "✅", label: "To-Do"    },
-  habit_pos:  { color: "#f59e0b", bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.28)",  icon: "⚡", label: "Habit+"   },
-  habit_neg:  { color: "#ef4444", bg: "rgba(239,68,68,0.10)",  border: "rgba(239,68,68,0.28)",   icon: "💔", label: "Habit−"   },
-  study:      { color: "#3b82f6", bg: "rgba(59,130,246,0.10)", border: "rgba(59,130,246,0.28)",  icon: "📚", label: "Study"    },
-  pomodoro:   { color: "#f43f5e", bg: "rgba(244,63,94,0.10)",  border: "rgba(244,63,94,0.28)",   icon: "🍅", label: "Pomodoro" },
+  daily: {
+    color: "#10b981",
+    bg: "rgba(16,185,129,0.10)",
+    border: "rgba(16,185,129,0.28)",
+    glow: "rgba(16,185,129,0.35)",
+    iconImg: "/images/pixel-icons/daily.jpg",
+    emoji: "📅",
+    label: "Daily",
+  },
+  todo: {
+    color: "#8b5cf6",
+    bg: "rgba(139,92,246,0.10)",
+    border: "rgba(139,92,246,0.28)",
+    glow: "rgba(139,92,246,0.35)",
+    iconImg: "/images/pixel-icons/todo.jpg",
+    emoji: "✅",
+    label: "To-Do",
+  },
+  habit_pos: {
+    color: "#f59e0b",
+    bg: "rgba(245,158,11,0.10)",
+    border: "rgba(245,158,11,0.28)",
+    glow: "rgba(245,158,11,0.35)",
+    iconImg: "/images/pixel-icons/habit_pos.jpg",
+    emoji: "⚡",
+    label: "Habit+",
+  },
+  habit_neg: {
+    color: "#ef4444",
+    bg: "rgba(239,68,68,0.10)",
+    border: "rgba(239,68,68,0.28)",
+    glow: "rgba(239,68,68,0.35)",
+    iconImg: "/images/pixel-icons/habit_neg.jpg",
+    emoji: "💔",
+    label: "Habit−",
+  },
+  study: {
+    color: "#3b82f6",
+    bg: "rgba(59,130,246,0.10)",
+    border: "rgba(59,130,246,0.28)",
+    glow: "rgba(59,130,246,0.35)",
+    iconImg: "/images/pixel-icons/study.jpg",
+    emoji: "📚",
+    label: "Study",
+  },
+  pomodoro: {
+    color: "#f43f5e",
+    bg: "rgba(244,63,94,0.10)",
+    border: "rgba(244,63,94,0.28)",
+    glow: "rgba(244,63,94,0.35)",
+    iconImg: "/images/pixel-icons/pomodoro.jpg",
+    emoji: "🍅",
+    label: "Pomodoro",
+  },
 };
 
 export default function HistoryLog({ logs = [], tasks = [] }) {
@@ -113,12 +161,12 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
   }, [activityItems]);
 
   const filterTabs = [
-    { id: "all",      label: "All",      Icon: Activity,    count: activityItems.length,         color: "#7b61ff" },
-    { id: "study",    label: "Study",    Icon: BookOpen,    count: activeStats.study_count,       color: "#3b82f6" },
-    { id: "habit",    label: "Habits",   Icon: Zap,         count: activeStats.habits_count,      color: "#f59e0b" },
-    { id: "daily",    label: "Dailies",  Icon: Calendar,    count: activeStats.dailies_count,     color: "#10b981" },
-    { id: "todo",     label: "To-Do",    Icon: CheckSquare, count: activeStats.todos_count,       color: "#8b5cf6" },
-    { id: "pomodoro", label: "Pomodoro", Icon: Timer,       count: activeStats.pomodoro_count,    color: "#f43f5e" },
+    { id: "all",      label: "All",      Icon: Activity,    iconImg: null,                              count: activityItems.length,         color: "#7b61ff" },
+    { id: "study",    label: "Study",    Icon: BookOpen,    iconImg: "/images/pixel-icons/study.jpg",    count: activeStats.study_count,       color: "#3b82f6" },
+    { id: "habit",    label: "Habits",   Icon: Zap,         iconImg: "/images/pixel-icons/habit_pos.jpg",count: activeStats.habits_count,      color: "#f59e0b" },
+    { id: "daily",    label: "Dailies",  Icon: Calendar,    iconImg: "/images/pixel-icons/daily.jpg",    count: activeStats.dailies_count,     color: "#10b981" },
+    { id: "todo",     label: "To-Do",    Icon: CheckSquare, iconImg: "/images/pixel-icons/todo.jpg",     count: activeStats.todos_count,       color: "#8b5cf6" },
+    { id: "pomodoro", label: "Pomodoro", Icon: Timer,       iconImg: "/images/pixel-icons/pomodoro.jpg", count: activeStats.pomodoro_count,    color: "#f43f5e" },
   ];
 
   const periodOptions = [
@@ -157,19 +205,23 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
       {/* Filter Tabs */}
       <div className="space-y-2.5">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {filterTabs.map(({ id, label, Icon, count, color }) => {
+          {filterTabs.map(({ id, label, Icon, iconImg, count, color }) => {
             const isActive = filterType === id;
             return (
               <button key={id} onClick={() => setFilterType(id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${isActive ? "text-white" : "text-[var(--habit-dim)] hover:text-[var(--habit-text)]"}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${isActive ? "text-white shadow-md" : "text-[var(--habit-dim)] hover:text-[var(--habit-text)]"}`}
                 style={{
                   fontFamily: "'Nunito'",
                   background: isActive ? `linear-gradient(135deg, ${color}dd, ${color}88)` : "var(--habit-panel)",
-                  border: isActive ? `1px solid ${color}55` : "1px solid var(--habit-border)",
+                  border: isActive ? `1px solid ${color}66` : "1px solid var(--habit-border)",
                   boxShadow: isActive ? `0 0 14px ${color}40` : undefined,
                 }}
               >
-                <Icon className="w-3.5 h-3.5" />
+                {iconImg ? (
+                  <img src={iconImg} alt={label} className="w-3.5 h-3.5 rounded object-cover" style={{ imageRendering: "pixelated" }} />
+                ) : (
+                  <Icon className="w-3.5 h-3.5" />
+                )}
                 <span>{label}</span>
                 {count > 0 && (
                   <span className="text-[10px] px-1.5 rounded-full font-mono"
@@ -238,13 +290,38 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
                     {group.items.length}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-mono">
-                  {group.totalHours > 0 && <span className="flex items-center gap-0.5 text-blue-400"><Clock className="w-3 h-3" />{group.totalHours.toFixed(1)}h</span>}
-                  {group.dailiesDone > 0 && <span className="flex items-center gap-0.5 text-emerald-400"><Calendar className="w-3 h-3" />{group.dailiesDone}</span>}
-                  {group.habitsDone > 0 && <span className="flex items-center gap-0.5 text-amber-400"><Zap className="w-3 h-3" />{group.habitsDone}</span>}
-                  {group.todosDone > 0 && <span className="flex items-center gap-0.5 text-violet-400"><CheckSquare className="w-3 h-3" />{group.todosDone}</span>}
-                  {group.pomoDone > 0 && <span className="flex items-center gap-0.5 text-rose-400"><Timer className="w-3 h-3" />{group.pomoDone}</span>}
-                  {group.totalXp > 0 && <span className="font-black text-purple-400">+{group.totalXp} XP</span>}
+                <div className="flex items-center gap-2.5 text-[10px] font-mono">
+                  {group.totalHours > 0 && (
+                    <span className="flex items-center gap-1 text-blue-400">
+                      <img src="/images/pixel-icons/study.jpg" alt="study" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.totalHours.toFixed(1)}h
+                    </span>
+                  )}
+                  {group.dailiesDone > 0 && (
+                    <span className="flex items-center gap-1 text-emerald-400">
+                      <img src="/images/pixel-icons/daily.jpg" alt="daily" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.dailiesDone}
+                    </span>
+                  )}
+                  {group.habitsDone > 0 && (
+                    <span className="flex items-center gap-1 text-amber-400">
+                      <img src="/images/pixel-icons/habit_pos.jpg" alt="habit" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.habitsDone}
+                    </span>
+                  )}
+                  {group.todosDone > 0 && (
+                    <span className="flex items-center gap-1 text-violet-400">
+                      <img src="/images/pixel-icons/todo.jpg" alt="todo" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.todosDone}
+                    </span>
+                  )}
+                  {group.pomoDone > 0 && (
+                    <span className="flex items-center gap-1 text-rose-400">
+                      <img src="/images/pixel-icons/pomodoro.jpg" alt="pomodoro" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.pomoDone}
+                    </span>
+                  )}
+                  {group.totalXp > 0 && <span className="font-black text-purple-400 ml-1">+{group.totalXp} XP</span>}
                 </div>
               </div>
 
@@ -287,8 +364,6 @@ function HistoryItemCard({ item }) {
     .filter(([mk]) => (item.cognitive_gains?.[mk] || 0) > 0)
     .map(([mk, mc]) => ({ mk, mc, val: item.cognitive_gains[mk] }));
 
-  const iconDisplay = item.icon && item.icon.length <= 4 ? item.icon : cfg.icon;
-
   return (
     <div className="group p-3.5 rounded-2xl border transition-all duration-200 relative overflow-hidden hover:shadow-lg"
       style={{ background: "var(--habit-panel)", borderColor: cfg.border }}>
@@ -296,10 +371,14 @@ function HistoryItemCard({ item }) {
       <div className="absolute left-0 top-2.5 bottom-2.5 w-0.5 rounded-full" style={{ background: cfg.color }} />
 
       <div className="flex items-start justify-between gap-3 pl-2.5">
-        {/* Icon */}
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-base"
-          style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-          {iconDisplay}
+        {/* 16-Bit Pixel Art Icon Container */}
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative group-hover:scale-105 transition-transform duration-200"
+          style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, boxShadow: `0 0 12px ${cfg.glow}` }}>
+          {cfg.iconImg ? (
+            <img src={cfg.iconImg} alt={cfg.label} className="w-full h-full object-cover" style={{ imageRendering: "pixelated" }} />
+          ) : (
+            <span className="text-base">{cfg.emoji}</span>
+          )}
         </div>
 
         {/* Info */}
