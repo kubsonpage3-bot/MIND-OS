@@ -51,24 +51,32 @@ public class QuickActionsWidgetProvider extends AppWidgetProvider {
 
         // 1. Create Habit Action
         Intent habitIntent = new Intent(context, MainActivity.class);
+        habitIntent.setAction("com.mindos.app.ACTION_CREATE_HABIT");
+        habitIntent.setData(android.net.Uri.parse("mindos://quick/habit/" + appWidgetId));
         habitIntent.putExtra("action", "create_habit");
         PendingIntent habitPendingIntent = PendingIntent.getActivity(context, 301, habitIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_habit, habitPendingIntent);
 
         // 2. Create Daily Action
         Intent dailyIntent = new Intent(context, MainActivity.class);
+        dailyIntent.setAction("com.mindos.app.ACTION_CREATE_DAILY");
+        dailyIntent.setData(android.net.Uri.parse("mindos://quick/daily/" + appWidgetId));
         dailyIntent.putExtra("action", "create_daily");
         PendingIntent dailyPendingIntent = PendingIntent.getActivity(context, 302, dailyIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_daily, dailyPendingIntent);
 
         // 3. Create To-Do Action
         Intent todoIntent = new Intent(context, MainActivity.class);
+        todoIntent.setAction("com.mindos.app.ACTION_CREATE_TODO");
+        todoIntent.setData(android.net.Uri.parse("mindos://quick/todo/" + appWidgetId));
         todoIntent.putExtra("action", "create_todo");
         PendingIntent todoPendingIntent = PendingIntent.getActivity(context, 303, todoIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_todo, todoPendingIntent);
 
         // 4. Open Chest / Relics Action
         Intent chestIntent = new Intent(context, MainActivity.class);
+        chestIntent.setAction("com.mindos.app.ACTION_OPEN_CHEST");
+        chestIntent.setData(android.net.Uri.parse("mindos://quick/chest/" + appWidgetId));
         chestIntent.putExtra("action", "open_chest");
         PendingIntent chestPendingIntent = PendingIntent.getActivity(context, 304, chestIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_chest, chestPendingIntent);

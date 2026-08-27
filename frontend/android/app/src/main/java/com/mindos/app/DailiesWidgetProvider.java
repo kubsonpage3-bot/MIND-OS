@@ -207,6 +207,7 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
                     checkIntent.setAction(ACTION_TOGGLE_DAILY);
                     checkIntent.putExtra("task_id", taskId);
                     checkIntent.setPackage(context.getPackageName());
+                    checkIntent.setData(android.net.Uri.parse("mindos://daily/" + taskId + "/" + appWidgetId));
 
                     int requestCode = 1000 + i + (appWidgetId * 10);
                     PendingIntent checkPendingIntent = PendingIntent.getBroadcast(context, requestCode, checkIntent, flags);

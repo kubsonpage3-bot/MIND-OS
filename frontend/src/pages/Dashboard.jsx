@@ -681,7 +681,26 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
     handleWidgetAction();
     window.addEventListener("focus", handleWidgetAction);
-    return () => window.removeEventListener("focus", handleWidgetAction);
+
+    let appStateListenerPromise = null;
+    if (typeof window !== "undefined" && window.Capacitor && window.Capacitor.isNativePlatform()) {
+      appStateListenerPromise = import("@capacitor/app").then(({ App }) => {
+        return App.addListener("appStateChange", (state) => {
+          if (state.isActive) {
+            handleWidgetAction();
+          }
+        });
+      }).catch(() => null);
+    }
+
+    return () => {
+      window.removeEventListener("focus", handleWidgetAction);
+      if (appStateListenerPromise) {
+        appStateListenerPromise.then((handle) => {
+          if (handle && typeof handle.remove === "function") handle.remove();
+        });
+      }
+    };
   }, [onSectionChange, onSubItemChange, queryClient]);
 
   const updateProfile = useMutation({

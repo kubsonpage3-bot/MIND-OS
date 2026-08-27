@@ -122,6 +122,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             case "steampunk": return "theme_steampunk.webp";
             case "dark_fantasy": return "theme_dark_fantasy.webp";
             case "christian": return "theme_christian.webp";
+            case "cyberpunk": return "theme_cyberpunk.webp";
             default:
                 return null; // solid_dark uses programmatic background
         }
