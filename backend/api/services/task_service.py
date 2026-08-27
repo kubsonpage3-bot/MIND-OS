@@ -31,13 +31,15 @@ def award_free_chest(profile, chest_type):
     from api.models import LootChest, Item, InventoryItem
     import random
 
-    chest = LootChest.objects.filter(chest_type=chest_type).first()
+    chest = LootChest.objects.filter(chest_type__in=[chest_type, f"{chest_type}_cache", "standard_cache", "standard"]).first()
+    if not chest:
+        chest = LootChest.objects.first()
     if not chest:
         return None
-    drop_rates = chest.drop_rates
+    drop_rates = chest.drop_rates or {"E": 1.0}
     classes = list(drop_rates.keys())
     weights = [float(drop_rates[c]) for c in classes]
-    rolled_class = random.choices(classes, weights=weights, k=1)[0]
+    rolled_class = random.choices(classes, weights=weights, k=1)[0] if classes else "E"
 
     eligible_items = list(
         Item.objects.filter(gear_class=rolled_class, item_type=Item.ItemType.EQUIPMENT)

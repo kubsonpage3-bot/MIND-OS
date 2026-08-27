@@ -28,11 +28,12 @@ def test_miser_mutator_discount(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 
     # Create shop item
-    item, _ = Item.objects.get_or_create(
+    item, _ = Item.objects.update_or_create(
         code="test_scroll_miser",
         defaults={
             "name": "Miser Scroll",
             "cost": 100,
+            "item_type": "consumable",
         },
     )
 

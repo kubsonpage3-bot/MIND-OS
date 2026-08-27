@@ -2470,6 +2470,7 @@ class VivianDarkSacrificeView(generics.GenericAPIView):
 
         try:
             with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
                 from api.models import RecruitedAlly
                 active_codes = profile.active_allies or []
 

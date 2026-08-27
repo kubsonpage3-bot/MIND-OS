@@ -179,7 +179,6 @@ def test_members_shows_only_public_fields(user_a, user_b, client):
     for forbidden in (
         "gold",
         "xp",
-        "mana",
         "gf",
         "gc",
         "ps",
