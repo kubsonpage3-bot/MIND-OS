@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.widget.RemoteViews;
 import org.json.JSONObject;
@@ -48,27 +49,52 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         return r;
     }
 
+    /**
+     * FIX: Now handles ALL classes (warlord, scholar, monk, shadow, wanderer) with correct file names.
+     * Wanderer uses hash-based filenames; all other classes use class_rank.webp format.
+     */
     private static String getAvatarFilename(String classId, String rankId) {
         String normClass = classId != null ? classId.toLowerCase().trim() : "wanderer";
         String normRank = normalizeRank(rankId);
 
         if ("wanderer".equals(normClass) || "default".equals(normClass) || normClass.isEmpty()) {
-            if ("c".equals(normRank)) {
-                return "82c35d837_generated_image.webp";
-            } else if ("b".equals(normRank)) {
-                return "032923fd3_generated_image.webp";
-            } else if ("a".equals(normRank)) {
-                return "c1bdfbb0c_generated_image.webp";
-            } else if ("s".equals(normRank) || "ss".equals(normRank)) {
-                return "f6d9c9d1e_generated_image.webp";
-            } else if ("sss".equals(normRank)) {
-                return "c5c7fecf4_generated_image.webp";
-            } else {
-                return "993830219_generated_image.webp"; // F or E or D
+            // Wanderer uses generated hash filenames keyed by rank
+            switch (normRank) {
+                case "c": return "82c35d837_generated_image.webp";
+                case "b": return "032923fd3_generated_image.webp";
+                case "a": return "c1bdfbb0c_generated_image.webp";
+                case "s":
+                case "ss": return "f6d9c9d1e_generated_image.webp";
+                case "sss": return "c5c7fecf4_generated_image.webp";
+                default:  return "993830219_generated_image.webp"; // F / D
             }
-        } else {
-            return normClass + "_" + normRank + ".webp";
         }
+
+        // All other classes: class_rank.webp — but only certain ranks exist per class
+        // Normalize rank: if exact file doesn't exist, fall back to nearest lower rank
+        String[] ranksDesc = {"sss", "ss", "s", "a", "b", "c", "d", "f"};
+        for (String r : ranksDesc) {
+            if (normRank.equals(r) || isRankAtLeast(normRank, r)) {
+                String filename = normClass + "_" + r + ".webp";
+                // We'll try this; RPGStatsWidgetProvider already has a fallback chain
+                return filename;
+            }
+        }
+        return normClass + "_f.webp";
+    }
+
+    private static boolean isRankAtLeast(String current, String target) {
+        String[] order = {"f", "d", "c", "b", "a", "s", "ss", "sss"};
+        int ci = indexOf(order, current);
+        int ti = indexOf(order, target);
+        return ci >= ti;
+    }
+
+    private static int indexOf(String[] arr, String val) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].equals(val)) return i;
+        }
+        return 0;
     }
 
     private static String getRankBgFilename(String rankId) {
@@ -97,7 +123,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             case "dark_fantasy": return "theme_dark_fantasy.webp";
             case "christian": return "theme_christian.webp";
             default:
-                return null;
+                return null; // solid_dark uses programmatic background
         }
     }
 
@@ -146,6 +172,18 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         return inSampleSize;
     }
 
+    /**
+     * Converts a float metric value (e.g. gf=102.3, ceiling=105) to a 0-100 int progress
+     * anchored from the floor (80.0).
+     */
+    private static int metricToProgress(double value, double ceiling) {
+        double floor = 80.0;
+        double range = ceiling - floor;
+        if (range <= 0) return 100;
+        double pct = (value - floor) / range * 100.0;
+        return (int) Math.max(0, Math.min(100, pct));
+    }
+
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.rpg_stats_widget);
 
@@ -162,19 +200,13 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             android.content.SharedPreferences sharedPrefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
             String profileJson = sharedPrefs.getString("mindos_profile", null);
 
-            int hp = 100;
-            int maxHp = 100;
-            int mp = 50;
-            int maxMp = 100;
-            int xp = 28;
-            int maxXp = 200;
-            int gold = 0;
-            int sp = 0;
-            int streak = 0;
-            int level = 1;
-            String classId = "wanderer";
-            String rankId = "F";
-            String themeId = "solid_dark";
+            int hp = 100, maxHp = 100;
+            int mp = 50, maxMp = 100;
+            int xp = 28, maxXp = 200;
+            int gold = 0, sp = 0, streak = 0, level = 1;
+            String classId = "wanderer", rankId = "F", themeId = "solid_dark", username = "";
+            double gf = 100.0, gc = 100.0, ps = 100.0, vm = 100.0;
+            double gfCeiling = 105.0, gcCeiling = 105.0, psCeiling = 105.0, vmCeiling = 105.0;
 
             if (profileJson != null) {
                 JSONObject json = new JSONObject(profileJson);
@@ -191,6 +223,15 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
                 classId = json.optString("class", "wanderer");
                 rankId = json.optString("rank", "F");
                 themeId = json.optString("theme", "solid_dark");
+                username = json.optString("username", "");
+                gf = json.optDouble("gf", 100.0);
+                gc = json.optDouble("gc", 100.0);
+                ps = json.optDouble("ps", 100.0);
+                vm = json.optDouble("vm", 100.0);
+                gfCeiling = json.optDouble("gf_ceiling", 105.0);
+                gcCeiling = json.optDouble("gc_ceiling", 105.0);
+                psCeiling = json.optDouble("ps_ceiling", 105.0);
+                vmCeiling = json.optDouble("vm_ceiling", 105.0);
             }
 
             // Bind HP / MP / EXP Labels
@@ -203,16 +244,29 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             views.setProgressBar(R.id.widget_mp_progress, maxMp, Math.max(0, mp), false);
             views.setProgressBar(R.id.widget_xp_progress, maxXp, Math.max(0, xp), false);
 
+            // Bind IQ Mini-Bars (Gf/Gc/Ps/Vm — each 0→100 from floor 80 to ceiling)
+            views.setProgressBar(R.id.widget_gf_progress, 100, metricToProgress(gf, gfCeiling), false);
+            views.setProgressBar(R.id.widget_gc_progress, 100, metricToProgress(gc, gcCeiling), false);
+            views.setProgressBar(R.id.widget_ps_progress, 100, metricToProgress(ps, psCeiling), false);
+            views.setProgressBar(R.id.widget_vm_progress, 100, metricToProgress(vm, vmCeiling), false);
+
             // Bind Level / Rank / Class Badge
             String classNameDisplay = classId.substring(0, 1).toUpperCase() + (classId.length() > 1 ? classId.substring(1).toLowerCase() : "");
-            views.setTextViewText(R.id.widget_level_badge, "Rank " + rankId.toUpperCase() + " • " + classNameDisplay);
+            views.setTextViewText(R.id.widget_level_badge, context.getString(R.string.widget_rank_prefix) + " " + rankId.toUpperCase() + " • " + classNameDisplay);
+
+            // Bind Username
+            if (!username.isEmpty()) {
+                views.setTextViewText(R.id.widget_username_label, username);
+            } else {
+                views.setTextViewText(R.id.widget_username_label, classNameDisplay + " Lv." + level);
+            }
 
             // Bind Currency & Streak Chips
-            views.setTextViewText(R.id.widget_gold_label, gold + " G");
-            views.setTextViewText(R.id.widget_sp_label, sp + " SP");
-            views.setTextViewText(R.id.widget_streak_label, streak + " d");
+            views.setTextViewText(R.id.widget_gold_label, gold + " " + context.getString(R.string.widget_gold_suffix));
+            views.setTextViewText(R.id.widget_sp_label, sp + " " + context.getString(R.string.widget_sp_suffix));
+            views.setTextViewText(R.id.widget_streak_label, streak + " " + context.getString(R.string.widget_streak_suffix));
 
-            // 1. Theme Wallpaper Background
+            // 1. FIX: Theme Wallpaper Background — solid_dark uses programmatic color
             String themeWallpaper = getThemeWallpaperFilename(themeId);
             if (themeWallpaper != null) {
                 Bitmap wallpaperBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + themeWallpaper, 450, 275);
@@ -222,28 +276,41 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
                     views.setImageViewResource(R.id.widget_background_image, 0);
                 }
             } else {
+                // FIX: solid_dark — clear the image view so the background drawable shows through
                 views.setImageViewResource(R.id.widget_background_image, 0);
             }
 
             // 2. Rank Avatar Background Scene
             String rankBgFile = getRankBgFilename(rankId);
-            Bitmap rankBgBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + rankBgFile, 140, 140);
+            Bitmap rankBgBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + rankBgFile, 160, 160);
             if (rankBgBitmap != null) {
                 views.setImageViewBitmap(R.id.widget_avatar_bg, rankBgBitmap);
             } else {
                 views.setImageViewResource(R.id.widget_avatar_bg, 0);
             }
 
-            // 3. Avatar Character Sprite with Guaranteed Fallback
+            // 3. FIX: Avatar with correct class/rank lookup + full fallback chain
             String avatarFilename = getAvatarFilename(classId, rankId);
-            Bitmap avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + avatarFilename, 140, 140);
-            if (avatarBitmap == null) {
-                // Secondary Fallback: Try general wanderer sprite
-                avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/993830219_generated_image.webp", 140, 140);
+            Bitmap avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + avatarFilename, 160, 160);
+
+            // Fallback 1: try lower rank for same class (c→d→f)
+            if (avatarBitmap == null && !"f".equals(normalizeRank(rankId))) {
+                String[] fallbackRanks = {"d", "f"};
+                for (String fr : fallbackRanks) {
+                    String normClass = classId.toLowerCase().trim();
+                    avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + normClass + "_" + fr + ".webp", 160, 160);
+                    if (avatarBitmap != null) break;
+                }
             }
+
+            // Fallback 2: wanderer sprite for same rank
             if (avatarBitmap == null) {
-                // Tertiary Fallback: Try warlord_f.webp
-                avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/warlord_f.webp", 140, 140);
+                avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + getAvatarFilename("wanderer", rankId), 160, 160);
+            }
+
+            // Fallback 3: default wanderer F rank
+            if (avatarBitmap == null) {
+                avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/993830219_generated_image.webp", 160, 160);
             }
 
             if (avatarBitmap != null) {

@@ -10,4 +10,34 @@
     <string name="widget_dailies_description">MindOS Today\'s Dailies interactive checklist with category indicators.</string>
     <string name="widget_summary_description">MindOS Daily Summary showing completed count, remaining tasks and streak.</string>
     <string name="widget_quick_description">MindOS Quick Task Creator for Habits, Dailies, To-Dos and Relics.</string>
+
+    <!-- RPG Stats Widget UI strings -->
+    <string name="widget_stats_title">MIND OS</string>
+    <string name="widget_hp">HP</string>
+    <string name="widget_mp">MP</string>
+    <string name="widget_xp">EXP</string>
+    <string name="widget_gold_suffix">G</string>
+    <string name="widget_sp_suffix">SP</string>
+    <string name="widget_streak_suffix">d</string>
+    <string name="widget_iq_label">IQ</string>
+    <string name="widget_rank_prefix">Rank</string>
+
+    <!-- Dailies Widget UI strings -->
+    <string name="widget_dailies_title">Today\'s Dailies</string>
+    <string name="widget_dailies_empty">No dailies yet — tap + to add</string>
+    <string name="widget_dailies_add_cd">Add Daily</string>
+    <string name="widget_dailies_more">+%d more</string>
+    <string name="widget_dailies_all_done">✓ All done!</string>
+
+    <!-- Daily Summary Widget UI strings -->
+    <string name="widget_summary_streak">%d Day Streak 🔥</string>
+    <string name="widget_summary_done_label">Dailies Done</string>
+    <string name="widget_summary_left">%d left to do</string>
+    <string name="widget_summary_all_clear">All clear today! 🎉</string>
+
+    <!-- Quick Actions Widget UI strings -->
+    <string name="widget_quick_habit">+ Habit</string>
+    <string name="widget_quick_daily">+ Daily</string>
+    <string name="widget_quick_todo">+ To-Do</string>
+    <string name="widget_quick_chest">⚔ Chest</string>
 </resources>

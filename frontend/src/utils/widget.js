@@ -30,6 +30,16 @@ export const syncWidgetStats = async (profile, dailies = null) => {
           streak: profile.streak ?? 0,
           level: profile.level ?? 1,
           avatar_res_name: profile.avatar_res_name || 'avatar_default',
+          username: profile.username || profile.display_name || '',
+          // Cognitive IQ metrics — needed for IQ mini-bars in widget
+          gf: profile.gf ?? 100.0,
+          gc: profile.gc ?? 100.0,
+          ps: profile.ps ?? 100.0,
+          vm: profile.vm ?? 100.0,
+          gf_ceiling: profile.gf_ceiling ?? 105.0,
+          gc_ceiling: profile.gc_ceiling ?? 105.0,
+          ps_ceiling: profile.ps_ceiling ?? 105.0,
+          vm_ceiling: profile.vm_ceiling ?? 105.0,
         })
       });
     }

@@ -19,7 +19,9 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent != null ? intent.getAction() : null;
-        if (ACTION_UPDATE_SUMMARY.equals(action) || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action) || RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET.equals(action)) {
+        if (ACTION_UPDATE_SUMMARY.equals(action)
+                || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)
+                || RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET.equals(action)) {
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             ComponentName componentName = new ComponentName(context, DailySummaryWidgetProvider.class);
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
@@ -75,11 +77,21 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
 
             int leftCount = Math.max(0, totalCount - doneCount);
 
-            views.setTextViewText(R.id.summary_streak_text, streak + " Day Streak");
+            // FIX: Use string resources instead of hardcoded English strings
+            views.setTextViewText(R.id.summary_streak_text,
+                    String.format(context.getString(R.string.widget_summary_streak), streak));
             views.setTextViewText(R.id.summary_done_count, String.valueOf(doneCount));
-            views.setTextViewText(R.id.summary_done_label, "Dailies Done");
+            views.setTextViewText(R.id.summary_done_label,
+                    context.getString(R.string.widget_summary_done_label));
             views.setProgressBar(R.id.summary_progress_bar, Math.max(1, totalCount), doneCount, false);
-            views.setTextViewText(R.id.summary_left_text, leftCount + " left to do");
+
+            if (leftCount == 0 && totalCount > 0) {
+                views.setTextViewText(R.id.summary_left_text,
+                        context.getString(R.string.widget_summary_all_clear));
+            } else {
+                views.setTextViewText(R.id.summary_left_text,
+                        String.format(context.getString(R.string.widget_summary_left), leftCount));
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

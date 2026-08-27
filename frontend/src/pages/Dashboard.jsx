@@ -640,10 +640,19 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         sp: profile.skill_points || profile.sp || 0,
         streak: profile.daily_streak || profile.streak || 0,
         level: profile.level || 1,
-        avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
+        avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default",
+        username: profile.username || profile.display_name || "",
+        gf: profile.gf ?? 100.0,
+        gc: profile.gc ?? 100.0,
+        ps: profile.ps ?? 100.0,
+        vm: profile.vm ?? 100.0,
+        gf_ceiling: profile.gf_ceiling ?? 105.0,
+        gc_ceiling: profile.gc_ceiling ?? 105.0,
+        ps_ceiling: profile.ps_ceiling ?? 105.0,
+        vm_ceiling: profile.vm_ceiling ?? 105.0,
       }, rawDailies);
     }
-  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id, profile?.gold, profile?.skill_points, profile?.sp, profile?.daily_streak, profile?.streak, profile?.level, tasks]);
+  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id, profile?.gold, profile?.skill_points, profile?.sp, profile?.daily_streak, profile?.streak, profile?.level, profile?.username, profile?.gf, profile?.gc, profile?.ps, profile?.vm, tasks]);
 
   // Handle widget launch action intents
   useEffect(() => {

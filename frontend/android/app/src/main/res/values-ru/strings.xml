@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MIND OS</string>
+    <string name="title_activity_main">MIND OS</string>
+    <string name="package_name">com.mindos.app</string>
+    <string name="custom_url_scheme">com.mindos.app</string>
+
+    <!-- Widget Descriptions (RU) -->
+    <string name="widget_stats_description">MindOS — карточка персонажа: HP, MP, EXP, уровень, золото и серия.</string>
+    <string name="widget_dailies_description">MindOS — чеклист ежедневных задач с иконками категорий.</string>
+    <string name="widget_summary_description">MindOS — сводка дня: выполненные задачи, оставшиеся и серия дней.</string>
+    <string name="widget_quick_description">MindOS — быстрое создание привычек, ежедневных задач, дел и реликвий.</string>
+
+    <!-- RPG Stats Widget UI strings (RU) -->
+    <string name="widget_stats_title">MIND OS</string>
+    <string name="widget_hp">HP</string>
+    <string name="widget_mp">MP</string>
+    <string name="widget_xp">XP</string>
+    <string name="widget_gold_suffix">G</string>
+    <string name="widget_sp_suffix">SP</string>
+    <string name="widget_streak_suffix">д</string>
+    <string name="widget_iq_label">IQ</string>
+    <string name="widget_rank_prefix">Ранг</string>
+
+    <!-- Dailies Widget UI strings (RU) -->
+    <string name="widget_dailies_title">Задачи на сегодня</string>
+    <string name="widget_dailies_empty">Нет задач — нажми + чтобы добавить</string>
+    <string name="widget_dailies_add_cd">Добавить задачу</string>
+    <string name="widget_dailies_more">+%d ещё</string>
+    <string name="widget_dailies_all_done">✓ Всё выполнено!</string>
+
+    <!-- Daily Summary Widget UI strings (RU) -->
+    <string name="widget_summary_streak">Серия %d дней 🔥</string>
+    <string name="widget_summary_done_label">Выполнено</string>
+    <string name="widget_summary_left">Осталось: %d</string>
+    <string name="widget_summary_all_clear">Всё готово сегодня! 🎉</string>
+
+    <!-- Quick Actions Widget UI strings (RU) -->
+    <string name="widget_quick_habit">+ Привычка</string>
+    <string name="widget_quick_daily">+ Задача</string>
+    <string name="widget_quick_todo">+ Дело</string>
+    <string name="widget_quick_chest">⚔ Сундук</string>
+</resources>
