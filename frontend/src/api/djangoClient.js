@@ -573,4 +573,11 @@ export const djangoApi = {
     updateGoal: (data) =>
       djangoFetch('/nutrition/goal/', { method: 'PATCH', body: JSON.stringify(data) }),
   },
+
+  extension: {
+    getStatus: () => djangoFetch('extension/web-status/'),
+    getCode: () => djangoFetch('extension/generate-code/', { method: 'POST' }),
+    generateCode: () => djangoFetch('extension/generate-code/', { method: 'POST' }),
+    revoke: () => djangoFetch('extension/revoke/', { method: 'DELETE' }),
+  },
 };

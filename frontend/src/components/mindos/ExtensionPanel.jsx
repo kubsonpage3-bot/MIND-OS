@@ -17,20 +17,20 @@ export default function ExtensionPanel() {
   // Poll extension status every 10s
   const { data: status, isLoading } = useQuery({
     queryKey: ['extension-status'],
-    queryFn: djangoApi.extension.getStatus,
+    queryFn: () => djangoApi.extension?.getStatus ? djangoApi.extension.getStatus() : Promise.resolve({ paired: false }),
     refetchInterval: 10000,
   });
 
   // Fetch or generate pairing code
   const { data: codeData, refetch: refreshCode } = useQuery({
     queryKey: ['extension-code'],
-    queryFn: djangoApi.extension.getCode,
+    queryFn: () => djangoApi.extension?.getCode ? djangoApi.extension.getCode() : Promise.resolve(null),
     enabled: !status?.paired,
     refetchInterval: 30000,
   });
 
   const revokeMutation = useMutation({
-    mutationFn: djangoApi.extension.revoke,
+    mutationFn: () => djangoApi.extension?.revoke ? djangoApi.extension.revoke() : Promise.resolve(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['extension-status'] });
       queryClient.invalidateQueries({ queryKey: ['extension-code'] });
@@ -38,7 +38,7 @@ export default function ExtensionPanel() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: djangoApi.extension.generateCode,
+    mutationFn: () => djangoApi.extension?.generateCode ? djangoApi.extension.generateCode() : Promise.resolve(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['extension-code'] });
       queryClient.invalidateQueries({ queryKey: ['extension-status'] });
