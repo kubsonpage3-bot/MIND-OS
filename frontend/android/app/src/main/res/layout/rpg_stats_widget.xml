@@ -14,107 +14,337 @@
         android:scaleType="centerCrop"
         android:contentDescription="Wallpaper" />
 
-    <!-- Dark Overlay to ensure text readability -->
+    <!-- Ambient Dark Cyber Scrim -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#B3121216"
+        android:background="#D912111A"
         android:contentDescription="" />
 
-    <!-- Inner content layout -->
+    <!-- Main Content Container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
-        <!-- Avatar Section -->
-        <RelativeLayout
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center_vertical"
-            android:background="#1E1E24">
-            
-            <!-- Rank specific background scene -->
-            <ImageView
-                android:id="@+id/widget_avatar_bg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:contentDescription="Avatar Background" />
-
-            <!-- Character sprite overlay -->
-            <ImageView
-                android:id="@+id/widget_avatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:contentDescription="Avatar" />
-        </RelativeLayout>
-
-        <!-- Stats Section -->
+        <!-- Left: Avatar Column -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="12dp">
+            android:gravity="center"
+            android:layout_marginEnd="10dp">
 
-            <!-- HP -->
-            <TextView
-                android:id="@+id/widget_hp_label"
+            <!-- Framed Avatar Box -->
+            <RelativeLayout
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:background="@drawable/widget_avatar_frame"
+                android:padding="2dp">
+
+                <!-- Rank scene background -->
+                <ImageView
+                    android:id="@+id/widget_avatar_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Rank Scene" />
+
+                <!-- Character Sprite -->
+                <ImageView
+                    android:id="@+id/widget_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Character Sprite" />
+            </RelativeLayout>
+
+            <!-- Level / Class Chip -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="HP: 0/0"
-                android:textColor="#FF4A4A"
-                android:textSize="11sp"
-                android:typeface="monospace"
-                android:textStyle="bold" />
-            <ProgressBar
-                android:id="@+id/widget_hp_progress"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="6dp"
-                android:progressDrawable="@drawable/hp_progress_drawable" />
+                android:orientation="horizontal"
+                android:background="@drawable/widget_chip_dark"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:layout_marginTop="4dp"
+                android:gravity="center">
 
-            <!-- MP -->
-            <TextView
-                android:id="@+id/widget_mp_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MP: 0/0"
-                android:textColor="#3D72DE"
-                android:textSize="11sp"
-                android:typeface="monospace"
-                android:textStyle="bold" />
-            <ProgressBar
-                android:id="@+id/widget_mp_progress"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="6dp"
-                android:progressDrawable="@drawable/mp_progress_drawable" />
+                <ImageView
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:src="@drawable/ic_widget_sword"
+                    android:contentDescription="" />
 
-            <!-- XP -->
-            <TextView
-                android:id="@+id/widget_xp_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="XP: 0/0"
-                android:textColor="#CBA135"
-                android:textSize="11sp"
-                android:typeface="monospace"
-                android:textStyle="bold" />
-            <ProgressBar
-                android:id="@+id/widget_xp_progress"
-                style="?android:attr/progressBarStyleHorizontal"
+                <TextView
+                    android:id="@+id/widget_level_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rank F"
+                    android:textColor="#D8B4FE"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace"
+                    android:layout_marginStart="3dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Right: Stats & Currency Column -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <!-- HP Row -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="2dp"
-                android:progressDrawable="@drawable/xp_progress_drawable" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="3dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_alignParentStart="true">
+                        <ImageView
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:src="@drawable/ic_widget_heart"
+                            android:contentDescription="" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="HP"
+                            android:textColor="#FF6680"
+                            android:textSize="9sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:layout_marginStart="4dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/widget_hp_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="100 / 100"
+                        android:textColor="#FCA5A5"
+                        android:textSize="9sp"
+                        android:typeface="monospace" />
+                </RelativeLayout>
+
+                <ProgressBar
+                    android:id="@+id/widget_hp_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="1dp"
+                    android:progressDrawable="@drawable/hp_progress_drawable" />
+            </LinearLayout>
+
+            <!-- MP Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="3dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_alignParentStart="true">
+                        <ImageView
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:src="@drawable/ic_widget_crystal"
+                            android:contentDescription="" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="MP"
+                            android:textColor="#60A5FA"
+                            android:textSize="9sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:layout_marginStart="4dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/widget_mp_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="50 / 100"
+                        android:textColor="#93C5FD"
+                        android:textSize="9sp"
+                        android:typeface="monospace" />
+                </RelativeLayout>
+
+                <ProgressBar
+                    android:id="@+id/widget_mp_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="1dp"
+                    android:progressDrawable="@drawable/mp_progress_drawable" />
+            </LinearLayout>
+
+            <!-- EXP Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="4dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_alignParentStart="true">
+                        <ImageView
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:src="@drawable/ic_widget_star"
+                            android:contentDescription="" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="EXP"
+                            android:textColor="#FBBF24"
+                            android:textSize="9sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:layout_marginStart="4dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/widget_xp_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="28 / 200"
+                        android:textColor="#FDE68A"
+                        android:textSize="9sp"
+                        android:typeface="monospace" />
+                </RelativeLayout>
+
+                <ProgressBar
+                    android:id="@+id/widget_xp_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="1dp"
+                    android:progressDrawable="@drawable/xp_progress_drawable" />
+            </LinearLayout>
+
+            <!-- Bottom Currency / Chips Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- Gold Chip -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/widget_chip_dark"
+                    android:paddingHorizontal="5dp"
+                    android:paddingVertical="2dp"
+                    android:gravity="center"
+                    android:layout_marginEnd="4dp">
+                    <ImageView
+                        android:layout_width="9dp"
+                        android:layout_height="9dp"
+                        android:src="@drawable/ic_widget_coin"
+                        android:contentDescription="" />
+                    <TextView
+                        android:id="@+id/widget_gold_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 G"
+                        android:textColor="#F59E0B"
+                        android:textSize="8.5sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace"
+                        android:layout_marginStart="2dp" />
+                </LinearLayout>
+
+                <!-- SP Chip -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/widget_chip_dark"
+                    android:paddingHorizontal="5dp"
+                    android:paddingVertical="2dp"
+                    android:gravity="center"
+                    android:layout_marginEnd="4dp">
+                    <ImageView
+                        android:layout_width="9dp"
+                        android:layout_height="9dp"
+                        android:src="@drawable/ic_widget_crystal"
+                        android:contentDescription="" />
+                    <TextView
+                        android:id="@+id/widget_sp_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 SP"
+                        android:textColor="#38BDF8"
+                        android:textSize="8.5sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace"
+                        android:layout_marginStart="2dp" />
+                </LinearLayout>
+
+                <!-- Streak Chip -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/widget_chip_dark"
+                    android:paddingHorizontal="5dp"
+                    android:paddingVertical="2dp"
+                    android:gravity="center">
+                    <ImageView
+                        android:layout_width="9dp"
+                        android:layout_height="9dp"
+                        android:src="@drawable/ic_widget_flame"
+                        android:contentDescription="" />
+                    <TextView
+                        android:id="@+id/widget_streak_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 d"
+                        android:textColor="#F97316"
+                        android:textSize="8.5sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace"
+                        android:layout_marginStart="2dp" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_summary_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="14dp"
+    android:clipToOutline="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Top Streak chip -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/widget_chip_dark"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="3dp"
+            android:gravity="center"
+            android:layout_marginBottom="6dp">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_widget_flame"
+                android:contentDescription="" />
+
+            <TextView
+                android:id="@+id/summary_streak_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="7 Day Streak"
+                android:textColor="#FB923C"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:typeface="monospace"
+                android:layout_marginStart="3dp" />
+        </LinearLayout>
+
+        <!-- Big Bold Done Number -->
+        <TextView
+            android:id="@+id/summary_done_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#C084FC"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:includeFontPadding="false" />
+
+        <!-- Label -->
+        <TextView
+            android:id="@+id/summary_done_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dailies Done"
+            android:textColor="#E2E8F0"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/summary_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginBottom="6dp"
+            android:progressDrawable="@drawable/summary_progress_drawable" />
+
+        <!-- Subtitle: Left to do -->
+        <TextView
+            android:id="@+id/summary_left_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 left to do"
+            android:textColor="#94A3B8"
+            android:textSize="10sp"
+            android:typeface="monospace" />
+    </LinearLayout>
+</RelativeLayout>

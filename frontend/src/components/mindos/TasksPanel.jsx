@@ -50,6 +50,19 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
     }
   }, [subTab]);
 
+  // Listen for widget quick-action deep links
+  useEffect(() => {
+    const onOpenModal = (e) => {
+      const type = e.detail?.type || 'habit';
+      setFormType(type);
+      setForm(prev => ({ ...prev, type }));
+      setTaskTab('tasks');
+      setCreateModalOpen(true);
+    };
+    window.addEventListener('mindos:open_task_modal', onOpenModal);
+    return () => window.removeEventListener('mindos:open_task_modal', onOpenModal);
+  }, []);
+
   const createTask = async () => {
     if (!form.name.trim()) return;
 

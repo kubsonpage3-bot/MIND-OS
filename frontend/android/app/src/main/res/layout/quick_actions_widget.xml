@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_quick_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center"
+    android:clipToOutline="true">
+
+    <!-- Habit Button (Red) -->
+    <ImageButton
+        android:id="@+id/quick_btn_habit"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/widget_btn_red"
+        android:src="@drawable/ic_widget_habit"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        android:contentDescription="New Habit" />
+
+    <!-- Daily Button (Amber) -->
+    <ImageButton
+        android:id="@+id/quick_btn_daily"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/widget_btn_amber"
+        android:src="@drawable/ic_widget_daily"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        android:contentDescription="New Daily" />
+
+    <!-- To-Do Button (Blue) -->
+    <ImageButton
+        android:id="@+id/quick_btn_todo"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/widget_btn_blue"
+        android:src="@drawable/ic_widget_todo"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        android:contentDescription="New To-Do" />
+
+    <!-- Chest / Relics Button (Emerald) -->
+    <ImageButton
+        android:id="@+id/quick_btn_chest"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/widget_btn_emerald"
+        android:src="@drawable/ic_widget_chest"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        android:contentDescription="Open Chest" />
+</LinearLayout>

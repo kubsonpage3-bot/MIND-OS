@@ -20,9 +20,8 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        String action = intent.getAction();
+        String action = intent != null ? intent.getAction() : null;
         if (ACTION_UPDATE_WIDGET.equals(action) || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
-            // Security: limit custom ACTION_UPDATE_WIDGET broadcast processing to intents explicitly package-targeted
             if (ACTION_UPDATE_WIDGET.equals(action) && !context.getPackageName().equals(intent.getPackage())) {
                 return;
             }
@@ -42,13 +41,18 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static String getAvatarFilename(String classId, String rankId) {
-        // Enforce lowercase and trim to ensure matching of case-sensitive asset paths
-        String normClass = classId != null ? classId.toLowerCase().trim() : "wanderer";
-        String normRank = rankId != null ? rankId.toLowerCase().trim() : "f";
+    private static String normalizeRank(String rankId) {
+        if (rankId == null || rankId.trim().isEmpty()) return "f";
+        String r = rankId.toLowerCase().trim();
+        if ("e".equals(r)) return "f";
+        return r;
+    }
 
-        if ("wanderer".equals(normClass) || "default".equals(normClass) || "".equals(normClass)) {
-            // Use general rank sprites
+    private static String getAvatarFilename(String classId, String rankId) {
+        String normClass = classId != null ? classId.toLowerCase().trim() : "wanderer";
+        String normRank = normalizeRank(rankId);
+
+        if ("wanderer".equals(normClass) || "default".equals(normClass) || normClass.isEmpty()) {
             if ("c".equals(normRank)) {
                 return "82c35d837_generated_image.webp";
             } else if ("b".equals(normRank)) {
@@ -60,10 +64,9 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             } else if ("sss".equals(normRank)) {
                 return "c5c7fecf4_generated_image.webp";
             } else {
-                return "993830219_generated_image.webp"; // F or D
+                return "993830219_generated_image.webp"; // F or E or D
             }
         } else {
-            // Use class sprite filename: [class]_[rank].webp (e.g., warlord_f.webp)
             return normClass + "_" + normRank + ".webp";
         }
     }
@@ -78,6 +81,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             case "S": return "3c9b18011_generated_image.webp";
             case "SS": return "f72c50f73_generated_image.webp";
             case "SSS": return "788bddb7a_generated_image.webp";
+            case "E":
             case "F":
             default:
                 return "0fafb424e_generated_image.webp";
@@ -93,40 +97,27 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             case "dark_fantasy": return "theme_dark_fantasy.webp";
             case "christian": return "theme_christian.webp";
             default:
-                return null; // Solid themes do not display wallpapers
+                return null;
         }
     }
 
-    /**
-     * Helper to decode and downsample assets to prevent Binder transaction memory limits.
-     */
     private static Bitmap decodeSampledBitmapFromAsset(Context context, String assetPath, int reqWidth, int reqHeight) {
         try {
-            // First decode with inJustDecodeBounds=true to check dimensions
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             InputStream is = context.getAssets().open(assetPath);
             BitmapFactory.decodeStream(is, null, options);
             is.close();
 
-            // Calculate inSampleSize
             options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-            // Decode bitmap with inSampleSize set
             options.inJustDecodeBounds = false;
-            // Optimize memory configuration: use RGB_565 for wallpapers since they lack transparent layers
-            if (assetPath.contains("theme_") || assetPath.contains("_generated_image")) {
-                options.inPreferredConfig = Bitmap.Config.RGB_565;
-            } else {
-                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            }
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
             is = context.getAssets().open(assetPath);
             Bitmap decoded = BitmapFactory.decodeStream(is, null, options);
             is.close();
 
             if (decoded != null) {
-                // Scale precisely to the requested size
                 Bitmap scaled = Bitmap.createScaledBitmap(decoded, reqWidth, reqHeight, true);
                 if (scaled != decoded) {
                     decoded.recycle();
@@ -134,8 +125,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
                 return scaled;
             }
         } catch (Exception e) {
-            // Safe fallback: do not crash on file-not-found or decoding failures
-            e.printStackTrace();
+            // Asset load failed - will try fallback
         }
         return null;
     }
@@ -159,7 +149,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.rpg_stats_widget);
 
-        // Set PendingIntent to launch the app on widget click
+        // Click on widget launches the MindOS app
         Intent configIntent = new Intent(context, MainActivity.class);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -169,62 +159,99 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
 
         try {
-            // Read SharedPreferences safely
             android.content.SharedPreferences sharedPrefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
             String profileJson = sharedPrefs.getString("mindos_profile", null);
 
+            int hp = 100;
+            int maxHp = 100;
+            int mp = 50;
+            int maxMp = 100;
+            int xp = 28;
+            int maxXp = 200;
+            int gold = 0;
+            int sp = 0;
+            int streak = 0;
+            int level = 1;
+            String classId = "wanderer";
+            String rankId = "F";
+            String themeId = "solid_dark";
+
             if (profileJson != null) {
                 JSONObject json = new JSONObject(profileJson);
-                int hp = json.optInt("hp", 0);
-                int maxHp = Math.max(1, json.optInt("max_hp", 100));
-                int mp = json.optInt("mp", 0);
-                int maxMp = Math.max(1, json.optInt("max_mp", 100));
-                int xp = json.optInt("xp", 0);
-                int maxXp = Math.max(1, json.optInt("max_xp", 100));
-                String classId = json.optString("class", "wanderer");
-                String rankId = json.optString("rank", "F");
-                String themeId = json.optString("theme", "solid_dark");
+                hp = json.optInt("hp", 100);
+                maxHp = Math.max(1, json.optInt("max_hp", 100));
+                mp = json.optInt("mp", 50);
+                maxMp = Math.max(1, json.optInt("max_mp", 100));
+                xp = json.optInt("xp", 0);
+                maxXp = Math.max(1, json.optInt("max_xp", 100));
+                gold = json.optInt("gold", 0);
+                sp = json.optInt("sp", 0);
+                streak = json.optInt("streak", 0);
+                level = Math.max(1, json.optInt("level", 1));
+                classId = json.optString("class", "wanderer");
+                rankId = json.optString("rank", "F");
+                themeId = json.optString("theme", "solid_dark");
+            }
 
-                // Bind Text Labels
-                views.setTextViewText(R.id.widget_hp_label, "HP: " + hp + "/" + maxHp);
-                views.setTextViewText(R.id.widget_mp_label, "MP: " + mp + "/" + maxMp);
-                views.setTextViewText(R.id.widget_xp_label, "XP: " + xp + "/" + maxXp);
+            // Bind HP / MP / EXP Labels
+            views.setTextViewText(R.id.widget_hp_label, hp + " / " + maxHp);
+            views.setTextViewText(R.id.widget_mp_label, mp + " / " + maxMp);
+            views.setTextViewText(R.id.widget_xp_label, xp + " / " + maxXp);
 
-                // Bind ProgressBars with sanitization
-                views.setProgressBar(R.id.widget_hp_progress, maxHp, Math.max(0, hp), false);
-                views.setProgressBar(R.id.widget_mp_progress, maxMp, Math.max(0, mp), false);
-                views.setProgressBar(R.id.widget_xp_progress, maxXp, Math.max(0, xp), false);
+            // Bind Progress Bars
+            views.setProgressBar(R.id.widget_hp_progress, maxHp, Math.max(0, hp), false);
+            views.setProgressBar(R.id.widget_mp_progress, maxMp, Math.max(0, mp), false);
+            views.setProgressBar(R.id.widget_xp_progress, maxXp, Math.max(0, xp), false);
 
-                // 1. Bind Theme Wallpaper Background
-                String themeWallpaper = getThemeWallpaperFilename(themeId);
-                if (themeWallpaper != null) {
-                    Bitmap wallpaperBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + themeWallpaper, 450, 275);
-                    if (wallpaperBitmap != null) {
-                        views.setImageViewBitmap(R.id.widget_background_image, wallpaperBitmap);
-                    } else {
-                        views.setImageViewResource(R.id.widget_background_image, 0);
-                    }
+            // Bind Level / Rank / Class Badge
+            String classNameDisplay = classId.substring(0, 1).toUpperCase() + (classId.length() > 1 ? classId.substring(1).toLowerCase() : "");
+            views.setTextViewText(R.id.widget_level_badge, "Rank " + rankId.toUpperCase() + " • " + classNameDisplay);
+
+            // Bind Currency & Streak Chips
+            views.setTextViewText(R.id.widget_gold_label, gold + " G");
+            views.setTextViewText(R.id.widget_sp_label, sp + " SP");
+            views.setTextViewText(R.id.widget_streak_label, streak + " d");
+
+            // 1. Theme Wallpaper Background
+            String themeWallpaper = getThemeWallpaperFilename(themeId);
+            if (themeWallpaper != null) {
+                Bitmap wallpaperBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + themeWallpaper, 450, 275);
+                if (wallpaperBitmap != null) {
+                    views.setImageViewBitmap(R.id.widget_background_image, wallpaperBitmap);
                 } else {
                     views.setImageViewResource(R.id.widget_background_image, 0);
                 }
-
-                // 2. Bind Rank Avatar Background Scene
-                String rankBgFile = getRankBgFilename(rankId);
-                Bitmap rankBgBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + rankBgFile, 128, 128);
-                if (rankBgBitmap != null) {
-                    views.setImageViewBitmap(R.id.widget_avatar_bg, rankBgBitmap);
-                } else {
-                    views.setImageViewResource(R.id.widget_avatar_bg, 0);
-                }
-
-                // 3. Load avatar character sprite
-                Bitmap avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + getAvatarFilename(classId, rankId), 128, 128);
-                if (avatarBitmap != null) {
-                    views.setImageViewBitmap(R.id.widget_avatar, avatarBitmap);
-                } else {
-                    views.setImageViewResource(R.id.widget_avatar, R.drawable.avatar_default);
-                }
+            } else {
+                views.setImageViewResource(R.id.widget_background_image, 0);
             }
+
+            // 2. Rank Avatar Background Scene
+            String rankBgFile = getRankBgFilename(rankId);
+            Bitmap rankBgBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + rankBgFile, 140, 140);
+            if (rankBgBitmap != null) {
+                views.setImageViewBitmap(R.id.widget_avatar_bg, rankBgBitmap);
+            } else {
+                views.setImageViewResource(R.id.widget_avatar_bg, 0);
+            }
+
+            // 3. Avatar Character Sprite with Guaranteed Fallback
+            String avatarFilename = getAvatarFilename(classId, rankId);
+            Bitmap avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/" + avatarFilename, 140, 140);
+            if (avatarBitmap == null) {
+                // Secondary Fallback: Try general wanderer sprite
+                avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/993830219_generated_image.webp", 140, 140);
+            }
+            if (avatarBitmap == null) {
+                // Tertiary Fallback: Try warlord_f.webp
+                avatarBitmap = decodeSampledBitmapFromAsset(context, "public/images/webp/warlord_f.webp", 140, 140);
+            }
+
+            if (avatarBitmap != null) {
+                views.setImageViewBitmap(R.id.widget_avatar, avatarBitmap);
+            } else {
+                views.setImageViewResource(R.id.widget_avatar, 0);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

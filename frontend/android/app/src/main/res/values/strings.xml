@@ -4,4 +4,10 @@
     <string name="title_activity_main">MIND OS</string>
     <string name="package_name">com.mindos.app</string>
     <string name="custom_url_scheme">com.mindos.app</string>
+
+    <!-- Widget Descriptions -->
+    <string name="widget_stats_description">MindOS Character Hero Card with HP, MP, EXP, Level, Gold and Streak.</string>
+    <string name="widget_dailies_description">MindOS Today\'s Dailies interactive checklist with category indicators.</string>
+    <string name="widget_summary_description">MindOS Daily Summary showing completed count, remaining tasks and streak.</string>
+    <string name="widget_quick_description">MindOS Quick Task Creator for Habits, Dailies, To-Dos and Relics.</string>
 </resources>

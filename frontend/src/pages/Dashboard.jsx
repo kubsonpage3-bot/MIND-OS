@@ -29,7 +29,7 @@ const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
 import { isMobileApp } from "@/utils/platformUtils";
-import { syncWidgetStats } from "@/utils/widget";
+import { syncWidgetStats, getWidgetLaunchIntentAction } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
@@ -624,6 +624,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         }
       })();
 
+      const rawDailies = (tasks || []).filter(t => t.type === 'daily');
+
       syncWidgetStats({
         hp: profile.hp || 0,
         max_hp: profile.max_hp || 100,
@@ -634,10 +636,38 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         class: profile.character_class ? profile.character_class.toLowerCase() : "wanderer",
         rank: currentRankId,
         theme: activeTheme,
+        gold: profile.gold || 0,
+        sp: profile.skill_points || profile.sp || 0,
+        streak: profile.daily_streak || profile.streak || 0,
+        level: profile.level || 1,
         avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
-      });
+      }, rawDailies);
     }
-  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id]);
+  }, [profile?.hp, profile?.max_hp, profile?.mana, profile?.mana_max, profile?.rank_xp, profile?.rank_info, profile?.character_class, profile?.rank_info?.current_id, profile?.gold, profile?.skill_points, profile?.sp, profile?.daily_streak, profile?.streak, profile?.level, tasks]);
+
+  // Handle widget launch action intents
+  useEffect(() => {
+    const handleWidgetAction = async () => {
+      const action = await getWidgetLaunchIntentAction();
+      if (!action) return;
+
+      if (action === "create_habit" || action === "create_daily" || action === "create_todo") {
+        setActiveTab("tasks");
+        window.dispatchEvent(new CustomEvent("mindos:open_task_modal", {
+          detail: { type: action.replace("create_", "") }
+        }));
+      } else if (action === "open_chest") {
+        setActiveTab("character");
+        setSubTab("chest");
+      } else if (action === "open_dailies") {
+        setActiveTab("tasks");
+      }
+    };
+
+    handleWidgetAction();
+    window.addEventListener("focus", handleWidgetAction);
+    return () => window.removeEventListener("focus", handleWidgetAction);
+  }, []);
 
   const updateProfile = useMutation({
     /**
