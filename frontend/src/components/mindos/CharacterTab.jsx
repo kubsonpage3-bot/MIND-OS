@@ -661,24 +661,38 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
 
                 const totalValue = breakdown.total;
                 let effectLabel = "";
+                let detailedTooltip = "";
                 if (key === "pwr") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.pwr_effect_short', 'Boss XP')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% XP • +${totalValue} ATK`;
+                  detailedTooltip = `+${(totalValue * 0.5).toFixed(1)}% XP bonus to tasks & +${totalValue} Boss Attack Damage`;
                 } else if (key === "def") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.def_effect_short', 'Dmg Taken')}`;
+                  const red = Math.round((1 - (100 / (100 + totalValue))) * 100);
+                  effectLabel = `-${red}% ${t('character.def_effect_short', 'HP dmg taken')}`;
+                  detailedTooltip = `Reduces HP damage taken from failed habits and missed dailies by ${red}%`;
                 } else if (key === "foc") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.foc_effect_short', 'Focus Amp')}`;
+                  const crit = (totalValue * 0.5).toFixed(1);
+                  const trainBonus = Math.max(0, totalValue - 5);
+                  effectLabel = `+${crit}% ${t('character.foc_effect_short', 'Crit chance')}`;
+                  detailedTooltip = `+${crit}% Critical Focus chance (2x XP/Gold/ATK) & +${trainBonus}% Focus training bonus`;
                 } else if (key === "mem") {
-                  effectLabel = `-${Math.round((1 - (100 / (100 + totalValue))) * 100)}% ${t('character.mem_effect_short', 'Mana Cost')}`;
+                  const red = Math.round((1 - (100 / (100 + totalValue))) * 100);
+                  const fatigueBonus = (Math.max(0, totalValue - 5) * 1.5).toFixed(1);
+                  effectLabel = `-${red}% ${t('character.mem_effect_short', 'Mana cost')}`;
+                  detailedTooltip = `-${red}% Skill mana cost & +${fatigueBonus}% fatigue resistance in training`;
                 } else if (key === "spd") {
-                  effectLabel = `+${(totalValue * 0.5).toFixed(1)} ${t('character.spd_effect_short', 'Speed')}`;
+                  effectLabel = `+${(totalValue * 0.5).toFixed(1)}% ${t('character.spd_effect_short', 'Base Gold')}`;
+                  detailedTooltip = `+${(totalValue * 0.5).toFixed(1)}% Gold bonus to all task completions`;
                 } else if (key === "lck") {
-                  effectLabel = `+${totalValue}% ${t('character.lck_effect_short', 'Gold/Drop')}`;
+                  const drop = (totalValue * 0.2).toFixed(1);
+                  effectLabel = `+${totalValue}% Gold • +${drop}% Drop`;
+                  detailedTooltip = `+${totalValue}% Gold multiplier & +${drop}% random item drop chance per completed task`;
                 }
 
                 return (
                   <motion.div
                     key={key}
                     whileHover={{ scale: 1.01 }}
+                    title={detailedTooltip}
                     className="p-2.5 rounded-xl border flex items-center justify-between gap-2.5 relative overflow-hidden"
                     style={{
                       background: "var(--habit-stat-slab-bg, rgba(10,5,15,0.85))",
