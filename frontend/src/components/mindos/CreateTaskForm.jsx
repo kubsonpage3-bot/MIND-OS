@@ -7,6 +7,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
+import { MASTERY_COEFFICIENTS } from "@/lib/cognitiveEngine";
 
 const CATEGORIES = ["STEM", "Languages", "Humanities & Arts", "Health & Fitness", "Rest & Recovery", "Mindfulness", "Social & Communication", "Reading & Writing", "Work & Career", "Other"];
 
@@ -287,6 +288,30 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
               </button>
             ))}
           </div>
+
+          {/* Active Mastery Preset Cognitive Stats Breakdown */}
+          {form.masteryCategory && MASTERY_COEFFICIENTS[form.masteryCategory] && (
+            <div className="flex items-center justify-between p-2 rounded-lg border border-border/40 bg-muted/20 text-[9px] font-mono text-muted-foreground">
+              <span className="font-bold text-foreground flex items-center gap-1">
+                <span>⚡</span>
+                <span className="uppercase">{t("task_form.preset_profile", "Preset Profile")}:</span>
+              </span>
+              <div className="flex gap-2.5">
+                {MASTERY_COEFFICIENTS[form.masteryCategory].gf > 0 && (
+                  <span className="text-blue-400 font-bold">Gf +{MASTERY_COEFFICIENTS[form.masteryCategory].gf.toFixed(3)}</span>
+                )}
+                {MASTERY_COEFFICIENTS[form.masteryCategory].gc > 0 && (
+                  <span className="text-green-400 font-bold">Gc +{MASTERY_COEFFICIENTS[form.masteryCategory].gc.toFixed(3)}</span>
+                )}
+                {MASTERY_COEFFICIENTS[form.masteryCategory].ps > 0 && (
+                  <span className="text-yellow-400 font-bold">Ps +{MASTERY_COEFFICIENTS[form.masteryCategory].ps.toFixed(3)}</span>
+                )}
+                {MASTERY_COEFFICIENTS[form.masteryCategory].vm > 0 && (
+                  <span className="text-purple-400 font-bold">Vm +{MASTERY_COEFFICIENTS[form.masteryCategory].vm.toFixed(3)}</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -342,16 +367,38 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
       </div>
 
       {/* Preview */}
-      <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-[10px] space-y-1">
-        <div className="text-muted-foreground/40 uppercase tracking-wider mb-2">{t("task_form.preview", "Preview")}</div>
-        <div className="flex gap-3 flex-wrap">
-          <span className="text-blue-400">+{form.xpReward} XP</span>
-          <span className="text-yellow-400">+{form.goldReward}G</span>
-          <span className="text-red-400">⚔ {form.bossDamage} DMG</span>
+      <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-[10px] space-y-2">
+        <div className="text-muted-foreground/40 uppercase tracking-wider">{t("task_form.preview", "Preview")}</div>
+        <div className="flex gap-3 flex-wrap items-center">
+          <span className="text-blue-400 font-bold">+{form.xpReward} XP</span>
+          <span className="text-yellow-400 font-bold">+{form.goldReward}G</span>
+          <span className="text-red-400 font-bold">⚔ {form.bossDamage} DMG</span>
           {form.type !== "todo" && form.type !== "button" && (
             <span className="text-red-600">💔 -{form.hpDamageOnMiss} HP {t("task_form.on_miss", "on miss")}</span>
           )}
         </div>
+
+        {/* Estimated Cognitive Gains for Button Tasks */}
+        {form.type === "button" && form.masteryCategory && MASTERY_COEFFICIENTS[form.masteryCategory] && (() => {
+          const coeffs = MASTERY_COEFFICIENTS[form.masteryCategory];
+          const hours = form.defaultHours || 1.0;
+          const focusFactor = (form.defaultFocus || 7) / 7.0;
+          const growthMult = 0.093; // Baseline 100/105
+          const estGf = coeffs.gf * hours * focusFactor * growthMult;
+          const estGc = coeffs.gc * hours * focusFactor * growthMult;
+          const estPs = coeffs.ps * hours * focusFactor * growthMult;
+          const estVm = coeffs.vm * hours * focusFactor * growthMult;
+
+          return (
+            <div className="border-t border-border/30 pt-1.5 flex gap-2.5 flex-wrap items-center text-[9px]">
+              <span className="text-muted-foreground/60 uppercase">{t("task_form.est_gains", "Est. 1-Session Gains")}:</span>
+              {estGf > 0 && <span className="text-blue-400">+{estGf.toFixed(3)} Gf</span>}
+              {estGc > 0 && <span className="text-green-400">+{estGc.toFixed(3)} Gc</span>}
+              {estPs > 0 && <span className="text-yellow-400">+{estPs.toFixed(3)} Ps</span>}
+              {estVm > 0 && <span className="text-purple-400">+{estVm.toFixed(3)} Vm</span>}
+            </div>
+          );
+        })()}
       </div>
 
       <button
