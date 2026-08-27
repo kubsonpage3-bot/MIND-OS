@@ -16,7 +16,7 @@ export default function ResetPanel() {
   const resetMutation = useMutation({
     mutationFn: /** @param {string} type */ (type) => djangoApi.profile.reset(type),
     onSuccess: async (data, variables) => {
-      // Phase 2 Compliance: Invalidate specific queries based on reset type
+      await refreshProfile();
       if (variables === "training") {
         queryClientInstance.invalidateQueries({ queryKey: ["trainingLogs"] });
         queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
@@ -27,9 +27,11 @@ export default function ResetPanel() {
         queryClientInstance.invalidateQueries({ queryKey: ["tasks"] });
         queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
       } else if (variables === "allies") {
+        queryClientInstance.invalidateQueries({ queryKey: ["allies"] });
         queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
         queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
       } else if (variables === "skills") {
+        queryClientInstance.invalidateQueries({ queryKey: ["skills"] });
         queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
         queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
       } else if (variables === "stats") {
@@ -39,6 +41,8 @@ export default function ResetPanel() {
         queryClientInstance.invalidateQueries({ queryKey: ["active_effects"] });
         queryClientInstance.invalidateQueries({ queryKey: ["combat_encounters"] });
         queryClientInstance.invalidateQueries({ queryKey: ["trainingLogs"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["skills"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["allies"] });
       } else if (variables === "nuclear") {
         queryClientInstance.clear();
 
