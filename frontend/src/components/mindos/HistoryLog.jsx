@@ -33,7 +33,7 @@ const TYPE_CONFIG = {
     bg: "rgba(16,185,129,0.10)",
     border: "rgba(16,185,129,0.28)",
     glow: "rgba(16,185,129,0.35)",
-    iconImg: "/images/pixel-icons/daily.jpg",
+    iconImg: "/images/pixel-icons/daily.png",
     emoji: "📅",
     label: "Daily",
   },
@@ -42,7 +42,7 @@ const TYPE_CONFIG = {
     bg: "rgba(139,92,246,0.10)",
     border: "rgba(139,92,246,0.28)",
     glow: "rgba(139,92,246,0.35)",
-    iconImg: "/images/pixel-icons/todo.jpg",
+    iconImg: "/images/pixel-icons/todo.png",
     emoji: "✅",
     label: "To-Do",
   },
@@ -51,7 +51,7 @@ const TYPE_CONFIG = {
     bg: "rgba(245,158,11,0.10)",
     border: "rgba(245,158,11,0.28)",
     glow: "rgba(245,158,11,0.35)",
-    iconImg: "/images/pixel-icons/habit_pos.jpg",
+    iconImg: "/images/pixel-icons/habit_pos.png",
     emoji: "⚡",
     label: "Habit+",
   },
@@ -60,7 +60,7 @@ const TYPE_CONFIG = {
     bg: "rgba(239,68,68,0.10)",
     border: "rgba(239,68,68,0.28)",
     glow: "rgba(239,68,68,0.35)",
-    iconImg: "/images/pixel-icons/habit_neg.jpg",
+    iconImg: "/images/pixel-icons/habit_neg.png",
     emoji: "💔",
     label: "Habit−",
   },
@@ -69,7 +69,7 @@ const TYPE_CONFIG = {
     bg: "rgba(59,130,246,0.10)",
     border: "rgba(59,130,246,0.28)",
     glow: "rgba(59,130,246,0.35)",
-    iconImg: "/images/pixel-icons/study.jpg",
+    iconImg: "/images/pixel-icons/study.png",
     emoji: "📚",
     label: "Study",
   },
@@ -78,7 +78,7 @@ const TYPE_CONFIG = {
     bg: "rgba(244,63,94,0.10)",
     border: "rgba(244,63,94,0.28)",
     glow: "rgba(244,63,94,0.35)",
-    iconImg: "/images/pixel-icons/pomodoro.jpg",
+    iconImg: "/images/pixel-icons/pomodoro.png",
     emoji: "🍅",
     label: "Pomodoro",
   },
@@ -162,11 +162,11 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
 
   const filterTabs = [
     { id: "all",      label: "All",      Icon: Activity,    iconImg: null,                              count: activityItems.length,         color: "#7b61ff" },
-    { id: "study",    label: "Study",    Icon: BookOpen,    iconImg: "/images/pixel-icons/study.jpg",    count: activeStats.study_count,       color: "#3b82f6" },
-    { id: "habit",    label: "Habits",   Icon: Zap,         iconImg: "/images/pixel-icons/habit_pos.jpg",count: activeStats.habits_count,      color: "#f59e0b" },
-    { id: "daily",    label: "Dailies",  Icon: Calendar,    iconImg: "/images/pixel-icons/daily.jpg",    count: activeStats.dailies_count,     color: "#10b981" },
-    { id: "todo",     label: "To-Do",    Icon: CheckSquare, iconImg: "/images/pixel-icons/todo.jpg",     count: activeStats.todos_count,       color: "#8b5cf6" },
-    { id: "pomodoro", label: "Pomodoro", Icon: Timer,       iconImg: "/images/pixel-icons/pomodoro.jpg", count: activeStats.pomodoro_count,    color: "#f43f5e" },
+    { id: "study",    label: "Study",    Icon: BookOpen,    iconImg: "/images/pixel-icons/study.png",    count: activeStats.study_count,       color: "#3b82f6" },
+    { id: "habit",    label: "Habits",   Icon: Zap,         iconImg: "/images/pixel-icons/habit_pos.png",count: activeStats.habits_count,      color: "#f59e0b" },
+    { id: "daily",    label: "Dailies",  Icon: Calendar,    iconImg: "/images/pixel-icons/daily.png",    count: activeStats.dailies_count,     color: "#10b981" },
+    { id: "todo",     label: "To-Do",    Icon: CheckSquare, iconImg: "/images/pixel-icons/todo.png",     count: activeStats.todos_count,       color: "#8b5cf6" },
+    { id: "pomodoro", label: "Pomodoro", Icon: Timer,       iconImg: "/images/pixel-icons/pomodoro.png", count: activeStats.pomodoro_count,    color: "#f43f5e" },
   ];
 
   const periodOptions = [
@@ -293,31 +293,31 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
                 <div className="flex items-center gap-2.5 text-[10px] font-mono">
                   {group.totalHours > 0 && (
                     <span className="flex items-center gap-1 text-blue-400">
-                      <img src="/images/pixel-icons/study.jpg" alt="study" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      <img src="/images/pixel-icons/study.png" alt="study" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
                       {group.totalHours.toFixed(1)}h
                     </span>
                   )}
                   {group.dailiesDone > 0 && (
                     <span className="flex items-center gap-1 text-emerald-400">
-                      <img src="/images/pixel-icons/daily.jpg" alt="daily" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      <img src="/images/pixel-icons/daily.png" alt="daily" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
                       {group.dailiesDone}
                     </span>
                   )}
                   {group.habitsDone > 0 && (
                     <span className="flex items-center gap-1 text-amber-400">
-                      <img src="/images/pixel-icons/habit_pos.jpg" alt="habit" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      <img src="/images/pixel-icons/habit_pos.png" alt="habit" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
                       {group.habitsDone}
                     </span>
                   )}
                   {group.todosDone > 0 && (
                     <span className="flex items-center gap-1 text-violet-400">
-                      <img src="/images/pixel-icons/todo.jpg" alt="todo" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      <img src="/images/pixel-icons/todo.png" alt="todo" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
                       {group.todosDone}
                     </span>
                   )}
                   {group.pomoDone > 0 && (
                     <span className="flex items-center gap-1 text-rose-400">
-                      <img src="/images/pixel-icons/pomodoro.jpg" alt="pomodoro" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
+                      <img src="/images/pixel-icons/pomodoro.png" alt="pomodoro" className="w-3.5 h-3.5 rounded-xs object-cover inline-block" style={{ imageRendering: "pixelated" }} />
                       {group.pomoDone}
                     </span>
                   )}
