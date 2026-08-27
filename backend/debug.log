@@ -3074,3 +3074,5 @@ Traceback (most recent call last):
 django.db.utils.OperationalError: database table is locked: api_userprofile
 ERROR 2026-08-27 11:50:34,870 task_service 19256 16804 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 ERROR 2026-08-27 11:50:38,027 task_service 19256 16804 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+ERROR 2026-08-27 12:16:54,289 task_service 11884 18436 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 12:16:57,489 task_service 11884 18436 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]

@@ -42,44 +42,44 @@
     --bottom-nav-base-height: 64px;
     --bottom-bar-height: calc(var(--bottom-nav-base-height) + var(--sab));
 
-    /* Habitica-style light theme */
-    --background: 240 20% 97%;
-    --foreground: 255 14% 18%;
-    --card: 0 0% 100%;
-    --card-foreground: 255 14% 18%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 255 14% 18%;
-    --primary: 250 100% 68%;
+    /* Refined Light Gray Theme (default light tokens) */
+    --background: 220 20% 93%;
+    --foreground: 222 47% 11%;
+    --card: 216 33% 97%;
+    --card-foreground: 222 47% 11%;
+    --popover: 216 33% 97%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 250 60% 95%;
-    --secondary-foreground: 250 40% 40%;
-    --muted: 250 20% 96%;
-    --muted-foreground: 255 8% 53%;
-    --accent: 250 60% 94%;
-    --accent-foreground: 250 40% 40%;
+    --secondary: 215 20% 90%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 215 20% 90%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 243 75% 94%;
+    --accent-foreground: 243 75% 59%;
     --destructive: 358 92% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 255 14% 90%;
-    --input: 250 20% 96%;
-    --ring: 250 100% 68%;
+    --border: 217 19% 85%;
+    --input: 215 20% 90%;
+    --ring: 243 75% 59%;
     --radius: 0.75rem;
 
-    /* Custom brand tokens */
-    --habit-purple: #7B61FF;
-    --habit-purple-light: #e8e4ff;
-    --habit-purple-light-hover: rgba(123, 97, 255, 0.18);
-    --habit-purple-glow: rgba(123, 97, 255, 0.35);
-    --habit-gold: #ffbe5d;
-    --habit-red: #f74e52;
-    --habit-blue: #50b5e9;
-    --habit-green: #1ca830;
-    --habit-orange: #ff8800;
-    --habit-sidebar: #2b2738;
-    --habit-text: #2b2738;
-    --habit-dim: #878190;
-    --habit-border: #e5e3eb;
-    --habit-bg: #f6f6f9;
-    --habit-panel: #ffffff;
+    /* Custom brand tokens - Light Gray System */
+    --habit-purple: #6366f1;
+    --habit-purple-light: rgba(99, 102, 241, 0.12);
+    --habit-purple-light-hover: rgba(99, 102, 241, 0.20);
+    --habit-purple-glow: rgba(99, 102, 241, 0.28);
+    --habit-gold: #f59e0b;
+    --habit-red: #f43f5e;
+    --habit-blue: #3b82f6;
+    --habit-green: #10b981;
+    --habit-orange: #f97316;
+    --habit-sidebar: #eef1f6;
+    --habit-text: #0f172a;
+    --habit-dim: #64748b;
+    --habit-border: #d2d8e2;
+    --habit-bg: #eaedf2;
+    --habit-panel: #f6f8fb;
 
     /* Sidebar Variables */
     --habit-sidebar-text: rgba(255, 255, 255, 0.6);
@@ -234,38 +234,53 @@
 
 /* ─── THEME DEFINITIONS AND OVERRIDES ─── */
 
-/* Solid Light */
+/* Solid Light (Light Gray) */
 html[data-theme="solid_light"] {
-  --habit-bg: #f6f6f9;
-  --habit-panel: #ffffff;
-  --habit-sidebar: #ffffff;
-  --habit-text: #2b2738;
-  --habit-dim: #878190;
-  --habit-border: #e5e3eb;
-  --habit-purple: #7B61FF;
-  --habit-purple-light: rgba(123, 97, 255, 0.08);
-  --habit-purple-light-hover: rgba(123, 97, 255, 0.15);
-  --habit-purple-glow: rgba(123, 97, 255, 0.25);
+  --habit-bg: #eaedf2;
+  --habit-panel: #f6f8fb;
+  --habit-sidebar: #eef1f6;
+  --habit-text: #0f172a;
+  --habit-dim: #64748b;
+  --habit-border: #d2d8e2;
+  --habit-purple: #6366f1;
+  --habit-purple-light: rgba(99, 102, 241, 0.12);
+  --habit-purple-light-hover: rgba(99, 102, 241, 0.20);
+  --habit-purple-glow: rgba(99, 102, 241, 0.28);
   
-  --habit-sidebar-text: #4a4a5a;
+  --habit-sidebar-text: #1e293b;
   --habit-sidebar-active-text: #ffffff;
-  --habit-sidebar-dim: #878190;
-  --habit-sidebar-border: #f0eef8;
-  --habit-sidebar-hover: rgba(123, 97, 255, 0.06);
-  --habit-sidebar-sub-bg: #fcfbfe;
-  --habit-sidebar-sub-text: #5a5a6a;
+  --habit-sidebar-dim: #64748b;
+  --habit-sidebar-border: #d2d8e2;
+  --habit-sidebar-hover: rgba(99, 102, 241, 0.08);
+  --habit-sidebar-sub-bg: #e2e7ef;
+  --habit-sidebar-sub-text: #334155;
   
-  --habit-bottom-bg: rgba(255, 255, 255, 0.96);
-  --habit-bottom-border: #f0eef8;
-  --habit-bottom-sub-bg: rgba(255, 255, 255, 0.94);
-  --habit-bottom-item-bg: rgba(123, 97, 255, 0.05);
-  --habit-bottom-text: #5a5a6a;
+  --habit-bottom-bg: rgba(234, 237, 242, 0.95);
+  --habit-bottom-border: #d2d8e2;
+  --habit-bottom-sub-bg: rgba(238, 241, 246, 0.95);
+  --habit-bottom-item-bg: rgba(15, 23, 42, 0.06);
+  --habit-bottom-text: #475569;
   --habit-bottom-active-text: #ffffff;
-  --habit-bottom-inactive-text: #878190;
-  --habit-bottom-inactive-text-dim: #a09eb0;
+  --habit-bottom-inactive-text: #64748b;
+  --habit-bottom-inactive-text-dim: #94a3b8;
 
-  --primary: 250 100% 68%;
-  --ring: 250 100% 68%;
+  --background: 220 20% 93%;
+  --foreground: 222 47% 11%;
+  --card: 216 33% 97%;
+  --card-foreground: 222 47% 11%;
+  --popover: 216 33% 97%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 20% 90%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 215 20% 90%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 243 75% 94%;
+  --accent-foreground: 243 75% 59%;
+  --border: 217 19% 85%;
+  --input: 215 20% 90%;
+  --ring: 243 75% 59%;
 }
 html[data-theme="solid_light"] body {
   background: var(--habit-bg) !important;
@@ -621,14 +636,14 @@ html[data-theme="cyberpunk"] .task-card {
   background: var(--habit-panel);
   border-radius: 12px;
   border: 1px solid var(--habit-border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
   padding: 16px;
   transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
 }
 .game-card:hover,
 .habit-card:hover {
   border-color: var(--habit-purple);
-  box-shadow: 0 4px 16px rgba(123,97,255,0.14);
+  box-shadow: 0 4px 16px var(--habit-purple-glow);
 }
 
 /* ─── BUTTONS ─── */

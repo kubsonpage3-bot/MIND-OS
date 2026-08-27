@@ -53,8 +53,8 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
       <div
         className="relative flex w-full rounded-2xl p-0.5"
         style={{
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--habit-bottom-item-bg, rgba(255,255,255,0.05))",
+          border: "1px solid var(--habit-bottom-border, rgba(255,255,255,0.08))",
         }}
       >
         {/* Sliding active indicator */}
@@ -88,12 +88,12 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
             >
               <Icon
                 className="w-4 h-4 transition-all duration-200"
-                style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
+                style={{ color: isActive ? "#ffffff" : "var(--habit-bottom-inactive-text, rgba(255,255,255,0.45))" }}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
               <span
                 className="font-mono text-[9px] uppercase tracking-wider leading-none transition-all duration-200"
-                style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
+                style={{ color: isActive ? "#ffffff" : "var(--habit-bottom-inactive-text, rgba(255,255,255,0.45))" }}
               >
                 {t(`nav.${item.id}`)}
               </span>

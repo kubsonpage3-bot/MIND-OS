@@ -12,16 +12,20 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
         md:hidden
         relative w-full
         ${sticky ? 'sticky top-0 z-30' : ''}
-        bg-black/40 backdrop-blur-md border-b border-white/10
+        backdrop-blur-md
         px-3 py-2
       `}
+      style={{
+        background: "var(--habit-panel)",
+        borderBottom: "1px solid var(--habit-border)",
+      }}
     >
-      {/* Frosted-glass segmented container — same style as PomodoroPanel */}
+      {/* Segmented container */}
       <div
         className="relative flex w-full rounded-xl p-0.5"
         style={{
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--habit-bg)",
+          border: "1px solid var(--habit-border)",
         }}
       >
         {/* Sliding active indicator */}
@@ -31,8 +35,8 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
             style={{
               width: `calc(${100 / tabs.length}% - 4px)`,
               left: `calc(${activeIndex * (100 / tabs.length)}% + 2px)`,
-              background: "#a855f7",
-              boxShadow: "0 0 12px rgba(168,85,247,0.4), 0 0 4px rgba(168,85,247,0.3)",
+              background: "var(--habit-purple)",
+              boxShadow: "0 0 12px var(--habit-purple-glow), 0 0 4px var(--habit-purple-glow)",
             }}
             layout
             transition={{ type: "spring", stiffness: 400, damping: 35 }}
@@ -53,12 +57,12 @@ export default function PillTabBar({ tabs, activeTab, onChange, sticky = false }
               {Icon && (
                 <Icon
                   className="w-3.5 h-3.5 transition-all duration-200"
-                  style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
+                  style={{ color: isActive ? "#ffffff" : "var(--habit-dim)" }}
                 />
               )}
               <span
                 className="font-mono text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-all duration-200 flex items-center gap-0.5"
-                style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.35)" }}
+                style={{ color: isActive ? "#ffffff" : "var(--habit-dim)" }}
               >
                 {isLocked && "🔒"}
                 {String(t(`sidebar.sections.${tab.id}`, tab.label || tab.id))}

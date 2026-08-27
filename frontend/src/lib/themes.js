@@ -2,15 +2,15 @@
 // Theme configurations
 export const THEMES = {
   solid_light: {
-    label: "☀️ Light",
+    label: "☀️ Light Gray",
     darkMode: false,
-    preview: ["#f6f6f9", "#ffffff", "#e5e3eb", "#7B61FF", "#9461f5"],
+    preview: ["#eaedf2", "#f6f8fb", "#d2d8e2", "#6366f1", "#7B61FF"],
     wallpaper: null,
-    description: "Clean solid white",
+    description: "Soft matte light gray",
     hpColor: "#f74e52",
-    mpColor: "#50b5e9",
-    xpColor: "#7B61FF",
-    bgOverlay: "#f6f6f9",
+    mpColor: "#3b82f6",
+    xpColor: "#6366f1",
+    bgOverlay: "#eaedf2",
   },
   solid_dark: {
     label: "🌙 Dark",

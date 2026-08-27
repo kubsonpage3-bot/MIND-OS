@@ -101,7 +101,7 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
           ? 'opacity-40 cursor-default'
           : task.is_completed
           ? 'opacity-50 cursor-pointer'
-          : 'task-card bg-white dark:bg-gray-900 cursor-pointer'
+          : 'task-card bg-[var(--habit-panel)] cursor-pointer'
       }`}
       style={{
         border: justCompleted ? `1px solid ${accentColor}99` : '1px solid var(--habit-border)',
