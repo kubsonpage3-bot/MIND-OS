@@ -42,6 +42,10 @@ export default function AppearancePanel() {
           class: profile.character_class ? profile.character_class.toLowerCase() : "wanderer",
           rank: currentRankId,
           theme: value,
+          gold: profile.gold || 0,
+          sp: profile.skill_points || profile.sp || 0,
+          streak: profile.daily_streak || profile.streak || 0,
+          level: profile.level || 1,
           avatar_res_name: profile.character_class ? `avatar_${profile.character_class.toLowerCase()}` : "avatar_default"
         });
       }
