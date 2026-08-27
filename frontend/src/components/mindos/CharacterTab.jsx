@@ -485,9 +485,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
       <div
         className="flex items-center justify-between rounded-2xl relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%)",
-          border: "1.5px solid rgba(147,51,234,0.25)",
-          boxShadow: "0 4px 18px rgba(0,0,0,0.5)",
+          background: "var(--habit-card-gradient, linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%))",
+          border: "1.5px solid var(--habit-border)",
+          boxShadow: "var(--habit-card-shadow, 0 4px 18px rgba(0,0,0,0.5))",
           padding: "10px 16px",
         }}
       >
@@ -495,7 +495,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           {onBack && (
             <button
               onClick={onBack}
-              className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-white/10"
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
               style={{ color: classColor }}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -505,7 +505,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             {chosenClass ? String(t(`rpgData.classes.${chosenClass.id}.name`, chosenClass.name)) : "Wanderer"}
           </span>
           {profile?.prestige_count > 0 && (
-            <span className="font-pixel text-[9px] bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+            <span className="font-pixel text-[9px] bg-amber-500/15 text-amber-500 border border-amber-500/40 px-2 py-0.5 rounded shadow-[0_0_8px_rgba(245,158,11,0.2)]">
               ★ ×{profile.prestige_count} PRESTIGE
             </span>
           )}
@@ -514,13 +514,13 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           <button
             onClick={handleShare}
             disabled={isSharing}
-            className="flex items-center justify-center w-8 h-8 rounded-xl transition-all bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] hover:border-amber-500/40 disabled:opacity-50"
+            className="flex items-center justify-center w-8 h-8 rounded-xl transition-all bg-black/5 dark:bg-white/[0.04] border border-[var(--habit-border)] hover:bg-black/10 dark:hover:bg-white/[0.08] hover:border-amber-500/40 disabled:opacity-50"
             style={{ color: "#fbbf24" }}
             title="Share Progress"
           >
             <Share2 className="w-4 h-4" />
           </button>
-          <span className="font-pixel font-black text-sm flex items-center gap-1" style={{ color: "#fbbf24", textShadow: "0 0 10px rgba(251,191,36,0.3)" }}>
+          <span className="font-pixel font-black text-sm flex items-center gap-1" style={{ color: "#f59e0b", textShadow: "0 0 10px rgba(245,158,11,0.3)" }}>
             <span>🪙</span>
             <AnimatedNumber value={normalizeGold(gold)} formatter={(v) => Math.round(v).toLocaleString()} />G
           </span>
@@ -538,9 +538,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           <div
             className="rounded-2xl p-5 flex flex-col items-center gap-4 relative overflow-hidden"
             style={{
-              background: `radial-gradient(ellipse at 50% 35%, ${currentRank.color}25 0%, rgba(20,10,28,0.95) 60%, rgba(8,5,12,0.98) 100%)`,
-              border: `1.5px solid ${currentRank.color}44`,
-              boxShadow: `0 8px 32px rgba(0,0,0,0.8), inset 0 0 25px rgba(0,0,0,0.7), 0 0 20px ${currentRank.color}15`,
+              background: "var(--habit-sanctuary-bg, radial-gradient(ellipse at 50% 35%, rgba(20,10,28,0.95) 60%, rgba(8,5,12,0.98) 100%))",
+              border: "1.5px solid var(--habit-border)",
+              boxShadow: "var(--habit-sanctuary-shadow, 0 8px 32px rgba(0,0,0,0.8))",
             }}
           >
             {/* Gothic Corner Brackets */}
@@ -550,19 +550,19 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2" style={{ borderColor: `${currentRank.color}80` }} />
 
             {/* Sanctuary Protocol Header */}
-            <div className="w-full flex items-center justify-between border-b border-white/[0.08] pb-2.5 text-[10px] font-pixel">
+            <div className="w-full flex items-center justify-between border-b border-[var(--habit-border)] pb-2.5 text-[10px] font-pixel">
               <div className="flex items-center gap-2" style={{ color: currentRank.color }}>
                 <span className="animate-pulse">✦</span>
                 <span className="tracking-widest uppercase">{t('character.sanctuary', 'Hero Sanctuary')}</span>
               </div>
               <div className="flex items-center gap-2">
                 {profile?.level && (
-                  <span className="px-2 py-0.5 rounded bg-black/60 border border-white/10 text-amber-300 font-bold text-[9px] font-pixel shadow-inner">
+                  <span className="px-2 py-0.5 rounded bg-[var(--habit-card-sub)] border border-[var(--habit-border)] text-amber-500 font-bold text-[9px] font-pixel shadow-xs">
                     LV.{profile.level}
                   </span>
                 )}
                 {profile?.prestige_count > 0 && (
-                  <span className="px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/40 text-amber-300 font-bold text-[9px] font-pixel">
+                  <span className="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-500 font-bold text-[9px] font-pixel">
                     ★ {profile.prestige_count} PRESTIGE
                   </span>
                 )}
@@ -601,8 +601,8 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                 className="font-pixel text-xs font-bold px-3.5 py-1.5 rounded-xl border flex items-center gap-2 shadow-lg"
                 style={{
                   color: currentRank.color,
-                  background: 'rgba(10,5,15,0.9)',
-                  borderColor: `${currentRank.color}60`,
+                  background: 'var(--habit-panel)',
+                  borderColor: 'var(--habit-border)',
                   boxShadow: `0 0 16px ${currentRank.color}30, inset 0 0 8px ${currentRank.color}15`,
                 }}
               >
@@ -625,17 +625,17 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           <div
             className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, rgba(20,12,30,0.95) 0%, rgba(10,6,16,0.98) 100%)",
-              border: "1.5px solid rgba(147,51,234,0.25)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+              background: "var(--habit-card-gradient, linear-gradient(135deg, rgba(20,12,30,0.95) 0%, rgba(10,6,16,0.98) 100%))",
+              border: "1.5px solid var(--habit-border)",
+              boxShadow: "var(--habit-card-shadow, 0 4px 20px rgba(0,0,0,0.6))",
             }}
           >
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
-              <span className="font-pixel text-[11px] text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-[var(--habit-border)] pb-2.5">
+              <span className="font-pixel text-[11px] text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
                 <span>⚡</span> {t('character.character_stats', 'CHARACTER ATTRIBUTES')}
               </span>
               {(profile?.unspent_stat_points || 0) > 0 ? (
-                <span className="font-pixel text-[10px] px-2.5 py-0.5 rounded-md bg-amber-950/70 border border-amber-500/50 text-amber-300 font-bold flex items-center gap-1 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.4)]">
+                <span className="font-pixel text-[10px] px-2.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/50 text-amber-500 font-bold flex items-center gap-1 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.4)]">
                   <span>✨</span> {profile?.unspent_stat_points} {t('character.pts_label', 'POINTS')}
                 </span>
               ) : (
@@ -681,15 +681,15 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                     whileHover={{ scale: 1.01 }}
                     className="p-2.5 rounded-xl border flex items-center justify-between gap-2.5 relative overflow-hidden"
                     style={{
-                      background: "rgba(10,5,15,0.85)",
-                      borderColor: canUpgrade ? `${cfg.color}50` : "rgba(255,255,255,0.06)",
+                      background: "var(--habit-stat-slab-bg, rgba(10,5,15,0.85))",
+                      borderColor: canUpgrade ? `${cfg.color}50` : "var(--habit-border)",
                       boxShadow: canUpgrade ? `0 0 10px ${cfg.color}20` : "none",
                     }}
                   >
                     {/* Left: Icon & Names */}
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border relative bg-black/60 flex items-center justify-center"
+                        className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border relative bg-[var(--habit-panel)] flex items-center justify-center"
                         style={{
                           borderColor: `${cfg.color}50`,
                           boxShadow: `0 0 10px ${cfg.color}30`,
@@ -710,7 +710,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                           <span className="font-pixel font-bold text-xs" style={{ color: cfg.color }}>
                             {cfg.label}
                           </span>
-                          <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-black/60 text-slate-300/80 border border-white/5 truncate">
+                          <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-[var(--habit-panel)] text-[var(--habit-dim)] border border-[var(--habit-border)] truncate">
                             {effectLabel}
                           </span>
                         </div>
@@ -762,16 +762,16 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
           <div
             className="rounded-2xl p-4 space-y-3 relative overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, rgba(20,10,30,0.95) 0%, rgba(10,5,15,0.98) 100%)",
-              border: "1.5px solid rgba(147,51,234,0.25)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+              background: "var(--habit-card-gradient, linear-gradient(135deg, rgba(20,10,30,0.95) 0%, rgba(10,5,15,0.98) 100%))",
+              border: "1.5px solid var(--habit-border)",
+              boxShadow: "var(--habit-card-shadow, 0 4px 20px rgba(0,0,0,0.6))",
             }}
           >
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
-              <span className="font-pixel text-[11px] text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-[var(--habit-border)] pb-2.5">
+              <span className="font-pixel text-[11px] text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
                 <span>🛡️</span> {t('character.equipment', 'ARMORY OF RELICS')}
               </span>
-              <span className="text-[9px] font-pixel text-muted-foreground/60 px-2 py-0.5 rounded bg-black/60 border border-white/5">
+              <span className="text-[9px] font-pixel text-[var(--habit-dim)] px-2 py-0.5 rounded bg-[var(--habit-card-sub)] border border-[var(--habit-border)]">
                 {Object.values(equipped).filter(Boolean).length} / 8 EQUIPPED
               </span>
             </div>
@@ -803,10 +803,10 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                     className="aspect-square rounded-xl border flex flex-col items-center justify-center relative cursor-pointer transition-all p-1.5 overflow-hidden group"
                     style={{
                       background: eq 
-                        ? `radial-gradient(circle at 50% 30%, ${tierColor}25 0%, rgba(10,5,15,0.95) 100%)` 
-                        : "rgba(10,5,15,0.7)",
-                      borderColor: eq ? `${tierColor}80` : "rgba(255,255,255,0.06)",
-                      boxShadow: eq ? `0 0 14px ${tierColor}33, inset 0 0 10px ${tierColor}15` : "inset 0 1px 4px rgba(0,0,0,0.5)",
+                        ? `radial-gradient(circle at 50% 30%, ${tierColor}25 0%, var(--habit-panel) 100%)` 
+                        : "var(--habit-slot-empty-bg, rgba(10,5,15,0.7))",
+                      borderColor: eq ? `${tierColor}80` : "var(--habit-border)",
+                      boxShadow: eq ? `0 0 14px ${tierColor}33, inset 0 0 10px ${tierColor}15` : "inset 0 1px 4px rgba(0,0,0,0.15)",
                     }}
                   >
                     {eq ? (
@@ -825,7 +825,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                         <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2" style={{ borderColor: tierColor }} />
 
                         {/* Item Icon / Graphic with glow */}
-                        <div className="w-10 h-10 rounded-lg border overflow-hidden flex items-center justify-center bg-black/70 mb-1 shrink-0 relative"
+                        <div className="w-10 h-10 rounded-lg border overflow-hidden flex items-center justify-center bg-[var(--habit-panel)] mb-1 shrink-0 relative"
                           style={{ borderColor: `${tierColor}60`, imageRendering: 'pixelated', boxShadow: `0 0 10px ${tierColor}40` }}>
                           {eq.icon_url ? (
                             <img src={getMediaUrl(eq.icon_url)} alt={itemName} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />

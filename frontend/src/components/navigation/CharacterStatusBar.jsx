@@ -99,10 +99,10 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
     <div
       className="sticky top-0 z-40 safe-top backdrop-blur-md transition-colors"
       style={{
-        background: "rgba(18, 14, 30, 0.88)",
-        borderTop: `2px solid ${theme?.xpColor || "#7B61FF"}`,
-        borderBottom: "1px solid rgba(139, 92, 246, 0.2)",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.6)",
+        background: "var(--habit-status-bg, rgba(18, 14, 30, 0.88))",
+        borderTop: `2px solid ${theme?.xpColor || "var(--habit-purple)"}`,
+        borderBottom: "1px solid var(--habit-status-border, rgba(139, 92, 246, 0.2))",
+        boxShadow: "var(--habit-status-shadow, 0 4px 20px rgba(0, 0, 0, 0.6))",
         paddingTop: "var(--sat)"
       }}
     >
@@ -110,7 +110,7 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
         {/* Left: Mobile hamburger menu trigger */}
         <button
           onClick={onToggleSidebar}
-          className="md:hidden flex items-center justify-center w-11 hover:bg-white/10 text-white shrink-0 border-r border-purple-500/20"
+          className="md:hidden flex items-center justify-center w-11 hover:bg-black/5 dark:hover:bg-white/10 text-[var(--habit-text)] shrink-0 border-r border-[var(--habit-border)]"
         >
           <Menu size={18} />
         </button>
@@ -134,15 +134,15 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
           />
           <PixelBar
             pct={xpPct}
-            fillColor={theme?.xpColor || "#7B61FF"}
-            glowColor={(theme?.xpColor || "#7B61FF") + "88"}
+            fillColor={theme?.xpColor || "var(--habit-purple)"}
+            glowColor={(theme?.xpColor || "var(--habit-purple)") + "88"}
             label="XP"
             value={`${Math.round(rankXP || 0)}/${Math.round(nextRankMin)}`}
           />
         </div>
 
         {/* Right section: Gold/Rank/Streak + Portrait */}
-        <div className="shrink-0 flex items-stretch border-l border-purple-500/20 bg-black/20">
+        <div className="shrink-0 flex items-stretch border-l border-[var(--habit-border)] bg-black/5 dark:bg-black/20">
           {/* Info block: Rank, Gold, Streak */}
           <div className="flex flex-col items-end justify-center gap-0.5 pr-2 pl-1.5 py-1.5 sm:gap-1 sm:pr-3 sm:pl-2 sm:py-2">
             <div

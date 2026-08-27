@@ -444,11 +444,13 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
           : { duration: 0.3 }
         }
         style={{
-          background: "radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.08) 0%, rgba(6,12,20,0.98) 75%)"
+          background: "var(--habit-duel-matrix-bg, radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.08) 0%, rgba(6,12,20,0.98) 75%))",
+          border: "1.5px solid var(--habit-border)",
+          boxShadow: "var(--habit-card-shadow, 0 4px 20px rgba(0,0,0,0.6))",
         }}
       >
-        <div className="flex items-center justify-between pb-2 border-b border-cyan-500/20 text-[10px] font-pixel">
-          <div className="flex items-center gap-2 text-cyan-400">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--habit-border)] text-[10px] font-pixel">
+          <div className="flex items-center gap-2 text-cyan-500 dark:text-cyan-400">
             <span className="animate-pulse">⚔️</span>
             <span>SHADOW_PROTOCOL // DUEL_MATRIX</span>
           </div>
@@ -477,28 +479,28 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
               overtook={rivalAhead && pctDiff > 0.05}
               playerOvertook={cardFlash === "green"}
             />
-            <div className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded bg-black/80 border border-cyan-500/60 text-[8px] font-pixel text-cyan-300">
+            <div className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded bg-[var(--habit-card-sub)] border border-cyan-500/60 text-[8px] font-pixel text-cyan-600 dark:text-cyan-300">
               AI_RIVAL
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between flex-wrap gap-1">
-              <div className="font-mono font-black text-lg tracking-widest flex items-center gap-1.5" style={{ color: "#00e5ff", fontVariantLigatures: "none" }}>
-                {RIVAL_NAME}<span className="text-xs text-cyan-400/50">_Ω</span>
+              <div className="font-mono font-black text-lg tracking-widest flex items-center gap-1.5" style={{ color: "#00b4d8", fontVariantLigatures: "none" }}>
+                {RIVAL_NAME}<span className="text-xs text-cyan-600/50 dark:text-cyan-400/50">_Ω</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="font-pixel font-bold text-[10px] px-2 py-0.5 rounded shadow"
                   style={{ color: rivalRank.color, background: `${rivalRank.color}25`, border: `1px solid ${rivalRank.color}60` }}>
                   {rivalRank.id}
                 </span>
-                <span className="font-pixel text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-300">
+                <span className="font-pixel text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-300">
                   🔥 {johanStreak}d
                 </span>
               </div>
             </div>
 
-            <div className="mt-2 p-2 rounded-lg bg-black/50 border border-cyan-500/20 relative overflow-hidden font-mono text-xs">
-              <div className="text-[8px] font-pixel text-cyan-500/50 mb-0.5">TELEMETRY_LOG //</div>
+            <div className="mt-2 p-2 rounded-lg bg-[var(--habit-card-sub)] border border-[var(--habit-border)] relative overflow-hidden font-mono text-xs">
+              <div className="text-[8px] font-pixel text-cyan-600/60 dark:text-cyan-500/50 mb-0.5">TELEMETRY_LOG //</div>
               <div className="italic tracking-wide" style={{ color: msgObj.color, minHeight: 18 }}>
                 {isTyping ? <TypingDots /> : `"${msgObj.text}"`}
                 <span className="inline-block w-1.5 h-3 bg-cyan-400 ml-1 animate-pulse" />
@@ -519,10 +521,10 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-black/40 border border-border/50 space-y-2.5">
+        <div className="p-3 rounded-xl bg-[var(--habit-panel)] border border-[var(--habit-border)] space-y-2.5">
           <div className="flex items-center justify-between text-[10px] font-pixel">
-            <span className="text-cyan-400">{RIVAL_NAME}</span>
-            <span className="px-2 py-0.5 rounded bg-black/80 border border-primary/40 text-primary font-bold text-[9px]">
+            <span className="text-cyan-600 dark:text-cyan-400">{RIVAL_NAME}</span>
+            <span className="px-2 py-0.5 rounded bg-[var(--habit-card-sub)] border border-[var(--habit-border)] text-primary font-bold text-[9px]">
               VS
             </span>
             <span style={{ color: playerRank.color }}>YOU</span>
@@ -530,11 +532,11 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
 
           <div className="grid grid-cols-2 gap-2 items-center">
             <div className="space-y-1">
-              <div className="flex justify-between text-[9px] font-mono text-cyan-400/80">
+              <div className="flex justify-between text-[9px] font-mono text-cyan-600/80 dark:text-cyan-400/80">
                 <span>{johanXP.toFixed(1)} XP</span>
                 <span className="text-[8px] opacity-60">{rivalRank.id}</span>
               </div>
-              <div className="h-2.5 rounded bg-black/60 border border-cyan-500/40 p-[1px] overflow-hidden">
+              <div className="h-2.5 rounded bg-[var(--habit-card-sub)] border border-cyan-500/40 p-[1px] overflow-hidden">
                 <motion.div
                   className="h-full rounded-sm"
                   animate={{ width: `${Math.min((johanXP / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}
@@ -552,7 +554,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
                 <span className="text-[8px] opacity-60">{playerRank.id}</span>
                 <span>{(playerRankXP || 0).toFixed(1)} XP</span>
               </div>
-              <div className="h-2.5 rounded bg-black/60 border p-[1px] overflow-hidden" style={{ borderColor: `${playerRank.color}60` }}>
+              <div className="h-2.5 rounded bg-[var(--habit-card-sub)] border p-[1px] overflow-hidden" style={{ borderColor: `${playerRank.color}60` }}>
                 <motion.div
                   className="h-full rounded-sm"
                   animate={{ width: `${Math.min(((playerRankXP || 0) / Math.max(johanXP, playerRankXP, 1)) * 100, 100)}%` }}

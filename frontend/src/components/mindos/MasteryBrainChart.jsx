@@ -414,13 +414,13 @@ export default function MasteryBrainChart({
                   width="92"
                   height="28"
                   rx="8"
-                  fill="#080410"
+                  fill="var(--habit-brain-chip-bg, #080410)"
                   fillOpacity="0.92"
                   stroke={activeColor}
                   strokeWidth={isHovered ? "1.8" : "1.2"}
                   strokeOpacity={isHovered ? "1.0" : "0.75"}
                   style={{
-                    filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.9)) ${isHovered ? `drop-shadow(0 0 8px ${activeColor}80)` : ""}`
+                    filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.3)) ${isHovered ? `drop-shadow(0 0 8px ${activeColor}80)` : ""}`
                   }}
                 />
 
@@ -433,7 +433,6 @@ export default function MasteryBrainChart({
                   fontFamily="'PixeloidSans', monospace"
                   fontWeight="bold"
                   dy="-3"
-                  className="drop-shadow-[0_1px_4px_rgba(0,0,0,1)]"
                 >
                   {lobe.icon} {cat.label}
                 </text>
@@ -443,12 +442,11 @@ export default function MasteryBrainChart({
                   y="8"
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fill="#ffffff"
+                  fill="var(--habit-brain-chip-text, #ffffff)"
                   fontSize="9"
                   fontFamily="monospace"
                   fontWeight="bold"
                   opacity={pct > 0 || isHovered ? 1 : 0.85}
-                  className="drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
                 >
                   {pct.toFixed(1)}%
                 </text>

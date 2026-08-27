@@ -384,9 +384,9 @@ function PartyAchievementBadges({ achievements }) {
             title={`${meta.label} — ${new Date(a.unlocked_at).toLocaleDateString()}`}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-pixel cursor-help border"
             style={{
-              background: 'linear-gradient(135deg, rgba(30,15,40,0.8) 0%, rgba(10,5,15,0.95) 100%)',
-              borderColor: 'rgba(234,179,8,0.3)',
-              color: '#fde047',
+              background: 'var(--habit-card-sub, rgba(10,5,15,0.95))',
+              borderColor: 'rgba(234,179,8,0.4)',
+              color: '#d97706',
               boxShadow: '0 0 8px rgba(234,179,8,0.15)',
             }}
           >
@@ -523,9 +523,9 @@ function PartySettingsModal({ party, onClose }) {
         exit={{ scale: 0.95, opacity: 0 }}
         className="w-full max-w-sm rounded-2xl p-5 space-y-4 relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, rgba(20,12,28,0.98) 0%, rgba(8,5,12,0.99) 100%)',
-          border: '1.5px solid rgba(147,51,234,0.4)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
+          background: 'var(--habit-card-gradient, linear-gradient(135deg, rgba(20,12,28,0.98) 0%, rgba(8,5,12,0.99) 100%))',
+          border: '1.5px solid var(--habit-border)',
+          boxShadow: 'var(--habit-card-shadow, 0 8px 32px rgba(0,0,0,0.8))',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -603,9 +603,9 @@ function InviteCodeDisplay({ code }) {
     <div
       className="p-3.5 rounded-xl flex items-center justify-between gap-3 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%)',
-        border: '1.5px solid rgba(147,51,234,0.3)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+        background: 'var(--habit-card-gradient, linear-gradient(135deg, rgba(20,10,28,0.95) 0%, rgba(10,5,15,0.98) 100%))',
+        border: '1.5px solid var(--habit-border)',
+        boxShadow: 'var(--habit-card-shadow, 0 4px 16px rgba(0,0,0,0.5))',
       }}
     >
       <div>
@@ -668,9 +668,9 @@ function NoPartyView({ onCreated, onJoined }) {
   });
 
   const inputStyle = {
-    background: 'rgba(10,5,15,0.95)',
-    border: '1.5px solid rgba(147,51,234,0.3)',
-    color: '#f3e8ff',
+    background: 'var(--habit-card-sub, rgba(10,5,15,0.95))',
+    border: '1.5px solid var(--habit-border)',
+    color: 'var(--habit-text, #f3e8ff)',
     fontFamily: "'Nunito'",
     fontSize: 13,
     borderRadius: 10,
@@ -724,9 +724,9 @@ function NoPartyView({ onCreated, onJoined }) {
       <div
         className="p-5 rounded-2xl space-y-3 relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, rgba(20,10,32,0.95) 0%, rgba(8,5,18,0.98) 100%)',
-          border: '1.5px solid rgba(168,85,247,0.35)',
-          boxShadow: '0 4px 20px rgba(168,85,247,0.15)',
+          background: 'var(--habit-card-gradient, linear-gradient(135deg, rgba(20,10,32,0.95) 0%, rgba(8,5,18,0.98) 100%))',
+          border: '1.5px solid var(--habit-border)',
+          boxShadow: 'var(--habit-card-shadow, 0 4px 20px rgba(168,85,247,0.15))',
         }}
       >
         <div className="flex items-center gap-2 border-b border-purple-500/20 pb-2">
