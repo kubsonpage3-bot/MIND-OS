@@ -49,9 +49,16 @@ const CATEGORY_COLORS = {
 
 function getDayStartHour() {
   try {
+    const gs = JSON.parse(localStorage.getItem('mindos_gameplay_settings') || '{}');
+    if (gs.dayStart) {
+      const parts = gs.dayStart.split(':');
+      return parseInt(parts[0], 10) || 0;
+    }
     const s = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
     return s.dayStartHour || 0;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDaily }) {

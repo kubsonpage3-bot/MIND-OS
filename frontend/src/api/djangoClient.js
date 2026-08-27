@@ -580,4 +580,24 @@ export const djangoApi = {
     generateCode: () => djangoFetch('extension/generate-code/', { method: 'POST' }),
     revoke: () => djangoFetch('extension/revoke/', { method: 'DELETE' }),
   },
+
+  notifications: {
+    subscribe: (data) =>
+      djangoFetch('/notifications/subscribe/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    unsubscribe: (data) =>
+      djangoFetch('/notifications/unsubscribe/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  },
+
+  // Generic HTTP helpers for backward compatibility
+  get: (endpoint) => djangoFetch(endpoint),
+  post: (endpoint, data = {}) => djangoFetch(endpoint, { method: 'POST', body: JSON.stringify(data) }),
+  patch: (endpoint, data = {}) => djangoFetch(endpoint, { method: 'PATCH', body: JSON.stringify(data) }),
+  put: (endpoint, data = {}) => djangoFetch(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (endpoint) => djangoFetch(endpoint, { method: 'DELETE' }),
 };

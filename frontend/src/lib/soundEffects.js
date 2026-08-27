@@ -9,7 +9,21 @@ function getCtx() {
   return audioContext;
 }
 
+function getSoundConfig() {
+  try {
+    const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
+    const enabled = settings.soundEnabled !== false;
+    const volumeMultiplier = Math.max(0, Math.min(1, (settings.soundVolume ?? 50) / 100));
+    return { enabled, volumeMultiplier: volumeMultiplier * 2 }; // 50% slider is 1.0x baseline
+  } catch {
+    return { enabled: true, volumeMultiplier: 1.0 };
+  }
+}
+
 function playTone(frequency, duration, type = "sine", volume = 0.1, startOffset = 0) {
+  const config = getSoundConfig();
+  if (!config.enabled || config.volumeMultiplier <= 0) return;
+
   const ctx = getCtx();
   if (!ctx) return;
 
@@ -22,8 +36,9 @@ function playTone(frequency, duration, type = "sine", volume = 0.1, startOffset 
   oscillator.frequency.value = frequency;
   oscillator.type = type;
 
+  const effectiveVolume = volume * config.volumeMultiplier;
   const start = ctx.currentTime + startOffset;
-  gainNode.gain.setValueAtTime(volume, start);
+  gainNode.gain.setValueAtTime(effectiveVolume, start);
   gainNode.gain.exponentialRampToValueAtTime(0.001, start + duration);
 
   oscillator.start(start);
@@ -31,6 +46,9 @@ function playTone(frequency, duration, type = "sine", volume = 0.1, startOffset 
 }
 
 function playSweep(fromFreq, toFreq, duration, type = "sine", volume = 0.1, startOffset = 0) {
+  const config = getSoundConfig();
+  if (!config.enabled || config.volumeMultiplier <= 0) return;
+
   const ctx = getCtx();
   if (!ctx) return;
 
@@ -41,11 +59,12 @@ function playSweep(fromFreq, toFreq, duration, type = "sine", volume = 0.1, star
   gainNode.connect(ctx.destination);
 
   oscillator.type = type;
+  const effectiveVolume = volume * config.volumeMultiplier;
   const start = ctx.currentTime + startOffset;
   oscillator.frequency.setValueAtTime(fromFreq, start);
   oscillator.frequency.exponentialRampToValueAtTime(toFreq, start + duration);
 
-  gainNode.gain.setValueAtTime(volume, start);
+  gainNode.gain.setValueAtTime(effectiveVolume, start);
   gainNode.gain.exponentialRampToValueAtTime(0.001, start + duration);
 
   oscillator.start(start);
@@ -53,6 +72,9 @@ function playSweep(fromFreq, toFreq, duration, type = "sine", volume = 0.1, star
 }
 
 function playNoise(duration, volume = 0.05, startOffset = 0) {
+  const config = getSoundConfig();
+  if (!config.enabled || config.volumeMultiplier <= 0) return;
+
   const ctx = getCtx();
   if (!ctx) return;
 
@@ -68,8 +90,9 @@ function playNoise(duration, volume = 0.05, startOffset = 0) {
   noise.buffer = buffer;
 
   const gainNode = ctx.createGain();
+  const effectiveVolume = volume * config.volumeMultiplier;
   const start = ctx.currentTime + startOffset;
-  gainNode.gain.setValueAtTime(volume, start);
+  gainNode.gain.setValueAtTime(effectiveVolume, start);
   gainNode.gain.exponentialRampToValueAtTime(0.001, start + duration);
 
   noise.connect(gainNode);
@@ -79,6 +102,9 @@ function playNoise(duration, volume = 0.05, startOffset = 0) {
 
 // Adds a reverb-like delay feedback layer for important events
 function playToneWithReverb(frequency, duration, type = "sine", volume = 0.12, startOffset = 0) {
+  const config = getSoundConfig();
+  if (!config.enabled || config.volumeMultiplier <= 0) return;
+
   const ctx = getCtx();
   if (!ctx) return;
 
@@ -270,6 +296,8 @@ const playSoundEffects = {
 // -- Public API ---------------------------------------------------------------
 
 export function playSound(name) {
+  const config = getSoundConfig();
+  if (!config.enabled || config.volumeMultiplier <= 0) return;
   if (playSoundEffects[name]) {
     playSoundEffects[name]();
   }

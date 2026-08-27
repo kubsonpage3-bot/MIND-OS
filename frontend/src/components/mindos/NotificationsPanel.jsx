@@ -34,11 +34,8 @@ export default function NotificationsPanel() {
   const { t } = useTranslation();
 
   const { data: profile } = useQuery({
-    queryKey: ["character"],
-    queryFn: async () => {
-      const res = await djangoApi.get("/profile/");
-      return res.data;
-    },
+    queryKey: ["userprofile"],
+    queryFn: djangoApi.profile.get,
   });
 
   const [notifications, setNotifications] = useState({});
@@ -63,14 +60,11 @@ export default function NotificationsPanel() {
 
   /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
   const updatePrefsMutation = useMutation({
-    mutationFn: async (newPrefs) => {
-      const res = await djangoApi.patch("/profile/", {
-        notification_preferences: newPrefs,
-      });
-      return res.data;
-    },
+    mutationFn: (newPrefs) => djangoApi.profile.update({
+      notification_preferences: newPrefs,
+    }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["character"] });
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     },
     onError: (err) => {
       console.error("Failed to save notification preferences", err);

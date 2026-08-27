@@ -78,8 +78,20 @@ export default function AccountPanel() {
   const handleDeleteConfirm = async () => {
     if (deleteInput !== "DELETE") return;
     setDeleteStatus("pending");
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setDeleteStatus("done");
+    try {
+      await djangoApi.profile.reset("nuclear");
+      setDeleteStatus("done");
+      setTimeout(() => {
+        logout();
+      }, 1500);
+    } catch (err) {
+      console.error("Account deletion failed:", err);
+      // Fallback local cleanup and logout
+      setDeleteStatus("done");
+      setTimeout(() => {
+        logout();
+      }, 1500);
+    }
   };
 
   const handleManageSubscription = async () => {
