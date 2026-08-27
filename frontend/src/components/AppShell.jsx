@@ -319,6 +319,28 @@ export default function AppShell({ defaultTab = "mind" }) {
           </>
         )}
         {activeApp === "life" && <LifeOS />}
+        {/* Mobile hamburger for Life OS — no CharacterStatusBar here, so add a standalone toggle */}
+        {activeApp === "life" && (
+          <button
+            className="md:hidden fixed top-3 left-3 z-30 flex items-center justify-center rounded-xl"
+            style={{
+              width: 40, height: 40,
+              background: "var(--habit-sidebar)",
+              border: "1px solid var(--habit-sidebar-border)",
+              color: "var(--habit-sidebar-text)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+            }}
+            onClick={() => setMobileSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="3" y1="6"  x2="21" y2="6"  />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+        )}
+
         </PullToRefresh>
       </div>
 
