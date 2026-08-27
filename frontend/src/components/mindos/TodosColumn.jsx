@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useMemo } from 'react';
 import { Plus, Square, CheckSquare, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

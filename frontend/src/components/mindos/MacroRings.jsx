@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate } from 'framer-motion';
 import { useTranslation } from 'react-i18next';

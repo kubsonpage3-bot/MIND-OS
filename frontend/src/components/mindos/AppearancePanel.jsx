@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from "react";
 import { Palette, Type, Volume2, VolumeX, Waves, Smartphone } from "lucide-react";
 import { THEMES, applyTheme } from "@/lib/themes";

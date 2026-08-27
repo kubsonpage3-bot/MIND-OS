@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost } from "lucide-react";

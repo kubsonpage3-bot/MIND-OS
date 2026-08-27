@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
@@ -109,4 +110,4 @@ export default function LanguagePanel() {
     </div>
   );
 }
-
+

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useQuery } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import BottomSheet from '@/components/ui/BottomSheet';

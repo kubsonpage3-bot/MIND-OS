@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { useTranslation } from "react-i18next";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";

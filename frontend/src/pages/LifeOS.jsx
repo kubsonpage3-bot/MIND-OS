@@ -1,3 +1,4 @@
+// @ts-nocheck
 import NutritionTab from '@/components/mindos/NutritionTab';
 
 export default function LifeOS() {

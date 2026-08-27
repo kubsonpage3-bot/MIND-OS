@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";

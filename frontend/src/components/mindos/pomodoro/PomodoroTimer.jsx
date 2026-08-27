@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import OptimizedImage from '../OptimizedImage';

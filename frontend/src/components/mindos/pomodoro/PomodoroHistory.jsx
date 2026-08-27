@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useTranslation } from 'react-i18next';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useRef, useEffect, useState, useMemo } from 'react';

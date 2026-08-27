@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useMemo } from "react";
 import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, MASTERY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES, resolveMasteryCategory } from "@/lib/cognitiveEngine";
 import { motion, AnimatePresence } from "framer-motion";

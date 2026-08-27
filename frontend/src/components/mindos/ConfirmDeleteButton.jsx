@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

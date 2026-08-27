@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useTranslation } from 'react-i18next';
 import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

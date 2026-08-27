@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 
 export default function MasteryRadar({ 

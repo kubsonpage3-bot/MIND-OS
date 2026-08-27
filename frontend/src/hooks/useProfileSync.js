@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 

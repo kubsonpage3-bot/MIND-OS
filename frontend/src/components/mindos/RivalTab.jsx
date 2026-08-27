@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useMemo, useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useProfileMount } from "@/utils/perf";

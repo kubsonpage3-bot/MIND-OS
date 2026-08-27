@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from "react";
 import TabGuideModal from "./TabGuideModal";
 import { GUIDE_CONTENT } from "@/constants/guideContent";

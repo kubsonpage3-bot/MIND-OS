@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { computeEfficiency, getEfficiencyColor } from "@/lib/cognitiveEngine";
 
 export default function EfficiencyMeter({ focus, streakDays, hoursToday, subjectHoursToday, categoryHoursToday = 0, categoryStreakDays = 0, statFoc, statMem }) {

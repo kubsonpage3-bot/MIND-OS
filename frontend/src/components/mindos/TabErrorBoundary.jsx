@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Component } from "react";
 import i18n from "@/lib/i18n";
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, memo, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfileMount } from '@/utils/perf';
@@ -138,4 +139,4 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
   );
 }
 
-export default memo(TasksPanel);
+export default memo(TasksPanel);

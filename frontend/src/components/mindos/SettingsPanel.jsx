@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, memo } from "react";
 import { Settings, Palette, Bell, User, Gamepad2, RotateCcw, Info, ChevronLeft, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";

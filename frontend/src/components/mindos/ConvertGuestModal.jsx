@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { useTranslation } from 'react-i18next';

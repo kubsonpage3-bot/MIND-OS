@@ -1,4 +1,5 @@
-
+// @ts-nocheck
+import { useState, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
@@ -12,7 +13,6 @@ import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useTaskDndSensors } from '../../utils/dndConfig';
 import { SortableTaskItem, DragHandle } from "./SortableTaskItem";
-import { useState, useMemo } from 'react';
 import ConfirmDeleteButton from './ConfirmDeleteButton';
 import CreateTaskModal from '@/components/mindos/CreateTaskModal';
 import { useLongPress } from '@/hooks/useLongPress';

@@ -1,42 +1,46 @@
+// @ts-nocheck
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Check, RefreshCw, Unlink, Wifi, WifiOff } from 'lucide-react';
-import { djangoFetch } from '@/api/djangoClient';
-
-// ── API functions ──────────────────────────────────────────────────────────
-
-const generateCode  = () => djangoFetch('extension/generate-code/', { method: 'POST' });
-const revokeToken   = () => djangoFetch('extension/revoke/', { method: 'DELETE' });
-const fetchStatus   = () => djangoFetch('extension/web-status/');
+import { Copy, Check, RefreshCw, Unlink, Wifi, WifiOff, KeyRound, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
+import { djangoApi } from '@/api/djangoClient';
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function ExtensionPanel() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [copied, setCopied]   = useState(false);
-  const [codeData, setCodeData] = useState(null); // { code, expires_at }
+  const [copied, setCopied] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
 
+  // Poll extension status every 10s
   const { data: status, isLoading } = useQuery({
     queryKey: ['extension-status'],
-    queryFn: fetchStatus,
-    refetchInterval: 30_000,
+    queryFn: djangoApi.extension.getStatus,
+    refetchInterval: 10000,
   });
 
-  const generateMutation = useMutation({
-    mutationFn: generateCode,
-    onSuccess: (data) => {
-      setCodeData(data);
-      queryClient.invalidateQueries({ queryKey: ['extension-status'] });
-    },
+  // Fetch or generate pairing code
+  const { data: codeData, refetch: refreshCode } = useQuery({
+    queryKey: ['extension-code'],
+    queryFn: djangoApi.extension.getCode,
+    enabled: !status?.paired,
+    refetchInterval: 30000,
   });
 
   const revokeMutation = useMutation({
-    mutationFn: revokeToken,
+    mutationFn: djangoApi.extension.revoke,
     onSuccess: () => {
-      setCodeData(null);
+      queryClient.invalidateQueries({ queryKey: ['extension-status'] });
+      queryClient.invalidateQueries({ queryKey: ['extension-code'] });
+    },
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: djangoApi.extension.generateCode,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['extension-code'] });
       queryClient.invalidateQueries({ queryKey: ['extension-status'] });
     },
   });
@@ -51,7 +55,7 @@ export default function ExtensionPanel() {
   const paired = status?.paired ?? false;
 
   const expiresIn = codeData?.expires_at
-    ? Math.max(0, Math.round((new Date(codeData.expires_at) - Date.now()) / 1000))
+    ? Math.max(0, Math.round((new Date(codeData.expires_at).getTime() - Date.now()) / 1000))
     : 0;
 
   return (

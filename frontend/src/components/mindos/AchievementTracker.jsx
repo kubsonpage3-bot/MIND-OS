@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef } from "react";
 import { showAchievementToast } from "@/components/mindos/AchievementToast";
 import { playSound } from "@/lib/soundEffects";

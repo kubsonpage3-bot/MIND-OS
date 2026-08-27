@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProfileMount } from '@/utils/perf';

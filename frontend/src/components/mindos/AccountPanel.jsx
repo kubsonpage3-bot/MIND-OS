@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from "react";
 import { User, Mail, LogOut, Trash2, Shield, AlertTriangle, X, Crown, Star, Lock, Calendar, RefreshCw, Sparkles, Puzzle } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";

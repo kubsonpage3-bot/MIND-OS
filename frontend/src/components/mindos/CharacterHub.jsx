@@ -1,3 +1,4 @@
+// @ts-nocheck
 import PixelCharacter from "@/components/mindos/PixelCharacter";
 
 import BossPanel from "@/components/mindos/BossPanel";

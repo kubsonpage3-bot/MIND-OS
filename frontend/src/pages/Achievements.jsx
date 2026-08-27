@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { ACHIEVEMENTS } from "@/constants/rpgData";

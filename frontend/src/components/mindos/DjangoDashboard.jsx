@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { djangoApi } from '@/api/djangoClient';

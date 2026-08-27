@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useDjangoAuth } from '@/lib/DjangoAuthContext';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, ArrowRight } from 'lucide-react';

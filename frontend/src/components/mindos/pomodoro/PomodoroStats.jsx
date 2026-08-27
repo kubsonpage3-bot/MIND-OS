@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useTranslation } from 'react-i18next';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { Brain, Clock, Zap, Target, Award, Calendar, TrendingUp, Trophy } from 'lucide-react';

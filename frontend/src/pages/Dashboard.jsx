@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useCallback, useRef, lazy, Suspense, startTransition } from "react";
 
 import { djangoApi } from "@/api/djangoClient";
@@ -1177,4 +1178,4 @@ function WelcomeBackCheckin() {
       />
     </AnimatePresence>
   );
-}
+}

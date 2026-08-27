@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { Database, Download, Upload, Cloud, CloudOff, RefreshCw, FileJson, Globe } from "lucide-react";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";

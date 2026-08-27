@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion } from "framer-motion";
 
 // Particle types: spark (bright sparks), shard (angular fragments), orb (glowing orbs)

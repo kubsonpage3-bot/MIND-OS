@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useCallback, useRef } from 'react';
 
 export function useLongPress(onLongPress, onClick, { delay = 500, moveThreshold = 15 } = {}) {

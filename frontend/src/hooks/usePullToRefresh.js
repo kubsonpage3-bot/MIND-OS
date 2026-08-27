@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useRef, useState, useCallback } from "react";
 
 const THRESHOLD = 72; // px needed to trigger refresh

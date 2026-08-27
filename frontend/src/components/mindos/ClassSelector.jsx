@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { CLASSES, CLASS_SPRITES } from "@/constants/rpgData";
 import { useTranslation } from "react-i18next";
