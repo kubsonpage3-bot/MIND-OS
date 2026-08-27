@@ -2224,43 +2224,65 @@ class ActivityHistoryView(generics.GenericAPIView):
         # Order by newest first
         results = qs.order_by("-created_at")[:250]
 
-        # ── Aggregate Stats (Lifetime for user) ───────────────────────
-        all_user_logs = UserActivityLog.objects.filter(user=user)
+        # ── Aggregate Stats (use same filtered qs — respects period, search, reconciliation) ──
+        # We need a clean base (all types, no pagination) for counting per-type within the period
+        qs_stats_base = UserActivityLog.objects.filter(user=user).exclude(
+            activity_type__in=[
+                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+            ]
+        )
+        # Apply same date and search filters
+        if days_param != "all":
+            try:
+                days_int_s = int(days_param)
+                since_date_s = timezone.now() - timedelta(days=days_int_s)
+                qs_stats_base = qs_stats_base.filter(created_at__gte=since_date_s)
+            except (ValueError, TypeError):
+                pass
+        if search_query:
+            qs_stats_base = qs_stats_base.filter(
+                Q(title__icontains=search_query) | Q(category__icontains=search_query)
+            )
+
         total_hours = round(
             float(
-                all_user_logs.filter(
-                    activity_type=UserActivityLog.ActivityType.STUDY
+                qs_stats_base.filter(
+                    activity_type__in=[
+                        UserActivityLog.ActivityType.STUDY,
+                        UserActivityLog.ActivityType.POMODORO,
+                    ]
                 ).aggregate(Sum("hours"))["hours__sum"]
                 or 0
             ),
             2,
         )
         total_xp = int(
-            all_user_logs.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0
+            qs_stats_base.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0
         )
         total_gold = int(
-            all_user_logs.aggregate(Sum("gold_earned"))["gold_earned__sum"] or 0
+            qs_stats_base.aggregate(Sum("gold_earned"))["gold_earned__sum"] or 0
         )
         total_boss_damage = int(
-            all_user_logs.aggregate(Sum("boss_damage"))["boss_damage__sum"] or 0
+            qs_stats_base.aggregate(Sum("boss_damage"))["boss_damage__sum"] or 0
         )
 
-        habits_count = all_user_logs.filter(
+        habits_count = qs_stats_base.filter(
             activity_type__in=[
                 UserActivityLog.ActivityType.HABIT_POS,
                 UserActivityLog.ActivityType.HABIT_NEG,
             ]
         ).count()
-        dailies_count = all_user_logs.filter(
+        dailies_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.DAILY
         ).count()
-        todos_count = all_user_logs.filter(
+        todos_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.TODO
         ).count()
-        study_count = all_user_logs.filter(
+        study_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.STUDY
         ).count()
-        pomodoro_count = all_user_logs.filter(
+        pomodoro_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.POMODORO
         ).count()
         tasks_completed_count = habits_count + dailies_count + todos_count
