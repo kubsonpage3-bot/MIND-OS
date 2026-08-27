@@ -2113,6 +2113,74 @@ class ActivityHistoryView(generics.GenericAPIView):
             ],
         ).delete()
 
+        # ── Self-Healing Reconciliation for Dailies and To-Dos ────────
+        try:
+            import zoneinfo
+
+            try:
+                profile_tz = (
+                    getattr(getattr(user, "profile", None), "timezone", "UTC") or "UTC"
+                )
+                user_tz = zoneinfo.ZoneInfo(profile_tz)
+            except Exception:
+                user_tz = zoneinfo.ZoneInfo("UTC")
+
+            today_local = timezone.now().astimezone(user_tz).date()
+
+            # 1. Clean up uncompleted Dailies for today and deduplicate completed Dailies for today
+            user_dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
+            for d in user_dailies:
+                daily_logs = list(
+                    UserActivityLog.objects.filter(
+                        user=user,
+                        task=d,
+                        activity_type=UserActivityLog.ActivityType.DAILY,
+                    ).order_by("-created_at")
+                )
+
+                today_logs = [
+                    log
+                    for log in daily_logs
+                    if log.created_at.astimezone(user_tz).date() == today_local
+                ]
+
+                is_done_today = False
+                if d.is_completed and d.last_completed_at:
+                    is_done_today = (
+                        d.last_completed_at.astimezone(user_tz).date() == today_local
+                    )
+                elif d.is_completed:
+                    is_done_today = True
+
+                if not is_done_today:
+                    for log in today_logs:
+                        log.delete()
+                else:
+                    if len(today_logs) > 1:
+                        for log in today_logs[1:]:
+                            log.delete()
+
+            # 2. Clean up uncompleted To-Dos and deduplicate completed To-Dos
+            user_todos = Task.objects.filter(user=user, task_type=Task.TaskType.TODO)
+            for t in user_todos:
+                todo_logs = list(
+                    UserActivityLog.objects.filter(
+                        user=user,
+                        task=t,
+                        activity_type=UserActivityLog.ActivityType.TODO,
+                    ).order_by("-created_at")
+                )
+
+                if not t.is_completed:
+                    for log in todo_logs:
+                        log.delete()
+                else:
+                    if len(todo_logs) > 1:
+                        for log in todo_logs[1:]:
+                            log.delete()
+        except Exception as e:
+            logger.warning("Reconciliation error in ActivityHistoryView: %s", e)
+
         # ── Base Queryset ─────────────────────────────────────────────
         qs = UserActivityLog.objects.filter(user=user).exclude(
             activity_type__in=[

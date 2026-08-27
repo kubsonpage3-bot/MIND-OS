@@ -229,3 +229,71 @@ def test_task_revert_sync_with_activity_history():
     assert UserActivityLog.objects.filter(user=user4, task=todo).count() == 0
 
 
+@pytest.mark.django_db
+def test_self_healing_history_reconciliation():
+    user5 = User.objects.create_user(username="healinguser", password="password123")
+    client5 = APIClient()
+    client5.force_authenticate(user=user5)
+
+    # 1. Simulate an uncompleted Daily that has 2 orphaned/duplicate legacy logs
+    daily_uncompleted = Task.objects.create(
+        user=user5,
+        task_type=Task.TaskType.DAILY,
+        title="Uncompleted Daily",
+        category="Mindfulness",
+        is_completed=False,
+        last_completed_at=None,
+    )
+    UserActivityLog.objects.create(
+        user=user5,
+        task=daily_uncompleted,
+        activity_type=UserActivityLog.ActivityType.DAILY,
+        title="Uncompleted Daily",
+        xp_earned=28,
+        gold_earned=14,
+    )
+    UserActivityLog.objects.create(
+        user=user5,
+        task=daily_uncompleted,
+        activity_type=UserActivityLog.ActivityType.DAILY,
+        title="Uncompleted Daily",
+        xp_earned=22,
+        gold_earned=11,
+    )
+
+    # 2. Simulate a completed Daily that has 3 duplicate logs for today
+    daily_completed = Task.objects.create(
+        user=user5,
+        task_type=Task.TaskType.DAILY,
+        title="Completed Daily",
+        category="STEM",
+        is_completed=True,
+    )
+    for i in range(3):
+        UserActivityLog.objects.create(
+            user=user5,
+            task=daily_completed,
+            activity_type=UserActivityLog.ActivityType.DAILY,
+            title="Completed Daily",
+            xp_earned=15,
+            gold_earned=7,
+        )
+
+    # Initial state before calling /api/history/: 5 daily logs exist
+    assert UserActivityLog.objects.filter(user=user5).count() == 5
+
+    # Querying /api/history/ triggers automatic self-healing reconciliation
+    res = client5.get("/api/history/")
+    assert res.status_code == 200
+    data = res.json()
+
+    # The 2 orphaned logs of uncompleted daily are deleted
+    # The 3 duplicate logs of completed daily are deduplicated to 1
+    assert data["stats"]["dailies_count"] == 1
+    assert data["stats"]["total_xp"] == 15
+    assert len(data["results"]) == 1
+    assert data["results"][0]["title"] == "Completed Daily"
+    assert UserActivityLog.objects.filter(user=user5).count() == 1
+
+
+

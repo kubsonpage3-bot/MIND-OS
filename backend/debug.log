@@ -3094,3 +3094,5 @@ ERROR 2026-08-27 12:55:10,415 task_service 17908 12072 complete_task failed: [Er
 ERROR 2026-08-27 12:55:15,074 task_service 17908 12072 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
 ERROR 2026-08-27 12:55:57,389 task_service 22176 17688 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 ERROR 2026-08-27 12:56:02,072 task_service 22176 17688 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+ERROR 2026-08-27 13:04:05,389 task_service 4144 17108 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 13:04:10,123 task_service 4144 17108 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
