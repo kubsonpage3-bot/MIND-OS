@@ -173,18 +173,6 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         return inSampleSize;
     }
 
-    /**
-     * Converts a float metric value (e.g. gf=102.3, ceiling=105) to a 0-100 int progress
-     * anchored from the floor (80.0).
-     */
-    private static int metricToProgress(double value, double ceiling) {
-        double floor = 80.0;
-        double range = ceiling - floor;
-        if (range <= 0) return 100;
-        double pct = (value - floor) / range * 100.0;
-        return (int) Math.max(0, Math.min(100, pct));
-    }
-
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.rpg_stats_widget);
 
@@ -206,8 +194,6 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             int xp = 28, maxXp = 200;
             int gold = 0, sp = 0, streak = 0, level = 1;
             String classId = "wanderer", rankId = "F", themeId = "solid_dark", username = "";
-            double gf = 100.0, gc = 100.0, ps = 100.0, vm = 100.0;
-            double gfCeiling = 105.0, gcCeiling = 105.0, psCeiling = 105.0, vmCeiling = 105.0;
 
             if (profileJson != null) {
                 JSONObject json = new JSONObject(profileJson);
@@ -225,14 +211,6 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
                 rankId = json.optString("rank", "F");
                 themeId = json.optString("theme", "solid_dark");
                 username = json.optString("username", "");
-                gf = json.optDouble("gf", 100.0);
-                gc = json.optDouble("gc", 100.0);
-                ps = json.optDouble("ps", 100.0);
-                vm = json.optDouble("vm", 100.0);
-                gfCeiling = json.optDouble("gf_ceiling", 105.0);
-                gcCeiling = json.optDouble("gc_ceiling", 105.0);
-                psCeiling = json.optDouble("ps_ceiling", 105.0);
-                vmCeiling = json.optDouble("vm_ceiling", 105.0);
             }
 
             // Bind HP / MP / EXP Labels
@@ -244,12 +222,6 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             views.setProgressBar(R.id.widget_hp_progress, maxHp, Math.max(0, hp), false);
             views.setProgressBar(R.id.widget_mp_progress, maxMp, Math.max(0, mp), false);
             views.setProgressBar(R.id.widget_xp_progress, maxXp, Math.max(0, xp), false);
-
-            // Bind IQ Mini-Bars (Gf/Gc/Ps/Vm — each 0→100 from floor 80 to ceiling)
-            views.setProgressBar(R.id.widget_gf_progress, 100, metricToProgress(gf, gfCeiling), false);
-            views.setProgressBar(R.id.widget_gc_progress, 100, metricToProgress(gc, gcCeiling), false);
-            views.setProgressBar(R.id.widget_ps_progress, 100, metricToProgress(ps, psCeiling), false);
-            views.setProgressBar(R.id.widget_vm_progress, 100, metricToProgress(vm, vmCeiling), false);
 
             // Bind Level / Rank / Class Badge
             String classNameDisplay = classId.substring(0, 1).toUpperCase() + (classId.length() > 1 ? classId.substring(1).toLowerCase() : "");

@@ -225,7 +225,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="5dp">
+                android:layout_marginBottom="8dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -271,117 +271,6 @@
                     android:layout_height="6dp"
                     android:layout_marginTop="1dp"
                     android:progressDrawable="@drawable/xp_progress_drawable" />
-            </LinearLayout>
-
-            <!-- IQ Mini-Bars Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/widget_chip_dark"
-                android:padding="4dp"
-                android:layout_marginBottom="4dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/widget_iq_label"
-                    android:textColor="#C4B5FD"
-                    android:textSize="7.5sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace"
-                    android:layout_marginBottom="2dp" />
-
-                <!-- Gf Bar -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="1.5dp">
-                    <TextView
-                        android:layout_width="14dp"
-                        android:layout_height="wrap_content"
-                        android:text="Gf"
-                        android:textColor="#60A5FA"
-                        android:textSize="6.5sp"
-                        android:typeface="monospace" />
-                    <ProgressBar
-                        android:id="@+id/widget_gf_progress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="4dp"
-                        android:layout_weight="1"
-                        android:progressDrawable="@drawable/mp_progress_drawable" />
-                </LinearLayout>
-
-                <!-- Gc Bar -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="1.5dp">
-                    <TextView
-                        android:layout_width="14dp"
-                        android:layout_height="wrap_content"
-                        android:text="Gc"
-                        android:textColor="#4ADE80"
-                        android:textSize="6.5sp"
-                        android:typeface="monospace" />
-                    <ProgressBar
-                        android:id="@+id/widget_gc_progress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="4dp"
-                        android:layout_weight="1"
-                        android:progressDrawable="@drawable/xp_progress_drawable" />
-                </LinearLayout>
-
-                <!-- Ps Bar -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="1.5dp">
-                    <TextView
-                        android:layout_width="14dp"
-                        android:layout_height="wrap_content"
-                        android:text="Ps"
-                        android:textColor="#FB923C"
-                        android:textSize="6.5sp"
-                        android:typeface="monospace" />
-                    <ProgressBar
-                        android:id="@+id/widget_ps_progress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="4dp"
-                        android:layout_weight="1"
-                        android:progressDrawable="@drawable/hp_progress_drawable" />
-                </LinearLayout>
-
-                <!-- Vm Bar -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-                    <TextView
-                        android:layout_width="14dp"
-                        android:layout_height="wrap_content"
-                        android:text="Vm"
-                        android:textColor="#C084FC"
-                        android:textSize="6.5sp"
-                        android:typeface="monospace" />
-                    <ProgressBar
-                        android:id="@+id/widget_vm_progress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="4dp"
-                        android:layout_weight="1"
-                        android:progressDrawable="@drawable/summary_progress_drawable" />
-                </LinearLayout>
             </LinearLayout>
 
             <!-- Bottom Currency / Chips Row -->
