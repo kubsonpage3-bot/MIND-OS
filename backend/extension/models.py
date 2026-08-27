@@ -35,14 +35,18 @@ class PairingCode(models.Model):
 
 
 class ExtensionToken(models.Model):
-    """Long-lived scoped token stored in browser.storage.local."""
+    """Long-lived scoped token stored in browser.storage.local for a specific device."""
 
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="extension_token"
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="extension_tokens"
     )
     token = models.CharField(max_length=64, unique=True)
+    device_name = models.CharField(max_length=100, default="Browser Extension")
     created_at = models.DateTimeField(auto_now_add=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -50,7 +54,7 @@ class ExtensionToken(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user.username} extension token"
+        return f"{self.user.username} ({self.device_name})"
 
 
 class BlockedSite(models.Model):

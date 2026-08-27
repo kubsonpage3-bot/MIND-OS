@@ -589,9 +589,9 @@ export const djangoApi = {
 
   extension: {
     getStatus: () => djangoFetch('extension/web-status/'),
-    getCode: () => djangoFetch('extension/generate-code/', { method: 'POST' }),
     generateCode: () => djangoFetch('extension/generate-code/', { method: 'POST' }),
-    revoke: () => djangoFetch('extension/revoke/', { method: 'DELETE' }),
+    revoke: (deviceId = null) =>
+      djangoFetch(deviceId ? `extension/revoke/?device_id=${deviceId}` : 'extension/revoke/', { method: 'DELETE' }),
   },
 
   notifications: {

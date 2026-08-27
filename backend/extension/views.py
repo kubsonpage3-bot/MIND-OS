@@ -71,20 +71,47 @@ def generate_code(request):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def revoke_token(request):
-    """Disconnect the extension — web app Settings 'Disconnect' button."""
-    ExtensionToken.objects.filter(user=request.user).delete()
-    return Response({"detail": "Extension disconnected."})
+    """
+    Disconnect extension — supports disconnecting a specific device by device_id
+    or disconnecting all devices if device_id is omitted.
+    """
+    device_id = request.data.get("device_id") or request.query_params.get("device_id")
+    if device_id:
+        deleted_count, _ = ExtensionToken.objects.filter(
+            user=request.user, id=device_id
+        ).delete()
+        if deleted_count == 0:
+            return Response({"error": "device_not_found"}, status=404)
+        return Response({"detail": "Device disconnected."})
+    else:
+        ExtensionToken.objects.filter(user=request.user).delete()
+        return Response({"detail": "All extension devices disconnected."})
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def web_status(request):
     """
-    Returns whether this user has an extension token paired.
-    Used by the Settings page to show 'Connected' / 'Not connected'.
+    Returns paired status, total device count, and full list of paired devices.
+    Used by the Settings page for multi-device management.
     """
-    paired = ExtensionToken.objects.filter(user=request.user).exists()
-    return Response({"paired": paired})
+    tokens = ExtensionToken.objects.filter(user=request.user)
+    devices = [
+        {
+            "id": t.id,
+            "device_name": t.device_name,
+            "created_at": t.created_at,
+            "last_used_at": t.last_used_at,
+        }
+        for t in tokens
+    ]
+    return Response(
+        {
+            "paired": len(devices) > 0,
+            "device_count": len(devices),
+            "devices": devices,
+        }
+    )
 
 
 # ── Extension-facing endpoints (use ExtensionToken auth) ─────────────────
@@ -95,10 +122,15 @@ def web_status(request):
 @permission_classes([AllowAny])
 def pair(request):
     """
-    Exchange OTP code for a scoped ExtensionToken.
+    Exchange OTP code for a new scoped ExtensionToken.
     No auth required — this IS the auth flow.
+    Supports multi-device pairing without revoking other sessions.
     """
     code_str = request.data.get("code", "").upper().strip()
+    device_name = request.data.get("device_name", "Browser Extension")
+    if not device_name or not str(device_name).strip():
+        device_name = "Browser Extension"
+
     if not code_str:
         return Response({"error": "code_required"}, status=400)
 
@@ -113,18 +145,18 @@ def pair(request):
     code.used = True
     code.save(update_fields=["used"])
 
-    # Issue or replace scoped token
-    token, _ = ExtensionToken.objects.get_or_create(user=code.user)
-    if _:
-        pass  # freshly created
-    else:
-        # Rotate token on re-pair
-        import secrets
+    # Issue a dedicated scoped token for this device
+    import secrets
 
-        token.token = secrets.token_urlsafe(48)
-        token.save(update_fields=["token"])
+    token_str = secrets.token_urlsafe(48)
+    token = ExtensionToken.objects.create(
+        user=code.user,
+        token=token_str,
+        device_name=str(device_name)[:100],
+        last_used_at=timezone.now(),
+    )
 
-    return Response({"token": token.token})
+    return Response({"token": token.token, "device_name": token.device_name})
 
 
 @api_view(["GET"])

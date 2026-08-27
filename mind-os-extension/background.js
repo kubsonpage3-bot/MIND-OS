@@ -135,10 +135,23 @@ async function handleMessage(msg) {
     case 'PAIR': {
       // Exchange OTP code for token
       const apiBase = await getApiBase();
+      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      let browserName = 'Browser Extension';
+      if (userAgent.includes('Firefox')) browserName = 'Firefox';
+      else if (userAgent.includes('Chrome')) browserName = 'Chrome';
+      else if (userAgent.includes('Edg')) browserName = 'Edge';
+
+      let osName = '';
+      if (userAgent.includes('Win')) osName = ' on Windows';
+      else if (userAgent.includes('Mac')) osName = ' on Mac';
+      else if (userAgent.includes('Linux')) osName = ' on Linux';
+
+      const deviceName = `${browserName}${osName}`;
+
       const res = await fetch(`${apiBase}/api/extension/pair/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: msg.code }),
+        body: JSON.stringify({ code: msg.code, device_name: deviceName }),
       });
       if (!res.ok) {
         const err = await res.json();
