@@ -60,13 +60,15 @@ export default function WaterTracker({ dateStr, goalMl = 2000 }) {
 
   return (
     <motion.div
-      animate={justLogged ? { scale: [1, 1.012, 1] } : {}}
-      transition={{ duration: 0.3 }}
+      animate={justLogged ? { scale: [1, 1.015, 1] } : {}}
+      transition={{ duration: 0.35 }}
       className="p-4 rounded-2xl transition-all relative overflow-hidden"
       style={{
         background: 'var(--habit-panel)',
-        border: '1px solid var(--habit-border)',
+        border: isGoalReached ? '1px solid rgba(56,189,248,0.4)' : '1px solid var(--habit-border)',
         fontFamily: "'Nunito', sans-serif",
+        boxShadow: isGoalReached ? '0 0 20px rgba(56,189,248,0.12)' : 'none',
+        transition: 'border-color 0.4s, box-shadow 0.4s',
       }}
     >
       {/* Header */}
@@ -112,29 +114,35 @@ export default function WaterTracker({ dateStr, goalMl = 2000 }) {
         </button>
       </div>
 
-      {/* Fluid Liquid Progress Bar */}
+      {/* Fluid Progress Bar */}
       <div
-        className="w-full h-3 rounded-full overflow-hidden mb-3 relative"
+        className="w-full rounded-full overflow-hidden mb-3 relative"
         style={{
+          height: 10,
           background: 'var(--habit-border)',
-          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.25)',
         }}
       >
         <motion.div
-          className="h-full rounded-full relative"
+          className="h-full rounded-full relative overflow-hidden"
           style={{
-            background: 'linear-gradient(90deg, #38bdf8 0%, var(--habit-blue, #50b5e9) 100%)',
-            boxShadow: '0 0 10px rgba(80, 181, 233, 0.5)',
+            background: isGoalReached
+              ? 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)'
+              : 'linear-gradient(90deg, #38bdf8 0%, #50b5e9 100%)',
+            boxShadow: isGoalReached
+              ? '0 0 16px rgba(16,185,129,0.6)'
+              : '0 0 12px rgba(56,189,248,0.5)',
           }}
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(percentage, 100)}%` }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Shimmer line */}
-          <div
-            className="absolute top-0 left-0 right-0 h-[1px]"
-            style={{ background: 'rgba(255, 255, 255, 0.4)' }}
-          />
+          {/* Shimmer */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
+            animation: 'shimmer 2s infinite',
+          }} />
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'rgba(255,255,255,0.5)' }} />
         </motion.div>
       </div>
 
@@ -185,11 +193,11 @@ export default function WaterTracker({ dateStr, goalMl = 2000 }) {
           whileTap={{ scale: 0.92 }}
           onClick={() => handleDelta(-250)}
           disabled={amountMl <= 0 || updateWaterMut.isPending}
-          className="p-2 rounded-xl flex items-center justify-center transition-all"
+          className="p-2.5 rounded-xl flex items-center justify-center transition-all"
           style={{
             background: 'var(--habit-border)',
             color: 'var(--habit-text)',
-            opacity: amountMl <= 0 ? 0.35 : 0.8,
+            opacity: amountMl <= 0 ? 0.3 : 0.7,
             cursor: amountMl <= 0 ? 'not-allowed' : 'pointer',
           }}
           title={`-250 ${t('nutrition.ml', 'ml')}`}
@@ -198,37 +206,36 @@ export default function WaterTracker({ dateStr, goalMl = 2000 }) {
         </motion.button>
 
         <motion.button
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.95 }} whileHover={{ y: -1.5 }}
           onClick={() => handleDelta(250)}
           disabled={updateWaterMut.isPending}
-          className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
+          className="flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
           style={{
-            background: 'rgba(80, 181, 233, 0.12)',
-            color: 'var(--habit-blue, #50b5e9)',
-            border: '1px solid rgba(80, 181, 233, 0.3)',
+            background: 'rgba(56,189,248,0.12)',
+            color: '#38bdf8',
+            border: '1px solid rgba(56,189,248,0.3)',
             cursor: 'pointer',
           }}
         >
           <Plus size={13} />
-          <span>{t('nutrition.water.glass_btn', '+250 ml (glass)')}</span>
+          <span>+250 ml</span>
         </motion.button>
 
         <motion.button
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.95 }} whileHover={{ y: -1.5 }}
           onClick={() => handleDelta(500)}
           disabled={updateWaterMut.isPending}
-          className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
+          className="flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
           style={{
-            background: 'rgba(80, 181, 233, 0.18)',
-            color: 'var(--habit-blue, #50b5e9)',
-            border: '1px solid rgba(80, 181, 233, 0.45)',
+            background: 'rgba(56,189,248,0.2)',
+            color: '#38bdf8',
+            border: '1px solid rgba(56,189,248,0.45)',
+            boxShadow: '0 2px 10px rgba(56,189,248,0.15)',
             cursor: 'pointer',
           }}
         >
           <Plus size={13} />
-          <span>{t('nutrition.water.bottle_btn', '+500 ml (bottle)')}</span>
+          <span>+500 ml</span>
         </motion.button>
       </div>
     </motion.div>
