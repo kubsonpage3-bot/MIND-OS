@@ -53,68 +53,183 @@ const MEAL_META = {
   snack:     { key:'snack',     defaultLabel:'Snacks',    icon:Apple,   color:'#10b981', glow:'rgba(16,185,129,0.25)', bg:'rgba(16,185,129,0.1)' },
 };
 
-// ─── Date Strip ───────────────────────────────────────────────────────────────
-function DateStrip({ selected, onSelect, calendarData, onOpenCalendar }) {
-  const { t, i18n } = useTranslation();
-  const calMap = {};
-  (calendarData || []).forEach(d => { calMap[d.date] = d; });
+// ─── Week Days Calculation (Monday -> Sunday of selected week) ─────────────────
+function getWeekDays(targetDateStr) {
+  const [y, m, d] = targetDateStr.split('-').map(Number);
+  const target = new Date(y, m - 1, d);
+  const dayOfWeek = (target.getDay() + 6) % 7; // Monday is 0, Sunday is 6
+  const monday = new Date(target);
+  monday.setDate(target.getDate() - dayOfWeek);
+
   const days = [];
-  for (let i = -6; i <= 0; i++) days.push(addDays(todayStr(), i));
+  for (let i = 0; i < 7; i++) {
+    const cur = new Date(monday);
+    cur.setDate(monday.getDate() + i);
+    const str = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+    days.push(str);
+  }
+  return days;
+}
+
+// ─── Dynamic 7-Day Date Navigator Card ─────────────────────────────────────────
+function DateNavigator({ selectedDate, onSelectDate, calendarData, onOpenCalendar }) {
+  const { t, i18n } = useTranslation();
+  const isToday = selectedDate === todayStr();
+  const weekDays = getWeekDays(selectedDate);
+  const calMap = {};
+  (calendarData || []).forEach((d) => { calMap[d.date] = d; });
 
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 px-0.5 scrollbar-none">
-      {days.map(d => {
-        const entry = calMap[d];
-        const isToday = d === todayStr();
-        const isSel = d === selected;
-        const cal = entry?.calories || 0;
-        let dot = null;
-        if (cal > 0) {
-          const pct = cal / 2000;
-          dot = pct >= 0.8 && pct <= 1.2 ? '#10b981' : pct > 1.2 ? '#f74e52' : '#f59e0b';
-        }
-        const [,,dd] = d.split('-');
-        return (
+    <div
+      className="rounded-2xl transition-all"
+      style={{
+        background: 'var(--habit-panel)',
+        border: '1px solid var(--habit-border)',
+        padding: '12px 14px',
+        fontFamily: "'Nunito', sans-serif",
+      }}
+    >
+      {/* Header with Navigation and Open Calendar button */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1">
           <motion.button
-            key={d}
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ y: -2 }}
-            onClick={() => onSelect(d)}
-            className="relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-2 transition-colors min-w-[44px] flex-1 select-none"
-            style={{
-              background: isSel ? 'transparent' : isToday ? 'rgba(245,158,11,0.08)' : 'var(--habit-border)',
-              border: isToday && !isSel ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
-              cursor: 'pointer',
-            }}
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={() => onSelectDate(addDays(selectedDate, -1))}
+            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all opacity-75 hover:opacity-100"
+            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
+            title="Previous day"
           >
-            {isSel && (
-              <motion.div
-                layoutId="active-date-pill"
-                className="absolute inset-0 rounded-xl"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 4px 16px rgba(245,158,11,0.45)' }}
-                transition={{ type:'spring', stiffness:480, damping:34 }}
-              />
-            )}
-            <span className="relative z-10 text-[9px] font-extrabold uppercase tracking-wider" style={{ color: isSel ? '#000' : 'var(--habit-dim)' }}>
-              {new Date(d+'T12:00').toLocaleDateString(i18n.language==='ru'?'ru-RU':'en-US', { weekday:'short' }).slice(0,3)}
-            </span>
-            <span className="relative z-10 text-sm font-black" style={{ color: isSel ? '#000' : 'var(--habit-text)' }}>{dd}</span>
-            <div className="relative z-10" style={{
-              width: 5, height: 5, borderRadius: '50%',
-              background: dot || (isSel ? 'rgba(0,0,0,0.2)' : 'transparent'),
-              border: dot ? 'none' : '1px solid var(--habit-border)',
-            }} />
+            <ChevronLeft size={16} />
           </motion.button>
-        );
-      })}
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={onOpenCalendar}
-        className="p-2.5 rounded-xl flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity shrink-0"
-        style={{ background: 'var(--habit-border)' }}
-      >
-        <CalendarIcon size={15} />
-      </motion.button>
+
+          {/* Clickable Date Label that opens full calendar */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            onClick={onOpenCalendar}
+            className="flex items-center gap-2 px-2 py-1 rounded-xl transition-all hover:bg-white/5"
+            style={{ cursor: 'pointer' }}
+            title={t('nutrition.open_calendar', 'Open full calendar')}
+          >
+            <CalendarIcon size={15} style={{ color: 'var(--habit-gold, #f59e0b)' }} />
+            <div className="text-left">
+              <div style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--habit-text)', lineHeight: 1.1 }}>
+                {isToday ? t('nutrition.today', 'Today') : formatDate(selectedDate, i18n.language)}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--habit-dim, #888)', fontWeight: 700, marginTop: 1 }}>
+                {new Date(selectedDate + 'T12:00').toLocaleDateString(i18n.language === 'ru' ? 'ru-RU' : 'en-US', { weekday: 'long' })}
+              </div>
+            </div>
+          </motion.button>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={() => onSelectDate(addDays(selectedDate, 1))}
+            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all opacity-75 hover:opacity-100"
+            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
+            title="Next day"
+          >
+            <ChevronRight size={16} />
+          </motion.button>
+
+          {!isToday && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onSelectDate(todayStr())}
+              className="px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase transition-all"
+              style={{
+                background: 'rgba(245,158,11,0.18)',
+                color: 'var(--habit-gold, #f59e0b)',
+                border: '1px solid rgba(245,158,11,0.35)',
+                cursor: 'pointer',
+              }}
+            >
+              {t('nutrition.today', 'Today')}
+            </motion.button>
+          )}
+        </div>
+      </div>
+
+      {/* 7-Day Grid (Mon -> Sun) */}
+      <div className="grid grid-cols-7 gap-1.5 w-full">
+        {weekDays.map((d) => {
+          const entry = calMap[d];
+          const isItemToday = d === todayStr();
+          const isSel = d === selectedDate;
+          const cal = entry?.calories || 0;
+          let dotColor = null;
+          if (cal > 0) {
+            const pct = cal / 2000;
+            dotColor = pct >= 0.8 && pct <= 1.2 ? '#10b981' : pct > 1.2 ? '#f74e52' : '#f59e0b';
+          }
+          const [, , dd] = d.split('-');
+          const weekdayName = new Date(d + 'T12:00').toLocaleDateString(
+            i18n.language === 'ru' ? 'ru-RU' : 'en-US',
+            { weekday: 'short' }
+          ).slice(0, 3);
+
+          return (
+            <motion.button
+              key={d}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ y: -1.5 }}
+              onClick={() => onSelectDate(d)}
+              className="relative flex flex-col items-center justify-between py-2 rounded-xl transition-all select-none overflow-hidden"
+              style={{
+                background: isSel ? 'transparent' : isItemToday ? 'rgba(245,158,11,0.08)' : 'var(--habit-border)',
+                border: isItemToday && !isSel ? '1px solid rgba(245,158,11,0.4)' : '1px solid transparent',
+                cursor: 'pointer',
+                minHeight: 52,
+              }}
+            >
+              {isSel && (
+                <motion.div
+                  layoutId="active-date-pill"
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    boxShadow: '0 4px 16px rgba(245,158,11,0.45)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+
+              <span
+                className="relative z-10 text-[9px] font-extrabold uppercase tracking-wider"
+                style={{ color: isSel ? '#000' : 'var(--habit-dim, #888)' }}
+              >
+                {weekdayName}
+              </span>
+
+              <span
+                className="relative z-10 text-[13.5px] font-black"
+                style={{ color: isSel ? '#000' : 'var(--habit-text)' }}
+              >
+                {parseInt(dd, 10)}
+              </span>
+
+              <div
+                className="relative z-10"
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: dotColor || (isSel ? 'rgba(0,0,0,0.25)' : 'transparent'),
+                  border: dotColor ? 'none' : isSel ? 'none' : '1px solid var(--habit-border)',
+                  boxShadow: dotColor ? `0 0 5px ${dotColor}` : 'none',
+                }}
+              />
+            </motion.button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -415,11 +530,11 @@ export default function NutritionTab() {
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div style={{ fontSize:22, fontWeight:900, color:'var(--habit-text)', letterSpacing:'-0.5px' }}>
-                  {isToday ? '📅 ' + t('nutrition.today','Today') : formatDate(selectedDate, i18n.language)}
+                <div style={{ fontSize:18, fontWeight:900, color:'var(--habit-text)', letterSpacing:'-0.5px' }}>
+                  {t('nutrition.title', 'Nutrition Tracker')}
                 </div>
-                <div style={{ fontSize:12, color:'var(--habit-dim)', fontWeight:600, marginTop:1 }}>
-                  {new Date(selectedDate+'T12:00').toLocaleDateString(i18n.language==='ru'?'ru-RU':'en-US', { weekday:'long' })}
+                <div style={{ fontSize:11, color:'var(--habit-dim)', fontWeight:700, marginTop:1 }}>
+                  {isToday ? t('nutrition.today_goals', 'Today’s Targets') : formatDate(selectedDate, i18n.language)}
                 </div>
               </div>
               {toolbar}
@@ -442,43 +557,13 @@ export default function NutritionTab() {
             </div>
           </div>
 
-          {/* Date navigation */}
-          <div style={{ ...CARD, padding:'10px 12px' }}>
-            <div className="flex items-center gap-2 mb-2.5">
-              <button
-                onClick={() => setSelectedDate(addDays(selectedDate,-1))}
-                className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
-                style={{ background:'var(--habit-border)' }}
-              >
-                <ChevronLeft size={15} />
-              </button>
-              <div className="flex-1 text-center">
-                <span style={{ fontSize:12, fontWeight:800, color:'var(--habit-text)' }}>
-                  {isToday ? t('nutrition.today','Today') : formatDate(selectedDate, i18n.language)}
-                </span>
-              </div>
-              <button
-                onClick={() => setSelectedDate(addDays(selectedDate,1))}
-                className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
-                style={{ background:'var(--habit-border)' }}
-              >
-                <ChevronRight size={15} />
-              </button>
-              {!isToday && (
-                <button
-                  onClick={() => setSelectedDate(todayStr())}
-                  className="px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase"
-                  style={{ background:'rgba(245,158,11,0.15)', color:'#f59e0b' }}
-                >
-                  Now
-                </button>
-              )}
-            </div>
-            <DateStrip
-              selected={selectedDate} onSelect={setSelectedDate}
-              calendarData={calendarData} onOpenCalendar={() => setShowCalendarModal(true)}
-            />
-          </div>
+          {/* Dynamic 7-Day Date Navigator */}
+          <DateNavigator
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            calendarData={calendarData}
+            onOpenCalendar={() => setShowCalendarModal(true)}
+          />
 
           {/* Water Tracker */}
           <WaterTracker dateStr={selectedDate} goalMl={goalData.water_ml} />
@@ -542,41 +627,24 @@ export default function NutritionTab() {
           ════════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col gap-3 pb-28 lg:hidden">
 
+        {/* Date Navigator Card */}
+        <DateNavigator
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          calendarData={calendarData}
+          onOpenCalendar={() => setShowCalendarModal(true)}
+        />
+
         {/* Stats card */}
         <div style={{ ...CARD, boxShadow:'0 4px 20px -2px rgba(0,0,0,0.25)' }} className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setSelectedDate(addDays(selectedDate,-1))}
-                className="p-1.5 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
-                style={{ background:'var(--habit-border)' }}
-              >
-                <ChevronLeft size={15} />
-              </button>
-              <div className="px-1 text-center">
-                <div style={{ fontWeight:900, fontSize:16, color:'var(--habit-text)' }}>
-                  {isToday ? t('nutrition.today','Today') : formatDate(selectedDate, i18n.language)}
-                </div>
-                <div style={{ fontSize:11, color:'var(--habit-dim)', fontWeight:600 }}>
-                  {new Date(selectedDate+'T12:00').toLocaleDateString(i18n.language==='ru'?'ru-RU':'en-US', { weekday:'long' })}
-                </div>
+            <div>
+              <div style={{ fontWeight:900, fontSize:16, color:'var(--habit-text)' }}>
+                {t('nutrition.macros_overview', 'Daily Breakdown')}
               </div>
-              <button
-                onClick={() => setSelectedDate(addDays(selectedDate,1))}
-                className="p-1.5 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
-                style={{ background:'var(--habit-border)' }}
-              >
-                <ChevronRight size={15} />
-              </button>
-              {!isToday && (
-                <button
-                  onClick={() => setSelectedDate(todayStr())}
-                  className="px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase ml-1"
-                  style={{ background:'rgba(245,158,11,0.15)', color:'#f59e0b' }}
-                >
-                  {t('nutrition.today','Today')}
-                </button>
-              )}
+              <div style={{ fontSize:11, color:'var(--habit-dim)', fontWeight:600 }}>
+                {isToday ? t('nutrition.today', 'Today') : formatDate(selectedDate, i18n.language)}
+              </div>
             </div>
             {toolbar}
           </div>
@@ -586,14 +654,6 @@ export default function NutritionTab() {
           <div className="mt-3 pt-3 border-t border-[var(--habit-border)]">
             <CalorieGauge consumed={totals.calories} goal={goalData.calories} />
           </div>
-        </div>
-
-        {/* Date Strip */}
-        <div style={CARD} className="p-2.5">
-          <DateStrip
-            selected={selectedDate} onSelect={setSelectedDate}
-            calendarData={calendarData} onOpenCalendar={() => setShowCalendarModal(true)}
-          />
         </div>
 
         {/* Trends */}
