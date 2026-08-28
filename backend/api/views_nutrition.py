@@ -18,6 +18,7 @@ from api.serializers.nutrition import (
     NutriGoalSerializer,
 )
 from api.services import nutrition_service
+from api.models import MealEntry, WeightLog
 
 logger = logging.getLogger(__name__)
 
@@ -282,3 +283,100 @@ class NutriGoalView(APIView):
             return Response(NutriGoalSerializer(goal).data)
         except GameLogicError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RecentFoodsView(APIView):
+    """
+    GET /api/nutrition/recent-foods/?limit=12 — последние / избранные продукты
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            limit = int(request.query_params.get("limit", 12))
+            limit = min(max(limit, 1), 30)
+        except ValueError:
+            limit = 12
+        data = nutrition_service.get_recent_foods(request.user, limit=limit)
+        return Response(data)
+
+
+class MealEntryUpdateView(APIView):
+    """
+    PATCH /api/nutrition/meals/<id>/update/ — изменить количество / заметку
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            entry = MealEntry.objects.get(id=pk, user=request.user)
+        except MealEntry.DoesNotExist:
+            return Response({"error": "Запись не найдена"}, status=status.HTTP_404_NOT_FOUND)
+
+        if "amount" in request.data:
+            amount = float(request.data["amount"])
+            if amount <= 0:
+                return Response({"error": "Количество должно быть > 0"}, status=400)
+            entry.amount = amount
+        if "note" in request.data:
+            entry.note = str(request.data["note"])[:300]
+        if "meal_type" in request.data:
+            allowed = {"breakfast", "lunch", "dinner", "snack"}
+            if request.data["meal_type"] in allowed:
+                entry.meal_type = request.data["meal_type"]
+        entry.save()  # триггерит авто-пересчёт КБЖУ
+        return Response(MealEntrySerializer(entry).data)
+
+
+class WeightLogView(APIView):
+    """
+    GET  /api/nutrition/weight/?days=90 — история веса
+    POST /api/nutrition/weight/         — записать / обновить вес за день
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            days = int(request.query_params.get("days", 90))
+            days = min(max(days, 7), 365)
+        except ValueError:
+            days = 90
+        data = nutrition_service.get_weight_history(request.user, days=days)
+        return Response(data)
+
+    def post(self, request):
+        date_str = request.data.get("date")
+        try:
+            from datetime import date as dt
+            day = dt.fromisoformat(date_str) if date_str else dt.today()
+        except ValueError:
+            return Response({"error": "Неверный формат даты"}, status=400)
+
+        try:
+            weight_kg = float(request.data.get("weight_kg", 0))
+            note = str(request.data.get("note", ""))[:200]
+            entry = nutrition_service.log_weight(request.user, day, weight_kg, note)
+            return Response(
+                {"id": entry.id, "date": str(entry.date), "weight_kg": entry.weight_kg, "note": entry.note},
+                status=status.HTTP_201_CREATED,
+            )
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WeightLogDeleteView(APIView):
+    """
+    DELETE /api/nutrition/weight/<id>/ — удалить запись веса
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            nutrition_service.delete_weight_entry(request.user, pk)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except GameLogicError as e:
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)

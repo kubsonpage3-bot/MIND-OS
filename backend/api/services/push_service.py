@@ -178,3 +178,85 @@ def send_weekly_reports():
             notified_users.add(user.id)
 
     return sent_count
+
+
+def send_meal_reminders():
+    """
+    Отправляет напоминания о приёмах пищи пользователям у которых:
+      - есть push-подписка
+      - включён pref_key "meal_reminder" (по умолчанию True)
+      - в NutriGoal настроено время напоминания для конкретного типа
+      - текущий час UTC совпадает с настроенным часом
+      - в этом типе приёма пищи ещё нет ни одной записи за сегодня
+
+    Вызывается каждый час из CronStreakWarningView.
+    Возвращает количество успешно отправленных уведомлений.
+    """
+    from datetime import datetime, date as dt_date
+    from api.models import NutriGoal, MealEntry
+
+    now_utc = datetime.utcnow()
+    current_hour = now_utc.hour
+    today = dt_date.today()
+
+    MEAL_REMINDERS = [
+        ("reminder_breakfast", "breakfast", "🌅 Завтрак", "Не забудь залогировать завтрак!"),
+        ("reminder_lunch",     "lunch",     "☀️ Обед",   "Время обеда — не забудь записать!"),
+        ("reminder_dinner",    "dinner",    "🌙 Ужин",   "Залогируй ужин пока не забыл!"),
+    ]
+
+    # Берём пользователей с push-подписками и настроенными целями
+    goals = (
+        NutriGoal.objects
+        .select_related("user")
+        .prefetch_related("user__push_subscriptions")
+        .filter(user__push_subscriptions__isnull=False)
+        .distinct()
+    )
+
+    sent_count = 0
+    notified_pairs = set()  # (user_id, meal_type) — один push в час
+
+    for goal in goals:
+        user = goal.user
+        prefs = getattr(user, "profile", None)
+        if prefs:
+            notif_prefs = prefs.notification_preferences or {}
+            if not notif_prefs.get("meal_reminder", True):
+                continue
+
+        for field, meal_type, title, body in MEAL_REMINDERS:
+            reminder_time = getattr(goal, field, None)
+            if not reminder_time:
+                continue
+
+            # Совпадает ли час напоминания с текущим часом UTC?
+            if reminder_time.hour != current_hour:
+                continue
+
+            pair_key = (user.id, meal_type)
+            if pair_key in notified_pairs:
+                continue
+
+            # Уже есть записи за сегодня этого типа?
+            has_entry = MealEntry.objects.filter(
+                user=user, date=today, meal_type=meal_type
+            ).exists()
+            if has_entry:
+                continue  # уже залогировано — не беспокоить
+
+            payload = {
+                "title": title,
+                "body": body,
+                "icon": "/android-chrome-192x192.png",
+                "url": "/?tab=nutrition",
+            }
+
+            for sub in user.push_subscriptions.all():
+                if send_web_push(sub, payload):
+                    sent_count += 1
+                    notified_pairs.add(pair_key)
+                    break  # достаточно одного устройства на приём пищи
+
+    logger.info("send_meal_reminders: sent %d notifications for hour %d UTC", sent_count, current_hour)
+    return sent_count

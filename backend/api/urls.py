@@ -74,6 +74,7 @@ from .views_nutrition import (
     GlobalFoodSearchView,
     MealEntryListView,
     MealEntryDeleteView,
+    MealEntryUpdateView,
     WaterLogView,
     SavedMealComboListView,
     SavedMealComboDetailView,
@@ -81,6 +82,9 @@ from .views_nutrition import (
     NutritionCalendarView,
     NutritionTrendsView,
     NutriGoalView,
+    RecentFoodsView,
+    WeightLogView,
+    WeightLogDeleteView,
 )
 
 # ——— DRF Router автоматически генерирует CRUD-маршруты ————————————————
@@ -281,4 +285,9 @@ urlpatterns = [
     ),
     path("nutrition/trends/", NutritionTrendsView.as_view(), name="nutrition-trends"),
     path("nutrition/goal/", NutriGoalView.as_view(), name="nutrition-goal"),
+    # Новые: недавние, редактирование записи, вес тела
+    path("nutrition/recent-foods/", RecentFoodsView.as_view(), name="nutrition-recent-foods"),
+    path("nutrition/meals/<int:pk>/update/", MealEntryUpdateView.as_view(), name="nutrition-meal-update"),
+    path("nutrition/weight/", WeightLogView.as_view(), name="nutrition-weight"),
+    path("nutrition/weight/<int:pk>/", WeightLogDeleteView.as_view(), name="nutrition-weight-delete"),
 ]

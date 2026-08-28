@@ -29,6 +29,7 @@ import {
   Moon,
   Apple,
   Flame,
+  Share2,
 } from 'lucide-react';
 
 const AddMealModal = lazy(() => import('./AddMealModal'));
@@ -36,6 +37,8 @@ const NutriGoalModal = lazy(() => import('./NutriGoalModal'));
 const NutriCalendarModal = lazy(() => import('./NutriCalendarModal'));
 const SavedCombosModal = lazy(() => import('./SavedCombosModal'));
 const NutritionTrends = lazy(() => import('./NutritionTrends'));
+const BodyWeightTracker = lazy(() => import('./BodyWeightTracker'));
+const WeeklyReportCard = lazy(() => import('./WeeklyReportCard'));
 
 // ─── Utils ─────────────────────────────────────────────────────────────────────
 function todayStr() {
@@ -395,6 +398,7 @@ export default function NutritionTab() {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showCombosModal, setShowCombosModal] = useState(false);
   const [showTrends, setShowTrends] = useState(false);
+  const [showReportCard, setShowReportCard] = useState(false);
 
   const currentMonth = monthStr(new Date(selectedDate + 'T12:00'));
 
@@ -527,6 +531,16 @@ export default function NutritionTab() {
             >
               <Settings size={15} />
             </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setShowReportCard(true)}
+              className="p-2 rounded-xl transition-all opacity-80 hover:opacity-100"
+              style={{ background: 'var(--habit-border)', color: 'var(--habit-gold, #f59e0b)' }}
+              title="Weekly Report Card"
+            >
+              <Share2 size={15} />
+            </motion.button>
           </div>
         </div>
 
@@ -579,6 +593,11 @@ export default function NutritionTab() {
 
       {/* ── Water Tracker ──────────────────────────────────────────────────── */}
       <WaterTracker dateStr={selectedDate} goalMl={goalData.water_ml} />
+
+      {/* ── Body Weight Tracker ──────────────────────────────────────────── */}
+      <Suspense fallback={null}>
+        <BodyWeightTracker goalData={goalData} />
+      </Suspense>
 
       {/* ── Collapsible Meal Categories ─────────────────────────────────────── */}
       <div>
@@ -649,6 +668,12 @@ export default function NutritionTab() {
               dateStr={selectedDate}
               onClose={() => setShowCombosModal(false)}
             />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showReportCard && (
+            <WeeklyReportCard onClose={() => setShowReportCard(false)} />
           )}
         </AnimatePresence>
       </Suspense>

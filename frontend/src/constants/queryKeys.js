@@ -26,3 +26,5 @@ export const NUTRITION_WATER_KEY = (dateStr) => ["nutrition", "water", dateStr];
 export const NUTRITION_COMBOS_KEY = ["nutrition", "combos"];
 export const NUTRITION_TRENDS_KEY = (days = 30) => ["nutrition", "trends", days];
 export const NUTRI_GOAL_KEY = ["nutrition", "goal"];
+export const NUTRITION_RECENT_KEY = ["nutrition", "recent-foods"];
+export const NUTRITION_WEIGHT_KEY = (days = 90) => ["nutrition", "weight", days];

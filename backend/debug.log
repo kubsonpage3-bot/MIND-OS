@@ -3100,3 +3100,639 @@ ERROR 2026-08-27 13:12:43,334 task_service 11756 13712 complete_task failed: [Er
 ERROR 2026-08-27 13:12:46,388 task_service 11756 13712 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
 ERROR 2026-08-27 13:23:36,686 task_service 20336 22532 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
 ERROR 2026-08-27 13:23:39,835 task_service 20336 22532 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 14:00:12,835 log 2848 5492 Unauthorized: /api/analytics/event/
+WARNING 2026-08-27 14:00:13,704 log 2848 5492 Bad Request: /api/analytics/event/
+WARNING 2026-08-27 14:00:18,100 log 2848 5492 Bad Request: /api/auth/register/
+WARNING 2026-08-27 14:00:21,088 log 2848 5492 Bad Request: /api/profile/
+WARNING 2026-08-27 14:00:21,741 log 2848 5492 Forbidden: /api/calendar/events/
+WARNING 2026-08-27 14:00:29,338 log 2848 5492 Bad Request: /api/tasks/1/sacrifice/
+WARNING 2026-08-27 14:00:29,874 log 2848 5492 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:00:29,899 log 2848 5492 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:00:29,963 log 2848 5492 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:00:29,982 log 2848 5492 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-27 14:00:42,925 log 2848 5492 Forbidden: /api/party/members/1/profile/
+WARNING 2026-08-27 14:00:43,517 log 2848 5492 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-27 14:00:49,790 task_service 2848 5492 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 14:00:53,043 task_service 2848 5492 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 14:00:57,396 log 2848 5492 Bad Request: /api/profile/
+ERROR 2026-08-27 14:00:58,398 log 2848 8980 Internal Server Error: /api/mutators/chest/open/
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database table is locked: api_userprofile
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kubso\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\kubso\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\api\tests\test_new_mutators.py", line 496, in perform_request
+    response = client.post("/api/mutators/chest/open/")
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 295, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 209, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 233, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 676, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 285, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 237, in request
+    request = super().request(**kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 1092, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\api\views.py", line 3627, in post
+    profile = UserProfile.objects.select_for_update().get(user=request.user)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database table is locked: api_userprofile
+WARNING 2026-08-27 14:06:55,636 log 14668 16688 Unauthorized: /api/analytics/event/
+WARNING 2026-08-27 14:06:56,498 log 14668 16688 Bad Request: /api/analytics/event/
+WARNING 2026-08-27 14:07:00,840 log 14668 16688 Bad Request: /api/auth/register/
+WARNING 2026-08-27 14:07:03,854 log 14668 16688 Bad Request: /api/profile/
+WARNING 2026-08-27 14:07:04,500 log 14668 16688 Forbidden: /api/calendar/events/
+WARNING 2026-08-27 14:07:11,978 log 14668 16688 Bad Request: /api/tasks/1/sacrifice/
+WARNING 2026-08-27 14:07:12,505 log 14668 16688 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:07:12,529 log 14668 16688 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:07:12,609 log 14668 16688 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:07:12,626 log 14668 16688 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-27 14:07:25,033 log 14668 16688 Forbidden: /api/party/members/1/profile/
+WARNING 2026-08-27 14:07:25,635 log 14668 16688 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-27 14:07:31,542 task_service 14668 16688 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 14:07:34,639 task_service 14668 16688 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 14:07:38,946 log 14668 16688 Bad Request: /api/profile/
+ERROR 2026-08-27 14:07:39,933 log 14668 18272 Internal Server Error: /api/mutators/chest/open/
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database table is locked: api_userprofile
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\api\tests\test_new_mutators.py", line 496, in perform_request
+    response = client.post("/api/mutators/chest/open/")
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 295, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 209, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 233, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 676, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 285, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 237, in request
+    request = super().request(**kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 1092, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\api\views.py", line 3659, in post
+    profile.save(update_fields=["gold", "active_mutators"])
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\api\models.py", line 514, in save
+    super().save(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 892, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 998, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1130, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1195, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 1278, in _update
+    return query.get_compiler(self.db).execute_sql(CURSOR)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 2003, in execute_sql
+    cursor = super().execute_sql(result_type)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database table is locked: api_userprofile
+WARNING 2026-08-27 14:09:00,062 log 14060 17016 Unauthorized: /api/analytics/event/
+WARNING 2026-08-27 14:09:00,808 log 14060 17016 Bad Request: /api/analytics/event/
+WARNING 2026-08-27 14:09:04,621 log 14060 17016 Bad Request: /api/auth/register/
+WARNING 2026-08-27 14:09:06,943 log 14060 17016 Bad Request: /api/profile/
+WARNING 2026-08-27 14:09:07,539 log 14060 17016 Forbidden: /api/calendar/events/
+WARNING 2026-08-27 14:09:14,345 log 14060 17016 Bad Request: /api/tasks/1/sacrifice/
+WARNING 2026-08-27 14:09:14,782 log 14060 17016 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:09:14,800 log 14060 17016 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:09:14,854 log 14060 17016 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 14:09:14,870 log 14060 17016 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-27 14:09:26,258 log 14060 17016 Forbidden: /api/party/members/1/profile/
+WARNING 2026-08-27 14:09:26,804 log 14060 17016 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-27 14:09:32,153 task_service 14060 17016 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 14:09:34,890 task_service 14060 17016 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 14:09:38,706 log 14060 17016 Bad Request: /api/profile/
+ERROR 2026-08-27 14:09:39,542 log 14060 18860 Internal Server Error: /api/mutators/chest/open/
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database table is locked: api_userprofile
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\api\tests\test_new_mutators.py", line 496, in perform_request
+    response = client.post("/api/mutators/chest/open/")
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 295, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 209, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 233, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 676, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 285, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 237, in request
+    request = super().request(**kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 1092, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\api\views.py", line 3659, in post
+    profile.save(update_fields=["gold", "active_mutators"])
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\api\models.py", line 514, in save
+    super().save(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 892, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 998, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1130, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1195, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 1278, in _update
+    return query.get_compiler(self.db).execute_sql(CURSOR)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 2003, in execute_sql
+    cursor = super().execute_sql(result_type)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database table is locked: api_userprofile
+WARNING 2026-08-27 16:32:57,884 log 12292 15348 Unauthorized: /api/analytics/event/
+WARNING 2026-08-27 16:32:58,751 log 12292 15348 Bad Request: /api/analytics/event/
+WARNING 2026-08-27 16:33:03,063 log 12292 15348 Bad Request: /api/auth/register/
+WARNING 2026-08-27 16:33:05,707 log 12292 15348 Bad Request: /api/profile/
+WARNING 2026-08-27 16:33:06,353 log 12292 15348 Forbidden: /api/calendar/events/
+WARNING 2026-08-27 16:33:14,069 log 12292 15348 Bad Request: /api/tasks/1/sacrifice/
+WARNING 2026-08-27 16:33:14,576 log 12292 15348 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 16:33:14,598 log 12292 15348 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 16:33:14,661 log 12292 15348 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 16:33:14,681 log 12292 15348 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-27 16:33:27,232 log 12292 15348 Forbidden: /api/party/members/1/profile/
+WARNING 2026-08-27 16:33:27,826 log 12292 15348 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-27 16:33:33,808 task_service 12292 15348 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 16:33:36,951 task_service 12292 15348 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 16:33:41,277 log 12292 15348 Bad Request: /api/profile/
+ERROR 2026-08-27 16:33:42,238 log 12292 21820 Internal Server Error: /api/mutators/chest/open/
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database table is locked: api_userprofile
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\api\tests\test_new_mutators.py", line 496, in perform_request
+    response = client.post("/api/mutators/chest/open/")
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 295, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 209, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 233, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 676, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 285, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 237, in request
+    request = super().request(**kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 1092, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\api\views.py", line 3659, in post
+    profile.save(update_fields=["gold", "active_mutators"])
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\api\models.py", line 514, in save
+    super().save(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 892, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 998, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1130, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1195, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 1278, in _update
+    return query.get_compiler(self.db).execute_sql(CURSOR)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 2003, in execute_sql
+    cursor = super().execute_sql(result_type)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database table is locked: api_userprofile
+WARNING 2026-08-27 16:43:32,978 log 17460 2764 Unauthorized: /api/analytics/event/
+WARNING 2026-08-27 16:43:33,856 log 17460 2764 Bad Request: /api/analytics/event/
+WARNING 2026-08-27 16:43:38,237 log 17460 2764 Bad Request: /api/auth/register/
+WARNING 2026-08-27 16:43:40,912 log 17460 2764 Bad Request: /api/profile/
+WARNING 2026-08-27 16:43:41,588 log 17460 2764 Forbidden: /api/calendar/events/
+WARNING 2026-08-27 16:43:49,250 log 17460 2764 Bad Request: /api/tasks/1/sacrifice/
+WARNING 2026-08-27 16:43:49,765 log 17460 2764 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 16:43:49,788 log 17460 2764 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 16:43:49,859 log 17460 2764 Bad Request: /api/mutators/chest/open/
+WARNING 2026-08-27 16:43:49,877 log 17460 2764 Bad Request: /api/mutators/bloodwork/buy/
+WARNING 2026-08-27 16:44:02,512 log 17460 2764 Forbidden: /api/party/members/1/profile/
+WARNING 2026-08-27 16:44:03,109 log 17460 2764 Not Found: /api/party/members/999999/profile/
+ERROR 2026-08-27 16:44:08,986 task_service 17460 2764 complete_task failed: [ErrorDetail(string='Task already completed.', code='invalid')]
+ERROR 2026-08-27 16:44:12,033 task_service 17460 2764 complete_task failed: [ErrorDetail(string='This daily task is not scheduled for today.', code='invalid')]
+WARNING 2026-08-27 16:44:16,304 log 17460 2764 Bad Request: /api/profile/
+ERROR 2026-08-27 16:44:17,327 log 17460 17940 Internal Server Error: /api/mutators/chest/open/
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database table is locked: api_userprofile
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\coder\mindos\backend\api\tests\test_new_mutators.py", line 496, in perform_request
+    response = client.post("/api/mutators/chest/open/")
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 295, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 209, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 233, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 676, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 285, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\test.py", line 237, in request
+    request = super().request(**kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 1092, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\coder\mindos\backend\api\views.py", line 3659, in post
+    profile.save(update_fields=["gold", "active_mutators"])
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\api\models.py", line 514, in save
+    super().save(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 892, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 998, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1130, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\base.py", line 1195, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\query.py", line 1278, in _update
+    return query.get_compiler(self.db).execute_sql(CURSOR)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 2003, in execute_sql
+    cursor = super().execute_sql(result_type)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\coder\mindos\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database table is locked: api_userprofile

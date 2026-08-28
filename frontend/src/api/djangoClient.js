@@ -585,6 +585,22 @@ export const djangoApi = {
     getGoal: () => djangoFetch('/nutrition/goal/'),
     updateGoal: (data) =>
       djangoFetch('/nutrition/goal/', { method: 'PATCH', body: JSON.stringify(data) }),
+
+    // Недавние / избранные продукты (Quick-Add)
+    getRecentFoods: (limit = 12) =>
+      djangoFetch(`/nutrition/recent-foods/?limit=${limit}`),
+
+    // Редактирование записи (граммаж, тип приёма, заметка)
+    updateMeal: (id, data) =>
+      djangoFetch(`/nutrition/meals/${id}/update/`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+    // Трекер веса
+    getWeight: (days = 90) =>
+      djangoFetch(`/nutrition/weight/?days=${days}`),
+    logWeight: (data) =>
+      djangoFetch('/nutrition/weight/', { method: 'POST', body: JSON.stringify(data) }),
+    deleteWeight: (id) =>
+      djangoFetch(`/nutrition/weight/${id}/`, { method: 'DELETE' }),
   },
 
   extension: {

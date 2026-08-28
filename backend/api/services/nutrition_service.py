@@ -12,7 +12,8 @@ from calendar import monthrange
 
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, F
+from django.utils import timezone
 
 from api.models import (
     FoodItem,
@@ -22,6 +23,7 @@ from api.models import (
     SavedMealCombo,
     MealComboItem,
     WaterLog,
+    WeightLog,
 )
 from api.exceptions import GameLogicError
 
@@ -227,11 +229,20 @@ def search_global_foods(user: User, query: str) -> dict:
                     protein = float(nutriments.get("proteins_100g") or 0.0)
                     fat = float(nutriments.get("fat_100g") or 0.0)
                     carbs = float(nutriments.get("carbohydrates_100g") or 0.0)
+                    # Микронутриенты (nullable — не у всех продуктов есть)
+                    fiber_raw = nutriments.get("fiber_100g")
+                    sugar_raw = nutriments.get("sugars_100g")
+                    sodium_raw = nutriments.get("sodium_100g")  # в граммах → конвертируем в мг
+                    sat_fat_raw = nutriments.get("saturated-fat_100g")
+                    fiber = float(fiber_raw) if fiber_raw is not None else None
+                    sugar = float(sugar_raw) if sugar_raw is not None else None
+                    sodium = round(float(sodium_raw) * 1000, 1) if sodium_raw is not None else None  # г → мг
+                    saturated_fat = float(sat_fat_raw) if sat_fat_raw is not None else None
                     barcode = str(p.get("code") or "")
                     brand = str(p.get("brands") or "").strip()
                     image_url = str(p.get("image_front_small_url") or "")
 
-                    # Сохраняем в GlobalFoodCache
+                    # Сохраняем в GlobalFoodCache (с микронутриентами)
                     cache_item, _ = GlobalFoodCache.objects.update_or_create(
                         barcode=barcode if barcode else None,
                         name=name,
@@ -241,6 +252,10 @@ def search_global_foods(user: User, query: str) -> dict:
                             "protein_per_100": max(0.0, protein),
                             "fat_per_100": max(0.0, fat),
                             "carbs_per_100": max(0.0, carbs),
+                            "fiber_per_100": fiber,
+                            "sugar_per_100": sugar,
+                            "sodium_per_100": sodium,
+                            "saturated_fat_per_100": saturated_fat,
                             "unit": "g",
                             "image_url": image_url,
                             "source": "openfoodfacts",
@@ -260,6 +275,10 @@ def search_global_foods(user: User, query: str) -> dict:
                                 "protein_per_100": cache_item.protein_per_100,
                                 "fat_per_100": cache_item.fat_per_100,
                                 "carbs_per_100": cache_item.carbs_per_100,
+                                "fiber_per_100": cache_item.fiber_per_100,
+                                "sugar_per_100": cache_item.sugar_per_100,
+                                "sodium_per_100": cache_item.sodium_per_100,
+                                "saturated_fat_per_100": cache_item.saturated_fat_per_100,
                                 "unit": cache_item.unit,
                                 "image_url": cache_item.image_url,
                                 "source": cache_item.source,
@@ -355,6 +374,10 @@ def add_meal_entry(user: User, data: dict) -> MealEntry:
                     "protein_per_100": global_item.protein_per_100,
                     "fat_per_100": global_item.fat_per_100,
                     "carbs_per_100": global_item.carbs_per_100,
+                    "fiber_per_100": global_item.fiber_per_100,
+                    "sugar_per_100": global_item.sugar_per_100,
+                    "sodium_per_100": global_item.sodium_per_100,
+                    "saturated_fat_per_100": global_item.saturated_fat_per_100,
                     "unit": global_item.unit,
                 },
             )
@@ -384,6 +407,11 @@ def add_meal_entry(user: User, data: dict) -> MealEntry:
         photo_url=data.get("photo_url", ""),
     )
     entry.save()
+    # Обновляем статистику использования продукта (для Quick-Add / Recent)
+    FoodItem.objects.filter(pk=food_item.pk).update(
+        last_used_at=timezone.now(),
+        use_count=F('use_count') + 1,
+    )
     logger.info(
         "MealEntry added: %s %.0fg for user %s", food_item.name, amount, user.username
     )
@@ -398,6 +426,38 @@ def delete_meal_entry(user: User, entry_id: int) -> None:
     except MealEntry.DoesNotExist:
         raise GameLogicError("Запись не найдена.")
     entry.delete()
+
+
+def get_recent_foods(user: User, limit: int = 12) -> list:
+    """
+    Возвращает продукты пользователя отсортированные по последнему использованию.
+    Избранные всегда идут первыми внутри своей группы.
+    Использовать для Quick-Add секции в AddMealModal.
+    """
+    items = (
+        FoodItem.objects.filter(user=user)
+        .exclude(last_used_at=None)  # только реально использованные
+        .order_by('-is_favorite', '-last_used_at')[:limit]
+    )
+    result = []
+    for item in items:
+        result.append({
+            "id": item.id,
+            "name": item.name,
+            "calories_per_100": item.calories_per_100,
+            "protein_per_100": item.protein_per_100,
+            "fat_per_100": item.fat_per_100,
+            "carbs_per_100": item.carbs_per_100,
+            "fiber_per_100": item.fiber_per_100,
+            "sugar_per_100": item.sugar_per_100,
+            "sodium_per_100": item.sodium_per_100,
+            "saturated_fat_per_100": item.saturated_fat_per_100,
+            "unit": item.unit,
+            "is_favorite": item.is_favorite,
+            "is_custom": True,
+            "use_count": item.use_count,
+        })
+    return result
 
 
 # ─── Water Tracking ───────────────────────────────────────────────────────────
@@ -718,7 +778,7 @@ def get_trends(user: User, days: int = 30) -> dict:
 
 @transaction.atomic
 def update_nutri_goal(user: User, data: dict) -> NutriGoal:
-    """Обновить цели питания."""
+    """Обновить цели питания (включая вес и время напоминаний)."""
     goal = _get_or_create_goal(user)
     for field in ("calories", "protein", "fat", "carbs", "water_ml"):
         if field in data:
@@ -726,9 +786,66 @@ def update_nutri_goal(user: User, data: dict) -> NutriGoal:
             if val < 0:
                 raise GameLogicError(f"Цель '{field}' не может быть отрицательной.")
             setattr(goal, field, int(val) if field == "water_ml" else val)
+    # Целевой вес
+    if "target_weight_kg" in data:
+        twk = data["target_weight_kg"]
+        goal.target_weight_kg = float(twk) if twk is not None else None
+    # Напоминания ("HH:MM" строки или null)
+    for reminder_field in ("reminder_breakfast", "reminder_lunch", "reminder_dinner"):
+        if reminder_field in data:
+            goal.__dict__[reminder_field] = data[reminder_field] or None
     goal.save()
     return goal
 
 
 def get_nutri_goal(user: User) -> NutriGoal:
     return _get_or_create_goal(user)
+
+
+# ─── Weight Tracking ──────────────────────────────────────────────────────────
+
+
+@transaction.atomic
+def log_weight(user: User, day: date, weight_kg: float, note: str = "") -> WeightLog:
+    """Добавить или обновить запись веса за день."""
+    if weight_kg <= 0 or weight_kg > 500:
+        raise GameLogicError("Некорректное значение веса.")
+    entry, _ = WeightLog.objects.update_or_create(
+        user=user,
+        date=day,
+        defaults={"weight_kg": round(weight_kg, 2), "note": note},
+    )
+    logger.info("WeightLog: %s %.1fkg for user %s", day, weight_kg, user.username)
+    return entry
+
+
+def get_weight_history(user: User, days: int = 90) -> dict:
+    """История веса за последние N дней + целевой вес из NutriGoal."""
+    end_date = date.today()
+    start_date = end_date - timedelta(days=days - 1)
+    goal = _get_or_create_goal(user)
+
+    logs = WeightLog.objects.filter(
+        user=user, date__range=(start_date, end_date)
+    ).order_by("date")
+
+    series = [
+        {"date": str(w.date), "weight_kg": w.weight_kg, "note": w.note}
+        for w in logs
+    ]
+
+    return {
+        "series": series,
+        "target_weight_kg": goal.target_weight_kg,
+        "days": days,
+    }
+
+
+@transaction.atomic
+def delete_weight_entry(user: User, entry_id: int) -> None:
+    """Удалить запись веса."""
+    try:
+        entry = WeightLog.objects.get(id=entry_id, user=user)
+    except WeightLog.DoesNotExist:
+        raise GameLogicError("Запись не найдена.")
+    entry.delete()

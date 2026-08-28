@@ -7,9 +7,10 @@ import { djangoApi } from '@/api/djangoClient';
 import {
   NUTRITION_MEALS_KEY,
   GLOBAL_FOOD_KEY,
+  NUTRITION_RECENT_KEY,
 } from '@/constants/queryKeys';
 import { toast } from '@/components/ui/use-toast';
-import { Search, Star, Camera, X, Globe, User, Loader2 } from 'lucide-react';
+import { Search, Star, Camera, X, Globe, User, Loader2, Zap } from 'lucide-react';
 
 const MEAL_TYPES = [
   { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅' },
@@ -49,6 +50,13 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: GLOBAL_FOOD_KEY(search),
     queryFn: () => djangoApi.nutrition.searchGlobal(search),
+    staleTime: 30_000,
+  });
+
+  // Quick-Add: последние использованные продукты
+  const { data: recentFoods = [] } = useQuery({
+    queryKey: NUTRITION_RECENT_KEY,
+    queryFn: () => djangoApi.nutrition.getRecentFoods(12),
     staleTime: 30_000,
   });
 
@@ -103,6 +111,10 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
         protein: ((selectedFood.protein_per_100 * amount) / 100).toFixed(1),
         fat: ((selectedFood.fat_per_100 * amount) / 100).toFixed(1),
         carbs: ((selectedFood.carbs_per_100 * amount) / 100).toFixed(1),
+        fiber: selectedFood.fiber_per_100 != null ? ((selectedFood.fiber_per_100 * amount) / 100).toFixed(1) : null,
+        sugar: selectedFood.sugar_per_100 != null ? ((selectedFood.sugar_per_100 * amount) / 100).toFixed(1) : null,
+        sodium: selectedFood.sodium_per_100 != null ? ((selectedFood.sodium_per_100 * amount) / 100).toFixed(0) : null,
+        saturatedFat: selectedFood.saturated_fat_per_100 != null ? ((selectedFood.saturated_fat_per_100 * amount) / 100).toFixed(1) : null,
       }
     : null;
 
@@ -249,6 +261,46 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[var(--habit-gold,#f59e0b)]" />
               )}
             </div>
+
+            {/* Quick-Add: Last Used (shown when no search query) */}
+            {!search && recentFoods.length > 0 && !selectedFood && (
+              <div className="mb-3">
+                <div
+                  className="text-[10px] font-extrabold uppercase tracking-wider mb-1.5 px-1 flex items-center gap-1"
+                  style={{ color: 'var(--habit-gold, #f59e0b)' }}
+                >
+                  <Zap size={10} /> Quick Add
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {recentFoods.map((food) => (
+                    <motion.button
+                      key={`recent-${food.id}`}
+                      whileTap={{ scale: 0.94 }}
+                      onClick={() => setSelectedFood({ ...food, is_custom: true })}
+                      className="flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-center"
+                      style={{
+                        background: 'rgba(245,158,11,0.1)',
+                        border: '1px solid rgba(245,158,11,0.25)',
+                        cursor: 'pointer',
+                        minWidth: 72,
+                        maxWidth: 90,
+                      }}
+                    >
+                      {food.is_favorite && <Star size={9} style={{ color: 'var(--habit-gold, #f59e0b)' }} />}
+                      <span
+                        className="text-[10px] font-bold leading-tight"
+                        style={{ color: 'var(--habit-text)', wordBreak: 'break-word' }}
+                      >
+                        {food.name.length > 14 ? food.name.slice(0, 14) + '…' : food.name}
+                      </span>
+                      <span className="text-[9px] font-semibold" style={{ color: 'var(--habit-gold, #f59e0b)' }}>
+                        {Math.round(food.calories_per_100)} kcal
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Search Results List */}
             <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto mb-4 scrollbar-thin">
@@ -501,11 +553,22 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
             {/* Calculated Macros Preview */}
             {preview && (
-              <div className="flex gap-3 text-xs font-bold pt-2 border-t border-[rgba(245,158,11,0.15)]">
-                <span style={{ color: 'var(--habit-gold, #f59e0b)' }}>{preview.calories} {t('nutrition.kcal', 'kcal')}</span>
-                <span style={{ color: 'var(--habit-blue, #3b82f6)' }}>{t('nutrition.macros.p_short', 'P')} {preview.protein}{t('nutrition.g', 'g')}</span>
-                <span style={{ color: 'var(--habit-orange, #f97316)' }}>{t('nutrition.macros.f_short', 'F')} {preview.fat}{t('nutrition.g', 'g')}</span>
-                <span style={{ color: 'var(--habit-green, #10b981)' }}>{t('nutrition.macros.c_short', 'C')} {preview.carbs}{t('nutrition.g', 'g')}</span>
+              <div className="pt-2 border-t border-[rgba(245,158,11,0.15)]">
+                <div className="flex gap-3 text-xs font-bold mb-1.5">
+                  <span style={{ color: 'var(--habit-gold, #f59e0b)' }}>{preview.calories} {t('nutrition.kcal', 'kcal')}</span>
+                  <span style={{ color: 'var(--habit-blue, #3b82f6)' }}>{t('nutrition.macros.p_short', 'P')} {preview.protein}{t('nutrition.g', 'g')}</span>
+                  <span style={{ color: 'var(--habit-orange, #f97316)' }}>{t('nutrition.macros.f_short', 'F')} {preview.fat}{t('nutrition.g', 'g')}</span>
+                  <span style={{ color: 'var(--habit-green, #10b981)' }}>{t('nutrition.macros.c_short', 'C')} {preview.carbs}{t('nutrition.g', 'g')}</span>
+                </div>
+                {/* Micronutrients (only if available) */}
+                {(preview.fiber != null || preview.sugar != null || preview.sodium != null || preview.saturatedFat != null) && (
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] font-semibold opacity-60">
+                    {preview.fiber != null && <span>Клетчатка {preview.fiber}г</span>}
+                    {preview.sugar != null && <span>Сахар {preview.sugar}г</span>}
+                    {preview.saturatedFat != null && <span>Нас. жиры {preview.saturatedFat}г</span>}
+                    {preview.sodium != null && <span>Na {preview.sodium}мг</span>}
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

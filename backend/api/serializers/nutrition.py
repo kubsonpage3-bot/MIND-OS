@@ -22,11 +22,18 @@ class FoodItemSerializer(serializers.ModelSerializer):
             "protein_per_100",
             "fat_per_100",
             "carbs_per_100",
+            # Микронутриенты (nullable)
+            "fiber_per_100",
+            "sugar_per_100",
+            "sodium_per_100",
+            "saturated_fat_per_100",
             "unit",
             "is_favorite",
+            "use_count",
+            "last_used_at",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "use_count", "last_used_at", "created_at"]
 
 
 class GlobalFoodCacheSerializer(serializers.ModelSerializer):
@@ -41,6 +48,10 @@ class GlobalFoodCacheSerializer(serializers.ModelSerializer):
             "protein_per_100",
             "fat_per_100",
             "carbs_per_100",
+            "fiber_per_100",
+            "sugar_per_100",
+            "sodium_per_100",
+            "saturated_fat_per_100",
             "unit",
             "image_url",
             "source",
@@ -65,6 +76,11 @@ class MealEntrySerializer(serializers.ModelSerializer):
             "protein",
             "fat",
             "carbs",
+            # Микронутриенты денормализованные (nullable)
+            "fiber",
+            "sugar",
+            "sodium",
+            "saturated_fat",
             "note",
             "photo_url",
             "created_at",
@@ -77,6 +93,10 @@ class MealEntrySerializer(serializers.ModelSerializer):
             "protein",
             "fat",
             "carbs",
+            "fiber",
+            "sugar",
+            "sodium",
+            "saturated_fat",
             "created_at",
         ]
 
@@ -84,7 +104,12 @@ class MealEntrySerializer(serializers.ModelSerializer):
 class NutriGoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = NutriGoal
-        fields = ["calories", "protein", "fat", "carbs", "water_ml", "updated_at"]
+        fields = [
+            "calories", "protein", "fat", "carbs", "water_ml",
+            "target_weight_kg",
+            "reminder_breakfast", "reminder_lunch", "reminder_dinner",
+            "updated_at",
+        ]
         read_only_fields = ["updated_at"]
 
 
