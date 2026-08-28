@@ -204,11 +204,6 @@ export default function NutritionDateNavigator({
     { month: 'long', year: 'numeric' }
   );
 
-  // Jump shortcuts
-  const yesterday = addDays(today, -1);
-  const tomorrow = addDays(today, 1);
-  const nextWeekDay = addDays(today, 7);
-
   return (
     <div
       className="rounded-2xl transition-all"
@@ -220,8 +215,8 @@ export default function NutritionDateNavigator({
       }}
     >
       {/* ── Top Header Row ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-3">
-        {/* Left: Week Jump « < */}
+      <div className="flex items-center justify-between gap-1 mb-3">
+        {/* Left: Week & Day Jump « < */}
         <div className="flex items-center gap-1">
           <motion.button
             whileTap={{ scale: 0.88 }}
@@ -248,16 +243,16 @@ export default function NutritionDateNavigator({
         {/* Center: Interactive Title & Range */}
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => setViewMode(viewMode === 'month' ? '1week' : 'month')}
-          className="flex items-center gap-2 px-2.5 py-1 rounded-xl transition-all hover:bg-white/5"
+          onClick={onOpenCalendar}
+          className="flex items-center gap-2 px-2 py-1 rounded-xl transition-all hover:bg-white/5"
           style={{ cursor: 'pointer' }}
-          title={t('nutrition.toggle_view', 'Toggle Month View')}
+          title={t('nutrition.open_calendar', 'Open Full Calendar')}
         >
-          <CalendarIcon size={15} style={{ color: 'var(--habit-gold, #f59e0b)' }} />
+          <CalendarIcon size={14} style={{ color: 'var(--habit-gold, #f59e0b)' }} />
           <div className="text-center">
             <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--habit-text)', lineHeight: 1.1 }}>
               {isToday ? t('nutrition.today', 'Today') : formatDate(selectedDate, i18n.language)}
-              <span className="text-[10px] font-semibold opacity-50 ml-1.5 font-mono">
+              <span className="text-[10px] font-semibold opacity-50 ml-1 font-mono">
                 ({weekRangeLabel})
               </span>
             </div>
@@ -269,7 +264,7 @@ export default function NutritionDateNavigator({
           </div>
         </motion.button>
 
-        {/* Right: Next day/week > » */}
+        {/* Right: Next day/week > » & View Mode Switcher */}
         <div className="flex items-center gap-1">
           <motion.button
             whileTap={{ scale: 0.88 }}
@@ -291,62 +286,30 @@ export default function NutritionDateNavigator({
           >
             <ChevronsRight size={14} />
           </motion.button>
-        </div>
-      </div>
 
-      {/* ── Quick Jump Bar & View Mode Toggle ───────────────────────────────── */}
-      <div className="flex items-center justify-between gap-1 mb-3 pt-1 border-t border-[var(--habit-border)]">
-        {/* Quick jump pills */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
-          {[
-            { label: t('nutrition.yesterday', 'Yesterday'), date: yesterday, active: selectedDate === yesterday },
-            { label: t('nutrition.today', 'Today'), date: today, active: isToday, gold: true },
-            { label: t('nutrition.tomorrow', 'Tomorrow'), date: tomorrow, active: selectedDate === tomorrow },
-            { label: t('nutrition.next_week_btn', '+1 Week'), date: nextWeekDay, active: selectedDate === nextWeekDay },
-          ].map(({ label, date, active, gold }) => (
-            <motion.button
-              key={label}
-              whileTap={{ scale: 0.92 }}
-              onClick={() => onSelectDate(date)}
-              className="px-2 py-1 rounded-lg text-[10px] font-extrabold whitespace-nowrap transition-all"
-              style={{
-                background: active
-                  ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                  : gold && !active
-                  ? 'rgba(245,158,11,0.12)'
-                  : 'var(--habit-border)',
-                color: active ? '#000' : gold ? '#f59e0b' : 'var(--habit-dim, #888)',
-                border: active ? 'none' : gold ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
-                cursor: 'pointer',
-              }}
-            >
-              {label}
-            </motion.button>
-          ))}
-        </div>
-
-        {/* View Mode Selector (1 Week / 2 Weeks / Month) */}
-        <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--habit-border)] shrink-0">
-          {[
-            { mode: '1week', label: '1W', icon: CalendarDays, title: '1 Week (7 Days)' },
-            { mode: '2weeks', label: '2W', icon: Layers, title: '2 Weeks (14 Days)' },
-            { mode: 'month', label: 'M', icon: Grid, title: 'Month Matrix' },
-          ].map(({ mode, icon: Icon, title }) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className="p-1 rounded-md transition-all flex items-center justify-center"
-              style={{
-                background: viewMode === mode ? 'var(--habit-panel)' : 'transparent',
-                color: viewMode === mode ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-dim)',
-                boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
-                cursor: 'pointer',
-              }}
-              title={title}
-            >
-              <Icon size={12} />
-            </button>
-          ))}
+          {/* View Mode Selector (1W / 2W / M) */}
+          <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--habit-border)] ml-1">
+            {[
+              { mode: '1week', label: '1W', icon: CalendarDays, title: '1 Week (7 Days)' },
+              { mode: '2weeks', label: '2W', icon: Layers, title: '2 Weeks (14 Days)' },
+              { mode: 'month', label: 'M', icon: Grid, title: 'Month Matrix' },
+            ].map(({ mode, icon: Icon, title }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className="p-1 rounded-md transition-all flex items-center justify-center"
+                style={{
+                  background: viewMode === mode ? 'var(--habit-panel)' : 'transparent',
+                  color: viewMode === mode ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-dim)',
+                  boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                  cursor: 'pointer',
+                }}
+                title={title}
+              >
+                <Icon size={12} />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
