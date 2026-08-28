@@ -77,6 +77,7 @@ class TestResetDataEndpoints:
         self.profile.level = 10
         self.profile.character_class = "warlord"
         self.profile.rank_xp = 2500
+        self.profile.weekly_xp = 495
         self.profile.save()
 
         res = self.client.post("/api/profile/reset/", {"reset_type": "stats"}, format="json")
@@ -87,11 +88,13 @@ class TestResetDataEndpoints:
         assert self.profile.level == 1
         assert self.profile.character_class == ""
         assert self.profile.rank_xp == 0
+        assert self.profile.weekly_xp == 0
         assert self.profile.gf == 100.0
 
     def test_reset_nuclear(self):
         Task.objects.create(user=self.user, title="Task To Delete", task_type="todo")
         self.profile.gold = 999
+        self.profile.weekly_xp = 750
         self.profile.save()
 
         res = self.client.post("/api/profile/reset/", {"reset_type": "nuclear"}, format="json")
@@ -99,4 +102,19 @@ class TestResetDataEndpoints:
 
         self.profile.refresh_from_db()
         assert self.profile.gold == 0
+        assert self.profile.weekly_xp == 0
         assert Task.objects.filter(user=self.user).count() == 0
+
+    def test_user_profile_view_auto_heals_weekly_xp(self):
+        self.profile.level = 1
+        self.profile.xp = 18
+        self.profile.weekly_xp = 495
+        self.profile.save()
+
+        res = self.client.get("/api/profile/")
+        assert res.status_code == 200
+        assert res.data["weekly_xp"] == 18
+
+        self.profile.refresh_from_db()
+        assert self.profile.weekly_xp == 18
+

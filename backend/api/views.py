@@ -17,6 +17,7 @@ MIND OS — Views и ViewSets.
 
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 import logging
 from datetime import timedelta
 from django.db import models, transaction
@@ -307,6 +308,29 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         ).get_or_create(user=self.request.user)
 
         now = timezone.now()
+        today_iso = now.date().isocalendar()
+        current_iso_week = f"{str(today_iso[0])[-2:]}W{today_iso[1]:02d}"
+
+        fields_to_update = ["last_seen_at"]
+
+        # Weekly XP ISO Week Rollover Check (resets on Monday)
+        if profile.weekly_xp_reset_week != current_iso_week:
+            profile.weekly_xp = (
+                profile.xp
+                if (profile.level == 1 and profile.prestige_count == 0)
+                else 0
+            )
+            profile.weekly_xp_reset_week = current_iso_week
+            fields_to_update.extend(["weekly_xp", "weekly_xp_reset_week"])
+        # Auto-heal desynchronized accounts (e.g. after a reset where weekly_xp was left intact)
+        elif (
+            profile.level == 1
+            and profile.prestige_count == 0
+            and profile.weekly_xp > profile.xp
+        ):
+            profile.weekly_xp = profile.xp
+            fields_to_update.append("weekly_xp")
+
         if profile.last_seen_at:
             setattr(
                 profile,
@@ -317,7 +341,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             setattr(profile, "offline_seconds", 0)
 
         profile.last_seen_at = now
-        profile.save(update_fields=["last_seen_at"])
+        profile.save(update_fields=fields_to_update)
 
         return profile
 
@@ -2856,6 +2880,11 @@ class ResetDataView(generics.GenericAPIView):
                     profile.last_daily_cron_at = None
                     profile.seen_guides = {}
                     profile.rival_data = {}
+
+                    today_iso = timezone.now().date().isocalendar()
+                    current_iso_week = f"{str(today_iso[0])[-2:]}W{today_iso[1]:02d}"
+                    profile.weekly_xp = 0
+                    profile.weekly_xp_reset_week = current_iso_week
 
                     profile.base_pwr = 5
                     profile.base_foc = 5
