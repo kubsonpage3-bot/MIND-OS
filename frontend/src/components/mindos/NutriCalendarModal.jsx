@@ -59,6 +59,11 @@ export default function NutriCalendarModal({ selectedDate, onSelectDate, onClose
 
   const weekdays = i18n.language === 'ru' ? WEEKDAYS_RU : WEEKDAYS_EN;
 
+  // Month averages
+  const loggedEntries = calendarData.filter((d) => (d.calories || 0) > 0);
+  const loggedCount = loggedEntries.length;
+  const avgCal = loggedCount > 0 ? Math.round(loggedEntries.reduce((s, e) => s + (e.calories || 0), 0) / loggedCount) : 0;
+
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-3"
@@ -85,15 +90,33 @@ export default function NutriCalendarModal({ selectedDate, onSelectDate, onClose
         transition={{ type: 'spring', damping: 25, stiffness: 350 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <CalendarIcon size={18} style={{ color: 'var(--habit-gold, #f59e0b)' }} />
-            <span style={{ fontWeight: 800, fontSize: 16, textTransform: 'capitalize' }}>
-              {monthLabel}
-            </span>
+            <div>
+              <span style={{ fontWeight: 900, fontSize: 16, textTransform: 'capitalize' }}>
+                {monthLabel}
+              </span>
+              {loggedCount > 0 && (
+                <div style={{ fontSize: 10, color: 'var(--habit-dim, #888)', fontWeight: 700 }}>
+                  {loggedCount} {t('nutrition.days_logged', 'days logged')} · avg {avgCal} kcal
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                const now = new Date();
+                onSelectDate(now.toISOString().split('T')[0]);
+                onClose();
+              }}
+              className="px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase transition-opacity hover:opacity-80"
+              style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}
+            >
+              {t('nutrition.today', 'Today')}
+            </button>
             <button
               onClick={prevMonth}
               className="p-1.5 rounded-lg hover:opacity-70 transition-opacity"
