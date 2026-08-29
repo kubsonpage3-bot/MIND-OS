@@ -416,11 +416,19 @@ export default function NutritionDateNavigator({
 
           {/* Weekday headers */}
           <div className="grid grid-cols-7 gap-1 text-center mb-1">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((w) => (
-              <div key={w} className="text-[9px] font-bold opacity-40">
-                {w}
-              </div>
-            ))}
+            {Array.from({ length: 7 }).map((_, i) => {
+              // Generate weekday label: Monday=0 in our system (Mon first)
+              const date = new Date(2024, 0, 1 + i); // Jan 1 2024 = Monday
+              const label = date.toLocaleDateString(
+                i18n.language === 'ru' ? 'ru-RU' : 'en-US',
+                { weekday: 'short' }
+              ).slice(0, 2);
+              return (
+                <div key={i} className="text-[9px] font-bold opacity-40 capitalize">
+                  {label}
+                </div>
+              );
+            })}
           </div>
 
           {/* Month Cells Grid */}

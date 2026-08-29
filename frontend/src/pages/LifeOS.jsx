@@ -146,6 +146,10 @@ export default function LifeOS({ onOpenSidebar, onSwitchToMindOS }) {
                       hapticLight();
                       i18n.changeLanguage(code);
                       localStorage.setItem('i18nextLng', code);
+                      try {
+                        const settings = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
+                        saveSettings({ ...settings, language: code });
+                      } catch {}
                     }}
                     className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
                       isActive
@@ -180,7 +184,13 @@ export default function LifeOS({ onOpenSidebar, onSwitchToMindOS }) {
           </div>
         </div>
 
-        <NutritionTab />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <NutritionTab />
+        </motion.div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -73,14 +73,22 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
   const today = dateStr || new Date().toISOString().split('T')[0];
 
+  // 350ms debounce for search
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // ── Queries ──────────────────────────────────────────────────────────────────
   const { data: searchResults, isLoading: isSearching } = useQuery({
-    queryKey: GLOBAL_FOOD_KEY(search),
-    queryFn: () => djangoApi.nutrition.searchGlobal(search),
+    queryKey: GLOBAL_FOOD_KEY(debouncedSearch),
+    queryFn: () => djangoApi.nutrition.searchGlobal(debouncedSearch),
     staleTime: 30_000,
+    enabled: debouncedSearch.length >= 2,
   });
 
-  // Quick-Add: последние использованные продукты
+  // Quick-Add: recently used foods
   const { data: recentFoods = [] } = useQuery({
     queryKey: NUTRITION_RECENT_KEY,
     queryFn: () => djangoApi.nutrition.getRecentFoods(12),

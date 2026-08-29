@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -187,10 +187,10 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
                 {label}
               </span>
               <span
-                className="text-[9px] font-mono font-black uppercase px-1.5 py-0.2 rounded"
-                style={{ background: meta.bg, color: meta.color }}
+                className="text-[9px] font-mono font-black px-1.5 py-0.5 rounded"
+                style={{ background: meta.bg, color: meta.color, border: `1px solid ${meta.color}30` }}
               >
-                HUD
+                📊
               </span>
             </div>
             {entries.length > 0 ? (
@@ -240,18 +240,25 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
           >
             <div className="px-3 pb-3 space-y-1.5">
               {entries.length === 0 ? (
-                <div
+                <motion.div
                   onClick={() => onAddClick(type)}
-                  className="py-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed cursor-pointer transition-all hover:border-opacity-60"
+                  whileHover={{ scale: 1.01, borderColor: `${meta.color}60` }}
+                  whileTap={{ scale: 0.98 }}
+                  className="py-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed cursor-pointer transition-colors"
                   style={{ borderColor: `${meta.color}30`, background: `${meta.color}05` }}
                 >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: meta.bg }}>
+                  <motion.div
+                    whileHover={{ rotate: 90, scale: 1.1 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ background: meta.bg, border: `1px solid ${meta.color}40` }}
+                  >
                     <Plus size={14} style={{ color: meta.color }} />
-                  </div>
+                  </motion.div>
                   <span className="text-[11px] font-semibold" style={{ color:'var(--habit-dim)' }}>
                     {t('nutrition.tap_to_log', { meal: label.toLowerCase(), defaultValue: `Tap «Add» to log ${label.toLowerCase()}` })}
                   </span>
-                </div>
+                </motion.div>
               ) : (
                 <AnimatePresence>
                   {entries.map(entry => (
@@ -269,22 +276,23 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
 
 // ─── Calorie Gauge Bar ────────────────────────────────────────────────────────
 function CalorieGauge({ consumed, goal }) {
+  const { t } = useTranslation();
   const pct = goal > 0 ? Math.min(1, consumed / goal) : 0;
   const isOver = consumed > goal;
   const remaining = goal - consumed;
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs font-bold">
-        <span style={{ color:'var(--habit-dim)' }}>Consumed</span>
+        <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.consumed', 'Consumed')}</span>
         <div className="flex items-center gap-1.5">
           <Flame size={13} style={{ color: isOver ? '#f74e52' : '#f59e0b' }} />
           <span style={{ color: isOver ? '#f74e52' : '#10b981', fontWeight:900, fontSize:13 }}>
             {isOver
-              ? `+${Math.abs(remaining)} kcal over`
-              : `${Math.round(remaining)} kcal left`}
+              ? `+${Math.abs(Math.round(remaining))} ${t('nutrition.kcal_over', 'kcal over')}`
+              : `${Math.round(remaining)} ${t('nutrition.kcal_left', 'kcal left')}`}
           </span>
         </div>
-        <span style={{ color:'var(--habit-dim)' }}>Goal {Math.round(goal)}</span>
+        <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.goal_label', 'Goal')} {Math.round(goal)}</span>
       </div>
       <div style={{ height:8, borderRadius:999, background:'var(--habit-border)', overflow:'hidden', position:'relative' }}>
         <motion.div
@@ -293,11 +301,18 @@ function CalorieGauge({ consumed, goal }) {
             background: isOver
               ? 'linear-gradient(90deg, #f59e0b, #f74e52)'
               : 'linear-gradient(90deg, #f59e0b, #10b981)',
-            boxShadow: isOver ? '0 0 12px rgba(247,78,82,0.5)' : '0 0 12px rgba(245,158,11,0.4)',
           }}
           initial={{ width:0 }}
-          animate={{ width:`${pct*100}%` }}
-          transition={{ duration:0.9, ease:[0.16,1,0.3,1] }}
+          animate={{
+            width:`${pct*100}%`,
+            boxShadow: isOver
+              ? ['0 0 12px rgba(247,78,82,0.5)', '0 0 22px rgba(247,78,82,0.8)', '0 0 12px rgba(247,78,82,0.5)']
+              : '0 0 12px rgba(245,158,11,0.4)',
+          }}
+          transition={{
+            width: { duration:0.9, ease:[0.16,1,0.3,1] },
+            boxShadow: isOver ? { repeat: Infinity, duration: 1.6, ease: 'easeInOut' } : {},
+          }}
         />
       </div>
     </div>
@@ -430,6 +445,11 @@ export default function NutritionTab() {
               <MacroRings totals={totals} goal={goalData} compact />
             </div>
 
+            {/* Macro bars — detailed numbers */}
+            <div className="mt-3 pt-3 border-t border-[var(--habit-border)]">
+              <MacroBars totals={totals} goal={goalData} />
+            </div>
+
             {/* Calorie gauge */}
             <div className="mt-3 pt-3 border-t border-[var(--habit-border)]">
               <CalorieGauge consumed={totals.calories} goal={goalData.calories} />
@@ -549,12 +569,16 @@ export default function NutritionTab() {
           ))}
         </div>
 
-        {/* FAB */}
+        {/* FAB — smart meal type by time of day */}
         <div className="fixed bottom-6 right-6 z-40">
           <motion.button
-            whileHover={{ scale:1.06 }}
+            whileHover={{ scale:1.08, boxShadow:'0 12px 36px rgba(245,158,11,0.6)' }}
             whileTap={{ scale:0.93 }}
-            onClick={() => handleOpenAddModal('breakfast')}
+            onClick={() => {
+              const h = new Date().getHours();
+              const smartType = h < 11 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snack';
+              handleOpenAddModal(smartType);
+            }}
             className="flex items-center gap-2 px-5 py-3.5 rounded-full font-black text-sm shadow-2xl"
             style={{ background:'linear-gradient(135deg, #f59e0b, #d97706)', color:'#000', boxShadow:'0 8px 28px rgba(245,158,11,0.45)', cursor:'pointer' }}
           >

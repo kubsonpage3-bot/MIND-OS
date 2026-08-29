@@ -21,6 +21,7 @@ import { Scale, Plus, Trash2, Target, ChevronDown, ChevronUp } from 'lucide-reac
 const DAYS_OPTIONS = [30, 60, 90];
 
 function CustomTooltip({ active, payload }) {
+  const { t } = useTranslation();
   if (active && payload && payload.length) {
     const d = payload[0].payload;
     return (
@@ -33,7 +34,7 @@ function CustomTooltip({ active, payload }) {
         }}
       >
         <div className="font-bold mb-1">{d.date}</div>
-        <div style={{ color: 'var(--habit-green, #10b981)' }}>⚖️ {d.weight_kg} кг</div>
+        <div style={{ color: 'var(--habit-green, #10b981)' }}>⚖️ {d.weight_kg} {t('weight.unit', 'kg')}</div>
         {d.note && <div className="opacity-60 mt-0.5 italic">{d.note}</div>}
       </div>
     );

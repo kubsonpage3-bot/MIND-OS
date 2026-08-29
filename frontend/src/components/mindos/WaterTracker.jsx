@@ -114,13 +114,13 @@ export default function WaterTracker({ dateStr, goalMl = 2000 }) {
         </button>
       </div>
 
-      {/* Fluid Progress Bar */}
+      {/* Fluid Progress Bar with Animated Wave Fill */}
       <div
         className="w-full rounded-full overflow-hidden mb-3 relative"
         style={{
-          height: 10,
+          height: 12,
           background: 'var(--habit-border)',
-          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.25)',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
         }}
       >
         <motion.div
@@ -128,21 +128,32 @@ export default function WaterTracker({ dateStr, goalMl = 2000 }) {
           style={{
             background: isGoalReached
               ? 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)'
-              : 'linear-gradient(90deg, #38bdf8 0%, #50b5e9 100%)',
+              : 'linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #50b5e9 100%)',
             boxShadow: isGoalReached
-              ? '0 0 16px rgba(16,185,129,0.6)'
-              : '0 0 12px rgba(56,189,248,0.5)',
+              ? '0 0 18px rgba(16,185,129,0.7)'
+              : '0 0 14px rgba(56,189,248,0.6)',
           }}
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(percentage, 100)}%` }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Shimmer */}
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
-            animation: 'shimmer 2s infinite',
-          }} />
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'rgba(255,255,255,0.5)' }} />
+          {/* Animated Sloshing Wave / Shimmer Effect */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+              width: '200%',
+            }}
+            animate={{ x: ['-100%', '100%'] }}
+            transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }}
+          />
+          {/* Surface Gloss Line */}
+          <div
+            className="absolute top-0 left-0 right-0 h-[3px]"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 100%)',
+            }}
+          />
         </motion.div>
       </div>
 
