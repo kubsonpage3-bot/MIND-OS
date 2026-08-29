@@ -185,7 +185,7 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
                     <Plus size={14} style={{ color: meta.color }} />
                   </div>
                   <span className="text-[11px] font-semibold" style={{ color:'var(--habit-dim)' }}>
-                    {t('nutrition.tap_to_log','Click to log')} {label.toLowerCase()}
+                    {t('nutrition.tap_to_log', { meal: label.toLowerCase(), defaultValue: `Tap «Add» to log ${label.toLowerCase()}` })}
                   </span>
                 </div>
               ) : (
@@ -347,11 +347,11 @@ export default function NutritionTab() {
         <div style={{ position:'sticky', top:80, display:'flex', flexDirection:'column', gap:14 }}>
 
           {/* Stats Card */}
-          <div style={{ ...CARD, padding:20, boxShadow:'0 8px 32px -4px rgba(0,0,0,0.3)' }}>
+          <div style={{ ...CARD, padding:18, boxShadow:'0 8px 32px -4px rgba(0,0,0,0.3)' }}>
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <div style={{ fontSize:18, fontWeight:900, color:'var(--habit-text)', letterSpacing:'-0.5px' }}>
+                <div style={{ fontSize:17, fontWeight:900, color:'var(--habit-text)', letterSpacing:'-0.5px' }}>
                   {t('nutrition.title', 'Nutrition Tracker')}
                 </div>
                 <div style={{ fontSize:11, color:'var(--habit-dim)', fontWeight:700, marginTop:1 }}>
@@ -361,20 +361,14 @@ export default function NutritionTab() {
               {toolbar}
             </div>
 
-            {/* Calorie gauge */}
-            <CalorieGauge consumed={totals.calories} goal={goalData.calories} />
-
-            {/* Macro bars */}
-            <div className="mt-5">
-              <MacroBars totals={totals} goal={goalData} />
+            {/* Signature Macro Rings */}
+            <div className="py-1">
+              <MacroRings totals={totals} goal={goalData} compact />
             </div>
 
-            {/* Mini stat chips */}
-            <div className="grid grid-cols-4 gap-2 mt-5">
-              <StatChip label="Protein" value={totals.protein} color="#3b82f6" unit="g" />
-              <StatChip label="Fat"     value={totals.fat}     color="#f97316" unit="g" />
-              <StatChip label="Carbs"   value={totals.carbs}   color="#10b981" unit="g" />
-              <StatChip label="Logged"  value={Object.values(meals).flat().length} color="var(--habit-dim)" />
+            {/* Calorie gauge */}
+            <div className="mt-3 pt-3 border-t border-[var(--habit-border)]">
+              <CalorieGauge consumed={totals.calories} goal={goalData.calories} />
             </div>
           </div>
 
@@ -394,22 +388,6 @@ export default function NutritionTab() {
           <Suspense fallback={null}>
             <BodyWeightTracker goalData={goalData} />
           </Suspense>
-
-          {/* Quick Add FAB */}
-          <motion.button
-            whileHover={{ scale:1.02 }}
-            whileTap={{ scale:0.97 }}
-            onClick={() => handleOpenAddModal('breakfast')}
-            className="w-full py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2"
-            style={{
-              background:'linear-gradient(135deg, #f59e0b, #d97706)',
-              color:'#000',
-              boxShadow:'0 4px 20px rgba(245,158,11,0.35)',
-              cursor:'pointer',
-            }}
-          >
-            <Plus size={16} /> {t('nutrition.add_meal_btn','Add Meal')}
-          </motion.button>
         </div>
 
         {/* ── RIGHT MAIN COLUMN ─────────────────────────────────────────────── */}

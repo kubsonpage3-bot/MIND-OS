@@ -97,7 +97,7 @@ function DayPill({ dateStr, isSelected, isToday, entry, onSelect, lang = 'en', g
       whileTap={{ scale: 0.9 }}
       whileHover={{ y: -1.5 }}
       onClick={() => onSelect(dateStr)}
-      className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl transition-all select-none overflow-hidden"
+      className="relative flex flex-col items-center justify-between pt-2 pb-1.5 px-0.5 rounded-xl transition-all select-none overflow-hidden"
       style={{
         background: isSelected
           ? 'transparent'
@@ -106,7 +106,7 @@ function DayPill({ dateStr, isSelected, isToday, entry, onSelect, lang = 'en', g
           : 'var(--habit-border)',
         border: isToday && !isSelected ? '1px solid rgba(245, 158, 11, 0.45)' : '1px solid transparent',
         cursor: 'pointer',
-        minHeight: 56,
+        minHeight: 60,
       }}
     >
       {isSelected && (
@@ -123,7 +123,7 @@ function DayPill({ dateStr, isSelected, isToday, entry, onSelect, lang = 'en', g
 
       {/* Weekday abbreviation */}
       <span
-        className="relative z-10 text-[9px] font-extrabold uppercase tracking-wider"
+        className="relative z-10 text-[9px] font-extrabold uppercase tracking-wider leading-tight"
         style={{ color: isSelected ? '#000' : 'var(--habit-dim, #888)' }}
       >
         {weekday}
@@ -131,19 +131,19 @@ function DayPill({ dateStr, isSelected, isToday, entry, onSelect, lang = 'en', g
 
       {/* Day number */}
       <span
-        className="relative z-10 text-[14px] font-black leading-none my-0.5"
+        className="relative z-10 text-[13.5px] font-black leading-none my-0.5"
         style={{ color: isSelected ? '#000' : 'var(--habit-text)' }}
       >
         {parseInt(dd, 10)}
       </span>
 
       {/* Calorie badge or Status Dot */}
-      <div className="relative z-10 flex items-center justify-center min-h-[12px]">
+      <div className="relative z-10 flex items-center justify-center min-h-[14px]">
         {badgeText ? (
           <span
             className="text-[8px] font-mono font-black px-1 rounded-full leading-tight"
             style={{
-              background: isSelected ? 'rgba(0,0,0,0.2)' : `${statusColor}22`,
+              background: isSelected ? 'rgba(0,0,0,0.22)' : `${statusColor}22`,
               color: isSelected ? '#000' : statusColor,
               border: isSelected ? 'none' : `1px solid ${statusColor}40`,
             }}
@@ -153,10 +153,10 @@ function DayPill({ dateStr, isSelected, isToday, entry, onSelect, lang = 'en', g
         ) : (
           <div
             style={{
-              width: 4.5,
-              height: 4.5,
+              width: 4,
+              height: 4,
               borderRadius: '50%',
-              background: isSelected ? 'rgba(0,0,0,0.25)' : 'transparent',
+              background: isSelected ? 'rgba(0,0,0,0.3)' : 'transparent',
               border: isSelected ? 'none' : '1px solid var(--habit-border)',
             }}
           />
@@ -187,14 +187,15 @@ export default function NutritionDateNavigator({
   });
 
   // Week range label (e.g. "Aug 24 – Aug 30")
-  const currentMonday = getMonday(selectedDate);
-  const currentSunday = new Date(currentMonday);
-  currentSunday.setDate(currentMonday.getDate() + 6);
-  const weekRangeLabel = `${formatDate(currentMonday.toISOString().split('T')[0], i18n.language)} – ${formatDate(currentSunday.toISOString().split('T')[0], i18n.language)}`;
-
-  // Days list according to view mode
   const oneWeekDays = getWeekDays(selectedDate, 1);
   const twoWeekDays = getWeekDays(selectedDate, 2);
+
+  const weekRangeLabel = useMemo(() => {
+    if (!oneWeekDays.length) return '';
+    const [, sm, sd] = oneWeekDays[0].split('-');
+    const [, em, ed] = oneWeekDays[6].split('-');
+    return `${parseInt(sd, 10)}.${parseInt(sm, 10)} — ${parseInt(ed, 10)}.${parseInt(em, 10)}`;
+  }, [oneWeekDays]);
 
   // Month breakdown for inline month view
   const [currentYear, currentMonth] = selectedDate.split('-').map(Number);
@@ -206,109 +207,109 @@ export default function NutritionDateNavigator({
 
   return (
     <div
-      className="rounded-2xl transition-all"
+      className="rounded-2xl p-3.5 transition-all"
       style={{
         background: 'var(--habit-panel)',
         border: '1px solid var(--habit-border)',
-        padding: '12px 14px',
-        fontFamily: "'Nunito', sans-serif",
       }}
     >
-      {/* ── Top Header Row ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-1 mb-3">
-        {/* Left: Week & Day Jump « < */}
-        <div className="flex items-center gap-1">
+      {/* ── Top Header Toolbar ──────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-2 mb-3">
+        {/* Left: Navigation Buttons (Previous Day / Week) */}
+        <div className="flex items-center gap-1 bg-[var(--habit-border)] p-0.5 rounded-xl">
           <motion.button
             whileTap={{ scale: 0.88 }}
             whileHover={{ scale: 1.05 }}
             onClick={() => onSelectDate(addDays(selectedDate, -7))}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all opacity-60 hover:opacity-100"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
-            title={t('nutrition.prev_week', '« Previous Week (-7d)')}
+            className="w-6 h-6 rounded-lg flex items-center justify-center transition-all opacity-60 hover:opacity-100 hover:text-[var(--habit-gold,#f59e0b)]"
+            style={{ cursor: 'pointer' }}
+            title={t('nutrition.prev_week', '« -7d')}
           >
-            <ChevronsLeft size={14} />
+            <ChevronsLeft size={13} />
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.88 }}
             whileHover={{ scale: 1.05 }}
             onClick={() => onSelectDate(addDays(selectedDate, -1))}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all opacity-75 hover:opacity-100"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
-            title={t('nutrition.prev_day', '< Previous Day')}
+            className="w-6 h-6 rounded-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:text-[var(--habit-gold,#f59e0b)]"
+            style={{ cursor: 'pointer' }}
+            title={t('nutrition.prev_day', '< -1d')}
           >
-            <ChevronLeft size={15} />
+            <ChevronLeft size={14} />
           </motion.button>
         </div>
 
-        {/* Center: Interactive Title & Range */}
+        {/* Center: Interactive Date Header */}
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={onOpenCalendar}
-          className="flex items-center gap-2 px-2 py-1 rounded-xl transition-all hover:bg-white/5"
+          className="flex items-center gap-1.5 px-2 py-1 rounded-xl transition-all hover:bg-white/5 group"
           style={{ cursor: 'pointer' }}
           title={t('nutrition.open_calendar', 'Open Full Calendar')}
         >
-          <CalendarIcon size={14} style={{ color: 'var(--habit-gold, #f59e0b)' }} />
+          <CalendarIcon size={13} style={{ color: 'var(--habit-gold, #f59e0b)' }} />
           <div className="text-center">
             <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--habit-text)', lineHeight: 1.1 }}>
               {isToday ? t('nutrition.today', 'Today') : formatDate(selectedDate, i18n.language)}
-              <span className="text-[10px] font-semibold opacity-50 ml-1 font-mono">
-                ({weekRangeLabel})
-              </span>
             </div>
             <div style={{ fontSize: 9.5, color: 'var(--habit-dim, #888)', fontWeight: 700, marginTop: 1 }}>
               {new Date(selectedDate + 'T12:00').toLocaleDateString(i18n.language === 'ru' ? 'ru-RU' : 'en-US', {
-                weekday: 'long',
-              })}
+                weekday: 'short',
+              })} · <span className="opacity-60">{weekRangeLabel}</span>
             </div>
           </div>
         </motion.button>
 
-        {/* Right: Next day/week > » & View Mode Switcher */}
-        <div className="flex items-center gap-1">
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            whileHover={{ scale: 1.05 }}
-            onClick={() => onSelectDate(addDays(selectedDate, 1))}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all opacity-75 hover:opacity-100"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
-            title={t('nutrition.next_day', '> Next Day')}
-          >
-            <ChevronRight size={15} />
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            whileHover={{ scale: 1.05 }}
-            onClick={() => onSelectDate(addDays(selectedDate, 7))}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all opacity-60 hover:opacity-100"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
-            title={t('nutrition.next_week', '» Next Week (+7d)')}
-          >
-            <ChevronsRight size={14} />
-          </motion.button>
+        {/* Right: Next Buttons + Segmented Mode Switcher */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 bg-[var(--habit-border)] p-0.5 rounded-xl">
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => onSelectDate(addDays(selectedDate, 1))}
+              className="w-6 h-6 rounded-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:text-[var(--habit-gold,#f59e0b)]"
+              style={{ cursor: 'pointer' }}
+              title={t('nutrition.next_day', '> +1d')}
+            >
+              <ChevronRight size={14} />
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => onSelectDate(addDays(selectedDate, 7))}
+              className="w-6 h-6 rounded-lg flex items-center justify-center transition-all opacity-60 hover:opacity-100 hover:text-[var(--habit-gold,#f59e0b)]"
+              style={{ cursor: 'pointer' }}
+              title={t('nutrition.next_week', '» +7d')}
+            >
+              <ChevronsRight size={13} />
+            </motion.button>
+          </div>
 
-          {/* View Mode Selector (1W / 2W / M) */}
-          <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--habit-border)] ml-1">
+          {/* Segmented View Mode Pill Switcher (1W / 2W / M) */}
+          <div className="flex items-center p-0.5 rounded-xl bg-[var(--habit-border)]">
             {[
-              { mode: '1week', label: '1W', icon: CalendarDays, title: '1 Week (7 Days)' },
-              { mode: '2weeks', label: '2W', icon: Layers, title: '2 Weeks (14 Days)' },
-              { mode: 'month', label: 'M', icon: Grid, title: 'Month Matrix' },
-            ].map(({ mode, icon: Icon, title }) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className="p-1 rounded-md transition-all flex items-center justify-center"
-                style={{
-                  background: viewMode === mode ? 'var(--habit-panel)' : 'transparent',
-                  color: viewMode === mode ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-dim)',
-                  boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
-                  cursor: 'pointer',
-                }}
-                title={title}
-              >
-                <Icon size={12} />
-              </button>
-            ))}
+              { mode: '1week', label: '1W', title: '1 Week (7 Days)' },
+              { mode: '2weeks', label: '2W', title: '2 Weeks (14 Days)' },
+              { mode: 'month', label: 'M', title: 'Month Matrix' },
+            ].map(({ mode, label, title }) => {
+              const isActive = viewMode === mode;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-black tracking-wide transition-all"
+                  style={{
+                    background: isActive ? 'var(--habit-panel)' : 'transparent',
+                    color: isActive ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-dim)',
+                    boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+                    cursor: 'pointer',
+                  }}
+                  title={title}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

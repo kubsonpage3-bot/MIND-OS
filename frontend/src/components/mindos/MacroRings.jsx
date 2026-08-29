@@ -144,17 +144,17 @@ export function MacroBars({ totals = {}, goal = {} }) {
   );
 }
 
-// ── Default mobile rings export ────────────────────────────────────────────────
-export default function MacroRings({ totals = {}, goal = {} }) {
+// ── Unified Macro Rings (Desktop & Mobile) ───────────────────────────────────
+export default function MacroRings({ totals = {}, goal = {}, compact = false }) {
   const { t } = useTranslation();
   const macroConfig = [
-    { key: 'calories', label: t('nutrition.macros.calories_short', 'kcal'), color: 'var(--habit-gold, #f59e0b)', bg: 'rgba(245, 158, 11, 0.12)', isPrimary: true,  size: 96 },
-    { key: 'protein',  label: t('nutrition.macros.protein', 'Protein'),     color: 'var(--habit-blue, #3b82f6)', bg: 'rgba(59,130,246,0.12)',    isPrimary: false, size: 76 },
-    { key: 'fat',      label: t('nutrition.macros.fat', 'Fat'),             color: 'var(--habit-orange, #f97316)', bg: 'rgba(249,115,22,0.12)',  isPrimary: false, size: 76 },
-    { key: 'carbs',    label: t('nutrition.macros.carbs', 'Carbs'),         color: 'var(--habit-green, #10b981)', bg: 'rgba(16,185,129,0.12)',   isPrimary: false, size: 76 },
+    { key: 'calories', label: t('nutrition.macros.calories_short', 'kcal'), color: 'var(--habit-gold, #f59e0b)', bg: 'rgba(245, 158, 11, 0.12)', isPrimary: true,  size: compact ? 84 : 94 },
+    { key: 'protein',  label: t('nutrition.macros.protein', 'Protein'),     color: 'var(--habit-blue, #3b82f6)', bg: 'rgba(59,130,246,0.12)',    isPrimary: false, size: compact ? 68 : 74 },
+    { key: 'fat',      label: t('nutrition.macros.fat', 'Fat'),             color: 'var(--habit-orange, #f97316)', bg: 'rgba(249,115,22,0.12)',  isPrimary: false, size: compact ? 68 : 74 },
+    { key: 'carbs',    label: t('nutrition.macros.carbs', 'Carbs'),         color: 'var(--habit-green, #10b981)', bg: 'rgba(16,185,129,0.12)',   isPrimary: false, size: compact ? 68 : 74 },
   ];
   return (
-    <div className="flex items-end justify-around gap-2 py-2 px-1">
+    <div className="flex items-end justify-between gap-1 py-1 px-0.5 w-full">
       {macroConfig.map(({ key, label, color, bg, isPrimary, size }) => (
         <MacroRing
           key={key}
@@ -170,3 +170,4 @@ export default function MacroRings({ totals = {}, goal = {} }) {
     </div>
   );
 }
+

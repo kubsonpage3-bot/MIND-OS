@@ -10,7 +10,7 @@ import {
   NUTRITION_RECENT_KEY,
 } from '@/constants/queryKeys';
 import { toast } from '@/components/ui/use-toast';
-import { Search, Star, Camera, X, Globe, User, Loader2, Zap } from 'lucide-react';
+import { Search, Star, Camera, X, Globe, User, Loader2, Zap, Trash2 } from 'lucide-react';
 
 const MEAL_TYPES = [
   { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅' },
@@ -102,6 +102,20 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
       queryClient.invalidateQueries({ queryKey: ['nutrition', 'foods'] });
       queryClient.invalidateQueries({ queryKey: ['nutrition', 'search-global'] });
     },
+  });
+
+  const deleteFoodMut = useMutation({
+    mutationFn: (id) => djangoApi.nutrition.deleteFood(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nutrition', 'foods'] });
+      queryClient.invalidateQueries({ queryKey: ['nutrition', 'search-global'] });
+      queryClient.invalidateQueries({ queryKey: NUTRITION_RECENT_KEY });
+      if (selectedFood?.is_custom) {
+        setSelectedFood(null);
+      }
+      toast({ title: t('nutrition.add_modal.food_deleted_toast', '🗑️ Food removed from catalog') });
+    },
+    onError: (e) => toast({ title: t('nutrition.error', 'Error'), description: e?.message, variant: 'destructive' }),
   });
 
   // ── Computed ─────────────────────────────────────────────────────────────────
@@ -199,13 +213,13 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
           </button>
         </div>
 
-        {/* Meal Type Selector */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+        {/* Meal Type Selector (Clean 4-column grid, no scrollbar artifact) */}
+        <div className="grid grid-cols-4 gap-1.5 mb-4">
           {MEAL_TYPES.map(({ id, key, defaultLabel, icon }) => (
             <button
               key={id}
               onClick={() => setMealType(id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all"
+              className="flex items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all"
               style={{
                 background: mealType === id ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-border)',
                 color: mealType === id ? '#000' : 'var(--habit-text)',
@@ -213,7 +227,8 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 cursor: 'pointer',
               }}
             >
-              {icon} {t(`nutrition.meals.${key}`, defaultLabel)}
+              <span>{icon}</span>
+              <span className="truncate">{t(`nutrition.meals.${key}`, defaultLabel)}</span>
             </button>
           ))}
         </div>
@@ -277,25 +292,31 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                       key={`recent-${food.id}`}
                       whileTap={{ scale: 0.94 }}
                       onClick={() => setSelectedFood({ ...food, is_custom: true })}
-                      className="flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-center"
+                      className="flex-shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl text-center"
                       style={{
                         background: 'rgba(245,158,11,0.1)',
                         border: '1px solid rgba(245,158,11,0.25)',
                         cursor: 'pointer',
-                        minWidth: 72,
-                        maxWidth: 90,
+                        minWidth: 80,
+                        maxWidth: 100,
                       }}
                     >
                       {food.is_favorite && <Star size={9} style={{ color: 'var(--habit-gold, #f59e0b)' }} />}
                       <span
-                        className="text-[10px] font-bold leading-tight"
-                        style={{ color: 'var(--habit-text)', wordBreak: 'break-word' }}
+                        className="text-[10px] font-bold leading-tight truncate w-full"
+                        style={{ color: 'var(--habit-text)' }}
                       >
-                        {food.name.length > 14 ? food.name.slice(0, 14) + '…' : food.name}
+                        {food.name}
                       </span>
-                      <span className="text-[9px] font-semibold" style={{ color: 'var(--habit-gold, #f59e0b)' }}>
-                        {Math.round(food.calories_per_100)} kcal
-                      </span>
+                      <div className="flex items-center gap-1 text-[9px] font-mono font-bold mt-0.5">
+                        <span style={{ color: 'var(--habit-gold, #f59e0b)' }}>
+                          {Math.round(food.calories_per_100)}k
+                        </span>
+                        <span className="opacity-40">·</span>
+                        <span style={{ color: '#3b82f6' }}>
+                          P:{Math.round(food.protein_per_100 || 0)}
+                        </span>
+                      </div>
                     </motion.button>
                   ))}
                 </div>
@@ -342,19 +363,36 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                             </div>
                           </div>
 
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavMut.mutate({ id: food.id, is_favorite: !food.is_favorite });
-                            }}
-                            className="opacity-60 hover:opacity-100 p-1"
-                          >
-                            <Star
-                              size={14}
-                              fill={food.is_favorite ? '#f59e0b' : 'none'}
-                              color={food.is_favorite ? '#f59e0b' : 'currentColor'}
-                            />
-                          </button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavMut.mutate({ id: food.id, is_favorite: !food.is_favorite });
+                              }}
+                              className="opacity-60 hover:opacity-100 p-1.5 transition-opacity"
+                              title={food.is_favorite ? t('nutrition.unfavorite', 'Remove from favorites') : t('nutrition.favorite', 'Add to favorites')}
+                            >
+                              <Star
+                                size={14}
+                                fill={food.is_favorite ? '#f59e0b' : 'none'}
+                                color={food.is_favorite ? '#f59e0b' : 'currentColor'}
+                              />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(t('nutrition.confirm_delete_food', `Delete "${food.name}" from your saved food catalog?`))) {
+                                  deleteFoodMut.mutate(food.id);
+                                }
+                              }}
+                              className="opacity-40 hover:opacity-100 hover:text-red-400 p-1.5 transition-opacity"
+                              title={t('nutrition.delete_food', 'Delete food from catalog')}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </motion.button>
                       );
                     })}
@@ -622,9 +660,9 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Button with High-Contrast States */}
         <motion.button
-          whileTap={{ scale: 0.97 }}
+          whileTap={canSubmit ? { scale: 0.97 } : {}}
           onClick={handleAddMeal}
           disabled={!canSubmit || addMealMut.isPending}
           className="w-full py-3 rounded-xl font-black text-sm transition-all"
@@ -632,10 +670,11 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
             background: canSubmit
               ? 'linear-gradient(135deg, var(--habit-gold, #f59e0b), #d97706)'
               : 'var(--habit-border)',
-            color: canSubmit ? '#000' : 'var(--habit-text)',
-            opacity: addMealMut.isPending ? 0.7 : 1,
+            color: canSubmit ? '#000' : 'var(--habit-dim, #888)',
+            opacity: !canSubmit ? 0.45 : addMealMut.isPending ? 0.7 : 1,
             cursor: canSubmit ? 'pointer' : 'not-allowed',
-            boxShadow: canSubmit ? '0 0 20px rgba(245,158,11,0.3)' : 'none',
+            boxShadow: canSubmit ? '0 0 20px rgba(245,158,11,0.35)' : 'none',
+            border: canSubmit ? 'none' : '1px dashed rgba(255,255,255,0.12)',
           }}
         >
           {addMealMut.isPending ? t('nutrition.add_modal.saving', 'Saving...') : t('nutrition.add_modal.add_to_diary', '🍽️ Add to Diary')}
