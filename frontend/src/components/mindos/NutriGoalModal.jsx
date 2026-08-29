@@ -10,10 +10,10 @@ import { Calculator, Settings, Bell, RefreshCw, Zap, Scale, Check } from 'lucide
 import { hapticLight } from '@/hooks/useHaptic';
 
 const MACRO_SPLITS = [
-  { id: 'balanced', label: '⚖️ 30/30/40 Баланс', p: 0.30, f: 0.30, c: 0.40 },
-  { id: 'high_protein', label: '💪 35/25/40 Высокобелковый', p: 0.35, f: 0.25, c: 0.40 },
-  { id: 'low_carb', label: '🥩 30/45/25 Низкоуглеводный', p: 0.30, f: 0.45, c: 0.25 },
-  { id: 'keto', label: '🥑 20/70/10 Кето', p: 0.20, f: 0.70, c: 0.10 },
+  { id: 'balanced', key: 'split_balanced', defaultLabel: '⚖️ 30/30/40 Balanced', p: 0.30, f: 0.30, c: 0.40 },
+  { id: 'high_protein', key: 'split_high_protein', defaultLabel: '💪 35/25/40 High Protein', p: 0.35, f: 0.25, c: 0.40 },
+  { id: 'low_carb', key: 'split_low_carb', defaultLabel: '🥩 30/45/25 Low Carb', p: 0.30, f: 0.45, c: 0.25 },
+  { id: 'keto', key: 'split_keto', defaultLabel: '🥑 20/70/10 Keto', p: 0.20, f: 0.70, c: 0.10 },
 ];
 
 const PRESETS = [
@@ -23,17 +23,17 @@ const PRESETS = [
 ];
 
 const ACTIVITY_LEVELS = [
-  { key: 'sedentary',   mult: 1.2,   label: '🪑 Сидячий (офис / нет тренировок)' },
-  { key: 'light',       mult: 1.375, label: '🚶 Лёгкий (1–3 тренировки/нед)' },
-  { key: 'moderate',    mult: 1.55,  label: '🏋️ Умеренный (3–5 тренировок/нед)' },
-  { key: 'active',      mult: 1.725, label: '🔥 Активный (6–7 тренировок/нед)' },
-  { key: 'very_active', mult: 1.9,   label: '⚡ Очень активный (спорт + физ. труд)' },
+  { key: 'sedentary',   i18nKey: 'act_sedentary',   mult: 1.2,   defaultLabel: '🪑 Sedentary (office / no workouts)' },
+  { key: 'light',       i18nKey: 'act_light',       mult: 1.375, defaultLabel: '🚶 Light (1–3 workouts/wk)' },
+  { key: 'moderate',    i18nKey: 'act_moderate',    mult: 1.55,  defaultLabel: '🏋️ Moderate (3–5 workouts/wk)' },
+  { key: 'active',      i18nKey: 'act_active',      mult: 1.725, defaultLabel: '🔥 Active (6–7 workouts/wk)' },
+  { key: 'very_active', i18nKey: 'act_very_active', mult: 1.9,   defaultLabel: '⚡ Very Active (athlete / physical work)' },
 ];
 
 const STRATEGIES = [
-  { key: 'cut',      label: '📉 Похудение (-20%)', mult: 0.80, protPerKg: 2.0, fatRatio: 0.25 },
-  { key: 'maintain', label: '⚖️ Поддержание (100%)', mult: 1.00, protPerKg: 1.6, fatRatio: 0.28 },
-  { key: 'bulk',     label: '📈 Набор массы (+12%)', mult: 1.12, protPerKg: 2.2, fatRatio: 0.25 },
+  { key: 'cut',      i18nKey: 'strategy_cut',      defaultLabel: '📉 Cut (-20%)', mult: 0.80, protPerKg: 2.0, fatRatio: 0.25 },
+  { key: 'maintain', i18nKey: 'strategy_maintain', defaultLabel: '⚖️ Maintain (100%)', mult: 1.00, protPerKg: 1.6, fatRatio: 0.28 },
+  { key: 'bulk',     i18nKey: 'strategy_bulk',     defaultLabel: '📈 Bulk (+12%)', mult: 1.12, protPerKg: 2.2, fatRatio: 0.25 },
 ];
 
 function calcTDEEResults({ weight, height, age, sex, activity, strategyKey = 'maintain' }) {
@@ -127,7 +127,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
   function syncCaloriesToMacros() {
     hapticLight();
     setForm(prev => ({ ...prev, calories: macroSumKcal }));
-    toast({ title: `⚡ Калории синхронизированы: ${macroSumKcal} kcal` });
+    toast({ title: t('nutrition.goal_modal.sync_toast', `⚡ Calories synced: {{cal}} kcal`, { cal: macroSumKcal }) });
   }
 
   function distributeCaloriesToMacros(split) {
@@ -137,7 +137,8 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
     const f = Math.round((total * split.f) / 9);
     const c = Math.max(10, Math.round((total - (p * 4) - (f * 9)) / 4));
     setForm(prev => ({ ...prev, protein: p, fat: f, carbs: c }));
-    toast({ title: `⚖️ БЖУ распределено по схеме: ${split.label}` });
+    const label = t(`nutrition.goal_modal.${split.key}`, split.defaultLabel);
+    toast({ title: t('nutrition.goal_modal.split_toast', `⚖️ Macros distributed: {{label}}`, { label }) });
   }
 
   const updateGoalMut = useMutation({
@@ -178,7 +179,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
       water_ml: tdeeResult.water_ml,
     }));
     setActiveTab('goals');
-    toast({ title: '🧮 TDEE и макросы применены к целям!' });
+    toast({ title: t('nutrition.goal_modal.tdee_applied_toast', '🧮 TDEE & macro targets applied to goals!') });
   }
 
   function handleSave() {
@@ -278,7 +279,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                   }}
                 >
                   {tabIcons[tab]}
-                  <span>{tab === 'goals' ? '🎯 Goals & Macros' : tab === 'calculator' ? '🧮 TDEE Calculator' : '🔔 Reminders'}</span>
+                  <span>{tab === 'goals' ? t('nutrition.goal_modal.tab_goals', '🎯 Goals & Macros') : tab === 'calculator' ? t('nutrition.goal_modal.tab_calc', '🧮 TDEE Calculator') : t('nutrition.goal_modal.tab_remind', '🔔 Reminders')}</span>
                 </button>
               );
             })}
@@ -291,7 +292,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                 {/* Presets */}
                 <div>
                   <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] mb-1.5 px-1">
-                    QUICK PRESETS
+                    {t('nutrition.goal_modal.quick_presets', 'QUICK PRESETS')}
                   </div>
                   <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                     {PRESETS.map((p) => (
@@ -301,7 +302,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                         className="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all bg-[var(--habit-border)] hover:border-[var(--habit-gold,#f59e0b)] border border-transparent"
                         style={{ color: 'var(--habit-text)', cursor: 'pointer' }}
                       >
-                        {p.defaultLabel}
+                        {t(`nutrition.goal_modal.${p.key}`, p.defaultLabel)}
                       </button>
                     ))}
                   </div>
@@ -318,14 +319,14 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-black text-[var(--habit-gold,#f59e0b)] uppercase tracking-wider">
-                        ⚡ Macro Balance HUD
+                        {t('nutrition.goal_modal.macro_hud', '⚡ Macro Balance HUD')}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 font-mono text-[11px] font-black">
-                      <span>Sum: {macroSumKcal} kcal</span>
+                      <span>{t('nutrition.goal_modal.sum', 'Sum:')} {macroSumKcal} kcal</span>
                       {Math.abs(diffKcal) <= 10 ? (
                         <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px]">
-                          ✓ 100% MATCH
+                          {t('nutrition.goal_modal.match', '✓ 100% MATCH')}
                         </span>
                       ) : (
                         <span className={`px-1.5 py-0.2 rounded text-[10px] ${diffKcal > 0 ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
@@ -356,9 +357,9 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
 
                   {/* Ratio labels */}
                   <div className="flex items-center justify-between text-[10.5px] font-mono font-bold">
-                    <span className="text-[#3b82f6]">Protein: {pPct}% ({proteinKcal}k)</span>
-                    <span className="text-[#f97316]">Fat: {fPct}% ({fatKcal}k)</span>
-                    <span className="text-[#10b981]">Carbs: {cPct}% ({carbsKcal}k)</span>
+                    <span className="text-[#3b82f6]">{t('nutrition.macros.protein', 'Protein')}: {pPct}% ({proteinKcal}k)</span>
+                    <span className="text-[#f97316]">{t('nutrition.macros.fat', 'Fat')}: {fPct}% ({fatKcal}k)</span>
+                    <span className="text-[#10b981]">{t('nutrition.macros.carbs', 'Carbs')}: {cPct}% ({carbsKcal}k)</span>
                   </div>
 
                   {/* Two-Way Synchronization Action Buttons */}
@@ -369,14 +370,14 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                       className="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all bg-[var(--habit-border)] hover:bg-[var(--habit-panel)] text-[var(--habit-gold,#f59e0b)]"
                     >
                       <RefreshCw size={12} />
-                      <span>Sync Calories = {macroSumKcal} kcal</span>
+                      <span>{t('nutrition.goal_modal.sync_calories', 'Sync Calories = {{cal}} kcal', { cal: macroSumKcal })}</span>
                     </button>
                   </div>
 
                   {/* Macro Distribution Scheme Selector */}
                   <div className="pt-1">
                     <div className="text-[9.5px] font-black uppercase tracking-wider text-[var(--habit-dim)] mb-1">
-                      AUTO-DISTRIBUTE CALORIES ({form.calories} kcal) TO MACROS:
+                      {t('nutrition.goal_modal.auto_distribute', 'AUTO-DISTRIBUTE CALORIES ({{cal}} kcal) TO MACROS:', { cal: form.calories })}
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
                       {MACRO_SPLITS.map((split) => (
@@ -386,7 +387,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                           onClick={() => distributeCaloriesToMacros(split)}
                           className="py-1 px-2 rounded-lg text-[10px] font-black text-left bg-[var(--habit-border)] hover:border-[var(--habit-gold,#f59e0b)] border border-transparent text-[var(--habit-text)] transition-all"
                         >
-                          {split.label}
+                          {t(`nutrition.goal_modal.${split.key}`, split.defaultLabel)}
                         </button>
                       ))}
                     </div>
@@ -456,7 +457,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                 {/* Strategy Selector */}
                 <div>
                   <span className="text-xs font-black block mb-1.5 text-[var(--habit-gold,#f59e0b)] uppercase tracking-wider">
-                    1. Goal Strategy
+                    {t('nutrition.goal_modal.strategy_label', '1. Goal Strategy')}
                   </span>
                   <div className="grid grid-cols-3 gap-1.5">
                     {STRATEGIES.map((s) => {
@@ -477,7 +478,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                             cursor: 'pointer',
                           }}
                         >
-                          {s.label}
+                          {t(`nutrition.goal_modal.${s.i18nKey}`, s.defaultLabel)}
                         </button>
                       );
                     })}
@@ -487,7 +488,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                 {/* Body Metrics Inputs */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--habit-border)]">
-                    <span className="text-xs font-black text-[var(--habit-text)]">Sex</span>
+                    <span className="text-xs font-black text-[var(--habit-text)]">{t('weight.sex', 'Sex')}</span>
                     <div className="flex gap-1 p-0.5 rounded-lg bg-[var(--habit-panel)]">
                       {['male', 'female'].map((s) => (
                         <button
@@ -501,16 +502,16 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                             cursor: 'pointer',
                           }}
                         >
-                          {s === 'male' ? '♂ Male' : '♀ Female'}
+                          {s === 'male' ? t('weight.male', '♂ Male') : t('weight.female', '♀ Female')}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {[
-                    { key: 'weight', label: 'Current Weight', unit: 'kg', min: 30, max: 250, step: 0.5 },
-                    { key: 'height', label: 'Height', unit: 'cm', min: 100, max: 230, step: 1 },
-                    { key: 'age',    label: 'Age', unit: 'yr', min: 12, max: 100, step: 1 },
+                    { key: 'weight', label: t('weight.weight', 'Current Weight'), unit: 'kg', min: 30, max: 250, step: 0.5 },
+                    { key: 'height', label: t('weight.height', 'Height'), unit: 'cm', min: 100, max: 230, step: 1 },
+                    { key: 'age',    label: t('weight.age', 'Age'), unit: 'yr', min: 12, max: 100, step: 1 },
                   ].map(({ key, label, unit, min, max, step }) => (
                     <div key={key} className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--habit-border)]">
                       <span className="text-xs font-black text-[var(--habit-text)]">{label}</span>
@@ -531,7 +532,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
 
                   {/* Activity Level */}
                   <div>
-                    <span className="text-xs font-black block mb-1.5 text-[var(--habit-text)]">Activity Level</span>
+                    <span className="text-xs font-black block mb-1.5 text-[var(--habit-text)]">{t('weight.activity_level', 'Activity Level')}</span>
                     <div className="space-y-1">
                       {ACTIVITY_LEVELS.map((a) => {
                         const isActActive = calc.activity === a.key;
@@ -548,7 +549,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                               cursor: 'pointer',
                             }}
                           >
-                            {a.label}
+                            {t(`nutrition.goal_modal.${a.i18nKey}`, a.defaultLabel)}
                           </button>
                         );
                       })}
@@ -564,7 +565,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase tracking-wide text-[var(--habit-green,#10b981)]">
-                        📊 TDEE & Macro Breakdown
+                        {t('weight.tdee_breakdown', '📊 TDEE & Macro Breakdown')}
                       </span>
                       <span className="text-[10px] font-mono font-black opacity-60">
                         BMR: {tdeeResult.bmr} kcal | TDEE: {tdeeResult.tdee} kcal
@@ -573,19 +574,19 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
 
                     <div className="grid grid-cols-4 gap-1.5 text-center">
                       <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[rgba(245,158,11,0.2)]">
-                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">TARGET</div>
+                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">{t('nutrition.macros.calories_short', 'TARGET')}</div>
                         <div className="text-xs font-black text-[var(--habit-gold,#f59e0b)] font-mono">{tdeeResult.calories}k</div>
                       </div>
                       <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[rgba(59,130,246,0.2)]">
-                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">PROTEIN</div>
+                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">{t('nutrition.macros.protein', 'PROTEIN')}</div>
                         <div className="text-xs font-black text-[#3b82f6] font-mono">{tdeeResult.protein}g</div>
                       </div>
                       <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[rgba(249,115,22,0.2)]">
-                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">FAT</div>
+                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">{t('nutrition.macros.fat', 'FAT')}</div>
                         <div className="text-xs font-black text-[#f97316] font-mono">{tdeeResult.fat}g</div>
                       </div>
                       <div className="p-2 rounded-xl bg-[var(--habit-panel)] border border-[rgba(16,185,129,0.2)]">
-                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">CARBS</div>
+                        <div className="text-[9px] font-black text-[var(--habit-dim)] uppercase">{t('nutrition.macros.carbs', 'CARBS')}</div>
                         <div className="text-xs font-black text-[#10b981] font-mono">{tdeeResult.carbs}g</div>
                       </div>
                     </div>
@@ -602,7 +603,7 @@ export default function NutriGoalModal({ currentGoal = {}, onClose }) {
                       }}
                     >
                       <Check size={14} />
-                      <span>Apply TDEE Targets to My Goals</span>
+                      <span>{t('nutrition.goal_modal.apply_tdee_btn', 'Apply TDEE Targets to My Goals')}</span>
                     </motion.button>
                   </div>
                 )}

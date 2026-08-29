@@ -1,19 +1,29 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
-import { Palette, Type, Volume2, VolumeX, Waves, Smartphone } from "lucide-react";
+import { Palette, Type, Volume2, VolumeX, Waves, Smartphone, Globe } from "lucide-react";
 import { THEMES, applyTheme } from "@/lib/themes";
 import { ACCENT_PALETTES, applyAppearanceSettings } from "@/lib/applyAppearance";
 import { useTranslation } from "react-i18next";
 import { saveSettings } from "@/utils/settings";
 import { useQueryClient } from "@tanstack/react-query";
 import { syncWidgetStats } from "@/utils/widget";
+import { hapticLight } from "@/hooks/useHaptic";
 
 export default function AppearancePanel() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mindos_settings") || "{}"); } catch { return {}; }
   });
+
+  const currentLang = i18n.language?.startsWith("ru") ? "ru" : "en";
+
+  const handleLanguageChange = (lang) => {
+    hapticLight();
+    i18n.changeLanguage(lang);
+    localStorage.setItem("i18nextLng", lang);
+    updateSetting("language", lang);
+  };
 
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
@@ -62,6 +72,41 @@ export default function AppearancePanel() {
       <div className="flex items-center gap-2 mb-4">
         <Palette className="w-4 h-4 text-muted-foreground" />
         <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{t('settings.appearanceSettings')}</span>
+      </div>
+
+      {/* ── Language Selector ── */}
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Globe className="w-3.5 h-3.5 text-[var(--habit-gold,#f59e0b)]" />
+            <span className="font-mono text-xs font-bold">{t('settings.language', 'Language')}</span>
+          </div>
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[var(--habit-border)] text-[var(--habit-gold,#f59e0b)]">
+            {currentLang.toUpperCase()}
+          </span>
+        </div>
+        <p className="text-[10px] text-muted-foreground/70">{t('settings.languageDesc', 'Choose your preferred app language')}</p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { code: 'ru', label: t('settings.lang_ru', '🇷🇺 Русский') },
+            { code: 'en', label: t('settings.lang_en', '🇬🇧 English') },
+          ].map(({ code, label }) => {
+            const isActive = currentLang === code;
+            return (
+              <button
+                key={code}
+                onClick={() => handleLanguageChange(code)}
+                className={`py-2.5 px-3 rounded-xl border text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                  isActive
+                    ? 'border-[var(--habit-gold,#f59e0b)] bg-[rgba(245,158,11,0.15)] text-[var(--habit-gold,#f59e0b)] shadow-md shadow-[rgba(245,158,11,0.2)]'
+                    : 'border-[var(--habit-border)]/40 text-[var(--habit-dim)] hover:border-[var(--habit-border)] hover:text-[var(--habit-text)]'
+                }`}
+              >
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Theme */}
