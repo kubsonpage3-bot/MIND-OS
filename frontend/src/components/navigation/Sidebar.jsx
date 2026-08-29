@@ -19,75 +19,6 @@ const APPS = [
   { id: "life", label: "LIFE OS", icon: Sparkles },
 ];
 
-function LanguageSwitcherPill({ collapsed }) {
-  const { i18n } = useTranslation();
-  const currentLang = i18n.language?.startsWith("ru") ? "ru" : "en";
-
-  const handleToggle = (lang) => {
-    haptic(8);
-    i18n.changeLanguage(lang);
-    localStorage.setItem("i18nextLng", lang);
-    try {
-      const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
-      const newSettings = { ...settings, language: lang };
-      saveSettings(newSettings);
-    } catch {}
-  };
-
-  if (collapsed) {
-    return (
-      <button
-        onClick={() => handleToggle(currentLang === 'ru' ? 'en' : 'ru')}
-        className="w-9 h-9 mx-auto mb-2 rounded-xl flex items-center justify-center text-[10px] font-black transition-all border"
-        style={{
-          background: 'var(--habit-sidebar-hover)',
-          borderColor: 'var(--habit-sidebar-border)',
-          color: 'var(--habit-sidebar-active-text)',
-        }}
-        title="Switch Language / Сменить язык"
-      >
-        {currentLang.toUpperCase()}
-      </button>
-    );
-  }
-
-  return (
-    <div
-      className="flex items-center justify-between p-1.5 rounded-xl border mx-2 mb-2"
-      style={{
-        background: 'var(--habit-sidebar-hover)',
-        borderColor: 'var(--habit-sidebar-border)',
-      }}
-    >
-      <div className="flex items-center gap-1.5 px-1.5 text-[11px] font-black text-[var(--habit-sidebar-dim)]">
-        <Globe size={13} />
-        <span>Lang</span>
-      </div>
-      <div className="flex items-center gap-1 bg-black/20 p-0.5 rounded-lg">
-        {[
-          { code: 'ru', label: '🇷🇺 RU' },
-          { code: 'en', label: '🇬🇧 EN' },
-        ].map(({ code, label }) => {
-          const isActive = currentLang === code;
-          return (
-            <button
-              key={code}
-              onClick={() => handleToggle(code)}
-              className={`px-2 py-1 rounded-md text-[10.5px] font-black transition-all ${
-                isActive
-                  ? 'bg-[var(--habit-purple)] text-white shadow-sm'
-                  : 'text-[var(--habit-sidebar-dim)] hover:text-[var(--habit-sidebar-text)]'
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 const SECTION_GROUPS = [
   {
     label: null,
@@ -316,8 +247,6 @@ function NavContent({
             <Brain size={14} />
             {!collapsed && <span>Switch to Mind OS</span>}
           </motion.button>
-
-          <LanguageSwitcherPill collapsed={collapsed} />
         </div>
       ) : (
       <nav className="px-2 py-2 flex-1 min-h-0 overflow-y-auto max-md:pb-[100px]" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
@@ -490,11 +419,7 @@ function NavContent({
       </nav>
       )}
 
-      <div className="shrink-0 px-2 mt-auto">
-        <LanguageSwitcherPill collapsed={collapsed} />
-      </div>
-
-      <div className="shrink-0 h-2" />
+      <div className="shrink-0 h-4" />
     </>
   );
 }

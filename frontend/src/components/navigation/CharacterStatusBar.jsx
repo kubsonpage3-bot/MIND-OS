@@ -2,9 +2,12 @@ import { motion } from "framer-motion";
 import { CLASSES } from "@/constants/rpgData";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import PixelCharacter from "../mindos/PixelCharacter";
-import { Menu, ShieldAlert } from "lucide-react";
+import { Menu, ShieldAlert, Globe } from "lucide-react";
 import { normalizeGold } from "@/lib/utils";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { useTranslation } from "react-i18next";
+import { hapticLight } from "@/hooks/useHaptic";
+import { saveSettings } from "@/utils/settings";
 
 function PixelBar({ pct, fillColor, glowColor, label, value, trackColor = "#110e1e", isCritical = false }) {
   const clampedPct = Math.max(0, Math.min(100, pct));
@@ -61,6 +64,21 @@ function PixelBar({ pct, fillColor, glowColor, label, value, trackColor = "#110e
 
 export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSidebar, theme }) {
   const { profile } = useDjangoAuth();
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language?.startsWith("ru") ? "ru" : "en";
+
+  const toggleLanguage = () => {
+    hapticLight();
+    const nextLang = currentLang === "ru" ? "en" : "ru";
+    i18n.changeLanguage(nextLang);
+    localStorage.setItem("i18nextLng", nextLang);
+    try {
+      const settings = JSON.parse(localStorage.getItem("mindos_settings") || "{}");
+      const newSettings = { ...settings, language: nextLang };
+      saveSettings(newSettings);
+    } catch {}
+  };
+
   const streak = profile?.streak || 0;
 
   const classData = {
@@ -141,8 +159,20 @@ export default function CharacterStatusBar({ rankXP, currentRankId, onToggleSide
           />
         </div>
 
-        {/* Right section: Gold/Rank/Streak + Portrait */}
+        {/* Right section: Language Switcher + Gold/Rank/Streak + Portrait */}
         <div className="shrink-0 flex items-stretch border-l border-[var(--habit-border)] bg-black/5 dark:bg-black/20">
+          {/* Top-Right Language Switcher */}
+          <button
+            onClick={toggleLanguage}
+            className="flex flex-col items-center justify-center px-2 py-1 border-r border-[var(--habit-border)] hover:bg-white/5 transition-all select-none cursor-pointer"
+            title="Switch Language / Сменить язык"
+          >
+            <Globe size={11} className="text-[var(--habit-gold,#f59e0b)] mb-0.5" />
+            <span className="font-mono text-[9px] font-black text-[var(--habit-gold,#f59e0b)]">
+              {currentLang === 'ru' ? 'RU' : 'EN'}
+            </span>
+          </button>
+
           {/* Info block: Rank, Gold, Streak */}
           <div className="flex flex-col items-end justify-center gap-0.5 pr-2 pl-1.5 py-1.5 sm:gap-1 sm:pr-3 sm:pl-2 sm:py-2">
             <div
