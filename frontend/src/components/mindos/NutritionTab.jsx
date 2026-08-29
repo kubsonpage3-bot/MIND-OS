@@ -55,50 +55,93 @@ const MEAL_META = {
 
 import NutritionDateNavigator from './NutritionDateNavigator';
 
-// ─── Single Meal Entry Row ────────────────────────────────────────────────────
+function getFoodEmoji(name = '') {
+  const lower = (name || '').toLowerCase();
+  if (lower.includes('пицц') || lower.includes('pizza')) return '🍕';
+  if (lower.includes('овсян') || lower.includes('oat') || lower.includes('каша') || lower.includes('porridge')) return '🥣';
+  if (lower.includes('сырник') || lower.includes('блин') || lower.includes('pancake')) return '🥞';
+  if (lower.includes('яйц') || lower.includes('яичниц') || lower.includes('egg') || lower.includes('omelet')) return '🍳';
+  if (lower.includes('куриц') || lower.includes('курин') || lower.includes('филе') || lower.includes('chicken') || lower.includes('птиц')) return '🍗';
+  if (lower.includes('говядин') || lower.includes('стейк') || lower.includes('beef') || lower.includes('steak') || lower.includes('мясо')) return '🥩';
+  if (lower.includes('рыб') || lower.includes('лосос') || lower.includes('тунец') || lower.includes('fish') || lower.includes('salmon')) return '🐟';
+  if (lower.includes('гречк') || lower.includes('buckwheat')) return '🌾';
+  if (lower.includes('рис') || lower.includes('rice') || lower.includes('плов')) return '🍚';
+  if (lower.includes('макарон') || lower.includes('паст') || lower.includes('pasta') || lower.includes('spaghetti')) return '🍝';
+  if (lower.includes('картоф') || lower.includes('potato')) return '🥔';
+  if (lower.includes('творог') || lower.includes('cottage') || lower.includes('сыр') || lower.includes('cheese')) return '🧀';
+  if (lower.includes('молок') || lower.includes('milk') || lower.includes('йогурт') || lower.includes('yogurt')) return '🥛';
+  if (lower.includes('протеин') || lower.includes('protein') || lower.includes('шейк') || lower.includes('shake')) return '🥤';
+  if (lower.includes('бургер') || lower.includes('burger')) return '🍔';
+  if (lower.includes('шаурм') || lower.includes('shawarma') || lower.includes('ролл') || lower.includes('wrap')) return '🌯';
+  if (lower.includes('кофе') || lower.includes('coffee') || lower.includes('капучино') || lower.includes('латте') || lower.includes('чай')) return '☕';
+  if (lower.includes('банан') || lower.includes('banana')) return '🍌';
+  if (lower.includes('яблок') || lower.includes('apple')) return '🍎';
+  if (lower.includes('авокадо') || lower.includes('avocado')) return '🥑';
+  if (lower.includes('салат') || lower.includes('salad') || lower.includes('огур') || lower.includes('помидор')) return '🥗';
+  if (lower.includes('борщ') || lower.includes('суп') || lower.includes('soup')) return '🍲';
+  return '🍽️';
+}
+
+// ─── Single Meal Entry Row (Pixel-Art Card) ──────────────────────────────────
 function MealEntryRow({ entry, onDelete, accentColor }) {
   const { t } = useTranslation();
+  const emoji = getFoodEmoji(entry.food_name);
+
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: 12 }}
-      className="group flex items-center justify-between px-3 py-2.5 rounded-xl transition-all"
-      style={{ background: 'var(--habit-border)' }}
-      whileHover={{ backgroundColor: 'var(--habit-border)', scale: 1.005 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="group flex items-center justify-between px-3 py-2.5 rounded-xl transition-all border relative overflow-hidden"
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        borderColor: 'var(--habit-border, rgba(255,255,255,0.08))',
+      }}
+      whileHover={{
+        borderColor: accentColor,
+        boxShadow: `0 0 14px -2px ${accentColor}30`,
+      }}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
         {entry.photo_url ? (
           <img src={entry.photo_url} alt="meal" className="w-10 h-10 rounded-xl object-cover border border-white/10 shrink-0" />
         ) : (
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accentColor}20` }}>
-            <Utensils size={13} style={{ color: accentColor, opacity: 0.8 }} />
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-base shadow-sm"
+            style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}35` }}
+          >
+            {emoji}
           </div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="font-bold text-[12.5px] truncate" style={{ color: 'var(--habit-text)' }}>
+            <span className="font-black text-[13px] truncate" style={{ color: 'var(--habit-text)' }}>
               {entry.food_name}
             </span>
-            <span className="text-[10px] font-mono opacity-50 shrink-0">{entry.amount}{entry.unit||'g'}</span>
+            <span
+              className="text-[10px] font-mono font-black px-1.5 py-0.2 rounded bg-[var(--habit-border)] shrink-0"
+              style={{ color: 'var(--habit-gold, #f59e0b)' }}
+            >
+              [{entry.amount}{entry.unit || 'g'}]
+            </span>
           </div>
-          <div className="flex flex-wrap gap-x-2.5 gap-y-0 text-[10px] font-bold">
-            <span style={{ color: '#f59e0b' }}>{Math.round(entry.calories)} kcal</span>
-            <span style={{ color: '#3b82f6' }}>P {Math.round(entry.protein)}g</span>
-            <span style={{ color: '#f97316' }}>F {Math.round(entry.fat)}g</span>
-            <span style={{ color: '#10b981' }}>C {Math.round(entry.carbs)}g</span>
-            {entry.note && <span className="opacity-40 italic font-normal truncate max-w-[100px]">· {entry.note}</span>}
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10.5px] font-mono font-bold">
+            <span style={{ color: '#f59e0b' }}>🔥 {Math.round(entry.calories)} kcal</span>
+            <span style={{ color: '#3b82f6' }}>P: {Math.round(entry.protein)}g</span>
+            <span style={{ color: '#f97316' }}>F: {Math.round(entry.fat)}g</span>
+            <span style={{ color: '#10b981' }}>C: {Math.round(entry.carbs)}g</span>
+            {entry.note && <span className="opacity-40 italic font-normal truncate max-w-[120px]">· {entry.note}</span>}
           </div>
         </div>
       </div>
       <button
         onClick={() => onDelete(entry.id)}
-        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all shrink-0"
+        className="p-1.5 rounded-lg opacity-40 group-hover:opacity-100 hover:text-red-400 transition-all shrink-0"
         title={t('nutrition.delete_entry', 'Delete')}
         style={{ color: 'var(--habit-dim)' }}
       >
-        <Trash2 size={13} />
+        <Trash2 size={14} />
       </button>
     </motion.div>
   );
@@ -118,34 +161,49 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
 
   return (
     <div
-      className="rounded-2xl overflow-hidden transition-all"
+      className="rounded-2xl overflow-hidden transition-all border"
       style={{
         background: 'var(--habit-panel)',
-        border: '1px solid var(--habit-border)',
-        borderLeft: `3px solid ${meta.color}`,
+        borderColor: 'var(--habit-border)',
+        borderLeft: `4px solid ${meta.color}`,
         boxShadow: `0 0 0 0 ${meta.glow}`,
-        transition: 'box-shadow 0.3s ease',
+        transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
       }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 20px -4px ${meta.glow}`}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 24px -4px ${meta.glow}`}
       onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 0 transparent'}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3.5">
         <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-3 text-left flex-1" style={{ cursor:'pointer' }}>
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all" style={{ background: meta.bg }}>
-            <Icon size={15} style={{ color: meta.color }} />
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-sm"
+            style={{ background: meta.bg, border: `1px solid ${meta.color}40` }}
+          >
+            <Icon size={16} style={{ color: meta.color }} />
           </div>
           <div>
-            <div style={{ fontSize:14, fontWeight:800, color:'var(--habit-text)', letterSpacing:'-0.2px' }}>{label}</div>
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--habit-text)', letterSpacing: '-0.2px' }}>
+                {label}
+              </span>
+              <span
+                className="text-[9px] font-mono font-black uppercase px-1.5 py-0.2 rounded"
+                style={{ background: meta.bg, color: meta.color }}
+              >
+                HUD
+              </span>
+            </div>
             {entries.length > 0 ? (
-              <div className="flex gap-2.5 mt-0.5 text-[10.5px] font-bold">
-                <span style={{ color:'#f59e0b' }}>{Math.round(totalCal)} kcal</span>
-                <span style={{ color:'#3b82f6' }}>P {Math.round(totalP)}g</span>
-                <span style={{ color:'#f97316' }}>F {Math.round(totalF)}g</span>
-                <span style={{ color:'#10b981' }}>C {Math.round(totalC)}g</span>
+              <div className="flex gap-2.5 mt-0.5 text-[11px] font-mono font-bold">
+                <span style={{ color: '#f59e0b' }}>🔥 {Math.round(totalCal)} kcal</span>
+                <span style={{ color: '#3b82f6' }}>P:{Math.round(totalP)}g</span>
+                <span style={{ color: '#f97316' }}>F:{Math.round(totalF)}g</span>
+                <span style={{ color: '#10b981' }}>C:{Math.round(totalC)}g</span>
               </div>
             ) : (
-              <div className="text-[10px] mt-0.5" style={{ color:'var(--habit-dim)' }}>{t('nutrition.no_entries','No entries')}</div>
+              <div className="text-[10px] mt-0.5 font-medium" style={{ color: 'var(--habit-dim)' }}>
+                {t('nutrition.no_entries', 'No entries logged')}
+              </div>
             )}
           </div>
         </button>
@@ -154,13 +212,19 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.05 }}
             onClick={() => onAddClick(type)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all"
-            style={{ background: meta.bg, color: meta.color, border:`1px solid ${meta.color}30`, cursor:'pointer' }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all"
+            style={{
+              background: meta.bg,
+              color: meta.color,
+              border: `1px solid ${meta.color}50`,
+              boxShadow: `0 2px 10px ${meta.color}25`,
+              cursor: 'pointer',
+            }}
           >
-            <Plus size={12} /> {t('nutrition.add_food','Add')}
+            <Plus size={13} /> {t('nutrition.add_food', 'Add')}
           </motion.button>
-          <button onClick={() => setIsOpen(!isOpen)} className="p-1 opacity-40 hover:opacity-100 transition-opacity">
-            {isOpen ? <ChevronUp size={15}/> : <ChevronDown size={15}/>}
+          <button onClick={() => setIsOpen(!isOpen)} className="p-1 opacity-50 hover:opacity-100 transition-opacity">
+            {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
       </div>
