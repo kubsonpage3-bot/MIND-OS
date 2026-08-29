@@ -11,8 +11,7 @@ import {
 } from '@/constants/queryKeys';
 import { toast } from '@/components/ui/use-toast';
 import { Search, Star, Camera, X, Globe, User, Loader2, Zap, Trash2 } from 'lucide-react';
-
-import { CURATED_FOODS, CURATED_CATEGORIES } from '@/data/curatedFoods';
+import { hapticLight } from '@/hooks/useHaptic';
 
 const MEAL_TYPES = [
   { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅' },
@@ -23,6 +22,32 @@ const MEAL_TYPES = [
 
 const QUICK_PORTIONS = [50, 100, 150, 200, 250, 300];
 
+function getFoodEmoji(name = '') {
+  const lower = (name || '').toLowerCase();
+  if (lower.includes('pizza') || lower.includes('piz') || lower.includes('пицц')) return '🍕';
+  if (lower.includes('oat') || lower.includes('porridge') || lower.includes('овсян') || lower.includes('каша')) return '🥣';
+  if (lower.includes('pancake') || lower.includes('сырник') || lower.includes('блин')) return '🥞';
+  if (lower.includes('egg') || lower.includes('omelet') || lower.includes('яйц') || lower.includes('яичниц')) return '🍳';
+  if (lower.includes('chicken') || lower.includes('poultry') || lower.includes('куриц') || lower.includes('филе')) return '🍗';
+  if (lower.includes('beef') || lower.includes('steak') || lower.includes('meat') || lower.includes('стейк') || lower.includes('мясо')) return '🥩';
+  if (lower.includes('fish') || lower.includes('salmon') || lower.includes('tuna') || lower.includes('лосос') || lower.includes('рыб')) return '🐟';
+  if (lower.includes('rice') || lower.includes('рис')) return '🍚';
+  if (lower.includes('pasta') || lower.includes('spaghetti') || lower.includes('noodle') || lower.includes('макарон')) return '🍝';
+  if (lower.includes('potato') || lower.includes('картоф')) return '🥔';
+  if (lower.includes('cheese') || lower.includes('cottage') || lower.includes('творог') || lower.includes('сыр')) return '🧀';
+  if (lower.includes('milk') || lower.includes('yogurt') || lower.includes('молок') || lower.includes('йогурт')) return '🥛';
+  if (lower.includes('protein') || lower.includes('shake') || lower.includes('шейк')) return '🥤';
+  if (lower.includes('burger') || lower.includes('бургер')) return '🍔';
+  if (lower.includes('shawarma') || lower.includes('wrap') || lower.includes('шаурм')) return '🌯';
+  if (lower.includes('coffee') || lower.includes('cappuccino') || lower.includes('latte') || lower.includes('tea') || lower.includes('кофе') || lower.includes('чай')) return '☕';
+  if (lower.includes('banana') || lower.includes('банан')) return '🍌';
+  if (lower.includes('apple') || lower.includes('яблок')) return '🍎';
+  if (lower.includes('avocado') || lower.includes('авокадо')) return '🥑';
+  if (lower.includes('salad') || lower.includes('салат')) return '🥗';
+  if (lower.includes('soup') || lower.includes('борщ') || lower.includes('суп')) return '🍲';
+  return '🍽️';
+}
+
 export default function AddMealModal({ dateStr, initialMealType = 'breakfast', onClose }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -30,7 +55,6 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
   const [tab, setTab] = useState('search'); // 'search' | 'new'
   const [mealType, setMealType] = useState(initialMealType);
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [selectedFood, setSelectedFood] = useState(null);
   const [amount, setAmount] = useState(100);
@@ -53,7 +77,6 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: GLOBAL_FOOD_KEY(search),
     queryFn: () => djangoApi.nutrition.searchGlobal(search),
-    enabled: search.trim().length >= 2,
     staleTime: 30_000,
   });
 
@@ -66,14 +89,6 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
   const userFoods = searchResults?.user_foods || [];
   const globalFoods = searchResults?.global_foods || [];
-
-  // Filter curated foods locally (instant, 0ms latency)
-  const filteredCuratedFoods = CURATED_FOODS.filter((food) => {
-    const matchesCategory = selectedCategory === 'all' || food.category === selectedCategory;
-    if (!search.trim()) return matchesCategory;
-    const q = search.toLowerCase().trim();
-    return matchesCategory && food.name.toLowerCase().includes(q);
-  });
 
   // ── Mutations ─────────────────────────────────────────────────────────────────
   const invalidate = () => {
@@ -148,6 +163,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
   const canSubmit = selectedFood && amount > 0;
 
   function handleSelectFood(food, isCustom = false) {
+    hapticLight();
     setSelectedFood({ ...food, is_custom: isCustom });
     if (food.defaultAmount) {
       setAmount(food.defaultAmount);
@@ -167,13 +183,6 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
     if (selectedFood.is_custom) {
       payload.food_item_id = selectedFood.id;
-    } else if (typeof selectedFood.id === 'string' && selectedFood.id.startsWith('c_')) {
-      // Curated item -> save as custom meal record
-      payload.food_name = selectedFood.name.split('/')[0].trim();
-      payload.calories = Number(preview.calories);
-      payload.protein = Number(preview.protein);
-      payload.fat = Number(preview.fat);
-      payload.carbs = Number(preview.carbs);
     } else {
       payload.global_food_id = selectedFood.id;
     }
@@ -235,7 +244,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               {t('nutrition.add_modal.title', '🍽️ Log Meal')}
             </span>
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--habit-gold,#f59e0b)] text-black">
-              EAT JOURNAL
+              GLOBAL DATABASE
             </span>
           </div>
           <button
@@ -256,7 +265,10 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               return (
                 <button
                   key={id}
-                  onClick={() => setMealType(id)}
+                  onClick={() => {
+                    hapticLight();
+                    setMealType(id);
+                  }}
                   className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-black transition-all"
                   style={{
                     background: isCurrent ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-border)',
@@ -275,14 +287,17 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
           {/* Tabs: Search vs New Custom Food */}
           <div className="flex gap-2">
             {[
-              ['search', t('nutrition.add_modal.search_tab', '🔍 Search & Catalog')],
+              ['search', t('nutrition.add_modal.search_tab', '🔍 Search Global Database')],
               ['new', t('nutrition.add_modal.create_tab', '➕ Create Custom Food')],
             ].map(([id, label]) => {
               const isActive = tab === id;
               return (
                 <button
                   key={id}
-                  onClick={() => setTab(id)}
+                  onClick={() => {
+                    hapticLight();
+                    setTab(id);
+                  }}
                   className="flex-1 py-2 rounded-xl text-xs font-black transition-all"
                   style={{
                     background: isActive ? 'rgba(245,158,11,0.18)' : 'transparent',
@@ -297,7 +312,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
             })}
           </div>
 
-          {/* ── Tab: Search & Curated Catalog ───────────────────────────────────── */}
+          {/* ── Tab: Unified Search Global Database ───────────────────────────────────── */}
           {tab === 'search' && (
             <div className="space-y-3">
               {/* Search input bar */}
@@ -306,7 +321,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t('nutrition.add_modal.search_placeholder', 'Type e.g. pizza, chicken, oatmeal, coffee...')}
+                  placeholder={t('nutrition.add_modal.search_placeholder', 'Search food e.g. pizza, chicken breast, oatmeal, salmon...')}
                   className="w-full pl-10 pr-9 py-2.5 rounded-xl text-xs md:text-sm outline-none font-bold placeholder:font-normal transition-all"
                   style={{
                     background: 'var(--habit-border)',
@@ -328,53 +343,35 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 )}
               </div>
 
-              {/* Category Pills (When not in deep search query) */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {CURATED_CATEGORIES.map(({ id, label }) => {
-                  const isCatActive = selectedCategory === id;
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => setSelectedCategory(id)}
-                      className="px-2.5 py-1 rounded-xl text-[11px] font-black whitespace-nowrap transition-all shrink-0"
-                      style={{
-                        background: isCatActive ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-border)',
-                        color: isCatActive ? '#000000' : 'var(--habit-dim)',
-                        boxShadow: isCatActive ? '0 2px 8px rgba(245,158,11,0.25)' : 'none',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* ── Curated Essentials & Search Results List ──────────────────── */}
-              <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
-                {/* 1. Curated Essential Foods */}
-                {filteredCuratedFoods.length > 0 && (
+              {/* ── Unified Results List ───────────────────────────────────────── */}
+              <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
+                {/* 1. User Saved Custom Foods (if any) */}
+                {userFoods.length > 0 && (
                   <div className="space-y-1">
-                    {filteredCuratedFoods.map((food) => {
-                      const isSelected = selectedFood?.id === food.id;
+                    <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
+                      <User size={11} /> {t('nutrition.add_modal.my_saved_foods', 'My Saved Foods')}
+                    </div>
+                    {userFoods.map((food) => {
+                      const isSelected = selectedFood?.id === food.id && selectedFood?.is_custom;
+                      const emoji = getFoodEmoji(food.name);
                       return (
                         <motion.button
-                          key={`curated-${food.id}`}
+                          key={`user-${food.id}`}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectFood(food, false)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full group"
+                          onClick={() => handleSelectFood(food, true)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full border"
                           style={{
                             background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
-                            border: `1px solid ${isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent'}`,
+                            borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
                             boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.2)' : 'none',
                             cursor: 'pointer',
                           }}
                         >
                           <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                            <span className="text-base shrink-0">{food.emoji || '🍽️'}</span>
+                            <span className="text-base shrink-0">{emoji}</span>
                             <div className="flex-1 min-w-0">
                               <div className="font-black text-xs truncate text-[var(--habit-text)]">
-                                {food.name.split('/')[0].trim()}
+                                {food.name}
                               </div>
                               <div className="flex items-center gap-2 text-[10px] font-mono font-bold mt-0.5">
                                 <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {food.calories_per_100} kcal</span>
@@ -382,45 +379,6 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                                 <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
                                 <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
                               </div>
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <span className="text-[9px] font-black text-black bg-[var(--habit-gold,#f59e0b)] px-2 py-0.5 rounded-full shrink-0">
-                              SELECTED
-                            </span>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* 2. User Saved Foods */}
-                {userFoods.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
-                      <User size={11} /> {t('nutrition.add_modal.my_saved_foods', 'My Saved Foods')}
-                    </div>
-                    {userFoods.map((food) => {
-                      const isSelected = selectedFood?.id === food.id && selectedFood?.is_custom;
-                      return (
-                        <motion.button
-                          key={`user-${food.id}`}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectFood(food, true)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full"
-                          style={{
-                            background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
-                            border: `1px solid ${isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent'}`,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <div className="flex-1 min-w-0 pr-2">
-                            <div className="font-black text-xs truncate text-[var(--habit-text)]">
-                              {food.name}
-                            </div>
-                            <div className="text-[10px] text-[var(--habit-gold,#f59e0b)] font-mono font-bold mt-0.5">
-                              🔥 {food.calories_per_100} kcal · P:{food.protein_per_100} F:{food.fat_per_100} C:{food.carbs_per_100}
                             </div>
                           </div>
 
@@ -454,292 +412,324 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                   </div>
                 )}
 
-                {/* 3. Global Open Food Facts Items */}
-                {globalFoods.length > 0 && (
-                  <div className="mt-2 space-y-1">
+                {/* 2. Global Database (Open Food Facts) Items */}
+                {globalFoods.length > 0 ? (
+                  <div className="space-y-1 mt-1">
                     <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
-                      <Globe size={11} /> {t('nutrition.add_modal.global_database', 'Global Database (Open Food Facts)')}
+                      <Globe size={11} /> {t('nutrition.add_modal.global_database', 'Global Food Database (Open Food Facts)')}
                     </div>
                     {globalFoods.map((food) => {
                       const isSelected = selectedFood?.id === food.id && !selectedFood?.is_custom;
+                      const emoji = getFoodEmoji(food.name);
                       return (
                         <motion.button
                           key={`global-${food.id}`}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectFood(food, false)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full"
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full border"
                           style={{
-                            background: isSelected ? 'rgba(59,130,246,0.22)' : 'var(--habit-border)',
-                            border: `1px solid ${isSelected ? 'var(--habit-blue, #3b82f6)' : 'transparent'}`,
+                            background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
+                            borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
+                            boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.25)' : 'none',
                             cursor: 'pointer',
                           }}
                         >
-                          <div className="flex-1 min-w-0 pr-2">
-                            <div className="font-black text-xs truncate text-[var(--habit-text)]">
-                              {food.name}
-                              {food.brand && <span className="opacity-50 text-[10px] ml-1 font-normal">({food.brand})</span>}
-                            </div>
-                            <div className="text-[10px] text-[var(--habit-blue,#3b82f6)] font-mono font-bold mt-0.5">
-                              ⚡ {food.calories_per_100} kcal · P:{food.protein_per_100} F:{food.fat_per_100} C:{food.carbs_per_100}
+                          <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                            <span className="text-base shrink-0">{emoji}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 font-black text-xs text-[var(--habit-text)] truncate">
+                                <span className="truncate">{food.name}</span>
+                                {food.brand && (
+                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-black/40 text-[var(--habit-dim)] shrink-0">
+                                    {food.brand}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-[10.5px] font-mono font-bold mt-0.5">
+                                <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {Math.round(food.calories_per_100)} kcal</span>
+                                <span className="text-[#3b82f6]">P: {food.protein_per_100}g</span>
+                                <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
+                                <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
+                              </div>
                             </div>
                           </div>
+
+                          {isSelected && (
+                            <span className="text-[9px] font-black text-black bg-[var(--habit-gold,#f59e0b)] px-2 py-0.5 rounded-full shrink-0">
+                              SELECTED
+                            </span>
+                          )}
                         </motion.button>
                       );
                     })}
                   </div>
+                ) : (
+                  !isSearching && (
+                    <div className="text-center py-6 text-xs text-[var(--habit-dim)]">
+                      {search ? t('nutrition.add_modal.no_results', 'No matching foods found. Try another term or create custom.') : t('nutrition.add_modal.start_typing', 'Type in the search bar above to query global foods.')}
+                    </div>
+                  )
                 )}
               </div>
             </div>
           )}
 
-        {/* ── Tab: New Custom Food Form ────────────────────────────────────────── */}
-        {tab === 'new' && (
-          <div className="flex flex-col gap-2.5 mb-4">
-            <div>
-              <label className="text-[11px] font-bold text-[var(--habit-dim)] mb-1 block">
-                {t('nutrition.add_modal.food_name_label', 'Food Name *')}
-              </label>
-              <input
-                type="text"
-                value={newFood.name}
-                onChange={(e) => setNewFood((p) => ({ ...p, name: e.target.value }))}
-                placeholder={t('nutrition.add_modal.food_name_placeholder', 'e.g. Boiled oatmeal porridge')}
-                className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
+          {/* ── Tab: New Custom Food Form ────────────────────────────────────────── */}
+          {tab === 'new' && (
+            <div className="flex flex-col gap-2.5 mb-4">
               <div>
-                <label className="text-[11px] font-bold text-[var(--habit-gold,#f59e0b)] mb-1 block">
-                  {t('nutrition.add_modal.calories_label', 'Calories per 100g *')}
+                <label className="text-[11px] font-bold text-[var(--habit-dim)] mb-1 block">
+                  {t('nutrition.add_modal.food_name_label', 'Food Name *')}
                 </label>
                 <input
-                  type="number"
-                  value={newFood.calories_per_100}
-                  onChange={(e) => setNewFood((p) => ({ ...p, calories_per_100: e.target.value }))}
-                  placeholder="130"
-                  className="w-full px-3 py-2 rounded-xl text-xs outline-none font-bold"
-                  style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-bold text-[var(--habit-blue,#3b82f6)] mb-1 block">
-                  {t('nutrition.add_modal.protein_label', 'Protein (g)')}
-                </label>
-                <input
-                  type="number"
-                  value={newFood.protein_per_100}
-                  onChange={(e) => setNewFood((p) => ({ ...p, protein_per_100: e.target.value }))}
-                  placeholder="4.5"
+                  type="text"
+                  value={newFood.name}
+                  onChange={(e) => setNewFood((p) => ({ ...p, name: e.target.value }))}
+                  placeholder={t('nutrition.add_modal.food_name_placeholder', 'e.g. Boiled oatmeal porridge')}
                   className="w-full px-3 py-2 rounded-xl text-xs outline-none"
                   style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-bold text-[var(--habit-orange,#f97316)] mb-1 block">
-                  {t('nutrition.add_modal.fat_label', 'Fat (g)')}
-                </label>
-                <input
-                  type="number"
-                  value={newFood.fat_per_100}
-                  onChange={(e) => setNewFood((p) => ({ ...p, fat_per_100: e.target.value }))}
-                  placeholder="1.2"
-                  className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                  style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-bold text-[var(--habit-gold,#f59e0b)] mb-1 block">
+                    {t('nutrition.add_modal.calories_label', 'Calories per 100g *')}
+                  </label>
+                  <input
+                    type="number"
+                    value={newFood.calories_per_100}
+                    onChange={(e) => setNewFood((p) => ({ ...p, calories_per_100: e.target.value }))}
+                    placeholder="130"
+                    className="w-full px-3 py-2 rounded-xl text-xs outline-none font-bold"
+                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
+                  />
+                </div>
 
-              <div>
-                <label className="text-[11px] font-bold text-[var(--habit-green,#10b981)] mb-1 block">
-                  {t('nutrition.add_modal.carbs_label', 'Carbs (g)')}
-                </label>
-                <input
-                  type="number"
-                  value={newFood.carbs_per_100}
-                  onChange={(e) => setNewFood((p) => ({ ...p, carbs_per_100: e.target.value }))}
-                  placeholder="25"
-                  className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                  style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                />
-              </div>
-            </div>
+                <div>
+                  <label className="text-[11px] font-bold text-[var(--habit-blue,#3b82f6)] mb-1 block">
+                    {t('nutrition.add_modal.protein_label', 'Protein (g)')}
+                  </label>
+                  <input
+                    type="number"
+                    value={newFood.protein_per_100}
+                    onChange={(e) => setNewFood((p) => ({ ...p, protein_per_100: e.target.value }))}
+                    placeholder="4.5"
+                    className="w-full px-3 py-2 rounded-xl text-xs outline-none"
+                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
+                  />
+                </div>
 
-            <button
-              onClick={handleCreateFood}
-              disabled={createFoodMut.isPending}
-              className="w-full py-2.5 rounded-xl font-bold text-xs mt-1 transition-opacity"
-              style={{
-                background: 'var(--habit-green, #10b981)',
-                color: '#fff',
-                opacity: createFoodMut.isPending ? 0.6 : 1,
-                cursor: 'pointer',
-              }}
-            >
-              {createFoodMut.isPending
-                ? t('nutrition.add_modal.saving', 'Saving...')
-                : t('nutrition.add_modal.save_to_catalog', '✅ Save to Catalog')}
-            </button>
-          </div>
-        )}
+                <div>
+                  <label className="text-[11px] font-bold text-[var(--habit-orange,#f97316)] mb-1 block">
+                    {t('nutrition.add_modal.fat_label', 'Fat (g)')}
+                  </label>
+                  <input
+                    type="number"
+                    value={newFood.fat_per_100}
+                    onChange={(e) => setNewFood((p) => ({ ...p, fat_per_100: e.target.value }))}
+                    placeholder="1.2"
+                    className="w-full px-3 py-2 rounded-xl text-xs outline-none"
+                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
+                  />
+                </div>
 
-        {/* ── Selected Food & Portion Setup ───────────────────────────────────── */}
-        {selectedFood && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="p-3.5 rounded-2xl border relative overflow-hidden"
-            style={{
-              background: 'rgba(245,158,11,0.08)',
-              borderColor: 'rgba(245,158,11,0.3)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 min-w-0 pr-2">
-                <span className="text-base">{selectedFood.emoji || '🍽️'}</span>
-                <span style={{ fontWeight: 900, fontSize: 13, color: 'var(--habit-gold, #f59e0b)' }} className="truncate">
-                  {selectedFood.name.split('/')[0].trim()}
-                </span>
-              </div>
-              <span className="text-[10px] opacity-60 font-mono font-bold shrink-0">
-                100{selectedFood.unit || t('nutrition.g', 'g')} = {selectedFood.calories_per_100} kcal
-              </span>
-            </div>
-
-            {/* Quick portion buttons + Stepper */}
-            <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-0.5 scrollbar-none">
-              <button
-                type="button"
-                onClick={() => setAmount((prev) => Math.max(10, Number(prev) - 25))}
-                className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-sm bg-[var(--habit-border)] hover:bg-[var(--habit-panel)] text-[var(--habit-text)] transition-all shrink-0"
-                title="-25g"
-              >
-                -
-              </button>
-              {QUICK_PORTIONS.map((p) => {
-                const isPActive = Number(amount) === p;
-                return (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setAmount(p)}
-                    className="px-2.5 py-1 rounded-lg text-xs font-black transition-all shrink-0"
-                    style={{
-                      background: isPActive ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-border)',
-                      color: isPActive ? '#000000' : 'var(--habit-text)',
-                      boxShadow: isPActive ? '0 2px 8px rgba(245,158,11,0.3)' : 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {p}{selectedFood.unit || t('nutrition.g', 'g')}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setAmount((prev) => Number(prev) + 25)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-sm bg-[var(--habit-border)] hover:bg-[var(--habit-panel)] text-[var(--habit-text)] transition-all shrink-0"
-                title="+25g"
-              >
-                +
-              </button>
-            </div>
-
-            {/* Exact Weight Input */}
-            <div className="flex items-center justify-between mb-3 bg-[var(--habit-border)] px-3 py-1.5 rounded-xl">
-              <label className="text-xs font-black text-[var(--habit-text)] opacity-80">
-                {t('nutrition.add_modal.exact_weight', 'Portion size:')}
-              </label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  value={amount}
-                  min={1}
-                  step={10}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-20 px-2 py-0.5 rounded-lg text-sm text-center outline-none font-black bg-[var(--habit-panel)] border border-[var(--habit-border)]"
-                  style={{ color: 'var(--habit-text)' }}
-                />
-                <span className="text-xs font-black opacity-70">{selectedFood.unit || t('nutrition.g', 'g')}</span>
-              </div>
-            </div>
-
-            {/* Calculated Macros Preview (High Contrast Neon Chips) */}
-            {preview && (
-              <div className="pt-2 border-t border-[rgba(245,158,11,0.2)]">
-                <div className="grid grid-cols-4 gap-1.5 text-center">
-                  <div className="p-1.5 rounded-lg bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.25)]">
-                    <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">CALORIES</div>
-                    <div className="text-xs font-black text-[var(--habit-gold,#f59e0b)] font-mono">{preview.calories}</div>
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-[rgba(59,130,246,0.12)] border border-[rgba(59,130,246,0.25)]">
-                    <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">PROTEIN</div>
-                    <div className="text-xs font-black text-[#3b82f6] font-mono">{preview.protein}g</div>
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-[rgba(249,115,22,0.12)] border border-[rgba(249,115,22,0.25)]">
-                    <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">FAT</div>
-                    <div className="text-xs font-black text-[#f97316] font-mono">{preview.fat}g</div>
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-[rgba(16,185,129,0.12)] border border-[rgba(16,185,129,0.25)]">
-                    <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">CARBS</div>
-                    <div className="text-xs font-black text-[#10b981] font-mono">{preview.carbs}g</div>
-                  </div>
+                <div>
+                  <label className="text-[11px] font-bold text-[var(--habit-green,#10b981)] mb-1 block">
+                    {t('nutrition.add_modal.carbs_label', 'Carbs (g)')}
+                  </label>
+                  <input
+                    type="number"
+                    value={newFood.carbs_per_100}
+                    onChange={(e) => setNewFood((p) => ({ ...p, carbs_per_100: e.target.value }))}
+                    placeholder="25"
+                    className="w-full px-3 py-2 rounded-xl text-xs outline-none"
+                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
+                  />
                 </div>
               </div>
-            )}
-          </motion.div>
-        )}
 
-        {/* Note & Photo Attachment Row */}
-        <div className="space-y-2 mb-4">
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder={t('nutrition.add_modal.note_placeholder', 'Meal note (optional)...')}
-            className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-            style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-          />
+              <button
+                onClick={handleCreateFood}
+                disabled={createFoodMut.isPending}
+                className="w-full py-2.5 rounded-xl font-bold text-xs mt-1 transition-opacity"
+                style={{
+                  background: 'var(--habit-green, #10b981)',
+                  color: '#fff',
+                  opacity: createFoodMut.isPending ? 0.6 : 1,
+                  cursor: 'pointer',
+                }}
+              >
+                {createFoodMut.isPending
+                  ? t('nutrition.add_modal.saving', 'Saving...')
+                  : t('nutrition.add_modal.save_to_catalog', '✅ Save to Catalog')}
+              </button>
+            </div>
+          )}
 
-          <div className="flex items-center justify-between">
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handlePhotoUpload}
-              className="hidden"
-            />
-
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold opacity-70 hover:opacity-100 transition-opacity"
-              style={{ background: 'var(--habit-border)' }}
+          {/* ── Selected Food & Portion Setup ───────────────────────────────────── */}
+          {selectedFood && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="p-3.5 rounded-2xl border relative overflow-hidden"
+              style={{
+                background: 'rgba(245,158,11,0.08)',
+                borderColor: 'rgba(245,158,11,0.3)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+              }}
             >
-              <Camera size={14} />
-              <span>{photoPreview ? t('nutrition.add_modal.change_photo', 'Change photo') : t('nutrition.add_modal.attach_photo', 'Attach photo')}</span>
-            </button>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                  <span className="text-base">{getFoodEmoji(selectedFood.name)}</span>
+                  <span style={{ fontWeight: 900, fontSize: 13, color: 'var(--habit-gold, #f59e0b)' }} className="truncate">
+                    {selectedFood.name}
+                  </span>
+                </div>
+                <span className="text-[10px] opacity-60 font-mono font-bold shrink-0">
+                  100{selectedFood.unit || t('nutrition.g', 'g')} = {selectedFood.calories_per_100} kcal
+                </span>
+              </div>
 
-            {photoPreview && (
-              <div className="relative flex items-center gap-2">
-                <img
-                  src={photoPreview}
-                  alt="preview"
-                  className="w-8 h-8 rounded-lg object-cover border border-white/20"
-                />
+              {/* Quick portion buttons + Stepper */}
+              <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-0.5 scrollbar-none">
                 <button
                   type="button"
-                  onClick={() => setPhotoPreview('')}
-                  className="text-red-400 opacity-60 hover:opacity-100"
+                  onClick={() => {
+                    hapticLight();
+                    setAmount((prev) => Math.max(10, Number(prev) - 25));
+                  }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-sm bg-[var(--habit-border)] hover:bg-[var(--habit-panel)] text-[var(--habit-text)] transition-all shrink-0"
+                  title="-25g"
                 >
-                  <X size={14} />
+                  -
+                </button>
+                {QUICK_PORTIONS.map((portion) => {
+                  const isActive = Number(amount) === portion;
+                  return (
+                    <button
+                      key={portion}
+                      type="button"
+                      onClick={() => {
+                        hapticLight();
+                        setAmount(portion);
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-xs font-mono font-black transition-all shrink-0"
+                      style={{
+                        background: isActive ? 'var(--habit-gold, #f59e0b)' : 'var(--habit-border)',
+                        color: isActive ? '#000000' : 'var(--habit-dim, #888)',
+                        boxShadow: isActive ? '0 2px 8px rgba(245,158,11,0.3)' : 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {portion}g
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => {
+                    hapticLight();
+                    setAmount((prev) => Number(prev) + 25);
+                  }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-sm bg-[var(--habit-border)] hover:bg-[var(--habit-panel)] text-[var(--habit-text)] transition-all shrink-0"
+                  title="+25g"
+                >
+                  +
                 </button>
               </div>
-            )}
+
+              {/* Custom amount input + Macro Summary Grid */}
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-[var(--habit-dim)]">{t('nutrition.add_modal.portion_label', 'Portion')}:</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={amount}
+                    onChange={(e) => setAmount(Math.max(0, e.target.value))}
+                    className="w-20 px-2 py-1 rounded-xl text-center text-xs font-black outline-none font-mono"
+                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', border: '1px solid var(--habit-border)' }}
+                  />
+                  <span className="text-xs font-bold opacity-60">{selectedFood.unit || t('nutrition.g', 'g')}</span>
+                </div>
+              </div>
+
+              {preview && (
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-[var(--habit-dim)] uppercase tracking-wider">
+                    CALCULATED NUTRITION FOR [{amount}{selectedFood.unit || 'g'}]:
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5 text-center">
+                    <div className="p-1.5 rounded-lg bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.25)]">
+                      <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">CALORIES</div>
+                      <div className="text-xs font-black text-[var(--habit-gold,#f59e0b)] font-mono">{preview.calories}</div>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-[rgba(59,130,246,0.12)] border border-[rgba(59,130,246,0.25)]">
+                      <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">PROTEIN</div>
+                      <div className="text-xs font-black text-[#3b82f6] font-mono">{preview.protein}g</div>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-[rgba(249,115,22,0.12)] border border-[rgba(249,115,22,0.25)]">
+                      <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">FAT</div>
+                      <div className="text-xs font-black text-[#f97316] font-mono">{preview.fat}g</div>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-[rgba(16,185,129,0.12)] border border-[rgba(16,185,129,0.25)]">
+                      <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">CARBS</div>
+                      <div className="text-xs font-black text-[#10b981] font-mono">{preview.carbs}g</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Note & Photo Attachment Row */}
+          <div className="space-y-2 mb-4">
+            <input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={t('nutrition.add_modal.note_placeholder', 'Meal note (optional)...')}
+              className="w-full px-3 py-2 rounded-xl text-xs outline-none"
+              style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
+            />
+
+            <div className="flex items-center justify-between">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold opacity-70 hover:opacity-100 transition-opacity"
+                style={{ background: 'var(--habit-border)' }}
+              >
+                <Camera size={14} />
+                <span>{photoPreview ? t('nutrition.add_modal.change_photo', 'Change photo') : t('nutrition.add_modal.attach_photo', 'Attach photo')}</span>
+              </button>
+
+              {photoPreview && (
+                <div className="relative flex items-center gap-2">
+                  <img
+                    src={photoPreview}
+                    alt="preview"
+                    className="w-8 h-8 rounded-lg object-cover border border-white/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPhotoPreview('')}
+                    className="text-red-400 opacity-60 hover:opacity-100"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
         </div>
 
         {/* Footer with Submit Button */}

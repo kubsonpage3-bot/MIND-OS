@@ -128,6 +128,7 @@ def search_global_foods(user: User, query: str) -> dict:
     clean_q = query.strip()
     if not clean_q:
         user_items = FoodItem.objects.filter(user=user)[:20]
+        cached_staples = GlobalFoodCache.objects.all().order_by('-id')[:25]
         return {
             "user_foods": [
                 {
@@ -143,7 +144,23 @@ def search_global_foods(user: User, query: str) -> dict:
                 }
                 for item in user_items
             ],
-            "global_foods": [],
+            "global_foods": [
+                {
+                    "id": item.id,
+                    "name": item.name,
+                    "brand": item.brand,
+                    "barcode": item.barcode,
+                    "calories_per_100": item.calories_per_100,
+                    "protein_per_100": item.protein_per_100,
+                    "fat_per_100": item.fat_per_100,
+                    "carbs_per_100": item.carbs_per_100,
+                    "unit": item.unit,
+                    "image_url": item.image_url,
+                    "source": item.source,
+                    "is_custom": False,
+                }
+                for item in cached_staples
+            ],
         }
 
     # 1. Поиск среди пользовательских
@@ -164,7 +181,7 @@ def search_global_foods(user: User, query: str) -> dict:
     ]
 
     # 2. Поиск в локальном кеше
-    cached_items = GlobalFoodCache.objects.filter(name__icontains=clean_q)[:20]
+    cached_items = GlobalFoodCache.objects.filter(name__icontains=clean_q)[:25]
     cached_foods_res = [
         {
             "id": item.id,
@@ -184,7 +201,7 @@ def search_global_foods(user: User, query: str) -> dict:
     ]
 
     # 3. Если в кеше мало результатов, делаем внешний запрос к Open Food Facts
-    if len(cached_foods_res) < 5 and len(clean_q) >= 2:
+    if len(cached_foods_res) < 8 and len(clean_q) >= 2:
         try:
             params = urllib.parse.urlencode(
                 {
@@ -192,7 +209,7 @@ def search_global_foods(user: User, query: str) -> dict:
                     "search_simple": "1",
                     "action": "process",
                     "json": "1",
-                    "page_size": "15",
+                    "page_size": "20",
                     "fields": "code,product_name,product_name_ru,product_name_en,brands,nutriments,image_front_small_url",
                 }
             )
