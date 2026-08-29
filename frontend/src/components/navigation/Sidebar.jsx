@@ -129,28 +129,72 @@ function NavContent({
         </div>
       )}
 
-      <div className="p-3 space-y-1 shrink-0" style={{ borderBottom: "1px solid var(--habit-sidebar-border)" }}>
+      <div className="p-3 space-y-1.5 shrink-0" style={{ borderBottom: "1px solid var(--habit-sidebar-border)" }}>
         {APPS.map((app) => {
           const Icon = app.icon;
           const isActive = activeApp === app.id;
+          const isLife = app.id === "life";
           return (
             <motion.button
               key={app.id}
-              onClick={() => { haptic(12); onAppChange(app.id); onClose?.(); djangoApi.analytics.logEvent("mind_life_os_switched"); }}
-              className="w-full flex items-center gap-2.5 px-3 rounded-xl"
+              onClick={() => {
+                haptic(12);
+                onAppChange(app.id);
+                onClose?.();
+                djangoApi.analytics.logEvent("mind_life_os_switched");
+              }}
+              className="w-full flex items-center justify-between px-3 rounded-xl transition-all"
               style={{
-                height: 44,
-                background: isActive ? "var(--habit-purple)" : "transparent",
-                color: isActive ? "var(--habit-sidebar-active-text)" : "var(--habit-sidebar-text)",
-                boxShadow: isActive ? "0 2px 14px var(--habit-purple-glow)" : "none",
+                height: 46,
+                background: isActive
+                  ? isLife
+                    ? "linear-gradient(135deg, #f59e0b, #d97706)"
+                    : "linear-gradient(135deg, var(--habit-purple), #6366f1)"
+                  : "var(--habit-sidebar-hover, rgba(255,255,255,0.03))",
+                color: isActive
+                  ? isLife
+                    ? "#000000"
+                    : "#ffffff"
+                  : "var(--habit-sidebar-text)",
+                boxShadow: isActive
+                  ? isLife
+                    ? "0 4px 16px rgba(245, 158, 11, 0.4)"
+                    : "0 4px 16px var(--habit-purple-glow)"
+                  : "none",
+                border: isActive ? "none" : "1px solid var(--habit-sidebar-border, rgba(255,255,255,0.06))",
+                cursor: "pointer",
               }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: "spring", stiffness: 500, damping: 28 }}
             >
-              <Icon size={20} className="shrink-0" />
-              {!collapsed && (
-                <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>
-                  {t(`sidebar.apps.${app.id}`)}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Icon size={19} className="shrink-0" />
+                {!collapsed && (
+                  <div className="flex flex-col text-left">
+                    <span style={{ fontFamily: "'Nunito'", fontWeight: 900, fontSize: 13, letterSpacing: "0.04em", lineHeight: 1.1 }}>
+                      {t(`sidebar.apps.${app.id}`)}
+                    </span>
+                    <span style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      opacity: isActive ? (isLife ? 0.85 : 0.9) : 0.5,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}>
+                      {isLife ? "Eat Journal" : "RPG & System"}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {!collapsed && isActive && (
+                <span
+                  className="text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded-full"
+                  style={{
+                    background: isLife ? "rgba(0,0,0,0.22)" : "rgba(255,255,255,0.22)",
+                    color: isLife ? "#000" : "#fff",
+                  }}
+                >
+                  ACTIVE
                 </span>
               )}
             </motion.button>
@@ -170,8 +214,40 @@ function NavContent({
         </div>
       )}
 
+      {activeApp === "life" ? (
+        <div className="p-3 space-y-3 flex-1 min-h-0 overflow-y-auto">
+          {!collapsed && (
+            <div className="rounded-xl p-3" style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.22)" }}>
+              <div className="text-xs font-black text-[var(--habit-gold,#f59e0b)] flex items-center gap-1.5 mb-1">
+                <Sparkles size={13} />
+                <span>LIFE OS · EAT JOURNAL</span>
+              </div>
+              <div className="text-[11px] text-[var(--habit-dim)] font-medium leading-relaxed">
+                Full-screen nutrition tracking with macros, water logs, weight trends & meal planning.
+              </div>
+            </div>
+          )}
 
-
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => {
+              haptic(12);
+              onAppChange("mind");
+              onClose?.();
+            }}
+            className="w-full py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black transition-all"
+            style={{
+              background: "rgba(123, 97, 255, 0.15)",
+              border: "1px solid rgba(123, 97, 255, 0.35)",
+              color: "#a78bfa",
+              cursor: "pointer",
+            }}
+          >
+            <Brain size={14} />
+            {!collapsed && <span>Switch to Mind OS</span>}
+          </motion.button>
+        </div>
+      ) : (
       <nav className="px-2 py-2 flex-1 min-h-0 overflow-y-auto max-md:pb-[100px]" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         {SECTION_GROUPS.map((group, gi) => (
           <div key={gi} className={gi > 0 ? "mt-3" : ""}>
@@ -340,6 +416,7 @@ function NavContent({
           </div>
         ))}
       </nav>
+      )}
 
       <div className="shrink-0 h-4" />
     </>
