@@ -970,12 +970,12 @@ def resolve_mastery_category(
     Returns empty string if no category matches.
     """
     if task_mastery_category:
-        cat = str(task_mastery_category).lower().strip()
+        cat = task_mastery_category.lower().strip()
         if cat in {"body", "sciences", "languages", "spirit", "humanities"}:
             return cat
 
     if activity:
-        activity = str(activity).lower().strip()
+        activity = activity.lower().strip()
         if activity in {"exercise", "running", "cold_shower", "nutrition", "sleep"}:
             return "body"
         if activity in {
@@ -1009,7 +1009,7 @@ def resolve_mastery_category(
             return "humanities"
 
     if task_category:
-        tc = str(task_category).lower().strip()
+        tc = task_category.lower().strip()
         if tc in {
             "body",
             "health & fitness",

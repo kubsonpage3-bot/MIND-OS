@@ -161,11 +161,8 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     total_stats = profile.total_stats if isinstance(profile.total_stats, dict) else {}
     con_stat = max(1, total_stats.get("def", 1))
     con_reduction = min(0.55, (con_stat - 1) * 0.035)
-
     raw = BASE_DAMAGE * diff_mult * value_mult * checklist_ratio
-    damage = max(1, round(raw * (1 - con_reduction)))
-
-    return int(damage)
+    return max(1, round(raw * (1 - con_reduction)))
 
 
 @transaction.atomic
@@ -179,7 +176,7 @@ def summon_boss(user, boss_id):
     reward_data = boss_data.get("reward")
     assert isinstance(reward_data, dict)
 
-    cost = boss_data.get("price", 0)
+    cost = int(boss_data.get("price", 0))
 
     if profile.gold < cost:
         raise GameLogicError("Not enough gold.")
