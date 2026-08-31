@@ -31,7 +31,9 @@ def award_free_chest(profile, chest_type):
     from api.models import LootChest, Item, InventoryItem
     import random
 
-    chest = LootChest.objects.filter(chest_type__in=[chest_type, f"{chest_type}_cache", "standard_cache", "standard"]).first()
+    chest = LootChest.objects.filter(
+        chest_type__in=[chest_type, f"{chest_type}_cache", "standard_cache", "standard"]
+    ).first()
     if not chest:
         chest = LootChest.objects.first()
     if not chest:
@@ -1071,6 +1073,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     skill_effects = apply_effects_on_task_complete(profile, task)
     if skill_effects["xp_bonus"] > 0:
         leveled_up = gain_xp(profile, skill_effects["xp_bonus"]) or leveled_up
+        profile.rank_xp = max(0, profile.rank_xp + skill_effects["xp_bonus"])
         if leveled_up:
             try:
                 membership = user.party_membership
@@ -1337,7 +1340,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     try:
         from api.models import UserActivityLog
 
-        if not is_positive and task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:
+        if not is_positive and task.task_type in [
+            Task.TaskType.DAILY,
+            Task.TaskType.TODO,
+        ]:
             # Uncomplete/Revert: remove the most recent completion log for this task so history is 100% synced
             latest_log = (
                 UserActivityLog.objects.filter(
@@ -1362,7 +1368,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 )
                 act_streak = task.pos_streak if is_positive else task.neg_streak
                 act_hp_lost = (
-                    final_damage if (not is_positive and "final_damage" in locals()) else 0
+                    final_damage
+                    if (not is_positive and "final_damage" in locals())
+                    else 0
                 )
             elif task.task_type == Task.TaskType.DAILY:
                 act_type = UserActivityLog.ActivityType.DAILY

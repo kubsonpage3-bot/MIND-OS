@@ -720,8 +720,11 @@ class TaskViewSet(viewsets.ModelViewSet):
 
                 # Check Lyra Level 2
                 from api.models import RecruitedAlly
+
                 active_codes = profile.active_allies or []
-                lyra_ally = RecruitedAlly.objects.filter(user_profile=profile, ally_code="lyra").first()
+                lyra_ally = RecruitedAlly.objects.filter(
+                    user_profile=profile, ally_code="lyra"
+                ).first()
                 if "lyra" not in active_codes or not lyra_ally or lyra_ally.level < 2:
                     return Response(
                         {"detail": "Lyra (Level 2+) must be recruited and active."},
@@ -1342,13 +1345,13 @@ class TrainingLogView(generics.GenericAPIView):
         from api.serializers.tasks import TrainingSessionSerializer
         from django.db.models import Sum
 
-        user_sessions = TrainingSession.objects.filter(
-            user_profile__user=request.user
-        )
+        user_sessions = TrainingSession.objects.filter(user_profile__user=request.user)
         recent = user_sessions.order_by("-created_at")[:50]
 
         # Aggregate lifetime hours per activity_key
-        totals_qs = user_sessions.values("activity_key").annotate(total_hours=Sum("hours"))
+        totals_qs = user_sessions.values("activity_key").annotate(
+            total_hours=Sum("hours")
+        )
         subject_totals = {
             item["activity_key"]: round(float(item["total_hours"] or 0), 2)
             for item in totals_qs
@@ -1424,12 +1427,22 @@ class TrainingLogView(generics.GenericAPIView):
             "prayer": "Mindfulness",
         }
 
-        SCIENCE_ACTIVITIES = {"mathematics", "physics", "chess", "coding", "chemistry", "biology", "computer_science"}
+        SCIENCE_ACTIVITIES = {
+            "mathematics",
+            "physics",
+            "chess",
+            "coding",
+            "chemistry",
+            "biology",
+            "computer_science",
+        }
         EXERCISE_ACTIVITIES = {"exercise", "running"}
         LANGUAGE_ACTIVITIES = {"english", "german", "languages", "vocabulary"}
         PRAYER_ACTIVITIES = {"prayer"}
 
-        task_category = task.category if task else ACTIVITY_CATEGORY_MAP.get(activity, "Other")
+        task_category = (
+            task.category if task else ACTIVITY_CATEGORY_MAP.get(activity, "Other")
+        )
 
         is_science = activity in SCIENCE_ACTIVITIES or task_category in {
             "Sciences",
@@ -1489,10 +1502,13 @@ class TrainingLogView(generics.GenericAPIView):
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
             from api.models import RecruitedAlly
+
             active_codes = profile.active_allies or []
             recruited_allies = {
                 a.ally_code: a.level
-                for a in RecruitedAlly.objects.filter(user_profile=profile, ally_code__in=active_codes)
+                for a in RecruitedAlly.objects.filter(
+                    user_profile=profile, ally_code__in=active_codes
+                )
             }
 
             # Lyra Level 3 Decaying Focus
@@ -1819,11 +1835,13 @@ class TrainingLogView(generics.GenericAPIView):
 
             if current_category == "languages":
                 from api.models import ActiveEffect
+
                 babel_effect = ActiveEffect.objects.filter(
                     user=request.user, effect_id="babel_mode_effect"
                 ).first()
                 if babel_effect:
                     from api.services.mechanics import get_user_language_activities
+
                     lang_acts = get_user_language_activities(request.user)
                     for act in lang_acts:
                         if act != activity:
@@ -1834,7 +1852,10 @@ class TrainingLogView(generics.GenericAPIView):
                                 focus_rating=focus_rating,
                                 efficiency=eff_total,
                                 xp_earned=0,
-                                gf_gain=0, gc_gain=0, ps_gain=0, vm_gain=0
+                                gf_gain=0,
+                                gc_gain=0,
+                                ps_gain=0,
+                                vm_gain=0,
                             )
                     babel_effect.delete()
 
@@ -1877,8 +1898,7 @@ class TrainingLogView(generics.GenericAPIView):
             )  # Base 10 + PWR from mechanics
 
             final_damage_dealt = int(
-                (raw_boss_dmg + damage_dealt)
-                * profile.damage_multiplier
+                (raw_boss_dmg + damage_dealt) * profile.damage_multiplier
             )
             is_crit = outcome.get("is_crit", False)
 
@@ -1986,7 +2006,7 @@ class ActivityHistoryView(generics.GenericAPIView):
     def get(self, request):
         from api.models import UserActivityLog, TrainingSession, Task
         from api.serializers.tasks import UserActivityLogSerializer
-        from django.db.models import Sum, Count, Q
+        from django.db.models import Sum, Q
         from datetime import timedelta
         from django.utils import timezone
 
@@ -1997,7 +2017,9 @@ class ActivityHistoryView(generics.GenericAPIView):
 
         # ── Data Backfill for Existing Users ─────────────────────────
         # 1. Backfill TrainingSession if user has training sessions but no STUDY logs
-        if not UserActivityLog.objects.filter(user=user, activity_type=UserActivityLog.ActivityType.STUDY).exists():
+        if not UserActivityLog.objects.filter(
+            user=user, activity_type=UserActivityLog.ActivityType.STUDY
+        ).exists():
             try:
                 training_sessions = TrainingSession.objects.filter(
                     user_profile__user=user
@@ -2049,14 +2071,17 @@ class ActivityHistoryView(generics.GenericAPIView):
         # 2. Backfill completed Dailies/Todos if no DAILY or TODO logs exist
         if not UserActivityLog.objects.filter(
             user=user,
-            activity_type__in=[UserActivityLog.ActivityType.DAILY, UserActivityLog.ActivityType.TODO]
+            activity_type__in=[
+                UserActivityLog.ActivityType.DAILY,
+                UserActivityLog.ActivityType.TODO,
+            ],
         ).exists():
             try:
                 completed_tasks = Task.objects.filter(
                     user=user,
                     task_type__in=[Task.TaskType.DAILY, Task.TaskType.TODO],
                     is_completed=True,
-                    last_completed_at__isnull=False
+                    last_completed_at__isnull=False,
                 )
                 for t in completed_tasks:
                     rewards = t.get_rewards()
@@ -2076,9 +2101,7 @@ class ActivityHistoryView(generics.GenericAPIView):
                         xp_earned=rewards.get("xp", 0),
                         gold_earned=rewards.get("gold", 0),
                         streak_value=(
-                            t.streak
-                            if t.task_type == Task.TaskType.DAILY
-                            else 0
+                            t.streak if t.task_type == Task.TaskType.DAILY else 0
                         ),
                         metadata={"backfilled": True},
                     )
@@ -2093,14 +2116,19 @@ class ActivityHistoryView(generics.GenericAPIView):
         # 3. Backfill Habits if user has habit completions but no HABIT logs exist
         if not UserActivityLog.objects.filter(
             user=user,
-            activity_type__in=[UserActivityLog.ActivityType.HABIT_POS, UserActivityLog.ActivityType.HABIT_NEG]
+            activity_type__in=[
+                UserActivityLog.ActivityType.HABIT_POS,
+                UserActivityLog.ActivityType.HABIT_NEG,
+            ],
         ).exists():
             try:
                 habit_tasks = Task.objects.filter(
-                    user=user,
-                    task_type=Task.TaskType.HABIT
+                    user=user, task_type=Task.TaskType.HABIT
                 ).filter(
-                    Q(completion_count__gt=0) | Q(pos_streak__gt=0) | Q(neg_streak__gt=0) | Q(last_completed_at__isnull=False)
+                    Q(completion_count__gt=0)
+                    | Q(pos_streak__gt=0)
+                    | Q(neg_streak__gt=0)
+                    | Q(last_completed_at__isnull=False)
                 )
                 for t in habit_tasks:
                     rewards = t.get_rewards()
@@ -2229,6 +2257,10 @@ class ActivityHistoryView(generics.GenericAPIView):
             qs = qs.filter(activity_type=UserActivityLog.ActivityType.TODO)
         elif activity_type_filter == "pomodoro":
             qs = qs.filter(activity_type=UserActivityLog.ActivityType.POMODORO)
+        elif activity_type_filter == "achievement":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.ACHIEVEMENT)
+        elif activity_type_filter == "boss_defeat":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT)
 
         # Apply Date Filter
         if days_param != "all":
@@ -2281,9 +2313,7 @@ class ActivityHistoryView(generics.GenericAPIView):
             ),
             2,
         )
-        total_xp = int(
-            qs_stats_base.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0
-        )
+        total_xp = int(qs_stats_base.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0)
         total_gold = int(
             qs_stats_base.aggregate(Sum("gold_earned"))["gold_earned__sum"] or 0
         )
@@ -2309,6 +2339,12 @@ class ActivityHistoryView(generics.GenericAPIView):
         pomodoro_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.POMODORO
         ).count()
+        achievement_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.ACHIEVEMENT
+        ).count()
+        boss_defeat_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT
+        ).count()
         tasks_completed_count = habits_count + dailies_count + todos_count
 
         return Response(
@@ -2325,6 +2361,8 @@ class ActivityHistoryView(generics.GenericAPIView):
                     "todos_count": todos_count,
                     "study_count": study_count,
                     "pomodoro_count": pomodoro_count,
+                    "achievement_count": achievement_count,
+                    "boss_defeat_count": boss_defeat_count,
                 },
             },
             status=status.HTTP_200_OK,
@@ -2496,11 +2534,11 @@ class VivianDarkSacrificeView(generics.GenericAPIView):
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
                 from api.models import RecruitedAlly
+
                 active_codes = profile.active_allies or []
 
                 vivian_recruited = RecruitedAlly.objects.filter(
-                    user_profile=profile,
-                    ally_code="vivian"
+                    user_profile=profile, ally_code="vivian"
                 ).first()
                 if (
                     "vivian" not in active_codes
@@ -2596,8 +2634,7 @@ class RheaChaosControlView(generics.GenericAPIView):
                 active_codes = profile.active_allies or []
 
                 rhea_recruited = RecruitedAlly.objects.filter(
-                    user_profile=profile,
-                    ally_code="rhea"
+                    user_profile=profile, ally_code="rhea"
                 ).first()
                 if (
                     "rhea" not in active_codes
@@ -3008,17 +3045,19 @@ class DailyCheckinView(generics.GenericAPIView):
             force_test = request.query_params.get("force") in ["1", "true", "True"]
 
             needs_checkin = (
-                (
-                    profile.last_login_date is not None
-                    and profile.last_login_date <= yesterday
-                    and len(yesterday_missed) > 0
-                )
-                or force_test
-            )
+                profile.last_login_date is not None
+                and profile.last_login_date <= yesterday
+                and len(yesterday_missed) > 0
+            ) or force_test
 
             if force_test and not yesterday_missed:
                 from api.models import Task
-                user_dailies = list(Task.objects.filter(user=request.user, task_type=Task.TaskType.DAILY))
+
+                user_dailies = list(
+                    Task.objects.filter(
+                        user=request.user, task_type=Task.TaskType.DAILY
+                    )
+                )
                 if user_dailies:
                     yesterday_missed = user_dailies
 
@@ -3345,7 +3384,8 @@ class PartyChatView(generics.GenericAPIView):
         message = request.data.get("message", "").strip()
         if not message:
             return Response(
-                {"error": "Message cannot be empty."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Message cannot be empty."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -3930,8 +3970,17 @@ class LootChestListView(generics.GenericAPIView):
                     defaults=cd,
                 )
 
-        chests = LootChest.objects.all().order_by("cost_gold").values(
-            "chest_type", "name", "description", "cost_gold", "drop_rates", "icon_url"
+        chests = (
+            LootChest.objects.all()
+            .order_by("cost_gold")
+            .values(
+                "chest_type",
+                "name",
+                "description",
+                "cost_gold",
+                "drop_rates",
+                "icon_url",
+            )
         )
         return Response(list(chests), status=status.HTTP_200_OK)
 

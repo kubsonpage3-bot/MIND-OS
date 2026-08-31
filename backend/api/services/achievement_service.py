@@ -117,6 +117,19 @@ def check_and_grant_achievements(user):
                 new_achievements.append(ach_id)
                 total_gold_reward += ach_data.get("gold", 0)
                 total_sp_reward += ach_data.get("sp", 0)
+                # Log to History
+                try:
+                    from api.models import UserActivityLog
+
+                    UserActivityLog.objects.create(
+                        user=user,
+                        activity_type=UserActivityLog.ActivityType.ACHIEVEMENT,
+                        title=ach_id,
+                        gold_earned=ach_data.get("gold", 0),
+                        xp_earned=0,
+                    )
+                except Exception:
+                    pass
 
     if new_achievements:
         from api.models import UserProfile, UnlockedSkill

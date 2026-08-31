@@ -484,6 +484,21 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
 
         rewards = {"boss_xp": final_xp, "boss_gold": final_gold, "boss_sp": sp_reward}
 
+        # Log boss defeat to History
+        try:
+            from api.models import UserActivityLog
+
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT,
+                title=boss.name,
+                xp_earned=final_xp,
+                gold_earned=final_gold,
+                metadata={"boss_level": boss.level, "sp_reward": sp_reward},
+            )
+        except Exception:
+            pass
+
     active_encounter.save()
 
     # Update UserStats
@@ -1057,6 +1072,7 @@ def get_user_language_activities(user) -> list[str]:
     Includes defaults and any custom tasks created by the user with mastery_category='languages'.
     """
     from api.models import Task
+
     defaults = ["english", "german", "other_languages", "languages", "vocabulary"]
     custom_tasks = Task.objects.filter(user=user, mastery_category__iexact="languages")
     custom_keys = [f"custom_task_{t.id}" for t in custom_tasks]

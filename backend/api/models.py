@@ -1420,6 +1420,8 @@ class UserActivityLog(models.Model):
         TODO = "todo", "To-Do"
         TODO_UNCOMPLETE = "todo_uncomplete", "Отмена To-Do"
         POMODORO = "pomodoro", "Помодоро"
+        ACHIEVEMENT = "achievement", "Достижение"
+        BOSS_DEFEAT = "boss_defeat", "Победа над боссом"
 
     user = models.ForeignKey(
         User,
@@ -1896,17 +1898,29 @@ class FoodItem(models.Model):
     fat_per_100 = models.FloatField(default=0.0, verbose_name="Жиры на 100г/мл")
     carbs_per_100 = models.FloatField(default=0.0, verbose_name="Углеводы на 100г/мл")
     # Микронутриенты (из Open Food Facts, nullable — данные есть не у всех продуктов)
-    fiber_per_100 = models.FloatField(null=True, blank=True, verbose_name="Клетчатка на 100г")
-    sugar_per_100 = models.FloatField(null=True, blank=True, verbose_name="Сахар на 100г")
-    sodium_per_100 = models.FloatField(null=True, blank=True, verbose_name="Натрий на 100г (мг)")
-    saturated_fat_per_100 = models.FloatField(null=True, blank=True, verbose_name="Нас. жиры на 100г")
+    fiber_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Клетчатка на 100г"
+    )
+    sugar_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Сахар на 100г"
+    )
+    sodium_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Натрий на 100г (мг)"
+    )
+    saturated_fat_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Нас. жиры на 100г"
+    )
     unit = models.CharField(
         max_length=5, choices=UNIT_CHOICES, default="g", verbose_name="Единица"
     )
     is_favorite = models.BooleanField(default=False, verbose_name="Избранное")
     # Статистика использования для Quick-Add / Recent Foods
-    last_used_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name="Последнее использование")
-    use_count = models.PositiveIntegerField(default=0, verbose_name="Количество использований")
+    last_used_at = models.DateTimeField(
+        null=True, blank=True, db_index=True, verbose_name="Последнее использование"
+    )
+    use_count = models.PositiveIntegerField(
+        default=0, verbose_name="Количество использований"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1984,10 +1998,22 @@ class MealEntry(models.Model):
         self.carbs = round(self.food_item.carbs_per_100 * ratio, 2)
         # Микронутриенты — только если есть данные у продукта
         fi = self.food_item
-        self.fiber = round(fi.fiber_per_100 * ratio, 2) if fi.fiber_per_100 is not None else None
-        self.sugar = round(fi.sugar_per_100 * ratio, 2) if fi.sugar_per_100 is not None else None
-        self.sodium = round(fi.sodium_per_100 * ratio, 2) if fi.sodium_per_100 is not None else None
-        self.saturated_fat = round(fi.saturated_fat_per_100 * ratio, 2) if fi.saturated_fat_per_100 is not None else None
+        self.fiber = (
+            round(fi.fiber_per_100 * ratio, 2) if fi.fiber_per_100 is not None else None
+        )
+        self.sugar = (
+            round(fi.sugar_per_100 * ratio, 2) if fi.sugar_per_100 is not None else None
+        )
+        self.sodium = (
+            round(fi.sodium_per_100 * ratio, 2)
+            if fi.sodium_per_100 is not None
+            else None
+        )
+        self.saturated_fat = (
+            round(fi.saturated_fat_per_100 * ratio, 2)
+            if fi.saturated_fat_per_100 is not None
+            else None
+        )
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -2011,11 +2037,19 @@ class NutriGoal(models.Model):
         default=2000, verbose_name="Цель вода мл/день"
     )
     # Цель по весу тела (для WeightTracker)
-    target_weight_kg = models.FloatField(null=True, blank=True, verbose_name="Целевой вес (кг)")
+    target_weight_kg = models.FloatField(
+        null=True, blank=True, verbose_name="Целевой вес (кг)"
+    )
     # Напоминания о приёмах пищи (время по UTC, null = выключено)
-    reminder_breakfast = models.TimeField(null=True, blank=True, verbose_name="Напоминание завтрак")
-    reminder_lunch = models.TimeField(null=True, blank=True, verbose_name="Напоминание обед")
-    reminder_dinner = models.TimeField(null=True, blank=True, verbose_name="Напоминание ужин")
+    reminder_breakfast = models.TimeField(
+        null=True, blank=True, verbose_name="Напоминание завтрак"
+    )
+    reminder_lunch = models.TimeField(
+        null=True, blank=True, verbose_name="Напоминание обед"
+    )
+    reminder_dinner = models.TimeField(
+        null=True, blank=True, verbose_name="Напоминание ужин"
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -2041,10 +2075,18 @@ class GlobalFoodCache(models.Model):
     fat_per_100 = models.FloatField(default=0.0, verbose_name="Жиры на 100г")
     carbs_per_100 = models.FloatField(default=0.0, verbose_name="Углеводы на 100г")
     # Микронутриенты из Open Food Facts
-    fiber_per_100 = models.FloatField(null=True, blank=True, verbose_name="Клетчатка на 100г")
-    sugar_per_100 = models.FloatField(null=True, blank=True, verbose_name="Сахар на 100г")
-    sodium_per_100 = models.FloatField(null=True, blank=True, verbose_name="Натрий на 100г (мг)")
-    saturated_fat_per_100 = models.FloatField(null=True, blank=True, verbose_name="Нас. жиры на 100г")
+    fiber_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Клетчатка на 100г"
+    )
+    sugar_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Сахар на 100г"
+    )
+    sodium_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Натрий на 100г (мг)"
+    )
+    saturated_fat_per_100 = models.FloatField(
+        null=True, blank=True, verbose_name="Нас. жиры на 100г"
+    )
     unit = models.CharField(max_length=5, default="g", verbose_name="Единица")
     image_url = models.TextField(blank=True, default="", verbose_name="Ссылка на фото")
     source = models.CharField(
@@ -2159,7 +2201,9 @@ class WeightLog(models.Model):
     )
     date = models.DateField(db_index=True, verbose_name="Дата")
     weight_kg = models.FloatField(verbose_name="Вес (кг)")
-    note = models.CharField(max_length=200, blank=True, default="", verbose_name="Заметка")
+    note = models.CharField(
+        max_length=200, blank=True, default="", verbose_name="Заметка"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

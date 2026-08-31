@@ -87,6 +87,7 @@ def process_boss_death(user, encounter):
 
     profile.gold += final_gold
     gain_xp(profile, final_xp)
+    profile.rank_xp = max(0, profile.rank_xp + final_xp)
 
     # Trigger push notification
     from api.services.push_service import send_notification_to_user
@@ -124,7 +125,7 @@ def process_boss_death(user, encounter):
         except Item.DoesNotExist:
             pass
 
-    profile.save(update_fields=["gold"])
+    profile.save(update_fields=["gold", "rank_xp"])
 
     return {"gold": final_gold, "xp": final_xp, "item_dropped": item_dropped}
 

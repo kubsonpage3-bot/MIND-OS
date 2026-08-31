@@ -82,6 +82,24 @@ const TYPE_CONFIG = {
     emoji: "🍅",
     label: "Pomodoro",
   },
+  achievement: {
+    color: "#f0c040",
+    bg: "rgba(240,192,64,0.10)",
+    border: "rgba(240,192,64,0.28)",
+    glow: "rgba(240,192,64,0.35)",
+    iconImg: null,
+    emoji: "🏆",
+    label: "Achievement",
+  },
+  boss_defeat: {
+    color: "#a855f7",
+    bg: "rgba(168,85,247,0.10)",
+    border: "rgba(168,85,247,0.28)",
+    glow: "rgba(168,85,247,0.35)",
+    iconImg: null,
+    emoji: "👑",
+    label: "Boss Defeated",
+  },
 };
 
 export default function HistoryLog({ logs = [], tasks = [] }) {
@@ -127,10 +145,13 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
     const dailies_count = activityItems.filter(i => i.activity_type === "daily").length;
     const todos_count   = activityItems.filter(i => i.activity_type === "todo").length;
     const study_count   = activityItems.filter(i => i.activity_type === "study").length;
-    const pomodoro_count= activityItems.filter(i => i.activity_type === "pomodoro").length;
+    const pomodoro_count = activityItems.filter(i => i.activity_type === "pomodoro").length;
+    const achievement_count = activityItems.filter(i => i.activity_type === "achievement").length;
+    const boss_defeat_count = activityItems.filter(i => i.activity_type === "boss_defeat").length;
     return {
       total_hours: Math.round(total_hours * 10) / 10, total_xp, total_gold,
       habits_count, dailies_count, todos_count, study_count, pomodoro_count,
+      achievement_count, boss_defeat_count,
       tasks_completed_count: habits_count + dailies_count + todos_count,
     };
   }, [stats, activityItems]);
@@ -161,12 +182,14 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
   }, [activityItems]);
 
   const filterTabs = [
-    { id: "all",      label: "All",      Icon: Activity,    iconImg: null,                              count: activityItems.length,         color: "#7b61ff" },
-    { id: "study",    label: "Study",    Icon: BookOpen,    iconImg: "/images/pixel-icons/study.png",    count: activeStats.study_count,       color: "#3b82f6" },
-    { id: "habit",    label: "Habits",   Icon: Zap,         iconImg: "/images/pixel-icons/habit_pos.png",count: activeStats.habits_count,      color: "#f59e0b" },
-    { id: "daily",    label: "Dailies",  Icon: Calendar,    iconImg: "/images/pixel-icons/daily.png",    count: activeStats.dailies_count,     color: "#10b981" },
-    { id: "todo",     label: "To-Do",    Icon: CheckSquare, iconImg: "/images/pixel-icons/todo.png",     count: activeStats.todos_count,       color: "#8b5cf6" },
-    { id: "pomodoro", label: "Pomodoro", Icon: Timer,       iconImg: "/images/pixel-icons/pomodoro.png", count: activeStats.pomodoro_count,    color: "#f43f5e" },
+    { id: "all",          label: "All",        Icon: Activity,    iconImg: null,                               count: activityItems.length,           color: "#7b61ff" },
+    { id: "study",        label: "Study",      Icon: BookOpen,    iconImg: "/images/pixel-icons/study.png",    count: activeStats.study_count,         color: "#3b82f6" },
+    { id: "habit",        label: "Habits",     Icon: Zap,         iconImg: "/images/pixel-icons/habit_pos.png",count: activeStats.habits_count,        color: "#f59e0b" },
+    { id: "daily",        label: "Dailies",    Icon: Calendar,    iconImg: "/images/pixel-icons/daily.png",    count: activeStats.dailies_count,       color: "#10b981" },
+    { id: "todo",         label: "To-Do",      Icon: CheckSquare, iconImg: "/images/pixel-icons/todo.png",     count: activeStats.todos_count,         color: "#8b5cf6" },
+    { id: "pomodoro",     label: "Pomodoro",   Icon: Timer,       iconImg: "/images/pixel-icons/pomodoro.png", count: activeStats.pomodoro_count,      color: "#f43f5e" },
+    { id: "achievement",  label: "Achiev.",    Icon: Award,       iconImg: null,                               count: activeStats.achievement_count,   color: "#f0c040" },
+    { id: "boss_defeat",  label: "Bosses",     Icon: Trophy,      iconImg: null,                               count: activeStats.boss_defeat_count,   color: "#a855f7" },
   ];
 
   const periodOptions = [
@@ -353,16 +376,24 @@ function HistoryItemCard({ item }) {
   const cfg    = TYPE_CONFIG[type] || TYPE_CONFIG.study;
   const catColor = CATEGORY_ACCENTS[item.category] || CATEGORY_ACCENTS.Other;
 
-  const isHabitNeg = type === "habit_neg";
-  const isStudy    = type === "study";
-  const isPomodoro = type === "pomodoro";
-  const isDaily    = type === "daily";
-  const isHabitPos = type === "habit_pos";
-  const isTodo     = type === "todo";
+  const isHabitNeg    = type === "habit_neg";
+  const isStudy       = type === "study";
+  const isPomodoro    = type === "pomodoro";
+  const isDaily       = type === "daily";
+  const isHabitPos    = type === "habit_pos";
+  const isTodo        = type === "todo";
+  const isAchievement = type === "achievement";
+  const isBossDefeat  = type === "boss_defeat";
+
+  // Make achievement IDs readable: "boss_slayer" → "Boss Slayer"
+  const displayTitle = isAchievement
+    ? item.title.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+    : item.title;
 
   const gains = Object.entries(METRIC_CONFIG)
     .filter(([mk]) => (item.cognitive_gains?.[mk] || 0) > 0)
     .map(([mk, mc]) => ({ mk, mc, val: item.cognitive_gains[mk] }));
+
 
   return (
     <div className="group p-3.5 rounded-2xl border transition-all duration-200 relative overflow-hidden hover:shadow-lg"
@@ -385,7 +416,7 @@ function HistoryItemCard({ item }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-extrabold text-xs text-[var(--habit-text)] truncate" style={{ fontFamily: "'Nunito'" }}>
-              {item.title}
+              {displayTitle}
             </span>
             <span className="text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider"
               style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, fontFamily: "'Nunito'" }}>
@@ -436,6 +467,16 @@ function HistoryItemCard({ item }) {
                 <Swords className="w-3 h-3" /> {item.boss_damage} DMG
               </span>
             )}
+            {isBossDefeat && item.metadata?.boss_level > 0 && (
+              <span className="flex items-center gap-0.5 font-bold" style={{ color: cfg.color }}>
+                <Star className="w-3 h-3" /> Lv.{item.metadata.boss_level}
+              </span>
+            )}
+            {isAchievement && (
+              <span className="flex items-center gap-0.5 font-bold text-yellow-400">
+                <Award className="w-3 h-3" /> Unlocked
+              </span>
+            )}
           </div>
         </div>
 
@@ -463,6 +504,12 @@ function HistoryItemCard({ item }) {
             <span className="text-[10px] font-black px-2 py-0.5 rounded-lg"
               style={{ color: "#ef4444", background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.2)", fontFamily: "'Nunito'" }}>
               💔 -{item.hp_lost} HP
+            </span>
+          )}
+          {isBossDefeat && item.metadata?.sp_reward > 0 && (
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-lg"
+              style={{ color: "#00e5ff", background: "rgba(0,229,255,0.10)", border: "1px solid rgba(0,229,255,0.2)", fontFamily: "'Nunito'" }}>
+              +{item.metadata.sp_reward} SP
             </span>
           )}
         </div>
