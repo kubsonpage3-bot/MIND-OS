@@ -13,6 +13,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useProfileMount } from "@/utils/perf";
 import { METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
+import { ACHIEVEMENTS } from "@/constants/rpgData";
 
 const CATEGORY_ACCENTS = {
   STEM: "#3b82f6", sciences: "#3b82f6",
@@ -87,7 +88,7 @@ const TYPE_CONFIG = {
     bg: "rgba(240,192,64,0.10)",
     border: "rgba(240,192,64,0.28)",
     glow: "rgba(240,192,64,0.35)",
-    iconImg: null,
+    iconImg: "/images/pixel-icons/achievement.png",
     emoji: "🏆",
     label: "Achievement",
   },
@@ -96,7 +97,7 @@ const TYPE_CONFIG = {
     bg: "rgba(168,85,247,0.10)",
     border: "rgba(168,85,247,0.28)",
     glow: "rgba(168,85,247,0.35)",
-    iconImg: null,
+    iconImg: "/images/pixel-icons/boss_defeat.png",
     emoji: "👑",
     label: "Boss Defeated",
   },
@@ -188,8 +189,8 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
     { id: "daily",        label: "Dailies",    Icon: Calendar,    iconImg: "/images/pixel-icons/daily.png",    count: activeStats.dailies_count,       color: "#10b981" },
     { id: "todo",         label: "To-Do",      Icon: CheckSquare, iconImg: "/images/pixel-icons/todo.png",     count: activeStats.todos_count,         color: "#8b5cf6" },
     { id: "pomodoro",     label: "Pomodoro",   Icon: Timer,       iconImg: "/images/pixel-icons/pomodoro.png", count: activeStats.pomodoro_count,      color: "#f43f5e" },
-    { id: "achievement",  label: "Achiev.",    Icon: Award,       iconImg: null,                               count: activeStats.achievement_count,   color: "#f0c040" },
-    { id: "boss_defeat",  label: "Bosses",     Icon: Trophy,      iconImg: null,                               count: activeStats.boss_defeat_count,   color: "#a855f7" },
+    { id: "achievement",  label: "Achiev.",    Icon: Award,       iconImg: "/images/pixel-icons/achievement.png", count: activeStats.achievement_count,   color: "#f0c040" },
+    { id: "boss_defeat",  label: "Bosses",     Icon: Trophy,      iconImg: "/images/pixel-icons/boss_defeat.png", count: activeStats.boss_defeat_count,   color: "#a855f7" },
   ];
 
   const periodOptions = [
@@ -385,15 +386,14 @@ function HistoryItemCard({ item }) {
   const isAchievement = type === "achievement";
   const isBossDefeat  = type === "boss_defeat";
 
-  // Make achievement IDs readable: "boss_slayer" → "Boss Slayer"
-  const displayTitle = isAchievement
+  const achObj = isAchievement ? ACHIEVEMENTS.find(a => a.id === item.title) : null;
+  const displayTitle = achObj?.name || (isAchievement
     ? item.title.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
-    : item.title;
+    : item.title);
 
   const gains = Object.entries(METRIC_CONFIG)
     .filter(([mk]) => (item.cognitive_gains?.[mk] || 0) > 0)
     .map(([mk, mc]) => ({ mk, mc, val: item.cognitive_gains[mk] }));
-
 
   return (
     <div className="group p-3.5 rounded-2xl border transition-all duration-200 relative overflow-hidden hover:shadow-lg"
@@ -422,7 +422,19 @@ function HistoryItemCard({ item }) {
               style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, fontFamily: "'Nunito'" }}>
               {cfg.label}
             </span>
-            {item.category && item.category !== "Other" && (
+            {isAchievement && achObj?.cat && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase"
+                style={{ background: "rgba(240,192,64,0.12)", color: "#f0c040", border: "1px solid rgba(240,192,64,0.25)", fontFamily: "'Nunito'" }}>
+                {achObj.cat}
+              </span>
+            )}
+            {isBossDefeat && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase"
+                style={{ background: "rgba(168,85,247,0.12)", color: "#a855f7", border: "1px solid rgba(168,85,247,0.25)", fontFamily: "'Nunito'" }}>
+                Raid Boss
+              </span>
+            )}
+            {!isAchievement && !isBossDefeat && item.category && item.category !== "Other" && (
               <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase"
                 style={{ background: `${catColor}15`, color: catColor, border: `1px solid ${catColor}30`, fontFamily: "'Nunito'" }}>
                 {item.category}
@@ -431,6 +443,11 @@ function HistoryItemCard({ item }) {
           </div>
           <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[11px] text-[var(--habit-dim)]" style={{ fontFamily: "'Nunito'" }}>
             <span className="font-bold">{timeStr}</span>
+            {isAchievement && achObj?.desc && (
+              <span className="text-[10px] text-muted-foreground/80 italic">
+                {achObj.desc}
+              </span>
+            )}
             {(isStudy || isPomodoro) && item.hours > 0 && (
               <span className="flex items-center gap-0.5 font-bold" style={{ color: cfg.color }}>
                 <Clock className="w-3 h-3" />
