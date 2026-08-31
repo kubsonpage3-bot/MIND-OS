@@ -1,4 +1,19 @@
-[`n  {`n    "version": "0.8.79",`n    "date": "2026-08-31",`n    "changes": [`n      {`n        "type": "fix",`n        "text": "Fixed XP desync: Rank XP now correctly updates when skill effects grant bonus XP and when the battle arena boss is defeated."`n      },`n      {`n        "type": "feature",`n        "text": "History now shows completed achievements (with gold rewards) and boss defeats (with XP, Gold, and SP earned)."`n      }`n    ]`n  },
+[
+  {
+    "version": "0.8.79",
+    "date": "2026-08-31",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Fixed XP desync: Rank XP now correctly updates when skill effects grant bonus XP and when the battle arena boss is defeated."
+      },
+      {
+        "type": "feature",
+        "text": "History now shows completed achievements (with gold rewards) and boss defeats (with XP, Gold, and SP earned)."
+      }
+    ]
+  },
+
   {
     "version": "0.8.78",
     "date": "2026-08-23",
