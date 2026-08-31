@@ -10,6 +10,7 @@ python manage.py migrate
 python seed_items.py
 python manage.py seed_bosses
 python manage.py sync_boss_drops
+python manage.py backfill_history_logs
 
 # Temporary emergency password reset
 python manage.py reset_my_password
