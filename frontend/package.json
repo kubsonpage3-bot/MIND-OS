@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "optimize:assets": "node ../scripts/optimize_assets.js",
     "i18n:check": "node scripts/check-i18n-keys.js",
-    "build:apk": "vite build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug && copy app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\mindos.apk && copy app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\..\\mindos.apk"
+    "build:apk": "vite build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug && copy /Y app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\mindos.apk && copy /Y app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\..\\mindos.apk && copy /Y app\\build\\outputs\\apk\\debug\\app-debug.apk ..\\..\\app-debug.apk"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

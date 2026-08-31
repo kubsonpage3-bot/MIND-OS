@@ -2,8 +2,10 @@
   "name": "mind-os",
   "private": true,
   "scripts": {
-    "dev":     "cd frontend && npm run dev",
-    "build":   "cd frontend && npm run build",
-    "preview": "cd frontend && npm run preview"
+    "dev":       "cd frontend && npm run dev",
+    "build":     "cd frontend && npm run build",
+    "preview":   "cd frontend && npm run preview",
+    "build:apk": "cd frontend && npm run build:apk",
+    "apk":       "cd frontend && npm run build:apk"
   }
 }
