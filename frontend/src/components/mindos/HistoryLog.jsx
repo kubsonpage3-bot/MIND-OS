@@ -169,15 +169,17 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
         let label = d.toLocaleDateString(undefined, { month: "short", day: "numeric", weekday: "short" });
         if (dayKey === todayStr)      label = "Today";
         else if (dayKey === yesterdayStr) label = "Yesterday";
-        groups[dayKey] = { dayKey, label, dateObj: d, items: [], totalXp: 0, totalHours: 0, dailiesDone: 0, habitsDone: 0, todosDone: 0, pomoDone: 0 };
+        groups[dayKey] = { dayKey, label, dateObj: d, items: [], totalXp: 0, totalHours: 0, dailiesDone: 0, habitsDone: 0, todosDone: 0, pomoDone: 0, achDone: 0, bossDone: 0 };
       }
       groups[dayKey].items.push(item);
       groups[dayKey].totalXp    += item.xp_earned || 0;
       groups[dayKey].totalHours += item.hours || 0;
-      if (item.activity_type === "daily")    groups[dayKey].dailiesDone++;
-      if (item.activity_type === "habit_pos")groups[dayKey].habitsDone++;
-      if (item.activity_type === "todo")     groups[dayKey].todosDone++;
-      if (item.activity_type === "pomodoro") groups[dayKey].pomoDone++;
+      if (item.activity_type === "daily")       groups[dayKey].dailiesDone++;
+      if (item.activity_type === "habit_pos")   groups[dayKey].habitsDone++;
+      if (item.activity_type === "todo")        groups[dayKey].todosDone++;
+      if (item.activity_type === "pomodoro")    groups[dayKey].pomoDone++;
+      if (item.activity_type === "achievement") groups[dayKey].achDone++;
+      if (item.activity_type === "boss_defeat") groups[dayKey].bossDone++;
     });
     return Object.values(groups).sort((a, b) => b.dateObj - a.dateObj);
   }, [activityItems]);
@@ -345,6 +347,18 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
                       {group.pomoDone}
                     </span>
                   )}
+                  {group.achDone > 0 && (
+                    <span className="flex items-center gap-1 text-yellow-400">
+                      <img src="/images/pixel-icons/achievement.png" alt="achievements" className="w-3.5 h-3.5 rounded-xs object-contain inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.achDone}
+                    </span>
+                  )}
+                  {group.bossDone > 0 && (
+                    <span className="flex items-center gap-1 text-purple-400">
+                      <img src="/images/pixel-icons/boss_defeat.png" alt="bosses" className="w-3.5 h-3.5 rounded-xs object-contain inline-block" style={{ imageRendering: "pixelated" }} />
+                      {group.bossDone}
+                    </span>
+                  )}
                   {group.totalXp > 0 && <span className="font-black text-purple-400 ml-1">+{group.totalXp} XP</span>}
                 </div>
               </div>
@@ -406,7 +420,7 @@ function HistoryItemCard({ item }) {
         <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative group-hover:scale-105 transition-transform duration-200"
           style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, boxShadow: `0 0 12px ${cfg.glow}` }}>
           {cfg.iconImg ? (
-            <img src={cfg.iconImg} alt={cfg.label} className="w-full h-full object-cover" style={{ imageRendering: "pixelated" }} />
+            <img src={cfg.iconImg} alt={cfg.label} className="w-full h-full object-contain p-1" style={{ imageRendering: "pixelated" }} />
           ) : (
             <span className="text-base">{cfg.emoji}</span>
           )}
