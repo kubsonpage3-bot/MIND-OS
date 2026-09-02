@@ -174,28 +174,6 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
 
   const consumables = useMemo(() => shopItems.filter(i => i.consumable), [shopItems]);
 
-  const consumeMutation = useMutation({
-    mutationFn: (itemCode) => djangoApi.inventory.consume(itemCode),
-    onSuccess: (data, itemCode) => {
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
-      showRewardToast({
-        label: String(t('consumables.consumed_toast', `Used ${data?.detail || itemCode}!`, { name: data?.detail || itemCode })),
-      });
-      playSound('success');
-    },
-    onError: (err) => {
-      showRewardToast({ label: `❌ ${err.message || 'Failed to use item'}` });
-    }
-  });
-
-  const handleConsumeItem = (item) => {
-    const code = item.code || item.id;
-    if (!code) return;
-    consumeMutation.mutate(code);
-  };
-
   const { data: activeEffectsData } = useQuery({
     queryKey: ['active_effects'],
     queryFn: () => djangoApi.skills.getActiveEffects(),
@@ -1173,7 +1151,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                   </GameCard>
                 );
               })}
-              </div>
+            </div>
           )}
         </div>
       )}
@@ -1222,11 +1200,9 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
         item={selectedConsumable}
         isOpen={!!selectedConsumable}
         onClose={() => setSelectedConsumable(null)}
-        gold={gold}
+        onBuy={(item) => buyItem(item)}
         cost={selectedConsumable?.cost}
-        onBuy={() => selectedConsumable && buyItem(selectedConsumable)}
-        onConsume={handleConsumeItem}
-        isConsuming={consumeMutation.isPending}
+        gold={gold}
         isBought={boughtItem === selectedConsumable?.id}
         inInventoryCount={selectedConsumable ? (inventory || []).filter(i => (i.id === selectedConsumable.id || (selectedConsumable.code && i.code === selectedConsumable.code))).length : 0}
         isActive={selectedConsumable ? (activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.active && (!activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.expiresAt || Date.now() < activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.expiresAt)) : false}

@@ -366,16 +366,8 @@ export default function ConsumableDetailModal({
                 </div>
               )}
 
-              {/* In-inventory owned badge */}
-              {inInventoryCount > 0 && (
-                <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-lg py-1.5 px-3 w-full">
-                  <Package className="w-3.5 h-3.5" />
-                  <span>{t('consumables.in_inventory', { count: inInventoryCount, defaultValue: `В инвентаре: ${inInventoryCount} шт.` })}</span>
-                </div>
-              )}
-
-              {/* Consume Button (Inventory Mode OR Shop Mode when already owned) */}
-              {onConsume && (!onBuy || inInventoryCount > 0) && (
+              {/* INVENTORY MODE: Consume Button */}
+              {onConsume && (
                 <motion.button
                   whileTap={!isActive && !isConsuming ? { scale: 0.96 } : {}}
                   onClick={() => {
