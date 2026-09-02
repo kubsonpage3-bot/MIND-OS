@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/lib/soundEffects';
@@ -20,25 +21,34 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
   const bossXp = rewards?.boss_xp ?? 0;
   const bossSp = rewards?.boss_sp ?? 0;
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+            touchAction: 'none'
+          }}
+          onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.8, y: 50 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.8, y: 50 }}
             transition={{ type: "spring", bounce: 0.5 }}
-            className="relative w-full max-w-sm rounded-2xl border-2 border-yellow-500/50 p-6 text-center shadow-2xl"
+            className="relative w-full max-w-sm rounded-2xl border-2 border-yellow-500/50 p-6 text-center shadow-2xl max-h-[85svh] overflow-y-auto"
             style={{
               background: "linear-gradient(180deg, #1f1a14 0%, #120e0a 100%)",
               boxShadow: "0 0 40px rgba(234, 179, 8, 0.2)",
             }}
+            onClick={e => e.stopPropagation()}
           >
             <div className="absolute -top-6 -left-6 text-4xl animate-bounce" style={{ animationDelay: '0.1s' }}>✨</div>
             <div className="absolute -bottom-6 -right-6 text-4xl animate-bounce" style={{ animationDelay: '0.3s' }}>✨</div>
@@ -98,6 +108,7 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

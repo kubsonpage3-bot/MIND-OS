@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { SKILL_TREE } from "@/constants/rpgData";
 import {
@@ -26,6 +27,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useHardwareBack } from "@/utils/modalStack";
 
 // ─── RESPEC COST ─────────────────────────────────────────────────────────────
 function getRespecCost(unlockedCount) {
@@ -162,6 +164,9 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const [presets, setPresets] = useState(loadPresets);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [activeMobileBranch, setActiveMobileBranch] = useState("mind");
+
+  useHardwareBack(showRespec, () => setShowRespec(false));
+  useHardwareBack(showPresetSave, () => setShowPresetSave(false));
 
   const isMobile = useIsMobile();
   const containerRef = useRef(null);
@@ -884,103 +889,119 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
       </AnimatePresence>
 
       {/* ─── RESPEC MODAL ────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showRespec && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm"
-            onClick={() => setShowRespec(false)}
-          >
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {showRespec && (
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="rounded-2xl border-2 border-red-900/60 bg-[#140e14] p-6 max-w-xs w-full space-y-4 text-center shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                touchAction: 'none'
+              }}
+              onClick={() => setShowRespec(false)}
             >
-              <div className="text-2xl">⚠️</div>
-              <div className="font-mono text-sm font-bold text-red-400">
-                RESET SKILL TREE
-              </div>
-              <div className="text-xs font-mono text-slate-300 leading-relaxed">
-                Refund all {unlocked.length} unlocked skills and reclaim all SP.<br />
-                Cost: <span className="text-amber-400 font-bold">{respecCost}G</span>
-                {currentGold < respecCost && (
-                  <span className="text-red-400 block mt-1">Not enough Gold!</span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowRespec(false)}
-                  className="flex-1 py-2 rounded-lg border border-[#2a243e] text-xs font-mono text-slate-400 hover:bg-white/5"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={doRespec}
-                  disabled={currentGold < respecCost}
-                  className="flex-1 py-2 rounded-lg border text-xs font-mono font-bold disabled:opacity-30 transition-colors border-red-500/60 text-red-300 bg-red-950/40 hover:bg-red-900/60"
-                >
-                  Confirm
-                </button>
-              </div>
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.9 }}
+                className="rounded-2xl border-2 border-red-900/60 bg-[#140e14] p-6 max-w-xs w-full space-y-4 text-center shadow-2xl max-h-[85svh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-2xl">⚠️</div>
+                <div className="font-mono text-sm font-bold text-red-400">
+                  RESET SKILL TREE
+                </div>
+                <div className="text-xs font-mono text-slate-300 leading-relaxed">
+                  Refund all {unlocked.length} unlocked skills and reclaim all SP.<br />
+                  Cost: <span className="text-amber-400 font-bold">{respecCost}G</span>
+                  {currentGold < respecCost && (
+                    <span className="text-red-400 block mt-1">Not enough Gold!</span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowRespec(false)}
+                    className="flex-1 py-2 rounded-lg border border-[#2a243e] text-xs font-mono text-slate-400 hover:bg-white/5 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={doRespec}
+                    disabled={currentGold < respecCost}
+                    className="flex-1 py-2 rounded-lg border text-xs font-mono font-bold disabled:opacity-30 transition-colors border-red-500/60 text-red-300 bg-red-950/40 hover:bg-red-900/60 cursor-pointer"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* ─── SAVE PRESET MODAL ───────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showPresetSave && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm"
-            onClick={() => setShowPresetSave(false)}
-          >
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {showPresetSave && (
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="rounded-2xl border-2 border-amber-500/40 bg-[#161224] p-6 max-w-xs w-full space-y-4 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                touchAction: 'none'
+              }}
+              onClick={() => setShowPresetSave(false)}
             >
-              <div className="font-mono text-sm font-bold text-amber-300">
-                SAVE SKILL PRESET
-              </div>
-              <div className="text-[10px] font-mono text-slate-400">
-                Save your current build ({unlocked.length} skills) for quick switching.
-              </div>
-              <input
-                value={presetName}
-                onChange={(e) => setPresetName(e.target.value)}
-                placeholder="Build name (e.g. Focus God)..."
-                className="w-full px-3 py-2 rounded-lg border border-[#3b3558] bg-[#100e1e] text-xs font-mono text-white placeholder:text-slate-600 outline-none focus:border-amber-400"
-                onKeyDown={(e) => e.key === "Enter" && savePreset()}
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowPresetSave(false)}
-                  className="flex-1 py-2 rounded-lg border border-[#2a243e] text-xs font-mono text-slate-400 hover:bg-white/5"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={savePreset}
-                  disabled={!presetName.trim()}
-                  className="flex-1 py-2 rounded-lg border border-amber-500/60 text-amber-300 bg-amber-950/40 font-mono font-bold text-xs disabled:opacity-30"
-                >
-                  Save
-                </button>
-              </div>
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.9 }}
+                className="rounded-2xl border-2 border-amber-500/40 bg-[#161224] p-6 max-w-xs w-full space-y-4 shadow-2xl max-h-[85svh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="font-mono text-sm font-bold text-amber-300">
+                  SAVE SKILL PRESET
+                </div>
+                <div className="text-[10px] font-mono text-slate-400">
+                  Save your current build ({unlocked.length} skills) for quick switching.
+                </div>
+                <input
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                  placeholder="Build name (e.g. Focus God)..."
+                  className="w-full px-3 py-2 rounded-lg border border-[#3b3558] bg-[#100e1e] text-xs font-mono text-white placeholder:text-slate-600 outline-none focus:border-amber-400"
+                  onKeyDown={(e) => e.key === "Enter" && savePreset()}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowPresetSave(false)}
+                    className="flex-1 py-2 rounded-lg border border-[#2a243e] text-xs font-mono text-slate-400 hover:bg-white/5 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={savePreset}
+                    disabled={!presetName.trim()}
+                    className="flex-1 py-2 rounded-lg border border-amber-500/60 text-amber-300 bg-amber-950/40 font-mono font-bold text-xs disabled:opacity-30 cursor-pointer"
+                  >
+                    Save
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

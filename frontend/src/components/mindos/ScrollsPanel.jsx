@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
@@ -8,6 +9,7 @@ import OptimizedImage from "./OptimizedImage";
 import { normalizeGold } from "@/lib/utils";
 import GameCard from "@/components/ui/GameCard";
 import ItemDetailModal from "./ItemDetailModal";
+import { useHardwareBack } from "@/utils/modalStack";
 
 const RANK_ORDER = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
 
@@ -80,6 +82,8 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
   const queryClient = useQueryClient();
   const [confirmScroll, setConfirmScroll] = useState(null);
   const [selectedScroll, setSelectedScroll] = useState(null);
+
+  useHardwareBack(!!confirmScroll, () => setConfirmScroll(null));
 
   // 1. Загружаем активные энкаунтеры с сервера
   const { data: encountersData = [] } = useQuery({
@@ -293,70 +297,78 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
       })}
 
       {/* Confirm modal */}
-      <AnimatePresence>
-        {confirmScroll && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 px-4"
-            style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
-            onClick={() => setConfirmScroll(null)}
-          >
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {confirmScroll && (
             <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.85, opacity: 0 }}
-              className="bg-card rounded-2xl p-6 max-w-sm w-full space-y-5 text-center"
-              style={{ border: `2px solid ${confirmScroll.color}`, boxShadow: `0 0 40px ${confirmScroll.color}40` }}
-              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                touchAction: 'none'
+              }}
+              onClick={() => setConfirmScroll(null)}
             >
               <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 2.5 }}
-                className="w-28 h-32 mx-auto"
+                initial={{ scale: 0.85, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.85, opacity: 0, y: 15 }}
+                transition={{ type: "spring", damping: 22, stiffness: 350 }}
+                className="bg-card rounded-2xl p-6 max-w-sm w-full space-y-5 text-center max-h-[85svh] overflow-y-auto"
+                style={{ border: `2px solid ${confirmScroll.color}`, boxShadow: `0 0 40px ${confirmScroll.color}40` }}
+                onClick={e => e.stopPropagation()}
               >
-                <OptimizedImage
-                  src={SCROLL_BOSS_IMAGES[confirmScroll.id]}
-                  alt={confirmScroll.boss}
-                  className="w-full h-full object-cover rounded-xl"
-                  style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 16px ${confirmScroll.color})` }}
-                />
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 2.5 }}
+                  className="w-28 h-32 mx-auto"
+                >
+                  <OptimizedImage
+                    src={SCROLL_BOSS_IMAGES[confirmScroll.id]}
+                    alt={confirmScroll.boss}
+                    className="w-full h-full object-cover rounded-xl"
+                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 16px ${confirmScroll.color})` }}
+                  />
+                </motion.div>
+                <div>
+                  <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest mb-1">{t('scrolls.modal_summoning')}</div>
+                  <div className="font-mono text-lg font-black" style={{ color: confirmScroll.color }}>{String(t(`scrolls.items.${confirmScroll.id}.boss`, confirmScroll.boss))}</div>
+                  <div className="font-mono text-xs text-muted-foreground/60 mt-1">{String(t(`scrolls.items.${confirmScroll.id}.scrollName`, confirmScroll.scrollName))}</div>
+                  <div className="font-mono text-xs italic mt-1" style={{ color: `${confirmScroll.color}99` }}>{String(t(`scrolls.items.${confirmScroll.id}.quote`, confirmScroll.quote))}</div>
+                </div>
+                <div className="text-sm font-mono text-muted-foreground/70 leading-relaxed">
+                  {t('scrolls.modal_time_limit_part1')}<span className="text-white font-bold">{t('scrolls.modal_time_limit_part2')}</span>{t('scrolls.modal_time_limit_part3')}<br />
+                  {t('scrolls.modal_consequence')}
+                </div>
+                <div className="rounded-xl border border-border bg-muted/20 p-3 text-left space-y-1.5">
+                  <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {String(t(`scrolls.items.${confirmScroll.id}.uniqueItem_label`, confirmScroll.uniqueItem.label))}</div>
+                  <div className="font-mono text-[11px] text-muted-foreground/60">{String(t(`scrolls.items.${confirmScroll.id}.uniqueItem_effect`, confirmScroll.uniqueItem.effect))}</div>
+                  <div className="font-mono text-[11px] text-yellow-400">+{normalizeGold(confirmScroll.reward.gold).toLocaleString()}G · +{confirmScroll.reward.sp}SP · +{confirmScroll.reward.mp}MP</div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setConfirmScroll(null)}
+                    className="flex-1 py-2.5 rounded-xl font-mono text-sm border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    {t('scrolls.btn_cancel')}
+                  </button>
+                  <button
+                    onClick={confirmBuy}
+                    className="flex-1 py-2.5 rounded-xl font-mono text-sm font-black transition-all cursor-pointer"
+                    style={{ background: confirmScroll.color, color: "#000", boxShadow: `0 0 16px ${confirmScroll.color}60` }}
+                  >
+                    {t('scrolls.btn_modal_summon', { price: confirmScroll.price })}
+                  </button>
+                </div>
               </motion.div>
-              <div>
-                <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest mb-1">{t('scrolls.modal_summoning')}</div>
-                <div className="font-mono text-lg font-black" style={{ color: confirmScroll.color }}>{String(t(`scrolls.items.${confirmScroll.id}.boss`, confirmScroll.boss))}</div>
-                <div className="font-mono text-xs text-muted-foreground/60 mt-1">{String(t(`scrolls.items.${confirmScroll.id}.scrollName`, confirmScroll.scrollName))}</div>
-                <div className="font-mono text-xs italic mt-1" style={{ color: `${confirmScroll.color}99` }}>{String(t(`scrolls.items.${confirmScroll.id}.quote`, confirmScroll.quote))}</div>
-              </div>
-              <div className="text-sm font-mono text-muted-foreground/70 leading-relaxed">
-                {t('scrolls.modal_time_limit_part1')}<span className="text-white font-bold">{t('scrolls.modal_time_limit_part2')}</span>{t('scrolls.modal_time_limit_part3')}<br />
-                {t('scrolls.modal_consequence')}
-              </div>
-              <div className="rounded-xl border border-border bg-muted/20 p-3 text-left space-y-1.5">
-                <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {String(t(`scrolls.items.${confirmScroll.id}.uniqueItem_label`, confirmScroll.uniqueItem.label))}</div>
-                <div className="font-mono text-[11px] text-muted-foreground/60">{String(t(`scrolls.items.${confirmScroll.id}.uniqueItem_effect`, confirmScroll.uniqueItem.effect))}</div>
-                <div className="font-mono text-[11px] text-yellow-400">+{normalizeGold(confirmScroll.reward.gold).toLocaleString()}G · +{confirmScroll.reward.sp}SP · +{confirmScroll.reward.mp}MP</div>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirmScroll(null)}
-                  className="flex-1 py-2.5 rounded-xl font-mono text-sm border border-border text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {t('scrolls.btn_cancel')}
-                </button>
-                <button
-                  onClick={confirmBuy}
-                  className="flex-1 py-2.5 rounded-xl font-mono text-sm font-black transition-all"
-                  style={{ background: confirmScroll.color, color: "#000", boxShadow: `0 0 16px ${confirmScroll.color}60` }}
-                >
-                  {t('scrolls.btn_modal_summon', { price: confirmScroll.price })}
-                </button>
-              </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Reward claim modals removed as backend handles it */}
 

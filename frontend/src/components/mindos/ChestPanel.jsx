@@ -2,26 +2,32 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getGearClassColor, GEAR_CLASS_NAMES } from '@/lib/gameState';
+import { getGearClassColor } from '@/lib/gameState';
 import { getMediaUrl, djangoApi } from "@/api/djangoClient";
 import { playSound } from "@/lib/soundEffects";
 import { useProfileSync } from "@/hooks/useProfileSync";
 import GameCard from "@/components/ui/GameCard";
-import { usePixelBurst, PixelBurstLayer, PixelFlash } from "./PixelParticles";
-import { Coins, Database, Loader2, Sparkles, Terminal, CheckCircle2, X, AlertTriangle } from "lucide-react";
+import { Coins, Database, Loader2, Sparkles, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useHardwareBack } from "@/utils/modalStack";
+import AnimatedChestModal from "./AnimatedChestModal";
 
 export default function ChestPanel() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { profile } = useProfileSync();
-  const { bursts, trigger: triggerBurst } = usePixelBurst();
 
   const [decryptingChest, setDecryptingChest] = useState(null);
-  const [decryptionStage, setDecryptionStage] = useState(0);
   const [wonItem, setWonItem] = useState(null);
+  const [activeChestForModal, setActiveChestForModal] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isEquipped, setIsEquipped] = useState(false);
+
+  useHardwareBack(!!activeChestForModal, () => {
+    setWonItem(null);
+    setActiveChestForModal(null);
+    setDecryptingChest(null);
+  });
 
   const gold = profile?.gold || 0;
 
@@ -31,13 +37,6 @@ export default function ChestPanel() {
     queryFn: djangoApi.chests.getChests,
   });
 
-  const stages = [
-    t("chest_panel.stages.0", "ESTABLISHING CONTEXT UPLINK..."),
-    t("chest_panel.stages.1", "EXTRACTING ENCRYPTED DATA BLOCKS..."),
-    t("chest_panel.stages.2", "DECRYPTING SECURITY CORE..."),
-    t("chest_panel.stages.3", "REASSEMBLING CYBERNETIC PROTOCOL..."),
-    t("chest_panel.stages.4", "DECRYPTION COMPLETE!")
-  ];
 
   // Mutate: open chest
   const openMutation = useMutation({
@@ -45,31 +44,15 @@ export default function ChestPanel() {
     onSuccess: (/** @type {any} */ data) => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
-
-      // Run sequential decryption animation
-      setDecryptionStage(0);
-      let currentStage = 0;
-      playSound('click');
-
-      const interval = setInterval(() => {
-        currentStage++;
-        if (currentStage < stages.length) {
-          setDecryptionStage(currentStage);
-          playSound('boss_idle_tick');
-        } else {
-          clearInterval(interval);
-          setWonItem(data.item);
-          setIsEquipped(false);
-          setDecryptingChest(null);
-          
-          const classColor = getGearClassColor(data.item.gear_class);
-          triggerBurst(classColor, 20);
-          playSound('critical');
-        }
-      }, 500);
+      // Pass the won item to modal — it handles its own animation phases
+      setWonItem(data.item);
+      setIsEquipped(false);
+      setDecryptingChest(null);
     },
     onError: (err) => {
       setDecryptingChest(null);
+      setActiveChestForModal(null);
+      setWonItem(null);
       playSound('error');
       setErrorMessage(err.message || t("chest_panel.decryption_failed", "Decryption failed."));
       setTimeout(() => setErrorMessage(null), 4000);
@@ -100,9 +83,18 @@ export default function ChestPanel() {
       setTimeout(() => setErrorMessage(null), 4000);
       return;
     }
+    // Open the animated modal immediately (Phase 1 - Charging)
+    setActiveChestForModal(chest);
     setWonItem(null);
+    setIsEquipped(false);
     setDecryptingChest(chest);
     openMutation.mutate(chest.chest_type);
+  };
+
+  const handleModalClose = () => {
+    setWonItem(null);
+    setActiveChestForModal(null);
+    setDecryptingChest(null);
   };
 
   const getChestDesign = (chestType) => {
@@ -177,69 +169,17 @@ export default function ChestPanel() {
         )}
       </AnimatePresence>
 
-      {/* Decryption overlay */}
-      <AnimatePresence>
-        {decryptingChest && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          >
-            <div 
-              className="w-full max-w-md p-6 border-2 font-mono text-xs bg-black rounded-none relative overflow-hidden"
-              style={{
-                borderColor: getChestDesign(decryptingChest.chest_type).themeColor,
-                boxShadow: `0 0 20px ${getChestDesign(decryptingChest.chest_type).themeColor}40`
-              }}
-            >
-              {/* Retro scanline overlay */}
-              <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
-                style={{ background: "repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff 2px, #ffffff 3px)" }} />
-
-              <div className="flex items-center gap-2 text-green-400 border-b border-green-500/20 pb-3 mb-4">
-                <Terminal className="w-4 h-4 animate-pulse" />
-                <span className="font-bold tracking-widest">{t('chest_panel.decryptor_active', 'DECRYPTOR SYSTEM ACTIVE')}</span>
-              </div>
-
-              <div className="space-y-3 font-mono text-[10px] min-h-[140px]">
-                {stages.map((stg, i) => {
-                  if (i > decryptionStage) return null;
-                  return (
-                    <motion.div 
-                      key={i} 
-                      initial={{ opacity: 0, x: -5 }} 
-                      animate={{ opacity: 1, x: 0 }}
-                      className={i === decryptionStage ? "text-primary font-bold animate-pulse" : "text-muted-foreground/60"}
-                    >
-                      &gt; {stg} {i < decryptionStage && "✅"}
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {/* Progress bar */}
-              <div className="mt-4">
-                <div className="flex justify-between text-[8px] text-muted-foreground mb-1">
-                  <span>{t('chest_panel.progress', 'PROGRESS')}</span>
-                  <span>{Math.round(((decryptionStage + 1) / stages.length) * 100)}%</span>
-                </div>
-                <div className="h-2 w-full bg-gray-900 border border-gray-800 overflow-hidden relative">
-                  <motion.div 
-                    className="h-full bg-primary"
-                    style={{
-                      background: getChestDesign(decryptingChest.chest_type).themeColor,
-                      boxShadow: `0 0 8px ${getChestDesign(decryptingChest.chest_type).themeColor}`
-                    }}
-                    animate={{ width: `${((decryptionStage + 1) / stages.length) * 100}%` }}
-                    transition={{ ease: "easeInOut", duration: 0.3 }}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Animated chest opening modal (phases: charge → crack → burst → reveal) */}
+      <AnimatedChestModal
+        open={!!activeChestForModal}
+        chest={activeChestForModal}
+        wonItem={wonItem}
+        isEquipped={isEquipped}
+        isEquipping={equipMutation.isPending}
+        onEquip={() => wonItem && equipMutation.mutate(wonItem.code)}
+        onClose={handleModalClose}
+        chestThemeColor={activeChestForModal ? getChestDesign(activeChestForModal.chest_type).themeColor : "#f59e0b"}
+      />
 
       {/* Chest list grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -357,158 +297,6 @@ export default function ChestPanel() {
           );
         })}
       </div>
-
-      {/* Won Item Reveal Modal */}
-      <AnimatePresence>
-        {wonItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 15, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 15, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="w-full max-w-sm rounded-none border-[2.5px] p-6 text-center bg-black relative"
-              style={{
-                borderColor: getGearClassColor(wonItem.gear_class),
-                boxShadow: `0 0 30px ${getGearClassColor(wonItem.gear_class)}50`,
-                imageRendering: 'pixelated'
-              }}
-            >
-              {/* Particle layers */}
-              <PixelBurstLayer bursts={bursts} />
-              <PixelFlash active={true} color={getGearClassColor(wonItem.gear_class)} />
-
-              {/* Close Button */}
-              <button 
-                onClick={() => setWonItem(null)} 
-                className="absolute top-3 right-3 text-muted-foreground/60 hover:text-white transition-colors p-1 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <span className="font-mono text-[9px] font-bold text-green-400 tracking-widest block mb-1">
-                {t('chest_panel.decryption_complete', '[ DECRYPTION COMPLETE ]')}
-              </span>
-
-              {/* Item rarity class */}
-              <div className="flex items-center justify-center gap-1.5 mt-2">
-                <span 
-                  className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded border"
-                  style={{
-                    color: getGearClassColor(wonItem.gear_class),
-                    borderColor: `${getGearClassColor(wonItem.gear_class)}60`,
-                    background: `${getGearClassColor(wonItem.gear_class)}15`
-                  }}
-                >
-                  {wonItem.gear_class}
-                </span>
-                <span className="text-[10px] font-mono tracking-wider font-bold" style={{ color: getGearClassColor(wonItem.gear_class) }}>
-                  {GEAR_CLASS_NAMES[wonItem.gear_class]}
-                </span>
-              </div>
-
-              {/* Glowing title */}
-              <h2 
-                className="text-lg font-mono font-black tracking-wider uppercase mt-2 mb-4" 
-                style={{ 
-                  color: getGearClassColor(wonItem.gear_class),
-                  textShadow: `0 0 15px ${getGearClassColor(wonItem.gear_class)}60`
-                }}
-              >
-                {wonItem.name}
-              </h2>
-
-              {/* Item icon container */}
-              <div 
-                className="mx-auto w-24 h-24 border bg-gray-900/60 flex items-center justify-center relative mb-4"
-                style={{
-                  borderColor: `${getGearClassColor(wonItem.gear_class)}60`,
-                  boxShadow: `0 0 15px ${getGearClassColor(wonItem.gear_class)}20`,
-                  imageRendering: 'pixelated'
-                }}
-              >
-                {wonItem.icon_url ? (
-                  <img 
-                    src={getMediaUrl(wonItem.icon_url)} 
-                    alt={wonItem.name} 
-                    className="w-full h-full object-contain"
-                    style={{ imageRendering: 'pixelated' }}
-                  />
-                ) : (
-                  <span className="font-mono text-3xl" style={{ color: getGearClassColor(wonItem.gear_class) }}>
-                    {wonItem.name[0]}
-                  </span>
-                )}
-              </div>
-
-              {/* Description */}
-              <p className="text-xs font-mono text-muted-foreground/80 leading-relaxed px-2">
-                {wonItem.description || "No database descriptor available."}
-              </p>
-
-              {/* Item stats list */}
-              {wonItem.stats && Object.keys(wonItem.stats).length > 0 && (
-                <div className="mt-4 p-3 bg-white/[0.02] border border-white/[0.04] rounded text-left">
-                  <div className="text-[8px] font-mono text-muted-foreground/45 uppercase tracking-widest text-left mb-1.5">
-                    {t('chest_panel.modifications', 'Modifications')}
-                  </div>
-                  <div className="space-y-1">
-                    {Object.entries(wonItem.stats).map(([stat, val]) => (
-                      <div key={stat} className="flex justify-between items-center text-xs font-mono text-white/95">
-                        <span className="uppercase text-muted-foreground">{stat.replace('_', ' ')}</span>
-                        <span className="font-bold text-green-400">+{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="text-[8px] font-mono text-muted-foreground/30 uppercase tracking-wider mt-3">
-                {t('chest_panel.slot', { slot: wonItem.slot_type?.replace('_', ' ') || "unknown", defaultValue: `Slot: ${wonItem.slot_type?.replace('_', ' ') || "unknown"}` })}
-              </div>
-
-              {/* Action options */}
-              <div className="mt-6 flex flex-col gap-2">
-                {!isEquipped ? (
-                  <button
-                    onClick={() => equipMutation.mutate(wonItem.code)}
-                    disabled={equipMutation.isPending}
-                    className="h-11 font-mono text-xs font-black border transition-all flex items-center justify-center gap-1 cursor-pointer select-none active:scale-[0.98] disabled:opacity-40"
-                    style={{
-                      background: getGearClassColor(wonItem.gear_class),
-                      borderColor: getGearClassColor(wonItem.gear_class),
-                      color: '#000'
-                    }}
-                  >
-                    {equipMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-black" />
-                    ) : (
-                      t('chest_panel.equip_cyberware', 'EQUIP CYBERWARE')
-                    )}
-                  </button>
-                ) : (
-                  <div className="h-11 font-mono text-xs font-bold border border-green-500/30 text-green-400 bg-green-500/10 flex items-center justify-center gap-1.5 select-none rounded">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {t('chest_panel.equipped_to_system', 'EQUIPPED TO SYSTEM')}
-                  </div>
-                )}
-                
-                <button
-                  onClick={() => setWonItem(null)}
-                  className="h-11 font-mono text-xs font-bold border border-white/10 text-muted-foreground hover:text-white hover:bg-white/[0.02] flex items-center justify-center select-none active:scale-[0.98] cursor-pointer"
-                >
-                  {t('chest_panel.dismiss', 'DISMISS')}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

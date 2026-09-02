@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MUTATORS } from "@/constants/rpgData";
@@ -390,182 +391,190 @@ export default function MutatorsPanel({ onSpendGold }) {
         );
       })}
 
-      <AnimatePresence>
-        {selectedMutator && (() => {
-          const catColor = CAT_LABELS[selectedMutator.cat]?.color || "#f0c040";
-          const catLabel = CAT_LABELS[selectedMutator.cat]?.label || selectedMutator.cat;
-          const active_ = isActive(selectedMutator.id);
-          const purchased_ = isPurchased(selectedMutator.id);
-          const canActivate = active.length < MAX_ACTIVE || active_;
-          const conflicted = !isActive(selectedMutator.id) && selectedMutator.conflicts?.some(c => isActive(c));
+      {/* Detail modal */}
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {selectedMutator && (() => {
+            const catColor = CAT_LABELS[selectedMutator.cat]?.color || "#f0c040";
+            const catLabel = CAT_LABELS[selectedMutator.cat]?.label || selectedMutator.cat;
+            const active_ = isActive(selectedMutator.id);
+            const purchased_ = isPurchased(selectedMutator.id);
+            const canActivate = active.length < MAX_ACTIVE || active_;
+            const conflicted = !isActive(selectedMutator.id) && selectedMutator.conflicts?.some(c => isActive(c));
 
-          let btnText = t('mutators_ui.btn_activate', 'ACTIVATE');
-          if (active_) {
-            btnText = selectedMutator.permanent_lock 
-              ? t('mutators_ui.btn_active_permanent', '🔒 ACTIVE (PERMANENT)') 
-              : t('mutators_ui.btn_active_on', 'ACTIVE (TAP TO UNEQUIP)');
-          } else if (conflicted) {
-            btnText = t('mutators_ui.btn_conflict_blocked', '⚠️ BLOCKED BY CONFLICT');
-          } else if (!purchased_) {
-            btnText = t('mutators_ui.btn_chest_only', '🎁 CHEST ONLY');
-          } else if (!canActivate) {
-            btnText = t('mutators_ui.btn_limit_reached', { max: MAX_ACTIVE });
-          }
+            let btnText = t('mutators_ui.btn_activate', 'ACTIVATE');
+            if (active_) {
+              btnText = selectedMutator.permanent_lock 
+                ? t('mutators_ui.btn_active_permanent', '🔒 ACTIVE (PERMANENT)') 
+                : t('mutators_ui.btn_active_on', 'ACTIVE (TAP TO UNEQUIP)');
+            } else if (conflicted) {
+              btnText = t('mutators_ui.btn_conflict_blocked', '⚠️ BLOCKED BY CONFLICT');
+            } else if (!purchased_) {
+              btnText = t('mutators_ui.btn_chest_only', '🎁 CHEST ONLY');
+            } else if (!canActivate) {
+              btnText = t('mutators_ui.btn_limit_reached', { max: MAX_ACTIVE });
+            }
 
-          return (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm"
-              style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
-              onClick={() => setSelectedMutator(null)}
-            >
+            return (
               <motion.div
-                initial={{ scale: 0.85, opacity: 0, y: 15 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.85, opacity: 0, y: 15 }}
-                transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                className="bg-card border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[85svh] overflow-y-auto"
-                style={{ borderColor: `${catColor}60`, boxShadow: `0 0 40px ${catColor}30` }}
-                onClick={e => e.stopPropagation()}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm"
+                style={{
+                  paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                  paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                  touchAction: 'none'
+                }}
+                onClick={() => setSelectedMutator(null)}
               >
-                <div className="flex flex-col items-center gap-2 relative text-center">
-                  <div
-                    className="w-24 h-24 rounded-2xl overflow-hidden border-2 relative z-10 flex items-center justify-center bg-black/40 p-2"
-                    style={{
-                      borderColor: catColor,
-                      boxShadow: `0 0 25px ${catColor}40`,
-                      imageRendering: "pixelated",
-                    }}
-                  >
-                    <img
-                      src={selectedMutator.icon}
-                      alt={t(`rpgData.mutators.${selectedMutator.id}.name`)}
-                      className="w-full h-full object-contain"
-                      style={{ imageRendering: "pixelated" }}
-                    />
-                  </div>
-
-                  <div className="font-mono font-black text-base tracking-wide" style={{ color: catColor }}>
-                    {t(`rpgData.mutators.${selectedMutator.id}.name`)}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase"
-                      style={{ background: `${catColor}20`, color: catColor, border: `1px solid ${catColor}50` }}
-                    >
-                      {catLabel}
-                    </span>
-                    <span className="text-[9px] font-mono text-muted-foreground/60 uppercase">
-                      {selectedMutator.permanent_lock 
-                        ? t('mutators_ui.type_permanent', 'Permanent') 
-                        : selectedMutator.toggle 
-                        ? t('mutators_ui.type_toggleable', 'Toggleable') 
-                        : selectedMutator.durationDays 
-                        ? t('mutators_ui.type_duration', { days: selectedMutator.durationDays }) 
-                        : t('mutators_ui.type_passive', 'Passive')}
-                    </span>
-                  </div>
-
-                  <div className="border border-border p-3 rounded-xl bg-muted/20 w-full">
-                    <div className="text-[11px] font-mono text-muted-foreground/80 leading-relaxed italic text-center">
-                      "{t(`rpgData.mutators.${selectedMutator.id}.desc`)}"
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {t(`rpgData.mutators.${selectedMutator.id}.bonus`, { defaultValue: "" }) && (
-                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 space-y-1">
-                      <div className="text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
-                        <span className="text-emerald-300 font-black">✦</span> {t('mutators_ui.positive_effect', 'Positive Effect')}
-                      </div>
-                      <div className="text-xs font-mono text-emerald-200/90 leading-relaxed">
-                        {t(`rpgData.mutators.${selectedMutator.id}.bonus`)}
-                      </div>
-                    </div>
-                  )}
-
-                  {t(`rpgData.mutators.${selectedMutator.id}.penalty`, { defaultValue: "" }) && (
-                    <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 space-y-1">
-                      <div className="text-[11px] font-mono font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
-                        <span className="text-rose-300">⚠️</span> {t('mutators_ui.penalty_cost', 'Penalty / Cost')}
-                      </div>
-                      <div className="text-xs font-mono text-rose-200/90 leading-relaxed">
-                        {t(`rpgData.mutators.${selectedMutator.id}.penalty`)}
-                      </div>
-                    </div>
-                  )}
-
-                  {t(`rpgData.mutators.${selectedMutator.id}.mechanics`, { defaultValue: "" }) && (
-                    <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 space-y-1">
-                      <div className="text-[11px] font-mono font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
-                        <span>⚙️</span> {t('mutators_ui.mechanics', 'Mechanics')}
-                      </div>
-                      <div className="text-xs font-mono text-slate-300 leading-relaxed">
-                        {t(`rpgData.mutators.${selectedMutator.id}.mechanics`)}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedMutator.synergy && (
-                    <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 space-y-1">
-                      <div className="font-mono text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
-                        <span>⚡</span> {t('mutators_ui.synergy', 'Synergy')}
-                      </div>
-                      <div className="font-mono text-xs text-slate-300">
-                        {t('mutators_ui.pairs_with', 'Pairs with:')}{" "}
-                        <span className="text-indigo-300 font-bold">
-                          {t(`rpgData.mutators.${MUTATORS.find(m => m.id === selectedMutator.synergy)?.id || selectedMutator.synergy}.name`)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedMutator.conflicts && selectedMutator.conflicts.length > 0 && (
-                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-1">
-                      <div className="font-mono text-[11px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
-                        <span>🚫</span> {t('mutators_ui.conflicts_with', 'Conflicts with:')}
-                      </div>
-                      <div className="font-mono text-xs text-amber-200/90 leading-relaxed">
-                        {selectedMutator.conflicts.map(c => t(`rpgData.mutators.${MUTATORS.find(m => m.id === c)?.id || c}.name`)).join(", ")}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={() => {
-                      if (!purchased_) return;
-                      activate(selectedMutator);
-                      setSelectedMutator(null);
-                    }}
-                    disabled={!purchased_ || (!canActivate && !active_) || conflicted}
-                    className={`w-full py-3 text-xs font-mono font-black rounded-xl transition-all border ${
-                      active_ ? "border-[#f0c040] bg-[#f0c040] text-black shadow-lg shadow-[#f0c040]/20" :
-                      purchased_ && canActivate && !conflicted ? "border-primary bg-primary/20 text-primary hover:bg-primary/30" :
-                      "border-border/40 text-muted-foreground/40 bg-white/5 cursor-not-allowed"
-                    }`}
-                    style={{ opacity: conflicted ? 0.4 : 1 }}
-                  >
-                    {btnText}
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setSelectedMutator(null)}
-                  className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors text-center uppercase tracking-wider"
+                <motion.div
+                  initial={{ scale: 0.85, opacity: 0, y: 15 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.85, opacity: 0, y: 15 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                  className="bg-card border rounded-2xl p-5 max-w-sm w-full space-y-4 max-h-[85svh] overflow-y-auto"
+                  style={{ borderColor: `${catColor}60`, boxShadow: `0 0 40px ${catColor}30` }}
+                  onClick={e => e.stopPropagation()}
                 >
-                  {t('skill_tree.btn_cancel', 'CLOSE')}
-                </button>
+                  <div className="flex flex-col items-center gap-2 relative text-center">
+                    <div
+                      className="w-24 h-24 rounded-2xl overflow-hidden border-2 relative z-10 flex items-center justify-center bg-black/40 p-2"
+                      style={{
+                        borderColor: catColor,
+                        boxShadow: `0 0 25px ${catColor}40`,
+                        imageRendering: "pixelated",
+                      }}
+                    >
+                      <img
+                        src={selectedMutator.icon}
+                        alt={t(`rpgData.mutators.${selectedMutator.id}.name`)}
+                        className="w-full h-full object-contain"
+                        style={{ imageRendering: "pixelated" }}
+                      />
+                    </div>
+
+                    <div className="font-mono font-black text-base tracking-wide" style={{ color: catColor }}>
+                      {t(`rpgData.mutators.${selectedMutator.id}.name`)}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase"
+                        style={{ background: `${catColor}20`, color: catColor, border: `1px solid ${catColor}50` }}
+                      >
+                        {catLabel}
+                      </span>
+                      <span className="text-[9px] font-mono text-muted-foreground/60 uppercase">
+                        {selectedMutator.permanent_lock 
+                          ? t('mutators_ui.type_permanent', 'Permanent') 
+                          : selectedMutator.toggle 
+                          ? t('mutators_ui.type_toggleable', 'Toggleable') 
+                          : selectedMutator.durationDays 
+                          ? t('mutators_ui.type_duration', { days: selectedMutator.durationDays }) 
+                          : t('mutators_ui.type_passive', 'Passive')}
+                      </span>
+                    </div>
+
+                    <div className="border border-border p-3 rounded-xl bg-muted/20 w-full">
+                      <div className="text-[11px] font-mono text-muted-foreground/80 leading-relaxed italic text-center">
+                        "{t(`rpgData.mutators.${selectedMutator.id}.desc`)}"
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {t(`rpgData.mutators.${selectedMutator.id}.bonus`, { defaultValue: "" }) && (
+                      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 space-y-1">
+                        <div className="text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
+                          <span className="text-emerald-300 font-black">✦</span> {t('mutators_ui.positive_effect', 'Positive Effect')}
+                        </div>
+                        <div className="text-xs font-mono text-emerald-200/90 leading-relaxed">
+                          {t(`rpgData.mutators.${selectedMutator.id}.bonus`)}
+                        </div>
+                      </div>
+                    )}
+
+                    {t(`rpgData.mutators.${selectedMutator.id}.penalty`, { defaultValue: "" }) && (
+                      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 space-y-1">
+                        <div className="text-[11px] font-mono font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
+                          <span className="text-rose-300">⚠️</span> {t('mutators_ui.penalty_cost', 'Penalty / Cost')}
+                        </div>
+                        <div className="text-xs font-mono text-rose-200/90 leading-relaxed">
+                          {t(`rpgData.mutators.${selectedMutator.id}.penalty`)}
+                        </div>
+                      </div>
+                    )}
+
+                    {t(`rpgData.mutators.${selectedMutator.id}.mechanics`, { defaultValue: "" }) && (
+                      <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 space-y-1">
+                        <div className="text-[11px] font-mono font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+                          <span>⚙️</span> {t('mutators_ui.mechanics', 'Mechanics')}
+                        </div>
+                        <div className="text-xs font-mono text-slate-300 leading-relaxed">
+                          {t(`rpgData.mutators.${selectedMutator.id}.mechanics`)}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMutator.synergy && (
+                      <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 space-y-1">
+                        <div className="font-mono text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
+                          <span>⚡</span> {t('mutators_ui.synergy', 'Synergy')}
+                        </div>
+                        <div className="font-mono text-xs text-slate-300">
+                          {t('mutators_ui.pairs_with', 'Pairs with:')}{" "}
+                          <span className="text-indigo-300 font-bold">
+                            {t(`rpgData.mutators.${MUTATORS.find(m => m.id === selectedMutator.synergy)?.id || selectedMutator.synergy}.name`)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMutator.conflicts && selectedMutator.conflicts.length > 0 && (
+                      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-1">
+                        <div className="font-mono text-[11px] font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
+                          <span>🚫</span> {t('mutators_ui.conflicts_with', 'Conflicts with:')}
+                        </div>
+                        <div className="font-mono text-xs text-amber-200/90 leading-relaxed">
+                          {selectedMutator.conflicts.map(c => t(`rpgData.mutators.${MUTATORS.find(m => m.id === c)?.id || c}.name`)).join(", ")}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={() => {
+                        if (!purchased_) return;
+                        activate(selectedMutator);
+                        setSelectedMutator(null);
+                      }}
+                      disabled={!purchased_ || (!canActivate && !active_) || conflicted}
+                      className={`w-full py-3 text-xs font-mono font-black rounded-xl transition-all border cursor-pointer ${
+                        active_ ? "border-[#f0c040] bg-[#f0c040] text-black shadow-lg shadow-[#f0c040]/20" :
+                        purchased_ && canActivate && !conflicted ? "border-primary bg-primary/20 text-primary hover:bg-primary/30" :
+                        "border-border/40 text-muted-foreground/40 bg-white/5 cursor-not-allowed"
+                      }`}
+                      style={{ opacity: conflicted ? 0.4 : 1 }}
+                    >
+                      {btnText}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedMutator(null)}
+                    className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors text-center uppercase tracking-wider cursor-pointer"
+                  >
+                    {t('skill_tree.btn_cancel', 'CLOSE')}
+                  </button>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+            );
+          })()}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

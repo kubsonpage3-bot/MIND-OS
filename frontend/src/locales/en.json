@@ -3029,6 +3029,17 @@
       "DECRYPTION COMPLETE!"
     ]
   },
+  "chest_modal": {
+    "decrypting": "DECRYPTING...",
+    "cracking": "CRACKING SHELL...",
+    "releasing": "RELEASING CONTENTS...",
+    "decryption_complete": "[ DECRYPTION COMPLETE ]",
+    "modifications": "Modifications",
+    "slot": "Slot: {{slot}}",
+    "equip": "EQUIP CYBERWARE",
+    "equipped": "EQUIPPED TO SYSTEM",
+    "dismiss": "DISMISS"
+  },
   "inventory": {
     "item_details": "Item Details"
   }

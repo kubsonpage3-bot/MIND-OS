@@ -1,17 +1,24 @@
 // @ts-nocheck
 import { useTranslation } from 'react-i18next';
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
+import { useHardwareBack } from "@/utils/modalStack";
 
 export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [animating, setAnimating] = useState(false);
+
+  useHardwareBack(open, () => {
+    setOpen(false);
+    setInput("");
+  });
   
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
@@ -60,27 +67,30 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
 
   return (
     <>
-      <AnimatePresence>
-        {animating && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center"
-            style={{ background: "radial-gradient(circle, #ff440066, #f0c04033, transparent)" }}
-          >
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {animating && (
             <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0] }}
-              transition={{ duration: 2.5 }}
-              className="font-mono font-black text-4xl text-center"
-              style={{ color: "#f0c040", textShadow: "0 0 40px #f0c040" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none"
+              style={{ background: "radial-gradient(circle, #ff440066, #f0c04033, transparent)" }}
             >
-              {t('prestige.reborn')}
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0] }}
+                transition={{ duration: 2.5 }}
+                className="font-mono font-black text-4xl text-center"
+                style={{ color: "#f0c040", textShadow: "0 0 40px #f0c040" }}
+              >
+                ⚡ REBIRTH INITIATED ⚡
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* ── Premium Prestige Progress Card ── */}
       <div className="rounded-2xl border overflow-hidden relative"
@@ -208,67 +218,87 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
       </div>
 
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 px-4 overflow-y-auto"
-          style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
-        >
-          <div className="rounded-2xl border border-yellow-500/40 bg-card p-6 max-w-md w-full space-y-4 my-4 max-h-[85svh] overflow-y-auto">
-            <div className="text-center">
-              <div className="text-2xl mb-2">🦅</div>
-              <div className="font-mono font-black text-xl" style={{ color: "#f0c040" }}>PRESTIGE — REBIRTH</div>
-            </div>
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                touchAction: 'none'
+              }}
+              onClick={() => { setOpen(false); setInput(""); }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="rounded-2xl border border-yellow-500/40 bg-card p-6 max-w-md w-full space-y-4 max-h-[85svh] overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="text-center">
+                  <div className="text-2xl mb-2">🦅</div>
+                  <div className="font-mono font-black text-xl" style={{ color: "#f0c040" }}>PRESTIGE — REBIRTH</div>
+                </div>
 
-            <div className="space-y-2 text-xs font-mono">
-              <div className="p-3 rounded-lg bg-red-900/10 border border-red-900/30 space-y-1">
-                <div className="text-red-400 font-bold mb-1">{t('prestige.you_will_lose')}</div>
-                {(t('prestige.lose_items', { returnObjects: true }) || []).map((item, i) => (
-                  <div key={i} className="text-muted-foreground/60">✗ {item}</div>
-                ))}
-              </div>
+                <div className="space-y-2 text-xs font-mono">
+                  <div className="p-3 rounded-lg bg-red-900/10 border border-red-900/30 space-y-1">
+                    <div className="text-red-400 font-bold mb-1">{t('prestige.you_will_lose')}</div>
+                    {(t('prestige.lose_items', { returnObjects: true }) || []).map((item, i) => (
+                      <div key={i} className="text-muted-foreground/60">✗ {item}</div>
+                    ))}
+                  </div>
 
-              <div className="p-3 rounded-lg bg-green-900/10 border border-green-900/30 space-y-1">
-                <div className="text-green-400 font-bold mb-1">{t('prestige.you_will_keep')}</div>
-                {(t('prestige.keep_items', { returnObjects: true }) || []).map((item, i) => (
-                  <div key={i} className="text-muted-foreground/60">✓ {item}</div>
-                ))}
-              </div>
+                  <div className="p-3 rounded-lg bg-green-900/10 border border-green-900/30 space-y-1">
+                    <div className="text-green-400 font-bold mb-1">{t('prestige.you_will_keep')}</div>
+                    {(t('prestige.keep_items', { returnObjects: true }) || []).map((item, i) => (
+                      <div key={i} className="text-muted-foreground/60">✓ {item}</div>
+                    ))}
+                  </div>
 
-              <div className="p-3 rounded-lg bg-yellow-900/10 border border-yellow-900/30 space-y-1">
-                <div className="text-yellow-400 font-bold mb-1">{t('prestige.you_will_gain')}</div>
-                {[
-                  t('prestige.gain_items.0', { pct: (count + 1) * 10 }),
-                  t('prestige.gain_items.1', { iq: 5 }),
-                  t('prestige.gain_items.2'),
-                  t('prestige.gain_items.3', { count: count + 1 }),
-                  t('prestige.gain_items.4'),
-                  t('prestige.gain_items.5'),
-                ].map((item, i) => (
-                  <div key={i} className="text-yellow-400/70">✦ {item}</div>
-                ))}
-              </div>
-            </div>
+                  <div className="p-3 rounded-lg bg-yellow-900/10 border border-yellow-900/30 space-y-1">
+                    <div className="text-yellow-400 font-bold mb-1">{t('prestige.you_will_gain')}</div>
+                    {[
+                      t('prestige.gain_items.0', { pct: (count + 1) * 10 }),
+                      t('prestige.gain_items.1', { iq: 5 }),
+                      t('prestige.gain_items.2'),
+                      t('prestige.gain_items.3', { count: count + 1 }),
+                      t('prestige.gain_items.4'),
+                      t('prestige.gain_items.5'),
+                    ].map((item, i) => (
+                      <div key={i} className="text-yellow-400/70">✦ {item}</div>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <div className="text-[10px] font-mono text-muted-foreground/50 text-center">{t('prestige.type_rebirth')}</div>
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value.toUpperCase())}
-                placeholder="REBIRTH"
-                className="w-full bg-muted/20 border border-border rounded-lg px-3 py-2 text-sm font-mono text-center text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-yellow-500/60"
-              />
-              <div className="flex gap-2">
-                <button onClick={() => { setOpen(false); setInput(""); }} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground">{t('prestige.cancel')}</button>
-                <button
-                  onClick={confirm}
-                  disabled={input !== "REBIRTH"}
-                  className="flex-1 py-2 text-xs font-mono rounded-lg font-black transition-all"
-                  style={{ background: input === "REBIRTH" ? "#dc2626" : "var(--habit-purple-light, rgba(0,0,0,0.05))", color: input === "REBIRTH" ? "#fff" : "var(--habit-dim)" }}
-                >{t('prestige.confirmRebirth')}</button>
-              </div>
-            </div>
-          </div>
-        </div>
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono text-muted-foreground/50 text-center">{t('prestige.type_rebirth')}</div>
+                  <input
+                    value={input}
+                    onChange={e => setInput(e.target.value.toUpperCase())}
+                    placeholder="REBIRTH"
+                    className="w-full bg-muted/20 border border-border rounded-lg px-3 py-2 text-sm font-mono text-center text-foreground placeholder:text-muted-foreground/30 outline-none focus:border-yellow-500/60"
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => { setOpen(false); setInput(""); }} className="flex-1 py-2 text-xs font-mono rounded-lg border border-border text-muted-foreground cursor-pointer">{t('prestige.cancel')}</button>
+                    <button
+                      onClick={confirm}
+                      disabled={input !== "REBIRTH"}
+                      className="flex-1 py-2 text-xs font-mono rounded-lg font-black transition-all cursor-pointer disabled:opacity-40"
+                      style={{ background: input === "REBIRTH" ? "#dc2626" : "var(--habit-purple-light, rgba(0,0,0,0.05))", color: input === "REBIRTH" ? "#fff" : "var(--habit-dim)" }}
+                    >{t('prestige.confirmRebirth')}</button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
       )}
     </>
   );

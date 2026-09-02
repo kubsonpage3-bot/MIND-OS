@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { normalizeGold } from "@/lib/utils";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
 import GameCard from "@/components/ui/GameCard";
 import { useTranslation } from "react-i18next";
+import { useHardwareBack } from "@/utils/modalStack";
 
 const RANK_COLORS = { E: "#888", D: "#22c55e", C: "#3b82f6", B: "#a855f7", A: "#f0c040", S: "#ff3355" };
 const RANK_GLOW = { E: "#88888840", D: "#22c55e40", C: "#3b82f640", B: "#a855f740", A: "#f0c04040", S: "#ff335540" };
@@ -257,6 +259,8 @@ export default function AlliesPanel({ onSpendGold }) {
     setRevealState("idle");
   };
 
+  useHardwareBack(!!selected, closeDetail);
+
   const activeAllies = ALLIES.filter(a => recruited.includes(a.id));
   const teamBonuses = activeAllies.map(a => ({ ally: a, bonus: a.levels[(levels[a.id] || 1) - 1] }));
 
@@ -318,141 +322,148 @@ export default function AlliesPanel({ onSpendGold }) {
       )}
 
       {/* Detail modal */}
-      <AnimatePresence>
-        {selected && (() => {
-          const isRecruitedStatus = recruited.includes(selected.id);
-          const displayAsRecruited = isRecruitedStatus && revealState !== "shaking" && revealState !== "flipping_front";
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {selected && (() => {
+            const isRecruitedStatus = recruited.includes(selected.id);
+            const displayAsRecruited = isRecruitedStatus && revealState !== "shaking" && revealState !== "flipping_front";
 
-          return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4"
-            style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
-            onClick={closeDetail}
-          >
+            return (
             <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.85, opacity: 0 }}
-              transition={{ type: "spring", damping: 18 }}
-              className="bg-card border rounded-2xl p-5 max-w-xs w-full space-y-4 max-h-[85svh] overflow-y-auto"
-              style={{ borderColor: `${selected.color}60`, boxShadow: `0 0 40px ${selected.color}30` }}
-              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                touchAction: 'none'
+              }}
+              onClick={closeDetail}
             >
-              {/* Big portrait */}
-              <div className="flex flex-col items-center gap-2 relative">
-                {revealState === "revealed" && (
-                  <motion.div 
-                    initial={{ scale: 0.5, opacity: 1 }} 
-                    animate={{ scale: 2, opacity: 0 }} 
-                    transition={{ duration: 0.6 }}
-                    className="absolute inset-0 rounded-full" 
-                    style={{ background: `radial-gradient(circle, ${selected.color} 0%, transparent 70%)` }}
-                  />
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.85, opacity: 0 }}
+                transition={{ type: "spring", damping: 18 }}
+                className="bg-card border rounded-2xl p-5 max-w-xs w-full space-y-4 max-h-[85svh] overflow-y-auto"
+                style={{ borderColor: `${selected.color}60`, boxShadow: `0 0 40px ${selected.color}30` }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Big portrait */}
+                <div className="flex flex-col items-center gap-2 relative">
+                  {revealState === "revealed" && (
+                    <motion.div 
+                      initial={{ scale: 0.5, opacity: 1 }} 
+                      animate={{ scale: 2, opacity: 0 }} 
+                      transition={{ duration: 0.6 }}
+                      className="absolute inset-0 rounded-full" 
+                      style={{ background: `radial-gradient(circle, ${selected.color} 0%, transparent 70%)` }}
+                    />
+                  )}
+                  <motion.div
+                    animate={
+                      revealState === "shaking" 
+                        ? { x: [-5, 5, -5, 5, -3, 3, 0], y: [-2, 2, -2, 2, 0], boxShadow: `0 0 15px ${selected.color}` }
+                        : revealState === "flipping_front"
+                        ? { rotateY: 90, scale: 1.1, boxShadow: `0 0 25px ${selected.color}` }
+                        : revealState === "revealed"
+                        ? { rotateY: 0, scale: 1, boxShadow: [`0 0 50px ${selected.color}`, `0 0 20px ${selected.color}60`] }
+                        : { boxShadow: [`0 0 20px ${selected.color}60`, `0 0 40px ${selected.color}40`, `0 0 20px ${selected.color}60`] }
+                    }
+                    transition={
+                      revealState === "shaking" ? { duration: 0.3, repeat: Infinity }
+                      : revealState === "flipping_front" ? { duration: 0.3, ease: "easeIn" }
+                      : revealState === "revealed" ? { duration: 0.5, type: "spring", bounce: 0.4 }
+                      : { duration: 2.5, repeat: Infinity }
+                    }
+                    className="w-28 h-28 rounded-2xl overflow-hidden border-2 relative z-10"
+                    style={{ borderColor: selected.color }}
+                  >
+                    <OptimizedImage
+                      src={selected.image}
+                      alt={selected.name}
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: "pixelated", filter: displayAsRecruited ? "brightness(1.1) saturate(1.3)" : "brightness(0.5) grayscale(0.5)" }}
+                    />
+                  </motion.div>
+                  <div className="font-mono font-black text-sm relative z-10" style={{ color: selected.color }}>{String(t(`allies.${selected.id}.name`, selected.name))}</div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <span className="text-[9px] font-mono text-muted-foreground/50">{String(t(`allies.${selected.id}.title`, selected.title))}</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold"
+                      style={{ background: `${RANK_COLORS[selected.rank]}20`, color: RANK_COLORS[selected.rank], border: `1px solid ${RANK_COLORS[selected.rank]}50` }}>
+                      {t('allies_panel.rank')} {selected.rank}
+                    </span>
+                  </div>
+                  <div className="border border-border p-3 rounded bg-muted/30 relative">
+                    <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{String(t(`allies.${selected.id}.lore`, selected.lore))}"</div>
+                  </div>
+                </div>
+
+                {/* Levels */}
+                <div className="space-y-1.5">
+                  <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-wider">{t('allies_panel.abilities_by_level')}</div>
+                  {selected.levels.map((bonus, i) => {
+                    const currentLevel = levels[selected.id] || 0;
+                    const isUnlocked = displayAsRecruited && currentLevel > i;
+                    const translatedLevels = t(`allies.${selected.id}.levels`, { returnObjects: true });
+                    const translatedBonus = Array.isArray(translatedLevels) ? translatedLevels[i] : bonus;
+                    const hasLevel = true;
+                    return (
+                      <div key={i} className="flex items-start gap-2 text-[10px] font-mono"
+                        style={{ opacity: isUnlocked ? 1 : 0.35 }}>
+                        <span className="shrink-0" style={{ color: isUnlocked ? selected.color : "#4a4060" }}>Lv{i + 1}</span>
+                        {hasLevel ? (
+                          <span className="text-foreground/60">{String(translatedBonus)}</span>
+                        ) : (
+                          <span className="text-foreground/60">{t('allies_panel.locked_ability')}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Action button */}
+                {!displayAsRecruited ? (
+                  <button
+                    onClick={() => recruit(selected)}
+                    disabled={gold < selected.recruitCost || revealState !== "idle"}
+                    className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all cursor-pointer"
+                    style={{
+                      borderColor: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-border)",
+                      color: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-dim)",
+                      background: gold >= selected.recruitCost ? "#f0c04015" : "transparent",
+                    }}
+                  >
+                    {revealState !== "idle" ? t('allies_panel.summoning', 'SUMMONING...') : `${t('allies_panel.recruit', 'RECRUIT')} — ${selected.recruitCost}G`}
+                  </button>
+                ) : (levels[selected.id] || 1) < 5 ? (
+                  <button
+                    onClick={() => upgrade(selected)}
+                    disabled={gold < (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0)}
+                    className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all cursor-pointer"
+                    style={{
+                      borderColor: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-border)",
+                      color: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-dim)",
+                      background: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? `${selected.color}15` : "transparent",
+                    }}
+                  >
+                    {t('allies_panel.upgrade', 'UPGRADE')} → Lv{(levels[selected.id] || 1) + 1} — {selected.upgradeCosts[(levels[selected.id] || 1) - 1]}G
+                  </button>
+                ) : (
+                  <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">{t('allies_panel.max_level', 'MAX LEVEL REACHED')}</div>
                 )}
-                <motion.div
-                  animate={
-                    revealState === "shaking" 
-                      ? { x: [-5, 5, -5, 5, -3, 3, 0], y: [-2, 2, -2, 2, 0], boxShadow: `0 0 15px ${selected.color}` }
-                      : revealState === "flipping_front"
-                      ? { rotateY: 90, scale: 1.1, boxShadow: `0 0 25px ${selected.color}` }
-                      : revealState === "revealed"
-                      ? { rotateY: 0, scale: 1, boxShadow: [`0 0 50px ${selected.color}`, `0 0 20px ${selected.color}60`] }
-                      : { boxShadow: [`0 0 20px ${selected.color}60`, `0 0 40px ${selected.color}40`, `0 0 20px ${selected.color}60`] }
-                  }
-                  transition={
-                    revealState === "shaking" ? { duration: 0.3, repeat: Infinity }
-                    : revealState === "flipping_front" ? { duration: 0.3, ease: "easeIn" }
-                    : revealState === "revealed" ? { duration: 0.5, type: "spring", bounce: 0.4 }
-                    : { duration: 2.5, repeat: Infinity }
-                  }
-                  className="w-28 h-28 rounded-2xl overflow-hidden border-2 relative z-10"
-                  style={{ borderColor: selected.color }}
-                >
-                  <OptimizedImage
-                    src={selected.image}
-                    alt={selected.name}
-                    className="w-full h-full object-contain"
-                    style={{ imageRendering: "pixelated", filter: displayAsRecruited ? "brightness(1.1) saturate(1.3)" : "brightness(0.5) grayscale(0.5)" }}
-                  />
-                </motion.div>
-                <div className="font-mono font-black text-sm relative z-10" style={{ color: selected.color }}>{String(t(`allies.${selected.id}.name`, selected.name))}</div>
-                <div className="flex items-center gap-2 relative z-10">
-                  <span className="text-[9px] font-mono text-muted-foreground/50">{String(t(`allies.${selected.id}.title`, selected.title))}</span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold"
-                    style={{ background: `${RANK_COLORS[selected.rank]}20`, color: RANK_COLORS[selected.rank], border: `1px solid ${RANK_COLORS[selected.rank]}50` }}>
-                    {t('allies_panel.rank')} {selected.rank}
-                  </span>
-                </div>
-                <div className="border border-border p-3 rounded bg-muted/30 relative">
-                  <div className="text-[10px] font-mono text-muted-foreground/50 italic text-center">"{String(t(`allies.${selected.id}.lore`, selected.lore))}"</div>
-                </div>
-              </div>
 
-              {/* Levels */}
-              <div className="space-y-1.5">
-                <div className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-wider">{t('allies_panel.abilities_by_level')}</div>
-                {selected.levels.map((bonus, i) => {
-                  const currentLevel = levels[selected.id] || 0;
-                  const isUnlocked = displayAsRecruited && currentLevel > i;
-                  const translatedLevels = t(`allies.${selected.id}.levels`, { returnObjects: true });
-                  const translatedBonus = Array.isArray(translatedLevels) ? translatedLevels[i] : bonus;
-                  const hasLevel = true;
-                  return (
-                    <div key={i} className="flex items-start gap-2 text-[10px] font-mono"
-                      style={{ opacity: isUnlocked ? 1 : 0.35 }}>
-                      <span className="shrink-0" style={{ color: isUnlocked ? selected.color : "#4a4060" }}>Lv{i + 1}</span>
-                      {hasLevel ? (
-                        <span className="text-foreground/60">{String(translatedBonus)}</span>
-                      ) : (
-                        <span className="text-foreground/60">{t('allies_panel.locked_ability')}</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Action button */}
-              {!displayAsRecruited ? (
-                <button
-                  onClick={() => recruit(selected)}
-                  disabled={gold < selected.recruitCost || revealState !== "idle"}
-                  className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all cursor-pointer"
-                  style={{
-                    borderColor: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-border)",
-                    color: gold >= selected.recruitCost ? "#f0c040" : "var(--habit-dim)",
-                    background: gold >= selected.recruitCost ? "#f0c04015" : "transparent",
-                  }}
-                >
-                  {revealState !== "idle" ? t('allies_panel.summoning', 'SUMMONING...') : `${t('allies_panel.recruit', 'RECRUIT')} — ${selected.recruitCost}G`}
+                <button onClick={closeDetail} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-pointer">
+                  {t('common.close', 'CLOSE')}
                 </button>
-              ) : (levels[selected.id] || 1) < 5 ? (
-                <button
-                  onClick={() => upgrade(selected)}
-                  disabled={gold < (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0)}
-                  className="w-full py-2.5 font-mono font-bold text-xs rounded-xl border transition-all cursor-pointer"
-                  style={{
-                    borderColor: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-border)",
-                    color: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? selected.color : "var(--habit-dim)",
-                    background: gold >= (selected.upgradeCosts[(levels[selected.id] || 1) - 1] || 0) ? `${selected.color}15` : "transparent",
-                  }}
-                >
-                  {t('allies_panel.upgrade', 'UPGRADE')} → Lv{(levels[selected.id] || 1) + 1} — {selected.upgradeCosts[(levels[selected.id] || 1) - 1]}G
-                </button>
-              ) : (
-                <div className="w-full py-2 text-[10px] font-mono text-center text-muted-foreground/30 border border-border rounded-xl">{t('allies_panel.max_level', 'MAX LEVEL REACHED')}</div>
-              )}
-
-              <button onClick={closeDetail} className="w-full text-[10px] font-mono text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-pointer">
-                {t('common.close', 'CLOSE')}
-              </button>
+              </motion.div>
             </motion.div>
-          </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+            );
+          })()}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

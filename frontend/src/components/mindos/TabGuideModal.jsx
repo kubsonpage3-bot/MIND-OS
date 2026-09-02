@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -58,10 +59,19 @@ export default function TabGuideModal({
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+            touchAction: 'none'
+          }}
+        >
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -76,7 +86,7 @@ export default function TabGuideModal({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-sm max-h-[85vh] overflow-y-auto rounded-xl border bg-bg-dark/95 p-5 shadow-2xl backdrop-blur-md overflow-hidden custom-scrollbar"
+            className="relative w-full max-w-sm max-h-[85svh] overflow-y-auto rounded-xl border bg-bg-dark/95 p-5 shadow-2xl backdrop-blur-md overflow-hidden custom-scrollbar"
             style={{
               borderColor: "var(--habit-purple)",
               boxShadow: "0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--habit-purple-glow), inset 0 0 10px rgba(255,255,255,0.05)",
@@ -93,7 +103,7 @@ export default function TabGuideModal({
             {/* Close Button */}
             <button
               onClick={handleDismiss}
-              className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors z-10"
+              className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors z-10 cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -132,6 +142,7 @@ export default function TabGuideModal({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

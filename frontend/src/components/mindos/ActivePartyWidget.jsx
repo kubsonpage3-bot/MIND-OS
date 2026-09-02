@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -8,6 +9,7 @@ import OptimizedImage from "./OptimizedImage";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Swords, Plus, Shield, Zap, Sparkles } from "lucide-react";
+import { useHardwareBack } from "@/utils/modalStack";
 
 const RANK_BORDER_COLOR = {
   'E': 'border-slate-500/50',
@@ -43,6 +45,8 @@ export default function ActivePartyWidget() {
   const { t } = useTranslation();
   const [selectedAlly, setSelectedAlly] = useState(null);
   const queryClient = useQueryClient();
+
+  useHardwareBack(!!selectedAlly, () => setSelectedAlly(null));
 
   const updateAlliesMutation = useMutation({
     mutationFn: (newAllies) => djangoApi.profile.update({ active_allies: newAllies }),
@@ -247,80 +251,87 @@ export default function ActivePartyWidget() {
       </div>
 
       {/* Selected Ally Details Modal */}
-      <AnimatePresence>
-        {selectedAlly && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm"
-            style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 1rem)' }}
-            onClick={() => setSelectedAlly(null)}
-          >
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {selectedAlly && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card border-2 rounded-2xl p-5 max-w-xs w-full space-y-4 max-h-[85svh] overflow-y-auto pixel-corner-brackets"
-              style={{ 
-                borderColor: selectedAlly.color || "var(--habit-purple)", 
-                boxShadow: `0 0 40px ${selectedAlly.color || "var(--habit-purple)"}40` 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
+                touchAction: 'none'
               }}
-              onClick={e => e.stopPropagation()}
+              onClick={() => setSelectedAlly(null)}
             >
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 bg-black/40 flex items-center justify-center relative" style={{ borderColor: selectedAlly.color }}>
-                  <div className="absolute inset-0 bg-radial from-white/10 to-transparent" />
-                  <OptimizedImage
-                    src={selectedAlly.image}
-                    alt={selectedAlly.name}
-                    className="w-20 h-20 object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
-                    style={{ imageRendering: "pixelated" }}
-                  />
-                </div>
-                <div className="font-game font-black text-sm" style={{ color: selectedAlly.color }}>
-                  {selectedAlly.name}
-                </div>
-                <div className="font-game text-[9px] text-muted-foreground/60">{selectedAlly.title}</div>
-                
-                <span className="font-game text-[8px] px-2 py-0.5 rounded font-black"
-                  style={{ background: `${RANK_COLORS[selectedAlly.rank] || '#fff'}20`, color: RANK_COLORS[selectedAlly.rank] || '#fff', border: `1px solid ${RANK_COLORS[selectedAlly.rank] || '#fff'}50` }}>
-                  RANK {selectedAlly.rank}
-                </span>
-
-                <div className="font-game text-[9px] mt-2 text-center text-emerald-400 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/30 w-full">
-                  <span className="opacity-80">
-                    {t('settings.lv_active_buff', 'Lv{{level}} Active Buff:', { level: recruitedLevels[selectedAlly.id] || 1 })}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-card border-2 rounded-2xl p-5 max-w-xs w-full space-y-4 max-h-[85svh] overflow-y-auto pixel-corner-brackets"
+                style={{ 
+                  borderColor: selectedAlly.color || "var(--habit-purple)", 
+                  boxShadow: `0 0 40px ${selectedAlly.color || "var(--habit-purple)"}40` 
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 bg-black/40 flex items-center justify-center relative" style={{ borderColor: selectedAlly.color }}>
+                    <div className="absolute inset-0 bg-radial from-white/10 to-transparent" />
+                    <OptimizedImage
+                      src={selectedAlly.image}
+                      alt={selectedAlly.name}
+                      className="w-20 h-20 object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
+                      style={{ imageRendering: "pixelated" }}
+                    />
+                  </div>
+                  <div className="font-game font-black text-sm" style={{ color: selectedAlly.color }}>
+                    {selectedAlly.name}
+                  </div>
+                  <div className="font-game text-[9px] text-muted-foreground/60">{selectedAlly.title}</div>
+                  
+                  <span className="font-game text-[8px] px-2 py-0.5 rounded font-black"
+                    style={{ background: `${RANK_COLORS[selectedAlly.rank] || '#fff'}20`, color: RANK_COLORS[selectedAlly.rank] || '#fff', border: `1px solid ${RANK_COLORS[selectedAlly.rank] || '#fff'}50` }}>
+                    RANK {selectedAlly.rank}
                   </span>
-                  <div className="text-white font-bold mt-0.5">
-                    {selectedAlly.levels?.[(recruitedLevels[selectedAlly.id] || 1) - 1] || selectedAlly.buff_description}
+
+                  <div className="font-game text-[9px] mt-2 text-center text-emerald-400 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/30 w-full">
+                    <span className="opacity-80">
+                      {t('settings.lv_active_buff', 'Lv{{level}} Active Buff:', { level: recruitedLevels[selectedAlly.id] || 1 })}
+                    </span>
+                    <div className="text-white font-bold mt-0.5">
+                      {selectedAlly.levels?.[(recruitedLevels[selectedAlly.id] || 1) - 1] || selectedAlly.buff_description}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2 mt-2">
-                <button
-                  onClick={() => handleDismiss(selectedAlly.id)}
-                  disabled={updateAlliesMutation.isPending}
-                  className="w-full py-2.5 font-game font-bold text-[10px] rounded-xl border transition-colors bg-red-500/15 border-red-500/40 text-red-400 hover:bg-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {updateAlliesMutation.isPending ? t('settings.dismissing', 'DISMISSING...') : t('settings.dismiss_from_party', 'DISMISS FROM PARTY')}
-                </button>
+                <div className="flex flex-col gap-2 mt-2">
+                  <button
+                    onClick={() => handleDismiss(selectedAlly.id)}
+                    disabled={updateAlliesMutation.isPending}
+                    className="w-full py-2.5 font-game font-bold text-[10px] rounded-xl border transition-colors bg-red-500/15 border-red-500/40 text-red-400 hover:bg-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {updateAlliesMutation.isPending ? t('settings.dismissing', 'DISMISSING...') : t('settings.dismiss_from_party', 'DISMISS FROM PARTY')}
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setSelectedAlly(null);
-                    handleEmptyClick();
-                  }}
-                  className="w-full py-2.5 font-game font-bold text-[10px] rounded-xl border border-[var(--habit-border)] hover:bg-white/10 transition-colors text-[var(--habit-text)] cursor-pointer"
-                >
-                  {t('settings.view_in_allies', 'VIEW IN ALLIES')}
-                </button>
-              </div>
+                  <button
+                    onClick={() => {
+                      setSelectedAlly(null);
+                      handleEmptyClick();
+                    }}
+                    className="w-full py-2.5 font-game font-bold text-[10px] rounded-xl border border-[var(--habit-border)] hover:bg-white/10 transition-colors text-[var(--habit-text)] cursor-pointer"
+                  >
+                    {t('settings.view_in_allies', 'VIEW IN ALLIES')}
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
