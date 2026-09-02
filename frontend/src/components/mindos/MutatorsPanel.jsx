@@ -10,6 +10,7 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { showRewardToast } from "@/components/mindos/RewardToast";
 import GameCard from "@/components/ui/GameCard";
 import { useHardwareBack } from "@/utils/modalStack";
+import AnimatedChestModal from "./AnimatedChestModal";
 
 const CAT_LABELS = {
   amplifier: { label: "AMPLIFIERS", color: "#3b82f6" },
@@ -27,10 +28,16 @@ export default function MutatorsPanel({ onSpendGold }) {
   const [confirmIronman, setConfirmIronman] = useState(false);
   const [selectedMutator, setSelectedMutator] = useState(null);
   const [highlightedId, setHighlightedId] = useState(null);
+  const [isOpeningChest, setIsOpeningChest] = useState(false);
+  const [wonMutatorItem, setWonMutatorItem] = useState(null);
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
 
-  useHardwareBack(!!selectedMutator, () => setSelectedMutator(null));
+  useHardwareBack(!!selectedMutator || isOpeningChest, () => {
+    setSelectedMutator(null);
+    setIsOpeningChest(false);
+    setWonMutatorItem(null);
+  });
 
   const mutators = profile?.active_mutators || { active: [], purchased: [] };
   const gold = profile?.gold || 0;
@@ -79,6 +86,12 @@ export default function MutatorsPanel({ onSpendGold }) {
     }
   });
 
+  const mutatorChestDef = {
+    chest_type: "mutator_cache",
+    name: t("mutators_ui.chest_title", "MUTATOR CHEST"),
+    icon_url: "/static/items/standard_cache.webp"
+  };
+
   const openChestMutation = useMutation({
     mutationFn: () => djangoApi.mutators.openChest(),
     onSuccess: (/** @type {{ won_mutator_id: string }} */ data) => {
@@ -88,9 +101,25 @@ export default function MutatorsPanel({ onSpendGold }) {
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
       refreshProfile();
 
-      showRewardToast({
-        label: `🎉 Unlocked Mutator: ${MUTATORS.find(m => m.id === wonId)?.name || wonId}!`,
-      });
+      const mut = MUTATORS.find(m => m.id === wonId);
+      const catCfg = CAT_LABELS[mut?.cat] || { label: "MUTATOR", color: "#00e5ff" };
+      const synergyMut = mut?.synergy ? MUTATORS.find(m => m.id === mut.synergy) : null;
+
+      const mutatorItem = {
+        isMutator: true,
+        id: wonId,
+        name: t(`rpgData.mutators.${wonId}.name`, mut?.name || wonId),
+        gear_class: "MUTATOR",
+        badge: "MUTATOR",
+        categoryName: catCfg.label,
+        category: mut?.cat,
+        color: catCfg.color,
+        icon_url: mut?.icon,
+        description: t(`rpgData.mutators.${wonId}.desc`, mut?.desc || ""),
+        synergyName: synergyMut ? t(`rpgData.mutators.${synergyMut.id}.name`, synergyMut.name) : null,
+        rawMutator: mut,
+      };
+      setWonMutatorItem(mutatorItem);
 
       // Scroll to the card
       setTimeout(() => {
@@ -105,9 +134,18 @@ export default function MutatorsPanel({ onSpendGold }) {
       }, 4000);
     },
     onError: (err) => {
+      setIsOpeningChest(false);
+      setWonMutatorItem(null);
       showRewardToast({ label: `❌ Failed to open chest: ${err.message}` });
     }
   });
+
+  const handleOpenMutatorChest = () => {
+    if (isAllUnlocked || gold < 100 || openChestMutation.isPending || isOpeningChest) return;
+    setIsOpeningChest(true);
+    setWonMutatorItem(null);
+    openChestMutation.mutate();
+  };
 
   const activate = (mutator) => {
     if (!isPurchased(mutator.id)) return;
@@ -227,15 +265,15 @@ export default function MutatorsPanel({ onSpendGold }) {
 
           <div className="shrink-0 w-full sm:w-auto text-right flex flex-col gap-1 items-end">
             <button
-              onClick={() => openChestMutation.mutate()}
-              disabled={isAllUnlocked || gold < 100 || openChestMutation.isPending}
+              onClick={handleOpenMutatorChest}
+              disabled={isAllUnlocked || gold < 100 || openChestMutation.isPending || isOpeningChest}
               className={`w-full sm:w-auto px-5 py-2.5 text-xs font-mono font-bold rounded-lg border transition-all z-10 ${
                 isAllUnlocked ? "border-border bg-muted/20 text-muted-foreground/45 cursor-not-allowed" :
                 gold < 100 ? "border-red-900/40 bg-red-950/20 text-red-400/60 cursor-not-allowed" :
                 "border-primary bg-primary/10 hover:bg-primary/20 text-primary-foreground hover:shadow-[0_0_12px_hsla(var(--primary),0.3)]"
               }`}
             >
-              {openChestMutation.isPending ? "DECRYPTING..." : isAllUnlocked ? "ALL UNLOCKED" : "OPEN CHEST (100G)"}
+              {openChestMutation.isPending || isOpeningChest ? "DECRYPTING..." : isAllUnlocked ? "ALL UNLOCKED" : "OPEN CHEST (100G)"}
             </button>
             {!isAllUnlocked && gold < 100 && (
               <span className="text-[9px] font-mono text-red-500/80 mr-1 mt-0.5">
@@ -575,6 +613,28 @@ export default function MutatorsPanel({ onSpendGold }) {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* Animated Mutator Chest Modal */}
+      <AnimatedChestModal
+        open={isOpeningChest}
+        chest={mutatorChestDef}
+        wonItem={wonMutatorItem}
+        isEquipped={wonMutatorItem ? isActive(wonMutatorItem.id) : false}
+        isEquipping={toggleMutatorMutation.isPending}
+        disableEquip={active.length >= MAX_ACTIVE && (!wonMutatorItem || !isActive(wonMutatorItem.id))}
+        onEquip={() => {
+          if (wonMutatorItem?.rawMutator) {
+            activate(wonMutatorItem.rawMutator);
+          }
+        }}
+        onClose={() => {
+          setIsOpeningChest(false);
+          setWonMutatorItem(null);
+        }}
+        chestThemeColor="#00e5ff"
+        equipLabel={active.length >= MAX_ACTIVE && (!wonMutatorItem || !isActive(wonMutatorItem.id)) ? t("chest_modal.slots_full", "SLOTS FULL (3/3)") : t("chest_modal.activate_mutator", "ACTIVATE MUTATOR")}
+        equippedLabel={t("chest_modal.mutator_active", "MUTATOR ACTIVE")}
+      />
     </div>
   );
 }

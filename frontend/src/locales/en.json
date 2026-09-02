@@ -3038,7 +3038,12 @@
     "slot": "Slot: {{slot}}",
     "equip": "EQUIP CYBERWARE",
     "equipped": "EQUIPPED TO SYSTEM",
-    "dismiss": "DISMISS"
+    "dismiss": "DISMISS",
+    "activate_mutator": "ACTIVATE MUTATOR",
+    "mutator_active": "MUTATOR ACTIVE",
+    "category": "CATEGORY",
+    "synergy": "SYNERGY",
+    "slots_full": "SLOTS FULL (3/3)"
   },
   "inventory": {
     "item_details": "Item Details"

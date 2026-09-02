@@ -308,6 +308,9 @@ export default function AnimatedChestModal({
   onEquip,
   onClose,
   chestThemeColor = "#f59e0b",
+  equipLabel,
+  equippedLabel,
+  disableEquip = false,
 }) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState(0);
@@ -317,7 +320,7 @@ export default function AnimatedChestModal({
   const chestControls = useAnimation();
   const timerRefs = useRef([]);
 
-  const itemColor = wonItem ? getGearClassColor(wonItem.gear_class) : chestThemeColor;
+  const itemColor = wonItem ? (wonItem.color || getGearClassColor(wonItem.gear_class)) : chestThemeColor;
 
   const clearTimers = useCallback(() => {
     timerRefs.current.forEach(clearTimeout);
@@ -635,7 +638,7 @@ export default function AnimatedChestModal({
                     <Zap className="w-3 h-3" style={{ color: itemColor }} />
                   </motion.div>
 
-                  {/* Gear class badge */}
+                  {/* Gear class or Mutator badge */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -659,13 +662,13 @@ export default function AnimatedChestModal({
                         }),
                       }}
                     >
-                      {wonItem.gear_class}
+                      {wonItem.isMutator ? (wonItem.badge || "MUTATOR") : wonItem.gear_class}
                     </span>
                     <span
                       className="font-mono text-[10px] tracking-wider font-bold"
                       style={{ color: itemColor }}
                     >
-                      {GEAR_CLASS_NAMES[wonItem.gear_class]}
+                      {wonItem.isMutator ? (wonItem.categoryName || wonItem.category?.toUpperCase()) : GEAR_CLASS_NAMES[wonItem.gear_class]}
                     </span>
                   </motion.div>
 
@@ -797,16 +800,30 @@ export default function AnimatedChestModal({
                     </motion.div>
                   )}
 
-                  {/* Slot */}
-                  <div
-                    className="text-center text-[8px] font-mono uppercase tracking-widest mb-5"
-                    style={{ color: "rgba(255,255,255,0.2)" }}
-                  >
-                    {t("chest_modal.slot", {
-                      slot: wonItem.slot_type?.replace(/_/g, " ") || "unknown",
-                      defaultValue: `Slot: ${wonItem.slot_type?.replace(/_/g, " ") || "unknown"}`,
-                    })}
-                  </div>
+                  {/* Slot or Mutator info */}
+                  {wonItem.isMutator ? (
+                    <div className="flex flex-col items-center gap-1.5 mb-5">
+                      <div className="text-[9px] font-mono uppercase tracking-widest text-white/40">
+                        {t("chest_modal.category", "CATEGORY")}: <span className="font-bold" style={{ color: itemColor }}>{wonItem.categoryName || wonItem.category?.toUpperCase()}</span>
+                      </div>
+                      {wonItem.synergyName && (
+                        <div className="text-[9px] font-mono text-indigo-300 bg-indigo-500/15 px-2.5 py-0.5 rounded border border-indigo-500/30 flex items-center gap-1">
+                          <span>⚡ {t("chest_modal.synergy", "SYNERGY")}:</span>
+                          <span className="font-bold text-white">{wonItem.synergyName}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className="text-center text-[8px] font-mono uppercase tracking-widest mb-5"
+                      style={{ color: "rgba(255,255,255,0.2)" }}
+                    >
+                      {t("chest_modal.slot", {
+                        slot: wonItem.slot_type?.replace(/_/g, " ") || "unknown",
+                        defaultValue: `Slot: ${wonItem.slot_type?.replace(/_/g, " ") || "unknown"}`,
+                      })}
+                    </div>
+                  )}
 
                   {/* Action buttons */}
                   <motion.div
@@ -818,7 +835,7 @@ export default function AnimatedChestModal({
                     {!isEquipped ? (
                       <button
                         onClick={onEquip}
-                        disabled={isEquipping}
+                        disabled={isEquipping || disableEquip}
                         className="h-11 font-mono text-xs font-black border transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed rounded"
                         style={{
                           background: itemColor,
@@ -830,13 +847,13 @@ export default function AnimatedChestModal({
                         {isEquipping ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          t("chest_modal.equip", "EQUIP CYBERWARE")
+                          equipLabel || (wonItem.isMutator ? t("chest_modal.activate_mutator", "ACTIVATE MUTATOR") : t("chest_modal.equip", "EQUIP CYBERWARE"))
                         )}
                       </button>
                     ) : (
                       <div className="h-11 font-mono text-xs font-bold border border-green-500/30 text-green-400 bg-green-500/10 flex items-center justify-center gap-1.5 select-none rounded">
                         <CheckCircle2 className="w-4 h-4" />
-                        {t("chest_modal.equipped", "EQUIPPED TO SYSTEM")}
+                        {equippedLabel || (wonItem.isMutator ? t("chest_modal.mutator_active", "MUTATOR ACTIVE") : t("chest_modal.equipped", "EQUIPPED TO SYSTEM"))}
                       </div>
                     )}
 

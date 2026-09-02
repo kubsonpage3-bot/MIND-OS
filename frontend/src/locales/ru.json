@@ -3038,7 +3038,12 @@
     "slot": "Слот: {{slot}}",
     "equip": "ЭКИПИРОВАТЬ",
     "equipped": "УСТАНОВЛЕНО В СИСТЕМУ",
-    "dismiss": "ЗАКРЫТЬ"
+    "dismiss": "ЗАКРЫТЬ",
+    "activate_mutator": "АКТИВИРОВАТЬ МУТАТОР",
+    "mutator_active": "МУТАТОР АКТИВЕН",
+    "category": "КАТЕГОРИЯ",
+    "synergy": "СИНЕРГИЯ",
+    "slots_full": "СЛОТЫ ЗАПОЛНЕНЫ (3/3)"
   },
   "inventory": {
     "item_details": "Детали предмета"
