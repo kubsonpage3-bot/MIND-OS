@@ -1757,12 +1757,6 @@
     "in_inventory": "In Inventory: {{count}}",
     "consumed_toast": "Used {{name}}!",
     "need_more_gold": "Need {{amount}}G more",
-    "filters": {
-      "all": "ALL",
-      "healing": "HEALING",
-      "buff": "BUFFS",
-      "utility": "UTILITY"
-    },
     "categories": {
       "healing": "Healing Potion",
       "buff": "Combat & XP Buff",

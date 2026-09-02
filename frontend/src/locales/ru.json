@@ -1757,12 +1757,6 @@
     "in_inventory": "В инвентаре: {{count}} шт.",
     "consumed_toast": "Использован предмет {{name}}!",
     "need_more_gold": "Не хватает {{amount}}G",
-    "filters": {
-      "all": "ВСЕ",
-      "healing": "ЛЕЧЕНИЕ",
-      "buff": "БАФФЫ",
-      "utility": "ЗАЩИТА"
-    },
     "categories": {
       "healing": "Зелье лечения",
       "buff": "Боевой & XP Бафф",
