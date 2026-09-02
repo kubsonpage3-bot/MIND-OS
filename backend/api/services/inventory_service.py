@@ -36,37 +36,40 @@ def consume_item(user, item_code: str):
 
         if item.code == "elixir":
             profile.hp = profile.max_hp
-            # 10 min immunity
+            # 24 hour protective shield
             ActiveEffect.objects.update_or_create(
                 user=profile.user,
                 effect_id=f"{profile.user.id}_elixir_immunity",
                 defaults={
                     "skill_id": "elixir",
                     "data": {"effect_type": "elixir_immunity"},
-                    "expires_at": timezone.now() + timedelta(minutes=10),
+                    "expires_at": timezone.now() + timedelta(hours=24),
                 },
             )
+        elif item.code == "small_heal":
+            heal_amount = max(25, int(profile.max_hp * 0.25))
+            profile.hp = min(profile.max_hp, profile.hp + heal_amount)
+        elif item.code in ("medium_heal", "health_potion"):
+            heal_amount = max(50, int(profile.max_hp * 0.50))
+            profile.hp = min(profile.max_hp, profile.hp + heal_amount)
+        elif item.code == "large_heal":
+            heal_amount = max(100, int(profile.max_hp * 0.75))
+            profile.hp = min(profile.max_hp, profile.hp + heal_amount)
         else:
             profile.hp = min(profile.max_hp, profile.hp + item.hp_boost)
 
-    # Apply Memory Patch (Instant Gc boost)
+    # Apply Memory Patch (Instant Gc boost capped at ceiling)
     if item.code == "memory_patch":
+        if profile.gc >= profile.gc_ceiling:
+            return False, "Growth Coefficient (Gc) is already at maximum ceiling", profile
         profile.gc = min(profile.gc_ceiling, profile.gc + 0.2)
-        # Profile fields need saving
-        pass
-
-    # Apply Daily Gold Rush (Instant Gold scaled by rank multiplier)
-    if item.code == "daily_gold_rush":
-        from api.services.profile_service import get_rank_info
-        from api.constants import get_rank_price_multiplier
-
-        rank_id = get_rank_info(profile).get("current_id", "E")
-        rank_mult = get_rank_price_multiplier(rank_id)
-        gold_reward = round(200 * rank_mult)
-        profile.gold = max(0, profile.gold + gold_reward)
 
     # Apply Duration / Usage Effects (Buffs)
     buff_mapping: dict[str, dict[str, Any]] = {
+        "daily_gold_rush": {
+            "data": {"effect_type": "gold_booster", "gold_boost": 0.5},
+            "duration_hours": 24,
+        },
         "focus_stim": {
             "data": {"effect_type": "focus_stim", "uses_left": 1},
             "duration_hours": None,

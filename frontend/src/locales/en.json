@@ -1754,8 +1754,15 @@
     "buy_item": "BUY ITEM",
     "not_enough_gold": "NOT ENOUGH GOLD",
     "bought": "BOUGHT!",
-    "in_inventory": "In Inventory",
+    "in_inventory": "In Inventory: {{count}}",
+    "consumed_toast": "Used {{name}}!",
     "need_more_gold": "Need {{amount}}G more",
+    "filters": {
+      "all": "ALL",
+      "healing": "HEALING",
+      "buff": "BUFFS",
+      "utility": "UTILITY"
+    },
     "categories": {
       "healing": "Healing Potion",
       "buff": "Combat & XP Buff",
@@ -1768,14 +1775,14 @@
       "medium_heal": "Instant",
       "health_potion": "Instant",
       "large_heal": "Instant",
-      "elixir": "10 Minutes",
+      "elixir": "24 Hours",
       "focus_stim": "1 Focus Session",
       "memory_patch": "Permanent",
       "boss_damage_plus": "1 Focus Session",
       "xp_booster": "24 Hours",
       "daily_xp_surge": "2 Hours",
       "streak_shield": "1 Use (Auto)",
-      "daily_gold_rush": "Instant",
+      "daily_gold_rush": "24 Hours",
       "focus_scroll": "2 Hours"
     },
     "mechanics": {

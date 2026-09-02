@@ -1754,8 +1754,15 @@
     "buy_item": "КУПИТЬ",
     "not_enough_gold": "НЕДОСТАТОЧНО ЗОЛОТА",
     "bought": "КУПЛЕНО!",
-    "in_inventory": "В инвентаре",
+    "in_inventory": "В инвентаре: {{count}} шт.",
+    "consumed_toast": "Использован предмет {{name}}!",
     "need_more_gold": "Не хватает {{amount}}G",
+    "filters": {
+      "all": "ВСЕ",
+      "healing": "ЛЕЧЕНИЕ",
+      "buff": "БАФФЫ",
+      "utility": "ЗАЩИТА"
+    },
     "categories": {
       "healing": "Зелье лечения",
       "buff": "Боевой & XP Бафф",
@@ -1768,14 +1775,14 @@
       "medium_heal": "Мгновенно",
       "health_potion": "Мгновенно",
       "large_heal": "Мгновенно",
-      "elixir": "10 минут",
+      "elixir": "24 часа",
       "focus_stim": "1 сессия фокуса",
       "memory_patch": "Навсегда",
       "boss_damage_plus": "1 сессия фокуса",
       "xp_booster": "24 часа",
       "daily_xp_surge": "2 часа",
       "streak_shield": "1 использование",
-      "daily_gold_rush": "Мгновенно",
+      "daily_gold_rush": "24 часа",
       "focus_scroll": "2 часа"
     },
     "mechanics": {

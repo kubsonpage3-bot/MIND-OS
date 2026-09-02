@@ -30,6 +30,7 @@ import TabGuideModal from "./TabGuideModal";
 import GameCard from "@/components/ui/GameCard";
 import ItemDetailModal from "./ItemDetailModal";
 import ConsumableDetailModal from "./ConsumableDetailModal";
+import { getConsumableMeta } from "@/lib/consumableMetadata";
 import PrestigePanel from "./PrestigePanel";
 import ScrollsPanel from "./ScrollsPanel";
 import InventoryPanel from "./InventoryPanel";
@@ -173,6 +174,41 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
   });
 
   const consumables = useMemo(() => shopItems.filter(i => i.consumable), [shopItems]);
+
+  const [consumableFilter, setConsumableFilter] = useState("all");
+
+  const filteredConsumables = useMemo(() => {
+    return consumables.filter(item => {
+      if (consumableFilter === "all") return true;
+      const meta = getConsumableMeta(item.code || item.id);
+      if (consumableFilter === "healing") return meta.category === "healing";
+      if (consumableFilter === "buff") return meta.category === "buff" || meta.category === "wealth";
+      if (consumableFilter === "utility") return meta.category === "utility" || meta.category === "cognition";
+      return true;
+    }).sort((a, b) => a.cost - b.cost);
+  }, [consumables, consumableFilter]);
+
+  const consumeMutation = useMutation({
+    mutationFn: (itemCode) => djangoApi.inventory.consume(itemCode),
+    onSuccess: (data, itemCode) => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["active_effects"] });
+      showRewardToast({
+        label: String(t('consumables.consumed_toast', `Used ${data?.detail || itemCode}!`, { name: data?.detail || itemCode })),
+      });
+      playSound('success');
+    },
+    onError: (err) => {
+      showRewardToast({ label: `❌ ${err.message || 'Failed to use item'}` });
+    }
+  });
+
+  const handleConsumeItem = (item) => {
+    const code = item.code || item.id;
+    if (!code) return;
+    consumeMutation.mutate(code);
+  };
 
   const { data: activeEffectsData } = useQuery({
     queryKey: ['active_effects'],
@@ -1061,10 +1097,32 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             )
           )}
           {shopTab === "consumables" && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
-              {consumables
-                .sort((a, b) => a.cost - b.cost)
-                .map((item, idx) => {
+            <div className="space-y-3">
+              {/* Category filter pills */}
+              <div className="flex items-center gap-1.5 px-1 overflow-x-auto pb-1">
+                {[
+                  { id: "all", label: t("consumables.filters.all", "ВСЕ") },
+                  { id: "healing", label: t("consumables.filters.healing", "ЛЕЧЕНИЕ"), color: "#22c55e" },
+                  { id: "buff", label: t("consumables.filters.buff", "БАФФЫ"), color: "#8b5cf6" },
+                  { id: "utility", label: t("consumables.filters.utility", "ЗАЩИТА"), color: "#3b82f6" },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setConsumableFilter(tab.id)}
+                    className="px-3 py-1 text-[10px] font-mono font-bold rounded-lg border transition-all cursor-pointer shrink-0"
+                    style={{
+                      borderColor: consumableFilter === tab.id ? (tab.color || "var(--habit-purple)") : "var(--habit-border)",
+                      background: consumableFilter === tab.id ? `${tab.color || "#8b5cf6"}20` : "transparent",
+                      color: consumableFilter === tab.id ? (tab.color || "var(--habit-purple)") : "var(--habit-dim)",
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-1">
+                {filteredConsumables.map((item, idx) => {
                 const canAfford = gold >= item.cost;
                 const owned = inventory.some(i => i.id === item.id);
                 const isBought = boughtItem === item.id;
@@ -1151,6 +1209,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
                   </GameCard>
                 );
               })}
+              </div>
             </div>
           )}
         </div>
@@ -1200,9 +1259,11 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
         item={selectedConsumable}
         isOpen={!!selectedConsumable}
         onClose={() => setSelectedConsumable(null)}
-        onBuy={(item) => buyItem(item)}
-        cost={selectedConsumable?.cost}
         gold={gold}
+        cost={selectedConsumable?.cost}
+        onBuy={() => selectedConsumable && buyItem(selectedConsumable)}
+        onConsume={handleConsumeItem}
+        isConsuming={consumeMutation.isPending}
         isBought={boughtItem === selectedConsumable?.id}
         inInventoryCount={selectedConsumable ? (inventory || []).filter(i => (i.id === selectedConsumable.id || (selectedConsumable.code && i.code === selectedConsumable.code))).length : 0}
         isActive={selectedConsumable ? (activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.active && (!activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.expiresAt || Date.now() < activeEffectsMap[selectedConsumable.code || selectedConsumable.id]?.expiresAt)) : false}

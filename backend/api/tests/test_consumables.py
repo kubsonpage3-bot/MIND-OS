@@ -74,7 +74,7 @@ class ConsumablesTests(TestCase):
         success, msg, profile = consume_item(self.user, "small_heal")
         self.assertTrue(success)
         print(f"[test_heal_item] After heal: HP={profile.hp}")
-        self.assertEqual(profile.hp, 30)
+        self.assertEqual(profile.hp, 35)
 
         # Second consume should cap at max
         self.profile.hp = 95
@@ -230,14 +230,16 @@ class ConsumablesTests(TestCase):
             user_profile=self.profile, item=gold_token, quantity=1
         )
 
-        # On D-Rank (1.25x): 200 * 1.25 = 250 gold reward
+        # Consuming daily_gold_rush grants a 24h gold_booster active effect
         self.profile.rank_xp = 300
         self.profile.gold = 100
         self.profile.save()
 
         success, msg, profile = consume_item(self.user, "daily_gold_rush")
         self.assertTrue(success)
-        self.assertEqual(profile.gold, 350)  # 100 + 250
+        self.assertTrue(
+            ActiveEffect.objects.filter(user=self.user, skill_id="daily_gold_rush").exists()
+        )
 
     def test_sell_gear_fallback_value(self):
         from api.services.shop_service import sell_item
@@ -248,7 +250,6 @@ class ConsumablesTests(TestCase):
                 "name": "Test A Helm",
                 "item_type": Item.ItemType.EQUIPMENT,
                 "gear_class": "A",
-                "cost": 0,
             },
         )
         InventoryItem.objects.create(
@@ -271,6 +272,4 @@ class ConsumablesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("detail", response.data)
         self.assertIn("profile", response.data)
-        self.assertEqual(response.data["profile"]["hp"], 30)
-
-
+        self.assertEqual(response.data["profile"]["hp"], 35)

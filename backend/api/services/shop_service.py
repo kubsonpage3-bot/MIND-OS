@@ -39,6 +39,9 @@ def buy_item(user, item_id: str):
     if profile.gold < actual_cost:
         return False, "Not enough gold", profile
 
+    if item.code == "memory_patch" and profile.gc >= profile.gc_ceiling:
+        return False, "Growth Coefficient (Gc) is already at maximum ceiling", profile
+
     # Списываем золото
     profile.gold -= actual_cost
 
