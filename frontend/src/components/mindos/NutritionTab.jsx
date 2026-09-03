@@ -83,24 +83,27 @@ function getFoodEmoji(name = '') {
 }
 
 // ─── Single Meal Entry Row (Pixel-Art Card) ──────────────────────────────────
-function MealEntryRow({ entry, onDelete, accentColor }) {
+function MealEntryRow({ entry, onDelete, accentColor, index = 0 }) {
   const { t } = useTranslation();
   const emoji = getFoodEmoji(entry.food_name);
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="group flex items-center justify-between px-3 py-2.5 rounded-xl transition-all border relative overflow-hidden"
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={{ duration: 0.28, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+      className="group flex items-center justify-between px-3 py-2.5 rounded-xl border relative overflow-hidden"
       style={{
         background: 'rgba(255,255,255,0.03)',
         borderColor: 'var(--habit-border, rgba(255,255,255,0.08))',
       }}
       whileHover={{
         borderColor: accentColor,
-        boxShadow: `0 0 14px -2px ${accentColor}30`,
+        boxShadow: `0 0 18px -2px ${accentColor}35`,
+        scale: 1.008,
+        transition: { duration: 0.18 },
       }}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
@@ -135,20 +138,21 @@ function MealEntryRow({ entry, onDelete, accentColor }) {
           </div>
         </div>
       </div>
-      <button
+      <motion.button
+        whileTap={{ scale: 0.85 }}
         onClick={() => onDelete(entry.id)}
         className="p-1.5 rounded-lg opacity-40 group-hover:opacity-100 hover:text-red-400 transition-all shrink-0"
         title={t('nutrition.delete_entry', 'Delete')}
         style={{ color: 'var(--habit-dim)' }}
       >
         <Trash2 size={14} />
-      </button>
+      </motion.button>
     </motion.div>
   );
 }
 
 // ─── Collapsible Meal Section Card ───────────────────────────────────────────
-function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
+function MealCard({ type, entries = [], onAddClick, onDeleteItem, cardIndex = 0 }) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const meta = MEAL_META[type] || { key:type, defaultLabel:type, icon:Utensils, color:'#f59e0b', glow:'rgba(245,158,11,0.2)', bg:'rgba(245,158,11,0.1)' };
@@ -160,27 +164,32 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
   const totalC   = entries.reduce((s,e) => s + (e.carbs||0), 0);
 
   return (
-    <div
-      className="rounded-2xl overflow-hidden transition-all border"
+    <motion.div
+      className="rounded-2xl overflow-hidden border"
       style={{
         background: 'var(--habit-panel)',
         borderColor: 'var(--habit-border)',
         borderLeft: `4px solid ${meta.color}`,
-        boxShadow: `0 0 0 0 ${meta.glow}`,
-        transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
       }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 24px -4px ${meta.glow}`}
-      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 0 transparent'}
+      initial={{ opacity: 0, y: 18, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.45, delay: cardIndex * 0.07, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{
+        boxShadow: `0 0 28px -4px ${meta.glow}`,
+        transition: { duration: 0.25 },
+      }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5">
         <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-3 text-left flex-1" style={{ cursor:'pointer' }}>
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-sm"
+          <motion.div
+            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
             style={{ background: meta.bg, border: `1px solid ${meta.color}40` }}
+            whileHover={{ rotate: 8, scale: 1.12 }}
+            transition={{ type: 'spring', stiffness: 350 }}
           >
             <Icon size={16} style={{ color: meta.color }} />
-          </div>
+          </motion.div>
           <div>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--habit-text)', letterSpacing: '-0.2px' }}>
@@ -209,8 +218,8 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
         </button>
         <div className="flex items-center gap-2">
           <motion.button
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ scale: 1.07, boxShadow: `0 4px 16px ${meta.color}40` }}
             onClick={() => onAddClick(type)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all"
             style={{
@@ -223,9 +232,15 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
           >
             <Plus size={13} /> {t('nutrition.add_food', 'Add')}
           </motion.button>
-          <button onClick={() => setIsOpen(!isOpen)} className="p-1 opacity-50 hover:opacity-100 transition-opacity">
-            {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-          </button>
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-1 opacity-50 hover:opacity-100 transition-opacity"
+            animate={{ rotate: isOpen ? 0 : 180 }}
+            transition={{ duration: 0.25 }}
+          >
+            <ChevronUp size={15} />
+          </motion.button>
         </div>
       </div>
 
@@ -242,14 +257,14 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
               {entries.length === 0 ? (
                 <motion.div
                   onClick={() => onAddClick(type)}
-                  whileHover={{ scale: 1.01, borderColor: `${meta.color}60` }}
+                  whileHover={{ scale: 1.01, borderColor: `${meta.color}70` }}
                   whileTap={{ scale: 0.98 }}
-                  className="py-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed cursor-pointer transition-colors"
+                  className="py-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed cursor-pointer"
                   style={{ borderColor: `${meta.color}30`, background: `${meta.color}05` }}
                 >
                   <motion.div
-                    whileHover={{ rotate: 90, scale: 1.1 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
                     className="w-8 h-8 rounded-full flex items-center justify-center"
                     style={{ background: meta.bg, border: `1px solid ${meta.color}40` }}
                   >
@@ -260,9 +275,9 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
                   </span>
                 </motion.div>
               ) : (
-                <AnimatePresence>
-                  {entries.map(entry => (
-                    <MealEntryRow key={entry.id} entry={entry} onDelete={onDeleteItem} accentColor={meta.color} />
+                <AnimatePresence mode="popLayout">
+                  {entries.map((entry, i) => (
+                    <MealEntryRow key={entry.id} entry={entry} onDelete={onDeleteItem} accentColor={meta.color} index={i} />
                   ))}
                 </AnimatePresence>
               )}
@@ -270,7 +285,7 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 
@@ -280,17 +295,29 @@ function CalorieGauge({ consumed, goal }) {
   const pct = goal > 0 ? Math.min(1, consumed / goal) : 0;
   const isOver = consumed > goal;
   const remaining = goal - consumed;
+  const pctPx = `${Math.min(pct * 100, 100)}%`;
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs font-bold">
         <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.consumed', 'Consumed')}</span>
         <div className="flex items-center gap-1.5">
-          <Flame size={13} style={{ color: isOver ? '#f74e52' : '#f59e0b' }} />
-          <span style={{ color: isOver ? '#f74e52' : '#10b981', fontWeight:900, fontSize:13 }}>
+          <motion.div
+            animate={isOver ? { scale: [1, 1.2, 1] } : {}}
+            transition={isOver ? { repeat: Infinity, duration: 1.4, ease: 'easeInOut' } : {}}
+          >
+            <Flame size={13} style={{ color: isOver ? '#f74e52' : '#f59e0b' }} />
+          </motion.div>
+          <motion.span
+            key={Math.round(remaining)}
+            initial={{ y: -4, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.25 }}
+            style={{ color: isOver ? '#f74e52' : '#10b981', fontWeight:900, fontSize:13 }}
+          >
             {isOver
               ? `+${Math.abs(Math.round(remaining))} ${t('nutrition.kcal_over', 'kcal over')}`
               : `${Math.round(remaining)} ${t('nutrition.kcal_left', 'kcal left')}`}
-          </span>
+          </motion.span>
         </div>
         <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.goal_label', 'Goal')} {Math.round(goal)}</span>
       </div>
@@ -301,10 +328,12 @@ function CalorieGauge({ consumed, goal }) {
             background: isOver
               ? 'linear-gradient(90deg, #f59e0b, #f74e52)'
               : 'linear-gradient(90deg, #f59e0b, #10b981)',
+            position: 'relative',
+            overflow: 'hidden',
           }}
           initial={{ width:0 }}
           animate={{
-            width:`${pct*100}%`,
+            width: pctPx,
             boxShadow: isOver
               ? ['0 0 12px rgba(247,78,82,0.5)', '0 0 22px rgba(247,78,82,0.8)', '0 0 12px rgba(247,78,82,0.5)']
               : '0 0 12px rgba(245,158,11,0.4)',
@@ -313,7 +342,20 @@ function CalorieGauge({ consumed, goal }) {
             width: { duration:0.9, ease:[0.16,1,0.3,1] },
             boxShadow: isOver ? { repeat: Infinity, duration: 1.6, ease: 'easeInOut' } : {},
           }}
-        />
+        >
+          {/* Shimmer beam */}
+          {pct > 0 && (
+            <motion.div
+              style={{
+                position: 'absolute', top: 0, left: 0, height: '100%', width: '45%',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                borderRadius: 999,
+              }}
+              animate={{ x: ['-45%', '200%'] }}
+              transition={{ duration: 2, delay: 1, ease: 'easeInOut', repeat: 0 }}
+            />
+          )}
+        </motion.div>
       </div>
     </div>
   );
@@ -494,10 +536,11 @@ export default function NutritionTab() {
           </AnimatePresence>
 
           {/* Meal Cards */}
-          {['breakfast','lunch','dinner','snack'].map(type => (
+          {['breakfast','lunch','dinner','snack'].map((type, idx) => (
             <MealCard
               key={type}
               type={type}
+              cardIndex={idx}
               entries={meals[type] || []}
               onAddClick={handleOpenAddModal}
               onDeleteItem={id => deleteMealMut.mutate(id)}
@@ -558,10 +601,11 @@ export default function NutritionTab() {
 
         {/* Meal cards */}
         <div className="flex flex-col gap-3">
-          {['breakfast','lunch','dinner','snack'].map(type => (
+          {['breakfast','lunch','dinner','snack'].map((type, idx) => (
             <MealCard
               key={type}
               type={type}
+              cardIndex={idx}
               entries={meals[type] || []}
               onAddClick={handleOpenAddModal}
               onDeleteItem={id => deleteMealMut.mutate(id)}

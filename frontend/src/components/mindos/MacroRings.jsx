@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useRef, useState } from 'react';
-import { motion, animate } from 'framer-motion';
+import { motion, animate, useAnimation } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 function AnimatedCounter({ value, style, className }) {
@@ -18,7 +18,7 @@ function AnimatedCounter({ value, style, className }) {
   return <span className={className} style={style}>{displayValue}</span>;
 }
 
-export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary = false }) {
+export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary = false, index = 0 }) {
   const strokeWidth = isPrimary ? 9 : 7;
   const radius = (size - strokeWidth * 2) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -26,24 +26,49 @@ export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary 
   const pctClamped = Math.min(rawPct, 1.25);
   const offset = circumference * (1 - Math.min(pctClamped, 1));
   const isOver = goal > 0 && value > goal;
+  const isGoal = goal > 0 && rawPct >= 1 && !isOver;
   const percentInt = Math.round(rawPct * 100);
   const displayColor = isOver ? 'var(--habit-red, #f74e52)' : color;
 
+  // Pulse animation for goal reached
+  const pulseAnim = isGoal
+    ? {
+        filter: [
+          `drop-shadow(0 0 6px ${color}80)`,
+          `drop-shadow(0 0 18px ${color}cc)`,
+          `drop-shadow(0 0 6px ${color}80)`,
+        ],
+      }
+    : { filter: `drop-shadow(0 0 6px ${displayColor}80)` };
+
   return (
-    <div className="flex flex-col items-center gap-2" style={{ minWidth: size }}>
+    <motion.div
+      className="flex flex-col items-center gap-2"
+      style={{ minWidth: size }}
+      initial={{ opacity: 0, y: 16, scale: 0.88 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.55, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ scale: 1.06, transition: { duration: 0.2 } }}
+    >
       <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
         {/* Soft glow background */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${displayColor}18 0%, transparent 70%)`,
-          filter: 'blur(8px)',
-          transform: 'scale(0.85)',
-        }} />
+        <motion.div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${displayColor}22 0%, transparent 70%)`,
+            filter: 'blur(10px)',
+            transform: 'scale(0.85)',
+          }}
+          animate={isGoal ? { opacity: [0.7, 1, 0.7] } : { opacity: 1 }}
+          transition={isGoal ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : {}}
+        />
+
         <svg width={size} height={size} className="-rotate-90" style={{ display: 'block', position: 'relative' }}>
           {/* Track */}
           <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={bg} strokeWidth={strokeWidth} />
+
           {/* Animated fill */}
           <motion.circle
             cx={size / 2} cy={size / 2} r={radius}
@@ -53,11 +78,31 @@ export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary 
             strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            style={{ filter: `drop-shadow(0 0 6px ${displayColor}80)` }}
+            animate={{
+              strokeDashoffset: offset,
+              ...pulseAnim,
+            }}
+            transition={{
+              strokeDashoffset: { duration: 1.0, delay: index * 0.09 + 0.1, ease: [0.16, 1, 0.3, 1] },
+              filter: isGoal ? { repeat: Infinity, duration: 2, ease: 'easeInOut' } : { duration: 0.4 },
+            }}
           />
+
+          {/* Overflow shimmer arc - only when over goal */}
+          {isOver && (
+            <motion.circle
+              cx={size / 2} cy={size / 2} r={radius}
+              fill="none"
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth={strokeWidth - 3}
+              strokeLinecap="round"
+              strokeDasharray={`${circumference * 0.12} ${circumference}`}
+              animate={{ strokeDashoffset: [0, -circumference] }}
+              transition={{ repeat: Infinity, duration: 1.6, ease: 'linear' }}
+            />
+          )}
         </svg>
+
         {/* Center */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <AnimatedCounter
@@ -88,18 +133,20 @@ export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary 
         <span style={{ fontSize: 11.5, color: 'var(--habit-text)', fontWeight: 800, letterSpacing: '0.01em' }}>
           {label}
         </span>
-        <span
+        <motion.span
           className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wide"
           style={{
             background: isOver ? 'rgba(247, 78, 82, 0.15)' : `${displayColor}1a`,
             color: displayColor,
             border: `1px solid ${isOver ? 'rgba(247, 78, 82, 0.35)' : `${displayColor}35`}`,
           }}
+          animate={isGoal ? { scale: [1, 1.08, 1] } : {}}
+          transition={isGoal ? { repeat: Infinity, duration: 2, ease: 'easeInOut' } : {}}
         >
           {percentInt}%
-        </span>
+        </motion.span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -114,13 +161,18 @@ export function MacroBars({ totals = {}, goal = {} }) {
   ];
   return (
     <div className="flex flex-col gap-3">
-      {items.map(({ key, label, color, unit }) => {
+      {items.map(({ key, label, color, unit }, i) => {
         const val = totals[key] ?? 0;
         const g = goal[key] ?? 1;
         const pct = Math.min(100, Math.round((val / g) * 100));
         const isOver = val > g;
         return (
-          <div key={key}>
+          <motion.div
+            key={key}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.07, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          >
             <div className="flex items-baseline justify-between mb-1.5">
               <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--habit-text)' }}>{label}</span>
               <span style={{ fontSize: 12, fontWeight: 900, color: isOver ? 'var(--habit-red, #f74e52)' : color, fontFamily: 'monospace' }}>
@@ -129,15 +181,31 @@ export function MacroBars({ totals = {}, goal = {} }) {
                 <span style={{ fontSize: 9, color: 'var(--habit-dim)', marginLeft: 3 }}>/ {Math.round(g)}</span>
               </span>
             </div>
-            <div style={{ height: 6, borderRadius: 999, background: 'var(--habit-border)', overflow: 'hidden' }}>
+            <div style={{ height: 6, borderRadius: 999, background: 'var(--habit-border)', overflow: 'hidden', position: 'relative' }}>
               <motion.div
                 style={{ height: '100%', borderRadius: 999, background: isOver ? 'var(--habit-red, #f74e52)' : color, boxShadow: `0 0 8px ${color}50` }}
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.8, delay: i * 0.07 + 0.1, ease: [0.16, 1, 0.3, 1] }}
               />
+              {/* Shimmer beam */}
+              {pct > 0 && (
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    height: '100%',
+                    width: '30%',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)',
+                    borderRadius: 999,
+                  }}
+                  animate={{ x: ['-30%', `${pct + 30}%`] }}
+                  transition={{ duration: 1.6, delay: i * 0.07 + 0.9, ease: 'easeInOut', repeat: 0 }}
+                />
+              )}
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </div>
@@ -155,9 +223,10 @@ export default function MacroRings({ totals = {}, goal = {}, compact = false }) 
   ];
   return (
     <div className="flex items-end justify-between gap-1 py-1 px-0.5 w-full">
-      {macroConfig.map(({ key, label, color, bg, isPrimary, size }) => (
+      {macroConfig.map(({ key, label, color, bg, isPrimary, size }, i) => (
         <MacroRing
           key={key}
+          index={i}
           value={totals[key] ?? 0}
           goal={goal[key] ?? 0}
           color={color}
@@ -170,4 +239,3 @@ export default function MacroRings({ totals = {}, goal = {}, compact = false }) 
     </div>
   );
 }
-

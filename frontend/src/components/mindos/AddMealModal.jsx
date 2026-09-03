@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { djangoApi } from '@/api/djangoClient';
@@ -14,10 +14,10 @@ import { Search, Star, Camera, X, Globe, User, Loader2, Zap, Trash2 } from 'luci
 import { hapticLight } from '@/hooks/useHaptic';
 
 const MEAL_TYPES = [
-  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅' },
-  { id: 'lunch',     key: 'lunch',     defaultLabel: 'Lunch',     icon: '☀️' },
-  { id: 'dinner',    key: 'dinner',    defaultLabel: 'Dinner',    icon: '🌙' },
-  { id: 'snack',     key: 'snack',     defaultLabel: 'Snack',     icon: '🍎' },
+  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅', color: '#f59e0b' },
+  { id: 'lunch',     key: 'lunch',     defaultLabel: 'Lunch',     icon: '☀️', color: '#f97316' },
+  { id: 'dinner',    key: 'dinner',    defaultLabel: 'Dinner',    icon: '🌙', color: '#7B61FF' },
+  { id: 'snack',     key: 'snack',     defaultLabel: 'Snack',     icon: '🍎', color: '#10b981' },
 ];
 
 const QUICK_PORTIONS = [50, 100, 150, 200, 250, 300];
@@ -70,6 +70,15 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
     carbs_per_100: '',
     unit: 'g',
   });
+  const [shakeField, setShakeField] = useState(null);
+
+  // Live macro preview for create form
+  const livePreview = {
+    calories: Number(newFood.calories_per_100) || 0,
+    protein: Number(newFood.protein_per_100) || 0,
+    fat: Number(newFood.fat_per_100) || 0,
+    carbs: Number(newFood.carbs_per_100) || 0,
+  };
 
   const today = dateStr || new Date().toISOString().split('T')[0];
 
@@ -200,8 +209,16 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
 
   function handleCreateFood() {
     const { name, calories_per_100 } = newFood;
-    if (!name.trim()) return toast({ title: t('nutrition.add_modal.enter_name_error', 'Enter food name'), variant: 'destructive' });
-    if (!calories_per_100) return toast({ title: t('nutrition.add_modal.enter_cal_error', 'Enter calories per 100g'), variant: 'destructive' });
+    if (!name.trim()) {
+      setShakeField('name');
+      setTimeout(() => setShakeField(null), 600);
+      return toast({ title: t('nutrition.add_modal.enter_name_error', 'Enter food name'), variant: 'destructive' });
+    }
+    if (!calories_per_100) {
+      setShakeField('calories');
+      setTimeout(() => setShakeField(null), 600);
+      return toast({ title: t('nutrition.add_modal.enter_cal_error', 'Enter calories per 100g'), variant: 'destructive' });
+    }
 
     createFoodMut.mutate({
       name: newFood.name.trim(),
@@ -329,12 +346,13 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t('nutrition.add_modal.search_placeholder', 'Search food e.g. pizza, chicken breast, oatmeal, salmon...')}
+                  placeholder={t('nutrition.add_modal.search_placeholder', 'Search food e.g. pizza, chicken breast, oatmeal...')}
                   className="w-full pl-10 pr-9 py-2.5 rounded-xl text-xs md:text-sm outline-none font-bold placeholder:font-normal transition-all"
                   style={{
                     background: 'var(--habit-border)',
                     color: 'var(--habit-text)',
                     border: search ? '1px solid var(--habit-gold, #f59e0b)' : '1px solid transparent',
+                    boxShadow: search ? '0 0 0 3px rgba(245,158,11,0.1)' : 'none',
                   }}
                   autoFocus
                 />
@@ -351,72 +369,117 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 )}
               </div>
 
-              {/* ── Unified Results List ───────────────────────────────────────── */}
+              {/* ── Results List ───────────────────────────────────────────────── */}
               <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
-                {/* 1. User Saved Custom Foods (if any) */}
+
+                {/* 0. Recent Foods — shown when search is empty */}
+                {!debouncedSearch && recentFoods.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
+                      <Zap size={11} /> {t('nutrition.add_modal.recently_used', '⚡ Recently Used')}
+                    </div>
+                    <AnimatePresence>
+                      {recentFoods.slice(0, 6).map((food, i) => {
+                        const isSelected = selectedFood?.id === food.id && (selectedFood?.is_custom === (food.is_custom ?? true));
+                        const emoji = getFoodEmoji(food.name);
+                        return (
+                          <motion.button
+                            key={`recent-${food.id}-${i}`}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.04, duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                            whileHover={{ scale: 1.01, x: 2 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => handleSelectFood(food, food.is_custom ?? true)}
+                            className="flex items-center justify-between px-3 py-2 rounded-xl text-left w-full border"
+                            style={{
+                              background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
+                              borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
+                              boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.2)' : 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                              <span className="text-base shrink-0">{emoji}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-black text-xs truncate text-[var(--habit-text)]">{food.name}</div>
+                                <div className="flex items-center gap-2 text-[10px] font-mono font-bold mt-0.5">
+                                  <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {Math.round(food.calories_per_100)} kcal</span>
+                                  <span className="text-[#3b82f6]">P: {food.protein_per_100}g</span>
+                                  <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
+                                  <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
+                                </div>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <span className="text-[9px] font-black text-black bg-[var(--habit-gold,#f59e0b)] px-2 py-0.5 rounded-full shrink-0">✓</span>
+                            )}
+                          </motion.button>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {/* 1. User Saved Custom Foods (if any, when searching) */}
                 {userFoods.length > 0 && (
                   <div className="space-y-1">
                     <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
                       <User size={11} /> {t('nutrition.add_modal.my_saved_foods', 'My Saved Foods')}
                     </div>
-                    {userFoods.map((food) => {
-                      const isSelected = selectedFood?.id === food.id && selectedFood?.is_custom;
-                      const emoji = getFoodEmoji(food.name);
-                      return (
-                        <motion.button
-                          key={`user-${food.id}`}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectFood(food, true)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full border"
-                          style={{
-                            background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
-                            borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
-                            boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.2)' : 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                            <span className="text-base shrink-0">{emoji}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-black text-xs truncate text-[var(--habit-text)]">
-                                {food.name}
-                              </div>
-                              <div className="flex items-center gap-2 text-[10px] font-mono font-bold mt-0.5">
-                                <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {food.calories_per_100} kcal</span>
-                                <span className="text-[#3b82f6]">P: {food.protein_per_100}g</span>
-                                <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
-                                <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
+                    <AnimatePresence>
+                      {userFoods.map((food, i) => {
+                        const isSelected = selectedFood?.id === food.id && selectedFood?.is_custom;
+                        const emoji = getFoodEmoji(food.name);
+                        return (
+                          <motion.button
+                            key={`user-${food.id}`}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.04, duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            whileHover={{ scale: 1.01, x: 2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleSelectFood(food, true)}
+                            className="flex items-center justify-between px-3 py-2 rounded-xl text-left w-full border"
+                            style={{
+                              background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
+                              borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
+                              boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.2)' : 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                              <span className="text-base shrink-0">{emoji}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-black text-xs truncate text-[var(--habit-text)]">{food.name}</div>
+                                <div className="flex items-center gap-2 text-[10px] font-mono font-bold mt-0.5">
+                                  <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {food.calories_per_100} kcal</span>
+                                  <span className="text-[#3b82f6]">P: {food.protein_per_100}g</span>
+                                  <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
+                                  <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavMut.mutate({ id: food.id, is_favorite: !food.is_favorite });
-                              }}
-                              className="opacity-70 hover:opacity-100 p-1.5 transition-opacity"
-                            >
-                              <Star size={13} fill={food.is_favorite ? '#f59e0b' : 'none'} color={food.is_favorite ? '#f59e0b' : 'currentColor'} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (confirm(t('nutrition.confirm_delete_food', `Delete "${food.name}" from catalog?`))) {
-                                  deleteFoodMut.mutate(food.id);
-                                }
-                              }}
-                              className="opacity-40 hover:opacity-100 hover:text-red-400 p-1.5 transition-opacity"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </motion.button>
-                      );
-                    })}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); toggleFavMut.mutate({ id: food.id, is_favorite: !food.is_favorite }); }}
+                                className="opacity-70 hover:opacity-100 p-1.5 transition-opacity"
+                              >
+                                <Star size={13} fill={food.is_favorite ? '#f59e0b' : 'none'} color={food.is_favorite ? '#f59e0b' : 'currentColor'} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); if (confirm(t('nutrition.confirm_delete_food', `Delete "${food.name}" from catalog?`))) { deleteFoodMut.mutate(food.id); } }}
+                                className="opacity-40 hover:opacity-100 hover:text-red-400 p-1.5 transition-opacity"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </AnimatePresence>
                   </div>
                 )}
 
@@ -424,59 +487,71 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 {globalFoods.length > 0 ? (
                   <div className="space-y-1 mt-1">
                     <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
-                      <Globe size={11} /> {t('nutrition.add_modal.global_database', 'Global Food Database (Open Food Facts)')}
+                      <Globe size={11} /> {t('nutrition.add_modal.global_database', 'Global Food Database')}
                     </div>
-                    {globalFoods.map((food) => {
-                      const isSelected = selectedFood?.id === food.id && !selectedFood?.is_custom;
-                      const emoji = getFoodEmoji(food.name);
-                      return (
-                        <motion.button
-                          key={`global-${food.id}`}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectFood(food, false)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all w-full border"
-                          style={{
-                            background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
-                            borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
-                            boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.25)' : 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                            <span className="text-base shrink-0">{emoji}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 font-black text-xs text-[var(--habit-text)] truncate">
-                                <span className="truncate">{food.name}</span>
-                                {food.brand && (
-                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-black/40 text-[var(--habit-dim)] shrink-0">
-                                    {food.brand}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-[10.5px] font-mono font-bold mt-0.5">
-                                <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {Math.round(food.calories_per_100)} kcal</span>
-                                <span className="text-[#3b82f6]">P: {food.protein_per_100}g</span>
-                                <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
-                                <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
+                    <AnimatePresence>
+                      {globalFoods.map((food, i) => {
+                        const isSelected = selectedFood?.id === food.id && !selectedFood?.is_custom;
+                        const emoji = getFoodEmoji(food.name);
+                        return (
+                          <motion.button
+                            key={`global-${food.id}`}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.035, duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            whileHover={{ scale: 1.01, x: 2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleSelectFood(food, false)}
+                            className="flex items-center justify-between px-3 py-2 rounded-xl text-left w-full border"
+                            style={{
+                              background: isSelected ? 'rgba(245,158,11,0.22)' : 'var(--habit-border)',
+                              borderColor: isSelected ? 'var(--habit-gold, #f59e0b)' : 'transparent',
+                              boxShadow: isSelected ? '0 0 12px rgba(245,158,11,0.25)' : 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                              <span className="text-base shrink-0">{emoji}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 font-black text-xs text-[var(--habit-text)] truncate">
+                                  <span className="truncate">{food.name}</span>
+                                  {food.brand && (
+                                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-black/40 text-[var(--habit-dim)] shrink-0">{food.brand}</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 text-[10.5px] font-mono font-bold mt-0.5">
+                                  <span className="text-[var(--habit-gold,#f59e0b)]">🔥 {Math.round(food.calories_per_100)} kcal</span>
+                                  <span className="text-[#3b82f6]">P: {food.protein_per_100}g</span>
+                                  <span className="text-[#f97316]">F: {food.fat_per_100}g</span>
+                                  <span className="text-[#10b981]">C: {food.carbs_per_100}g</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-
-                          {isSelected && (
-                            <span className="text-[9px] font-black text-black bg-[var(--habit-gold,#f59e0b)] px-2 py-0.5 rounded-full shrink-0">
-                              SELECTED
-                            </span>
-                          )}
-                        </motion.button>
-                      );
-                    })}
+                            {isSelected && (
+                              <span className="text-[9px] font-black text-black bg-[var(--habit-gold,#f59e0b)] px-2 py-0.5 rounded-full shrink-0">✓</span>
+                            )}
+                          </motion.button>
+                        );
+                      })}
+                    </AnimatePresence>
                   </div>
                 ) : (
-                  !isSearching && (
-                    <div className="text-center py-6 text-xs text-[var(--habit-dim)]">
-                      {search ? t('nutrition.add_modal.no_results', 'No matching foods found. Try another term or create custom.') : t('nutrition.add_modal.start_typing', 'Type in the search bar above to query global foods.')}
-                    </div>
+                  !isSearching && debouncedSearch && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-6 text-xs text-[var(--habit-dim)]"
+                    >
+                      {t('nutrition.add_modal.no_results', 'No matching foods found. Try another term or create custom.')}
+                    </motion.div>
                   )
+                )}
+
+                {/* Empty state when no search and no recents */}
+                {!debouncedSearch && recentFoods.length === 0 && (
+                  <div className="text-center py-4 text-xs text-[var(--habit-dim)] opacity-60">
+                    {t('nutrition.add_modal.start_typing', 'Type to search foods...')}
+                  </div>
                 )}
               </div>
             </div>
@@ -485,7 +560,43 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
           {/* ── Tab: New Custom Food Form ────────────────────────────────────────── */}
           {tab === 'new' && (
             <div className="flex flex-col gap-2.5 mb-4">
-              <div>
+              {/* Live macro preview bar */}
+              {(livePreview.calories > 0 || livePreview.protein > 0) && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  className="p-2.5 rounded-xl border"
+                  style={{ background: 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.25)' }}
+                >
+                  <div className="text-[9px] font-black uppercase tracking-wider text-[var(--habit-dim)] mb-1.5">LIVE PREVIEW (per 100g)</div>
+                  <div className="grid grid-cols-4 gap-1 text-center">
+                    {[
+                      { label: 'kcal', value: livePreview.calories, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.25)' },
+                      { label: 'prot', value: livePreview.protein,  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.25)' },
+                      { label: 'fat',  value: livePreview.fat,      color: '#f97316', bg: 'rgba(249,115,22,0.12)',  border: 'rgba(249,115,22,0.25)' },
+                      { label: 'carbs',value: livePreview.carbs,    color: '#10b981', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.25)' },
+                    ].map(({ label, value, color, bg, border }) => (
+                      <motion.div
+                        key={label}
+                        className="p-1.5 rounded-lg"
+                        style={{ background: bg, border: `1px solid ${border}` }}
+                        animate={value > 0 ? { scale: [1, 1.06, 1] } : {}}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <div className="text-[9px] uppercase text-[var(--habit-dim)] font-black">{label}</div>
+                        <div className="text-xs font-black font-mono" style={{ color }}>{value}</div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.03 }}
+                animate={shakeField === 'name' ? { x: [0, -8, 8, -6, 6, 0] } : { opacity: 1, y: 0 }}
+              >
                 <label className="text-[11px] font-bold text-[var(--habit-dim)] mb-1 block">
                   {t('nutrition.add_modal.food_name_label', 'Food Name *')}
                 </label>
@@ -494,73 +605,56 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                   value={newFood.name}
                   onChange={(e) => setNewFood((p) => ({ ...p, name: e.target.value }))}
                   placeholder={t('nutrition.add_modal.food_name_placeholder', 'e.g. Boiled oatmeal porridge')}
-                  className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                  style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
+                  className="w-full px-3 py-2 rounded-xl text-xs outline-none transition-all"
+                  style={{
+                    background: 'var(--habit-border)',
+                    color: 'var(--habit-text)',
+                    border: shakeField === 'name' ? '1px solid #f74e52' : '1px solid transparent',
+                    boxShadow: shakeField === 'name' ? '0 0 0 3px rgba(247,78,82,0.2)' : 'none',
+                  }}
                 />
-              </div>
+              </motion.div>
 
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[11px] font-bold text-[var(--habit-gold,#f59e0b)] mb-1 block">
-                    {t('nutrition.add_modal.calories_label', 'Calories per 100g *')}
-                  </label>
-                  <input
-                    type="number"
-                    value={newFood.calories_per_100}
-                    onChange={(e) => setNewFood((p) => ({ ...p, calories_per_100: e.target.value }))}
-                    placeholder="130"
-                    className="w-full px-3 py-2 rounded-xl text-xs outline-none font-bold"
-                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-[var(--habit-blue,#3b82f6)] mb-1 block">
-                    {t('nutrition.add_modal.protein_label', 'Protein (g)')}
-                  </label>
-                  <input
-                    type="number"
-                    value={newFood.protein_per_100}
-                    onChange={(e) => setNewFood((p) => ({ ...p, protein_per_100: e.target.value }))}
-                    placeholder="4.5"
-                    className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-[var(--habit-orange,#f97316)] mb-1 block">
-                    {t('nutrition.add_modal.fat_label', 'Fat (g)')}
-                  </label>
-                  <input
-                    type="number"
-                    value={newFood.fat_per_100}
-                    onChange={(e) => setNewFood((p) => ({ ...p, fat_per_100: e.target.value }))}
-                    placeholder="1.2"
-                    className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-[var(--habit-green,#10b981)] mb-1 block">
-                    {t('nutrition.add_modal.carbs_label', 'Carbs (g)')}
-                  </label>
-                  <input
-                    type="number"
-                    value={newFood.carbs_per_100}
-                    onChange={(e) => setNewFood((p) => ({ ...p, carbs_per_100: e.target.value }))}
-                    placeholder="25"
-                    className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-                    style={{ background: 'var(--habit-border)', color: 'var(--habit-text)' }}
-                  />
-                </div>
+                {[
+                  { field: 'calories_per_100', label: t('nutrition.add_modal.calories_label', 'Calories / 100g *'), color: 'var(--habit-gold,#f59e0b)', placeholder: '130', shakeKey: 'calories' },
+                  { field: 'protein_per_100',  label: t('nutrition.add_modal.protein_label', 'Protein (g)'),         color: 'var(--habit-blue,#3b82f6)', placeholder: '4.5',  shakeKey: null },
+                  { field: 'fat_per_100',      label: t('nutrition.add_modal.fat_label', 'Fat (g)'),                color: 'var(--habit-orange,#f97316)', placeholder: '1.2', shakeKey: null },
+                  { field: 'carbs_per_100',    label: t('nutrition.add_modal.carbs_label', 'Carbs (g)'),            color: 'var(--habit-green,#10b981)', placeholder: '25',  shakeKey: null },
+                ].map(({ field, label, color, placeholder, shakeKey }, idx) => (
+                  <motion.div
+                    key={field}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={shakeField === shakeKey
+                      ? { x: [0, -8, 8, -5, 5, 0], opacity: 1, y: 0 }
+                      : { opacity: 1, y: 0 }
+                    }
+                    transition={{ delay: idx * 0.05, duration: shakeField === shakeKey ? 0.4 : 0.3 }}
+                  >
+                    <label className="text-[11px] font-bold mb-1 block" style={{ color }}>{label}</label>
+                    <input
+                      type="number"
+                      value={newFood[field]}
+                      onChange={(e) => setNewFood((p) => ({ ...p, [field]: e.target.value }))}
+                      placeholder={placeholder}
+                      className="w-full px-3 py-2 rounded-xl text-xs outline-none font-bold transition-all"
+                      style={{
+                        background: 'var(--habit-border)',
+                        color: 'var(--habit-text)',
+                        border: shakeField === shakeKey ? '1px solid #f74e52' : '1px solid transparent',
+                        boxShadow: shakeField === shakeKey ? '0 0 0 3px rgba(247,78,82,0.2)' : 'none',
+                      }}
+                    />
+                  </motion.div>
+                ))}
               </div>
 
-              <button
+              <motion.button
                 onClick={handleCreateFood}
                 disabled={createFoodMut.isPending}
                 className="w-full py-2.5 rounded-xl font-bold text-xs mt-1 transition-opacity"
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
                 style={{
                   background: 'var(--habit-green, #10b981)',
                   color: '#fff',
@@ -571,7 +665,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 {createFoodMut.isPending
                   ? t('nutrition.add_modal.saving', 'Saving...')
                   : t('nutrition.add_modal.save_to_catalog', '✅ Save to Catalog')}
-              </button>
+              </motion.button>
             </div>
           )}
 
