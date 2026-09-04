@@ -241,8 +241,11 @@ export default function PixelRankRoad({ rankXP = 0 }) {
                 </div>
 
                 {/* Est time */}
-                <div className="font-game text-[7.5px] text-[var(--habit-dim)] truncate">
-                  ⌛ {rankData.hoursEst?.replace(" at focus 8", "") || "~"}
+                <div 
+                  className="font-game text-[7.5px] text-[var(--habit-dim)] truncate"
+                  title={row.min > 0 ? `~${Math.round(row.min / 12)}h study at focus 8/10 (12 XP/h)` : "Starting rank"}
+                >
+                  ⌛ {row.min > 0 ? `~${Math.round(row.min / 12)}h` : (rankData.hoursEst?.replace(" at focus 8", "") || "—")}
                 </div>
               </div>
 

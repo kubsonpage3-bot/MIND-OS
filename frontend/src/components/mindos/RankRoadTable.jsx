@@ -61,8 +61,7 @@ export default function RankRoadTable({ rankXP = 0 }) {
                     {isCurrent && <span className="ml-2 text-[10px] text-primary">← {t('rankRoad.you')}</span>}
                     {isNext && <span className="ml-2 text-[10px] text-yellow-400">← {t('rankRoad.next')}</span>}
                   </td>
-                  <td className="py-2 pr-3 text-right text-muted-foreground/80">{row.min}</td>
-                  <td className="py-2 text-right text-muted-foreground/60 hidden sm:table-cell">{displayData.hoursEst || `~${Math.round(row.min / 40)}h`}</td>
+                  <td className="py-2 text-right text-muted-foreground/60 hidden sm:table-cell">{row.min > 0 ? `~${Math.round(row.min / 12)}h` : (displayData.hoursEst || "—")}</td>
                 </tr>
               );
             })}
