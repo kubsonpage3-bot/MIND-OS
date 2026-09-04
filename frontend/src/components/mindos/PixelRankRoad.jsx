@@ -173,12 +173,18 @@ export default function PixelRankRoad({ rankXP = 0 }) {
           return (
             <motion.div
               key={row.id}
+              onClick={() => {
+                if (typeof window !== "undefined" && window.testRankUp) {
+                  window.testRankUp(row.id, currentRank.id !== row.id ? currentRank.id : "E");
+                }
+              }}
+              title="Click to preview Rank Ascension banner"
               whileHover={{
                 scale: 1.05,
                 y: -3,
               }}
               transition={{ type: "spring", stiffness: 320, damping: 20 }}
-              className="relative flex flex-col justify-between min-h-[108px] rounded-xl border-2 overflow-hidden cursor-default group"
+              className="relative flex flex-col justify-between min-h-[108px] rounded-xl border-2 overflow-hidden cursor-pointer group"
               style={{
                 background: isCurrent
                   ? `linear-gradient(145deg, ${RANK_BG[row.id]}, rgba(0,0,0,0.4))`

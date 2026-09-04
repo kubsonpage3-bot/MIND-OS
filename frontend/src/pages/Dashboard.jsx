@@ -466,6 +466,35 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const [synced, setSynced] = useState(false);
   const [isConvertGuestModalOpen, setIsConvertGuestModalOpen] = useState(false);
 
+  // Automatic rank progression detection from backend SSOT
+  const prevRankRef = useRef(djangoProfile?.rank_info?.current_id || null);
+  useEffect(() => {
+    const currentRank = djangoProfile?.rank_info?.current_id;
+    if (!currentRank) return;
+
+    if (prevRankRef.current && prevRankRef.current !== currentRank) {
+      setRankUpNotif({
+        oldRank: prevRankRef.current,
+        newRank: currentRank,
+      });
+    }
+    prevRankRef.current = currentRank;
+  }, [djangoProfile?.rank_info?.current_id]);
+
+  // Window helper for development/testing rank banner animations: window.testRankUp('S', 'A')
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.testRankUp = (newRank = "S", oldRank = "A") => {
+        setRankUpNotif({ oldRank, newRank });
+      };
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        delete window.testRankUp;
+      }
+    };
+  }, []);
+
   // WARNING: If you add any new fields to the backend Task model, you MUST add them to this
   // mapping list, otherwise they will be silently stripped out in the dashboard task cache.
   //

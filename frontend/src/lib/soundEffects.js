@@ -174,11 +174,32 @@ const playSoundEffects = {
   // PROGRESSION
 
   rank_up: () => {
-    playToneWithReverb(523.25, 0.18, "sine", 0.15);
-    playToneWithReverb(659.25, 0.18, "sine", 0.12, 0.15);
-    playToneWithReverb(783.99, 0.22, "sine", 0.10, 0.30);
-    playToneWithReverb(1046.50, 0.35, "sine", 0.09, 0.48);
-    playTone(1318.51, 0.45, "sine", 0.07, 0.70);
+    // Initial impact & bass rumble
+    playSweep(120, 60, 0.25, "triangle", 0.16, 0);
+    playNoise(0.12, 0.04, 0);
+
+    // Rapid ascending retro arpeggio (C Major triumph motif)
+    const arpeggio = [
+      { f: 261.63, t: 0.05, type: "square", vol: 0.12, d: 0.08 }, // C4
+      { f: 329.63, t: 0.10, type: "square", vol: 0.12, d: 0.08 }, // E4
+      { f: 392.00, t: 0.15, type: "square", vol: 0.13, d: 0.08 }, // G4
+      { f: 523.25, t: 0.20, type: "square", vol: 0.14, d: 0.10 }, // C5
+      { f: 659.25, t: 0.27, type: "square", vol: 0.15, d: 0.12 }, // E5
+      { f: 783.99, t: 0.35, type: "square", vol: 0.16, d: 0.15 }, // G5
+    ];
+    arpeggio.forEach(({ f, t, type, vol, d }) => {
+      playTone(f, d, type, vol, t);
+    });
+
+    // Sustained triumphant multi-voice chord (C5 + G5 + C6)
+    playToneWithReverb(523.25, 0.65, "triangle", 0.15, 0.48);
+    playToneWithReverb(659.25, 0.65, "square", 0.12, 0.48);
+    playToneWithReverb(1046.50, 0.75, "square", 0.14, 0.48);
+
+    // Final sparkling celestial chiming overtones
+    playTone(1318.51, 0.40, "sine", 0.09, 0.75);
+    playTone(1567.98, 0.50, "sine", 0.08, 0.88);
+    playTone(2093.00, 0.65, "sine", 0.07, 1.02);
   },
 
   level_up: () => {
