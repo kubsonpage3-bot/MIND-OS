@@ -156,6 +156,9 @@ export default function MasteryBrainChart({
 }) {
   const { t } = useTranslation();
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const activeCategory = selectedCategory || hoveredCategory;
 
   const statsMap = useMemo(() => {
     const map = {};
@@ -180,13 +183,17 @@ export default function MasteryBrainChart({
   }, [subjectStats]);
 
   return (
-    <div className={`relative w-full max-w-[460px] mx-auto flex items-center justify-center select-none py-1 ${className}`} style={{ minHeight: height }}>
+    <div 
+      className={`relative w-full max-w-[460px] mx-auto flex flex-col items-center justify-center select-none py-1 ${className}`} 
+      style={{ minHeight: height }}
+      onClick={() => setSelectedCategory(null)}
+    >
       {/* Background ambient radial glow matching MIND OS hero cards */}
       <div 
         className="absolute inset-0 pointer-events-none rounded-3xl blur-3xl opacity-30 transition-all duration-700"
         style={{
-          background: hoveredCategory && statsMap[hoveredCategory]
-            ? `radial-gradient(circle at 50% 50%, ${statsMap[hoveredCategory].color}55 0%, transparent 70%)`
+          background: activeCategory && statsMap[activeCategory]
+            ? `radial-gradient(circle at 50% 50%, ${statsMap[activeCategory].color}55 0%, transparent 70%)`
             : "radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.4) 0%, rgba(59, 130, 246, 0.25) 45%, rgba(0, 204, 136, 0.15) 75%, transparent 90%)"
         }}
       />
@@ -290,7 +297,7 @@ export default function MasteryBrainChart({
           };
 
           const pct = Math.max(0, cat.pct || 0);
-          const isHovered = hoveredCategory === catId;
+          const isActive = activeCategory === catId;
           const isHighest = highestCatId === catId && pct > 0;
           const activeColor = cat.color || lobe.gradColors[1];
           const fillHeight = (pct / 100.0) * lobe.height;
@@ -302,19 +309,22 @@ export default function MasteryBrainChart({
               className="cursor-pointer transition-all duration-300"
               onMouseEnter={() => setHoveredCategory(catId)}
               onMouseLeave={() => setHoveredCategory(null)}
-              onClick={() => setHoveredCategory(prev => prev === catId ? null : catId)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedCategory(prev => prev === catId ? null : catId);
+              }}
             >
               {/* 1. Base Lobe Background Fill with Vibrant Neon Tint */}
               <path
                 d={lobe.d}
                 fill={`url(#base-tint-${catId})`}
                 stroke={activeColor}
-                strokeWidth={isHovered ? 2.5 : isHighest ? 2.0 : 1.6}
-                strokeOpacity={isHovered ? 1.0 : pct > 0 ? 0.85 : 0.55}
+                strokeWidth={isActive ? 2.8 : isHighest ? 2.0 : 1.6}
+                strokeOpacity={isActive ? 1.0 : pct > 0 ? 0.85 : 0.55}
                 strokeLinejoin="round"
                 strokeLinecap="round"
                 style={{
-                  filter: isHovered ? `drop-shadow(0 0 14px ${activeColor})` : undefined,
+                  filter: isActive ? `drop-shadow(0 0 14px ${activeColor})` : undefined,
                   transition: "stroke-width 0.3s, stroke-opacity 0.3s"
                 }}
               />
@@ -323,7 +333,7 @@ export default function MasteryBrainChart({
               <motion.path
                 d={lobe.d}
                 fill={`url(#plasma-grad-${catId})`}
-                fillOpacity={isHovered ? 0.95 : 0.85}
+                fillOpacity={isActive ? 0.95 : 0.85}
                 clipPath={`url(#clip-liquid-${catId})`}
                 stroke="none"
                 style={{
@@ -331,32 +341,13 @@ export default function MasteryBrainChart({
                   transition: "fill 0.4s ease, fill-opacity 0.4s ease",
                 }}
                 animate={{
-                  scale: isHovered ? 1.02 : 1,
+                  scale: isActive ? 1.02 : 1,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               />
 
-              {/* 3. Plasma Wavefront / Energy Laser Line at the Liquid Surface */}
-              {pct > 1 && pct < 99 && (
-                <motion.line
-                  x1="0"
-                  y1={liquidY}
-                  x2="500"
-                  y2={liquidY}
-                  clipPath={`url(#clip-liquid-${catId})`}
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  strokeOpacity="0.9"
-                  style={{ filter: `drop-shadow(0 0 6px ${activeColor})` }}
-                  animate={{
-                    opacity: [0.7, 1, 0.7],
-                  }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                />
-              )}
-
-              {/* 4. Outer Highlight Stroke on Hover */}
-              {isHovered && (
+              {/* 3. Outer Highlight Stroke on Active / Hover */}
+              {isActive && (
                 <motion.path
                   d={lobe.d}
                   fill="none"
@@ -417,10 +408,10 @@ export default function MasteryBrainChart({
                   fill="var(--habit-brain-chip-bg, #080410)"
                   fillOpacity="0.92"
                   stroke={activeColor}
-                  strokeWidth={isHovered ? "1.8" : "1.2"}
-                  strokeOpacity={isHovered ? "1.0" : "0.75"}
+                  strokeWidth={isActive ? "1.8" : "1.2"}
+                  strokeOpacity={isActive ? "1.0" : "0.75"}
                   style={{
-                    filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.3)) ${isHovered ? `drop-shadow(0 0 8px ${activeColor}80)` : ""}`
+                    filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.3)) ${isActive ? `drop-shadow(0 0 8px ${activeColor}80)` : ""}`
                   }}
                 />
 
@@ -446,7 +437,7 @@ export default function MasteryBrainChart({
                   fontSize="9"
                   fontFamily="monospace"
                   fontWeight="bold"
-                  opacity={pct > 0 || isHovered ? 1 : 0.85}
+                  opacity={pct > 0 || isActive ? 1 : 0.85}
                 >
                   {pct.toFixed(1)}%
                 </text>
@@ -464,36 +455,68 @@ export default function MasteryBrainChart({
         </g>
       </svg>
 
-      {/* Floating Detail Card on Hover / Tap */}
-      <AnimatePresence>
-        {hoveredCategory && statsMap[hoveredCategory] && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-1 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl border bg-black/90 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.9)] text-center pointer-events-none z-20 flex items-center gap-2.5 font-mono text-xs"
-            style={{
-              borderColor: `${statsMap[hoveredCategory].color}80`,
-              boxShadow: `0 0 16px ${statsMap[hoveredCategory].color}35`,
-            }}
-          >
-            <span className="text-base">{LOBE_PATHS[hoveredCategory]?.icon || statsMap[hoveredCategory].icon}</span>
-            <span className="font-bold font-pixel text-xs tracking-wider" style={{ color: statsMap[hoveredCategory].color }}>
-              {statsMap[hoveredCategory].label}
-            </span>
-            <span className="text-muted-foreground/60">•</span>
-            <span className="text-white font-bold">
-              {statsMap[hoveredCategory].pct?.toFixed(1)}% {t('projection.mastery', 'Mastery')}
-            </span>
-            {statsMap[hoveredCategory].pct30d != null && (
-              <span className="text-muted-foreground/70 text-[10px]">
-                (+30d: <span style={{ color: statsMap[hoveredCategory].color }} className="font-bold">+{statsMap[hoveredCategory].pct30d.toFixed(1)}%</span>)
-              </span>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Interactive Detail HUD Bar for Active Cognitive Domain */}
+      <div className="w-full max-w-[440px] px-2 min-h-[44px] flex items-center justify-center mt-2 z-20">
+        <AnimatePresence mode="wait">
+          {activeCategory && statsMap[activeCategory] ? (
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              className="w-full px-3.5 py-2 rounded-xl border bg-black/85 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.8)] flex items-center justify-between font-mono text-xs cursor-default"
+              style={{
+                borderColor: `${statsMap[activeCategory].color}80`,
+                boxShadow: `0 0 16px ${statsMap[activeCategory].color}25`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <span className="text-base">{LOBE_PATHS[activeCategory]?.icon || statsMap[activeCategory].icon}</span>
+                <span className="font-bold font-pixel text-xs tracking-wider uppercase truncate" style={{ color: statsMap[activeCategory].color }}>
+                  {statsMap[activeCategory].label}
+                </span>
+                <span className="text-muted-foreground/40">•</span>
+                <span className="text-white font-bold whitespace-nowrap">
+                  {statsMap[activeCategory].pct?.toFixed(1)}% <span className="text-muted-foreground/60 text-[10px] font-normal">{t('projection.mastery', 'Mastery')}</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-[10px] whitespace-nowrap">
+                {statsMap[activeCategory].pct30d != null && (
+                  <span className="text-muted-foreground/70">
+                    30d: <span style={{ color: statsMap[activeCategory].color }} className="font-bold">{statsMap[activeCategory].pct30d.toFixed(1)}%</span>
+                    {statsMap[activeCategory].pct30d > statsMap[activeCategory].pct && (
+                      <span className="text-emerald-400 ml-1 font-semibold">(+{(statsMap[activeCategory].pct30d - statsMap[activeCategory].pct).toFixed(1)}%)</span>
+                    )}
+                  </span>
+                )}
+                {selectedCategory && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory(null)}
+                    className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-muted-foreground hover:text-white flex items-center justify-center text-[10px] ml-1 transition-colors cursor-pointer"
+                    title="Close"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full px-3 py-2 rounded-xl border border-border/20 bg-muted/5 flex items-center justify-center font-mono text-[10px] text-muted-foreground/50 tracking-wide text-center"
+            >
+              <span>🧠 {t('projection.tap_hint', 'Tap or hover any brain lobe to inspect mastery details')}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
