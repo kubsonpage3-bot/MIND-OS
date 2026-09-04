@@ -157,9 +157,9 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { id: 'habit', label: t('task_modal.habit', 'Habit'), icon: '⚡', color: '#f43f5e' },
-                        { id: 'daily', label: t('task_modal.daily', 'Daily Routine'), icon: '🛡️', color: '#a855f7' },
-                        { id: 'todo', label: t('task_modal.todo', 'To-Do / Quest'), icon: '📜', color: '#f59e0b' }
+                        { id: 'habit', label: t('task_modal.habit', 'Habit'), iconImg: '/images/tasks/task_habit_lightning.png', color: '#f43f5e' },
+                        { id: 'daily', label: t('task_modal.daily', 'Daily Routine'), iconImg: '/images/tasks/task_daily_shield.png', color: '#a855f7' },
+                        { id: 'todo', label: t('task_modal.todo', 'To-Do / Quest'), iconImg: '/images/tasks/task_todo_scroll.png', color: '#f59e0b' }
                       ].map(item => {
                         const isSelected = formType === item.id;
                         return (
@@ -170,7 +170,7 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                               setFormType(item.id);
                               setForm({ ...form, type: item.id });
                             }}
-                            className="px-3 py-2.5 rounded-xl border text-center transition-all uppercase cursor-pointer flex flex-col items-center gap-1 relative overflow-hidden"
+                            className="px-3 py-2.5 rounded-xl border text-center transition-all uppercase cursor-pointer flex flex-col items-center gap-1.5 relative overflow-hidden group hover:scale-[1.02] active:scale-[0.98]"
                             style={{
                               borderColor: isSelected ? item.color : "rgba(255,255,255,0.1)",
                               color: isSelected ? "#ffffff" : "rgba(148, 163, 184, 0.7)",
@@ -178,7 +178,16 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                               boxShadow: isSelected ? `0 0 16px ${item.color}30` : "none"
                             }}
                           >
-                            <span className="text-base">{item.icon}</span>
+                            <div className="w-8 h-8 flex items-center justify-center">
+                              <img 
+                                src={item.iconImg} 
+                                alt={item.label} 
+                                className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110"
+                                style={{
+                                  filter: isSelected ? `drop-shadow(0 0 8px ${item.color}88)` : 'none'
+                                }}
+                              />
+                            </div>
                             <span className="font-mono text-xs font-bold tracking-wider">{item.label}</span>
                           </button>
                         );

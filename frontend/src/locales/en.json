@@ -118,13 +118,13 @@
     "cancel": "Cancel"
   },
   "lifeos_columns": {
-    "habits": "⚡ Habits",
+    "habits": "Habits",
     "no_habits": "No habits yet. Add one!",
-    "todos": "📝 To-Dos",
+    "todos": "To-Dos",
     "no_todos": "No to-dos yet. Add one!",
     "done": "done",
     "add_subtask": "Add subtask...",
-    "dailies": "📅 Dailies",
+    "dailies": "Dailies",
     "no_dailies": "No dailies yet. Add one!",
     "no_activity": "No activity yet. Complete tasks to see your log!",
     "activity_log": "📜 Activity Log"

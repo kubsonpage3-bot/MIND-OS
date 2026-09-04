@@ -486,11 +486,15 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         }}
       >
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-xs shadow-[0_0_8px_rgba(244,63,94,0.3)]">
-            ⚡
-          </span>
+          <div className="w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center shadow-[0_0_10px_rgba(244,63,94,0.35)] shrink-0 overflow-hidden p-0.5">
+            <img 
+              src="/images/tasks/task_habit_lightning.png" 
+              alt="Habits" 
+              className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(244,63,94,0.7)]" 
+            />
+          </div>
           <span className="font-pixel text-xs font-bold tracking-wider text-rose-300 uppercase">
-            {t('lifeos_columns.habits', 'HABITS')}
+            {String(t('lifeos_columns.habits', 'HABITS')).replace(/^[\p{Emoji}\s]+/u, '')}
           </span>
           <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
             {tasks.length}
@@ -518,7 +522,9 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
           <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
             {tasks.length === 0 && (
               <div className="text-center py-8">
-                <div className="text-3xl mb-2">🌱</div>
+                <div className="w-12 h-12 mx-auto mb-2 opacity-85 flex items-center justify-center">
+                  <img src="/images/tasks/task_habit_lightning.png" alt="Habits" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(244,63,94,0.4)]" />
+                </div>
                 <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_habits')}</div>
               </div>
             )}

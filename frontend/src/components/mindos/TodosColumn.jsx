@@ -453,11 +453,15 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
         }}
       >
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xs shadow-[0_0_8px_rgba(245,158,11,0.3)]">
-            📜
-          </span>
+          <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.35)] shrink-0 overflow-hidden p-0.5">
+            <img 
+              src="/images/tasks/task_todo_scroll.png" 
+              alt="To-Dos" 
+              className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(245,158,11,0.7)]" 
+            />
+          </div>
           <span className="font-pixel text-xs font-bold tracking-wider text-amber-300 uppercase">
-            {t('lifeos_columns.todos', 'TO-DOS')}
+            {String(t('lifeos_columns.todos', 'TO-DOS')).replace(/^[\p{Emoji}\s]+/u, '')}
           </span>
           <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
             {tasks.filter(t => t.is_completed).length}/{tasks.length}
@@ -481,7 +485,9 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
           <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
             {tasks.length === 0 && (
               <div className="text-center py-8">
-                <div className="text-3xl mb-2">📜</div>
+                <div className="w-12 h-12 mx-auto mb-2 opacity-85 flex items-center justify-center">
+                  <img src="/images/tasks/task_todo_scroll.png" alt="To-Dos" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
+                </div>
                 <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_todos')}</div>
               </div>
             )}
