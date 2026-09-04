@@ -99,6 +99,13 @@ const getInitialForm = (isButton) => {
   };
 };
 
+const CLASS_MASTERY_MAP = {
+  architect: "sciences",
+  warlord: "body",
+  linguist: "languages",
+  ascetic: "spirit",
+};
+
 export default function CreateTaskForm({ onCreated, hideTypeSelector = false, profile = null }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -106,6 +113,9 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
   const currentProfile = profile || auth?.profile;
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [form, setForm] = useState(() => getInitialForm(hideTypeSelector));
+
+  const userClass = currentProfile?.character_class ? currentProfile.character_class.toLowerCase().trim() : "";
+  const heroTargetMastery = CLASS_MASTERY_MAP[userClass] || null;
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
@@ -123,6 +133,12 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
     const spdPct = Math.min(0.50, spd * 0.005);
     const lckGoldMult = lck <= 100 ? (1.0 + lck / 100.0) : (2.0 + (lck - 100) * 0.005);
 
+    const activeMastery = form.type === "button"
+      ? (form.masteryCategory || CATEGORY_TO_MASTERY[form.category] || "")
+      : (CATEGORY_TO_MASTERY[form.category] || "");
+    const isClassBonus = Boolean(heroTargetMastery && activeMastery === heroTargetMastery);
+    const classXpMult = isClassBonus ? 1.20 : 1.0;
+
     if (form.type === "button") {
       const base = getTrainingRewards(
         form.difficulty || "medium",
@@ -130,21 +146,23 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
         parseInt(String(form.defaultFocus), 10) || 7
       );
       return {
-        xp: Math.max(0, Math.round(base.xp * (1.0 + pwrPct) * xpMultStats)),
+        xp: Math.max(0, Math.round(base.xp * classXpMult * (1.0 + pwrPct) * xpMultStats)),
         gold: Math.max(0, Math.round(base.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats)),
         bossDamage: Math.max(0, Math.round((base.dmg + 10 + pwr) * dmgMultStats)),
         hpDamage: 0,
+        isClassBonus,
       };
     } else {
       const base = TASK_REWARDS[form.difficulty] || TASK_REWARDS["medium"];
       return {
-        xp: Math.max(0, Math.round(base.xp * (1.0 + pwrPct) * xpMultStats)),
+        xp: Math.max(0, Math.round(base.xp * classXpMult * (1.0 + pwrPct) * xpMultStats)),
         gold: Math.max(0, Math.round(base.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats)),
         bossDamage: Math.max(0, Math.round((base.bossDamage + 10 + pwr) * dmgMultStats)),
         hpDamage: base.hpDamage,
+        isClassBonus,
       };
     }
-  }, [form.type, form.difficulty, form.defaultHours, form.defaultFocus, currentProfile]);
+  }, [form.type, form.difficulty, form.defaultHours, form.defaultFocus, form.category, form.masteryCategory, currentProfile, heroTargetMastery]);
 
   const isSubmitDisabled = !form.name.trim() || (form.type === "button" && !form.masteryCategory);
 
@@ -291,27 +309,51 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
       <div className="space-y-1.5">
         <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.category", "Category")}</div>
         <div className="grid grid-cols-5 gap-1.5">
-          {CATEGORIES.map(cat => (
-            <button key={cat} type="button" onClick={() => handleCategorySelect(cat)}
-              className="py-2 px-1 flex items-center justify-center rounded-lg border text-center transition-all cursor-pointer"
-              style={{
-                borderColor: form.category === cat ? "var(--habit-purple)" : "var(--habit-border)",
-                color: form.category === cat ? "white" : "var(--habit-dim)",
-                background: form.category === cat ? "var(--habit-purple-light)" : "transparent",
-                fontSize: 9,
-                fontWeight: form.category === cat ? 700 : 500,
-                fontFamily: "'Nunito'",
-              }}>
-              {t(`categories.${cat}`, cat)}
-            </button>
-          ))}
+          {CATEGORIES.map(cat => {
+            const catMastery = CATEGORY_TO_MASTERY[cat];
+            const isMatch = Boolean(heroTargetMastery && catMastery === heroTargetMastery);
+            return (
+              <button key={cat} type="button" onClick={() => handleCategorySelect(cat)}
+                className="py-1.5 px-1 flex flex-col items-center justify-center rounded-lg border text-center transition-all cursor-pointer relative overflow-hidden"
+                style={{
+                  borderColor: form.category === cat 
+                    ? "var(--habit-purple)" 
+                    : isMatch 
+                    ? "rgba(245, 158, 11, 0.5)" 
+                    : "var(--habit-border)",
+                  color: form.category === cat ? "white" : "var(--habit-dim)",
+                  background: form.category === cat 
+                    ? "var(--habit-purple-light)" 
+                    : isMatch 
+                    ? "rgba(245, 158, 11, 0.08)" 
+                    : "transparent",
+                  fontSize: 9,
+                  fontWeight: form.category === cat ? 700 : 500,
+                  fontFamily: "'Nunito'",
+                }}>
+                <span className="truncate w-full">{t(`categories.${cat}`, cat)}</span>
+                {isMatch && (
+                  <span className="text-[6.5px] font-game font-bold text-amber-400 mt-0.5 leading-none">
+                    ⚡ +20%
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Mastery category (for custom activity buttons) */}
       {form.type === "button" && (
         <div className="space-y-1.5">
-          <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.mastery_area", "Mastery Area")} *</div>
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-wider">{t("task_form.mastery_area", "Mastery Area")} *</div>
+            {heroTargetMastery && (
+              <div className="text-[8px] font-game text-amber-400 flex items-center gap-1 font-bold">
+                <span>⚡ {currentProfile?.character_class?.toUpperCase()} SPECIALTY</span>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-5 gap-2">
             {[
               { id: "body", label: "Body", icon: "💪", color: "#ef4444" },
@@ -319,19 +361,44 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
               { id: "languages", label: "Languages", icon: "🌐", color: "#10b981" },
               { id: "spirit", label: "Spirit", icon: "✨", color: "#a855f7" },
               { id: "humanities", label: "Humanities", icon: "📚", color: "#f59e0b" },
-            ].map(m => (
-              <button key={m.id} type="button" onClick={() => set("masteryCategory", m.id)}
-                className="p-1.5 rounded-lg border text-center flex flex-col items-center justify-center transition-all cursor-pointer"
-                style={{
-                  borderColor: form.masteryCategory === m.id ? m.color : "var(--habit-border)",
-                  background: form.masteryCategory === m.id ? `${m.color}20` : "transparent",
-                }}>
-                <span className="text-sm">{m.icon}</span>
-                <span className="text-[8px] font-mono font-bold mt-1" style={{ color: form.masteryCategory === m.id ? m.color : "var(--habit-dim)" }}>
-                  {t(`mastery.${m.id}`, m.label)}
-                </span>
-              </button>
-            ))}
+            ].map(m => {
+              const isMatch = heroTargetMastery === m.id;
+              const isSelected = form.masteryCategory === m.id;
+              return (
+                <button key={m.id} type="button" onClick={() => set("masteryCategory", m.id)}
+                  className="p-1.5 rounded-lg border text-center flex flex-col items-center justify-center transition-all cursor-pointer relative"
+                  style={{
+                    borderColor: isSelected 
+                      ? m.color 
+                      : isMatch 
+                      ? `${m.color}80` 
+                      : "var(--habit-border)",
+                    background: isSelected 
+                      ? `${m.color}25` 
+                      : isMatch 
+                      ? `${m.color}10` 
+                      : "transparent",
+                    boxShadow: isMatch ? `0 0 10px ${m.color}20` : "none",
+                  }}>
+                  <span className="text-sm">{m.icon}</span>
+                  <span className="text-[8px] font-mono font-bold mt-1" style={{ color: isSelected ? m.color : isMatch ? m.color : "var(--habit-dim)" }}>
+                    {t(`mastery.${m.id}`, m.label)}
+                  </span>
+                  {isMatch && (
+                    <span 
+                      className="text-[6.5px] font-game font-black mt-0.5 px-1 rounded border animate-pulse"
+                      style={{
+                        borderColor: `${m.color}80`,
+                        background: `${m.color}30`,
+                        color: m.color,
+                      }}
+                    >
+                      ⚡ +20%
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Active Mastery Preset Cognitive Stats Breakdown */}
@@ -413,7 +480,14 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
 
       {/* Preview */}
       <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-[10px] space-y-2">
-        <div className="text-muted-foreground/40 uppercase tracking-wider">{t("task_form.preview", "Preview")}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground/40 uppercase tracking-wider">{t("task_form.preview", "Preview")}</div>
+          {previewRewards.isClassBonus && (
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.25)]">
+              ⚡ +20% {userClass ? userClass.toUpperCase() : "CLASS"} BONUS
+            </span>
+          )}
+        </div>
         <div className="flex gap-3 flex-wrap items-center">
           <span className="text-blue-400 font-bold">+{previewRewards.xp} XP</span>
           <span className="text-yellow-400 font-bold">+{previewRewards.gold}G</span>

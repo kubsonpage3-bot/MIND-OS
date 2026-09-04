@@ -53,6 +53,13 @@ function getTrainingRewards(tier, hours, focus) {
   };
 }
 
+const CLASS_MASTERY_MAP = {
+  architect: "sciences",
+  warlord: "body",
+  linguist: "languages",
+  ascetic: "spirit",
+};
+
 export default function ActivityLogger({ onLog, isLogging, profile, logs = [], tasks = [], subjectTotals = {} }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -67,20 +74,24 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
   const [deleteMode, setDeleteMode] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null); // activity key pending confirmation
 
+  const userClass = profile?.character_class ? profile.character_class.toLowerCase().trim() : "";
+  const heroTargetMastery = CLASS_MASTERY_MAP[userClass] || null;
+
   const allActivities = useMemo(() => {
     const list = {};
     Object.keys(ACTIVITIES).forEach(key => {
       list[key] = {
         ...ACTIVITIES[key],
-        label: t(`activities.${key}`, ACTIVITIES[key].label)
+        label: t(`activities.${key}`, ACTIVITIES[key].label),
+        masteryCategory: resolveMasteryCategory(key),
       };
     });
     tasks.forEach(t => {
       if (t.type === 'button') {
         const key = `custom_task_${t.id}`;
-        const masteryKey = (t.mastery_category || "").toLowerCase();
-        const coeff = MASTERY_COEFFICIENTS[masteryKey] || MASTERY_COEFFICIENTS["humanities"];
         const category = t.category || "Other";
+        const masteryKey = (t.mastery_category || "").toLowerCase() || resolveMasteryCategory(null, category) || "humanities";
+        const coeff = MASTERY_COEFFICIENTS[masteryKey] || MASTERY_COEFFICIENTS["humanities"];
         list[key] = {
           label: t.name || t.title,
           icon: t.icon || CATEGORY_ICONS[category] || "🔘",
@@ -93,12 +104,13 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
           defaultFocus: t.defaultFocus || 7,
           isCustom: true,
           taskId: t.id,
-          difficulty: t.difficulty || "medium"
+          difficulty: t.difficulty || "medium",
+          masteryCategory: masteryKey,
         };
       }
     });
     return list;
-  }, [tasks]);
+  }, [tasks, t]);
 
   const { hoursToday, subjectHoursMap, recentFocusRatings, subjectTotalHours } = useMemo(() => {
     const today = new Date().toDateString();
@@ -350,6 +362,8 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             const totalHours = subjectTotalHours[key] || 0;
             const isPendingDelete = confirmDelete === key;
             const cat = activity.category || "Other";
+            const actMastery = activity.masteryCategory || resolveMasteryCategory(key);
+            const isClassBonus = heroTargetMastery && actMastery === heroTargetMastery;
             const catColor = {
               STEM: "#3b82f6",
               Languages: "#00cc88",
@@ -360,7 +374,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
               "Social & Communication": "#a855f7",
               "Reading & Writing": "#22c55e",
               "Work & Career": "#06b6d4",
-            }[cat] || "#6366f1";
+            }[cat] || (actMastery === "sciences" ? "#3b82f6" : actMastery === "body" ? "#ef4444" : actMastery === "languages" ? "#00cc88" : actMastery === "spirit" ? "#9944ff" : "#6366f1");
 
             return (
               <div key={key} className="relative h-full flex flex-col">
@@ -374,13 +388,21 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                       ? "rgba(247,78,82,0.08)" 
                       : isSelected 
                         ? `radial-gradient(circle at 50% 0%, ${catColor}30 0%, var(--habit-panel) 90%)` 
+                        : isClassBonus
+                        ? `radial-gradient(circle at 50% 0%, ${catColor}15 0%, var(--habit-panel) 80%)`
                         : "var(--habit-panel)",
                     border: deleteMode 
                       ? "1.5px solid rgba(247,78,82,0.4)" 
                       : isSelected 
                         ? `1.5px solid ${catColor}` 
+                        : isClassBonus
+                        ? `1.5px solid ${catColor}70`
                         : "1.5px solid var(--habit-border)",
-                    boxShadow: isSelected ? `0 0 16px ${catColor}40` : "0 1px 4px rgba(0,0,0,0.15)",
+                    boxShadow: isSelected 
+                      ? `0 0 16px ${catColor}40` 
+                      : isClassBonus 
+                      ? `0 0 12px ${catColor}20` 
+                      : "0 1px 4px rgba(0,0,0,0.15)",
                   }}
                 >
                   {/* Category Corner Brackets */}
@@ -389,22 +411,38 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                   <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ borderColor: catColor }} />
                   <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ borderColor: catColor }} />
 
-                  {/* Top Header: Icon + Rank Badge */}
+                  {/* Top Header: Icon + Passive Tag + Rank Badge */}
                   <div className="flex items-center justify-between gap-2 w-full">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xl sm:text-2xl bg-black/40 border border-white/10 group-hover:scale-110 transition-transform"
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xl sm:text-2xl bg-black/40 border border-white/10 group-hover:scale-110 transition-transform relative"
                       style={{ boxShadow: `inset 0 0 8px ${catColor}20` }}>
                       {activity.icon}
                     </div>
-                    <SubjectRankBadge hours={totalHours} />
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      {isClassBonus && (
+                        <div 
+                          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[7px] font-game uppercase font-black tracking-wider animate-pulse shadow-sm"
+                          style={{
+                            borderColor: `${catColor}90`,
+                            background: `${catColor}25`,
+                            color: catColor,
+                            boxShadow: `0 0 8px ${catColor}40`,
+                          }}
+                          title={`${profile?.character_class} passive: +20% bonus XP`}
+                        >
+                          <span>⚡ +20%</span>
+                        </div>
+                      )}
+                      <SubjectRankBadge hours={totalHours} />
+                    </div>
                   </div>
 
                   {/* Middle Content: Title + Description */}
                   <div className="my-auto py-1.5 w-full">
                     <div
-                      className="leading-snug line-clamp-1 sm:line-clamp-2"
+                      className="leading-snug line-clamp-1 sm:line-clamp-2 flex items-center gap-1.5"
                       style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, color: "var(--habit-text)" }}
                     >
-                      {activity.label}
+                      <span>{activity.label}</span>
                     </div>
                     <div
                       className="mt-1 leading-snug line-clamp-2 block text-[11px] sm:text-xs text-muted-foreground/90 dark:text-gray-300/80"
@@ -582,13 +620,25 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
               const spdPct = Math.min(0.50, spd * 0.005);
               const lckGoldMult = lck <= 100 ? (1.0 + lck / 100.0) : (2.0 + (lck - 100) * 0.005);
 
-              const expectedXp = Math.max(0, Math.round(previewRewards.xp * (1.0 + pwrPct) * xpMultStats));
+              const actObj = allActivities[selectedActivity];
+              const actMastery = actObj?.masteryCategory || resolveMasteryCategory(selectedActivity);
+              const isClassBonus = heroTargetMastery && actMastery === heroTargetMastery;
+              const classXpMult = isClassBonus ? 1.20 : 1.0;
+
+              const expectedXp = Math.max(0, Math.round(previewRewards.xp * classXpMult * (1.0 + pwrPct) * xpMultStats));
               const expectedGold = Math.max(0, Math.round(previewRewards.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats));
               const expectedDmg = Math.max(0, Math.round((previewRewards.dmg + 10 + pwr) * dmgMultStats));
 
               return (
                 <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-xs space-y-2">
-                  <div className="text-muted-foreground/50 uppercase text-[9px] tracking-wider">{t('training_extra.expected_rewards', 'Expected Rewards')}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-muted-foreground/50 uppercase text-[9px] tracking-wider">{t('training_extra.expected_rewards', 'Expected Rewards')}</div>
+                    {isClassBonus && (
+                      <div className="flex items-center gap-1 text-[8px] font-game uppercase font-black px-2 py-0.5 rounded border border-amber-400/50 bg-amber-500/15 text-amber-300 animate-pulse shadow-sm">
+                        <span>⚡ +20% {profile?.character_class?.toUpperCase()} PASSIVE ACTIVE</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex justify-around gap-4 text-center">
                     <div>
                       <div className="text-blue-400 font-pixel text-lg">+{expectedXp} XP</div>

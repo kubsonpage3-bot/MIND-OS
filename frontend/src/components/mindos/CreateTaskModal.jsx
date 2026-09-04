@@ -16,11 +16,36 @@ const DIFFICULTIES = [
   { id: "hard", label: "Hard", color: "#ef4444" },
 ];
 import { useHardwareBack } from "@/utils/modalStack";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+
+const CLASS_MASTERY_MAP = {
+  architect: "sciences",
+  warlord: "body",
+  linguist: "languages",
+  ascetic: "spirit",
+};
+
+const CATEGORY_TO_MASTERY = {
+  "STEM": "sciences",
+  "Languages": "languages",
+  "Humanities & Arts": "humanities",
+  "Health & Fitness": "body",
+  "Rest & Recovery": "recovery",
+  "Mindfulness": "spirit",
+  "Social & Communication": "spirit",
+  "Reading & Writing": "languages",
+  "Work & Career": "sciences",
+  "Other": "humanities",
+};
 
 export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate, editMode = false }) {
   useHardwareBack(isOpen, onClose);
   
   const { t } = useTranslation();
+  const auth = useDjangoAuth();
+  const currentProfile = auth?.profile;
+  const userClass = currentProfile?.character_class ? currentProfile.character_class.toLowerCase().trim() : "";
+  const heroTargetMastery = CLASS_MASTERY_MAP[userClass] || null;
   // Close on Escape
   useEffect(() => {
     const handleEsc = (e) => {
@@ -138,21 +163,39 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       {t('task_modal.category', 'Category')}
                     </label>
                     <div className="grid grid-cols-4 gap-1.5">
-                      {CATEGORIES.map(c => (
-                        <button
-                          key={c}
-                          onClick={() => setForm({ ...form, category: c })}
-                          className="aspect-square p-0 flex flex-col items-center justify-center text-center text-[9px] leading-[1.1] font-mono pixel-btn border-2 transition-all cursor-pointer"
-                          style={{
-                            borderColor: form.category === c ? "rgba(240,192,64,0.5)" : "rgba(148,163,184,0.25)",
-                            color: form.category === c ? "#f0c040" : "#64748b",
-                            background: form.category === c ? "rgba(240,192,64,0.1)" : "rgba(255,255,255,0.02)",
-                            boxShadow: "0 1px 0 rgba(0,0,0,0.3)"
-                          }}
-                        >
-                          <span className="line-clamp-2 w-full px-0.5">{t("categories." + c, c)}</span>
-                        </button>
-                      ))}
+                      {CATEGORIES.map(c => {
+                        const mastery = CATEGORY_TO_MASTERY[c];
+                        const isMatch = Boolean(heroTargetMastery && mastery === heroTargetMastery);
+                        const isSelected = form.category === c;
+                        return (
+                          <button
+                            key={c}
+                            onClick={() => setForm({ ...form, category: c })}
+                            className="aspect-square p-0 flex flex-col items-center justify-center text-center text-[9px] leading-[1.1] font-mono pixel-btn border-2 transition-all cursor-pointer relative"
+                            style={{
+                              borderColor: isSelected
+                                ? "rgba(240,192,64,0.7)"
+                                : isMatch
+                                  ? "rgba(245,158,11,0.5)"
+                                  : "rgba(148,163,184,0.25)",
+                              color: isSelected ? "#f0c040" : isMatch ? "#fbbf24" : "#64748b",
+                              background: isSelected
+                                ? "rgba(240,192,64,0.12)"
+                                : isMatch
+                                  ? "rgba(245,158,11,0.06)"
+                                  : "rgba(255,255,255,0.02)",
+                              boxShadow: isMatch ? "0 0 10px rgba(245,158,11,0.18)" : "0 1px 0 rgba(0,0,0,0.3)"
+                            }}
+                          >
+                            {isMatch && (
+                              <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded text-[7px] font-bold bg-amber-500 text-black shadow-[0_0_6px_rgba(245,158,11,0.6)] animate-pulse z-10">
+                                +20%
+                              </span>
+                            )}
+                            <span className="line-clamp-2 w-full px-0.5">{t("categories." + c, c)}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

@@ -1417,7 +1417,7 @@ class TrainingLogView(generics.GenericAPIView):
             "philosophy": "Humanities & Arts",
             "reading": "Humanities & Arts",
             "psychology": "Humanities & Arts",
-            "creative_answers": "Humanities & Arts",
+            "creative_answers": "Sciences",
             "english": "Languages",
             "german": "Languages",
             "vocabulary": "Languages",

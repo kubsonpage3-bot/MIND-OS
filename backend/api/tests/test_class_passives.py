@@ -186,3 +186,118 @@ def test_custom_mastery_category_class_passive(mock_random, user, profile):
     # Linguist gets +20% bonus on languages mastery_category
     assert xp_lang > xp_body
     assert abs(xp_lang - int(xp_body * 1.2)) <= 1
+
+
+@pytest.mark.django_db
+@patch("random.random", return_value=0.99)
+def test_all_classes_training_log_passives(mock_random, user, profile):
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    # 1. Wanderer baseline (no class bonus)
+    profile.character_class = "Wanderer"
+    profile.save()
+
+    res_w_sci = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "mathematics", "efficiency": 1.0},
+        format="json",
+    )
+    assert res_w_sci.status_code == 200
+    xp_w_sci = res_w_sci.data["xp_earned"]
+
+    res_w_body = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "exercise", "efficiency": 1.0},
+        format="json",
+    )
+    assert res_w_body.status_code == 200
+    xp_w_body = res_w_body.data["xp_earned"]
+
+    res_w_lang = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "english", "efficiency": 1.0},
+        format="json",
+    )
+    assert res_w_lang.status_code == 200
+    xp_w_lang = res_w_lang.data["xp_earned"]
+
+    res_w_spirit = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "prayer", "efficiency": 1.0},
+        format="json",
+    )
+    assert res_w_spirit.status_code == 200
+    xp_w_spirit = res_w_spirit.data["xp_earned"]
+
+    # 2. Architect (+20% on Sciences)
+    profile.character_class = "Architect"
+    profile.save()
+
+    res_arch_sci = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "mathematics", "efficiency": 1.0},
+        format="json",
+    )
+    xp_arch_sci = res_arch_sci.data["xp_earned"]
+    assert xp_arch_sci > xp_w_sci
+    assert abs(xp_arch_sci - int(xp_w_sci * 1.2)) <= 1
+
+    # Architect on non-science (Body) gets baseline
+    res_arch_body = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "exercise", "efficiency": 1.0},
+        format="json",
+    )
+    assert res_arch_body.data["xp_earned"] == xp_w_body
+
+    # 3. Warlord (+20% on Body)
+    profile.character_class = "Warlord"
+    profile.save()
+
+    # Warlord on matching category (Body) gets +20% passive bonus
+    res_warlord_body = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "exercise", "efficiency": 1.0},
+        format="json",
+    )
+    xp_warlord_body = res_warlord_body.data["xp_earned"]
+
+    # Warlord on non-matching category (Sciences) does not get passive bonus
+    res_warlord_sci = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "mathematics", "efficiency": 1.0},
+        format="json",
+    )
+    xp_warlord_sci = res_warlord_sci.data["xp_earned"]
+    assert xp_warlord_body > xp_warlord_sci
+    assert abs(xp_warlord_body - int(xp_warlord_sci * 1.2)) <= 1
+
+    # 4. Linguist (+20% on Languages)
+    profile.character_class = "Linguist"
+    profile.save()
+
+    res_ling_lang = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "english", "efficiency": 1.0},
+        format="json",
+    )
+    xp_ling_lang = res_ling_lang.data["xp_earned"]
+    assert xp_ling_lang > xp_w_lang
+    assert abs(xp_ling_lang - int(xp_w_lang * 1.2)) <= 1
+
+    # 5. Ascetic (+20% on Spirit)
+    profile.character_class = "Ascetic"
+    profile.save()
+
+    res_asc_spirit = client.post(
+        "/api/training/log/",
+        {"hours": 1.0, "focus_rating": 7.0, "activity": "prayer", "efficiency": 1.0},
+        format="json",
+    )
+    xp_asc_spirit = res_asc_spirit.data["xp_earned"]
+    assert xp_asc_spirit > xp_w_spirit
+    assert abs(xp_asc_spirit - int(xp_w_spirit * 1.2)) <= 1
+
