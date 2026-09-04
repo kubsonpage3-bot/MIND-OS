@@ -295,7 +295,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const selectedNode = GRAPH_DATA.nodes.find((n) => n.id === selectedNodeId);
 
   return (
-    <div className="relative flex flex-col h-[620px] bg-[#0c0c16] rounded-2xl overflow-hidden border-2 border-[#2a243e] shadow-[0_8px_32px_rgba(0,0,0,0.8),inset_0_0_24px_rgba(0,0,0,0.9)] select-none font-mono">
+    <div className="relative flex flex-col h-[620px] md:h-[660px] bg-[#0c0c16] rounded-2xl overflow-hidden border-2 border-[#2a243e] shadow-[0_8px_32px_rgba(0,0,0,0.8),inset_0_0_24px_rgba(0,0,0,0.9)] select-none font-mono">
       {/* ─── HEADER BAR ──────────────────────────────────────────────────── */}
       <div className="absolute top-0 left-0 right-0 z-30 px-4 py-3 bg-gradient-to-b from-[#0c0c16] via-[#0c0c16]/90 to-transparent flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
@@ -388,7 +388,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
           </div>
 
           {/* Active Branch Constellation Track */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-28">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-56 sm:pb-60">
             {SKILL_TREE[activeMobileBranch]?.nodes.map((node, index) => {
               const isNodeUnlocked = unlocked.includes(node.id);
               const prereqMet = !node.requires || unlocked.includes(node.requires);
@@ -531,13 +531,14 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
           </div>
         </div>
       ) : (
-        /* ─── DESKTOP VIEW: FULL CONSTELLATION CANVAS ───────────────────── */
-        <div
-          ref={containerRef}
-          className="flex-1 relative bg-[#0a0a14] overflow-auto flex items-center justify-center pt-8"
-          onPointerDownCapture={(e) => e.stopPropagation()}
-          onTouchStartCapture={(e) => e.stopPropagation()}
-        >
+        /* ─── DESKTOP VIEW: FULL CONSTELLATION CANVAS & RIGHT SIDEBAR ───── */
+        <div className="flex-1 relative flex overflow-hidden pt-12">
+          <div
+            ref={containerRef}
+            className="flex-1 relative bg-[#0a0a14] overflow-auto flex items-center justify-center p-2"
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            onTouchStartCapture={(e) => e.stopPropagation()}
+          >
           <div
             style={{
               width: CANVAS_WIDTH * scale,
@@ -753,11 +754,216 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
             </div>
           </div>
         </div>
+
+          {/* ─── DESKTOP RIGHT INSPECTOR DRAWER (PC ONLY) ────────────────── */}
+          <AnimatePresence>
+            {selectedNode && (
+              <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 330, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                className="h-full border-l-2 bg-[#0d0b1c]/95 backdrop-blur-xl flex flex-col justify-between p-5 text-slate-200 shadow-[-16px_0_36px_rgba(0,0,0,0.85)] z-40 overflow-y-auto shrink-0 relative"
+                style={{ borderLeftColor: selectedNode.color || "#a855f7" }}
+              >
+                {/* Close Button */}
+                <button
+                  onClick={() => setSelectedNodeId(null)}
+                  className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Top / Details Section */}
+                <div className="flex flex-col gap-3.5 w-full pr-5">
+                  {/* Icon + Title Header */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-13 h-13 rounded-2xl flex items-center justify-center shrink-0 border-2"
+                      style={{
+                        borderColor: selectedNode.color || "#a855f7",
+                        background: `${selectedNode.color || "#a855f7"}20`,
+                        boxShadow: `0 0 20px ${selectedNode.color || "#a855f7"}40`,
+                      }}
+                    >
+                      {(() => {
+                        const SIcon = selectedNode.isStart
+                          ? Sparkles
+                          : CAT_ICONS[selectedNode.branchKey] || Sparkles;
+                        return (
+                          <SIcon
+                            className="w-7 h-7"
+                            style={{ color: selectedNode.color || "#a855f7" }}
+                          />
+                        );
+                      })()}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                        {!selectedNode.isStart && (
+                          <span
+                            className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border"
+                            style={{
+                              borderColor: `${selectedNode.color}60`,
+                              color: selectedNode.color,
+                              background: `${selectedNode.color}15`,
+                            }}
+                          >
+                            {selectedNode.categoryName}
+                          </span>
+                        )}
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-slate-300">
+                          {selectedNode.isStart
+                            ? "ORIGIN"
+                            : selectedNode.tier === 6
+                            ? "APEX TIER 6"
+                            : `TIER ${selectedNode.tier}`}
+                        </span>
+                      </div>
+                      <h3
+                        className="font-mono font-bold text-sm tracking-wide leading-tight break-words"
+                        style={{ color: selectedNode.color || "#f59e0b" }}
+                      >
+                        {selectedNode.isStart
+                          ? "AWAKENED CORE"
+                          : t(
+                              `rpgData.skillTree.${selectedNode.id}.name`,
+                              selectedNode.name
+                            )}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Description Box */}
+                  <div className="rounded-xl border border-[#252038] bg-[#141224]/80 p-3 shadow-inner">
+                    <p className="text-xs font-mono text-slate-300 leading-relaxed">
+                      {selectedNode.isStart
+                        ? "The origin of your cognitive and physical growth."
+                        : t(
+                            `rpgData.skillTree.${selectedNode.id}.desc`,
+                            selectedNode.desc
+                          )}
+                    </p>
+                  </div>
+
+                  {/* Prerequisite status */}
+                  {!selectedNode.isStart && selectedNode.requires && (
+                    <div className="flex items-center gap-2 text-xs font-mono px-3 py-2 rounded-lg border border-[#231e36] bg-[#110f20]">
+                      {unlocked.includes(selectedNode.requires) ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span className="text-emerald-300 text-[11px]">
+                            Prerequisite met:{" "}
+                            <span className="font-bold">
+                              {t(
+                                `rpgData.skillTree.${selectedNode.requires}.name`,
+                                GRAPH_DATA.nodes.find(
+                                  (n) => n.id === selectedNode.requires
+                                )?.name || selectedNode.requires
+                              )}
+                            </span>
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                          <span className="text-red-300 text-[11px]">
+                            Requires:{" "}
+                            <span className="font-bold">
+                              {t(
+                                `rpgData.skillTree.${selectedNode.requires}.name`,
+                                GRAPH_DATA.nodes.find(
+                                  (n) => n.id === selectedNode.requires
+                                )?.name || selectedNode.requires
+                              )}
+                            </span>
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Action Section */}
+                {!selectedNode.isStart && (
+                  <div className="pt-4 border-t border-[#231e36] flex flex-col gap-3">
+                    {unlocked.includes(selectedNode.id) ? (
+                      <div
+                        className="w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-mono font-bold text-xs"
+                        style={{
+                          borderColor: `${selectedNode.color}60`,
+                          color: selectedNode.color || "#10b981",
+                          background: `${selectedNode.color}18`,
+                          boxShadow: `0 0 14px ${selectedNode.color}25`,
+                        }}
+                      >
+                        <Check className="w-4 h-4" /> MASTERED
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between text-xs font-mono px-1">
+                          <span className="text-slate-400">Cost:</span>
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={cn(
+                                "font-bold font-mono",
+                                sp < selectedNode.sp
+                                  ? "text-red-400"
+                                  : "text-amber-300"
+                              )}
+                            >
+                              {selectedNode.sp} SP
+                            </span>
+                            <span
+                              className={cn(
+                                "font-bold font-mono",
+                                currentGold < selectedNode.gold
+                                  ? "text-red-400"
+                                  : "text-amber-300"
+                              )}
+                            >
+                              {selectedNode.gold} G
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => unlock(selectedNode)}
+                          disabled={
+                            !canUnlock(selectedNode) || buyMutation.isPending
+                          }
+                          className="w-full py-2.5 rounded-xl border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                          style={{
+                            borderColor: selectedNode.color,
+                            color: "#fff",
+                            background: `${selectedNode.color}33`,
+                            boxShadow: canUnlock(selectedNode)
+                              ? `0 0 16px ${selectedNode.color}40`
+                              : undefined,
+                          }}
+                        >
+                          {buyMutation.isPending ? (
+                            "LEARNING..."
+                          ) : (
+                            <>
+                              <Sparkles className="w-3.5 h-3.5" /> UNLOCK SKILL
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       )}
 
-      {/* ─── BOTTOM INSPECTOR DRAWER (DOCK) ──────────────────────────────── */}
+      {/* ─── MOBILE BOTTOM INSPECTOR DRAWER (PHONE ONLY) ─────────────────── */}
       <AnimatePresence>
-        {selectedNode && (
+        {isMobile && selectedNode && (
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -768,7 +974,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
           >
             <button
               onClick={() => setSelectedNodeId(null)}
-              className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-white"
+              className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -784,7 +990,9 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                 }}
               >
                 {(() => {
-                  const SIcon = CAT_ICONS[selectedNode.branchKey] || Sparkles;
+                  const SIcon = selectedNode.isStart
+                    ? Sparkles
+                    : CAT_ICONS[selectedNode.branchKey] || Sparkles;
                   return (
                     <SIcon
                       className="w-6 h-6"
@@ -861,7 +1069,7 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                         disabled={
                           !canUnlock(selectedNode) || buyMutation.isPending
                         }
-                        className="px-4 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md"
+                        className="px-4 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md cursor-pointer"
                         style={{
                           borderColor: selectedNode.color,
                           color: "#fff",

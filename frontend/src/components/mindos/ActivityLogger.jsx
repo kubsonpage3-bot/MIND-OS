@@ -15,28 +15,41 @@ function loadHiddenActivities() {
 }
 function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
 
+const BASE_XP = 3;
 const TIER_MULTIPLIER = {
   trivial: 1,
-  easy: 3,
-  medium: 5,
-  hard: 10,
+  easy: 2,
+  medium: 4,
+  hard: 8,
 };
+const GOLD_PER_XP = 0.5;
+const TRAINING_DMG_PER_XP = 6.0;
+const DEEP_WORK_THRESHOLD_H = 0.75;
+const DEEP_WORK_DMG_MULTIPLIER = 1.8;
+const MAX_SESSION_HOURS = 16.0;
+
+function focusFactor(focus) {
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+  return clamp(focus / 10.0 + 0.2, 0.5, 1.3);
+}
 
 function getTrainingRewards(tier, hours, focus) {
   const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
-  const clampedHours = clamp(hours, 0, 16.0);
-  const focusFactor = clamp(focus / 10.0, 0.7, 1.3);
+  const clampedHours = clamp(hours, 0, MAX_SESSION_HOURS);
+  const ff = focusFactor(focus);
   
-  const mult = TIER_MULTIPLIER[tier] || 5;
-  const xpBase = 3 * mult;
-  const goldBase = Math.round(xpBase * 0.5);
-  const dmgBase = Math.round(xpBase * 3.33);
+  const mult = TIER_MULTIPLIER[tier] || 4;
+  const base_xp = BASE_XP * mult;
+  const scale = 1.0 * clampedHours * ff;
 
-  const scale = 2.5 * clampedHours * focusFactor;
+  const raw_dmg = Math.round(base_xp * TRAINING_DMG_PER_XP * scale);
+  const deep_work = clampedHours >= DEEP_WORK_THRESHOLD_H;
+  const final_dmg = deep_work ? Math.round(raw_dmg * DEEP_WORK_DMG_MULTIPLIER) : raw_dmg;
+
   return {
-    xp: Math.round(xpBase * scale),
-    gold: Math.round(goldBase * scale),
-    dmg: Math.round(dmgBase * scale),
+    xp: Math.round(base_xp * scale),
+    gold: Math.round(base_xp * GOLD_PER_XP * scale),
+    dmg: final_dmg,
   };
 }
 
@@ -557,13 +570,21 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             {/* Expected Rewards preview */}
             {previewRewards && (() => {
               const stats = profile?.total_stats || {};
-              const goldMultStats = stats.gold_multiplier || 1.0;
+              const goldMultStats = stats.gold_multiplier || profile?.gold_multiplier || 1.0;
               const xpMultStats = profile?.xp_multiplier || 1.0;
               const dmgMultStats = profile?.damage_multiplier || 1.0;
-              
-              const expectedXp = Math.max(0, Math.round(previewRewards.xp * xpMultStats));
-              const expectedGold = Math.max(0, Math.round(previewRewards.gold * goldMultStats));
-              const expectedDmg = Math.max(0, Math.round(previewRewards.dmg * dmgMultStats));
+
+              const pwr = stats.pwr || 0;
+              const spd = stats.spd || 0;
+              const lck = stats.lck || 0;
+
+              const pwrPct = Math.min(0.50, pwr * 0.005);
+              const spdPct = Math.min(0.50, spd * 0.005);
+              const lckGoldMult = lck <= 100 ? (1.0 + lck / 100.0) : (2.0 + (lck - 100) * 0.005);
+
+              const expectedXp = Math.max(0, Math.round(previewRewards.xp * (1.0 + pwrPct) * xpMultStats));
+              const expectedGold = Math.max(0, Math.round(previewRewards.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats));
+              const expectedDmg = Math.max(0, Math.round((previewRewards.dmg + 10 + pwr) * dmgMultStats));
 
               return (
                 <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-xs space-y-2">
