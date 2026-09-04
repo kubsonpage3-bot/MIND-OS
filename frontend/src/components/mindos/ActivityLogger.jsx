@@ -291,7 +291,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
         ))}
       </div>
 
-      {trainTab === "create" && <CreateTaskForm onCreated={() => setTrainTab("log")} hideTypeSelector={true} />}
+      {trainTab === "create" && <CreateTaskForm onCreated={() => setTrainTab("log")} hideTypeSelector={true} profile={profile} />}
 
       {trainTab === "log" && <>
       {/* Smart recommendation */}

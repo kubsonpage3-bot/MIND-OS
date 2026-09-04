@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { MASTERY_COEFFICIENTS } from "@/lib/cognitiveEngine";
+import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 
 const CATEGORIES = ["STEM", "Languages", "Humanities & Arts", "Health & Fitness", "Rest & Recovery", "Mindfulness", "Social & Communication", "Reading & Writing", "Work & Career", "Other"];
 
@@ -38,49 +39,112 @@ const DIFFICULTIES = [
   { id: "hard", label: "Hard", color: "#ef4444" },
 ];
 
-const TRAINING_REWARDS = {
-  trivial: { xp: 20, gold: 10, bossDamage: 20 },
-  easy: { xp: 35, gold: 20, bossDamage: 45 },
-  medium: { xp: 50, gold: 35, bossDamage: 70 },
-  hard: { xp: 70, gold: 60, bossDamage: 100 },
+const BASE_XP = 3;
+const TIER_MULTIPLIER = {
+  trivial: 1,
+  easy: 2,
+  medium: 4,
+  hard: 8,
 };
+const GOLD_PER_XP = 0.5;
+const TRAINING_DMG_PER_XP = 6.0;
+const DEEP_WORK_THRESHOLD_H = 0.75;
+const DEEP_WORK_DMG_MULTIPLIER = 1.8;
+const MAX_SESSION_HOURS = 16.0;
+
+function focusFactor(focus) {
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+  return clamp(focus / 10.0 + 0.2, 0.5, 1.3);
+}
+
+function getTrainingRewards(tier, hours, focus) {
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+  const clampedHours = clamp(hours, 0, MAX_SESSION_HOURS);
+  const ff = focusFactor(focus);
+
+  const mult = TIER_MULTIPLIER[tier] || 4;
+  const base_xp = BASE_XP * mult;
+  const scale = 1.0 * clampedHours * ff;
+
+  const raw_dmg = Math.round(base_xp * TRAINING_DMG_PER_XP * scale);
+  const deep_work = clampedHours >= DEEP_WORK_THRESHOLD_H;
+  const final_dmg = deep_work ? Math.round(raw_dmg * DEEP_WORK_DMG_MULTIPLIER) : raw_dmg;
+
+  return {
+    xp: Math.round(base_xp * scale),
+    gold: Math.round(base_xp * GOLD_PER_XP * scale),
+    dmg: final_dmg,
+  };
+}
 
 const TASK_REWARDS = {
-  trivial: { xp: 1, gold: 1, bossDamage: 10, hpDamage: 5 },
-  easy: { xp: 5, gold: 3, bossDamage: 30, hpDamage: 10 },
-  medium: { xp: 15, gold: 7, bossDamage: 50, hpDamage: 20 },
-  hard: { xp: 40, gold: 15, bossDamage: 100, hpDamage: 40 },
+  trivial: { xp: 3, gold: 2, bossDamage: 10, hpDamage: 5 },
+  easy: { xp: 6, gold: 3, bossDamage: 20, hpDamage: 10 },
+  medium: { xp: 12, gold: 6, bossDamage: 40, hpDamage: 20 },
+  hard: { xp: 24, gold: 12, bossDamage: 80, hpDamage: 40 },
 };
 
 const getInitialForm = (isButton) => {
-  const defaultDifficulty = "medium";
-  const rewardsMap = isButton ? TRAINING_REWARDS : TASK_REWARDS;
-  const defaultRewards = rewardsMap[defaultDifficulty];
   return {
     name: "",
     icon: "⭐",
     type: isButton ? "button" : "daily",
     category: "Other",
     masteryCategory: isButton ? "spirit" : "",
-    difficulty: defaultDifficulty,
+    difficulty: "medium",
     notes: "",
     dueDate: "",
-    xpReward: defaultRewards.xp,
-    goldReward: defaultRewards.gold,
-    bossDamage: defaultRewards.bossDamage,
-    hpDamageOnMiss: defaultRewards.hpDamage || 20,
     defaultHours: 1.0,
     defaultFocus: 7,
   };
 };
 
-export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) {
+export default function CreateTaskForm({ onCreated, hideTypeSelector = false, profile = null }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const auth = useDjangoAuth();
+  const currentProfile = profile || auth?.profile;
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [form, setForm] = useState(() => getInitialForm(hideTypeSelector));
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+
+  const previewRewards = useMemo(() => {
+    const stats = currentProfile?.total_stats || {};
+    const goldMultStats = stats.gold_multiplier || currentProfile?.gold_multiplier || 1.0;
+    const xpMultStats = currentProfile?.xp_multiplier || 1.0;
+    const dmgMultStats = currentProfile?.damage_multiplier || 1.0;
+
+    const pwr = stats.pwr || 0;
+    const spd = stats.spd || 0;
+    const lck = stats.lck || 0;
+
+    const pwrPct = Math.min(0.50, pwr * 0.005);
+    const spdPct = Math.min(0.50, spd * 0.005);
+    const lckGoldMult = lck <= 100 ? (1.0 + lck / 100.0) : (2.0 + (lck - 100) * 0.005);
+
+    if (form.type === "button") {
+      const base = getTrainingRewards(
+        form.difficulty || "medium",
+        parseFloat(String(form.defaultHours)) || 1.0,
+        parseInt(String(form.defaultFocus), 10) || 7
+      );
+      return {
+        xp: Math.max(0, Math.round(base.xp * (1.0 + pwrPct) * xpMultStats)),
+        gold: Math.max(0, Math.round(base.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats)),
+        bossDamage: Math.max(0, Math.round((base.dmg + 10 + pwr) * dmgMultStats)),
+        hpDamage: 0,
+      };
+    } else {
+      const base = TASK_REWARDS[form.difficulty] || TASK_REWARDS["medium"];
+      return {
+        xp: Math.max(0, Math.round(base.xp * (1.0 + pwrPct) * xpMultStats)),
+        gold: Math.max(0, Math.round(base.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats)),
+        bossDamage: Math.max(0, Math.round((base.bossDamage + 10 + pwr) * dmgMultStats)),
+        hpDamage: base.hpDamage,
+      };
+    }
+  }, [form.type, form.difficulty, form.defaultHours, form.defaultFocus, currentProfile]);
 
   const isSubmitDisabled = !form.name.trim() || (form.type === "button" && !form.masteryCategory);
 
@@ -97,17 +161,17 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
         notes: form.notes || "",
         difficulty: form.difficulty || "medium",
         due_date: form.dueDate || null,
-        
-        // Custom rewards and session defaults (with safety fallback values)
-        xp_reward: Math.max(1, parseInt(String(form.xpReward), 10) || 10),
-        gold_reward: Math.max(1, parseInt(String(form.goldReward), 10) || 8),
-        boss_damage: Math.max(1, parseInt(String(form.bossDamage), 10) || 15),
+
+        // Custom rewards and session defaults (matching preview)
+        xp_reward: previewRewards.xp,
+        gold_reward: previewRewards.gold,
+        boss_damage: previewRewards.bossDamage,
         default_hours: Math.max(0.5, parseFloat(String(form.defaultHours)) || 1.0),
         default_focus: Math.max(1, Math.min(10, parseInt(String(form.defaultFocus), 10) || 7)),
       };
 
       await djangoApi.tasks.create(taskData);
-      
+
       djangoApi.analytics.logEvent("task_created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       onCreated?.();
@@ -128,15 +192,9 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
   };
 
   const handleDifficultySelect = (diffId) => {
-    const rewardsMap = form.type === "button" ? TRAINING_REWARDS : TASK_REWARDS;
-    const rewards = rewardsMap[diffId] || rewardsMap["medium"];
     setForm(prev => ({
       ...prev,
       difficulty: diffId,
-      xpReward: rewards.xp,
-      goldReward: rewards.gold,
-      bossDamage: rewards.bossDamage,
-      hpDamageOnMiss: rewards.hpDamage || 20,
     }));
   };
 
@@ -146,12 +204,6 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
       if (typeId === "button" && prev.category && CATEGORY_TO_MASTERY[prev.category]) {
         next.masteryCategory = CATEGORY_TO_MASTERY[prev.category];
       }
-      const rewardsMap = typeId === "button" ? TRAINING_REWARDS : TASK_REWARDS;
-      const rewards = rewardsMap[prev.difficulty] || rewardsMap["medium"];
-      next.xpReward = rewards.xp;
-      next.goldReward = rewards.gold;
-      next.bossDamage = rewards.bossDamage;
-      next.hpDamageOnMiss = rewards.hpDamage || 20;
       return next;
     });
   };
@@ -363,11 +415,11 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false }) 
       <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-[10px] space-y-2">
         <div className="text-muted-foreground/40 uppercase tracking-wider">{t("task_form.preview", "Preview")}</div>
         <div className="flex gap-3 flex-wrap items-center">
-          <span className="text-blue-400 font-bold">+{form.xpReward} XP</span>
-          <span className="text-yellow-400 font-bold">+{form.goldReward}G</span>
-          <span className="text-red-400 font-bold">⚔ {form.bossDamage} DMG</span>
+          <span className="text-blue-400 font-bold">+{previewRewards.xp} XP</span>
+          <span className="text-yellow-400 font-bold">+{previewRewards.gold}G</span>
+          <span className="text-red-400 font-bold">⚔ {previewRewards.bossDamage} DMG</span>
           {form.type !== "todo" && form.type !== "button" && (
-            <span className="text-red-600">💔 -{form.hpDamageOnMiss} HP {t("task_form.on_miss", "on miss")}</span>
+            <span className="text-red-600">💔 -{previewRewards.hpDamage} HP {t("task_form.on_miss", "on miss")}</span>
           )}
         </div>
 
