@@ -53,6 +53,19 @@ const CATEGORY_COLORS = {
   Other: '#94a3b8',
 };
 
+const CATEGORY_ICONS = {
+  STEM: '🔬',
+  Languages: '🌐',
+  'Humanities & Arts': '📚',
+  'Health & Fitness': '💪',
+  'Rest & Recovery': '☕',
+  Mindfulness: '🧘',
+  'Social & Communication': '💬',
+  'Reading & Writing': '✍️',
+  'Work & Career': '💼',
+  Other: '📦',
+};
+
 function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick }) {
   const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
   const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
@@ -66,86 +79,127 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
   const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);
 
   const { bursts, trigger: triggerBurst } = usePixelBurst();
-
   const longPressProps = useLongPress(() => onEdit(task));
 
   return (
     <motion.div
-      className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer ${task.is_completed ? 'opacity-50' : 'task-card bg-[var(--habit-panel)]'}`}
-      style={{ border: '1px solid var(--habit-border)', ...longPressProps.style }}
+      className={`relative flex-1 min-w-0 flex items-center gap-2.5 rounded-xl pr-3 overflow-hidden cursor-pointer transition-all duration-200 group ${
+        task.is_completed ? 'opacity-40' : 'bg-[var(--habit-panel)] hover:bg-[var(--habit-panel)]/95 shadow-[0_2px_12px_rgba(0,0,0,0.2)]'
+      }`}
+      style={{
+        border: '1px solid var(--habit-border)',
+        ...longPressProps.style
+      }}
+      whileHover={{ y: -1, borderColor: `${accentColor}50` }}
       {...longPressProps}
     >
       {/* Pixel burst overlay */}
       <PixelBurstLayer bursts={bursts} />
-      {/* Fused rectangular control on the left edge */}
-      <div className="flex flex-col shrink-0 w-8 self-stretch border-r border-[var(--habit-border)] overflow-hidden">
+
+      {/* Tactile + / - buttons on left edge */}
+      <div className="flex flex-col shrink-0 w-9 self-stretch border-r border-white/5 overflow-hidden">
         <motion.button
-          whileTap={{ scale: 0.92 }}
+          whileTap={{ scale: 0.90 }}
           onClick={(e) => {
             e.stopPropagation();
             if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
             triggerBurst(accentColor, 10);
             habitClick(task, true);
           }}
-          className="flex-1 flex items-center justify-center text-white font-bold text-sm bg-[#22c55e] hover:bg-[#16a34a] active:bg-[#15803d] transition-colors"
+          className="flex-1 flex items-center justify-center font-bold text-sm bg-emerald-500/15 hover:bg-emerald-500/30 active:bg-emerald-500/45 text-emerald-400 hover:text-emerald-200 transition-colors cursor-pointer border-b border-white/5"
           style={{ opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
-        >+</motion.button>
+          title="Positive Habit (+)"
+        >
+          +
+        </motion.button>
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.90 }}
           onClick={(e) => {
             e.stopPropagation();
             if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
             habitClick(task, false);
           }}
-          className="flex-1 flex items-center justify-center text-white font-bold text-sm bg-[#ef4444] hover:bg-[#dc2626] active:bg-[#b91c1c] transition-colors border-t border-[var(--habit-border)]"
+          className="flex-1 flex items-center justify-center font-bold text-sm bg-rose-500/15 hover:bg-rose-500/30 active:bg-rose-500/45 text-rose-400 hover:text-rose-200 transition-colors cursor-pointer"
           style={{ opacity: completeMutation.isPending && completeMutation.variables?.task?.id === task.id ? 0.5 : 1 }}
-        >−</motion.button>
+          title="Negative Habit (-)"
+        >
+          −
+        </motion.button>
       </div>
 
       <DragHandle />
+
       {/* Task Value color bar */}
       <div
-        style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
+        style={{
+          width: 3.5,
+          alignSelf: 'stretch',
+          borderRadius: 2,
+          flexShrink: 0,
+          background: tvColor,
+          boxShadow: `0 0 8px ${tvColor}60`,
+          transition: 'background 0.6s'
+        }}
         title={`Task Value: ${tv.toFixed(1)}`}
       />
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="truncate flex items-center gap-1.5 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14 }}>
-          <span>{task.name}</span>
+      <div className="flex-1 min-w-0 py-2.5">
+        <div className="truncate flex items-center gap-1.5 text-slate-100 font-bold text-sm tracking-tight">
+          <span className="truncate">{task.name}</span>
           {task.posStreak >= 5 && <span className="text-xs" title={`Hot streak: ${task.posStreak}!`}>🔥</span>}
           {task.negStreak >= 5 && <span className="text-xs" title={`Neg streak: ${task.negStreak}!`}>💀</span>}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{t(`difficulties.${diff.id}`, diff.label)}</span>
-          <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+
+        {/* Metadata row */}
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span 
+            className="text-[9.5px] px-2 py-0.5 rounded-md font-mono font-bold flex items-center gap-1 border shadow-xs"
+            style={{ 
+              background: `${accentColor}18`,
+              borderColor: `${accentColor}40`,
+              color: accentColor 
+            }}
+          >
+            <span>{CATEGORY_ICONS[task.category] || '⭐'}</span>
+            <span>{String(t("categories." + task.category, task.category))}</span>
+          </span>
+
+          <span 
+            className="text-[9.5px] font-mono font-semibold px-1.5 py-0.5 rounded bg-white/5 border border-white/5" 
+            style={{ color: diff.color }}
+          >
+            {t(`difficulties.${diff.id}`, diff.label)}
+          </span>
+
+          <span className="text-[9.5px] font-mono font-bold" style={{ color: tvColor }}>
             TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
           </span>
         </div>
 
         {/* HP bar */}
-        <div className="flex items-center gap-1.5 mt-1.5">
-          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f74e52', minWidth: 12 }}>HP</span>
-          <div className="flex-1 relative" style={{ height: 6, background: '#fee2e2', borderRadius: 2, overflow: 'hidden' }}>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="font-mono text-[9px] font-bold text-rose-400 min-w-[16px]">HP</span>
+          <div className="flex-1 relative h-1.5 rounded-full bg-black/40 border border-white/5 overflow-hidden">
             <div
-              style={{ height: '100%', background: hpColor, borderRadius: 2, width: `${hpPct}%`, transition: 'width 0.4s ease-out' }}
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${hpPct}%`, background: hpColor, boxShadow: `0 0 6px ${hpColor}80` }}
             />
           </div>
-          <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#878190', minWidth: 28, textAlign: 'right' }}>
+          <span className="font-mono text-[9px] text-muted-foreground min-w-[28px] text-right font-medium">
             {Math.round(hp)}/{maxHp}
           </span>
         </div>
 
         {/* Streaks + next damage preview */}
-        <div className="flex items-center justify-between mt-1">
-          <div className="flex gap-2">
-            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#22c55e' }}>+{task.posStreak || 0}</span>
-            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#ef4444' }}>−{task.negStreak || 0}</span>
+        <div className="flex items-center justify-between mt-1 text-[9px] font-mono">
+          <div className="flex gap-2.5 font-bold">
+            <span className="text-emerald-400 flex items-center gap-0.5">+{task.posStreak || 0}</span>
+            <span className="text-rose-400 flex items-center gap-0.5">−{task.negStreak || 0}</span>
           </div>
           {(task.negStreak || 0) > 0 && (
-            <span style={{ fontFamily: "'PixeloidSans'", fontSize: 5, color: '#f59e0b' }}>
-              next: -{Math.round(nextDmg * 10) / 10}hp
+            <span className="text-amber-400 font-semibold">
+              next: -{Math.round(nextDmg * 10) / 10} HP
             </span>
           )}
         </div>
@@ -422,12 +476,32 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
   };
 
   return (
-    <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+    <div className="flex flex-col rounded-2xl border w-full mx-auto overflow-hidden bg-[var(--habit-panel)]/95 backdrop-blur-md border-rose-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-red, #f74e52)' }}>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>{t('lifeos_columns.habits', 'HABITS')}</span>
-        <button onClick={onAddClick} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-          <Plus size={16} className="text-white" strokeWidth={3} />
+      <div 
+        className="flex items-center justify-between px-4 py-3 border-b border-rose-500/30 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(225,29,72,0.25) 0%, rgba(159,18,57,0.15) 50%, rgba(15,10,20,0.8) 100%)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)'
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-xs shadow-[0_0_8px_rgba(244,63,94,0.3)]">
+            ⚡
+          </span>
+          <span className="font-pixel text-xs font-bold tracking-wider text-rose-300 uppercase">
+            {t('lifeos_columns.habits', 'HABITS')}
+          </span>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+            {tasks.length}
+          </span>
+        </div>
+        <button 
+          onClick={onAddClick} 
+          className="w-7 h-7 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_0_8px_rgba(244,63,94,0.2)] hover:scale-105"
+          title={t('task_modal.new_habit', 'Add Habit')}
+        >
+          <Plus size={14} strokeWidth={2.5} />
         </button>
       </div>
 

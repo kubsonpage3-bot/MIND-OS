@@ -42,7 +42,18 @@ const CATEGORY_COLORS = {
   Other: '#94a3b8',
 };
 
-
+const CATEGORY_ICONS = {
+  STEM: '🔬',
+  Languages: '🌐',
+  'Humanities & Arts': '📚',
+  'Health & Fitness': '💪',
+  'Rest & Recovery': '☕',
+  Mindfulness: '🧘',
+  'Social & Communication': '💬',
+  'Reading & Writing': '✍️',
+  'Work & Career': '💼',
+  Other: '📦',
+};
 
 /** Проверяет, просрочен ли To-Do (есть due_date и она в прошлом) */
 function isOverdue(task) {
@@ -76,73 +87,125 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
 
   return (
     <motion.div
-      className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden cursor-pointer ${
-        task.is_completed ? 'opacity-50' : ''
+      className={`relative flex-1 min-w-0 flex items-center gap-2.5 rounded-xl pr-3 overflow-hidden transition-all duration-200 group ${
+        task.is_completed 
+          ? 'opacity-50 cursor-pointer bg-[var(--habit-panel)]/60' 
+          : 'task-card bg-[var(--habit-panel)] hover:bg-[var(--habit-panel)]/95 shadow-[0_2px_12px_rgba(0,0,0,0.2)] cursor-pointer'
       }`}
-      style={/** @type {any} */ ({
-        background: 'var(--habit-panel)',
+      style={{
         border: justCompleted
-          ? `1px solid ${accentColor}99`
-          : `1px solid ${overdue && !task.is_completed ? 'var(--habit-red, #ef4444)' : 'var(--habit-border)'}`,
-        boxShadow: justCompleted ? `0 0 10px ${accentColor}44` : undefined,
-        transition: 'border 0.4s ease, box-shadow 0.4s ease',
+          ? `1px solid ${accentColor}`
+          : task.is_completed
+          ? '1px solid rgba(255,255,255,0.05)'
+          : overdue
+          ? '1px solid rgba(239,68,68,0.5)'
+          : '1px solid var(--habit-border)',
+        boxShadow: justCompleted 
+          ? `0 0 16px ${accentColor}55` 
+          : overdue && !task.is_completed 
+          ? '0 0 10px rgba(239,68,68,0.2)' 
+          : undefined,
+        transition: 'border 0.3s ease, box-shadow 0.3s ease',
         ...longPressProps.style
-      })}
-      animate={justCompleted ? { scale: [1, 1.04, 0.98, 1] } : {}}
+      }}
+      whileHover={{ y: -1, borderColor: `${accentColor}50` }}
+      animate={justCompleted ? { scale: [1, 1.03, 0.98, 1] } : {}}
       transition={{ duration: 0.28, ease: 'easeOut' }}
       {...longPressProps}
     >
       <PixelBurstLayer bursts={bursts} />
       <DragHandle />
+
       {/* Task Value bar */}
       {!task.is_completed && (
         <div
-          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
+          style={{ 
+            width: 3.5, 
+            alignSelf: 'stretch', 
+            borderRadius: 2, 
+            flexShrink: 0, 
+            background: tvColor, 
+            boxShadow: `0 0 8px ${tvColor}60`,
+            transition: 'background 0.6s' 
+          }}
           title={`Task Value: ${tv.toFixed(1)}`}
         />
       )}
 
-      {/* Checkbox */}
-      <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : (overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)') }}>
-        {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
+      {/* Stylized Gamified Checkbox */}
+      <div 
+        className="shrink-0 flex items-center justify-center p-1 cursor-pointer transition-transform group-hover:scale-105"
+        style={{ color: task.is_completed ? accentColor : (overdue ? 'var(--habit-red, #ef4444)' : 'var(--habit-dim)') }}
+      >
+        {task.is_completed ? (
+          <CheckSquare size={19} strokeWidth={2.2} className="text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
+        ) : (
+          <Square size={19} strokeWidth={1.8} className={overdue ? "text-red-400" : "text-slate-400 hover:text-amber-300 transition-colors"} />
+        )}
       </div>
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className={`truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{
-          fontFamily: "'Nunito'", fontWeight: 700, fontSize: 14,
-          color: overdue && !task.is_completed ? 'var(--habit-red, #ef4444)' : 'var(--habit-text)',
-        }}>
+      <div className="flex-1 min-w-0 pr-1 py-2.5 overflow-hidden">
+        <div className={`font-bold text-sm truncate tracking-tight ${
+          task.is_completed 
+            ? 'line-through text-slate-500' 
+            : overdue 
+            ? 'text-red-400' 
+            : 'text-slate-100'
+        }`}>
           {task.name}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{t(`difficulties.${diff.id}`, diff.label)}</span>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span 
+            className="text-[9.5px] px-2 py-0.5 rounded-md font-mono font-bold flex items-center gap-1 border shadow-xs"
+            style={{ 
+              background: `${accentColor}18`,
+              borderColor: `${accentColor}40`,
+              color: accentColor 
+            }}
+          >
+            <span>{CATEGORY_ICONS[task.category] || '⭐'}</span>
+            <span>{String(t("categories." + task.category, task.category))}</span>
+          </span>
+
+          <span 
+            className="text-[9.5px] font-mono font-semibold px-1.5 py-0.5 rounded bg-white/5 border border-white/5" 
+            style={{ color: diff.color }}
+          >
+            {t(`difficulties.${diff.id}`, diff.label)}
+          </span>
+
           {/* Task Value */}
           {tv !== 0 && (
-            <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+            <span className="text-[9.5px] font-mono font-bold" style={{ color: tvColor }}>
               TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
             </span>
           )}
+
           {/* Due date */}
           {task.due_date && (
-            <span className="flex items-center gap-0.5 text-[10px]" style={{ color: overdue && !task.is_completed ? 'var(--habit-red)' : 'var(--habit-dim)' }}>
-              <Clock size={8} />
-              {new Date(task.due_date).toLocaleDateString()}
-              {overdue && !task.is_completed && ' ⚠️'}
+            <span className={`flex items-center gap-1 text-[9.5px] font-mono px-1.5 py-0.5 rounded border ${
+              overdue && !task.is_completed 
+                ? 'text-red-400 bg-red-500/10 border-red-500/30 font-bold' 
+                : 'text-slate-400 bg-white/5 border-white/5'
+            }`}>
+              <Clock size={10} />
+              <span>{new Date(task.due_date).toLocaleDateString()}</span>
+              {overdue && !task.is_completed && '⚠️'}
             </span>
           )}
         </div>
-        {/* Предупреждение о снижении награды */}
+
+        {/* Penalty warning */}
         {tv < -5 && !task.is_completed && (
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 3 }}>
+          <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: 'var(--habit-gold, #f59e0b)', marginTop: 4 }}>
             reward -{ Math.round(Math.abs(tv) * 5) }%
           </div>
         )}
       </div>
 
       {/* Delete */}
-      <div className="shrink-0">
+      <div className="shrink-0 flex items-center h-full ml-1">
         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
       </div>
     </motion.div>
@@ -151,7 +214,7 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
 
 const taskComparator = (a, b) => ((a.order ?? 0) - (b.order ?? 0)) || ((a.id ?? 0) - (b.id ?? 0));
 
-export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRankXP }) {
+export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRankXP, onAddClick }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
@@ -380,12 +443,32 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
   };
 
   return (
-    <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+    <div className="flex flex-col rounded-2xl border w-full mx-auto overflow-hidden bg-[var(--habit-panel)]/95 backdrop-blur-md border-amber-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-orange, #ff8800)' }}>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>{t('lifeos_columns.todos', 'TO-DOS')}</span>
-        <button onClick={() => { setEditingTask(null); setShowForm(true); }} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-          <Plus size={16} className="text-white" strokeWidth={3} />
+      <div 
+        className="flex items-center justify-between px-4 py-3 border-b border-amber-500/30 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(245,158,11,0.25) 0%, rgba(217,119,6,0.15) 50%, rgba(20,15,10,0.8) 100%)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)'
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xs shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+            📜
+          </span>
+          <span className="font-pixel text-xs font-bold tracking-wider text-amber-300 uppercase">
+            {t('lifeos_columns.todos', 'TO-DOS')}
+          </span>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            {tasks.filter(t => t.is_completed).length}/{tasks.length}
+          </span>
+        </div>
+        <button 
+          onClick={onAddClick || (() => { setEditingTask(null); setShowForm(true); })} 
+          className="w-7 h-7 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_0_8px_rgba(245,158,11,0.2)] hover:scale-105"
+          title={t('task_modal.new_todo', 'Add To-Do')}
+        >
+          <Plus size={14} strokeWidth={2.5} />
         </button>
       </div>
 

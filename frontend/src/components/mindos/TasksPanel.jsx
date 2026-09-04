@@ -119,9 +119,9 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
         {taskTab === 'tasks' && (
           <button
             onClick={() => { setFormType('habit'); setCreateModalOpen(true); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-pixel uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-pixel uppercase tracking-wider bg-gradient-to-r from-amber-500/20 via-primary/30 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/30 text-amber-300 border border-amber-500/40 hover:border-amber-400/70 transition-all shadow-[0_0_12px_rgba(245,158,11,0.2)] hover:shadow-[0_0_16px_rgba(245,158,11,0.35)] cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
             {t('task_modal.new_task_btn', 'New Task')}
           </button>
         )}
@@ -133,7 +133,7 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
           <div className="flex flex-col gap-3 md:gap-6">
             <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('habit'); setCreateModalOpen(true); }} />
             <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('daily'); setCreateModalOpen(true); }} />
-            <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
+            <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('todo'); setCreateModalOpen(true); }} />
           </div>
         )}
         {taskTab === 'activities' && <ActivityLogger onLog={onLog} profile={profile} logs={logs} tasks={tasks} subjectTotals={subjectTotals} isLogging={false} />}
@@ -143,7 +143,7 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
       <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <HabitsColumn habits={habits} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('habit'); setCreateModalOpen(true); }} />
         <DailiesColumn dailies={dailies} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('daily'); setCreateModalOpen(true); }} />
-        <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} />
+        <TodosColumn todos={todos} onXpGain={onXpGain} onBossDamage={onBossDamage} onRankXP={onRankXP} onAddClick={() => { setFormType('todo'); setCreateModalOpen(true); }} />
       </div>
 
       <CreateTaskModal isOpen={isCreateModalOpen} onClose={() => setCreateModalOpen(false)}

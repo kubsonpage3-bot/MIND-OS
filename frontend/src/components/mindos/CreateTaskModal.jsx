@@ -38,6 +38,32 @@ const CATEGORY_TO_MASTERY = {
   "Other": "humanities",
 };
 
+const CATEGORY_COLORS = {
+  "STEM": "#3b82f6",
+  "Languages": "#00cc88",
+  "Humanities & Arts": "#eab308",
+  "Health & Fitness": "#ef4444",
+  "Rest & Recovery": "#f97316",
+  "Mindfulness": "#9944ff",
+  "Social & Communication": "#a855f7",
+  "Reading & Writing": "#22c55e",
+  "Work & Career": "#64748b",
+  "Other": "#94a3b8",
+};
+
+const CATEGORY_ICONS = {
+  "STEM": "🔬",
+  "Languages": "🌐",
+  "Humanities & Arts": "📚",
+  "Health & Fitness": "💪",
+  "Rest & Recovery": "☕",
+  "Mindfulness": "🧘",
+  "Social & Communication": "💬",
+  "Reading & Writing": "✍️",
+  "Work & Career": "💼",
+  "Other": "📦",
+};
+
 export default function CreateTaskModal({ isOpen, onClose, formType, setFormType, form, setForm, onCreate, editMode = false }) {
   useHardwareBack(isOpen, onClose);
   
@@ -81,22 +107,20 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
             onClick={onClose}
           />
 
-          {/* Modal centered on screen - positioned below top character bar */}
+          {/* Modal centered on screen */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            initial={{ opacity: 0, scale: 0.94, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+            exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-[100000] flex items-start justify-center pointer-events-none"
-            style={{ paddingTop: "100px" }}
+            className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 pointer-events-none pt-12 sm:pt-16"
           >
             <div 
-              className="w-full max-w-2xl mx-4 mb-4 pointer-events-auto rounded-2xl border overflow-hidden text-slate-200"
+              className="w-full max-w-2xl max-h-[88vh] pointer-events-auto rounded-2xl border overflow-hidden text-slate-200 flex flex-col shadow-2xl"
               style={{
                 background: "linear-gradient(135deg, rgba(22,20,18,0.98) 0%, rgba(15,13,11,0.99) 100%)",
-                border: "1px solid rgba(240,192,64,0.3)",
-                boxShadow: "0 20px 80px rgba(0,0,0,0.8), 0 0 40px rgba(240,192,64,0.1)",
-                maxHeight: "calc(100vh - 120px)",
+                border: "1px solid rgba(240,192,64,0.35)",
+                boxShadow: "0 25px 80px rgba(0,0,0,0.85), 0 0 40px rgba(240,192,64,0.12)",
               }}
             >
               {/* Header */}
@@ -128,71 +152,100 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Type selector */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">
                       {t('task_modal.task_type', 'Task Type')}
                     </label>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {[
-                        { id: 'habit', label: t('task_modal.habit', 'Habit') },
-                        { id: 'daily', label: t('task_modal.daily', 'Daily Routine') },
-                        { id: 'todo', label: t('task_modal.todo', 'To-Do / Quest') }
-                      ].map(item => (
-                        <button
-                          key={item.id}
-                          onClick={() => {
-                            setFormType(item.id);
-                            setForm({ ...form, type: item.id });
-                          }}
-                          className="flex-1 px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all uppercase cursor-pointer"
-                          style={{
-                            borderColor: formType === item.id ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.3)",
-                            color: formType === item.id ? "#f0c040" : "#64748b",
-                            background: formType === item.id ? "rgba(240,192,64,0.12)" : "rgba(255,255,255,0.02)",
-                            boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
-                          }}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                        { id: 'habit', label: t('task_modal.habit', 'Habit'), icon: '⚡', color: '#f43f5e' },
+                        { id: 'daily', label: t('task_modal.daily', 'Daily Routine'), icon: '🛡️', color: '#a855f7' },
+                        { id: 'todo', label: t('task_modal.todo', 'To-Do / Quest'), icon: '📜', color: '#f59e0b' }
+                      ].map(item => {
+                        const isSelected = formType === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setFormType(item.id);
+                              setForm({ ...form, type: item.id });
+                            }}
+                            className="px-3 py-2.5 rounded-xl border text-center transition-all uppercase cursor-pointer flex flex-col items-center gap-1 relative overflow-hidden"
+                            style={{
+                              borderColor: isSelected ? item.color : "rgba(255,255,255,0.1)",
+                              color: isSelected ? "#ffffff" : "rgba(148, 163, 184, 0.7)",
+                              background: isSelected ? `${item.color}20` : "rgba(255,255,255,0.02)",
+                              boxShadow: isSelected ? `0 0 16px ${item.color}30` : "none"
+                            }}
+                          >
+                            <span className="text-base">{item.icon}</span>
+                            <span className="font-mono text-xs font-bold tracking-wider">{item.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* Category selector */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">
                       {t('task_modal.category', 'Category')}
                     </label>
-                    <div className="grid grid-cols-4 gap-1.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       {CATEGORIES.map(c => {
                         const mastery = CATEGORY_TO_MASTERY[c];
                         const isMatch = Boolean(heroTargetMastery && mastery === heroTargetMastery);
                         const isSelected = form.category === c;
+                        const catColor = CATEGORY_COLORS[c] || '#94a3b8';
+                        const catIcon = CATEGORY_ICONS[c] || '⭐';
                         return (
                           <button
                             key={c}
+                            type="button"
                             onClick={() => setForm({ ...form, category: c })}
-                            className="aspect-square p-0 flex flex-col items-center justify-center text-center text-[9px] leading-[1.1] font-mono pixel-btn border-2 transition-all cursor-pointer relative"
+                            className="p-2 sm:p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer relative overflow-hidden group"
                             style={{
                               borderColor: isSelected
-                                ? "rgba(240,192,64,0.7)"
+                                ? catColor
                                 : isMatch
-                                  ? "rgba(245,158,11,0.5)"
-                                  : "rgba(148,163,184,0.25)",
-                              color: isSelected ? "#f0c040" : isMatch ? "#fbbf24" : "#64748b",
+                                  ? `${catColor}80`
+                                  : "rgba(255, 255, 255, 0.08)",
                               background: isSelected
-                                ? "rgba(240,192,64,0.12)"
+                                ? `${catColor}25`
                                 : isMatch
-                                  ? "rgba(245,158,11,0.06)"
-                                  : "rgba(255,255,255,0.02)",
-                              boxShadow: isMatch ? "0 0 10px rgba(245,158,11,0.18)" : "0 1px 0 rgba(0,0,0,0.3)"
+                                  ? `${catColor}10`
+                                  : "rgba(255, 255, 255, 0.02)",
+                              boxShadow: isSelected
+                                ? `0 0 16px ${catColor}35, inset 0 0 12px ${catColor}15`
+                                : isMatch
+                                  ? `0 0 10px ${catColor}20`
+                                  : "none",
                             }}
                           >
                             {isMatch && (
-                              <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded text-[7px] font-bold bg-amber-500 text-black shadow-[0_0_6px_rgba(245,158,11,0.6)] animate-pulse z-10">
+                              <span 
+                                className="absolute -top-1 -right-1 px-1 py-0.2 rounded text-[7px] font-bold bg-amber-500 text-black shadow-[0_0_6px_rgba(245,158,11,0.6)] animate-pulse z-10 font-mono"
+                              >
                                 +20%
                               </span>
                             )}
-                            <span className="line-clamp-2 w-full px-0.5">{t("categories." + c, c)}</span>
+                            <span 
+                              className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-sm transition-transform group-hover:scale-110"
+                              style={{
+                                background: isSelected ? `${catColor}35` : "rgba(255, 255, 255, 0.05)",
+                                border: `1px solid ${isSelected ? catColor : "rgba(255, 255, 255, 0.1)"}`
+                              }}
+                            >
+                              {catIcon}
+                            </span>
+                            <span 
+                              className="text-[10px] sm:text-[11px] font-mono font-bold leading-tight truncate flex-1"
+                              style={{
+                                color: isSelected ? "#ffffff" : isMatch ? catColor : "rgba(226, 232, 240, 0.75)",
+                              }}
+                            >
+                              {t("categories." + c, c)}
+                            </span>
                           </button>
                         );
                       })}
@@ -201,25 +254,29 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
 
                   {/* Difficulty selector */}
                   <div>
-                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider">
+                    <label className="text-[10px] font-mono text-muted-foreground mb-2 block uppercase tracking-wider font-bold">
                       {t('task_modal.difficulty', 'Difficulty')}
                     </label>
-                    <div className="flex gap-2">
-                      {DIFFICULTIES.map(d => (
-                        <button
-                          key={d.id}
-                          onClick={() => setForm({ ...form, difficulty: d.id })}
-                          className="flex-1 px-3 py-2.5 text-xs font-mono rounded border-2 transition-all cursor-pointer"
-                          style={{
-                            borderColor: form.difficulty === d.id ? d.color : "var(--habit-border)",
-                            color: form.difficulty === d.id ? d.color : "var(--habit-dim)",
-                            background: form.difficulty === d.id ? `${d.color}15` : "transparent",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-                          }}
-                        >
-                          {t(`difficulties.${d.id}`, d.label)}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-4 gap-2">
+                      {DIFFICULTIES.map(d => {
+                        const isSelected = form.difficulty === d.id;
+                        return (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() => setForm({ ...form, difficulty: d.id })}
+                            className="px-2.5 py-2.5 text-xs font-mono font-bold rounded-xl border transition-all cursor-pointer text-center"
+                            style={{
+                              borderColor: isSelected ? d.color : "rgba(255,255,255,0.08)",
+                              color: isSelected ? d.color : "rgba(148, 163, 184, 0.6)",
+                              background: isSelected ? `${d.color}18` : "rgba(255,255,255,0.02)",
+                              boxShadow: isSelected ? `0 0 12px ${d.color}25` : "none"
+                            }}
+                          >
+                            {t(`difficulties.${d.id}`, d.label)}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -324,16 +381,16 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       </label>
                       <button
                         onClick={() => setForm({ ...form, showInCalendar: !form.showInCalendar })}
-                        className="w-full px-3 py-2.5 text-sm font-mono pixel-btn border-2 transition-all flex items-center justify-between cursor-pointer"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border transition-all flex items-center justify-between cursor-pointer"
                         style={{
-                          borderColor: form.showInCalendar ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.3)",
-                          color: form.showInCalendar ? "#f0c040" : "#64748b",
+                          borderColor: form.showInCalendar ? "rgba(240,192,64,0.6)" : "rgba(148,163,184,0.2)",
+                          color: form.showInCalendar ? "#f0c040" : "#94a3b8",
                           background: form.showInCalendar ? "rgba(240,192,64,0.12)" : "rgba(255,255,255,0.02)",
-                          boxShadow: "0 2px 0 rgba(0,0,0,0.3)"
+                          boxShadow: form.showInCalendar ? "0 0 12px rgba(240,192,64,0.15)" : "none"
                         }}
                       >
-                        <span>{form.showInCalendar ? t('task_modal.visible_in_calendar', 'VISIBLE IN CALENDAR') : t('calendar_ui.hidden_calendar', 'HIDDEN FROM CALENDAR')}</span>
-                        <span className="text-lg">{form.showInCalendar ? "✓" : "○"}</span>
+                        <span className="font-bold">{form.showInCalendar ? t('task_modal.visible_in_calendar', 'VISIBLE IN CALENDAR') : t('calendar_ui.hidden_calendar', 'HIDDEN FROM CALENDAR')}</span>
+                        <span className="text-base font-bold">{form.showInCalendar ? "✓" : "○"}</span>
                       </button>
                     </div>
                   )}
@@ -359,16 +416,19 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                       <button
                         onClick={handleCreate}
                         disabled={isSubmitDisabled}
-                        className="w-full pixel-btn border-2 font-mono font-bold py-4 text-base tracking-wider cursor-pointer"
+                        className="w-full rounded-xl border font-mono font-bold py-3.5 text-sm tracking-wider uppercase cursor-pointer transition-all flex items-center justify-center gap-2"
                         style={{ 
-                          borderColor: "#f0c040",
-                          background: isSubmitDisabled ? "rgba(240,192,64,0.15)" : "rgba(240,192,64,0.25)",
-                          color: "#f0c040",
-                          boxShadow: "0 2px 0 rgba(0,0,0,0.4)",
-                          opacity: isSubmitDisabled ? 0.5 : 1
+                          borderColor: !isSubmitDisabled ? "#f0c040" : "rgba(240,192,64,0.2)",
+                          background: !isSubmitDisabled 
+                            ? "linear-gradient(135deg, rgba(240,192,64,0.3) 0%, rgba(245,158,11,0.2) 100%)" 
+                            : "rgba(255,255,255,0.02)",
+                          color: !isSubmitDisabled ? "#f0c040" : "rgba(148,163,184,0.4)",
+                          boxShadow: !isSubmitDisabled ? "0 4px 20px rgba(240,192,64,0.25)" : "none",
+                          cursor: !isSubmitDisabled ? "pointer" : "not-allowed"
                         }}
                       >
-                        {editMode ? t('task_modal.save_changes', 'SAVE CHANGES') : t('task_modal.create_task', 'CREATE TASK')}
+                        <span>{editMode ? "💾" : "⚔️"}</span>
+                        <span>{editMode ? t('task_modal.save_changes', 'SAVE CHANGES') : t('task_modal.create_task', 'CREATE TASK')}</span>
                       </button>
                     );
                   })()}

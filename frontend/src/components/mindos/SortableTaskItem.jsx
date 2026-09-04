@@ -32,7 +32,7 @@ export function SortableTaskItem({ id, children }) {
       className={`
         flex w-full
         ${isDragging
-          ? 'shadow-[0_8px_32px_rgba(168,85,247,0.4)] scale-[1.02] z-50'
+          ? 'shadow-[0_8px_32px_rgba(240,192,64,0.35)] scale-[1.02] z-50 ring-1 ring-amber-500/40 rounded-xl'
           : ''
         }
       `}
@@ -60,15 +60,15 @@ export function DragHandle() {
         cursor-grab active:cursor-grabbing
         touch-none select-none
         flex items-center justify-center
-        h-full w-8
-        opacity-30 hover:opacity-100 hover:bg-[var(--habit-dim)]/10
+        self-stretch w-7
+        text-white/20 hover:text-white/70 hover:bg-white/5
         transition-all duration-200
-        border-r border-[var(--habit-border)]
+        border-r border-white/5
         shrink-0
       "
       aria-label="Drag to reorder"
     >
-      <GripVertical size={16} className="text-[var(--habit-text)]" />
+      <GripVertical size={14} />
     </div>
   )
 }

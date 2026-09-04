@@ -43,23 +43,18 @@ const CATEGORY_COLORS = {
   Other: '#94a3b8',
 };
 
-
-
-
-
-function getDayStartHour() {
-  try {
-    const gs = JSON.parse(localStorage.getItem('mindos_gameplay_settings') || '{}');
-    if (gs.dayStart) {
-      const parts = gs.dayStart.split(':');
-      return parseInt(parts[0], 10) || 0;
-    }
-    const s = JSON.parse(localStorage.getItem('mindos_settings') || '{}');
-    return s.dayStartHour || 0;
-  } catch {
-    return 0;
-  }
-}
+const CATEGORY_ICONS = {
+  STEM: '🔬',
+  Languages: '🌐',
+  'Humanities & Arts': '📚',
+  'Health & Fitness': '💪',
+  'Rest & Recovery': '☕',
+  Mindfulness: '🧘',
+  'Social & Communication': '💬',
+  'Reading & Writing': '✍️',
+  'Work & Career': '💼',
+  Other: '📦',
+};
 
 function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDaily }) {
   const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
@@ -81,7 +76,6 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
     if (!isScheduledToday) return;
     if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
     if (!task.is_completed) {
-      // Trigger pixel burst in category color
       triggerBurst(accentColor, 12);
       setJustCompleted(true);
       setTimeout(() => setJustCompleted(false), 700);
@@ -96,20 +90,25 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
 
   return (
     <motion.div
-      className={`relative flex-1 min-w-0 flex items-center gap-2 rounded-xl pr-2.5 overflow-hidden ${
+      className={`relative flex-1 min-w-0 flex items-center gap-2.5 rounded-xl pr-3 overflow-hidden transition-all duration-200 group ${
         !isScheduledToday
           ? 'opacity-40 cursor-default'
           : task.is_completed
-          ? 'opacity-50 cursor-pointer'
-          : 'task-card bg-[var(--habit-panel)] cursor-pointer'
+          ? 'opacity-50 cursor-pointer bg-[var(--habit-panel)]/60'
+          : 'task-card bg-[var(--habit-panel)] hover:bg-[var(--habit-panel)]/95 shadow-[0_2px_12px_rgba(0,0,0,0.2)] cursor-pointer'
       }`}
       style={{
-        border: justCompleted ? `1px solid ${accentColor}99` : '1px solid var(--habit-border)',
-        boxShadow: justCompleted ? `0 0 10px ${accentColor}44` : undefined,
-        transition: 'border 0.4s ease, box-shadow 0.4s ease',
+        border: justCompleted 
+          ? `1px solid ${accentColor}` 
+          : task.is_completed
+            ? '1px solid rgba(255,255,255,0.05)'
+            : '1px solid var(--habit-border)',
+        boxShadow: justCompleted ? `0 0 16px ${accentColor}55` : undefined,
+        transition: 'border 0.3s ease, box-shadow 0.3s ease',
         ...longPressProps.style,
       }}
-      animate={justCompleted ? { scale: [1, 1.04, 0.98, 1] } : {}}
+      whileHover={isScheduledToday ? { y: -1, borderColor: `${accentColor}50` } : {}}
+      animate={justCompleted ? { scale: [1, 1.03, 0.98, 1] } : {}}
       transition={{ duration: 0.28, ease: 'easeOut' }}
       {...longPressProps}
     >
@@ -121,32 +120,65 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
       {/* Task Value bar */}
       {!task.is_completed && (
         <div
-          style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, flexShrink: 0, background: tvColor, transition: 'background 0.6s' }}
+          style={{ 
+            width: 3.5, 
+            alignSelf: 'stretch', 
+            borderRadius: 2, 
+            flexShrink: 0, 
+            background: tvColor, 
+            boxShadow: `0 0 8px ${tvColor}60`,
+            transition: 'background 0.6s' 
+          }}
           title={`Task Value: ${tv.toFixed(1)}`}
         />
       )}
 
-      {/* Checkbox */}
-      <div className="shrink-0 flex items-center justify-center p-1" style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}>
-        {task.is_completed ? <CheckSquare size={20} strokeWidth={2} /> : <Square size={20} strokeWidth={1.5} />}
+      {/* Stylized Gamified Checkbox */}
+      <div 
+        className="shrink-0 flex items-center justify-center p-1 cursor-pointer transition-transform group-hover:scale-105" 
+        style={{ color: task.is_completed ? accentColor : 'var(--habit-dim)' }}
+      >
+        {task.is_completed ? (
+          <CheckSquare size={19} strokeWidth={2.2} className="text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.7)]" />
+        ) : (
+          <Square size={19} strokeWidth={1.8} className="text-slate-400 hover:text-purple-300 transition-colors" />
+        )}
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0 pr-2 overflow-hidden">
-        <div className={`font-semibold text-sm truncate ${task.is_completed ? 'line-through opacity-70' : ''}`} style={{ color: 'var(--habit-text)' }}>
+      <div className="flex-1 min-w-0 pr-1 py-2.5 overflow-hidden">
+        <div className={`font-bold text-sm truncate tracking-tight ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-100'}`}>
           {task.name}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold text-white" style={{ background: accentColor + '99' }}>{String(t("categories." + task.category, task.category))}</span>
-          <span className="text-[10px] font-mono" style={{ color: diff.color }}>{t(`difficulties.${diff.id}`, diff.label)}</span>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span 
+            className="text-[9.5px] px-2 py-0.5 rounded-md font-mono font-bold flex items-center gap-1 border shadow-xs"
+            style={{ 
+              background: `${accentColor}18`,
+              borderColor: `${accentColor}40`,
+              color: accentColor 
+            }}
+          >
+            <span>{CATEGORY_ICONS[task.category] || '⭐'}</span>
+            <span>{String(t("categories." + task.category, task.category))}</span>
+          </span>
+
+          <span 
+            className="text-[9.5px] font-mono font-semibold px-1.5 py-0.5 rounded bg-white/5 border border-white/5" 
+            style={{ color: diff.color }}
+          >
+            {t(`difficulties.${diff.id}`, diff.label)}
+          </span>
+
           {(task.streak || 0) > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-orange-400">
-              <Flame size={10} strokeWidth={2.5} />
+            <span className="flex items-center gap-0.5 text-[9.5px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+              <Flame size={11} strokeWidth={2.5} className="text-amber-400" />
               <span>{task.streak}</span>
             </span>
           )}
+
           {tv !== 0 && (
-            <span className="text-[10px] font-mono" style={{ color: tvColor }}>
+            <span className="text-[9.5px] font-mono font-bold" style={{ color: tvColor }}>
               TV:{tv >= 0 ? '+' : ''}{tv.toFixed(0)}
             </span>
           )}
@@ -154,7 +186,7 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
       </div>
 
       {/* Delete */}
-      <div className="shrink-0">
+      <div className="shrink-0 flex items-center h-full ml-1">
         <ConfirmDeleteButton onDelete={() => deleteTask(task.id)} />
       </div>
     </motion.div>
@@ -468,12 +500,32 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   };
 
   return (
-    <div className="flex flex-col rounded-none border-x-0 mx-0 w-full md:rounded-xl md:border-x md:mx-auto md:max-w-2xl border-y overflow-hidden bg-[var(--habit-panel)] border-[var(--habit-border)] shadow-sm">
+    <div className="flex flex-col rounded-2xl border w-full mx-auto overflow-hidden bg-[var(--habit-panel)]/95 backdrop-blur-md border-purple-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--habit-purple)' }}>
-        <span style={{ fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, letterSpacing: '0.06em', color: 'white' }}>{t('lifeos_columns.dailies', 'DAILIES')}</span>
-        <button onClick={onAddClick} className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-          <Plus size={16} className="text-white" strokeWidth={3} />
+      <div 
+        className="flex items-center justify-between px-4 py-3 border-b border-purple-500/30 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(147,51,234,0.25) 0%, rgba(107,33,168,0.15) 50%, rgba(15,10,20,0.8) 100%)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)'
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-xs shadow-[0_0_8px_rgba(168,85,247,0.3)]">
+            🛡️
+          </span>
+          <span className="font-pixel text-xs font-bold tracking-wider text-purple-300 uppercase">
+            {t('lifeos_columns.dailies', 'DAILIES')}
+          </span>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            {tasks.filter(t => t.is_completed).length}/{tasks.length}
+          </span>
+        </div>
+        <button 
+          onClick={onAddClick} 
+          className="w-7 h-7 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_0_8px_rgba(168,85,247,0.2)] hover:scale-105"
+          title={t('task_modal.new_daily', 'Add Daily')}
+        >
+          <Plus size={14} strokeWidth={2.5} />
         </button>
       </div>
 
