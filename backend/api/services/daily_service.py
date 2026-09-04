@@ -129,15 +129,28 @@ def process_daily_login(user):
             profile.gold += payout
             profile.ledger_gold = 0
 
-    # fortunes_favor (Gain 100G daily)
-    if UnlockedSkill.objects.filter(
+    # ── Daily Login Rewards ──────────────────────────────────────────────────
+    from api.services.mechanics import get_passive_multipliers
+
+    # fortunes_favor: Gain +100G bonus on daily login
+    has_fortunes_favor = UnlockedSkill.objects.filter(
         user_profile=profile, skill_code="fortunes_favor"
-    ).exists():
+    ).exists()
+    if has_fortunes_favor:
         profile.gold += 100
 
-    # compound_returns (7-day perfect streak -> 200G)
+    # godmind: IQ score (avg of 4 cognitive metrics) bonus XP per daily login
+    passives = get_passive_multipliers(profile, {})
+    if passives.get("godmind_active", False):
+        # IQ proxy = average of gf, gc, ps, vm; contributes 0.5x to rank_xp
+        iq_score = (profile.gf + profile.gc + profile.ps + profile.vm) / 4.0
+        godmind_xp = int(iq_score * 0.5)
+        profile.rank_xp += godmind_xp
+
+    # compound_returns: every 7-day streak milestone gives +200G bonus
     if (
-        profile.streak % 7 == 0
+        profile.streak > 0
+        and profile.streak % 7 == 0
         and UnlockedSkill.objects.filter(
             user_profile=profile, skill_code="compound_returns"
         ).exists()
@@ -151,6 +164,7 @@ def process_daily_login(user):
             "last_login_date",
             "streak",
             "gold",
+            "rank_xp",
             "last_weekly_reset",
             "mana",
             "ledger_gold",

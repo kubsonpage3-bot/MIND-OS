@@ -1089,7 +1089,7 @@
       },
       "omniscience": {
         "name": "Omniscience",
-        "desc": "All 5 metrics gain +0.3 flat on each achievement unlock"
+        "desc": "All 4 cognitive metrics gain +0.3 flat on each achievement unlock"
       }
     },
     "achievements": {

@@ -24,6 +24,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     unlocked_achievements = serializers.SerializerMethodField()
     prestige_xp_required = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
+    humanities_rank_info = serializers.SerializerMethodField()
     streak_title = serializers.ReadOnlyField()
     offline_seconds = serializers.IntegerField(read_only=True, required=False)
     max_streak = serializers.SerializerMethodField()
@@ -85,6 +86,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "rival_data",
             "seen_guides",
             "rank_info",
+            "humanities_rank_info",
             "streak_title",
             "equipped_title",
             "playstyle_info",
@@ -125,6 +127,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "xp_multiplier",
             "seen_guides",
             "rank_info",
+            "humanities_rank_info",
             "is_premium",
         )
 
@@ -135,6 +138,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         from api.services.profile_service import get_rank_info
 
         return get_rank_info(obj)
+
+    def get_humanities_rank_info(self, obj):
+        from api.services.profile_service import get_humanities_rank_info
+
+        return get_humanities_rank_info(obj)
 
     def get_hp_max(self, obj) -> int:
         return obj.total_stats.get("hp_max", obj.max_hp)

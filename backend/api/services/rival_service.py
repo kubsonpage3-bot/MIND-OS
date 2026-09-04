@@ -269,20 +269,22 @@ def compute_rival_data(user_profile):
 
     from api.models import UnlockedSkill, ActiveEffect, TrainingSession
     from django.db.models import Sum
+    from api.services.mechanics import get_passive_multipliers
 
     transcendence_active = ActiveEffect.objects.filter(
         user=user_profile.user, skill_id="transcendence"
     ).exists()
 
-    has_transcendent_will = UnlockedSkill.objects.filter(
-        user_profile=user_profile, skill_code="transcendent_will"
-    ).exists()
+    # Get passive effects for rival reduction skills
+    passive_effects = get_passive_multipliers(user_profile, {})
+    rival_xp_reduction = passive_effects.get("rival_xp_reduction", 0.0)
 
     if transcendence_active:
         johan_xp = stored.get("johanAccumulatedXP", johan_xp)
 
-    if has_transcendent_will:
-        johan_xp = max(1.0, round(johan_xp * 0.9, 1))
+    # Apply transcendent_will + living_library stacked reduction
+    if rival_xp_reduction > 0:
+        johan_xp = max(1.0, round(johan_xp * (1.0 - rival_xp_reduction), 1))
 
     # ── Rolling weekly history (never retroactively rewritten) ─
     prev_history = stored.get("weeklyHistory", [])

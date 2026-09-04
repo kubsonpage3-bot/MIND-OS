@@ -101,7 +101,7 @@ function buildGraphData() {
     x: START_X,
     y: START_Y,
     categoryName: "ORIGIN",
-    name: "AWAENED CORE",
+    name: "AWAKENED CORE",
     tier: 0,
   });
 

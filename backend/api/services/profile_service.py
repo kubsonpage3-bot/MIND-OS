@@ -52,20 +52,20 @@ def gain_xp(profile: UserProfile, amount: int) -> bool:
 
 def get_rank_info(profile: UserProfile) -> dict:
     """
-    Вычисляет пороги рангов с учетом пассивок (endurance_protocol)
+    Вычисляет пороги рангов с учетом пассивок (endurance_protocol, science_threshold)
     и возвращает текущий ранг и обновленную матрицу порогов.
-    Uses Python-level filtering so it works from the prefetch cache (0 extra DB queries).
     """
-    has_endurance = any(
-        s.skill_code == "endurance_protocol" for s in profile.unlocked_skills.all()  # type: ignore
-    )
-    multiplier = 0.8 if has_endurance else 1.0
-
     from api.services.mechanics import get_passive_multipliers
 
     passives = get_passive_multipliers(profile, {})
-    reduction = passives.get("science_threshold_reduction", 0.0)
-    multiplier = max(0.1, multiplier - reduction)
+
+    # endurance_protocol: -20% rank thresholds (running/exercise mastery focus)
+    # science_threshold_reduction: from Kira ally L5
+    running_reduction = passives.get("running_threshold_reduction", 0.0)
+    science_reduction = passives.get("science_threshold_reduction", 0.0)
+    total_reduction = running_reduction + science_reduction
+
+    multiplier = max(0.1, 1.0 - total_reduction)
 
     thresholds = [
         {"id": r["id"], "min": int(r["min"] * multiplier)} for r in RANK_THRESHOLDS
@@ -90,20 +90,20 @@ def get_rank_info(profile: UserProfile) -> dict:
 
 def get_humanities_rank_info(profile: UserProfile) -> dict:
     """
-    Вычисляет пороги рангов Humanities с учетом пассивок (master_of_arts)
+    Вычисляет пороги рангов Humanities с учетом пассивок (master_of_arts, language_threshold)
     и возвращает текущий ранг и обновленную матрицу порогов.
-    Uses Python-level filtering so it works from the prefetch cache (0 extra DB queries).
     """
-    has_master = any(
-        s.skill_code == "master_of_arts" for s in profile.unlocked_skills.all()  # type: ignore
-    )
-    multiplier = 0.85 if has_master else 1.0
-
     from api.services.mechanics import get_passive_multipliers
 
     passives = get_passive_multipliers(profile, {})
-    reduction = passives.get("language_threshold_reduction", 0.0)
-    multiplier = max(0.1, multiplier - reduction)
+
+    # master_of_arts: -15% via humanities_threshold_reduction
+    # language_threshold_reduction: from Sakura ally L5
+    humanities_reduction = passives.get("humanities_threshold_reduction", 0.0)
+    language_reduction = passives.get("language_threshold_reduction", 0.0)
+    total_reduction = humanities_reduction + language_reduction
+
+    multiplier = max(0.1, 1.0 - total_reduction)
 
     thresholds = []
     for r in HUMANITIES_RANK_THRESHOLDS:

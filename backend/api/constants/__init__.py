@@ -276,7 +276,7 @@ BOSS_DIFFICULTY_MULTIPLIERS = {
 SKILL_TREE_CONFIG = {
     # MIND
     "sharp_focus": {"sp": 3, "gold": 100, "xp_bonus": 0.10},
-    "deep_concentration": {"sp": 6, "gold": 250, "requires": "sharp_focus"},
+    "deep_concentration": {"sp": 6, "gold": 250, "requires": "sharp_focus", "min_focus": 7.0},
     "flow_state": {
         "sp": 10,
         "gold": 500,
@@ -295,10 +295,20 @@ SKILL_TREE_CONFIG = {
         "requires": "neural_expansion",
         "cognitive_multiplier": 0.20,
     },
-    "godmind": {"sp": 35, "gold": 3000, "requires": "cognitive_supremacy"},
+    "godmind": {
+        "sp": 35,
+        "gold": 3000,
+        "requires": "cognitive_supremacy",
+        "godmind_iq_xp_ratio": 0.5,
+    },
     # BODY
     "iron_conditioning": {"sp": 3, "gold": 100, "xp_bonus": 0.15},
-    "endurance_protocol": {"sp": 6, "gold": 250, "requires": "iron_conditioning"},
+    "endurance_protocol": {
+        "sp": 6,
+        "gold": 250,
+        "requires": "iron_conditioning",
+        "running_threshold_reduction": 0.20,
+    },
     "combat_reflexes": {
         "sp": 10,
         "gold": 500,
@@ -325,40 +335,101 @@ SKILL_TREE_CONFIG = {
     },
     # WEALTH
     "resource_awareness": {"sp": 3, "gold": 100, "gold_multiplier": 0.10},
-    "compound_returns": {"sp": 6, "gold": 250, "requires": "resource_awareness"},
+    "compound_returns": {
+        "sp": 6,
+        "gold": 250,
+        "requires": "resource_awareness",
+        "streak_bonus_gold": 200,
+        "streak_bonus_every": 7,
+    },
     "loot_magnetism": {
         "sp": 10,
         "gold": 500,
         "requires": "compound_returns",
         "drop_chance_bonus": 0.03,
     },
-    "market_knowledge": {"sp": 15, "gold": 800, "requires": "loot_magnetism"},
-    "fortunes_favor": {"sp": 22, "gold": 1500, "requires": "market_knowledge"},
-    "golden_mind": {"sp": 35, "gold": 3000, "requires": "fortunes_favor"},
+    "market_knowledge": {
+        "sp": 15,
+        "gold": 800,
+        "requires": "loot_magnetism",
+        "sell_rate": 0.60,
+    },
+    "fortunes_favor": {
+        "sp": 22,
+        "gold": 1500,
+        "requires": "market_knowledge",
+        "daily_login_gold_doubled": True,
+    },
+    "golden_mind": {
+        "sp": 35,
+        "gold": 3000,
+        "requires": "fortunes_favor",
+        "guaranteed_loot_drop_hours": 2.0,
+    },
     # SPIRIT
     "inner_stillness": {"sp": 3, "gold": 100, "xp_bonus": 0.20},
-    "resilience": {"sp": 6, "gold": 250, "requires": "inner_stillness"},
+    "resilience": {
+        "sp": 6,
+        "gold": 250,
+        "requires": "inner_stillness",
+        "mana_regen_mult": 1.25,
+    },
     "mindguard": {
         "sp": 10,
         "gold": 500,
         "requires": "resilience",
         "cooldown_reduction": 0.15,
     },
-    "aura_of_focus": {"sp": 15, "gold": 800, "requires": "mindguard"},
-    "transcendent_will": {"sp": 22, "gold": 1500, "requires": "aura_of_focus"},
-    "void_clarity": {"sp": 35, "gold": 3000, "requires": "transcendent_will"},
+    "aura_of_focus": {
+        "sp": 15,
+        "gold": 800,
+        "requires": "mindguard",
+        "ally_stat_mult_bonus": 0.10,
+    },
+    "transcendent_will": {
+        "sp": 22,
+        "gold": 1500,
+        "requires": "aura_of_focus",
+        "rival_xp_reduction": 0.10,
+    },
+    "void_clarity": {
+        "sp": 35,
+        "gold": 3000,
+        "requires": "transcendent_will",
+        "weekly_free_skill": True,
+    },
     # KNOWLEDGE
-    "polymath": {"sp": 3, "gold": 100},
-    "cross_training": {"sp": 6, "gold": 250, "requires": "polymath"},
+    "polymath": {"sp": 3, "gold": 100, "multi_subject_flat_xp": 20},
+    "cross_training": {
+        "sp": 6,
+        "gold": 250,
+        "requires": "polymath",
+        "humanities_xp_mult_on_language": 0.30,
+    },
     "encyclopedia": {
         "sp": 10,
         "gold": 500,
         "requires": "cross_training",
         "gc_multiplier": 0.20,
     },
-    "master_of_arts": {"sp": 15, "gold": 800, "requires": "encyclopedia"},
-    "living_library": {"sp": 22, "gold": 1500, "requires": "master_of_arts"},
-    "omniscience": {"sp": 35, "gold": 3000, "requires": "living_library"},
+    "master_of_arts": {
+        "sp": 15,
+        "gold": 800,
+        "requires": "encyclopedia",
+        "humanities_threshold_reduction": 0.15,
+    },
+    "living_library": {
+        "sp": 22,
+        "gold": 1500,
+        "requires": "master_of_arts",
+        "rival_xp_reduction": 0.15,
+    },
+    "omniscience": {
+        "sp": 35,
+        "gold": 3000,
+        "requires": "living_library",
+        "achievement_metric_bonus": 0.3,
+    },
 }
 
 # ─── ALLIES CONFIGURATION ───────────────────────────────────────────────────

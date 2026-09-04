@@ -1124,6 +1124,12 @@ def get_passive_multipliers(profile, context: dict):
         "rhea_singularity": False,
         "science_threshold_reduction": 0.0,
         "language_threshold_reduction": 0.0,
+        "humanities_threshold_reduction": 0.0,
+        "running_threshold_reduction": 0.0,
+        "rival_xp_reduction": 0.0,
+        "godmind_active": False,
+        "fortunes_favor": False,
+        "compound_returns": False,
         "triple_subject_gold_bonus": 0,
         "weekly_free_mana": False,
         "cognitive_metric_multiplier": 0.0,
@@ -1170,7 +1176,9 @@ def get_passive_multipliers(profile, context: dict):
         effects["xp_mult"] += 0.10
 
     if "cross_training" in unlocked_skills and is_language:
-        effects["gf_flat_bonus"] += 0.2
+        # Language sessions grant 30% XP bonus to humanities rank as well
+        effects["humanities_xp_mult"] += 0.30
+        effects["gf_flat_bonus"] += 0.05
 
     # APPLY ACTIVE EFFECTS (CONSUMABLES)
     for effect in active_effects:
@@ -1255,9 +1263,19 @@ def get_passive_multipliers(profile, context: dict):
         effects["min_focus"] = 7.0
 
     if "neural_expansion" in unlocked_skills:
-        effects["gf_ceiling_flat"] += 20.0
+        # +5 GF ceiling (applied permanently at purchase via rpg_service.py gf_ceiling_bonus)
+        # Additionally grant +5 flat GF ceiling bonus via passives for runtime effects
+        effects["gf_ceiling_flat"] += 5.0
+
+    if "godmind" in unlocked_skills:
+        # IQ score (avg of gf+gc+ps+vm) contributes 0.5× to Rank XP per session
+        effects["godmind_active"] = True
 
     # BATCH 2 SKILLS
+    if "endurance_protocol" in unlocked_skills:
+        # Running/Exercise rank thresholds reduced by 20%
+        effects["running_threshold_reduction"] += 0.20
+
     if "unbreakable" in unlocked_skills:
         effects["daily_hp_regen"] += 3.0
 
@@ -1265,6 +1283,26 @@ def get_passive_multipliers(profile, context: dict):
         hours = context.get("hours", 0.0)
         if hours >= 2.0:
             effects["guaranteed_loot_drop"] = True
+
+    if "fortunes_favor" in unlocked_skills:
+        # Daily login bonus gold doubled (flag read by daily_service)
+        effects["fortunes_favor"] = True
+
+    if "compound_returns" in unlocked_skills:
+        # 7-day streak multiples bonus (flag read by daily_service)
+        effects["compound_returns"] = True
+
+    if "master_of_arts" in unlocked_skills:
+        # Humanities rank thresholds reduced by 15%
+        effects["humanities_threshold_reduction"] += 0.15
+
+    if "living_library" in unlocked_skills:
+        # Reading/Philosophy sessions: rival XP advances 15% slower
+        effects["rival_xp_reduction"] += 0.15
+
+    if "transcendent_will" in unlocked_skills:
+        # Rival advancement speed reduced by 10% (stacks with living_library)
+        effects["rival_xp_reduction"] += 0.10
 
     # ALLIES
     ally_mult = effects["ally_stat_mult"]
