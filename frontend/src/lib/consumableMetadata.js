@@ -72,16 +72,6 @@ export const CONSUMABLE_METADATA = {
     shortDesc: 'Grants +30% Focus multiplier for your next Focus Session.',
     howItWorks: 'Enhances cognitive focus. Your next Pomodoro session calculates 30% bonus productivity points and extra focus experience.',
   },
-  memory_patch: {
-    code: 'memory_patch',
-    category: 'cognition',
-    tier: 'E',
-    effectValue: '+0.2 Gc Growth',
-    duration: 'Permanent',
-    trigger: 'On Use',
-    shortDesc: 'Permanently increases Growth Coefficient (Gc) by +0.2.',
-    howItWorks: 'Directly upgrades your mental growth coefficient (Gc), permanently increasing the rate at which you earn discipline and XP from completed tasks.',
-  },
   boss_damage_plus: {
     code: 'boss_damage_plus',
     category: 'buff',

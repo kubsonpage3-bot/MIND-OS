@@ -192,14 +192,6 @@ items_data = [
         "cost": 30,
     },
     {
-        "id": "memory_patch",
-        "slot": "consumable",
-        "name": "Memory Patch",
-        "description": "Instantly boosts your Growth Coefficient (Gc) by +0.2.",
-        "tier": "Common",
-        "cost": 35,
-    },
-    {
         "id": "xp_booster",
         "slot": "consumable",
         "name": "XP Booster",

@@ -694,7 +694,6 @@
     "boss_damage_plus": "+50% Boss DMG",
     "xp_booster": "+50% XP (24h)",
     "focus_stim": "+30% Focus",
-    "memory_patch": "+0.2 Gc",
     "streak_shield": "Streak Protect (1x)"
   },
   "privacy": {
@@ -1690,10 +1689,6 @@
       "name": "Focus Stim",
       "desc": "Grants +30% Focus multiplier for your next Focus Session."
     },
-    "memory_patch": {
-      "name": "Memory Patch",
-      "desc": "Instantly boosts your Growth Coefficient (Gc) by +0.2."
-    },
     "boss_damage_plus": {
       "name": "Boss Damage+",
       "desc": "Deals +50% damage to the boss in your next Focus Session."
@@ -1770,7 +1765,6 @@
       "large_heal": "Instant",
       "elixir": "10 Minutes",
       "focus_stim": "1 Focus Session",
-      "memory_patch": "Permanent",
       "boss_damage_plus": "1 Focus Session",
       "xp_booster": "24 Hours",
       "daily_xp_surge": "2 Hours",
@@ -1785,7 +1779,6 @@
       "large_heal": "A potent high-grade brew that restores 100 HP in one gulp. Ideal for surviving high-penalty legendary quest failures.",
       "elixir": "The ultimate restorative draught. Instantly refills your Health to maximum and shields you from all incoming damage penalties for 10 minutes.",
       "focus_stim": "Enhances cognitive focus. Your next Pomodoro session calculates 30% bonus productivity points and extra focus experience.",
-      "memory_patch": "Directly upgrades your mental growth coefficient (Gc), permanently increasing the rate at which you earn discipline and XP from completed tasks.",
       "boss_damage_plus": "Imbues your strikes with explosive energy. During your next focus session, all damage dealt to the active Raid Boss is multiplied by 1.5x.",
       "xp_booster": "Multiplies all XP earned from habits, dailies, to-dos, and Pomodoros by 1.5x for a full 24 hours. Stacks with character rank perks.",
       "daily_xp_surge": "Unleashes a surge of cognitive momentum. For 2 hours, all XP gained from all tasks and sessions is doubled (2x). Great for sprint sessions!",

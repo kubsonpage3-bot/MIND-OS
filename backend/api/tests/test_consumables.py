@@ -44,10 +44,6 @@ class ConsumablesTests(TestCase):
             code="streak_shield",
             defaults={"name": "Streak Shield", "item_type": "consumable", "cost": 100},
         )
-        self.memory_patch, _ = Item.objects.get_or_create(
-            code="memory_patch",
-            defaults={"name": "Memory Patch", "item_type": "consumable", "cost": 35},
-        )
         self.boss_damage_plus, _ = Item.objects.get_or_create(
             code="boss_damage_plus",
             defaults={"name": "Boss Damage+", "item_type": "consumable", "cost": 60},
@@ -61,9 +57,6 @@ class ConsumablesTests(TestCase):
         )
         InventoryItem.objects.create(
             user_profile=self.profile, item=self.streak_shield, quantity=1
-        )
-        InventoryItem.objects.create(
-            user_profile=self.profile, item=self.memory_patch, quantity=1
         )
         InventoryItem.objects.create(
             user_profile=self.profile, item=self.boss_damage_plus, quantity=1
@@ -139,15 +132,6 @@ class ConsumablesTests(TestCase):
                 user=self.user, skill_id="streak_shield"
             ).exists()
         )
-
-    def test_memory_patch(self):
-        print("\n[test_memory_patch] Consuming memory patch...")
-        gc_before = self.profile.gc
-        consume_item(self.user, "memory_patch")
-        self.profile.refresh_from_db()
-        gc_after = self.profile.gc
-        print(f"[test_memory_patch] Gc before: {gc_before}, after: {gc_after}")
-        self.assertAlmostEqual(gc_after, gc_before + 0.2, places=2)
 
     def test_boss_damage_plus(self):
         consume_item(self.user, "boss_damage_plus")
@@ -275,13 +259,9 @@ class ConsumablesTests(TestCase):
 
     def test_cannot_buy_unpurchasable_items(self):
         # Items with is_purchasable=False must be rejected by buy_item
-        Item.objects.filter(code__in=["memory_patch", "daily_gold_rush"]).update(
+        Item.objects.filter(code="daily_gold_rush").update(
             is_purchasable=False
         )
-        success, msg, profile = buy_item(self.user, "memory_patch")
-        self.assertFalse(success)
-        self.assertIn("not available for purchase", msg)
-
         success, msg, profile = buy_item(self.user, "daily_gold_rush")
         self.assertFalse(success)
         self.assertIn("not available for purchase", msg)

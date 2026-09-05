@@ -49,12 +49,6 @@ def consume_item(user, item_code: str):
         else:
             profile.hp = min(profile.max_hp, profile.hp + item.hp_boost)
 
-    # Apply Memory Patch (Instant Gc boost)
-    if item.code == "memory_patch":
-        profile.gc = min(profile.gc_ceiling, profile.gc + 0.2)
-        # Profile fields need saving
-        pass
-
     # Apply Daily Gold Rush (Instant Gold scaled by rank multiplier)
     if item.code == "daily_gold_rush":
         from api.services.profile_service import get_rank_info
