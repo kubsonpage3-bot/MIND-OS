@@ -2440,7 +2440,15 @@
     "eta": "⏱️ ETA:",
     "final_blow": "FINAL BLOW REQUIRED!",
     "buff_active": "⚡ BUFF ACTIVE",
-    "reward": "Reward:"
+    "reward": "Reward:",
+    "phase_1": "PHASE I • UNYIELDING",
+    "phase_2": "PHASE II • ENRAGED",
+    "phase_3": "PHASE III • EXECUTE",
+    "time_left": "Time Left",
+    "expired": "EXPIRED",
+    "execute_warning": "EXECUTE WINDOW",
+    "loot_drops": "LOOT DROPS:",
+    "unique_item": "Unique Drop"
   },
   "party_extra": {
     "dailies_done": "Soul Awake ✓",
