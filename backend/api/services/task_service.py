@@ -1891,3 +1891,66 @@ def process_missed_tasks(user):
         "log": log,
         "died": died,
     }
+
+
+def sync_zero_damage_penalties(user, profile=None):
+    """
+    Auto-heals habit negative penalties that were recorded with 0 HP lost
+    due to earlier DEF truncation bugs.
+    Ensures each penalty has at least 1 HP damage and deducts the difference
+    from the user's HP.
+    """
+    from api.models import UserActivityLog, UserProfile
+    from api.services.combat_service import calculate_fail_damage
+    from api.services.mechanics import calculate_task_outcome
+
+    if profile is None:
+        profile = getattr(user, "profile", None)
+        if profile is None:
+            profile = UserProfile.objects.filter(user=user).first()
+
+    zero_penalties = UserActivityLog.objects.filter(
+        user=user,
+        activity_type=UserActivityLog.ActivityType.HABIT_NEG,
+        hp_lost=0,
+    )
+
+    if not zero_penalties.exists():
+        return 0
+
+    total_damage_to_deduct = 0
+    for log in zero_penalties:
+        dmg = 1
+        if log.task:
+            try:
+                base_dmg = calculate_fail_damage(log.task, profile)
+                mult = 1.0 + (getattr(log, "streak_value", 0) * 0.1)
+                calc_dmg = int(base_dmg * mult)
+                outcome = calculate_task_outcome(
+                    user, "habit", base_hp_lost=calc_dmg, is_positive=False
+                )
+                dmg = max(1, outcome.get("hp_lost", 1))
+            except Exception:
+                pass
+        else:
+            diff = getattr(log, "difficulty", "medium") or "medium"
+            dmg = 2 if diff in ["medium", "hard", "critical"] else 1
+
+        log.hp_lost = dmg
+        if isinstance(log.metadata, dict):
+            penalty = log.metadata.get("penalty")
+            if isinstance(penalty, dict):
+                penalty["hp"] = -dmg
+            else:
+                log.metadata["penalty"] = {"hp": -dmg}
+        else:
+            log.metadata = {"penalty": {"hp": -dmg}}
+        log.save(update_fields=["hp_lost", "metadata"])
+        total_damage_to_deduct += dmg
+
+    if profile and total_damage_to_deduct > 0:
+        profile.hp = max(1, profile.hp - total_damage_to_deduct)
+        profile.save(update_fields=["hp"])
+
+    return total_damage_to_deduct
+

@@ -339,5 +339,52 @@ def test_rank_xp_reconciliation_with_activity_history():
     assert res_prof.json()["rank_xp"] == 415
 
 
+@pytest.mark.django_db
+def test_habit_negative_zero_damage_penalty_sync():
+    user = User.objects.create_user(username="sync_hp_user", password="password123")
+    profile = user.profile
+    profile.hp = 100
+    profile.save(update_fields=["hp"])
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    habit = Task.objects.create(
+        user=user,
+        task_type=Task.TaskType.HABIT,
+        title="100 Pushups",
+        difficulty="medium",
+    )
+
+    # Simulate legacy zero-damage penalty logs
+    for _ in range(5):
+        UserActivityLog.objects.create(
+            user=user,
+            task=habit,
+            activity_type=UserActivityLog.ActivityType.HABIT_NEG,
+            title=habit.title,
+            difficulty="medium",
+            hp_lost=0,
+            metadata={"penalty": {"hp": 0}},
+        )
+
+    # Calling history endpoint should auto-heal logs and deduct HP
+    res = client.get("/api/history/")
+    assert res.status_code == 200
+    data = res.json()
+
+    # Verify logs in response now have hp_lost > 0
+    neg_logs = [r for r in data["results"] if r["activity_type"] == "habit_neg"]
+    assert len(neg_logs) == 5
+    for l in neg_logs:
+        assert l["hp_lost"] > 0
+
+    # Verify profile HP was deducted
+    profile.refresh_from_db()
+    assert profile.hp < 100
+    assert data["profile"]["hp"] == profile.hp
+
+
+
 
 

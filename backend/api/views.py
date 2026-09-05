@@ -355,6 +355,10 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
                 profile.rank_xp = all_time_history_xp
                 fields_to_update.append("rank_xp")
 
+        # Auto-heal habit negative penalties and HP if desynchronized
+        from api.services.task_service import sync_zero_damage_penalties
+        sync_zero_damage_penalties(self.request.user, profile)
+
 
         if profile.last_seen_at:
             setattr(
@@ -2053,6 +2057,10 @@ class ActivityHistoryView(generics.GenericAPIView):
             if profile is not None:
                 profile.history_backfilled_at = timezone.now()
                 profile.save(update_fields=["history_backfilled_at"])
+
+        # Auto-heal habit negative penalties and HP if desynchronized
+        from api.services.task_service import sync_zero_damage_penalties
+        sync_zero_damage_penalties(user, profile)
 
         # ── Base Queryset ─────────────────────────────────────────────
         qs = UserActivityLog.objects.filter(user=user).exclude(
