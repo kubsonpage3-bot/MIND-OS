@@ -1,10 +1,17 @@
 import logging
 import json
 from django.conf import settings
+from django.utils import timezone
 from pywebpush import webpush, WebPushException
 from api.models import PushSubscription
 
 logger = logging.getLogger(__name__)
+
+# Only send streak-risk warnings in the last few hours of the UTC day, since
+# that's the calendar boundary process_daily_login actually breaks streaks
+# on. CronStreakWarningView fires hourly, so this caps it to a handful of
+# nudges instead of one every hour, all day, for every user with a streak.
+STREAK_WARNING_HOUR_UTC = 20
 
 
 def get_vapid_claims():
@@ -36,6 +43,17 @@ def send_web_push(subscription, payload_data):
         return False
 
 
+def _channel_allows_push(prefs):
+    """
+    The Notifications settings screen lets the user pick a delivery channel
+    (push / email / none). Email delivery isn't implemented yet, so until it
+    is, only "push" (the default when unset) should actually deliver
+    anything — otherwise picking "email" or "none" had no effect and users
+    kept getting push notifications regardless of their choice.
+    """
+    return prefs.get("channel", "push") == "push"
+
+
 def send_notification_to_user(
     user, pref_key, title, body, icon="/android-chrome-192x192.png", url="/"
 ):
@@ -47,6 +65,9 @@ def send_notification_to_user(
 
     # If the preference is explicitly false, do not send. Default is True.
     if not prefs.get(pref_key, True):
+        return 0
+
+    if not _channel_allows_push(prefs):
         return 0
 
     subscriptions = PushSubscription.objects.filter(user=user)
@@ -67,12 +88,21 @@ def send_streak_warnings():
     """
     Finds users who are at risk of losing their streak and sends a push notification.
     Returns the number of notifications successfully sent.
-    """
-    # For a naive implementation, we send warnings to all users who have an active streak
-    # and haven't logged activity today. In a production app with precise timezones,
-    # we would filter by the user's local time nearing midnight.
 
-    # We only send to users who have a PushSubscription.
+    This is called hourly (see CronStreakWarningView), so "at risk" has to be
+    a real check — not everyone with streak_risk enabled — or every such user
+    gets paged up to 24 times a day regardless of whether they've even opened
+    the app. process_daily_login (daily_service.py) breaks the streak based
+    on UTC calendar day + profile.last_login_date, so that's exactly what
+    determines real risk here: an active streak, no login recorded yet today
+    (UTC), and only in the last few hours of the UTC day so this doesn't fire
+    all day long.
+    """
+    today = timezone.now().date()
+    current_hour = timezone.now().hour
+    if current_hour < STREAK_WARNING_HOUR_UTC:
+        return 0
+
     subscriptions = PushSubscription.objects.select_related(
         "user", "user__profile"
     ).all()
@@ -87,13 +117,20 @@ def send_streak_warnings():
         if user.id in notified_users:
             continue
 
+        profile = user.profile
+
         # Check notification preferences
-        prefs = user.profile.notification_preferences or {}
+        prefs = profile.notification_preferences or {}
         if not prefs.get("streak_risk", True):
             continue
+        if not _channel_allows_push(prefs):
+            continue
 
-        # Here we would check if they actually need a warning
-        # For prototype purposes, we assume this is called only when needed
+        # No streak to lose, or they've already logged in today (UTC) — not at risk.
+        if not profile.streak or profile.streak <= 0:
+            continue
+        if profile.last_login_date is not None and profile.last_login_date >= today:
+            continue
 
         payload = {
             "title": "Streak at Risk! ⚠️",
@@ -127,6 +164,8 @@ def send_rival_overtook_warnings():
 
         prefs = user.profile.notification_preferences or {}
         if not prefs.get("rival_overtook", True):
+            continue
+        if not _channel_allows_push(prefs):
             continue
 
         # Check if Johan overtook the player today
@@ -164,6 +203,8 @@ def send_weekly_reports():
 
         prefs = user.profile.notification_preferences or {}
         if not prefs.get("weekly_report", True):
+            continue
+        if not _channel_allows_push(prefs):
             continue
 
         payload = {
@@ -223,6 +264,8 @@ def send_meal_reminders():
         if prefs:
             notif_prefs = prefs.notification_preferences or {}
             if not notif_prefs.get("meal_reminder", True):
+                continue
+            if not _channel_allows_push(notif_prefs):
                 continue
 
         for field, meal_type, title, body in MEAL_REMINDERS:

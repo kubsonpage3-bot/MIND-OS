@@ -127,10 +127,13 @@ export default function NotificationsPanel() {
     if (typeId === "streak_risk") {
       LocalNotificationsService.scheduleStreakWarning(21, 0, enabled);
     }
+    // Each notification type is individually gated server-side by its own
+    // pref key (see push_service.py), so turning ONE type off must not tear
+    // down the whole push subscription — that used to silently kill every
+    // other enabled notification (rival, boss, ally, weekly) too. Full
+    // unsubscribe only happens via "Disable All" (toggleAll(false)).
     if (enabled) {
       await subscribeToPush();
-    } else if (typeId === "streak_risk") {
-      await unsubscribeFromPush();
     }
   };
 
