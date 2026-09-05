@@ -55,8 +55,14 @@ export function usePomodoro() {
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
-      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['logs'] });
+      // NOTE: the Activities/Training tab reads its per-subject hours from the
+      // ["trainingLogs"] query (Dashboard.jsx) and the History tab from
+      // ["activityHistory"] (HistoryLog.jsx) — invalidate those exact keys,
+      // not the nonexistent ["training_sessions"]/["logs"] that used to be
+      // here (they matched no query, so this invalidation was a no-op and
+      // the Activities panel could lag up to its 5min staleTime).
+      queryClient.invalidateQueries({ queryKey: ['trainingLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['activityHistory'] });
     },
     onError: (error) => {
       console.error('Failed to save Pomodoro session:', error);
@@ -103,8 +109,12 @@ export function usePomodoro() {
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
       queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
       queryClient.invalidateQueries({ queryKey: ['userprofile'] });
-      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['logs'] });
+      // See note above: this is a linked-activity completion, so it just
+      // created/updated a TrainingSession — the Activities tab's hour totals
+      // and rank bars won't reflect it without invalidating the real query
+      // keys those views actually use.
+      queryClient.invalidateQueries({ queryKey: ['trainingLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['activityHistory'] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       if (data?.gold_earned && data?.xp_earned) {
         toast.success(`Focus logged! +${data.xp_earned} XP, +${data.gold_earned}G`);
