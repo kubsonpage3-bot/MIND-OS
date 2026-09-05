@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, lazy, Suspense } from "react";
 import { Settings, Palette, Bell, User, Gamepad2, RotateCcw, Info, ChevronLeft, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useProfileMount } from "@/utils/perf";
@@ -11,8 +11,11 @@ import AppearancePanel from "@/components/mindos/AppearancePanel";
 import ResetPanel from "@/components/mindos/ResetPanel";
 import AboutPanel from "@/components/mindos/AboutPanel";
 import GuidesPanel from "@/components/mindos/GuidesPanel";
-import ChangelogPanel from "@/components/mindos/ChangelogPanel";
-import changelogData from "@/data/changelog.json";
+
+// changelog.json holds 250+ releases — code-split it into its own chunk so
+// it's only fetched when the user actually opens the "Updates" tab, instead
+// of bundling it into the always-loaded Settings chunk.
+const ChangelogPanel = lazy(() => import("@/components/mindos/ChangelogPanel"));
 
 export const SETTINGS_TABS = [
   { id: "appearance", label: "Appearance", icon: Palette },
@@ -38,16 +41,23 @@ function SettingsPanel({ activeSubTab, onBack = undefined }) {
   }, [activeSubTab]);
 
   useEffect(() => {
+    let cancelled = false;
     const checkChangelog = () => {
-      if (changelogData && changelogData.length > 0) {
-        const latestVersion = changelogData[0].version;
-        const lastSeen = localStorage.getItem("mindos_last_seen_changelog");
-        setHasNewChangelog(lastSeen !== latestVersion);
-      }
+      import("@/data/changelog.json").then(({ default: changelogData }) => {
+        if (cancelled) return;
+        if (changelogData && changelogData.length > 0) {
+          const latestVersion = changelogData[0].version;
+          const lastSeen = localStorage.getItem("mindos_last_seen_changelog");
+          setHasNewChangelog(lastSeen !== latestVersion);
+        }
+      });
     };
     checkChangelog();
     window.addEventListener("changelogViewed", checkChangelog);
-    return () => window.removeEventListener("changelogViewed", checkChangelog);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("changelogViewed", checkChangelog);
+    };
   }, []);
 
   return (
@@ -113,7 +123,15 @@ function SettingsPanel({ activeSubTab, onBack = undefined }) {
       {showDataTab === "guides" && <GuidesPanel />}
 
       {/* CHANGELOG */}
-      {showDataTab === "changelog" && <ChangelogPanel />}
+      {showDataTab === "changelog" && (
+        <Suspense fallback={
+          <div className="py-16 flex justify-center">
+            <div className="w-8 h-8 rounded-full border-2 border-[var(--habit-purple)] border-t-transparent animate-spin" />
+          </div>
+        }>
+          <ChangelogPanel />
+        </Suspense>
+      )}
 
       {/* RESET */}
       {showDataTab === "reset" && <ResetPanel />}

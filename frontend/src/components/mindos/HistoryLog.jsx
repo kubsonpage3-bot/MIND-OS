@@ -112,6 +112,16 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
   const [period, setPeriod] = useState("30");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // How many day-groups to render at once. Loading all of "All Time" in one
+  // go means mounting hundreds of animated cards up front — instead we
+  // render a page of days and let the user pull in more on demand.
+  const DAY_PAGE_SIZE = 7;
+  const [visibleDayCount, setVisibleDayCount] = useState(DAY_PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleDayCount(DAY_PAGE_SIZE);
+  }, [filterType, period, searchQuery]);
+
   const queryClient = useQueryClient();
 
   const { data: historyData, isLoading } = useQuery({
@@ -313,7 +323,7 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
         </div>
       ) : (
         <div className="space-y-5 md:max-h-[640px] md:overflow-y-auto pr-1">
-          {groupedByDay.map(group => (
+          {groupedByDay.slice(0, visibleDayCount).map(group => (
             <div key={group.dayKey} className="space-y-2">
               {/* Day Header */}
               <div className="sticky top-0 z-10 flex items-center justify-between px-3.5 py-2 rounded-xl border backdrop-blur-md"
@@ -385,6 +395,23 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
               </div>
             </div>
           ))}
+
+          {groupedByDay.length > visibleDayCount && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => setVisibleDayCount(c => c + DAY_PAGE_SIZE)}
+                className="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                style={{
+                  fontFamily: "'Nunito'",
+                  background: "var(--habit-panel)",
+                  border: "1px solid var(--habit-border)",
+                  color: "var(--habit-dim)",
+                }}
+              >
+                {t('history.showMore', 'Show more')} ({groupedByDay.length - visibleDayCount} {t('history.moreDays', 'more days')})
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

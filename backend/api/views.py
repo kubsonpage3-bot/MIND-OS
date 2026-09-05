@@ -2040,7 +2040,168 @@ class ActivityHistoryView(generics.GenericAPIView):
         days_param = request.query_params.get("days", "30").strip().lower()
         search_query = request.query_params.get("search", "").strip()
 
-        # ── Data Backfill for Existing Users ─────────────────────────
+        # Backfill/reconciliation is expensive (loops over all of the user's
+        # tasks/habits with per-item queries) and only needs to run once per
+        # user — after that, activity logs are created directly by the
+        # task-completion code paths. Gate it behind a profile flag so
+        # normal GET /api/history/ requests stay cheap.
+        profile = getattr(user, "profile", None)
+        needs_backfill = profile is None or profile.history_backfilled_at is None
+
+        if needs_backfill:
+            self._run_backfill_and_reconciliation(user)
+            if profile is not None:
+                profile.history_backfilled_at = timezone.now()
+                profile.save(update_fields=["history_backfilled_at"])
+
+        # ── Base Queryset ─────────────────────────────────────────────
+        qs = UserActivityLog.objects.filter(user=user).exclude(
+            activity_type__in=[
+                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+            ]
+        )
+
+        # Apply Type Filter
+        if activity_type_filter == "study":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.STUDY)
+        elif activity_type_filter == "habit":
+            qs = qs.filter(
+                activity_type__in=[
+                    UserActivityLog.ActivityType.HABIT_POS,
+                    UserActivityLog.ActivityType.HABIT_NEG,
+                ]
+            )
+        elif activity_type_filter == "daily":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.DAILY)
+        elif activity_type_filter == "todo":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.TODO)
+        elif activity_type_filter == "pomodoro":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.POMODORO)
+        elif activity_type_filter == "achievement":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.ACHIEVEMENT)
+        elif activity_type_filter == "boss_defeat":
+            qs = qs.filter(activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT)
+
+        # Apply Date Filter
+        if days_param != "all":
+            try:
+                days_int = int(days_param)
+                since_date = timezone.now() - timedelta(days=days_int)
+                qs = qs.filter(created_at__gte=since_date)
+            except (ValueError, TypeError):
+                pass
+
+        # Apply Search Query
+        if search_query:
+            qs = qs.filter(
+                Q(title__icontains=search_query) | Q(category__icontains=search_query)
+            )
+
+        # Order by newest first
+        results = qs.order_by("-created_at")[:250]
+
+        # ── Aggregate Stats (use same filtered qs — respects period, search, reconciliation) ──
+        # We need a clean base (all types, no pagination) for counting per-type within the period
+        qs_stats_base = UserActivityLog.objects.filter(user=user).exclude(
+            activity_type__in=[
+                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+            ]
+        )
+        # Apply same date and search filters
+        if days_param != "all":
+            try:
+                days_int_s = int(days_param)
+                since_date_s = timezone.now() - timedelta(days=days_int_s)
+                qs_stats_base = qs_stats_base.filter(created_at__gte=since_date_s)
+            except (ValueError, TypeError):
+                pass
+        if search_query:
+            qs_stats_base = qs_stats_base.filter(
+                Q(title__icontains=search_query) | Q(category__icontains=search_query)
+            )
+
+        total_hours = round(
+            float(
+                qs_stats_base.filter(
+                    activity_type__in=[
+                        UserActivityLog.ActivityType.STUDY,
+                        UserActivityLog.ActivityType.POMODORO,
+                    ]
+                ).aggregate(Sum("hours"))["hours__sum"]
+                or 0
+            ),
+            2,
+        )
+        total_xp = int(qs_stats_base.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0)
+        total_gold = int(
+            qs_stats_base.aggregate(Sum("gold_earned"))["gold_earned__sum"] or 0
+        )
+        total_boss_damage = int(
+            qs_stats_base.aggregate(Sum("boss_damage"))["boss_damage__sum"] or 0
+        )
+
+        habits_count = qs_stats_base.filter(
+            activity_type__in=[
+                UserActivityLog.ActivityType.HABIT_POS,
+                UserActivityLog.ActivityType.HABIT_NEG,
+            ]
+        ).count()
+        dailies_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.DAILY
+        ).count()
+        todos_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.TODO
+        ).count()
+        study_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.STUDY
+        ).count()
+        pomodoro_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.POMODORO
+        ).count()
+        achievement_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.ACHIEVEMENT
+        ).count()
+        boss_defeat_count = qs_stats_base.filter(
+            activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT
+        ).count()
+        tasks_completed_count = habits_count + dailies_count + todos_count
+
+        return Response(
+            {
+                "results": UserActivityLogSerializer(results, many=True).data,
+                "stats": {
+                    "total_hours": total_hours,
+                    "total_xp": total_xp,
+                    "total_gold": total_gold,
+                    "total_boss_damage": total_boss_damage,
+                    "tasks_completed_count": tasks_completed_count,
+                    "habits_count": habits_count,
+                    "dailies_count": dailies_count,
+                    "todos_count": todos_count,
+                    "study_count": study_count,
+                    "pomodoro_count": pomodoro_count,
+                    "achievement_count": achievement_count,
+                    "boss_defeat_count": boss_defeat_count,
+                },
+                "profile": UserProfileSerializer(profile).data if profile else None,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _run_backfill_and_reconciliation(self, user):
+        """
+        One-time (per user) backfill of legacy activity logs + self-healing
+        reconciliation of dailies/todos/rank_xp. Runs only while
+        profile.history_backfilled_at is unset — see get() above. Loops over
+        the user's tasks/habits with per-item queries, so must never run on
+        every request.
+        """
+        from api.models import UserActivityLog, TrainingSession, Task
+        from django.db.models import Sum, Q
+        from django.utils import timezone
+
         # 1. Backfill TrainingSession if user has training sessions but no STUDY logs
         if not UserActivityLog.objects.filter(
             user=user, activity_type=UserActivityLog.ActivityType.STUDY
@@ -2278,143 +2439,6 @@ class ActivityHistoryView(generics.GenericAPIView):
                     profile.save(update_fields=["rank_xp"])
         except Exception as e:
             logger.warning("Reconciliation error in ActivityHistoryView: %s", e)
-
-
-        # ── Base Queryset ─────────────────────────────────────────────
-        qs = UserActivityLog.objects.filter(user=user).exclude(
-            activity_type__in=[
-                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
-                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
-            ]
-        )
-
-        # Apply Type Filter
-        if activity_type_filter == "study":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.STUDY)
-        elif activity_type_filter == "habit":
-            qs = qs.filter(
-                activity_type__in=[
-                    UserActivityLog.ActivityType.HABIT_POS,
-                    UserActivityLog.ActivityType.HABIT_NEG,
-                ]
-            )
-        elif activity_type_filter == "daily":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.DAILY)
-        elif activity_type_filter == "todo":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.TODO)
-        elif activity_type_filter == "pomodoro":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.POMODORO)
-        elif activity_type_filter == "achievement":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.ACHIEVEMENT)
-        elif activity_type_filter == "boss_defeat":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT)
-
-        # Apply Date Filter
-        if days_param != "all":
-            try:
-                days_int = int(days_param)
-                since_date = timezone.now() - timedelta(days=days_int)
-                qs = qs.filter(created_at__gte=since_date)
-            except (ValueError, TypeError):
-                pass
-
-        # Apply Search Query
-        if search_query:
-            qs = qs.filter(
-                Q(title__icontains=search_query) | Q(category__icontains=search_query)
-            )
-
-        # Order by newest first
-        results = qs.order_by("-created_at")[:250]
-
-        # ── Aggregate Stats (use same filtered qs — respects period, search, reconciliation) ──
-        # We need a clean base (all types, no pagination) for counting per-type within the period
-        qs_stats_base = UserActivityLog.objects.filter(user=user).exclude(
-            activity_type__in=[
-                UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
-                UserActivityLog.ActivityType.TODO_UNCOMPLETE,
-            ]
-        )
-        # Apply same date and search filters
-        if days_param != "all":
-            try:
-                days_int_s = int(days_param)
-                since_date_s = timezone.now() - timedelta(days=days_int_s)
-                qs_stats_base = qs_stats_base.filter(created_at__gte=since_date_s)
-            except (ValueError, TypeError):
-                pass
-        if search_query:
-            qs_stats_base = qs_stats_base.filter(
-                Q(title__icontains=search_query) | Q(category__icontains=search_query)
-            )
-
-        total_hours = round(
-            float(
-                qs_stats_base.filter(
-                    activity_type__in=[
-                        UserActivityLog.ActivityType.STUDY,
-                        UserActivityLog.ActivityType.POMODORO,
-                    ]
-                ).aggregate(Sum("hours"))["hours__sum"]
-                or 0
-            ),
-            2,
-        )
-        total_xp = int(qs_stats_base.aggregate(Sum("xp_earned"))["xp_earned__sum"] or 0)
-        total_gold = int(
-            qs_stats_base.aggregate(Sum("gold_earned"))["gold_earned__sum"] or 0
-        )
-        total_boss_damage = int(
-            qs_stats_base.aggregate(Sum("boss_damage"))["boss_damage__sum"] or 0
-        )
-
-        habits_count = qs_stats_base.filter(
-            activity_type__in=[
-                UserActivityLog.ActivityType.HABIT_POS,
-                UserActivityLog.ActivityType.HABIT_NEG,
-            ]
-        ).count()
-        dailies_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.DAILY
-        ).count()
-        todos_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.TODO
-        ).count()
-        study_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.STUDY
-        ).count()
-        pomodoro_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.POMODORO
-        ).count()
-        achievement_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.ACHIEVEMENT
-        ).count()
-        boss_defeat_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT
-        ).count()
-        tasks_completed_count = habits_count + dailies_count + todos_count
-
-        return Response(
-            {
-                "results": UserActivityLogSerializer(results, many=True).data,
-                "stats": {
-                    "total_hours": total_hours,
-                    "total_xp": total_xp,
-                    "total_gold": total_gold,
-                    "total_boss_damage": total_boss_damage,
-                    "tasks_completed_count": tasks_completed_count,
-                    "habits_count": habits_count,
-                    "dailies_count": dailies_count,
-                    "todos_count": todos_count,
-                    "study_count": study_count,
-                    "pomodoro_count": pomodoro_count,
-                    "achievement_count": achievement_count,
-                    "boss_defeat_count": boss_defeat_count,
-                },
-                "profile": UserProfileSerializer(profile).data if profile else None,
-            },
-            status=status.HTTP_200_OK,
-        )
 
 
 class BuySkillSerializer(serializers.Serializer):

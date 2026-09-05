@@ -86,6 +86,16 @@ class UserProfile(models.Model):
         verbose_name="Гость",
     )
 
+    # Когда для пользователя в последний раз выполнялся backfill/reconciliation
+    # истории активности (ActivityHistoryView). Пока это поле пустое —
+    # backfill выполняется; после первого успешного прогона выставляется,
+    # чтобы не гонять тяжёлые перебор-запросы на каждый GET /api/history/.
+    history_backfilled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Дата последнего backfill истории",
+    )
+
     # ── Характеристики персонажа ──────────────────────────────────────────
 
     # Здоровье (Hit Points): текущее и максимальное
