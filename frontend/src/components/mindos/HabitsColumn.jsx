@@ -69,10 +69,6 @@ const CATEGORY_ICONS = {
 function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick }) {
   const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
   const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
-  const hp = task.task_hp ?? 10;
-  const maxHp = 10;
-  const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
-  const hpColor = hpPct <= 25 ? '#ef4444' : hpPct <= 60 ? '#f59e0b' : '#22c55e';
   const tv = task.value ?? task.rpgValue ?? 0;
   const tvColor = getTaskValueColor(tv);
   const con = getConStat();
@@ -117,6 +113,7 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
           onClick={(e) => {
             e.stopPropagation();
             if (completeMutation.isPending && completeMutation.variables?.task?.id === task.id) return;
+            triggerBurst('#f43f5e', 10);
             habitClick(task, false);
           }}
           className="flex-1 flex items-center justify-center font-bold text-sm bg-rose-500/15 hover:bg-rose-500/30 active:bg-rose-500/45 text-rose-400 hover:text-rose-200 transition-colors cursor-pointer"
@@ -177,22 +174,8 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
           </span>
         </div>
 
-        {/* HP bar */}
-        <div className="flex items-center gap-2 mt-2">
-          <span className="font-mono text-[9px] font-bold text-rose-400 min-w-[16px]">HP</span>
-          <div className="flex-1 relative h-1.5 rounded-full bg-black/40 border border-white/5 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${hpPct}%`, background: hpColor, boxShadow: `0 0 6px ${hpColor}80` }}
-            />
-          </div>
-          <span className="font-mono text-[9px] text-muted-foreground min-w-[28px] text-right font-medium">
-            {Math.round(hp)}/{maxHp}
-          </span>
-        </div>
-
         {/* Streaks + next damage preview */}
-        <div className="flex items-center justify-between mt-1 text-[9px] font-mono">
+        <div className="flex items-center justify-between mt-1.5 text-[9px] font-mono">
           <div className="flex gap-2.5 font-bold">
             <span className="text-emerald-400 flex items-center gap-0.5">+{task.posStreak || 0}</span>
             <span className="text-rose-400 flex items-center gap-0.5">−{task.negStreak || 0}</span>
@@ -303,7 +286,6 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                 notes: taskData.notes ?? t.notes,
                 value: res?.value ?? res?.rpgValue ?? t.value,
                 rpgValue: res?.value ?? res?.rpgValue ?? t.rpgValue,
-                task_hp: res?.task_hp ?? t.task_hp,
               }
             : t
         );
@@ -382,7 +364,6 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                   streak: dt.streak ?? t.streak,
                   posStreak: dt.pos_streak ?? t.posStreak,
                   negStreak: dt.neg_streak ?? t.negStreak,
-                  task_hp: dt.task_hp ?? t.task_hp,
                 }
               : t
           );
@@ -432,7 +413,9 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
         }
 
         if (dmg > 0) {
-          showRewardToast({ label: `${task.name}: -${dmg} HP` });
+          showRewardToast({ label: `${task.name}: -${dmg} HP`, type: 'error' });
+        } else {
+          showRewardToast({ label: `${task.name}: 0 HP (Defended)`, type: 'error' });
         }
       }
 

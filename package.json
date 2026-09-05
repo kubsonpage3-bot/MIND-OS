@@ -6,6 +6,8 @@
     "build":     "cd frontend && npm run build",
     "preview":   "cd frontend && npm run preview",
     "build:apk": "cd frontend && npm run build:apk",
-    "apk":       "cd frontend && npm run build:apk"
+    "apk":       "cd frontend && npm run build:apk",
+    "build:aab": "cd frontend && npm run build:aab",
+    "aab":       "cd frontend && npm run build:aab"
   }
 }

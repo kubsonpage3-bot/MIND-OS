@@ -382,7 +382,10 @@ def calculate_task_outcome(
             result["grier_shield_slam_dmg"] = int(final_hp_lost)
             final_hp_lost = int(final_hp_lost * 0.5)
 
-        result["hp_lost"] = int(final_hp_lost)
+        if base_hp_lost > 0 and final_hp_lost > 0:
+            result["hp_lost"] = max(1, round(final_hp_lost))
+        else:
+            result["hp_lost"] = int(final_hp_lost)
 
         # For reverting completed tasks, calculate exact xp_lost and gold_lost
         # using the same formula as positive, to prevent XP/Gold duplication
