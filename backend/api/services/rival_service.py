@@ -343,6 +343,31 @@ def compute_rival_data(user_profile):
     p_week_xp = sum(d["player"]["rank_xp_gained"] for d in weekly_history)
     j_week_xp = round(sum(d["johan"]["rank_xp_gained"] for d in weekly_history), 1)
 
+    # RivalTab's "Weekly Comparison / Head-to-Head" card reads
+    # johanWeekHours/johanAvgFocus/johanSubjectsWeek/johanWeekRankXP directly
+    # off the top-level payload — they were never populated (only the
+    # differently-named weeklyStats.* keys were), so Johan's side of every
+    # row silently defaulted to 0 (or 1 for subjects) and the player "won"
+    # all four rows unconditionally. Regenerate this week's sessions (a pure
+    # function of date+user+specializations, so recomputing is cheap and
+    # always yields the same numbers already reflected in weekly_history) to
+    # get the session-level detail needed for avg focus / distinct subjects.
+    week_sessions = []
+    for i in range(6, -1, -1):
+        dt = end_date - timedelta(days=i)
+        d_str = dt.strftime("%Y-%m-%d")
+        d_pattern = get_day_pattern(d_str, user_id, diff_cfg)
+        week_sessions.extend(
+            generate_daily_sessions(d_str, user_id, d_pattern, specializations, diff_cfg)
+        )
+    johan_focus_values = [s["focus"] for s in week_sessions]
+    johan_avg_focus = (
+        round(sum(johan_focus_values) / len(johan_focus_values), 1)
+        if johan_focus_values
+        else 0.0
+    )
+    johan_subjects_week = len({s["subject"] for s in week_sessions})
+
     new_data = {
         "johanAccumulatedXP": johan_xp,
         "totalXP": johan_xp,
@@ -353,6 +378,10 @@ def compute_rival_data(user_profile):
         "behindDays": behind_days,
         "weeklyHistory": weekly_history,
         "specializations": specializations,
+        "johanWeekHours": j_week_hours,
+        "johanAvgFocus": johan_avg_focus,
+        "johanSubjectsWeek": johan_subjects_week,
+        "johanWeekRankXP": j_week_xp,
         "weeklyStats": {
             "playerHours": p_week_hours,
             "johanHours": j_week_hours,

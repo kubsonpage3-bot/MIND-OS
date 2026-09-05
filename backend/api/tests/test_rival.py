@@ -53,3 +53,26 @@ def test_rival_xp_accumulation_exact_math(profile):
 
         data3 = compute_rival_data(profile)
         assert data3["johanAccumulatedXP"] == 130.0
+
+
+@pytest.mark.django_db
+def test_weekly_comparison_fields_are_populated(profile):
+    """
+    RivalTab's Weekly Comparison card reads johanWeekHours/johanAvgFocus/
+    johanSubjectsWeek/johanWeekRankXP straight off the top-level payload.
+    Regression test for these being entirely absent (defaulting to 0, or 1
+    for subjects on the frontend) — which made the player "win" every row
+    of the head-to-head comparison unconditionally, regardless of either
+    side's actual activity.
+    """
+    data = compute_rival_data(profile)
+
+    assert data["johanWeekHours"] > 0
+    assert data["johanAvgFocus"] > 0
+    assert data["johanSubjectsWeek"] >= 1
+    assert data["johanWeekRankXP"] > 0
+
+    # Must be internally consistent with the pre-existing weeklyStats block
+    # (same underlying week, same difficulty) rather than diverging from it.
+    assert data["johanWeekHours"] == data["weeklyStats"]["johanHours"]
+    assert data["johanWeekRankXP"] == data["weeklyStats"]["johanXP"]

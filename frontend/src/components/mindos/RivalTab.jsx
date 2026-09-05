@@ -312,7 +312,11 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
     const focusArr = weekLogs.map(l => l.focus_rating || 5);
     const playerAvgFocus = focusArr.length > 0 ? focusArr.reduce((a, b) => a + b, 0) / focusArr.length : 0;
     const playerSubjectsWeek = new Set(weekLogs.map(l => l.activity_key)).size;
-    const playerWeeklyRankXP = weekLogs.reduce((s, l) => s + (l.hours || 0) * (l.focus_rating || 5), 0);
+    // Use the real xp_earned per session (not a hours*focus guess) — Johan's
+    // side of this comparison is a real computed value (calc_johan_daily_xp),
+    // so estimating the player's side with a different, made-up formula made
+    // the "Rank XP" row numerically incomparable between the two.
+    const playerWeeklyRankXP = weekLogs.reduce((s, l) => s + (l.xp_earned || 0), 0);
     return { playerHoursWeek, playerAvgFocus, playerSubjectsWeek, playerWeeklyRankXP };
   }, [logs]);
 
