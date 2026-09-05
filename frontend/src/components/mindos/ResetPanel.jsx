@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RotateCcw, Trash2, Archive, Brain, Users, Activity } from "lucide-react";
+import { RotateCcw, Trash2, Archive, Brain, Users, Activity, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
@@ -32,6 +32,9 @@ export default function ResetPanel() {
         queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
       } else if (variables === "skills") {
         queryClientInstance.invalidateQueries({ queryKey: ["skills"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
+        queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
+      } else if (variables === "mutators") {
         queryClientInstance.invalidateQueries({ queryKey: ["userprofile"] });
         queryClientInstance.invalidateQueries({ queryKey: ["player-stats"] });
       } else if (variables === "stats") {
@@ -113,6 +116,13 @@ export default function ResetPanel() {
     if (!confirm("Reset skill tree unlocks? All SP will be refunded.")) return;
     setResetting(true);
     resetMutation.mutate("skills", { onSettled: () => setResetting(false) });
+  };
+
+  const resetMutators = async () => {
+    if (!confirm(t("reset_panel.confirm_mutators", "Reset all unlocked and active mutators? This cannot be undone."))) return;
+    setResetting(true);
+    localStorage.removeItem("mindos_mutators");
+    resetMutation.mutate("mutators", { onSettled: () => setResetting(false) });
   };
 
   const resetStats = () => {
@@ -277,6 +287,27 @@ export default function ResetPanel() {
           {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_progress_btn", "Reset Progress")}
         </button>
       </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.23 }}
+        className="p-4 rounded-xl border border-border bg-card/40 space-y-3"
+      >
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="font-mono text-xs font-bold text-cyan-400">{t("reset_panel.mutators_title", "Reset Mutators")}</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground/70">{t("reset_panel.mutators_desc", "Clears all unlocked and active mutators, returning them to locked state.")}</p>
+        <button
+          onClick={resetMutators}
+          disabled={resetting}
+          className="w-full py-2 rounded-lg border border-cyan-500/40 text-cyan-400 font-mono text-xs hover:bg-cyan-500/10 transition-colors cursor-pointer"
+        >
+          {resetting ? t("reset_ui.resetting", "Resetting...") : t("reset_panel.reset_mutators_btn", "Reset Mutators")}
+        </button>
+      </motion.div>
+
 
       <motion.div
         initial={{ opacity: 0, x: -10 }}

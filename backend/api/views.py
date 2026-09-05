@@ -359,6 +359,32 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         from api.services.task_service import sync_zero_damage_penalties
         sync_zero_damage_penalties(self.request.user, profile)
 
+        # One-time manual wipe of mutators for user KubsonMercer as requested
+        if getattr(self.request.user, "username", "").lower() == "kubsonmercer":
+            muts = profile.active_mutators or {}
+            has_mutators = False
+            if isinstance(muts, dict) and (muts.get("purchased") or muts.get("active")):
+                has_mutators = True
+            elif isinstance(muts, list) and len(muts) > 0:
+                has_mutators = True
+            if has_mutators:
+                profile.active_mutators = {"purchased": [], "active": []}
+                profile.last_mutator_tick_at = None
+                profile.tasks_completed_today = 0
+                profile.habits_completed_today = 0
+                profile.habit_boss_dmg_today = 0
+                profile.todos_completed_today = 0
+                profile.dailies_completed_today = 0
+                fields_to_update.extend([
+                    "active_mutators",
+                    "last_mutator_tick_at",
+                    "tasks_completed_today",
+                    "habits_completed_today",
+                    "habit_boss_dmg_today",
+                    "todos_completed_today",
+                    "dailies_completed_today",
+                ])
+
 
         if profile.last_seen_at:
             setattr(
@@ -2975,6 +3001,27 @@ class ResetDataView(generics.GenericAPIView):
                         {"message": "Streak reset"}, status=status.HTTP_200_OK
                     )
 
+                if reset_type == "mutators":
+                    profile.active_mutators = {"purchased": [], "active": []}
+                    profile.last_mutator_tick_at = None
+                    profile.tasks_completed_today = 0
+                    profile.habits_completed_today = 0
+                    profile.habit_boss_dmg_today = 0
+                    profile.todos_completed_today = 0
+                    profile.dailies_completed_today = 0
+                    profile.save(update_fields=[
+                        "active_mutators",
+                        "last_mutator_tick_at",
+                        "tasks_completed_today",
+                        "habits_completed_today",
+                        "habit_boss_dmg_today",
+                        "todos_completed_today",
+                        "dailies_completed_today",
+                    ])
+                    return Response(
+                        {"message": "Mutators reset"}, status=status.HTTP_200_OK
+                    )
+
                 if reset_type in ["tasks", "nuclear"]:
                     Task.objects.filter(user=request.user).delete()
                     profile.rank_xp = 0
@@ -3056,6 +3103,13 @@ class ResetDataView(generics.GenericAPIView):
                 if reset_type == "nuclear":
                     InventoryItem.objects.filter(user_profile=profile).delete()
                     UserAchievement.objects.filter(user=request.user).delete()
+                    profile.active_mutators = {"purchased": [], "active": []}
+                    profile.last_mutator_tick_at = None
+                    profile.tasks_completed_today = 0
+                    profile.habits_completed_today = 0
+                    profile.habit_boss_dmg_today = 0
+                    profile.todos_completed_today = 0
+                    profile.dailies_completed_today = 0
                     from api.models import PomodoroSession
 
                     PomodoroSession.objects.filter(user=request.user).delete()

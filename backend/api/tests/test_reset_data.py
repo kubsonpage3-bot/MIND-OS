@@ -95,6 +95,7 @@ class TestResetDataEndpoints:
         Task.objects.create(user=self.user, title="Task To Delete", task_type="todo")
         self.profile.gold = 999
         self.profile.weekly_xp = 750
+        self.profile.active_mutators = {"purchased": ["ironman", "alchemist"], "active": ["ironman"]}
         self.profile.save()
 
         res = self.client.post("/api/profile/reset/", {"reset_type": "nuclear"}, format="json")
@@ -104,6 +105,34 @@ class TestResetDataEndpoints:
         assert self.profile.gold == 0
         assert self.profile.weekly_xp == 0
         assert Task.objects.filter(user=self.user).count() == 0
+        assert self.profile.active_mutators == {"purchased": [], "active": []}
+
+    def test_reset_mutators_only(self):
+        self.profile.gold = 500
+        self.profile.active_mutators = {"purchased": ["parasite", "null_zone"], "active": ["parasite"]}
+        self.profile.save()
+
+        res = self.client.post("/api/profile/reset/", {"reset_type": "mutators"}, format="json")
+        assert res.status_code == 200
+
+        self.profile.refresh_from_db()
+        assert self.profile.gold == 500  # Gold preserved
+        assert self.profile.active_mutators == {"purchased": [], "active": []}
+
+    def test_kubsonmercer_auto_wipe(self):
+        from django.contrib.auth.models import User
+        u = User.objects.create_user(username="KubsonMercer", password="password123")
+        p = u.profile
+        p.active_mutators = {"purchased": ["ironman"], "active": ["ironman"]}
+        p.save()
+
+        client = APIClient()
+        client.force_authenticate(user=u)
+        res = client.get("/api/profile/")
+        assert res.status_code == 200
+
+        p.refresh_from_db()
+        assert p.active_mutators == {"purchased": [], "active": []}
 
     def test_user_profile_view_auto_heals_weekly_xp(self):
         self.profile.level = 1
