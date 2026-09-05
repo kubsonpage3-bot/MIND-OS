@@ -14,13 +14,115 @@ import { Search, Star, Camera, X, Globe, User, Loader2, Zap, Trash2 } from 'luci
 import { hapticLight } from '@/hooks/useHaptic';
 
 const MEAL_TYPES = [
-  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅', color: '#f59e0b' },
+  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: '🌅', color: '#eab308' },
   { id: 'lunch',     key: 'lunch',     defaultLabel: 'Lunch',     icon: '☀️', color: '#f97316' },
   { id: 'dinner',    key: 'dinner',    defaultLabel: 'Dinner',    icon: '🌙', color: '#7B61FF' },
   { id: 'snack',     key: 'snack',     defaultLabel: 'Snack',     icon: '🍎', color: '#10b981' },
 ];
 
 const QUICK_PORTIONS = [50, 100, 150, 200, 250, 300];
+
+// ─── Barcode Scanner (native BarcodeDetector — audit finding C2) ─────────────
+// Feature-detected: shows a plain-language fallback message on browsers/devices
+// without BarcodeDetector support (notably iOS WebKit as of writing) instead of
+// silently failing.
+function BarcodeScanner({ onDetected, onClose }) {
+  const { t } = useTranslation();
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const rafRef = useRef(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function start() {
+      if (!('BarcodeDetector' in window)) {
+        setError(t('nutrition.add_modal.barcode_unsupported', "Barcode scanning isn't supported on this device — try text search instead."));
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((tr) => tr.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        const detector = new window.BarcodeDetector({
+          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'],
+        });
+
+        const tick = async () => {
+          if (cancelled || !videoRef.current) return;
+          try {
+            const codes = await detector.detect(videoRef.current);
+            if (codes.length > 0 && !cancelled) {
+              cancelled = true;
+              onDetected(codes[0].rawValue);
+              return;
+            }
+          } catch {
+            // detect() can throw transiently on an odd frame — just keep trying.
+          }
+          rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+      } catch (e) {
+        setError(t('nutrition.add_modal.camera_denied', 'Camera access was denied or is unavailable.'));
+      }
+    }
+
+    start();
+    return () => {
+      cancelled = true;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach((tr) => tr.stop());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/90 p-4"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center bg-white/10 text-white"
+      >
+        <X size={18} />
+      </button>
+      {error ? (
+        <div className="text-center text-white text-sm max-w-xs">{error}</div>
+      ) : (
+        <>
+          <div
+            className="relative w-full max-w-sm aspect-[3/4] rounded-2xl overflow-hidden border-2"
+            style={{ borderColor: 'var(--habit-gold, #f59e0b)' }}
+          >
+            <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
+            <div
+              className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-0.5"
+              style={{ background: 'var(--habit-gold, #f59e0b)', boxShadow: '0 0 8px var(--habit-gold, #f59e0b)' }}
+            />
+          </div>
+          <div className="text-white text-xs font-semibold mt-4 opacity-80">
+            {t('nutrition.add_modal.barcode_hint', 'Point the camera at a barcode')}
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+}
 
 function getFoodEmoji(name = '') {
   const lower = (name || '').toLowerCase();
@@ -60,6 +162,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
   const [amount, setAmount] = useState(100);
   const [note, setNote] = useState('');
   const [photoPreview, setPhotoPreview] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
 
   // New custom food form
   const [newFood, setNewFood] = useState({
@@ -230,6 +333,29 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
     });
   }
 
+  async function handleBarcodeDetected(code) {
+    setShowScanner(false);
+    hapticLight();
+    try {
+      const result = await djangoApi.nutrition.searchByBarcode(code);
+      const food = result?.global_foods?.[0];
+      if (food) {
+        handleSelectFood(food, false);
+        toast({
+          title: t('nutrition.add_modal.barcode_found', '📦 Found: {{name}}', { name: food.name }),
+        });
+      } else {
+        toast({
+          title: t('nutrition.add_modal.barcode_not_found', 'No product found for this barcode'),
+          description: t('nutrition.add_modal.barcode_not_found_hint', 'Try text search or create it manually.'),
+          variant: 'destructive',
+        });
+      }
+    } catch (e) {
+      toast({ title: t('nutrition.error', 'Error'), description: e?.message, variant: 'destructive' });
+    }
+  }
+
   function handlePhotoUpload(e) {
     const file = e.target.files?.[0];
     if (file) {
@@ -269,7 +395,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
               {t('nutrition.add_modal.title', '🍽️ Log Meal')}
             </span>
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--habit-gold,#f59e0b)] text-black">
-              GLOBAL DATABASE
+              {t('nutrition.add_modal.global_db_badge', 'GLOBAL DATABASE')}
             </span>
           </div>
           <button
@@ -303,7 +429,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                   }}
                 >
                   <span className="text-sm">{icon}</span>
-                  <span className="truncate">{t(`nutrition.meals.${key}`, defaultLabel)}</span>
+                  <span className="truncate">{t(`nutrition.meals_short.${key}`, defaultLabel)}</span>
                 </button>
               );
             })}
@@ -369,6 +495,16 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 )}
               </div>
 
+              <button
+                type="button"
+                onClick={() => setShowScanner(true)}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold opacity-80 hover:opacity-100 transition-opacity"
+                style={{ background: 'var(--habit-border)', color: 'var(--habit-text)', cursor: 'pointer' }}
+              >
+                <Camera size={14} />
+                {t('nutrition.add_modal.scan_barcode', 'Scan barcode')}
+              </button>
+
               {/* ── Results List ───────────────────────────────────────────────── */}
               <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
 
@@ -376,7 +512,7 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                 {!debouncedSearch && recentFoods.length > 0 && (
                   <div className="space-y-1">
                     <div className="text-[10px] font-black uppercase tracking-wider text-[var(--habit-dim)] px-1 flex items-center gap-1">
-                      <Zap size={11} /> {t('nutrition.add_modal.recently_used', '⚡ Recently Used')}
+                      <Zap size={11} /> {t('nutrition.add_modal.recently_used', 'Recently Used')}
                     </div>
                     <AnimatePresence>
                       {recentFoods.slice(0, 6).map((food, i) => {
@@ -780,6 +916,28 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
                       <div className="text-xs font-black text-[#10b981] font-mono">{preview.carbs}g</div>
                     </div>
                   </div>
+
+                  {/* Secondary tier — micronutrients, only when the food actually has this data */}
+                  {(preview.fiber != null || preview.sugar != null || preview.sodium != null || preview.saturatedFat != null) && (
+                    <div className="grid grid-cols-4 gap-1.5 text-center">
+                      <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">FIBER</div>
+                        <div className="text-xs font-black text-[var(--habit-text)] font-mono">{preview.fiber != null ? `${preview.fiber}g` : '—'}</div>
+                      </div>
+                      <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">SUGAR</div>
+                        <div className="text-xs font-black text-[var(--habit-text)] font-mono">{preview.sugar != null ? `${preview.sugar}g` : '—'}</div>
+                      </div>
+                      <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">SODIUM</div>
+                        <div className="text-xs font-black text-[var(--habit-text)] font-mono">{preview.sodium != null ? `${preview.sodium}mg` : '—'}</div>
+                      </div>
+                      <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-[9px] font-black uppercase text-[var(--habit-dim)]">SAT. FAT</div>
+                        <div className="text-xs font-black text-[var(--habit-text)] font-mono">{preview.saturatedFat != null ? `${preview.saturatedFat}g` : '—'}</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
@@ -856,6 +1014,12 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
           </motion.button>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showScanner && (
+          <BarcodeScanner onDetected={handleBarcodeDetected} onClose={() => setShowScanner(false)} />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

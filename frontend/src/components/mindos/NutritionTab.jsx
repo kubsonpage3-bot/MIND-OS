@@ -16,7 +16,7 @@ import {
   Plus, Settings, Trash2, ChevronLeft, ChevronRight,
   ChevronDown, ChevronUp, Calendar as CalendarIcon,
   TrendingUp, Utensils, UtensilsCrossed, Sunrise, Sun,
-  Moon, Apple, Flame, Share2, Zap, Edit3,
+  Moon, Apple, Flame, Share2, Zap, Edit3, Calculator, X,
 } from 'lucide-react';
 
 const AddMealModal      = lazy(() => import('./AddMealModal'));
@@ -47,7 +47,7 @@ function addDays(dateStr, n) {
 
 // ─── Meal meta ─────────────────────────────────────────────────────────────────
 const MEAL_META = {
-  breakfast: { key:'breakfast', defaultLabel:'Breakfast', icon:Sunrise, color:'#f59e0b', glow:'rgba(245,158,11,0.25)', bg:'rgba(245,158,11,0.1)' },
+  breakfast: { key:'breakfast', defaultLabel:'Breakfast', icon:Sunrise, color:'#eab308', glow:'rgba(234,179,8,0.25)', bg:'rgba(234,179,8,0.1)' },
   lunch:     { key:'lunch',     defaultLabel:'Lunch',     icon:Sun,     color:'#f97316', glow:'rgba(249,115,22,0.25)', bg:'rgba(249,115,22,0.1)' },
   dinner:    { key:'dinner',    defaultLabel:'Dinner',    icon:Moon,    color:'#7B61FF', glow:'rgba(123,97,255,0.25)', bg:'rgba(123,97,255,0.1)' },
   snack:     { key:'snack',     defaultLabel:'Snacks',    icon:Apple,   color:'#10b981', glow:'rgba(16,185,129,0.25)', bg:'rgba(16,185,129,0.1)' },
@@ -134,6 +134,8 @@ function MealEntryRow({ entry, onDelete, accentColor, index = 0 }) {
             <span style={{ color: '#3b82f6' }}>P: {Math.round(entry.protein)}g</span>
             <span style={{ color: '#f97316' }}>F: {Math.round(entry.fat)}g</span>
             <span style={{ color: '#10b981' }}>C: {Math.round(entry.carbs)}g</span>
+            {entry.fiber != null && <span className="opacity-55">Fbr: {Math.round(entry.fiber)}g</span>}
+            {entry.sugar != null && <span className="opacity-55">Sgr: {Math.round(entry.sugar)}g</span>}
             {entry.note && <span className="opacity-40 italic font-normal truncate max-w-[120px]">· {entry.note}</span>}
           </div>
         </div>
@@ -152,7 +154,7 @@ function MealEntryRow({ entry, onDelete, accentColor, index = 0 }) {
 }
 
 // ─── Collapsible Meal Section Card ───────────────────────────────────────────
-function MealCard({ type, entries = [], onAddClick, onDeleteItem, cardIndex = 0 }) {
+function MealCard({ type, entries = [], onAddClick, onDeleteItem, onUseCombo, cardIndex = 0 }) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const meta = MEAL_META[type] || { key:type, defaultLabel:type, icon:Utensils, color:'#f59e0b', glow:'rgba(245,158,11,0.2)', bg:'rgba(245,158,11,0.1)' };
@@ -273,6 +275,16 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem, cardIndex = 0 
                   <span className="text-[11px] font-semibold" style={{ color:'var(--habit-dim)' }}>
                     {t('nutrition.tap_to_log', { meal: label.toLowerCase(), defaultValue: `Tap «Add» to log ${label.toLowerCase()}` })}
                   </span>
+                  {onUseCombo && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onUseCombo(type); }}
+                      className="text-[10.5px] font-bold underline decoration-dotted underline-offset-2 opacity-70 hover:opacity-100 transition-opacity"
+                      style={{ color: meta.color, cursor: 'pointer' }}
+                    >
+                      {t('nutrition.use_combo_or_repeat', 'or use a saved combo')}
+                    </button>
+                  )}
                 </motion.div>
               ) : (
                 <AnimatePresence mode="popLayout">
@@ -289,74 +301,49 @@ function MealCard({ type, entries = [], onAddClick, onDeleteItem, cardIndex = 0 
   );
 }
 
-// ─── Calorie Gauge Bar ────────────────────────────────────────────────────────
+// ─── Calorie status — compact, one line (audit finding B1: was 3 calorie
+//     readouts stacked — rings stay the hero, this is now just the headline) ──
 function CalorieGauge({ consumed, goal }) {
   const { t } = useTranslation();
-  const pct = goal > 0 ? Math.min(1, consumed / goal) : 0;
   const isOver = consumed > goal;
   const remaining = goal - consumed;
-  const pctPx = `${Math.min(pct * 100, 100)}%`;
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs font-bold">
-        <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.consumed', 'Consumed')}</span>
-        <div className="flex items-center gap-1.5">
-          <motion.div
-            animate={isOver ? { scale: [1, 1.2, 1] } : {}}
-            transition={isOver ? { repeat: Infinity, duration: 1.4, ease: 'easeInOut' } : {}}
-          >
-            <Flame size={13} style={{ color: isOver ? '#f74e52' : '#f59e0b' }} />
-          </motion.div>
-          <motion.span
-            key={Math.round(remaining)}
-            initial={{ y: -4, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.25 }}
-            style={{ color: isOver ? '#f74e52' : '#10b981', fontWeight:900, fontSize:13 }}
-          >
-            {isOver
-              ? `+${Math.abs(Math.round(remaining))} ${t('nutrition.kcal_over', 'kcal over')}`
-              : `${Math.round(remaining)} ${t('nutrition.kcal_left', 'kcal left')}`}
-          </motion.span>
-        </div>
-        <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.goal_label', 'Goal')} {Math.round(goal)}</span>
-      </div>
-      <div style={{ height:8, borderRadius:999, background:'var(--habit-border)', overflow:'hidden', position:'relative' }}>
+    <div className="flex items-center justify-between text-xs font-bold">
+      <div className="flex items-center gap-1.5">
         <motion.div
-          style={{
-            height:'100%', borderRadius:999,
-            background: isOver
-              ? 'linear-gradient(90deg, #f59e0b, #f74e52)'
-              : 'linear-gradient(90deg, #f59e0b, #10b981)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-          initial={{ width:0 }}
-          animate={{
-            width: pctPx,
-            boxShadow: isOver
-              ? ['0 0 12px rgba(247,78,82,0.5)', '0 0 22px rgba(247,78,82,0.8)', '0 0 12px rgba(247,78,82,0.5)']
-              : '0 0 12px rgba(245,158,11,0.4)',
-          }}
-          transition={{
-            width: { duration:0.9, ease:[0.16,1,0.3,1] },
-            boxShadow: isOver ? { repeat: Infinity, duration: 1.6, ease: 'easeInOut' } : {},
-          }}
+          animate={isOver ? { scale: [1, 1.2, 1] } : {}}
+          transition={isOver ? { repeat: Infinity, duration: 1.4, ease: 'easeInOut' } : {}}
         >
-          {/* Shimmer beam */}
-          {pct > 0 && (
-            <motion.div
-              style={{
-                position: 'absolute', top: 0, left: 0, height: '100%', width: '45%',
-                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
-                borderRadius: 999,
-              }}
-              animate={{ x: ['-45%', '200%'] }}
-              transition={{ duration: 2, delay: 1, ease: 'easeInOut', repeat: 0 }}
-            />
-          )}
+          <Flame size={13} style={{ color: isOver ? '#f74e52' : '#f59e0b' }} />
         </motion.div>
+        <motion.span
+          key={Math.round(remaining)}
+          initial={{ y: -4, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          style={{ color: isOver ? '#f74e52' : '#10b981', fontWeight:900, fontSize:13 }}
+        >
+          {isOver
+            ? `+${Math.abs(Math.round(remaining))} ${t('nutrition.kcal_over', 'kcal over')}`
+            : `${Math.round(remaining)} ${t('nutrition.kcal_left', 'kcal left')}`}
+        </motion.span>
       </div>
+      <span style={{ color:'var(--habit-dim)' }}>{t('nutrition.goal_label', 'Goal')} {Math.round(goal)}</span>
+    </div>
+  );
+}
+
+// ─── Micronutrient summary — takes the room CalorieGauge's bar used to take
+//     (audit finding C1: fiber/sugar were already computed, never shown) ────
+function MicroSummary({ totals }) {
+  const { t } = useTranslation();
+  const fiber = totals.fiber || 0;
+  const sugar = totals.sugar || 0;
+  if (fiber <= 0 && sugar <= 0) return null;
+  return (
+    <div className="flex items-center justify-between text-[11px] font-mono font-bold mt-2" style={{ color:'var(--habit-dim)' }}>
+      <span>{t('nutrition.more_nutrients', 'Fiber · Sugar today')}</span>
+      <span style={{ color:'var(--habit-text)' }}>{Math.round(fiber)}g <span style={{ opacity:0.4 }}>·</span> {Math.round(sugar)}g</span>
     </div>
   );
 }
@@ -373,6 +360,52 @@ function StatChip({ label, value, color, unit='' }) {
   );
 }
 
+// ─── TDEE calculator discoverability hint (audit finding C3) ─────────────────
+// The calculator already exists inside the Goals modal — this just points at it.
+function TdeeHint({ onOpenCalculator }) {
+  const { t } = useTranslation();
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem('nutriTdeeHintDismissed') === '1'; } catch { return false; }
+  });
+  if (dismissed) return null;
+  function dismiss() {
+    setDismissed(true);
+    try { localStorage.setItem('nutriTdeeHintDismissed', '1'); } catch { /* ignore */ }
+  }
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl mb-3"
+      style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' }}
+    >
+      <Calculator size={15} style={{ color: 'var(--habit-gold, #f59e0b)', flexShrink: 0 }} />
+      <span className="text-[11.5px] font-semibold flex-1" style={{ color: 'var(--habit-text)' }}>
+        {t('nutrition.tdee_hint_cta', "Don't know your calorie target? Calculate it in 30 seconds.")}
+      </span>
+      <motion.button
+        whileTap={{ scale: 0.94 }}
+        type="button"
+        onClick={onOpenCalculator}
+        className="text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0"
+        style={{ background: 'var(--habit-gold, #f59e0b)', color: '#000', cursor: 'pointer' }}
+      >
+        {t('nutrition.tdee_hint_btn', 'Calculate')}
+      </motion.button>
+      <button
+        type="button"
+        onClick={dismiss}
+        className="opacity-40 hover:opacity-100 transition-opacity shrink-0"
+        style={{ cursor: 'pointer', color: 'var(--habit-text)' }}
+        title={t('nutrition.tdee_hint_dismiss', 'Dismiss')}
+      >
+        <X size={13} />
+      </button>
+    </motion.div>
+  );
+}
+
 // ─── Main NutritionTab ────────────────────────────────────────────────────────
 const FONT = "'Nunito', sans-serif";
 const CARD = { background:'var(--habit-panel)', border:'1px solid var(--habit-border)', borderRadius:18, fontFamily:FONT };
@@ -384,6 +417,7 @@ export default function NutritionTab() {
   const [targetAddMealType, setTargetAddMealType] = useState('breakfast');
   const [showAddModal, setShowAddModal]         = useState(false);
   const [showGoalModal, setShowGoalModal]       = useState(false);
+  const [goalModalTab, setGoalModalTab]         = useState('goals');
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showCombosModal, setShowCombosModal]   = useState(false);
   const [showTrends, setShowTrends]             = useState(false);
@@ -434,7 +468,7 @@ export default function NutritionTab() {
       {[
         { icon: Utensils, action: () => setShowCombosModal(true), title: 'Saved combos', active: false },
         { icon: TrendingUp, action: () => setShowTrends(!showTrends), title: 'Trends', active: showTrends },
-        { icon: Settings,  action: () => setShowGoalModal(true),  title: 'Goals', active: false },
+        { icon: Settings,  action: () => { setGoalModalTab('goals'); setShowGoalModal(true); },  title: 'Goals', active: false },
         { icon: Share2,    action: () => setShowReportCard(true), title: 'Weekly Report', active: false, gold: true },
       ].map(({ icon: Icon, action, title, active, gold }, i) => (
         <motion.button
@@ -458,6 +492,8 @@ export default function NutritionTab() {
 
   return (
     <div style={{ fontFamily:FONT }}>
+
+      <TdeeHint onOpenCalculator={() => { setGoalModalTab('calculator'); setShowGoalModal(true); }} />
 
       {/* ════════════════════════════════════════════════════════════════════════
           DESKTOP LAYOUT: Two-column grid (sidebar + main)
@@ -495,6 +531,7 @@ export default function NutritionTab() {
             {/* Calorie gauge */}
             <div className="mt-3 pt-3 border-t border-[var(--habit-border)]">
               <CalorieGauge consumed={totals.calories} goal={goalData.calories} />
+              <MicroSummary totals={totals} />
             </div>
           </div>
 
@@ -544,6 +581,7 @@ export default function NutritionTab() {
               entries={meals[type] || []}
               onAddClick={handleOpenAddModal}
               onDeleteItem={id => deleteMealMut.mutate(id)}
+              onUseCombo={() => setShowCombosModal(true)}
             />
           ))}
         </div>
@@ -581,6 +619,7 @@ export default function NutritionTab() {
 
           <div className="mt-3 pt-3 border-t border-[var(--habit-border)]">
             <CalorieGauge consumed={totals.calories} goal={goalData.calories} />
+            <MicroSummary totals={totals} />
           </div>
         </div>
 
@@ -609,6 +648,7 @@ export default function NutritionTab() {
               entries={meals[type] || []}
               onAddClick={handleOpenAddModal}
               onDeleteItem={id => deleteMealMut.mutate(id)}
+              onUseCombo={() => setShowCombosModal(true)}
             />
           ))}
         </div>
@@ -641,7 +681,7 @@ export default function NutritionTab() {
         </AnimatePresence>
         <AnimatePresence>
           {showGoalModal && (
-            <NutriGoalModal currentGoal={goalData} onClose={() => setShowGoalModal(false)} />
+            <NutriGoalModal currentGoal={goalData} onClose={() => setShowGoalModal(false)} initialTab={goalModalTab} />
           )}
         </AnimatePresence>
         <AnimatePresence>

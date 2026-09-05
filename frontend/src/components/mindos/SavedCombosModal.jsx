@@ -9,10 +9,10 @@ import { toast } from '@/components/ui/use-toast';
 import { Plus, Trash2, Utensils, X, Sunrise, Sun, Moon, Apple } from 'lucide-react';
 
 const MEAL_TYPES = [
-  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: Sunrise, color: 'var(--habit-gold, #ffbe5d)' },
-  { id: 'lunch',     key: 'lunch',     defaultLabel: 'Lunch',     icon: Sun,     color: 'var(--habit-orange, #ff8800)' },
+  { id: 'breakfast', key: 'breakfast', defaultLabel: 'Breakfast', icon: Sunrise, color: 'var(--habit-yellow, #eab308)' },
+  { id: 'lunch',     key: 'lunch',     defaultLabel: 'Lunch',     icon: Sun,     color: 'var(--habit-orange, #f97316)' },
   { id: 'dinner',    key: 'dinner',    defaultLabel: 'Dinner',    icon: Moon,    color: 'var(--habit-purple, #7B61FF)' },
-  { id: 'snack',     key: 'snack',     defaultLabel: 'Snack',     icon: Apple,   color: 'var(--habit-green, #1ca830)' },
+  { id: 'snack',     key: 'snack',     defaultLabel: 'Snack',     icon: Apple,   color: 'var(--habit-green, #10b981)' },
 ];
 
 export default function SavedCombosModal({ dateStr, onClose }) {

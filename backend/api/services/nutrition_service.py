@@ -30,6 +30,19 @@ from api.exceptions import GameLogicError
 logger = logging.getLogger(__name__)
 
 
+def normalize_food_name(name: str) -> str:
+    """
+    Лёгкая нормализация названия продукта: убирает пробелы по краям и,
+    если строка целиком в одном регистре (ВСЕ КАПС или строчными),
+    приводит к предложенческому регистру. Смешанный регистр не трогаем —
+    он, как правило, уже осмысленно расставлен пользователем.
+    """
+    name = (name or "").strip()
+    if len(name) > 1 and (name == name.upper() or name == name.lower()):
+        name = name[0].upper() + name[1:].lower()
+    return name
+
+
 def _get_or_create_goal(user: User) -> NutriGoal:
     goal, _ = NutriGoal.objects.get_or_create(
         user=user,
@@ -60,7 +73,7 @@ def list_food_items(user: User, search: str = "", favorites_only: bool = False):
 @transaction.atomic
 def create_food_item(user: User, data: dict) -> FoodItem:
     """Создать новый продукт в справочнике пользователя."""
-    name = data.get("name", "").strip()
+    name = normalize_food_name(data.get("name", ""))
     if not name:
         raise GameLogicError("Название продукта не может быть пустым.")
 
@@ -225,12 +238,12 @@ def search_global_foods(user: User, query: str) -> dict:
                 products = data.get("products", [])
 
                 for p in products:
-                    name = (
+                    name = normalize_food_name(
                         p.get("product_name_ru")
                         or p.get("product_name")
                         or p.get("product_name_en")
                         or ""
-                    ).strip()
+                    )
                     if not name:
                         continue
 
@@ -311,6 +324,128 @@ def search_global_foods(user: User, query: str) -> dict:
     }
 
 
+def search_by_barcode(user: User, barcode: str) -> dict | None:
+    """
+    Точный поиск продукта по штрихкоду (для сканера камерой):
+    1. Сначала — локальный кеш GlobalFoodCache.
+    2. Если не нашли — прямой запрос к Open Food Facts по коду продукта
+       (эндпоинт .../product/<barcode>.json — быстрее и точнее полнотекстового поиска).
+    Возвращает None, если продукт не найден нигде.
+
+    NB: парсинг nutriments здесь намеренно продублирован из search_global_foods,
+    а не вынесен в общий хелпер — чтобы не трогать уже рабочую ветку текстового
+    поиска в рамках этой правки.
+    """
+    barcode = (barcode or "").strip()
+    if not barcode:
+        return None
+
+    cached = GlobalFoodCache.objects.filter(barcode=barcode).first()
+    if cached:
+        return {
+            "id": cached.id,
+            "name": cached.name,
+            "brand": cached.brand,
+            "barcode": cached.barcode,
+            "calories_per_100": cached.calories_per_100,
+            "protein_per_100": cached.protein_per_100,
+            "fat_per_100": cached.fat_per_100,
+            "carbs_per_100": cached.carbs_per_100,
+            "fiber_per_100": cached.fiber_per_100,
+            "sugar_per_100": cached.sugar_per_100,
+            "sodium_per_100": cached.sodium_per_100,
+            "saturated_fat_per_100": cached.saturated_fat_per_100,
+            "unit": cached.unit,
+            "image_url": cached.image_url,
+            "source": cached.source,
+            "is_custom": False,
+        }
+
+    try:
+        url = f"https://world.openfoodfacts.org/api/v2/product/{urllib.parse.quote(barcode)}.json"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "MindOS-NutritionTracker/1.0 (mindos@app.local)"},
+        )
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        logger.warning("OpenFoodFacts barcode lookup failed for %s: %s", barcode, e)
+        return None
+
+    if payload.get("status") != 1:
+        return None
+    p = payload.get("product", {})
+
+    name = normalize_food_name(
+        p.get("product_name_ru")
+        or p.get("product_name")
+        or p.get("product_name_en")
+        or ""
+    )
+    if not name:
+        return None
+
+    nutriments = p.get("nutriments", {})
+    kcal = nutriments.get("energy-kcal_100g")
+    if kcal is None:
+        energy_kj = float(nutriments.get("energy_100g") or 0)
+        kcal = round(energy_kj / 4.184, 1) if energy_kj > 0 else 0.0
+    else:
+        kcal = float(kcal)
+
+    protein = float(nutriments.get("proteins_100g") or 0.0)
+    fat = float(nutriments.get("fat_100g") or 0.0)
+    carbs = float(nutriments.get("carbohydrates_100g") or 0.0)
+    fiber_raw = nutriments.get("fiber_100g")
+    sugar_raw = nutriments.get("sugars_100g")
+    sodium_raw = nutriments.get("sodium_100g")
+    sat_fat_raw = nutriments.get("saturated-fat_100g")
+    fiber = float(fiber_raw) if fiber_raw is not None else None
+    sugar = float(sugar_raw) if sugar_raw is not None else None
+    sodium = round(float(sodium_raw) * 1000, 1) if sodium_raw is not None else None
+    saturated_fat = float(sat_fat_raw) if sat_fat_raw is not None else None
+    brand = str(p.get("brands") or "").strip()
+    image_url = str(p.get("image_front_small_url") or "")
+
+    cache_item, _ = GlobalFoodCache.objects.update_or_create(
+        barcode=barcode,
+        name=name,
+        defaults={
+            "brand": brand,
+            "calories_per_100": max(0.0, kcal),
+            "protein_per_100": max(0.0, protein),
+            "fat_per_100": max(0.0, fat),
+            "carbs_per_100": max(0.0, carbs),
+            "fiber_per_100": fiber,
+            "sugar_per_100": sugar,
+            "sodium_per_100": sodium,
+            "saturated_fat_per_100": saturated_fat,
+            "unit": "g",
+            "image_url": image_url,
+            "source": "openfoodfacts",
+        },
+    )
+    return {
+        "id": cache_item.id,
+        "name": cache_item.name,
+        "brand": cache_item.brand,
+        "barcode": cache_item.barcode,
+        "calories_per_100": cache_item.calories_per_100,
+        "protein_per_100": cache_item.protein_per_100,
+        "fat_per_100": cache_item.fat_per_100,
+        "carbs_per_100": cache_item.carbs_per_100,
+        "fiber_per_100": cache_item.fiber_per_100,
+        "sugar_per_100": cache_item.sugar_per_100,
+        "sodium_per_100": cache_item.sodium_per_100,
+        "saturated_fat_per_100": cache_item.saturated_fat_per_100,
+        "unit": cache_item.unit,
+        "image_url": cache_item.image_url,
+        "source": cache_item.source,
+        "is_custom": False,
+    }
+
+
 # ─── Meal Entries ─────────────────────────────────────────────────────────────
 
 
@@ -324,7 +459,10 @@ def get_day_entries(user: User, day: date) -> dict:
         "dinner": [],
         "snack": [],
     }
-    totals = {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0}
+    totals = {
+        "calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0,
+        "fiber": 0.0, "sugar": 0.0, "sodium": 0.0, "saturated_fat": 0.0,
+    }
 
     for e in entries:
         meal_data = {
@@ -337,6 +475,10 @@ def get_day_entries(user: User, day: date) -> dict:
             "protein": e.protein,
             "fat": e.fat,
             "carbs": e.carbs,
+            "fiber": e.fiber,
+            "sugar": e.sugar,
+            "sodium": e.sodium,
+            "saturated_fat": e.saturated_fat,
             "note": e.note,
             "photo_url": e.photo_url,
             "created_at": e.created_at.isoformat(),
@@ -346,6 +488,10 @@ def get_day_entries(user: User, day: date) -> dict:
         totals["protein"] += e.protein
         totals["fat"] += e.fat
         totals["carbs"] += e.carbs
+        totals["fiber"] += e.fiber or 0.0
+        totals["sugar"] += e.sugar or 0.0
+        totals["sodium"] += e.sodium or 0.0
+        totals["saturated_fat"] += e.saturated_fat or 0.0
 
     goal = _get_or_create_goal(user)
     water_entry = WaterLog.objects.filter(user=user, date=day).first()
@@ -714,6 +860,8 @@ def get_trends(user: User, days: int = 30) -> dict:
             protein=Sum("protein"),
             fat=Sum("fat"),
             carbs=Sum("carbs"),
+            fiber=Sum("fiber"),
+            sugar=Sum("sugar"),
         )
         .order_by("date")
     )
@@ -730,6 +878,8 @@ def get_trends(user: User, days: int = 30) -> dict:
     total_p = 0
     total_f = 0
     total_c = 0
+    total_fbr = 0
+    total_sgr = 0
     active_days_count = 0
 
     while curr <= end_date:
@@ -738,6 +888,8 @@ def get_trends(user: User, days: int = 30) -> dict:
         p = round(r["protein"], 1) if r and r["protein"] else 0.0
         f = round(r["fat"], 1) if r and r["fat"] else 0.0
         c = round(r["carbs"], 1) if r and r["carbs"] else 0.0
+        fbr = round(r["fiber"], 1) if r and r["fiber"] else 0.0
+        sgr = round(r["sugar"], 1) if r and r["sugar"] else 0.0
         w = water_map.get(curr, 0)
 
         if cal > 0:
@@ -746,6 +898,8 @@ def get_trends(user: User, days: int = 30) -> dict:
             total_p += p
             total_f += f
             total_c += c
+            total_fbr += fbr
+            total_sgr += sgr
 
         daily_series.append(
             {
@@ -755,6 +909,8 @@ def get_trends(user: User, days: int = 30) -> dict:
                 "protein": p,
                 "fat": f,
                 "carbs": c,
+                "fiber": fbr,
+                "sugar": sgr,
                 "water_ml": w,
                 "target_calories": goal.calories,
                 "target_protein": goal.protein,
@@ -769,6 +925,8 @@ def get_trends(user: User, days: int = 30) -> dict:
     avg_p = round(total_p / active_days_count, 1) if active_days_count > 0 else 0
     avg_f = round(total_f / active_days_count, 1) if active_days_count > 0 else 0
     avg_c = round(total_c / active_days_count, 1) if active_days_count > 0 else 0
+    avg_fbr = round(total_fbr / active_days_count, 1) if active_days_count > 0 else 0
+    avg_sgr = round(total_sgr / active_days_count, 1) if active_days_count > 0 else 0
 
     return {
         "days": days,
@@ -778,6 +936,8 @@ def get_trends(user: User, days: int = 30) -> dict:
             "protein": avg_p,
             "fat": avg_f,
             "carbs": avg_c,
+            "fiber": avg_fbr,
+            "sugar": avg_sgr,
             "logged_days": active_days_count,
         },
         "goal": {

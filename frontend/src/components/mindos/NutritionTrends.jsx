@@ -26,7 +26,7 @@ export default function NutritionTrends() {
   });
 
   const dailySeries = trendsData?.daily_series || [];
-  const averages = trendsData?.averages || { calories: 0, protein: 0, fat: 0, carbs: 0, logged_days: 0 };
+  const averages = trendsData?.averages || { calories: 0, protein: 0, fat: 0, carbs: 0, fiber: 0, sugar: 0, logged_days: 0 };
   const goal = trendsData?.goal || { calories: 2000 };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -102,7 +102,7 @@ export default function NutritionTrends() {
       </div>
 
       {/* Summary Averages */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <div className="p-2.5 rounded-xl text-center" style={{ background: 'var(--habit-border)' }}>
           <div style={{ fontSize: 10, color: 'var(--habit-dim, #888)', fontWeight: 700 }}>
             {t('nutrition.trends.avg_calories', 'Avg Calories')}
@@ -117,6 +117,14 @@ export default function NutritionTrends() {
           </div>
           <div style={{ fontSize: 15, fontWeight: 900, color: 'var(--habit-blue, #3b82f6)' }}>
             {averages.protein} <span style={{ fontSize: 10 }}>{t('nutrition.g', 'g')}</span>
+          </div>
+        </div>
+        <div className="p-2.5 rounded-xl text-center" style={{ background: 'var(--habit-border)' }}>
+          <div style={{ fontSize: 10, color: 'var(--habit-dim, #888)', fontWeight: 700 }}>
+            {t('nutrition.trends.avg_fiber', 'Avg Fiber')}
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 900, color: 'var(--habit-text)' }}>
+            {averages.fiber ?? 0} <span style={{ fontSize: 10 }}>{t('nutrition.g', 'g')}</span>
           </div>
         </div>
         <div className="p-2.5 rounded-xl text-center" style={{ background: 'var(--habit-border)' }}>

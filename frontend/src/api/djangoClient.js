@@ -556,6 +556,9 @@ export const djangoApi = {
     searchGlobal: (query = '') =>
       djangoFetch(`/nutrition/search-global/?q=${encodeURIComponent(query)}`),
 
+    searchByBarcode: (barcode = '') =>
+      djangoFetch(`/nutrition/search-global/?barcode=${encodeURIComponent(barcode)}`),
+
     getMeals: (dateStr) =>
       djangoFetch(`/nutrition/meals/?date=${dateStr}`),
     addMeal: (data) =>

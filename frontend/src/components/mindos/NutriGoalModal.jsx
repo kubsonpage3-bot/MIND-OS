@@ -74,10 +74,10 @@ function calcTDEEResults({ weight, height, age, sex, activity, strategyKey = 'ma
 
 const TABS = ['goals', 'calculator', 'reminders'];
 
-export default function NutriGoalModal({ currentGoal = {}, onClose }) {
+export default function NutriGoalModal({ currentGoal = {}, onClose, initialTab = 'goals' }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('goals');
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const [form, setForm] = useState({
     calories: currentGoal.calories ?? 2000,

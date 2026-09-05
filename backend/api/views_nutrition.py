@@ -75,12 +75,18 @@ class FoodItemDetailView(APIView):
 
 class GlobalFoodSearchView(APIView):
     """
-    GET /api/nutrition/search-global/?q=... — глобальный поиск продуктов (User + Cache + Open Food Facts)
+    GET /api/nutrition/search-global/?q=...       — глобальный поиск продуктов (User + Cache + Open Food Facts)
+    GET /api/nutrition/search-global/?barcode=... — точный поиск по штрихкоду (сканер камерой)
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        barcode = request.query_params.get("barcode", "").strip()
+        if barcode:
+            item = nutrition_service.search_by_barcode(request.user, barcode)
+            return Response({"user_foods": [], "global_foods": [item] if item else []})
+
         query = request.query_params.get("q", "")
         data = nutrition_service.search_global_foods(request.user, query)
         return Response(data)
