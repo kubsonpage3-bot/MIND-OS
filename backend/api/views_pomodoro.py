@@ -273,14 +273,16 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
             # Award Gold and XP directly to UserProfile
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             hours = round(duration / 60.0, 2)
-            gold_earned = max(10, int(duration * 2))
-            xp_earned = max(15, int(duration * 3))
+            base_gold = max(10, int(duration * 2))
+            base_xp = max(15, int(duration * 3))
 
             training_session = None
+            task = None
+            gf_gain = gc_gain = ps_gain = vm_gain = 0.0
+
             if activity_key:
                 # Look up custom task if applicable
                 from api.models import Task, TrainingSession
-                task = None
                 if isinstance(activity_key, str) and activity_key.startswith("custom_task_"):
                     try:
                         task_id = int(activity_key.replace("custom_task_", ""))
@@ -295,20 +297,79 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     task.last_completed_at = timezone.now()
                     task.save(update_fields=["completion_count", "last_completed_at"])
 
-                from api.services.mechanics import calculate_cognitive_gains
+                # ── Apply the same Character Stats / Allies / Mutators pipeline
+                # as manual training-log submissions (TrainingLogView), so a
+                # linked Pomodoro session isn't a flat, unaffected reward path.
+                from api.services.mechanics import (
+                    calculate_cognitive_gains,
+                    resolve_mastery_category,
+                    apply_active_mutators,
+                    get_passive_multipliers,
+                    calculate_task_outcome,
+                )
+
+                mastery = resolve_mastery_category(
+                    activity=activity_key,
+                    task_category=task.category if task else None,
+                    task_mastery_category=task.mastery_category if task else None,
+                )
+                context = {
+                    "is_science": mastery == "sciences",
+                    "is_language": mastery == "languages",
+                    "is_exercise": mastery == "body",
+                    "is_prayer": mastery == "spirit",
+                    "task_type": "training",
+                    "hours": hours,
+                    "focus_rating": float(rating),
+                    "activity": activity_key,
+                    "task_category": task.category if task else "",
+                    "task_mastery_category": task.mastery_category if task else "",
+                }
+
+                mutator_effects = apply_active_mutators(profile, context)
+                passive_effects = get_passive_multipliers(profile, context)
+
+                xp_mult = mutator_effects.get("xp_mult", 1.0) + passive_effects.get("xp_mult", 1.0) - 1.0
+                gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
+                flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
+
+                base_xp = (base_xp + flat_xp_bonus) * xp_mult
+                base_gold = base_gold * gold_mult
 
                 eff_total = min(1.0, rating / 5.0)
-                gains = calculate_cognitive_gains(activity_key, hours, eff_total, profile)
+                gains = calculate_cognitive_gains(
+                    activity_key, hours, eff_total, profile,
+                    mastery_category=task.mastery_category if task else "",
+                )
+
+                gf_mult = passive_effects.get("gf_mult", 1.0)
+                gc_mult = passive_effects.get("gc_mult", 1.0)
+                ps_mult = passive_effects.get("ps_mult", 1.0)
+                vm_mult = passive_effects.get("vm_mult", 1.0)
+                gf_flat_bonus = mutator_effects.get("gc_flat", 0.0) + passive_effects.get("gf_flat_bonus", 0.0)
+                gc_flat_bonus = passive_effects.get("gc_flat_bonus", 0.0)
 
                 gf_gain = gains.get("gf", 0.0)
                 gc_gain = gains.get("gc", 0.0)
                 ps_gain = gains.get("ps", 0.0)
                 vm_gain = gains.get("vm", 0.0)
 
-                profile.gf = min(profile.gf_ceiling, profile.gf + gf_gain)
-                profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain)
-                profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain)
-                profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain)
+                effective_gf_ceiling = profile.gf_ceiling + passive_effects.get("gf_ceiling_flat", 0.0)
+                profile.gf = min(effective_gf_ceiling, profile.gf + gf_gain * gf_mult + gf_flat_bonus)
+                profile.gc = min(profile.gc_ceiling, profile.gc + gc_gain * gc_mult + gc_flat_bonus)
+                profile.ps = min(profile.ps_ceiling, profile.ps + ps_gain * ps_mult)
+                profile.vm = min(profile.vm_ceiling, profile.vm + vm_gain * vm_mult)
+
+                outcome = calculate_task_outcome(
+                    request.user,
+                    "training",
+                    base_xp=base_xp,
+                    base_gold=base_gold,
+                    is_positive=True,
+                    passive_effects=passive_effects,
+                )
+                xp_earned = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
+                gold_earned = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
                 training_session = TrainingSession.objects.create(
                     user_profile=profile,
@@ -322,6 +383,11 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     ps_gain=ps_gain,
                     vm_gain=vm_gain,
                 )
+            else:
+                # Standalone (unlinked) session: no activity/allies/mutators context
+                # to apply stats against, so keep the flat baseline reward.
+                gold_earned = base_gold
+                xp_earned = base_xp
 
             profile.gold += gold_earned
             profile.xp += xp_earned
