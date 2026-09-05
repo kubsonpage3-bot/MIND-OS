@@ -16,16 +16,16 @@ const RANK_ORDER = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
 export const SCROLL_BOSS_IMAGES = {
   // Original unique images
   misted_wanderer: "/images/webp/e233a83f3_generated_image.webp",
-  nameless_bones: "/images/webp/ef51b9462_Screenshot2026-06-23213830.webp",
-  herald_jackal: "/images/webp/e46cf7897_Screenshot2026-06-23213548.webp",
-  ink_warden: "/images/webp/918a77bad_Screenshot2026-06-23213620.webp",
+  nameless_bones: "/images/webp/scroll_nameless_bones.webp",
+  herald_jackal: "/images/webp/scroll_herald_jackal.webp",
+  ink_warden: "/images/webp/scroll_ink_warden.webp",
   abyssal_bellringer: "/images/webp/scroll_abyssal_bellringer.webp",
   frost_executioner: "/images/webp/scroll_frost_executioner.webp",
   weaving_shade: "/images/webp/scroll_weaving_shade.webp",
-  ember_smith: "/images/webp/ef8a45965_Screenshot2026-06-23213700.webp",
+  ember_smith: "/images/webp/scroll_ember_smith.webp",
   sanctuary_weeper: "/images/webp/eebb37437_generated_image.webp",
   shallow_leviathan: "/images/webp/e945b3bd4_generated_image.webp",
-  faceless_king: "/images/webp/c7192c4a7_generated_image.webp",
+  faceless_king: "/images/webp/scroll_faceless_king.webp",
   ore_golem: "/images/webp/5ef3ff7af_generated_image.webp",
   // New unique images replacing duplicates
   wounded_moon: "/images/webp/b8481b005_Screenshot2026-06-23224227.webp",
