@@ -840,9 +840,32 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     setExternalDamage({ amount, isCritical, ts: Date.now() });
 
     if (isDefeated) {
-      setDefeatedBossState({ combatResult, rewards, isOpen: true });
+      setDefeatedBossState({
+        combatResult: {
+          ...(combatResult || {}),
+          final_damage: amount,
+          is_critical: isCritical,
+        },
+        rewards: rewards || combatResult?.rewards,
+        isOpen: true,
+      });
     }
   }, []);
+
+  useEffect(() => {
+    const handleTestDefeat = (e) => {
+      const detail = e.detail || {};
+      handleBossDamage(
+        detail.amount || 2450,
+        detail.isCritical !== undefined ? detail.isCritical : true,
+        true,
+        detail.combatResult || { boss_name: "Herald Jackal", boss_id_name: "herald_jackal" },
+        detail.rewards || { boss_gold: 250, boss_xp: 150, boss_sp: 2 }
+      );
+    };
+    window.addEventListener("mindos:test_boss_defeat", handleTestDefeat);
+    return () => window.removeEventListener("mindos:test_boss_defeat", handleTestDefeat);
+  }, [handleBossDamage]);
 
   const handleRewardFly = useCallback((reward) => {
     const id = Date.now() + Math.random();

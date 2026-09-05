@@ -2809,13 +2809,18 @@
     "tab_activities": "Активность"
   },
   "boss_defeat": {
-    "victory": "ПОБЕДА!",
-    "slain_desc": "Вы сокрушили босса <1>{{bossName}}</1> и забрали его сокровища.",
+    "victory": "БОСС ПОВЕРЖЕН!",
+    "vanquished": "ПОВЕРЖЕН",
+    "slain_desc": "Вы сокрушили босса {{bossName}} и забрали трофеи битвы.",
     "gold_reward": "НАГРАДА ЗОЛОТОМ",
     "xp_reward": "НАГРАДА ОПЫТОМ",
     "sp_reward": "ОЧКИ НАВЫКОВ",
+    "final_blow": "РЕШАЮЩИЙ УДАР",
+    "critical_hit": "КРИТИЧЕСКИЙ УДАР",
+    "unique_drop": "УНИКАЛЬНЫЙ ДРОП",
+    "boss_rank": "РАНГ",
     "rewards_added": "Награды начислены на ваш аккаунт.",
-    "claim_rewards": "ЗАБРАТЬ НАГРАДУ"
+    "claim_rewards": "ЗАБРАТЬ ДОБЫЧУ"
   },
   "stats_panel": {
     "weekly_xp": "Опыт за неделю",

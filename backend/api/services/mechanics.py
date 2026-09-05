@@ -526,8 +526,12 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         "boss_hp_remaining": active_encounter.hp_current,
         "boss_defeated": boss_defeated,
         "boss_name": boss.name if boss is not None else None,
+        "boss_id_name": boss.id_name if boss is not None else None,
+        "boss_level": boss.level if boss is not None else None,
+        "drop_item_id": boss.drop_item_id if boss is not None else None,
         "rewards": rewards,
     }
+
 
 
 def revert_boss_damage(user, encounter_id, damage_to_heal):

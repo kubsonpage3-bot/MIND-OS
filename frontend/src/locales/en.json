@@ -2809,13 +2809,18 @@
     "tab_activities": "Activities"
   },
   "boss_defeat": {
-    "victory": "VICTORY!",
-    "slain_desc": "You have slain <1>{{bossName}}</1> and claimed its hoard.",
+    "victory": "BOSS SLAIN!",
+    "vanquished": "VANQUISHED",
+    "slain_desc": "You have felled {{bossName}} and claimed the spoils of battle.",
     "gold_reward": "GOLD REWARD",
     "xp_reward": "XP REWARD",
     "sp_reward": "SKILL POINTS",
+    "final_blow": "FINAL BLOW",
+    "critical_hit": "CRITICAL HIT",
+    "unique_drop": "UNIQUE DROP",
+    "boss_rank": "RANK",
     "rewards_added": "Rewards added to your account.",
-    "claim_rewards": "CLAIM REWARDS"
+    "claim_rewards": "CLAIM LOOT"
   },
   "stats_panel": {
     "weekly_xp": "Weekly XP",
