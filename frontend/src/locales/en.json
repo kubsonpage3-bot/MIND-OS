@@ -1712,7 +1712,7 @@
     },
     "streak_shield": {
       "name": "Streak Shield",
-      "desc": "Automatically protects your daily streak from breaking once if you miss a day."
+      "desc": "Automatically protects your character's daily login streak from breaking once if you miss a day."
     },
     "elixir": {
       "name": "Elixir of Life",
@@ -1789,7 +1789,7 @@
       "boss_damage_plus": "Imbues your strikes with explosive energy. During your next focus session, all damage dealt to the active Raid Boss is multiplied by 1.5x.",
       "xp_booster": "Multiplies all XP earned from habits, dailies, to-dos, and Pomodoros by 1.5x for a full 24 hours. Stacks with character rank perks.",
       "daily_xp_surge": "Unleashes a surge of cognitive momentum. For 2 hours, all XP gained from all tasks and sessions is doubled (2x). Great for sprint sessions!",
-      "streak_shield": "A protective safety talisman. If you fail to complete your daily habits before midnight, this shield automatically breaks instead of resetting your streak counter.",
+      "streak_shield": "A protective safety talisman. If you miss a login day, this shield automatically breaks instead of resetting your character login streak (does not protect individual habit streaks).",
       "daily_gold_rush": "Directly converts ancient bullion into 200 Gold in your character wallet. Useful for quickly purchasing gear or unlocking new companion slots.",
       "focus_scroll": "An arcane scroll that accelerates character skill recharges by 2x while simultaneously providing a 25% experience bonus for 2 hours."
     }

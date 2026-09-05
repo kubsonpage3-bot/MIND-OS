@@ -81,13 +81,61 @@ def complete_task(user, task_id, is_positive=True):
         raise
 
 
+def has_completed_any_daily_yesterday(user, yesterday_date=None) -> bool:
+    """
+    Checks if the user completed at least one daily task yesterday.
+    Used to determine if the Welcome Back / Dawn Report modal should be displayed.
+    Rule: If the user completed at least 1 daily yesterday, do NOT show the modal.
+    Only show the modal if 0 dailies were completed during the entire day.
+    """
+    import zoneinfo
+    from datetime import datetime, time, timedelta
+    from django.utils import timezone as tz
+    from api.models import UserProfile, Task, UserActivityLog
+
+    try:
+        profile = UserProfile.objects.get(user=user)
+        user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+    except Exception:
+        user_tz = zoneinfo.ZoneInfo("UTC")
+
+    if yesterday_date is None:
+        local_now = tz.now().astimezone(user_tz)
+        yesterday_date = (local_now - timedelta(days=1)).date()
+
+    start_of_yesterday = datetime.combine(yesterday_date, time.min).replace(tzinfo=user_tz)
+    end_of_yesterday = datetime.combine(yesterday_date, time.max).replace(tzinfo=user_tz)
+
+    # 1. Check UserActivityLog for daily activity created yesterday
+    if UserActivityLog.objects.filter(
+        user=user,
+        activity_type=UserActivityLog.ActivityType.DAILY,
+        created_at__gte=start_of_yesterday,
+        created_at__lte=end_of_yesterday,
+    ).exists():
+        return True
+
+    # 2. Check if any daily task has last_completed_at falling on yesterday
+    if Task.objects.filter(
+        user=user,
+        task_type=Task.TaskType.DAILY,
+        last_completed_at__gte=start_of_yesterday,
+        last_completed_at__lte=end_of_yesterday,
+    ).exists():
+        return True
+
+    return False
+
+
 def get_yesterday_uncompleted_dailies(user):
     """
     Returns a list of dailies that were scheduled for YESTERDAY but were NOT completed.
     Used by the Welcome Back modal (Habitica-style daily check-in).
     """
     import zoneinfo
+    from datetime import datetime, time, timedelta
     from django.utils import timezone as tz
+    from api.models import UserProfile, Task, UserActivityLog
 
     profile = UserProfile.objects.get(user=user)
 
@@ -97,6 +145,8 @@ def get_yesterday_uncompleted_dailies(user):
         user_tz = zoneinfo.ZoneInfo("UTC")
 
     yesterday = (tz.now().astimezone(user_tz) - timedelta(days=1)).date()
+    start_of_yesterday = datetime.combine(yesterday, time.min).replace(tzinfo=user_tz)
+    end_of_yesterday = datetime.combine(yesterday, time.max).replace(tzinfo=user_tz)
 
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
     result = []
@@ -107,7 +157,16 @@ def get_yesterday_uncompleted_dailies(user):
         was_completed_yesterday = False
         if task.last_completed_at:
             local_date = task.last_completed_at.astimezone(user_tz).date()
-            was_completed_yesterday = local_date == yesterday
+            was_completed_yesterday = (local_date == yesterday)
+        if not was_completed_yesterday:
+            # Fallback check on UserActivityLog
+            was_completed_yesterday = UserActivityLog.objects.filter(
+                user=user,
+                task=task,
+                activity_type=UserActivityLog.ActivityType.DAILY,
+                created_at__gte=start_of_yesterday,
+                created_at__lte=end_of_yesterday,
+            ).exists()
         if not was_completed_yesterday:
             result.append(task)
     return result
@@ -117,22 +176,42 @@ def get_yesterday_uncompleted_dailies(user):
 def complete_yesterday_dailies(user, completed_ids: list):
     """
     Handles the Welcome Back daily check-in response.
-    - Tasks in completed_ids: grant XP/Gold rewards retroactively (deja-vu style).
-    - Tasks NOT in completed_ids but were scheduled: apply missed-daily HP penalty.
+    - Tasks in completed_ids: grant XP/Gold rewards retroactively.
+      If process_missed_tasks already ran and dealt fail damage, refund that damage.
+    - Tasks NOT in completed_ids:
+      If process_missed_tasks has not run yet, apply fail damage.
+      If process_missed_tasks already ran, do NOT double-apply damage.
     Returns a summary dict.
     """
+    import zoneinfo
+    from datetime import datetime, time, timedelta
     from django.utils import timezone as tz
     from api.services.combat_service import calculate_fail_damage
     from api.services.mechanics import apply_active_mutators
-    from api.models import ActiveEffect
+    from api.models import ActiveEffect, UserActivityLog
     from api.services.profile_service import gain_xp, check_death
 
     profile = UserProfile.objects.select_for_update().get(user=user)
+
+    try:
+        user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+    except Exception:
+        user_tz = zoneinfo.ZoneInfo("UTC")
+
+    local_now = tz.now().astimezone(user_tz)
+    local_today = local_now.date()
+    yesterday = local_today - timedelta(days=1)
+    yesterday_dt = datetime.combine(yesterday, time(12, 0)).replace(tzinfo=user_tz)
+
+    cron_already_ran = bool(
+        profile.last_daily_cron_at and profile.last_daily_cron_at >= local_today
+    )
 
     missed_tasks = get_yesterday_uncompleted_dailies(user)
     total_xp = 0
     total_gold = 0
     total_dmg = 0
+    total_refund = 0
     log = []
 
     transcendence_active = ActiveEffect.objects.filter(
@@ -146,6 +225,10 @@ def complete_yesterday_dailies(user, completed_ids: list):
     ).exists()
 
     for task in missed_tasks:
+        fail_dmg = calculate_fail_damage(task, profile)
+        if iron_fast_active or elixir_active:
+            fail_dmg = 0
+
         if task.id in completed_ids:
             # ── Grant retroactive rewards ─────────────────────────
             rewards = task.get_rewards()
@@ -158,15 +241,39 @@ def complete_yesterday_dailies(user, completed_ids: list):
             profile.rank_xp = max(0, profile.rank_xp + final_xp)
             profile.gold = max(0, profile.gold + final_gold)
 
-            # Mark task as if it was completed yesterday
-            task.is_completed = True
-            task.last_completed_at = tz.now().replace(
-                hour=12, minute=0, second=0, microsecond=0
-            ) - timedelta(days=1)
+            # Mark task as completed yesterday (keep is_completed=False so task is ready for today)
+            task.is_completed = False
+            task.last_completed_at = yesterday_dt
             task.completion_count += 1
             task.streak += 1
             task.value = calc_new_value(task.value, "complete", "daily")
             task.save()
+
+            # Record UserActivityLog backdated to yesterday
+            try:
+                act_log = UserActivityLog.objects.create(
+                    user=user,
+                    activity_type=UserActivityLog.ActivityType.DAILY,
+                    task=task,
+                    title=task.title,
+                    category=task.category or "Other",
+                    difficulty=task.difficulty,
+                    xp_earned=final_xp,
+                    gold_earned=final_gold,
+                    streak_value=task.streak,
+                    metadata={"retroactive_checkin": True},
+                )
+                UserActivityLog.objects.filter(id=act_log.id).update(
+                    created_at=yesterday_dt
+                )
+            except Exception as e:
+                logger.warning(
+                    "Failed to record retroactive checkin activity log: %s", e
+                )
+
+            # If cron already ran, user was already penalized for this task, so refund the damage!
+            if cron_already_ran and fail_dmg > 0:
+                total_refund += fail_dmg
 
             total_xp += final_xp
             total_gold += final_gold
@@ -177,10 +284,11 @@ def complete_yesterday_dailies(user, completed_ids: list):
                     "title": task.title,
                     "xp": final_xp,
                     "gold": final_gold,
+                    "refunded_hp": fail_dmg if cron_already_ran else 0,
                 }
             )
         else:
-            # ── Apply missed-daily HP penalty ─────────────────────
+            # ── Uncompleted task ──────────────────────────────────
             context = {
                 "is_science": False,
                 "is_language": False,
@@ -195,7 +303,7 @@ def complete_yesterday_dailies(user, completed_ids: list):
             outcome = calculate_task_outcome(
                 user,
                 "daily",
-                base_hp_lost=calculate_fail_damage(task, profile),
+                base_hp_lost=fail_dmg,
                 is_positive=False,
                 mutator_effects=mutator_effects,
             )
@@ -203,24 +311,38 @@ def complete_yesterday_dailies(user, completed_ids: list):
             if iron_fast_active or elixir_active:
                 final_dmg = 0
 
-            if not transcendence_active:
-                task.streak = 0
-                task.value = calc_new_value(task.value, "fail", "daily")
-            task.is_completed = False
-            task.save()
+            if not cron_already_ran:
+                # Apply penalty since cron hasn't executed yet
+                if not transcendence_active:
+                    task.streak = 0
+                    task.value = calc_new_value(task.value, "fail", "daily")
+                task.is_completed = False
+                task.save()
+                total_dmg += final_dmg
 
-            total_dmg += final_dmg
             log.append(
                 {
                     "type": "checkin_missed",
                     "id": task.id,
                     "title": task.title,
                     "damage": final_dmg,
+                    "already_penalized": cron_already_ran,
                 }
             )
 
-    profile.hp = max(0, profile.hp - total_dmg)
-    profile.save(update_fields=["hp", "gold", "rank_xp", "level"])
+    # Apply HP adjustments
+    if total_refund > 0:
+        max_hp = profile.total_stats.get("hp_max", 100)
+        profile.hp = min(max_hp, profile.hp + total_refund)
+
+    if total_dmg > 0:
+        profile.hp = max(0, profile.hp - total_dmg)
+
+    # Mark cron as executed for today so process_missed_tasks won't re-penalize
+    profile.last_daily_cron_at = local_today
+    profile.save(
+        update_fields=["hp", "gold", "rank_xp", "level", "last_daily_cron_at"]
+    )
 
     died = check_death(profile)
 
@@ -228,6 +350,7 @@ def complete_yesterday_dailies(user, completed_ids: list):
         "total_xp": total_xp,
         "total_gold": total_gold,
         "total_dmg": total_dmg,
+        "total_refund": total_refund,
         "died": died,
         "log": log,
     }
@@ -1516,7 +1639,6 @@ def process_missed_tasks(user):
         if not is_daily_scheduled_for_date(task, profile.last_daily_cron_at):
             if task.is_completed:
                 task.is_completed = False
-                task.last_completed_at = None
                 task.save()
             continue
 
@@ -1531,9 +1653,8 @@ def process_missed_tasks(user):
 
         if was_completed:
             task.is_completed = False
-            task.last_completed_at = (
-                None  # Clear timestamp so tomorrow's first click is never blocked.
-            )
+            # Note: Do not clear task.last_completed_at so check-in history and streak audit know it was done yesterday.
+            # Tomorrow's clicks are never blocked because _complete_task_logic checks last_completed_local == local_today.
             log.append({"type": "daily_done", "id": task.id, "title": task.title})
         else:
             # Missed daily

@@ -118,9 +118,9 @@ export const CONSUMABLE_METADATA = {
     tier: 'C',
     effectValue: 'Streak Shield',
     duration: '1 Use (Auto)',
-    trigger: 'On Missed Habit',
-    shortDesc: 'Protects your habit streak from breaking if you miss a day.',
-    howItWorks: 'A protective safety talisman. If you fail to complete your daily habits before midnight, this shield automatically breaks instead of resetting your streak counter.',
+    trigger: 'On Missed Day',
+    shortDesc: 'Protects your daily login streak from breaking if you miss a day.',
+    howItWorks: 'A protective talisman. If you fail to log in for a day, this shield automatically breaks instead of resetting your character login streak (does not protect individual habit streaks).',
   },
   daily_gold_rush: {
     code: 'daily_gold_rush',

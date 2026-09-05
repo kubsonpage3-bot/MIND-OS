@@ -73,6 +73,7 @@ from .serializers import (
 from api.services.task_service import (
     complete_task,
     get_yesterday_uncompleted_dailies,
+    has_completed_any_daily_yesterday,
     complete_yesterday_dailies,
 )
 from api.services.skill_service import activate_skill
@@ -3033,21 +3034,28 @@ class DailyCheckinView(generics.GenericAPIView):
     def get(self, request):
         try:
             profile = UserProfile.objects.get(user=request.user)
-            yesterday_missed = get_yesterday_uncompleted_dailies(request.user)
-
-            # Only show the modal if user missed at least one day
-            # (last_login_date < today – 1  means they were away)
+            import zoneinfo
+            from datetime import timedelta
             from django.utils import timezone
 
-            today = timezone.now().date()
-            yesterday = today - __import__("datetime").timedelta(days=1)
+            try:
+                user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+            except Exception:
+                user_tz = zoneinfo.ZoneInfo("UTC")
+
+            local_today = timezone.now().astimezone(user_tz).date()
+            yesterday = local_today - timedelta(days=1)
+
+            yesterday_missed = get_yesterday_uncompleted_dailies(request.user)
+            completed_any_yesterday = has_completed_any_daily_yesterday(
+                request.user, yesterday
+            )
 
             force_test = request.query_params.get("force") in ["1", "true", "True"]
 
+            # Only show if user completed ZERO dailies yesterday and missed at least one scheduled daily
             needs_checkin = (
-                profile.last_login_date is not None
-                and profile.last_login_date <= yesterday
-                and len(yesterday_missed) > 0
+                (not completed_any_yesterday) and len(yesterday_missed) > 0
             ) or force_test
 
             if force_test and not yesterday_missed:
@@ -3085,7 +3093,11 @@ class DailyCheckinView(generics.GenericAPIView):
                 )
 
             return Response(
-                {"needs_checkin": needs_checkin, "dailies": data},
+                {
+                    "needs_checkin": needs_checkin,
+                    "completed_any_yesterday": completed_any_yesterday,
+                    "dailies": data,
+                },
                 status=status.HTTP_200_OK,
             )
         except Exception as e:

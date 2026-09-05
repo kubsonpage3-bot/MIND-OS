@@ -925,7 +925,7 @@ function CharacterTab({ profile, logs, rankXP: rankXPProp, currentRankId, subTab
             const discountPct = 25 + (seed % 4) * 5; // 25%, 30%, 35%, or 40%
             const discountedCost = Math.max(1, Math.round(featuredItem.cost * (1 - discountPct / 100)));
 
-            const bonusPoolCodes = ["daily_xp_surge", "daily_gold_rush", "health_potion", "focus_scroll"];
+            const bonusPoolCodes = ["daily_xp_surge", "focus_scroll", "boss_damage_plus", "large_heal"];
             const bonusItemCode = bonusPoolCodes[seed % bonusPoolCodes.length];
             const bonusItem = shopItems.find(i => i.id === bonusItemCode) || featuredItem;
             const isBonusDay = seed % 4 === 0; // Every 4 days an exclusive bonus item appears

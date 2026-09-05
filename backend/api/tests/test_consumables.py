@@ -273,4 +273,17 @@ class ConsumablesTests(TestCase):
         self.assertIn("profile", response.data)
         self.assertEqual(response.data["profile"]["hp"], 30)
 
+    def test_cannot_buy_unpurchasable_items(self):
+        # Items with is_purchasable=False must be rejected by buy_item
+        Item.objects.filter(code__in=["memory_patch", "daily_gold_rush"]).update(
+            is_purchasable=False
+        )
+        success, msg, profile = buy_item(self.user, "memory_patch")
+        self.assertFalse(success)
+        self.assertIn("not available for purchase", msg)
+
+        success, msg, profile = buy_item(self.user, "daily_gold_rush")
+        self.assertFalse(success)
+        self.assertIn("not available for purchase", msg)
+
 

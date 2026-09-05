@@ -311,7 +311,7 @@ function ResultsScreen({ result, onDismiss }) {
 }
 
 // ─── Checkin Screen ──────────────────────────────────────────────────────────
-function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
+function CheckinScreen({ dailies, onSubmit, isSubmitting, onSkip }) {
   const [checked, setChecked] = useState(new Set());
   const { t } = useTranslation();
 
@@ -442,7 +442,7 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
       {/* Action buttons */}
       <div className="px-4 pb-5 flex gap-2">
         <button
-          onClick={() => onSubmit([])}
+          onClick={onSkip}
           disabled={isSubmitting}
           className="relative font-pixel text-[10px] px-4 py-2.5 tracking-wide uppercase disabled:opacity-40 cursor-pointer"
           style={{
@@ -495,9 +495,14 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting }) {
 }
 
 // ─── Main exported modal ─────────────────────────────────────────────────────
-export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
+export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting, onClose }) {
   const [result, setResult] = useState(null);
   const [dismissed, setDismissed] = useState(false);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    onClose?.();
+  };
 
   const handleSubmit = (completedIds) => {
     onSubmit(completedIds, {
@@ -558,7 +563,7 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
             <ResultsScreen
               key="results"
               result={result}
-              onDismiss={() => setDismissed(true)}
+              onDismiss={handleDismiss}
             />
           ) : (
             <CheckinScreen
@@ -566,6 +571,7 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting }) {
               dailies={dailies}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
+              onSkip={handleDismiss}
             />
           )}
         </AnimatePresence>

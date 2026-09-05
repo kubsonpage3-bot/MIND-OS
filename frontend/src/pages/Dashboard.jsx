@@ -1201,6 +1201,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 function WelcomeBackCheckin() {
   const { needsCheckin, dailies, submitCheckin, isSubmitting } = useDailyCheckin();
   const [testOpen, setTestOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     // 1. URL trigger: ?checkin=1 or ?welcome=1
@@ -1210,8 +1211,14 @@ function WelcomeBackCheckin() {
     }
 
     // 2. Global console helpers
-    window.openDawnReport = () => setTestOpen(true);
-    window.openWelcomeBack = () => setTestOpen(true);
+    window.openDawnReport = () => {
+      setDismissed(false);
+      setTestOpen(true);
+    };
+    window.openWelcomeBack = () => {
+      setDismissed(false);
+      setTestOpen(true);
+    };
 
     return () => {
       delete window.openDawnReport;
@@ -1228,7 +1235,7 @@ function WelcomeBackCheckin() {
   ];
 
   const effectiveDailies = (dailies && dailies.length > 0) ? dailies : sampleDailies;
-  const isVisible = (needsCheckin && dailies.length > 0) || testOpen;
+  const isVisible = ((needsCheckin && dailies.length > 0) || testOpen) && !dismissed;
 
   const handleSubmit = (completedIds, callbacks = {}) => {
     if (testOpen && !needsCheckin) {
@@ -1269,6 +1276,10 @@ function WelcomeBackCheckin() {
         dailies={effectiveDailies}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+        onClose={() => {
+          setDismissed(true);
+          setTestOpen(false);
+        }}
       />
     </AnimatePresence>
   );

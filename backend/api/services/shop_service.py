@@ -22,6 +22,13 @@ def buy_item(user, item_id: str):
             profile,
         )
 
+    if not item.is_purchasable:
+        return (
+            False,
+            f"Item [{item.name}] is not available for purchase in the shop.",
+            profile,
+        )
+
     from api.services.profile_service import get_rank_info
     from api.constants import get_rank_price_multiplier
     from api.services.mechanics import apply_active_mutators, get_passive_multipliers
