@@ -41,7 +41,8 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 xp_earned = max(15, int(duration * 3))
                 profile.gold += gold_earned
                 profile.xp += xp_earned
-                profile.save(update_fields=["gold", "xp"])
+                profile.rank_xp = max(0, profile.rank_xp + xp_earned)
+                profile.save(update_fields=["gold", "xp", "rank_xp"])
 
                 try:
                     from api.models import UserActivityLog

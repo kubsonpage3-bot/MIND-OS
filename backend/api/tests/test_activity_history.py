@@ -41,8 +41,10 @@ def test_activity_history_endpoint_and_logging():
     complete_task(user, daily.id, is_positive=True)
     complete_task(user, todo.id, is_positive=True)
 
-    # Verify logs created
-    logs = UserActivityLog.objects.filter(user=user)
+    # Verify logs created (excluding automatically unlocked achievements)
+    logs = UserActivityLog.objects.filter(user=user).exclude(
+        activity_type=UserActivityLog.ActivityType.ACHIEVEMENT
+    )
     assert logs.count() == 4
     assert logs.filter(activity_type=UserActivityLog.ActivityType.HABIT_POS).exists()
     assert logs.filter(activity_type=UserActivityLog.ActivityType.HABIT_NEG).exists()
@@ -180,7 +182,7 @@ def test_task_revert_sync_with_activity_history():
     assert xp_earned > 0
 
     # Verify history before revert
-    res_hist1 = client4.get("/api/history/")
+    res_hist1 = client4.get("/api/history/?type=daily")
     assert res_hist1.status_code == 200
     h1_data = res_hist1.json()
     assert h1_data["stats"]["dailies_count"] == 1
@@ -192,7 +194,7 @@ def test_task_revert_sync_with_activity_history():
     assert res_rev.status_code == 200
 
     # Verify history after revert: log is cleanly deleted, XP/count back to 0
-    res_hist2 = client4.get("/api/history/")
+    res_hist2 = client4.get("/api/history/?type=daily")
     assert res_hist2.status_code == 200
     h2_data = res_hist2.json()
     assert h2_data["stats"]["dailies_count"] == 0
@@ -202,7 +204,7 @@ def test_task_revert_sync_with_activity_history():
     res_comp2 = client4.post(f"/api/tasks/{daily.id}/complete/", {"is_positive": True}, format="json")
     assert res_comp2.status_code == 200
     xp_earned2 = res_comp2.json()["xp_earned"]
-    res_hist3 = client4.get("/api/history/")
+    res_hist3 = client4.get("/api/history/?type=daily")
     assert res_hist3.status_code == 200
     h3_data = res_hist3.json()
     assert h3_data["stats"]["dailies_count"] == 1
@@ -294,6 +296,48 @@ def test_self_healing_history_reconciliation():
     assert len(data["results"]) == 1
     assert data["results"][0]["title"] == "Completed Daily"
     assert UserActivityLog.objects.filter(user=user5).count() == 1
+
+
+@pytest.mark.django_db
+def test_rank_xp_reconciliation_with_activity_history():
+    user = User.objects.create_user(username="syncuser", password="password123")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    # Set profile.rank_xp artificially higher to simulate drift (437 vs 415 in history)
+    profile = user.profile
+    profile.rank_xp = 437
+    profile.save(update_fields=["rank_xp"])
+
+    # Create activity logs totaling 415 XP
+    UserActivityLog.objects.create(
+        user=user,
+        activity_type=UserActivityLog.ActivityType.DAILY,
+        title="Workout",
+        xp_earned=215,
+    )
+    UserActivityLog.objects.create(
+        user=user,
+        activity_type=UserActivityLog.ActivityType.STUDY,
+        title="Coding",
+        xp_earned=200,
+    )
+
+    # Verify history query heals and synchronizes rank_xp to 415
+    res_hist = client.get("/api/history/?days=all")
+    assert res_hist.status_code == 200
+    hist_data = res_hist.json()
+    assert hist_data["stats"]["total_xp"] == 415
+    assert hist_data["profile"]["rank_xp"] == 415
+
+    # Verify profile endpoint also reflects synced rank_xp
+    profile.refresh_from_db()
+    assert profile.rank_xp == 415
+
+    res_prof = client.get("/api/profile/")
+    assert res_prof.status_code == 200
+    assert res_prof.json()["rank_xp"] == 415
+
 
 
 

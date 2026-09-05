@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, Flame, CheckCircle2, XCircle, Search,
@@ -112,11 +112,19 @@ export default function HistoryLog({ logs = [], tasks = [] }) {
   const [period, setPeriod] = useState("30");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const queryClient = useQueryClient();
+
   const { data: historyData, isLoading } = useQuery({
     queryKey: ["activityHistory", filterType, period, searchQuery],
     queryFn: () => djangoApi.history.getHistory({ type: filterType, days: period, search: searchQuery }),
     staleTime: 8000,
   });
+
+  useEffect(() => {
+    if (historyData?.profile) {
+      queryClient.setQueryData(["userprofile"], historyData.profile);
+    }
+  }, [historyData?.profile, queryClient]);
 
   const rawResults = historyData?.results;
   const stats = historyData?.stats;

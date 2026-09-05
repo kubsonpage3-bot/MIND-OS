@@ -1094,6 +1094,37 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 other_task.last_reward_data["gold_earned"] = other_final_gold
                 other_task.save()
 
+                try:
+                    from api.models import UserActivityLog
+
+                    if other_task.task_type == Task.TaskType.DAILY:
+                        other_act_type = UserActivityLog.ActivityType.DAILY
+                        other_streak = other_task.streak
+                    elif other_task.task_type == Task.TaskType.HABIT:
+                        other_act_type = UserActivityLog.ActivityType.HABIT_POS
+                        other_streak = other_task.pos_streak
+                    else:
+                        other_act_type = UserActivityLog.ActivityType.TODO
+                        other_streak = 0
+
+                    UserActivityLog.objects.create(
+                        user=user,
+                        activity_type=other_act_type,
+                        task=other_task,
+                        title=other_task.title,
+                        category=other_task.category or "Other",
+                        icon=other_task.icon or "",
+                        difficulty=other_task.difficulty or "medium",
+                        xp_earned=other_final_xp,
+                        gold_earned=other_final_gold,
+                        streak_value=other_streak,
+                        metadata={"mirror_match": True},
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "Failed to create UserActivityLog for mirror match task: %s", e
+                    )
+
                 mirror_autocomplete_data = {
                     "id": other_task.id,
                     "title": other_task.title,
@@ -1512,6 +1543,14 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 act_streak = 0
                 act_hp_lost = 0
 
+            total_earned_xp = rewards.get("xp", 0)
+            if (
+                is_positive
+                and "skill_effects" in locals()
+                and isinstance(skill_effects, dict)
+            ):
+                total_earned_xp += skill_effects.get("xp_bonus", 0)
+
             UserActivityLog.objects.create(
                 user=user,
                 activity_type=act_type,
@@ -1520,7 +1559,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 category=getattr(task, "category", "Other") or "Other",
                 icon=getattr(task, "icon", "") or "",
                 difficulty=getattr(task, "difficulty", "medium") or "medium",
-                xp_earned=rewards.get("xp", 0) if is_positive else 0,
+                xp_earned=total_earned_xp if is_positive else 0,
                 gold_earned=rewards.get("gold", 0) if is_positive else 0,
                 hp_lost=act_hp_lost,
                 mana_gained=mana_gained if is_positive else 0,

@@ -332,6 +332,30 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             profile.weekly_xp = profile.xp
             fields_to_update.append("weekly_xp")
 
+        # Auto-heal rank_xp with verified total activity history xp if desynced
+        if profile.prestige_count == 0:
+            from api.models import UserActivityLog
+            from django.db.models import Sum
+
+            all_time_history_xp = (
+                UserActivityLog.objects.filter(user=self.request.user)
+                .exclude(
+                    activity_type__in=[
+                        UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                        UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+                    ]
+                )
+                .aggregate(Sum("xp_earned"))["xp_earned__sum"]
+            )
+            if (
+                all_time_history_xp is not None
+                and all_time_history_xp > 0
+                and profile.rank_xp != all_time_history_xp
+            ):
+                profile.rank_xp = all_time_history_xp
+                fields_to_update.append("rank_xp")
+
+
         if profile.last_seen_at:
             setattr(
                 profile,
@@ -2231,8 +2255,30 @@ class ActivityHistoryView(generics.GenericAPIView):
                     if len(todo_logs) > 1:
                         for log in todo_logs[1:]:
                             log.delete()
+
+            # 3. Auto-heal rank_xp with total history xp if desynced
+            profile = getattr(user, "profile", None)
+            if profile and getattr(profile, "prestige_count", 0) == 0:
+                all_time_hist_xp = (
+                    UserActivityLog.objects.filter(user=user)
+                    .exclude(
+                        activity_type__in=[
+                            UserActivityLog.ActivityType.DAILY_UNCOMPLETE,
+                            UserActivityLog.ActivityType.TODO_UNCOMPLETE,
+                        ]
+                    )
+                    .aggregate(Sum("xp_earned"))["xp_earned__sum"]
+                )
+                if (
+                    all_time_hist_xp is not None
+                    and all_time_hist_xp > 0
+                    and profile.rank_xp != all_time_hist_xp
+                ):
+                    profile.rank_xp = all_time_hist_xp
+                    profile.save(update_fields=["rank_xp"])
         except Exception as e:
             logger.warning("Reconciliation error in ActivityHistoryView: %s", e)
+
 
         # ── Base Queryset ─────────────────────────────────────────────
         qs = UserActivityLog.objects.filter(user=user).exclude(
@@ -2365,6 +2411,7 @@ class ActivityHistoryView(generics.GenericAPIView):
                     "achievement_count": achievement_count,
                     "boss_defeat_count": boss_defeat_count,
                 },
+                "profile": UserProfileSerializer(profile).data if profile else None,
             },
             status=status.HTTP_200_OK,
         )
