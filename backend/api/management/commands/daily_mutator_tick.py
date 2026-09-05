@@ -51,8 +51,12 @@ class Command(BaseCommand):
                 # Lock the row for atomic update in python memory
                 p = UserProfile.objects.select_for_update().get(id=profile.id)
 
-                # Check if we already ran for today to avoid double-ticks
-                if p.last_daily_cron_at == today:
+                # Check if we already ran for today to avoid double-ticks.
+                # Uses its own field (not last_daily_cron_at, which the lazy
+                # daily-rollover check in task_service.py stamps as soon as
+                # any request detects a new day — sharing it meant whichever
+                # ran first for the day silently blocked the other).
+                if p.last_mutator_tick_at == today:
                     continue
 
                 initial_gold = p.gold
@@ -104,8 +108,8 @@ class Command(BaseCommand):
 
 
                 # Mark cron as run
-                p.last_daily_cron_at = today
-                p.save(update_fields=["gold", "last_daily_cron_at", "mana"])
+                p.last_mutator_tick_at = today
+                p.save(update_fields=["gold", "last_mutator_tick_at", "mana"])
                 count += 1
 
                 self.stdout.write(

@@ -174,6 +174,16 @@ class UserProfile(models.Model):
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )
+    # Separate from last_daily_cron_at on purpose: that field is stamped by
+    # the lazy daily-rollover check in task_service.py, which fires as soon
+    # as any request detects a new day for the user — almost always before
+    # the daily_mutator_tick management command (Loan Shark/Cursed
+    # Clock/Compound/Alchemist) gets a chance to run. Sharing one field
+    # meant whichever ran first for the day silently blocked the other for
+    # that whole day.
+    last_mutator_tick_at = models.DateField(
+        null=True, blank=True, verbose_name="Последний тик мутаторов"
+    )
     last_training_at = models.DateField(
         null=True, blank=True, verbose_name="Последняя тренировка"
     )
