@@ -175,3 +175,39 @@ def test_complete_yesterday_dailies_refunds_fail_damage(checkin_user):
     assert task.streak == 1
     # is_completed should be False so it's ready for today
     assert task.is_completed is False
+
+
+@pytest.mark.django_db
+def test_daily_task_serializer_is_completed_false_if_not_today(checkin_user):
+    from api.serializers.tasks import TaskSerializer
+    from api.services.task_service import complete_task
+
+    user, profile = checkin_user
+    yesterday_dt = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
+
+    # Task has is_completed=True in DB, but last_completed_at was yesterday
+    stale_task = Task.objects.create(
+        user=user,
+        title="Brush Teeth",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=True,
+        last_completed_at=yesterday_dt,
+    )
+
+    # Serializer MUST report is_completed=False because it was not done today
+    data = TaskSerializer(stale_task).data
+    assert data["is_completed"] is False
+
+    # When user sends uncomplete (is_positive=False), it must auto-heal and NOT throw 400
+    res = complete_task(user, stale_task.id, is_positive=False)
+    assert "detail" in res
+    stale_task.refresh_from_db()
+    assert stale_task.is_completed is False
+
+    # Now user can complete it for today with is_positive=True
+    res2 = complete_task(user, stale_task.id, is_positive=True)
+    stale_task.refresh_from_db()
+    assert stale_task.is_completed is True
+    assert TaskSerializer(stale_task).data["is_completed"] is True
+

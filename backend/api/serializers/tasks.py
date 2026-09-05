@@ -73,6 +73,31 @@ class TaskSerializer(serializers.ModelSerializer):
         """Возвращает словарь с ожидаемыми наградами за задачу."""
         return obj.get_rewards()
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.task_type == Task.TaskType.DAILY:
+            # A daily task is only completed if it was completed TODAY in the user's timezone
+            if not instance.is_completed or not instance.last_completed_at:
+                ret["is_completed"] = False
+            else:
+                user = instance.user
+                user_tz = getattr(user, "_cached_tz", None)
+                if user_tz is None:
+                    import zoneinfo
+                    try:
+                        profile = getattr(user, "profile", None)
+                        tz_name = profile.timezone if profile else "UTC"
+                        user_tz = zoneinfo.ZoneInfo(tz_name or "UTC")
+                    except Exception:
+                        user_tz = zoneinfo.ZoneInfo("UTC")
+                    user._cached_tz = user_tz
+
+                from django.utils import timezone
+                local_today = timezone.now().astimezone(user_tz).date()
+                local_completed = instance.last_completed_at.astimezone(user_tz).date()
+                ret["is_completed"] = bool(instance.is_completed and local_completed == local_today)
+        return ret
+
     def validate_value(self, value):
         if value <= 0:
             raise serializers.ValidationError(

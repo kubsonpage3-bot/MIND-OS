@@ -433,6 +433,14 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.streak += 1
         else:
             if not already_done_today:
+                if task.is_completed:
+                    task.is_completed = False
+                    task.save(update_fields=["is_completed"])
+                    return {
+                        "detail": "Daily task completion status reset.",
+                        "task": task,
+                        "profile": profile,
+                    }
                 raise ValidationError("Daily task is not completed today.")
             # Revert: clear both the timestamp AND the flag so the task is fully unlocked.  # noqa: E501
             task.last_completed_at = None

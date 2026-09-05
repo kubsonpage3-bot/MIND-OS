@@ -510,18 +510,28 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     queryFn: async () => {
       const djangoTasks = await djangoApi.tasks.list();
       const tasksArray = Array.isArray(djangoTasks) ? djangoTasks : (djangoTasks?.results || []);
-      const mapped = tasksArray.map(dt => ({
-        id: dt.id,
-        type: dt.task_type || 'todo',
-        name: dt.title || 'Task',
-        icon: dt.icon || '',
-        category: dt.category || 'Other',
-        difficulty: dt.difficulty || 'medium',
-        notes: dt.notes || '',
-        done: dt.is_completed || false,
-        is_completed: dt.is_completed || false,   // ← нужно DailiesColumn
-        completedToday: dt.is_completed || false,
-        last_completed_at: dt.last_completed_at || null,
+      const mapped = tasksArray.map(dt => {
+        const isDaily = dt.task_type === 'daily' || dt.type === 'daily';
+        let isDone = Boolean(dt.is_completed);
+        if (isDaily && dt.last_completed_at) {
+          const completedDate = new Date(dt.last_completed_at).toDateString();
+          const todayDate = new Date().toDateString();
+          if (completedDate !== todayDate) {
+            isDone = false;
+          }
+        }
+        return {
+          id: dt.id,
+          type: dt.task_type || 'todo',
+          name: dt.title || 'Task',
+          icon: dt.icon || '',
+          category: dt.category || 'Other',
+          difficulty: dt.difficulty || 'medium',
+          notes: dt.notes || '',
+          done: isDone,
+          is_completed: isDone,   // ← нужно DailiesColumn
+          completedToday: isDone,
+          last_completed_at: dt.last_completed_at || null,
         rpgValue: dt.value || 0,
         value: dt.value || 0,
         streak: dt.streak || 0,
@@ -540,7 +550,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         mastery_category: dt.mastery_category || '',
         order: dt.order !== undefined ? dt.order : 0,
         due_date: dt.due_date || null,
-      }));
+      };
+      });
       return mapped;
     },
     enabled: !!djangoProfile
