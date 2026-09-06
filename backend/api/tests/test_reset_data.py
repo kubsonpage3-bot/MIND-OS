@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from api.models import (
     UserProfile, Task, TrainingSession, RecruitedAlly,
     InventoryItem, UserAchievement,
-    ActiveEffect, SkillCooldown, BossEncounter
+    ActiveEffect, SkillCooldown, BossEncounter, UserActivityLog
 )
 
 @pytest.mark.django_db
@@ -48,6 +48,11 @@ class TestResetDataEndpoints:
         Task.objects.create(user=self.user, title="Daily 1", task_type="daily")
         self.profile.rank_xp = 500
         self.profile.save()
+        # Simulate pre-existing activity logs (this triggered the auto-heal bug)
+        UserActivityLog.objects.create(
+            user=self.user, activity_type=UserActivityLog.ActivityType.DAILY,
+            xp_earned=500, gold_earned=0, title="Old daily"
+        )
 
         res = self.client.post("/api/profile/reset/", {"reset_type": "tasks"}, format="json")
         assert res.status_code == 200
@@ -55,6 +60,8 @@ class TestResetDataEndpoints:
         self.profile.refresh_from_db()
         assert self.profile.rank_xp == 0
         assert Task.objects.filter(user=self.user).count() == 0
+        # Activity logs must also be deleted so auto-heal can't revive rank_xp
+        assert UserActivityLog.objects.filter(user=self.user).count() == 0
 
     def test_reset_allies(self):
         RecruitedAlly.objects.create(
@@ -79,6 +86,11 @@ class TestResetDataEndpoints:
         self.profile.rank_xp = 2500
         self.profile.weekly_xp = 495
         self.profile.save()
+        # Simulate pre-existing activity logs (regression: auto-heal used to revive rank_xp)
+        UserActivityLog.objects.create(
+            user=self.user, activity_type=UserActivityLog.ActivityType.DAILY,
+            xp_earned=2500, gold_earned=0, title="Old daily"
+        )
 
         res = self.client.post("/api/profile/reset/", {"reset_type": "stats"}, format="json")
         assert res.status_code == 200
@@ -90,6 +102,8 @@ class TestResetDataEndpoints:
         assert self.profile.rank_xp == 0
         assert self.profile.weekly_xp == 0
         assert self.profile.gf == 100.0
+        # Activity logs must be cleared so GET /profile/ auto-heal can't revive rank_xp
+        assert UserActivityLog.objects.filter(user=self.user).count() == 0
 
     def test_reset_nuclear(self):
         Task.objects.create(user=self.user, title="Task To Delete", task_type="todo")

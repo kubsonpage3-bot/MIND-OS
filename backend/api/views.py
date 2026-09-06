@@ -3026,6 +3026,10 @@ class ResetDataView(generics.GenericAPIView):
                 if reset_type in ["tasks", "nuclear"]:
                     Task.objects.filter(user=request.user).delete()
                     profile.rank_xp = 0
+                    # Clear activity logs so the rank_xp auto-heal on GET /profile/
+                    # does not immediately restore rank_xp from historical sums
+                    from api.models import UserActivityLog
+                    UserActivityLog.objects.filter(user=request.user).delete()
 
                 if reset_type in ["stats", "nuclear"]:
                     InventoryItem.objects.filter(user_profile=profile).delete()
@@ -3075,9 +3079,12 @@ class ResetDataView(generics.GenericAPIView):
                     ActiveEffect.objects.filter(user=request.user).delete()
                     SkillCooldown.objects.filter(user=request.user).delete()
                     BossEncounter.objects.filter(user=request.user).delete()
-                    from api.models import TrainingSession
+                    from api.models import TrainingSession, UserActivityLog
 
                     TrainingSession.objects.filter(user_profile=profile).delete()
+                    # Clear activity logs so rank_xp auto-heal on GET /profile/ does
+                    # not immediately restore rank_xp from historical XP sums
+                    UserActivityLog.objects.filter(user=request.user).delete()
                     profile.humanities_xp = 0.0
 
                     # Direct update as requested
