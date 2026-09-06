@@ -1,8 +1,9 @@
 // @ts-nocheck
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, ChevronLeft } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { djangoApi } from "@/api/djangoClient";
 import { useTranslation } from "react-i18next";
 import { playSound } from "@/lib/soundEffects";
@@ -45,6 +46,8 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [targetRect, setTargetRect] = useState(null);
+  const cardRef = useRef(null);
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   const markSeenMutation = useMutation({
@@ -90,6 +93,47 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
       }
     }
   }, [forceOpen, profile]);
+
+  // If user navigates to another page or changes section/tab, immediately dismiss hint
+  useEffect(() => {
+    if (isVisible) {
+      handleClose();
+    }
+  }, [location.pathname, location.search]);
+
+  // Global dismiss on Escape key or any click/tap outside the tutorial card
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Small delay (150ms) to ensure opening click/tap doesn't immediately dismiss
+    const timer = setTimeout(() => {
+      const handleOutsideClick = (e) => {
+        // If clicking inside the tutorial card buttons, ignore
+        if (cardRef.current && cardRef.current.contains(e.target)) {
+          return;
+        }
+        // Tapping anywhere outside (e.g. on highlighted element, sidebar, tasks, background) dismisses hint
+        handleClose();
+      };
+
+      document.addEventListener("pointerdown", handleOutsideClick, true);
+      return () => {
+        document.removeEventListener("pointerdown", handleOutsideClick, true);
+      };
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isVisible]);
 
   // Update spotlight target bounding box
   const updateSpotlight = () => {
@@ -179,6 +223,7 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
           {/* Interactive Tutorial Card (positioned securely above mobile bottom nav) */}
           <div className="fixed bottom-[calc(var(--bottom-bar-height,68px)+16px)] md:bottom-10 left-4 right-4 z-[10000] flex justify-center pointer-events-none">
             <motion.div
+              ref={cardRef}
               initial={{ y: 50, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 50, opacity: 0, scale: 0.95 }}
