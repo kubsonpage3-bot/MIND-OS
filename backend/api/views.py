@@ -40,7 +40,7 @@ from api.services.billing_service import (
 )
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .constants import ALLIES_CONFIG
+from .constants import ALLIES_CONFIG, SCROLL_BOSSES_DICT
 
 from .models import UserProfile, Task, Item, InventoryItem, Recipe
 from .serializers import (
@@ -1136,8 +1136,9 @@ class BossSummonView(generics.GenericAPIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            # SSOT: cost from DB, not frontend
-            summon_cost = boss.reward_gold // 2
+            # SSOT: price from SCROLL_BOSSES_DICT, fallback to boss.reward_gold // 2
+            boss_cfg = SCROLL_BOSSES_DICT.get(boss_id, {})
+            summon_cost = int(boss_cfg.get("price", boss.reward_gold // 2))
             if profile.gold < summon_cost:
                 return Response(
                     {"detail": f"Not enough gold. Need {summon_cost}G."},
