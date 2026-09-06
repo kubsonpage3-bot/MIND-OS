@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { djangoApi } from '@/api/djangoClient';
 import { NUTRI_GOAL_KEY } from '@/constants/queryKeys';
 import { toast } from '@/components/ui/use-toast';
-import { Calculator, Settings, Bell, RefreshCw, Zap, Scale, Check } from 'lucide-react';
+import { Calculator, Settings, Bell, RefreshCw, Check } from 'lucide-react';
 import { hapticLight } from '@/hooks/useHaptic';
 
 const MACRO_SPLITS = [

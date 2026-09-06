@@ -2779,6 +2779,71 @@
       "calories_vs_goal": "Calories vs Goal ({{goal}} kcal)",
       "macro_balance": "Macro Balance (grams)",
       "water": "Water:"
+    },
+    "brand_sub": "Eat Journal",
+    "brand_tagline": "Nutrition, calories, water & body weight",
+    "now": "now",
+    "undo": "Undo",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "edit_amount": "Change the amount",
+    "entry_restored": "↩️ Entry restored",
+    "weekly_report": "Weekly report card",
+    "use_combo_short": "Combo",
+    "budget_hint": "~{{kcal}} kcal budgeted",
+    "macro_split": "Macro balance",
+    "target_short": "target",
+    "streak_title": "Consecutive days logged",
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow"
+    },
+    "pace": {
+      "on_track": "On pace for this time of day",
+      "ahead": "Ahead of pace — go lighter later",
+      "behind": "Behind pace — room for a real meal",
+      "over": "Over the daily target",
+      "marker": "Expected by now"
+    },
+    "micro": {
+      "fiber": "Fiber",
+      "sugar": "Sugar",
+      "sat_fat": "Sat. fat",
+      "sodium": "Sodium"
+    },
+    "insight": {
+      "over": "You're {{amount}} kcal past the target — an easy day tomorrow evens it out.",
+      "protein_behind": "Protein is {{amount}} g short with the day mostly gone.",
+      "nailed": "Right on target today. Textbook.",
+      "empty": "Nothing logged yet. Start with whatever you ate last.",
+      "macro_high": "{{macro}} is carrying {{amount}} points more of the day than planned.",
+      "macro_low": "{{macro}} is {{amount}} points below its share of the day.",
+      "low_fiber": "Only {{amount}} g of fiber so far — vegetables or oats would help.",
+      "protein_gap": "{{amount}} g of protein left to hit today.",
+      "logged": "{{count}} of {{total}} meals logged."
+    },
+    "quick_add": {
+      "title": "Quick add",
+      "tap_hint": "Tap to log 100{{unit}}",
+      "portion": "Choose portion",
+      "custom": "Custom amount…",
+      "logged": "⚡ {{name}} logged",
+      "copy_yesterday": "Repeat yesterday",
+      "copied": "📋 Copied {{count}} entries from yesterday",
+      "nothing_yesterday": "Nothing was logged yesterday",
+      "empty": "Log a few meals and your favourites show up here for one-tap repeats."
+    },
+    "shortcuts": {
+      "title": "Keyboard shortcuts",
+      "hint": "Press ? for shortcuts",
+      "add": "Add a meal",
+      "nav": "Previous / next day",
+      "today": "Jump to today",
+      "water": "Add a glass of water",
+      "calendar": "Open the calendar",
+      "goals": "Goals & macros",
+      "trends": "Toggle trends"
     }
   },
   "weight": {

@@ -1207,3 +1207,248 @@ html[data-theme="cyberpunk"] .min-h-screen {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+/* ══════════════════════════════════════════════════════════════════════════════
+   LIFE OS · EAT JOURNAL — scoped design system
+   Everything below is namespaced under `.eat-journal`, so it can never leak
+   into Mind OS. Tokens resolve against the existing --habit-* theme so the
+   journal still follows the user's chosen appearance.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.eat-journal {
+  --ej-r-lg: 22px;
+  --ej-r-md: 16px;
+  --ej-r-sm: 11px;
+
+  --ej-surface: var(--habit-panel);
+  --ej-surface-raised: rgba(255, 255, 255, 0.035);
+  --ej-surface-sunken: rgba(0, 0, 0, 0.18);
+  --ej-hairline: var(--habit-border);
+  --ej-hairline-strong: rgba(255, 255, 255, 0.14);
+
+  --ej-text: var(--habit-text);
+  --ej-dim: var(--habit-dim);
+  --ej-faint: color-mix(in srgb, var(--habit-dim) 60%, transparent);
+
+  --ej-kcal: #f59e0b;
+  --ej-protein: #3b82f6;
+  --ej-fat: #f97316;
+  --ej-carbs: #10b981;
+  --ej-water: #38bdf8;
+  --ej-over: #f43f5e;
+  --ej-good: #10b981;
+
+  --ej-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
+  --ej-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.20), 0 14px 34px -18px rgba(0, 0, 0, 0.55);
+  --ej-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.24), 0 26px 60px -26px rgba(0, 0, 0, 0.65);
+
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+}
+
+/* Light appearance needs darker hairlines and softer shadows. */
+html:not(.dark) .eat-journal {
+  --ej-surface-raised: rgba(15, 23, 42, 0.035);
+  --ej-surface-sunken: rgba(15, 23, 42, 0.055);
+  --ej-hairline-strong: rgba(15, 23, 42, 0.14);
+  --ej-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ej-shadow-md: 0 1px 3px rgba(15, 23, 42, 0.07), 0 10px 26px -16px rgba(15, 23, 42, 0.28);
+  --ej-shadow-lg: 0 2px 8px rgba(15, 23, 42, 0.08), 0 22px 48px -24px rgba(15, 23, 42, 0.35);
+}
+
+/* Fallback for engines without color-mix (older Android WebViews). */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .eat-journal { --ej-faint: var(--habit-dim); }
+}
+
+/* ─── Surfaces ─────────────────────────────────────────────────────────────── */
+
+.ej-card {
+  background: var(--ej-surface);
+  border: 1px solid var(--ej-hairline);
+  border-radius: var(--ej-r-lg);
+  box-shadow: var(--ej-shadow-md);
+  position: relative;
+}
+
+/* A single hairline highlight along the top edge — reads as glass, costs nothing. */
+.ej-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: var(--ej-r-lg) var(--ej-r-lg) 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.10), transparent);
+  pointer-events: none;
+}
+html:not(.dark) .ej-card::before { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent); }
+
+.ej-card--tight { border-radius: var(--ej-r-md); }
+.ej-card--quiet { box-shadow: var(--ej-shadow-sm); }
+
+.ej-inset {
+  background: var(--ej-surface-raised);
+  border: 1px solid var(--ej-hairline);
+  border-radius: var(--ej-r-md);
+}
+
+.ej-divider { height: 1px; background: var(--ej-hairline); border: 0; }
+
+/* ─── Controls ─────────────────────────────────────────────────────────────── */
+
+.ej-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ej-hairline);
+  background: var(--ej-surface-raised);
+  color: var(--ej-text);
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+.ej-chip:hover { border-color: var(--ej-hairline-strong); }
+.ej-chip:active { transform: scale(0.96); }
+.ej-chip--static { cursor: default; }
+
+.ej-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  background: var(--ej-surface-raised);
+  color: var(--ej-text);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+}
+.ej-icon-btn:hover { background: var(--ej-surface-sunken); border-color: var(--ej-hairline); }
+.ej-icon-btn:active { transform: scale(0.92); }
+.ej-icon-btn[data-active='true'] {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.38);
+  color: var(--ej-kcal);
+}
+
+/* Visible keyboard focus everywhere in the journal. */
+.eat-journal :is(button, a, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ej-kcal);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Number inputs: the UA spinner arrows render light-on-dark and look broken. */
+.eat-journal input[type='number']::-webkit-outer-spin-button,
+.eat-journal input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.eat-journal input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ─── Numerals ─────────────────────────────────────────────────────────────── */
+
+.ej-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Loading skeletons ────────────────────────────────────────────────────── */
+
+.ej-skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--ej-surface-raised);
+  border-radius: 8px;
+}
+.ej-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  animation: ej-shimmer 1.5s infinite;
+}
+html:not(.dark) .ej-skel::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent); }
+
+@keyframes ej-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ─── Horizontal rails (quick-add, day strip) ──────────────────────────────── */
+
+.ej-rail {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+.ej-rail::-webkit-scrollbar { display: none; }
+.ej-rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+/* Fade the rail's right edge so it reads as scrollable. */
+.ej-rail-mask {
+  position: relative;
+}
+.ej-rail-mask::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--ej-surface));
+}
+
+/* ─── Ambient page backdrop ────────────────────────────────────────────────── */
+
+.ej-aura {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 420px at 12% -8%, rgba(245, 158, 11, 0.10), transparent 62%),
+    radial-gradient(760px 400px at 92% 4%, rgba(123, 97, 255, 0.10), transparent 60%);
+}
+html:not(.dark) .ej-aura {
+  background:
+    radial-gradient(900px 420px at 12% -8%, rgba(245, 158, 11, 0.14), transparent 62%),
+    radial-gradient(760px 400px at 92% 4%, rgba(99, 102, 241, 0.12), transparent 60%);
+}
+
+/* ─── Translucent header ───────────────────────────────────────────────────── */
+
+.ej-topbar {
+  background: var(--habit-panel);
+  border-bottom: 1px solid var(--habit-border);
+}
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  .ej-topbar { background: color-mix(in srgb, var(--habit-bg) 80%, transparent); }
+}
+
+/* ─── Reduced motion ───────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .eat-journal *,
+  .eat-journal *::before,
+  .eat-journal *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

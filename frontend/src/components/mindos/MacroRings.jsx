@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useRef, useState } from 'react';
-import { motion, animate, useAnimation } from 'framer-motion';
+import { motion, animate } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 function AnimatedCounter({ value, style, className }) {
@@ -44,13 +44,15 @@ export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary 
   return (
     <motion.div
       className="flex flex-col items-center gap-2"
-      style={{ minWidth: size }}
+      // Fluid: grows in proportion to `size` but never exceeds it, so four
+      // rings always fit a narrow sidebar instead of overflowing it.
+      style={{ flex: `${size} 1 0`, minWidth: 0, maxWidth: size }}
       initial={{ opacity: 0, y: 16, scale: 0.88 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.55, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ scale: 1.06, transition: { duration: 0.2 } }}
     >
-      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <div className="relative flex items-center justify-center w-full" style={{ aspectRatio: '1 / 1', maxWidth: size }}>
         {/* Soft glow background */}
         <motion.div
           style={{
@@ -65,7 +67,13 @@ export function MacroRing({ value, goal, color, bg, label, size = 80, isPrimary 
           transition={isGoal ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : {}}
         />
 
-        <svg width={size} height={size} className="-rotate-90" style={{ display: 'block', position: 'relative' }}>
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          width="100%"
+          height="100%"
+          className="-rotate-90"
+          style={{ display: 'block', position: 'relative' }}
+        >
           {/* Track */}
           <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={bg} strokeWidth={strokeWidth} />
 
@@ -216,13 +224,13 @@ export function MacroBars({ totals = {}, goal = {} }) {
 export default function MacroRings({ totals = {}, goal = {}, compact = false }) {
   const { t } = useTranslation();
   const macroConfig = [
-    { key: 'calories', label: t('nutrition.macros.calories_short', 'kcal'), color: 'var(--habit-gold, #f59e0b)', bg: 'rgba(245, 158, 11, 0.12)', isPrimary: true,  size: compact ? 84 : 94 },
-    { key: 'protein',  label: t('nutrition.macros.protein', 'Protein'),     color: 'var(--habit-blue, #3b82f6)', bg: 'rgba(59,130,246,0.12)',    isPrimary: false, size: compact ? 68 : 74 },
-    { key: 'fat',      label: t('nutrition.macros.fat', 'Fat'),             color: 'var(--habit-orange, #f97316)', bg: 'rgba(249,115,22,0.12)',  isPrimary: false, size: compact ? 68 : 74 },
-    { key: 'carbs',    label: t('nutrition.macros.carbs', 'Carbs'),         color: 'var(--habit-green, #10b981)', bg: 'rgba(16,185,129,0.12)',   isPrimary: false, size: compact ? 68 : 74 },
+    { key: 'calories', label: t('nutrition.macros.calories_short', 'kcal'), color: 'var(--habit-gold, #f59e0b)', bg: 'rgba(245, 158, 11, 0.12)', isPrimary: true,  size: compact ? 82 : 94 },
+    { key: 'protein',  label: t('nutrition.macros.protein', 'Protein'),     color: 'var(--habit-blue, #3b82f6)', bg: 'rgba(59,130,246,0.12)',    isPrimary: false, size: compact ? 64 : 74 },
+    { key: 'fat',      label: t('nutrition.macros.fat', 'Fat'),             color: 'var(--habit-orange, #f97316)', bg: 'rgba(249,115,22,0.12)',  isPrimary: false, size: compact ? 64 : 74 },
+    { key: 'carbs',    label: t('nutrition.macros.carbs', 'Carbs'),         color: 'var(--habit-green, #10b981)', bg: 'rgba(16,185,129,0.12)',   isPrimary: false, size: compact ? 64 : 74 },
   ];
   return (
-    <div className="flex items-end justify-between gap-1 py-1 px-0.5 w-full">
+    <div className="flex items-end justify-between gap-2 py-1 w-full">
       {macroConfig.map(({ key, label, color, bg, isPrimary, size }, i) => (
         <MacroRing
           key={key}

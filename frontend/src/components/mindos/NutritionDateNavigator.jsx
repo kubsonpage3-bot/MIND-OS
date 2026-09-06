@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   ChevronLeft,
@@ -8,11 +8,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Calendar as CalendarIcon,
-  Layers,
-  Grid,
-  CalendarDays,
   Sparkles,
-  Zap,
 } from 'lucide-react';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -84,7 +84,7 @@ function BarcodeScanner({ onDetected, onClose }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (streamRef.current) streamRef.current.getTracks().forEach((tr) => tr.stop());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   return (
@@ -150,7 +150,7 @@ function getFoodEmoji(name = '') {
   return '🍽️';
 }
 
-export default function AddMealModal({ dateStr, initialMealType = 'breakfast', onClose }) {
+export default function AddMealModal({ dateStr, initialMealType = 'breakfast', initialFood = null, onClose }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
@@ -158,7 +158,11 @@ export default function AddMealModal({ dateStr, initialMealType = 'breakfast', o
   const [tab, setTab] = useState('search'); // 'search' | 'new'
   const [mealType, setMealType] = useState(initialMealType);
   const [search, setSearch] = useState('');
-  const [selectedFood, setSelectedFood] = useState(null);
+  // Quick-add can hand us a food to start from, so the modal opens on the
+  // portion step instead of an empty search box.
+  const [selectedFood, setSelectedFood] = useState(
+    initialFood ? { ...initialFood, is_custom: true } : null,
+  );
   const [amount, setAmount] = useState(100);
   const [note, setNote] = useState('');
   const [photoPreview, setPhotoPreview] = useState('');

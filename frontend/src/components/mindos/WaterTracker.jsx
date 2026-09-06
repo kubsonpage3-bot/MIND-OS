@@ -11,8 +11,9 @@ import { Droplets, Plus, Minus, Edit3, CheckCircle2 } from 'lucide-react';
 // ── SVG Wave Fill Component ────────────────────────────────────────────────────
 function WaveFill({ percentage, isGoalReached }) {
   const clampedPct = Math.min(percentage, 100);
-  // y position: 100% = empty (wave at top of inverted container), 0% = full
-  const yFill = 100 - clampedPct;
+  // The bar is horizontal, so the fill has to be clipped from the right.
+  // (It used to clip from the top, which made every value look 100 % full.)
+  const rightClip = 100 - clampedPct;
 
   const waveColor = isGoalReached
     ? 'rgba(16,185,129,0.85)'
@@ -33,8 +34,8 @@ function WaveFill({ percentage, isGoalReached }) {
       <motion.div
         className="absolute inset-0 flex items-end"
         style={{ width: '100%', height: '100%' }}
-        initial={{ clipPath: 'inset(100% 0 0 0)' }}
-        animate={{ clipPath: `inset(${yFill}% 0 0 0)` }}
+        initial={{ clipPath: 'inset(0 100% 0 0)' }}
+        animate={{ clipPath: `inset(0 ${rightClip}% 0 0)` }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Background fill */}
