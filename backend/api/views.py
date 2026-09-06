@@ -3212,12 +3212,17 @@ class DailyCheckinView(generics.GenericAPIView):
             local_today = timezone.now().astimezone(user_tz).date()
             yesterday = local_today - timedelta(days=1)
 
+            force_test = request.query_params.get("force") in ["1", "true", "True"]
+
+            # Brand new users who registered today or yesterday have no check-in for yesterday
+            user_joined_date = request.user.date_joined.astimezone(user_tz).date()
+            if user_joined_date >= local_today and not force_test:
+                return Response({"needs_checkin": False, "dailies": []})
+
             yesterday_missed = get_yesterday_uncompleted_dailies(request.user)
             completed_any_yesterday = has_completed_any_daily_yesterday(
                 request.user, yesterday
             )
-
-            force_test = request.query_params.get("force") in ["1", "true", "True"]
 
             # Only show if user completed ZERO dailies yesterday and missed at least one scheduled daily
             needs_checkin = (

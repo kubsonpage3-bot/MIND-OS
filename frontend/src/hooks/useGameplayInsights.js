@@ -86,6 +86,14 @@ export function useGameplayInsights() {
   const activeInsight = useMemo(() => {
     if (!profile) return null;
 
+    // 0. Suppress all gameplay insight cards during onboarding and for new users
+    if (!profile.seen_guides?.["main_tutorial"] || !profile.seen_guides?.["welcome_splash"]) {
+      return null;
+    }
+    if ((profile.level || 1) < 2 && (profile.streak || 0) === 0) {
+      return null;
+    }
+
     // 1. Initial startup grace period (prevent instant popup on app open)
     if (now - mountedAt < INITIAL_STARTUP_DELAY_MS) {
       return null;

@@ -1233,6 +1233,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 }
 
 function WelcomeBackCheckin() {
+  const { profile } = useDjangoAuth();
   const { needsCheckin, dailies, submitCheckin, isSubmitting } = useDailyCheckin();
   const [testOpen, setTestOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -1269,7 +1270,8 @@ function WelcomeBackCheckin() {
   ];
 
   const effectiveDailies = (dailies && dailies.length > 0) ? dailies : sampleDailies;
-  const isVisible = ((needsCheckin && dailies.length > 0) || testOpen) && !dismissed;
+  const isNewUser = !profile?.seen_guides?.["main_tutorial"] || profile?.character_class === "Wanderer";
+  const isVisible = (!isNewUser && ((needsCheckin && dailies.length > 0) || testOpen)) && !dismissed;
 
   const handleSubmit = (completedIds, callbacks = {}) => {
     if (testOpen && !needsCheckin) {

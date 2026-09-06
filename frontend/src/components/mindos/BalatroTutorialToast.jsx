@@ -140,13 +140,13 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
     <AnimatePresence>
       {isVisible && (
         <>
-          {/* Dark Spotlight Backdrop */}
+          {/* Subtle non-blur scrim: keeps entire app sharp, colorful & fully readable */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 z-[9990] bg-slate-950/75 backdrop-blur-[2px] pointer-events-auto"
+            className="fixed inset-0 z-[9990] bg-black/20 pointer-events-auto"
           />
 
           {/* Glowing Spotlight Cutout around active UI element */}
@@ -161,8 +161,13 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
                 height: targetRect.height,
               }}
               transition={{ type: "spring", stiffness: 350, damping: 28 }}
-              className="fixed pointer-events-none z-[9995] rounded-2xl border-2 border-indigo-400/90 shadow-[0_0_30px_rgba(99,102,241,0.8),inset_0_0_15px_rgba(99,102,241,0.3)] animate-pulse"
-            />
+              className="fixed pointer-events-none z-[9995] rounded-2xl border-2 border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.9),inset_0_0_12px_rgba(168,85,247,0.4)] ring-4 ring-purple-500/20"
+            >
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-purple-600 border border-purple-400 text-white font-mono text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(168,85,247,0.8)] whitespace-nowrap animate-bounce flex items-center gap-1">
+                <span>▼</span>
+                <span>{TUTORIAL_STEPS[currentStep].icon}</span>
+              </div>
+            </motion.div>
           )}
 
           {/* Interactive Tutorial Card (positioned securely above mobile bottom nav) */}

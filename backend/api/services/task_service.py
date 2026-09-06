@@ -213,6 +213,9 @@ def get_yesterday_uncompleted_dailies(user):
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
     result = []
     for task in dailies:
+        # A task created after yesterday could not possibly have been due yesterday!
+        if task.created_at and task.created_at.astimezone(user_tz).date() > yesterday:
+            continue
         if not is_daily_scheduled_for_date(task, yesterday):
             continue
         # Check if completed yesterday
