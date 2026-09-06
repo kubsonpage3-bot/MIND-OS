@@ -291,8 +291,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
                         }
                     )
 
+            is_first_class_selection = (
+                not instance.character_class
+                or instance.character_class.lower() in ["", "wanderer"]
+            ) and (bool(new_class) and new_class.lower() not in ["", "wanderer"])
+        else:
+            is_first_class_selection = False
+
         # Track which fields are updated to avoid race conditions (e.g. overwriting gold deduction)
         update_fields = set(validated_data.keys())
+
+        # Onboarding: grant small starter gold (20g) on initial class selection if gold is 0
+        if is_first_class_selection and instance.gold == 0:
+            instance.gold = 20
+            update_fields.add("gold")
 
         # Handle standard fields
         for attr, value in validated_data.items():
@@ -384,5 +396,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         if update_fields:
             instance.save(update_fields=list(update_fields))
+
+        # Onboarding: Seed initial starter quests for new operative
+        if is_first_class_selection:
+            try:
+                from api.services.task_service import seed_starter_tasks
+
+                lang = "en"
+                if request:
+                    lang = (
+                        request.data.get("lang")
+                        or request.headers.get("Accept-Language", "")
+                        or "en"
+                    )
+                seed_starter_tasks(instance.user, lang=lang)
+            except Exception as e:
+                import logging
+
+                logging.getLogger(__name__).error(
+                    f"Failed to seed starter tasks for {instance.user.username}: {e}"
+                )
 
         return instance

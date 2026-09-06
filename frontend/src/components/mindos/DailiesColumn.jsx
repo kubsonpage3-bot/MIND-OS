@@ -563,11 +563,26 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
         >
           <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
             {tasks.length === 0 && (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-2 opacity-85 flex items-center justify-center">
-                  <img src="/images/tasks/task_daily_shield.png" alt="Dailies" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.4)]" />
+              <div className="py-8 px-4 text-center rounded-xl border border-dashed border-purple-500/30 bg-purple-950/20 backdrop-blur-xs flex flex-col items-center justify-center gap-3 my-2 shadow-[0_0_20px_rgba(168,85,247,0.08)]">
+                <div className="w-14 h-14 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                  <img src="/images/tasks/task_daily_shield.png" alt="Dailies" className="w-9 h-9 object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
                 </div>
-                <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_dailies')}</div>
+                <div className="space-y-1">
+                  <h4 className="font-mono text-xs font-bold text-purple-200 tracking-wider uppercase">
+                    ⚔️ {t('empty_state.dailies_title', 'No daily quests yet')}
+                  </h4>
+                  <p className="font-mono text-[11px] text-slate-400 max-w-[240px] mx-auto leading-relaxed">
+                    {t('empty_state.dailies_desc', 'Miss a Daily = lose HP. Complete it = hit the Boss & earn Gold. These are your non-negotiables.')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onAddClick || (() => { setEditingTask(null); setShowForm(true); })}
+                  className="mt-1 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-mono text-xs font-bold transition-all active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.4)] flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  <span>{t('empty_state.add_daily', '+ Add First Daily')}</span>
+                </button>
               </div>
             )}
             <AnimatePresence mode="popLayout">

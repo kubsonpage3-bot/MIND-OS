@@ -65,6 +65,68 @@ def award_free_chest(profile, chest_type):
     return won_item
 
 
+def seed_starter_tasks(user, lang="en"):
+    """
+    Seeds initial starter quests (2 dailies, 1 habit) for a new player.
+    Ensures zero state is gamified and engaging right after class selection.
+    Only seeds if the user does not already have any tasks.
+    """
+    if Task.objects.filter(user=user).exists():
+        return []
+
+    is_ru = bool(lang and str(lang).lower().startswith("ru"))
+
+    starter_configs = [
+        {
+            "task_type": Task.TaskType.DAILY,
+            "title": "Прочитай 30 минут" if is_ru else "Read for 30 minutes",
+            "difficulty": Task.Difficulty.MEDIUM,
+            "category": "Reading & Writing",
+            "notes": (
+                "Книга, научная статья или конспекты для роста эрудиции и фокуса"
+                if is_ru
+                else "Book, article, or study notes for knowledge & mental focus"
+            ),
+            "icon": "book",
+            "order": 1,
+        },
+        {
+            "task_type": Task.TaskType.DAILY,
+            "title": "Сделай зарядку" if is_ru else "Morning workout",
+            "difficulty": Task.Difficulty.EASY,
+            "category": "Health & Fitness",
+            "notes": (
+                "10-15 минут разминки, растяжки или утренней прогулки"
+                if is_ru
+                else "10-15 minutes of stretching, mobility or brisk walk"
+            ),
+            "icon": "dumbbell",
+            "order": 2,
+        },
+        {
+            "task_type": Task.TaskType.HABIT,
+            "title": "Выпей стакан воды" if is_ru else "Drink a glass of water",
+            "difficulty": Task.Difficulty.EASY,
+            "category": "Health & Fitness",
+            "notes": (
+                "Поддерживай водный баланс для энергии мозга"
+                if is_ru
+                else "Hydrate your body & brain for sustained alertness"
+            ),
+            "icon": "water",
+            "order": 1,
+        },
+    ]
+
+    created_tasks = []
+    for cfg in starter_configs:
+        task = Task.objects.create(user=user, **cfg)
+        created_tasks.append(task)
+
+    logger.info(f"[Onboarding] Seeded {len(created_tasks)} starter quests for user {user.username}")
+    return created_tasks
+
+
 def complete_task(user, task_id, is_positive=True):
     try:
         with transaction.atomic():

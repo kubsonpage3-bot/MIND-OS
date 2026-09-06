@@ -81,6 +81,7 @@ export default function BottomNav({ activeSection, activeSubItem, onNavigate }) 
           return (
             <motion.button
               key={item.id}
+              data-tour={item.id}
               onClick={() => handleTap(item)}
               className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-all duration-200"
               whileTap={{ scale: 0.88 }}

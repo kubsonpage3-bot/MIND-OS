@@ -484,11 +484,26 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
         >
           <SortableContext items={tasks.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
             {tasks.length === 0 && (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-2 opacity-85 flex items-center justify-center">
-                  <img src="/images/tasks/task_todo_scroll.png" alt="To-Dos" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
+              <div className="py-8 px-4 text-center rounded-xl border border-dashed border-amber-500/30 bg-amber-950/20 backdrop-blur-xs flex flex-col items-center justify-center gap-3 my-2 shadow-[0_0_20px_rgba(245,158,11,0.08)]">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                  <img src="/images/tasks/task_todo_scroll.png" alt="To-Dos" className="w-9 h-9 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
                 </div>
-                <div style={{ fontFamily: "'Nunito'", fontStyle: 'italic', fontSize: 12, color: 'var(--habit-dim)' }}>{t('dashboard.no_todos')}</div>
+                <div className="space-y-1">
+                  <h4 className="font-mono text-xs font-bold text-amber-200 tracking-wider uppercase">
+                    📜 {t('empty_state.todos_title', 'No one-time quests')}
+                  </h4>
+                  <p className="font-mono text-[11px] text-slate-400 max-w-[240px] mx-auto leading-relaxed">
+                    {t('empty_state.todos_desc', 'Single objectives with rewards and optional deadlines. Finish them to claim burst XP.')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onAddClick || (() => { setEditingTask(null); setShowForm(true); })}
+                  className="mt-1 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-mono text-xs font-bold transition-all active:scale-95 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  <span>{t('empty_state.add_todo', '+ Add First Mission')}</span>
+                </button>
               </div>
             )}
             <AnimatePresence mode="popLayout">

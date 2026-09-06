@@ -286,6 +286,7 @@ function NavContent({
                       }}
                     >
                       <motion.button
+                        data-tour={section.id}
                         onClick={() => handleSectionNavigate(section)}
                         onMouseEnter={() => prefetchTab(section.id)}
                         onTouchStart={() => prefetchTab(section.id)}

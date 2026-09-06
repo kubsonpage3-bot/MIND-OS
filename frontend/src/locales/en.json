@@ -2022,41 +2022,63 @@
     "support2": "You can send a donation via PayPal to: kubsonpage3@gmail.com",
     "builtWith": "Built with ❤️ for MIND OS"
   },
+  "empty_state": {
+    "dailies_title": "No daily quests yet",
+    "dailies_desc": "Miss a Daily = lose HP. Complete it = hit the Boss & earn Gold. These are your non-negotiables.",
+    "add_daily": "+ Add First Daily",
+    "habits_title": "No active habits yet",
+    "habits_desc": "Hit + when you do the right thing, or - when you slip. Build your positive streak.",
+    "add_habit": "+ Forge First Habit",
+    "todos_title": "No one-time quests",
+    "todos_desc": "Single objectives with rewards and optional deadlines. Finish them to claim burst XP.",
+    "add_todo": "+ Add First Mission"
+  },
+  "welcome_splash": {
+    "protocol_badge": "PROTOCOL // NEURAL ENHANCEMENT",
+    "heading": "You have been selected for neural enhancement.",
+    "subheading": "MIND OS turns your daily life, study, workouts and habits into an RPG journey where every real-world action levels up your mind and character.",
+    "class_label": "ASSIGNED CLASS",
+    "loadout_label": "INITIAL LOADOUT",
+    "loadout_desc": "3 Starter Quests loaded • 20 Starter Gold",
+    "begin_btn": "► BEGIN PROTOCOL"
+  },
   "onboarding_tour": {
     "skip": "Skip",
     "next": "Next",
+    "back": "Back",
     "start": "Start",
     "finish": "Finish",
+    "step_counter": "Step {{current}} of {{total}}",
     "steps": {
       "tasks": {
-        "title": "Complete Tasks",
-        "description": "Check off Habits and Dailies to deal damage to the active Boss.",
-        "refersTo": "Tasks tab"
+        "title": "Complete Quests",
+        "description": "Miss a Daily = lose HP. Complete it = strike the Boss & earn Gold. Treat Dailies as your daily non-negotiables.",
+        "refersTo": "Tasks Tab / Quests"
       },
       "training": {
-        "title": "Log Training",
-        "description": "Train subjects to increase cognitive metrics and earn XP.",
+        "title": "Log Focus Training",
+        "description": "Log 'Math' or 'Reading' for 30m → your character's IQ metrics (Fluid / Crystallized) rise and you earn XP in real time.",
         "refersTo": "Dashboard / Training"
       },
       "character": {
-        "title": "Level Up Character",
-        "description": "Unlock permanent stat bonuses in the Skill Tree with SP.",
+        "title": "Level Up & Cast Spells",
+        "description": "Level up to earn SP. Unlock active spells in the Skill Tree: shield yourself from missed dailies or double your XP payout.",
         "refersTo": "Character / Skill Tree"
       },
       "shop": {
-        "title": "Equip Gear & Allies",
-        "description": "Spend Gold in the Shop to boost your stats and bonuses.",
+        "title": "Equip Gear & Items",
+        "description": "Crush tasks → earn Gold → buy armor & weapons. Gear provides direct, real-time boosts to PWR, DEF, and Focus.",
         "refersTo": "Character / Shop"
       },
       "ranks": {
-        "title": "Climb the Ranks",
-        "description": "Stay consistent to rank up from F to SSS and prestige for permanent bonuses.",
-        "refersTo": "Dashboard Rank Progression"
+        "title": "Climb From Rank F to SSS",
+        "description": "Maintain your streak to climb the ranks. Reach SSS to Prestige for permanent stat multipliers and legendary titles.",
+        "refersTo": "Dashboard / Rank Progression"
       },
       "explore": {
-        "title": "MORE TO EXPLORE",
-        "description": "Want more detail on any section? Revisit in-depth guides anytime in Settings → Guides.",
-        "refersTo": "SETTINGS → GUIDES"
+        "title": "Explore Tools & LifeOS",
+        "description": "Track time with Pomodoro, plan in Calendar, and conquer LifeOS. Deep guides are always in Settings → Guides.",
+        "refersTo": "Drawer / Settings → Guides"
       }
     }
   },
@@ -2932,7 +2954,9 @@
     "recalibration": "CLASS RECALIBRATION",
     "architecture": "SELECT CLASS ARCHITECTURE",
     "choose_title": "CHOOSE YOUR CLASS",
-    "permanent_hint": "Choose your path. This choice is permanent.",
+    "choose_path_desc": "You can always change your class later in Settings.",
+    "change_later_hint": "You can always change your class later in Settings.",
+    "permanent_hint": "You can always change your class later in Settings.",
     "class_selection": "Class Selection",
     "selected_msg": "You have selected <1>{{name}}</1>.",
     "confirm_btn": "CONFIRM SELECTION",

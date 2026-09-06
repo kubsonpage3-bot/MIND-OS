@@ -125,6 +125,31 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        # Send welcome email if email is provided
+        if user.email and "@" in user.email:
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+
+                subject = f"[MIND OS] Welcome to the Protocol, Operative {user.username}"
+                body = (
+                    f"Welcome to MIND OS, Operative {user.username}!\n\n"
+                    f"Your neural profile has been successfully initialized.\n"
+                    f"MIND OS turns your daily tasks, focus training, and habits into an RPG system "
+                    f"where every real-world action levels up your mind and character.\n\n"
+                    f"YOUR FIRST DIRECTIVES:\n"
+                    f"1. Choose Your Class: Pick an architecture that matches your focus.\n"
+                    f"2. Complete Starter Quests: Check off your Dailies to strike the active Boss and earn Gold.\n"
+                    f"3. Train Cognitive Metrics: Log focus sessions in Math, Reading or Coding to boost your IQ stats.\n"
+                    f"4. Equip Gear: Spend Gold in the Shop to gain PWR, DEF, and Focus buffs.\n\n"
+                    f"You can always reach out with ideas or feedback at kubsonpage3@gmail.com.\n\n"
+                    f"-- MIND OS Neural Core\n"
+                )
+                from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@mindos.app")
+                send_mail(subject, body, from_email, [user.email], fail_silently=True)
+            except Exception as e:
+                logger.error(f"[RegisterView] Welcome email failed for {user.username}: {e}")
+
         return Response(
             {
                 "detail": "Account successfully created. Please log in via /api/auth/token/",  # noqa: E501

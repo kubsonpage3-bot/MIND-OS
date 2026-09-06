@@ -32,7 +32,7 @@ export default function ClassSelector({ onChoose, isPremium }) {
     <div className="space-y-6">
       <div className="text-center space-y-1">
         <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest">{t('select_class.class_selection', 'Class Selection')}</div>
-        <div className="font-mono text-sm text-foreground/70">{t('select_class.choose_path_desc', 'Choose your path. This choice is permanent.')}</div>
+        <div className="font-mono text-sm text-foreground/70">{t('select_class.choose_path_desc', 'You can always change your class later in Settings.')}</div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
