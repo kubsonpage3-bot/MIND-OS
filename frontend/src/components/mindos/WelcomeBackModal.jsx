@@ -495,13 +495,22 @@ function CheckinScreen({ dailies, onSubmit, isSubmitting, onSkip }) {
 }
 
 // ─── Main exported modal ─────────────────────────────────────────────────────
-export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting, onClose }) {
+export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting, onClose, onSkip }) {
   const [result, setResult] = useState(null);
   const [dismissed, setDismissed] = useState(false);
 
   const handleDismiss = () => {
     setDismissed(true);
     onClose?.();
+  };
+
+  const handleSkip = () => {
+    setDismissed(true);
+    if (onSkip) {
+      onSkip();
+    } else {
+      onClose?.();
+    }
   };
 
   const handleSubmit = (completedIds) => {
@@ -571,7 +580,7 @@ export default function WelcomeBackModal({ dailies, onSubmit, isSubmitting, onCl
               dailies={dailies}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
-              onSkip={handleDismiss}
+              onSkip={handleSkip}
             />
           )}
         </AnimatePresence>

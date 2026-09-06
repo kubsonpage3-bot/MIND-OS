@@ -174,6 +174,9 @@ class UserProfile(models.Model):
     last_daily_cron_at = models.DateField(
         null=True, blank=True, verbose_name="Последний крон дейликов"
     )
+    last_daily_checkin_at = models.DateField(
+        null=True, blank=True, verbose_name="Последний чекин дейликов"
+    )
     # Separate from last_daily_cron_at on purpose: that field is stamped by
     # the lazy daily-rollover check in task_service.py, which fires as soon
     # as any request detects a new day for the user — almost always before

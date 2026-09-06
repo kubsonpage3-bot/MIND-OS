@@ -16,10 +16,28 @@ export function useDailyCheckin() {
 
   const mutation = useMutation({
     mutationFn: (completedIds) => djangoApi.dailyCheckin.submit(completedIds),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(['daily-checkin'], { needs_checkin: false, dailies: [] });
+      if (data?.profile) {
+        queryClient.setQueryData(['userprofile'], data.profile);
+      }
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-checkin'] });
+    },
+  });
+
+  const skipMutation = useMutation({
+    mutationFn: () => djangoApi.dailyCheckin.skip(),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['daily-checkin'], { needs_checkin: false, dailies: [] });
+      if (data?.profile) {
+        queryClient.setQueryData(['userprofile'], data.profile);
+      }
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
       queryClient.invalidateQueries({ queryKey: ['daily-checkin'] });
     },
   });
@@ -34,5 +52,7 @@ export function useDailyCheckin() {
     submitCheckin: mutation.mutate,
     isSubmitting: mutation.isPending,
     submitResult: mutation.data,
+    skipCheckin: skipMutation.mutate,
+    isSkipping: skipMutation.isPending,
   };
 }

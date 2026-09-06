@@ -1234,18 +1234,22 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
 function WelcomeBackCheckin() {
   const { profile } = useDjangoAuth();
-  const { needsCheckin, dailies, submitCheckin, isSubmitting } = useDailyCheckin();
+  const { needsCheckin, dailies, submitCheckin, isSubmitting, skipCheckin } = useDailyCheckin();
   const [testOpen, setTestOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // 1. URL trigger: ?checkin=1 or ?welcome=1
+    // URL trigger for debugging if needed: ?checkin=1 or ?welcome=1
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkin') === '1' || params.get('welcome') === '1' || params.get('test_checkin') === '1') {
       setTestOpen(true);
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('checkin');
+      newUrl.searchParams.delete('welcome');
+      newUrl.searchParams.delete('test_checkin');
+      window.history.replaceState({}, '', newUrl.toString());
     }
 
-    // 2. Global console helpers
     window.openDawnReport = () => {
       setDismissed(false);
       setTestOpen(true);
@@ -1261,42 +1265,23 @@ function WelcomeBackCheckin() {
     };
   }, []);
 
-  const sampleDailies = [
-    { id: 99901, title: 'Работа / Программирование', difficulty: 'medium', category: 'Work & Career', streak: 5, xp: 12, gold: 6, hp_damage: 4 },
-    { id: 99902, title: 'Химия / Теория', difficulty: 'trivial', category: 'STEM', streak: 1, xp: 3, gold: 2, hp_damage: 1 },
-    { id: 99903, title: 'Бег / Тренировка', difficulty: 'hard', category: 'Health & Fitness', streak: 12, xp: 24, gold: 12, hp_damage: 8 },
-    { id: 99904, title: 'Физика / Задачи', difficulty: 'trivial', category: 'STEM', streak: 2, xp: 3, gold: 2, hp_damage: 1 },
-    { id: 99905, title: 'Языки / English', difficulty: 'easy', category: 'Languages', streak: 7, xp: 6, gold: 3, hp_damage: 2 },
-  ];
+  const hasChosenClass = profile?.character_class && profile.character_class.toLowerCase() !== 'wanderer';
+  const isNewUser = !hasChosenClass || !profile?.seen_guides?.['main_tutorial'];
+  const hasDailies = Array.isArray(dailies) && dailies.length > 0;
+  const isVisible = (!isNewUser && !dismissed && needsCheckin && hasDailies) || (testOpen && !dismissed && hasDailies);
 
-  const effectiveDailies = (dailies && dailies.length > 0) ? dailies : sampleDailies;
-  const isNewUser = !profile?.seen_guides?.["main_tutorial"] || profile?.character_class === "Wanderer";
-  const isVisible = (!isNewUser && ((needsCheckin && dailies.length > 0) || testOpen)) && !dismissed;
+  const handleClose = () => {
+    setDismissed(true);
+    setTestOpen(false);
+  };
+
+  const handleSkip = () => {
+    setDismissed(true);
+    setTestOpen(false);
+    skipCheckin?.();
+  };
 
   const handleSubmit = (completedIds, callbacks = {}) => {
-    if (testOpen && !needsCheckin) {
-      // Simulate real reward calculations for preview mode
-      setTimeout(() => {
-        const completed = effectiveDailies.filter(d => completedIds.includes(d.id));
-        const missed = effectiveDailies.filter(d => !completedIds.includes(d.id));
-        const totalXp = completed.reduce((sum, d) => sum + (d.xp || (d.difficulty === 'hard' ? 24 : d.difficulty === 'medium' ? 12 : d.difficulty === 'easy' ? 6 : 3)), 0);
-        const totalGold = completed.reduce((sum, d) => sum + (d.gold || (d.difficulty === 'hard' ? 12 : d.difficulty === 'medium' ? 6 : d.difficulty === 'easy' ? 3 : 2)), 0);
-        const totalDmg = missed.reduce((sum, d) => sum + (d.hp_damage || (d.difficulty === 'hard' ? 8 : d.difficulty === 'medium' ? 4 : d.difficulty === 'easy' ? 2 : 1)), 0);
-
-        callbacks.onSuccess?.({
-          total_xp: totalXp,
-          total_gold: totalGold,
-          total_dmg: totalDmg,
-          died: false,
-          log: [
-            ...completed.map(d => ({ type: 'checkin_done', id: d.id, title: d.title, xp: d.xp || 12, gold: d.gold || 6 })),
-            ...missed.map(d => ({ type: 'checkin_missed', id: d.id, title: d.title, damage: d.hp_damage || 4 })),
-          ],
-        });
-      }, 500);
-      return;
-    }
-
     submitCheckin(completedIds, {
       onSuccess: (data) => {
         callbacks.onSuccess?.(data);
@@ -1309,13 +1294,11 @@ function WelcomeBackCheckin() {
   return (
     <AnimatePresence>
       <WelcomeBackModal
-        dailies={effectiveDailies}
+        dailies={dailies}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        onClose={() => {
-          setDismissed(true);
-          setTestOpen(false);
-        }}
+        onClose={handleClose}
+        onSkip={handleSkip}
       />
     </AnimatePresence>
   );

@@ -403,10 +403,34 @@ def complete_yesterday_dailies(user, completed_ids: list):
     if total_dmg > 0:
         profile.hp = max(0, profile.hp - total_dmg)
 
-    # Mark cron as executed for today so process_missed_tasks won't re-penalize
+    # Reset all user dailies to is_completed=False for the new day
+    Task.objects.filter(user=user, task_type=Task.TaskType.DAILY).update(is_completed=False)
+
+    # Reset daily counters for the new day
+    profile.tasks_completed_today = 0
+    profile.habits_completed_today = 0
+    profile.habit_boss_dmg_today = 0
+    profile.todos_completed_today = 0
+    profile.dailies_completed_today = 0
+
+    # Mark cron as executed and check-in as done for today so process_missed_tasks won't re-penalize
+    # and WelcomeBackModal won't re-appear today
     profile.last_daily_cron_at = local_today
+    profile.last_daily_checkin_at = local_today
     profile.save(
-        update_fields=["hp", "gold", "rank_xp", "level", "last_daily_cron_at"]
+        update_fields=[
+            "hp",
+            "gold",
+            "rank_xp",
+            "level",
+            "tasks_completed_today",
+            "habits_completed_today",
+            "habit_boss_dmg_today",
+            "todos_completed_today",
+            "dailies_completed_today",
+            "last_daily_cron_at",
+            "last_daily_checkin_at",
+        ]
     )
 
     died = check_death(profile)
@@ -417,6 +441,7 @@ def complete_yesterday_dailies(user, completed_ids: list):
         "total_dmg": total_dmg,
         "total_refund": total_refund,
         "died": died,
+        "profile": profile,
         "log": log,
     }
 
@@ -1711,10 +1736,14 @@ def process_missed_tasks(user):
     # Если крон еще не запускался или сегодня новый день по локальному времени
     if profile.last_daily_cron_at is None:
         profile.last_daily_cron_at = local_today
-        profile.save()
+        profile.last_daily_checkin_at = local_today
+        profile.save(update_fields=["last_daily_cron_at", "last_daily_checkin_at"])
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
     if profile.last_daily_cron_at >= local_today:
+        if not profile.last_daily_checkin_at or profile.last_daily_checkin_at < local_today:
+            profile.last_daily_checkin_at = local_today
+            profile.save(update_fields=["last_daily_checkin_at"])
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
     profile.tasks_completed_today = 0
@@ -1928,11 +1957,13 @@ def process_missed_tasks(user):
         profile.hp = min(profile.max_hp, profile.hp + daily_regen)
 
     profile.last_daily_cron_at = local_today
+    profile.last_daily_checkin_at = local_today
     profile.save(
         update_fields=[
             "hp",
             "gold",
             "last_daily_cron_at",
+            "last_daily_checkin_at",
             "rank_xp",
             "level",
             "tasks_completed_today",

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { djangoApi } from "@/api/djangoClient";
@@ -50,6 +50,9 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
   const location = useLocation();
   const queryClient = useQueryClient();
 
+  const getStorageKey = () =>
+    profile?.id ? `mindos_main_tutorial_seen_${profile.id}` : "mindos_main_tutorial_seen";
+
   const markSeenMutation = useMutation({
     mutationFn: async () => {
       return await djangoApi.profile.markGuideSeen("main_tutorial");
@@ -84,15 +87,29 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
       setCurrentStep(0);
       setIsVisible(true);
     } else if (profile && profile.seen_guides) {
+      const locallySeen = localStorage.getItem(getStorageKey()) === "true";
       // Only show automatically if user has selected a real class
       const hasClass = profile.character_class && profile.character_class !== "Wanderer";
       // And has already seen the welcome splash
       const seenSplash = profile.seen_guides["welcome_splash"];
-      if (hasClass && seenSplash && !profile.seen_guides["main_tutorial"]) {
+      if (!locallySeen && hasClass && seenSplash && !profile.seen_guides["main_tutorial"]) {
         setIsVisible(true);
       }
     }
   }, [forceOpen, profile]);
+
+  const handleClose = () => {
+    try {
+      localStorage.setItem(getStorageKey(), "true");
+    } catch (_) {}
+    playSound("button_click");
+    setIsVisible(false);
+    setTargetRect(null);
+    markSeenMutation.mutate();
+    if (onCloseCallback) {
+      onCloseCallback();
+    }
+  };
 
   // If user navigates to another page or changes section/tab, immediately dismiss hint
   useEffect(() => {
@@ -112,9 +129,9 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
     };
     window.addEventListener("keydown", handleKeyDown);
 
-    // Small delay (150ms) to ensure opening click/tap doesn't immediately dismiss
+    let handleOutsideClick = null;
     const timer = setTimeout(() => {
-      const handleOutsideClick = (e) => {
+      handleOutsideClick = (e) => {
         // If clicking inside the tutorial card buttons, ignore
         if (cardRef.current && cardRef.current.contains(e.target)) {
           return;
@@ -124,14 +141,14 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
       };
 
       document.addEventListener("pointerdown", handleOutsideClick, true);
-      return () => {
-        document.removeEventListener("pointerdown", handleOutsideClick, true);
-      };
     }, 150);
 
     return () => {
       clearTimeout(timer);
       window.removeEventListener("keydown", handleKeyDown);
+      if (handleOutsideClick) {
+        document.removeEventListener("pointerdown", handleOutsideClick, true);
+      }
     };
   }, [isVisible]);
 
@@ -142,6 +159,10 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
       return;
     }
     const step = TUTORIAL_STEPS[currentStep];
+    if (!step) {
+      setTargetRect(null);
+      return;
+    }
     const el = document.querySelector(step.targetSelector);
     if (el) {
       const rect = el.getBoundingClientRect();
@@ -159,6 +180,10 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
   };
 
   useEffect(() => {
+    if (!isVisible) {
+      setTargetRect(null);
+      return;
+    }
     updateSpotlight();
     window.addEventListener("resize", updateSpotlight);
     window.addEventListener("scroll", updateSpotlight, true);
@@ -168,15 +193,12 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
     };
   }, [currentStep, isVisible]);
 
-  const handleClose = () => {
-    playSound("button_click");
-    setIsVisible(false);
-    setTargetRect(null);
-    markSeenMutation.mutate();
-    if (onCloseCallback) {
-      onCloseCallback();
-    }
-  };
+  // Clean up spotlight bounding rect on unmount
+  useEffect(() => {
+    return () => {
+      setTargetRect(null);
+    };
+  }, []);
 
   const nextStep = () => {
     playSound("button_click");
@@ -198,24 +220,33 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
   return (
     <AnimatePresence>
       {isVisible && (
-        <>
+        <motion.div
+          key="balatro-tutorial-root"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 pointer-events-none z-[9995]"
+        >
           {/* Glowing Spotlight Cutout around active UI element */}
           {targetRect && (
             <motion.div
-              layoutId="tutorial-spotlight"
-              initial={false}
+              key="tutorial-spotlight-box"
+              initial={{ opacity: 0 }}
               animate={{
+                opacity: 1,
                 top: targetRect.top,
                 left: targetRect.left,
                 width: targetRect.width,
                 height: targetRect.height,
               }}
+              exit={{ opacity: 0 }}
               transition={{ type: "spring", stiffness: 350, damping: 28 }}
               className="fixed pointer-events-none z-[9995] rounded-2xl border-2 border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.9),inset_0_0_12px_rgba(168,85,247,0.4)] ring-4 ring-purple-500/20"
             >
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-purple-600 border border-purple-400 text-white font-mono text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(168,85,247,0.8)] whitespace-nowrap animate-bounce flex items-center gap-1">
                 <span>▼</span>
-                <span>{TUTORIAL_STEPS[currentStep].icon}</span>
+                <span>{TUTORIAL_STEPS[currentStep]?.icon || "💡"}</span>
               </div>
             </motion.div>
           )}
@@ -273,20 +304,20 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
               <div className="relative z-10">
                 <div className="flex items-start gap-3.5 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0 shadow-[0_0_12px_rgba(99,102,241,0.3)]">
-                    {TUTORIAL_STEPS[currentStep].icon}
+                    {TUTORIAL_STEPS[currentStep]?.icon || "💡"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-mono text-sm font-black text-white uppercase tracking-wide">
-                      {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep].id}.title`)}
+                      {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep]?.id}.title`)}
                     </h3>
                     <div className="text-[10px] text-indigo-300 font-mono uppercase tracking-wider mt-0.5">
-                      {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep].id}.refersTo`)}
+                      {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep]?.id}.refersTo`)}
                     </div>
                   </div>
                 </div>
 
                 <p className="font-mono text-xs text-slate-200/90 leading-relaxed mb-5 bg-slate-900/60 p-3 rounded-xl border border-white/5">
-                  {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep].id}.description`)}
+                  {t(`onboarding_tour.steps.${TUTORIAL_STEPS[currentStep]?.id}.description`)}
                 </p>
               </div>
 
@@ -318,7 +349,7 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
               </div>
             </motion.div>
           </div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

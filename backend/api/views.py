@@ -3048,9 +3048,18 @@ class ResetDataView(generics.GenericAPIView):
                         {"message": "Mutators reset"}, status=status.HTTP_200_OK
                     )
 
+                import zoneinfo
+                try:
+                    user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+                except Exception:
+                    user_tz = zoneinfo.ZoneInfo("UTC")
+                local_today = timezone.now().astimezone(user_tz).date()
+
                 if reset_type in ["tasks", "nuclear"]:
                     Task.objects.filter(user=request.user).delete()
                     profile.rank_xp = 0
+                    profile.last_daily_cron_at = local_today
+                    profile.last_daily_checkin_at = local_today
                     # Clear activity logs so the rank_xp auto-heal on GET /profile/
                     # does not immediately restore rank_xp from historical sums
                     from api.models import UserActivityLog
@@ -3071,7 +3080,9 @@ class ResetDataView(generics.GenericAPIView):
                     profile.skill_points = 0
                     profile.unspent_stat_points = 0
                     profile.streak = 0
-                    profile.last_daily_cron_at = None
+                    profile.last_daily_cron_at = local_today
+                    profile.last_daily_checkin_at = local_today
+                    profile.last_login_date = local_today
                     profile.seen_guides = {}
                     profile.rival_data = {}
 
@@ -3203,6 +3214,11 @@ class DailyCheckinView(generics.GenericAPIView):
             import zoneinfo
             from datetime import timedelta
             from django.utils import timezone
+            from api.services.task_service import (
+                get_yesterday_uncompleted_dailies,
+                has_completed_any_daily_yesterday,
+                process_missed_tasks,
+            )
 
             try:
                 user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
@@ -3214,15 +3230,55 @@ class DailyCheckinView(generics.GenericAPIView):
 
             force_test = request.query_params.get("force") in ["1", "true", "True"]
 
-            # Brand new users who registered today or yesterday have no check-in for yesterday
+            # If user already completed or skipped check-in for today, or cron already ran today:
+            if (
+                profile.last_daily_checkin_at
+                and profile.last_daily_checkin_at >= local_today
+                and not force_test
+            ) or (
+                profile.last_daily_cron_at
+                and profile.last_daily_cron_at >= local_today
+                and not force_test
+            ):
+                if not profile.last_daily_checkin_at or profile.last_daily_checkin_at < local_today:
+                    profile.last_daily_checkin_at = local_today
+                    profile.save(update_fields=["last_daily_checkin_at"])
+                return Response(
+                    {
+                        "needs_checkin": False,
+                        "completed_any_yesterday": False,
+                        "dailies": [],
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            # Brand new users registered today have no check-in for yesterday
             user_joined_date = request.user.date_joined.astimezone(user_tz).date()
             if user_joined_date >= local_today and not force_test:
-                return Response({"needs_checkin": False, "dailies": []})
+                profile.last_daily_cron_at = local_today
+                profile.last_daily_checkin_at = local_today
+                profile.save(update_fields=["last_daily_cron_at", "last_daily_checkin_at"])
+                return Response({"needs_checkin": False, "completed_any_yesterday": False, "dailies": []})
 
             yesterday_missed = get_yesterday_uncompleted_dailies(request.user)
             completed_any_yesterday = has_completed_any_daily_yesterday(
                 request.user, yesterday
             )
+
+            # If user completed all dailies yesterday (or had none due yesterday), auto-rollover cleanly
+            if len(yesterday_missed) == 0 and not force_test:
+                process_missed_tasks(request.user)
+                profile.refresh_from_db()
+                profile.last_daily_checkin_at = local_today
+                profile.save(update_fields=["last_daily_checkin_at"])
+                return Response(
+                    {
+                        "needs_checkin": False,
+                        "completed_any_yesterday": completed_any_yesterday,
+                        "dailies": [],
+                    },
+                    status=status.HTTP_200_OK,
+                )
 
             # Only show if user completed ZERO dailies yesterday and missed at least one scheduled daily
             needs_checkin = (
@@ -3280,6 +3336,28 @@ class DailyCheckinView(generics.GenericAPIView):
 
     def post(self, request):
         try:
+            profile = UserProfile.objects.get(user=request.user)
+            import zoneinfo
+            from django.utils import timezone
+            from api.services.task_service import complete_yesterday_dailies
+            from api.serializers.profile import UserProfileSerializer
+
+            try:
+                user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+            except Exception:
+                user_tz = zoneinfo.ZoneInfo("UTC")
+
+            local_today = timezone.now().astimezone(user_tz).date()
+
+            action = request.data.get("action")
+            if action == "skip" or request.data.get("skip") is True:
+                # Habitica-style skip: applies fail penalties to missed dailies and advances the day
+                result = complete_yesterday_dailies(request.user, completed_ids=[])
+                profile.refresh_from_db()
+                result["profile"] = UserProfileSerializer(profile).data
+                result["status"] = "skipped"
+                return Response(result, status=status.HTTP_200_OK)
+
             completed_ids = request.data.get("completed_ids", [])
             if not isinstance(completed_ids, list):
                 return Response(
@@ -3288,6 +3366,8 @@ class DailyCheckinView(generics.GenericAPIView):
                 )
             completed_ids = [int(i) for i in completed_ids]
             result = complete_yesterday_dailies(request.user, completed_ids)
+            profile.refresh_from_db()
+            result["profile"] = UserProfileSerializer(profile).data
             return Response(result, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error(f"DailyCheckinView POST error: {e}", exc_info=True)

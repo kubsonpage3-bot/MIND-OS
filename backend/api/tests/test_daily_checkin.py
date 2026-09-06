@@ -16,6 +16,8 @@ from api.services.task_service import (
 @pytest.fixture
 def checkin_user():
     user = User.objects.create_user(username="checkin_tester", password="password123")
+    user.date_joined = timezone.now() - timedelta(days=5)
+    user.save()
     profile, _ = UserProfile.objects.get_or_create(
         user=user,
         defaults={"timezone": "UTC", "hp": 100, "gold": 50, "rank_xp": 0},
@@ -39,6 +41,7 @@ def test_has_completed_any_daily_yesterday(checkin_user):
         task_type=Task.TaskType.DAILY,
         repeat_weekdays=127,
     )
+    Task.objects.filter(id=daily.id).update(created_at=yesterday_dt - timedelta(days=1))
 
     # 1. When 0 dailies done yesterday -> False
     assert has_completed_any_daily_yesterday(user, yesterday) is False
@@ -83,6 +86,9 @@ def test_daily_checkin_view_logic(checkin_user):
         repeat_weekdays=127,
         difficulty=Task.Difficulty.MEDIUM,
     )
+    Task.objects.filter(id__in=[task1.id, task2.id]).update(
+        created_at=yesterday_dt - timedelta(days=1)
+    )
 
     # Case A: User completed ZERO dailies yesterday -> needs_checkin MUST be True
     response = client.get("/api/daily-checkin/")
@@ -99,6 +105,30 @@ def test_daily_checkin_view_logic(checkin_user):
     assert response.status_code == 200
     assert response.data["needs_checkin"] is False
     assert response.data["completed_any_yesterday"] is True
+
+    # Case C: If profile.last_daily_checkin_at is today, needs_checkin MUST be False even if tasks missed
+    task1.last_completed_at = None
+    task1.save()
+    profile.last_daily_checkin_at = timezone.now().date()
+    profile.save()
+
+    response = client.get("/api/daily-checkin/")
+    assert response.status_code == 200
+    assert response.data["needs_checkin"] is False
+
+    # Case D: Skipping daily check-in marks last_daily_checkin_at = today
+    profile.last_daily_checkin_at = None
+    profile.save()
+    skip_res = client.post("/api/daily-checkin/", {"action": "skip"})
+    assert skip_res.status_code == 200
+    assert skip_res.data["status"] == "skipped"
+
+    profile.refresh_from_db()
+    assert profile.last_daily_checkin_at == timezone.now().date()
+
+    # And now get returns needs_checkin: False
+    response = client.get("/api/daily-checkin/")
+    assert response.data["needs_checkin"] is False
 
 
 @pytest.mark.django_db
@@ -154,6 +184,7 @@ def test_complete_yesterday_dailies_refunds_fail_damage(checkin_user):
         is_completed=False,
         difficulty=Task.Difficulty.MEDIUM,
     )
+    Task.objects.filter(id=task.id).update(created_at=timezone.now() - timedelta(days=2))
 
     # 1. Cron runs, penalizes missed Yoga daily
     cron_res = process_missed_tasks(user)
@@ -210,4 +241,117 @@ def test_daily_task_serializer_is_completed_false_if_not_today(checkin_user):
     stale_task.refresh_from_db()
     assert stale_task.is_completed is True
     assert TaskSerializer(stale_task).data["is_completed"] is True
+
+
+@pytest.mark.django_db
+def test_checkin_actually_deducts_hp_and_reload_does_not_prompt(checkin_user):
+    user, profile = checkin_user
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    yesterday_dt = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
+
+    profile.last_daily_cron_at = yesterday
+    profile.last_daily_checkin_at = yesterday
+    profile.hp = 100
+    profile.save()
+
+    task = Task.objects.create(
+        user=user,
+        title="Hard Workout",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=False,
+        difficulty=Task.Difficulty.HARD,
+    )
+    Task.objects.filter(id=task.id).update(created_at=yesterday_dt - timedelta(days=1))
+
+    # 1. User opens page -> needs_checkin is True
+    res_get = client.get("/api/daily-checkin/")
+    assert res_get.status_code == 200
+    assert res_get.data["needs_checkin"] is True
+    assert len(res_get.data["dailies"]) == 1
+
+    # 2. User submits without completing the task (missed it)
+    res_post = client.post("/api/daily-checkin/", {"completed_ids": []}, format="json")
+    assert res_post.status_code == 200
+    assert res_post.data["total_dmg"] > 0
+
+    # 3. VERIFY HP WAS ACTUALLY DEDUCTED
+    profile.refresh_from_db()
+    assert profile.hp < 100
+    assert profile.hp == 100 - res_post.data["total_dmg"]
+    assert profile.last_daily_cron_at == today
+    assert profile.last_daily_checkin_at == today
+
+    # 4. VERIFY RELOAD (F5) NEVER RE-PROMPTS CHECK-IN
+    res_reload = client.get("/api/daily-checkin/")
+    assert res_reload.status_code == 200
+    assert res_reload.data["needs_checkin"] is False
+
+
+@pytest.mark.django_db
+def test_checkin_skip_applies_damage_and_advances_day(checkin_user):
+    user, profile = checkin_user
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    yesterday_dt = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
+
+    profile.last_daily_cron_at = yesterday
+    profile.last_daily_checkin_at = yesterday
+    profile.hp = 100
+    profile.save()
+
+    task = Task.objects.create(
+        user=user,
+        title="Missed Meditation",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=False,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    Task.objects.filter(id=task.id).update(created_at=yesterday_dt - timedelta(days=1))
+
+    # User clicks Skip
+    res = client.post("/api/daily-checkin/", {"action": "skip"}, format="json")
+    assert res.status_code == 200
+    assert res.data["status"] == "skipped"
+    assert res.data["total_dmg"] > 0
+
+    profile.refresh_from_db()
+    assert profile.hp < 100
+    assert profile.last_daily_cron_at == today
+    assert profile.last_daily_checkin_at == today
+
+    # Reload check
+    res_reload = client.get("/api/daily-checkin/")
+    assert res_reload.data["needs_checkin"] is False
+
+
+@pytest.mark.django_db
+def test_reset_data_clears_checkin_and_does_not_prompt(checkin_user):
+    user, profile = checkin_user
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    today = timezone.now().date()
+
+    # User resets stats/nuclear
+    res = client.post("/api/profile/reset/", {"reset_type": "stats"}, format="json")
+    assert res.status_code == 200
+
+    profile.refresh_from_db()
+    assert profile.last_daily_cron_at == today
+    assert profile.last_daily_checkin_at == today
+
+    # Check that daily check-in is NOT prompted after reset
+    res_checkin = client.get("/api/daily-checkin/")
+    assert res_checkin.status_code == 200
+    assert res_checkin.data["needs_checkin"] is False
+
 

@@ -536,6 +536,11 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ completed_ids: completedIds }),
       }),
+    skip: () =>
+      djangoFetch('/daily-checkin/', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'skip' }),
+      }),
   },
 
   nutrition: {

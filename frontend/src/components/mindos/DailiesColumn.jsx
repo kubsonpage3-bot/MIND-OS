@@ -215,52 +215,23 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const [formType, setFormType] = useState('daily');
   const [editingTask, setEditingTask] = useState(null);
 
-  // Запускаем cron при монтировании и при возвращении в приложение (смена вкладки)
+  // При возвращении на вкладку (если прошел час) обновляем статус проверки дейликов и задачи
   useEffect(() => {
-    const runCron = async () => {
-      try {
-        const res = await djangoApi.tasks.processMissed();
-        if (res.fired) {
-          if (res.profile) {
-            queryClient.setQueryData(["userprofile"], res.profile);
-          }
-          
-          // Синхронизируем задачи с бэкенда
-          queryClient.invalidateQueries({ queryKey: ["tasks"] });
-
-          if (res.total_dmg > 0) {
-            const missedCount = (res.log || []).filter(l => l.type === 'daily_missed').length;
-            setCronMsg(`🌙 New day: -${Math.round(res.total_dmg * 10) / 10} HP for ${missedCount} missed daily task(s)`);
-            setTimeout(() => setCronMsg(null), 6000);
-            
-            if (res.died) {
-              setDeathMsg('💀 You died from accumulated damage! HP restored, Rank demoted.');
-              setTimeout(() => setDeathMsg(null), 8000);
-              playSound('death');
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Failed to execute daily cron on backend:", e);
-      }
-    };
-    
-    runCron();
-
-    // Запускаем при возвращении на вкладку (если прошел час с последнего запуска или настал новый день)
     let lastRun = Date.now();
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         const now = Date.now();
         if (now - lastRun > 1000 * 60 * 60) { // 1 час
           lastRun = now;
-          runCron();
+          queryClient.invalidateQueries({ queryKey: ["daily-checkin"] });
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+          queryClient.invalidateQueries({ queryKey: ["userprofile"] });
         }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [queryClient]);
 
   const sensors = useTaskDndSensors();
   const [activeId, setActiveId] = useState(null);
