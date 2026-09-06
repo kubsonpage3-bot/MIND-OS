@@ -51,11 +51,28 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
     mutationFn: async () => {
       return await djangoApi.profile.markGuideSeen("main_tutorial");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["userprofile"] });
+      const previousProfile = queryClient.getQueryData(["userprofile"]);
+      if (previousProfile) {
+        queryClient.setQueryData(["userprofile"], {
+          ...previousProfile,
+          seen_guides: {
+            ...(previousProfile.seen_guides || {}),
+            main_tutorial: true,
+          },
+        });
+      }
+      return { previousProfile };
     },
-    onError: (err) => {
+    onError: (err, _variables, context) => {
       console.error("Failed to mark main_tutorial as seen:", err);
+      if (context?.previousProfile) {
+        queryClient.setQueryData(["userprofile"], context.previousProfile);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     },
   });
 
@@ -111,11 +128,9 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
     playSound("button_click");
     setIsVisible(false);
     setTargetRect(null);
-    if (!forceOpen && profile && profile.seen_guides && !profile.seen_guides["main_tutorial"]) {
-      markSeenMutation.mutate();
-    }
+    markSeenMutation.mutate();
     if (onCloseCallback) {
-      setTimeout(() => onCloseCallback(), 300);
+      onCloseCallback();
     }
   };
 
@@ -140,15 +155,6 @@ export default function BalatroTutorialToast({ profile, forceOpen = false, onClo
     <AnimatePresence>
       {isVisible && (
         <>
-          {/* Subtle non-blur scrim: keeps entire app sharp, colorful & fully readable */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="fixed inset-0 z-[9990] bg-black/20 pointer-events-auto"
-          />
-
           {/* Glowing Spotlight Cutout around active UI element */}
           {targetRect && (
             <motion.div

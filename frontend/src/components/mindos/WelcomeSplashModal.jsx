@@ -27,7 +27,26 @@ export default function WelcomeSplashModal({ profile, onComplete }) {
     mutationFn: async () => {
       return await djangoApi.profile.markGuideSeen("welcome_splash");
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["userprofile"] });
+      const previousProfile = queryClient.getQueryData(["userprofile"]);
+      if (previousProfile) {
+        queryClient.setQueryData(["userprofile"], {
+          ...previousProfile,
+          seen_guides: {
+            ...(previousProfile.seen_guides || {}),
+            welcome_splash: true,
+          },
+        });
+      }
+      return { previousProfile };
+    },
+    onError: (err, _variables, context) => {
+      if (context?.previousProfile) {
+        queryClient.setQueryData(["userprofile"], context.previousProfile);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     },
   });

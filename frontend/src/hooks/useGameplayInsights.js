@@ -86,11 +86,8 @@ export function useGameplayInsights() {
   const activeInsight = useMemo(() => {
     if (!profile) return null;
 
-    // 0. Suppress all gameplay insight cards during onboarding and for new users
-    if (!profile.seen_guides?.["main_tutorial"] || !profile.seen_guides?.["welcome_splash"]) {
-      return null;
-    }
-    if ((profile.level || 1) < 2 && (profile.streak || 0) === 0) {
+    // 0. Suppress all gameplay insight cards during onboarding and for early-game players (under level 3)
+    if ((profile.level || 1) < 3 || !profile.seen_guides?.["main_tutorial"] || !profile.seen_guides?.["welcome_splash"]) {
       return null;
     }
 
