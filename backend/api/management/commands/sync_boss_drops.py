@@ -45,7 +45,15 @@ class Command(BaseCommand):
                 continue
 
             try:
-                item = Item.objects.get(code=boss.drop_item_id)
+                try:
+                    item = Item.objects.get(code=boss.drop_item_id)
+                except Item.DoesNotExist:
+                    if boss.drop_item_id == "mask_nameless":
+                        item = Item.objects.get(code="mask_of_the_nameless")
+                    elif boss.drop_item_id == "mask_of_the_nameless":
+                        item = Item.objects.get(code="mask_nameless")
+                    else:
+                        raise
                 item.is_purchasable = False
                 item.source = "boss_drop"
                 rank = RANK_TO_LEVEL.get(boss.level, "E")

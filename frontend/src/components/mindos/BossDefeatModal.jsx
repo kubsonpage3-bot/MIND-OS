@@ -3,6 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { playSound } from '@/lib/soundEffects';
 import { useHardwareBack } from '@/utils/modalStack';
 import { hapticHeavy, hapticSuccess } from '@/hooks/useHaptic';
@@ -14,6 +15,7 @@ import { Swords, Coins, Zap, Sparkles, Gem, Trophy } from 'lucide-react';
 export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards }) {
   useHardwareBack(isOpen, onClose);
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const bossName = combatResult?.boss_name || "The Boss";
   const bossId = combatResult?.boss_id_name;
@@ -67,6 +69,9 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
     } catch {
       // Safe fallback
     }
+    queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+    queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    queryClient.invalidateQueries({ queryKey: ['combat_encounters'] });
     onClose();
   };
 
@@ -257,29 +262,39 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
                 </div>
 
                 {/* Unique Item Drop (if available) */}
-                {uniqueItem && (
-                  <div className="mt-2.5 p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border border-amber-400/40 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-black/50 border border-amber-400/50 flex items-center justify-center shrink-0 text-amber-300">
-                      🎁
+                {(uniqueItem || rewards?.item_dropped) && (() => {
+                  const dropLabel = rewards?.item_name || uniqueItem?.label || "Unique Artifact";
+                  const rolledStats = rewards?.item_stat_bonuses;
+                  const statDesc = rolledStats && Object.keys(rolledStats).length > 0
+                    ? Object.entries(rolledStats).map(([k, v]) => `${k.toUpperCase()} +${v}`).join(" · ")
+                    : (uniqueItem?.effect || "");
+
+                  return (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border border-amber-400/40 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-black/50 border border-amber-400/50 flex items-center justify-center shrink-0 text-amber-300">
+                        🎁
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[9px] font-bold text-amber-400 uppercase tracking-wider">
+                            {t('boss_defeat.unique_drop', 'UNIQUE DROP')}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-200 text-[8px] font-mono">
+                            {uniqueItem?.tier || 'Unique'}
+                          </span>
+                        </div>
+                        <div className="font-mono text-xs font-bold text-white truncate">
+                          {dropLabel}
+                        </div>
+                        {statDesc && (
+                          <div className="font-mono text-[10px] text-amber-200/90 truncate">
+                            {statDesc}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[9px] font-bold text-amber-400 uppercase tracking-wider">
-                          {t('boss_defeat.unique_drop', 'UNIQUE DROP')}
-                        </span>
-                        <span className="px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-200 text-[8px] font-mono">
-                          {uniqueItem.tier || 'Unique'}
-                        </span>
-                      </div>
-                      <div className="font-mono text-xs font-bold text-white truncate">
-                        {uniqueItem.label}
-                      </div>
-                      <div className="font-mono text-[10px] text-gray-300 truncate">
-                        {uniqueItem.effect}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
 

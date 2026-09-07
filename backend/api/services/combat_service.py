@@ -103,13 +103,21 @@ def process_boss_death(user, encounter):
     # Добавление уникального лута в инвентарь
     item_dropped = None
     if encounter.boss.drop_item_id:
-        item_dropped = encounter.boss.drop_item_id
-        try:
-            item = Item.objects.get(code=item_dropped)
+        from api.constants import RANK_TO_LEVEL
+        item_code = encounter.boss.drop_item_id
+        item = Item.objects.filter(code=item_code).first()
+        if not item:
+            if item_code == "mask_nameless":
+                item = Item.objects.filter(code="mask_of_the_nameless").first()
+            elif item_code == "mask_of_the_nameless":
+                item = Item.objects.filter(code="mask_nameless").first()
 
+        if item:
+            item_dropped = item.code
             rolled_stats = {}
-            if item.boss_rank and item.boss_rank in BOSS_RANK_STATS:
-                rules = BOSS_RANK_STATS[item.boss_rank]
+            rank = item.boss_rank or RANK_TO_LEVEL.get(encounter.boss.level, "E")
+            if rank in BOSS_RANK_STATS:
+                rules = BOSS_RANK_STATS[rank]
                 chosen_stats = random.sample(POSSIBLE_STATS, rules["count"])
                 for stat in chosen_stats:
                     rolled_stats[stat] = random.randint(rules["min"], rules["max"])
@@ -117,13 +125,13 @@ def process_boss_death(user, encounter):
             inv_item, created = InventoryItem.objects.get_or_create(
                 user_profile=profile,
                 item=item,
-                defaults={"stat_bonuses": rolled_stats} if rolled_stats else {},
+                defaults={"stat_bonuses": rolled_stats},
             )
             if not created:
                 inv_item.quantity += 1
-                inv_item.save(update_fields=["quantity"])
-        except Item.DoesNotExist:
-            pass
+                if not inv_item.stat_bonuses and rolled_stats:
+                    inv_item.stat_bonuses = rolled_stats
+                inv_item.save(update_fields=["quantity", "stat_bonuses"])
 
     profile.save(update_fields=["gold", "rank_xp"])
 

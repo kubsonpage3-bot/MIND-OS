@@ -459,6 +459,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     boss = active_encounter.boss
     rewards = {}
     if boss_defeated and boss is not None:
+        active_encounter.expires_at = timezone.now()
         profile = UserProfile.objects.select_for_update().get(user=user)
         xp_reward = int(boss.reward_xp * active_encounter.reward_multiplier)
         gold_reward = int(boss.reward_gold * active_encounter.reward_multiplier)
@@ -495,9 +496,73 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
             profile.ps = round(min(profile.ps_ceiling, profile.ps + 0.2), 2)
             profile.vm = round(min(profile.vm_ceiling, profile.vm + 0.2), 2)
 
+        # ── Уникальный лут при победе над боссом ─────────────────────
+        item_dropped = None
+        item_name = None
+        rolled_stats = {}
+
+        if boss.drop_item_id:
+            import random
+            from api.models import Item, InventoryItem
+            from api.constants import BOSS_RANK_STATS, RANK_TO_LEVEL, POSSIBLE_STATS
+
+            item_code = boss.drop_item_id
+            item = Item.objects.filter(code=item_code).first()
+            if not item:
+                if item_code == "mask_nameless":
+                    item = Item.objects.filter(code="mask_of_the_nameless").first()
+                elif item_code == "mask_of_the_nameless":
+                    item = Item.objects.filter(code="mask_nameless").first()
+
+            if item:
+                item_dropped = item.code
+                item_name = item.name
+                rank = item.boss_rank or RANK_TO_LEVEL.get(boss.level, "E")
+                if rank in BOSS_RANK_STATS:
+                    rules = BOSS_RANK_STATS[rank]
+                    chosen_stats = random.sample(POSSIBLE_STATS, rules["count"])
+                    for stat in chosen_stats:
+                        rolled_stats[stat] = random.randint(rules["min"], rules["max"])
+
+                inv_item, created = InventoryItem.objects.get_or_create(
+                    user_profile=profile,
+                    item=item,
+                    defaults={"stat_bonuses": rolled_stats},
+                )
+                if not created:
+                    inv_item.quantity += 1
+                    if not inv_item.stat_bonuses and rolled_stats:
+                        inv_item.stat_bonuses = rolled_stats
+                    inv_item.save(update_fields=["quantity", "stat_bonuses"])
+
         profile.save()
 
-        rewards = {"boss_xp": final_xp, "boss_gold": final_gold, "boss_sp": sp_reward}
+        rewards = {
+            "boss_xp": final_xp,
+            "boss_gold": final_gold,
+            "boss_sp": sp_reward,
+            "item_dropped": item_dropped,
+            "item_name": item_name,
+            "item_stat_bonuses": rolled_stats,
+        }
+
+        # Trigger push notification
+        try:
+            from api.services.push_service import send_notification_to_user
+
+            push_body = f"You successfully defeated {boss.name} and earned {final_gold} gold!"
+            if item_name:
+                push_body += f" Obtained: {item_name}!"
+
+            send_notification_to_user(
+                user=user,
+                pref_key="boss_defeated",
+                title="Boss Defeated! 🎉",
+                body=push_body,
+                url="/character/boss",
+            )
+        except Exception:
+            pass
 
         # Log boss defeat to History
         try:
@@ -509,7 +574,12 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
                 title=boss.name,
                 xp_earned=final_xp,
                 gold_earned=final_gold,
-                metadata={"boss_level": boss.level, "sp_reward": sp_reward},
+                metadata={
+                    "boss_level": boss.level,
+                    "sp_reward": sp_reward,
+                    "item_dropped": item_dropped,
+                    "item_name": item_name,
+                },
             )
         except Exception:
             pass

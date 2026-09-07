@@ -232,6 +232,29 @@ RANK_THRESHOLDS = [
 
 RANK_ORDER = ["E", "D", "C", "B", "A", "S", "SS", "SSS"]
 
+RANK_TO_LEVEL = {
+    1: "E",
+    2: "D",
+    3: "C",
+    4: "B",
+    5: "A",
+    6: "S",
+    7: "SS",
+    8: "SSS",
+}
+
+BOSS_RANK_STATS = {
+    "E": {"count": 1, "min": 1, "max": 1},
+    "D": {"count": 1, "min": 1, "max": 2},
+    "C": {"count": 2, "min": 2, "max": 2},
+    "B": {"count": 2, "min": 2, "max": 3},
+    "A": {"count": 3, "min": 3, "max": 3},
+    "S": {"count": 3, "min": 3, "max": 4},
+    "SS": {"count": 4, "min": 4, "max": 4},
+    "SSS": {"count": 4, "min": 4, "max": 5},
+}
+POSSIBLE_STATS = ["pwr", "def", "foc", "mem", "spd", "lck"]
+
 
 RANK_PRICE_MULTIPLIERS = {
     "E": 1.0,
