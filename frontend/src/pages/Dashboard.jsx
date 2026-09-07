@@ -209,6 +209,7 @@ const getSectionIndex = (sec) => {
 export default function Dashboard({ activeSection = "dashboard", activeSubItem = null, onSectionChange, onSubItemChange }) {
   useProfileMount("Dashboard");
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { profile: djangoProfile, isLoading: djangoProfileLoading, refreshProfile } = useDjangoAuth();
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" ? window.innerWidth < 768 : false);
@@ -477,7 +478,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   const [rankXPData, setRankXPData] = useState(loadRankXP);
   const [flyingRewards, setFlyingRewards] = useState([]);
   const prevHpRef = useRef(null);
-  const queryClient = useQueryClient();
   const [synced, setSynced] = useState(false);
   const [isConvertGuestModalOpen, setIsConvertGuestModalOpen] = useState(false);
 
