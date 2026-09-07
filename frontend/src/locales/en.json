@@ -29,7 +29,6 @@
       "skills": "Skills",
       "skill_tree": "Skill Tree",
       "allies": "Allies",
-      "achievements": "Achievements",
       "mutators": "Mutators",
       "shop": "Shop",
       "rival": "Rival",
@@ -228,16 +227,6 @@
     "inventory": "Inventory",
     "allies": "Allies",
     "mutators": "Mutators"
-  },
-  "achievements_cats": {
-    "consistency": "Consistency",
-    "combat": "Combat",
-    "knowledge": "Knowledge",
-    "wealth": "Wealth",
-    "spirit": "Spirit",
-    "skill": "Skill",
-    "allies": "Allies",
-    "prestige": "Prestige"
   },
   "metrics": {
     "live_preview": "Live Preview",
@@ -599,7 +588,6 @@
     }
   },
   "achievements": {
-    "unlocked": "🏆 UNLOCKED: {{name}}",
     "you_died": "💀 YOU DIED! Rank demoted. HP restored."
   },
   "dashboard": {
@@ -675,16 +663,6 @@
     "mana": "MANA",
     "not_enough_mana": "✗ NOT ENOUGH MANA",
     "use_skill": "► USE SKILL"
-  },
-  "achievements_page": {
-    "title": "ACHIEVEMENTS",
-    "total_progress": "TOTAL PROGRESS",
-    "boss_medals": "Boss Medals",
-    "medal_desc_void": "Slayer of The Void",
-    "medal_desc_static": "Overcomer of Static",
-    "medal_desc_algorithm": "Master of The Algorithm",
-    "medal_desc_parasite": "Vanquisher of Parasites",
-    "medal_desc_recursive": "Conqueror of Infinity"
   },
   "consumable_effects": {
     "small_heal": "+20 HP",
@@ -1093,163 +1071,6 @@
       "omniscience": {
         "name": "Omniscience",
         "desc": "All 4 cognitive metrics gain +0.3 flat on each achievement unlock"
-      }
-    },
-    "achievements": {
-      "first_step": {
-        "name": "First Step",
-        "desc": "Log your first session",
-        "reward": "+50G"
-      },
-      "seven_suns": {
-        "name": "Seven Suns",
-        "desc": "Reach a 7-day streak",
-        "reward": "+150G"
-      },
-      "iron_will": {
-        "name": "Iron Will",
-        "desc": "Reach a 30-day streak",
-        "reward": "+500G + Title"
-      },
-      "unbroken": {
-        "name": "Unbroken",
-        "desc": "Reach a 100-day streak",
-        "reward": "+2000G + Title"
-      },
-      "eternal": {
-        "name": "Eternal",
-        "desc": "Reach a 365-day streak",
-        "reward": "+10000G + Title"
-      },
-      "first_blood": {
-        "name": "First Blood",
-        "desc": "Deal 100 total boss damage",
-        "reward": "+30G"
-      },
-      "boss_slayer": {
-        "name": "Boss Slayer",
-        "desc": "Defeat your first boss",
-        "reward": "+200G + Title"
-      },
-      "dragon_hunter": {
-        "name": "Dragon Hunter",
-        "desc": "Defeat the Crimson Sovereign",
-        "reward": "+1000G + Title"
-      },
-      "emperors_bane": {
-        "name": "Emperor's Bane",
-        "desc": "Defeat the Void Emperor",
-        "reward": "+5000G + Title"
-      },
-      "void_walker": {
-        "name": "Void Walker",
-        "desc": "Complete all 5 bosses",
-        "reward": "+10000G + Title"
-      },
-      "first_session": {
-        "name": "First Session",
-        "desc": "Log your first TRAIN session",
-        "reward": "+30G"
-      },
-      "scholar": {
-        "name": "Scholar",
-        "desc": "Log 50 total sessions",
-        "reward": "+300G"
-      },
-      "polymath_ach": {
-        "name": "Polymath",
-        "desc": "Log in 10 different subjects",
-        "reward": "+500G"
-      },
-      "master": {
-        "name": "Master",
-        "desc": "Reach B rank in any subject",
-        "reward": "+1000G"
-      },
-      "grandmaster": {
-        "name": "Grandmaster",
-        "desc": "Reach SSS rank in any subject",
-        "reward": "+5000G + Title"
-      },
-      "first_coin": {
-        "name": "First Coin",
-        "desc": "Earn your first Gold",
-        "reward": "+10G"
-      },
-      "merchant": {
-        "name": "Merchant",
-        "desc": "Accumulate 1000G total earned",
-        "reward": "+100G"
-      },
-      "wealthy": {
-        "name": "Wealthy",
-        "desc": "Accumulate 10000G total earned",
-        "reward": "+500G"
-      },
-      "tycoon": {
-        "name": "Tycoon",
-        "desc": "Accumulate 100000G total earned",
-        "reward": "+2000G + Title"
-      },
-      "first_prayer": {
-        "name": "First Prayer",
-        "desc": "Log your first Prayer session",
-        "reward": "+50G"
-      },
-      "devotion": {
-        "name": "Devotion",
-        "desc": "Log 20 Prayer sessions",
-        "reward": "+300G"
-      },
-      "sanctified": {
-        "name": "Sanctified",
-        "desc": "Reach S rank in Prayer",
-        "reward": "+1000G + Title"
-      },
-      "first_crit": {
-        "name": "First Crit",
-        "desc": "Land your first critical hit",
-        "reward": "+20G"
-      },
-      "precision": {
-        "name": "Precision",
-        "desc": "Land 50 critical hits",
-        "reward": "+300G"
-      },
-      "sharpshooter": {
-        "name": "Sharpshooter",
-        "desc": "Land 500 critical hits",
-        "reward": "+2000G + Title"
-      },
-      "first_ally": {
-        "name": "First Ally",
-        "desc": "Recruit your first ally",
-        "reward": "+100G"
-      },
-      "commander": {
-        "name": "Commander",
-        "desc": "Recruit 3 allies",
-        "reward": "+500G"
-      },
-      "warlords_court": {
-        "name": "Warlord's Court",
-        "desc": "Recruit all 5 allies",
-        "reward": "+2000G + Title"
-      },
-      "loyal_bonds": {
-        "name": "Loyal Bonds",
-        "desc": "Upgrade any ally to Lv5",
-        "reward": "+1000G"
-      },
-      "reborn": {
-        "name": "Reborn",
-        "desc": "Complete your first prestige",
-        "reward": "Title: Reborn"
-      },
-      "phoenix": {
-        "name": "Phoenix",
-        "desc": "Complete 3 prestiges",
-        "reward": "Title: Phoenix"
       }
     },
     "mutators": {

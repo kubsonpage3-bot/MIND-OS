@@ -21,7 +21,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     max_hp = serializers.SerializerMethodField()
     hp_max = serializers.SerializerMethodField()
     mana_max = serializers.SerializerMethodField()
-    unlocked_achievements = serializers.SerializerMethodField()
     prestige_xp_required = serializers.SerializerMethodField()
     rank_info = serializers.SerializerMethodField()
     humanities_rank_info = serializers.SerializerMethodField()
@@ -82,7 +81,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "max_hp",
             "active_mutators",
             "active_allies",
-            "unlocked_achievements",
             "rival_data",
             "seen_guides",
             "rank_info",
@@ -205,10 +203,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_recruited_allies(self, obj):
         return {a.ally_code: a.level for a in obj.recruited_allies.all()}
-
-    def get_unlocked_achievements(self, obj):
-        # UserAchievement is linked to User, not UserProfile
-        return [a.achievement_id for a in obj.user.achievements.all()]
 
     def get_max_streak(self, obj):
         try:
@@ -355,19 +349,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             if "rival_data" in data:
                 instance.rival_data = data["rival_data"]
                 update_fields.add("rival_data")
-
-            # Update Achievements
-            if "unlocked_achievements" in data:
-                from api.models import UserAchievement
-
-                current = set(
-                    a.achievement_id for a in instance.user.achievements.all()
-                )
-                new_achievements = set(data["unlocked_achievements"])
-                for ach in new_achievements - current:
-                    UserAchievement.objects.create(
-                        user=instance.user, achievement_id=ach
-                    )
 
             # Update Skills
             if "unlocked_skills" in data:

@@ -59,7 +59,6 @@ from .models import (
     Boss,
     BossEncounter,
     UserStats,
-    UserAchievement,
 )
 from .serializers import (
     ActiveEffectSerializer,
@@ -330,7 +329,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             "inventory_items__item__effects",
             "unlocked_skills",
             "recruited_allies",
-            "user__achievements",
         ).get_or_create(user=self.request.user)
 
         now = timezone.now()
@@ -527,9 +525,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "penalty": result.get("penalty"),
                     "died": result.get("died", False),
                     "is_dead": result.get("died", False),
-                    "newly_unlocked_achievements": result.get(
-                        "newly_unlocked_achievements", []
-                    ),
                     "mirror_match_autocomplete": result.get(
                         "mirror_match_autocomplete"
                     ),
@@ -753,9 +748,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                     "new_gold": result["profile"].gold,
                     "combat": result.get("combat"),
                     "gamification_result": result.get("gamification_result"),
-                    "newly_unlocked_achievements": result.get(
-                        "newly_unlocked_achievements", []
-                    ),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -2138,8 +2130,6 @@ class ActivityHistoryView(generics.GenericAPIView):
             qs = qs.filter(activity_type=UserActivityLog.ActivityType.TODO)
         elif activity_type_filter == "pomodoro":
             qs = qs.filter(activity_type=UserActivityLog.ActivityType.POMODORO)
-        elif activity_type_filter == "achievement":
-            qs = qs.filter(activity_type=UserActivityLog.ActivityType.ACHIEVEMENT)
         elif activity_type_filter == "boss_defeat":
             qs = qs.filter(activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT)
 
@@ -2220,9 +2210,6 @@ class ActivityHistoryView(generics.GenericAPIView):
         pomodoro_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.POMODORO
         ).count()
-        achievement_count = qs_stats_base.filter(
-            activity_type=UserActivityLog.ActivityType.ACHIEVEMENT
-        ).count()
         boss_defeat_count = qs_stats_base.filter(
             activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT
         ).count()
@@ -2242,7 +2229,6 @@ class ActivityHistoryView(generics.GenericAPIView):
                     "todos_count": todos_count,
                     "study_count": study_count,
                     "pomodoro_count": pomodoro_count,
-                    "achievement_count": achievement_count,
                     "boss_defeat_count": boss_defeat_count,
                 },
                 "profile": UserProfileSerializer(profile).data if profile else None,
@@ -2917,7 +2903,6 @@ class CombatSyncView(generics.GenericAPIView):
     def post(self, request):
         from django.db import transaction  # type: ignore
         from api.models import UserProfile, UserStats
-        from api.services.achievement_service import check_and_grant_achievements
         from api.serializers.profile import UserProfileSerializer
 
         data = request.data
@@ -2964,14 +2949,12 @@ class CombatSyncView(generics.GenericAPIView):
                 update_fields.append("boss_attacks_count")
             stats.save(update_fields=update_fields)
 
-            unlocked_achievements = check_and_grant_achievements(request.user)
             profile.refresh_from_db()
 
             return Response(
                 {
                     "detail": "Combat synced.",
                     "profile": UserProfileSerializer(profile).data,
-                    "unlocked_achievements": unlocked_achievements,
                     "is_dead": is_dead,
                 },
                 status=status.HTTP_200_OK,
@@ -3146,7 +3129,6 @@ class ResetDataView(generics.GenericAPIView):
 
                 if reset_type == "nuclear":
                     InventoryItem.objects.filter(user_profile=profile).delete()
-                    UserAchievement.objects.filter(user=request.user).delete()
                     profile.active_mutators = {"purchased": [], "active": []}
                     profile.last_mutator_tick_at = None
                     profile.tasks_completed_today = 0

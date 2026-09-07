@@ -41,10 +41,8 @@ def test_activity_history_endpoint_and_logging():
     complete_task(user, daily.id, is_positive=True)
     complete_task(user, todo.id, is_positive=True)
 
-    # Verify logs created (excluding automatically unlocked achievements)
-    logs = UserActivityLog.objects.filter(user=user).exclude(
-        activity_type=UserActivityLog.ActivityType.ACHIEVEMENT
-    )
+    # Verify logs created
+    logs = UserActivityLog.objects.filter(user=user)
     assert logs.count() == 4
     assert logs.filter(activity_type=UserActivityLog.ActivityType.HABIT_POS).exists()
     assert logs.filter(activity_type=UserActivityLog.ActivityType.HABIT_NEG).exists()

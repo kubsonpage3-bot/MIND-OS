@@ -42,12 +42,10 @@ import ActivePartyWidget from "@/components/mindos/ActivePartyWidget";
 import DailyQuoteWidget from "@/components/mindos/DailyQuoteWidget";
 import BossPanel from "@/components/mindos/BossPanel";
 import PixelRankRoad from "@/components/mindos/PixelRankRoad";
-import AchievementTracker from "@/components/mindos/AchievementTracker";
 import GuestBanner from "@/components/mindos/GuestBanner";
 import ConvertGuestModal from "@/components/mindos/ConvertGuestModal";
 import OfflineSummaryModal from "@/components/mindos/OfflineSummaryModal";
 import WelcomeBackModal from "@/components/mindos/WelcomeBackModal";
-import AchievementToast from "@/components/mindos/AchievementToast";
 import { useDailyCheckin } from "@/hooks/useDailyCheckin";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
@@ -307,6 +305,23 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const handleDeath = () => {
+      toast({
+        title: t("achievements.you_died", "💀 ВЫ УМЕРЛИ! Ранг понижен. Здоровье восстановлено."),
+        variant: "destructive",
+      });
+      playSound("death");
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    };
+
+    window.addEventListener("mindos-death", handleDeath);
+    return () => {
+      window.removeEventListener("mindos-death", handleDeath);
+    };
+  }, [queryClient, t]);
 
   useEffect(() => {
     if (!isMobile || !isCarouselTab) {
@@ -1114,8 +1129,6 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     <div className="flex flex-col flex-1 min-h-full font-inter bg-transparent text-[var(--habit-text)]">
       <GuestBanner onConvertClick={() => setIsConvertGuestModalOpen(true)} />
       <main ref={containerRef} className="flex-1 w-full max-w-7xl mx-auto px-0 md:px-4 py-2 md:py-6 space-y-2.5 md:space-y-6">
-        <AchievementTracker />
-        <AchievementToast />
         <RankUpFlash newRankId={rankUpNotif} onDone={() => setRankUpNotif(null)} />
 
 

@@ -1356,11 +1356,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     # ── Боевая система: Наносим урон боссу ────────────────────────────
     from api.services.mechanics import apply_boss_damage
-    from api.services.achievement_service import check_and_grant_achievements
     from api.models import UserStats
 
     combat_result = None
-    unlocked_achievements = []
 
     if is_positive:
         # Update UserStats
@@ -1585,9 +1583,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         profile.save()
 
-        # Check achievements at the very end
-        unlocked_achievements = check_and_grant_achievements(user)
-
     # ── Record unified UserActivityLog ───────────────────────────────
     try:
         from api.models import UserActivityLog
@@ -1680,7 +1675,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         "gold_earned": rewards["gold"] if is_positive else -rewards.get("gold", 0),
         "mana_gained": mana_gained if is_positive else -mana_gained,
         "gamification_result": gamification_result,
-        "newly_unlocked_achievements": unlocked_achievements,
         "is_dead": mutator_died,
         "died": mutator_died,
         "silent_mode": mutator_effects.get("silent_mode", False),

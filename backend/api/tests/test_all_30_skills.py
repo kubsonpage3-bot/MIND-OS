@@ -8,13 +8,14 @@ from api.models import (
     Item,
     InventoryItem,
     RecruitedAlly,
+    Boss,
+    BossEncounter,
 )
-from api.services.mechanics import get_passive_multipliers
+from api.services.mechanics import get_passive_multipliers, apply_boss_damage
 from api.services.profile_service import get_rank_info, get_humanities_rank_info
 from api.services.daily_service import process_daily_login
 from api.services.rival_service import compute_rival_data
 from api.services.shop_service import sell_item
-from api.services.achievement_service import check_and_grant_achievements
 from django.contrib.auth.models import User
 from api.constants import (
     SKILL_TREE_CONFIG,
@@ -261,17 +262,13 @@ class TestAll30Skills:
         profile.vm = 100.0
         profile.save()
 
-        # Unlock an achievement and verify all 4 cognitive metrics gain +0.3
-        new_achs = check_and_grant_achievements(user)
-        # Verify omniscience boosts stats
-        if UnlockedSkill.objects.filter(user_profile=profile, skill_code="omniscience").exists():
-            profile.gf = min(profile.gf_ceiling, profile.gf + 0.3)
-            profile.gc = min(profile.gc_ceiling, profile.gc + 0.3)
-            profile.ps = min(profile.ps_ceiling, profile.ps + 0.3)
-            profile.vm = min(profile.vm_ceiling, profile.vm + 0.3)
-            profile.save()
-            profile.refresh_from_db()
-            assert profile.gf == 100.3
-            assert profile.gc == 100.3
-            assert profile.ps == 100.3
-            assert profile.vm == 100.3
+        # Defeat a boss and verify all 4 cognitive metrics gain +0.2
+        boss = Boss.objects.create(id_name="test_skill_boss", name="Skill Boss", level=1, hp_max=100, reward_gold=50, reward_xp=50)
+        BossEncounter.objects.create(user=user, boss=boss, hp_current=100, is_defeated=False)
+        combat = apply_boss_damage(user, 150)
+        assert combat["boss_defeated"] is True
+        profile.refresh_from_db()
+        assert profile.gf == 100.2
+        assert profile.gc == 100.2
+        assert profile.ps == 100.2
+        assert profile.vm == 100.2

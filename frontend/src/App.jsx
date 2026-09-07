@@ -6,7 +6,6 @@ import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import AppShell from '@/components/AppShell';
 
-const Achievements = lazy(() => import("./pages/Achievements"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const SelectClass = lazy(() => import("./pages/SelectClass"));
@@ -92,7 +91,6 @@ function ProtectedRoutes() {
         <Route path="/" element={<AppShell />} />
         <Route path="/Dashboard" element={<AppShell defaultTab="mind" />} />
         <Route path="/LifeOS" element={<AppShell defaultTab="life" />} />
-        <Route path="/achievements" element={<Achievements />} />
         <Route path="/select-class" element={<SelectClass />} />
         <Route path="/test-swipe" element={<TestSwipe />} />
         <Route path="/login" element={<Navigate to="/" replace />} />

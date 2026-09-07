@@ -1,8 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
-from api.models import UserProfile, UnlockedSkill, UserStats
-
-from api.services.achievement_service import check_and_grant_achievements
+from api.models import UserProfile, UnlockedSkill, UserStats, Boss, BossEncounter
+from api.services.mechanics import apply_boss_damage
 from api.services.profile_service import get_humanities_rank_info
 
 
@@ -109,32 +108,36 @@ def test_johan_session_determinism(profile):
 @pytest.mark.django_db
 def test_omniscience(user, profile):
     """
-    Tests that omniscience adds +0.3 to gf, gc, ps, vm on achievement unlock.
+    Tests that omniscience adds +0.2 to gf, gc, ps, vm on boss defeat.
     """
-    stats, _ = UserStats.objects.get_or_create(user=user)
-    stats.total_gold_earned = 10
-    stats.save()
-    user.refresh_from_db()
+    boss1 = Boss.objects.create(id_name="test_boss_1", name="Boss 1", level=1, hp_max=100, reward_gold=50, reward_xp=50)
+    BossEncounter.objects.create(user=user, boss=boss1, hp_current=100, is_defeated=False)
 
-    new_achs_1 = check_and_grant_achievements(user)
-    print("NEW ACHS 1:", new_achs_1)
+    # Defeat boss 1 without omniscience
+    combat = apply_boss_damage(user, 150)
+    assert combat["boss_defeated"] is True
     profile.refresh_from_db()
     assert profile.gf == 100.0
+    assert profile.gc == 100.0
+    assert profile.ps == 100.0
+    assert profile.vm == 100.0
 
+    # Unlock omniscience
     UnlockedSkill.objects.create(user_profile=profile, skill_code="omniscience")
-    stats.total_gold_earned = 1000
-    stats.save()
-    user.refresh_from_db()
 
-    new_achs = check_and_grant_achievements(user)
-    print("NEW ACHS:", new_achs)
+    # Defeat boss 2 with omniscience
+    boss2 = Boss.objects.create(id_name="test_boss_2", name="Boss 2", level=2, hp_max=100, reward_gold=50, reward_xp=50)
+    BossEncounter.objects.create(user=user, boss=boss2, hp_current=100, is_defeated=False)
+
+    combat2 = apply_boss_damage(user, 150)
+    assert combat2["boss_defeated"] is True
     profile.refresh_from_db()
-    assert profile.gf == 100.3
-    assert profile.gc == 100.3
-    assert profile.ps == 100.3
-    assert profile.vm == 100.3
+    assert profile.gf == 100.2
+    assert profile.gc == 100.2
+    assert profile.ps == 100.2
+    assert profile.vm == 100.2
     print(
-        f"\n[test_omniscience] gf/gc/ps/vm after omniscience={profile.gf}/{profile.gc}/{profile.ps}/{profile.vm}"
+        f"\n[test_omniscience] gf/gc/ps/vm after omniscience boss defeat={profile.gf}/{profile.gc}/{profile.ps}/{profile.vm}"
     )
 
 

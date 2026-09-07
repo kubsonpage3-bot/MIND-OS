@@ -676,26 +676,6 @@ class UserStats(models.Model):
         return f"Stats for {self.user.username}"
 
 
-class UserAchievement(models.Model):
-    """
-    Records unlocked achievements so they are only claimed once.
-    """
-
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="achievements"
-    )
-    achievement_id = models.CharField(max_length=100)
-    unlocked_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("user", "achievement_id")
-        verbose_name = "Достижение пользователя"
-        verbose_name_plural = "Достижения пользователей"
-
-    def __str__(self):
-        return f"{self.user.username} - {self.achievement_id}"
-
-
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     """Сохраняет UserProfile при сохранении User."""
@@ -1443,7 +1423,6 @@ class UserActivityLog(models.Model):
         TODO = "todo", "To-Do"
         TODO_UNCOMPLETE = "todo_uncomplete", "Отмена To-Do"
         POMODORO = "pomodoro", "Помодоро"
-        ACHIEVEMENT = "achievement", "Достижение"
         BOSS_DEFEAT = "boss_defeat", "Победа над боссом"
 
     user = models.ForeignKey(

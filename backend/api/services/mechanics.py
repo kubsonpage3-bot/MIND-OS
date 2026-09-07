@@ -483,6 +483,18 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         profile.gold = max(0, profile.gold + final_gold)
         sp_reward = 3 + boss.level * 2
         profile.skill_points = max(0, profile.skill_points + sp_reward)
+
+        # Check omniscience: +0.2 to all 4 cognitive metrics on boss defeat
+        from api.models import UnlockedSkill
+
+        if UnlockedSkill.objects.filter(
+            user_profile=profile, skill_code="omniscience"
+        ).exists():
+            profile.gf = round(min(profile.gf_ceiling, profile.gf + 0.2), 2)
+            profile.gc = round(min(profile.gc_ceiling, profile.gc + 0.2), 2)
+            profile.ps = round(min(profile.ps_ceiling, profile.ps + 0.2), 2)
+            profile.vm = round(min(profile.vm_ceiling, profile.vm + 0.2), 2)
+
         profile.save()
 
         rewards = {"boss_xp": final_xp, "boss_gold": final_gold, "boss_sp": sp_reward}

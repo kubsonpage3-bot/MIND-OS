@@ -428,7 +428,7 @@ SKILL_TREE_CONFIG = {
         "sp": 35,
         "gold": 3000,
         "requires": "living_library",
-        "achievement_metric_bonus": 0.3,
+        "boss_metric_bonus": 0.2,
     },
 }
 

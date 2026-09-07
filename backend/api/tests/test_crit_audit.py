@@ -89,16 +89,8 @@ def test_boss_defeat_rewards_segregated(audit_user_and_profile):
     assert res["rewards"]["boss_gold"] == 200
     assert res["combat"]["rewards"]["boss_gold"] == 200
 
-    # Achievement gold if any (e.g. first_blood gives 30G)
-    from api.services.achievement_service import ACHIEVEMENTS_SSOT
-
-    achievement_gold = sum(
-        ACHIEVEMENTS_SSOT.get(code, {}).get("gold", 0)
-        for code in res.get("newly_unlocked_achievements", [])
-    )
-
-    # Total profile gold received task gold + boss gold + achievement rewards
-    assert profile.gold == 50 + task_gold + 200 + achievement_gold
+    # Total profile gold received task gold + boss gold
+    assert profile.gold == 50 + task_gold + 200
 
 
 @pytest.mark.django_db
@@ -108,6 +100,7 @@ def test_lck_gold_diminishing_returns(audit_user_and_profile):
     """
     user, profile = audit_user_and_profile
     profile.base_spd = 0
+    profile.base_foc = 0
 
     # LCK = 0
     profile.base_lck = 0
