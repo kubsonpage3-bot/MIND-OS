@@ -2,15 +2,12 @@ import pytest
 from django.utils import timezone
 from api.models import (
     User,
-    UserProfile,
     Task,
     Boss,
     BossEncounter,
     ActiveEffect,
-    UserActivityLog,
 )
 from api.serializers.tasks import TaskSerializer
-from api.serializers.combat import BossEncounterSerializer
 from api.services.combat_service import (
     calculate_habit_fail_hp,
     calculate_boss_daily_damage,

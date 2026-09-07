@@ -580,10 +580,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     elif task.task_type == Task.TaskType.HABIT:
         task.completion_count += 1
         task.last_completed_at = timezone.now()
-        task.value = calc_new_value(
-            task.value, "complete" if is_positive else "fail", "habit"
-        )
         if is_positive:
+            task.value = calc_new_value(task.value, "complete", "habit")
             task.pos_streak += 1
             task.neg_streak = 0
             # Streak bonus capped at 1.3x (reached at streak=15, +2% per step).
@@ -593,13 +591,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             rewards["xp"] = int(rewards["xp"] * streak_mult)
             rewards["gold"] = int(rewards["gold"] * streak_mult)
         else:
+            from api.services.combat_service import calculate_habit_fail_hp
+
+            # Calculate exact damage at moment of failure (100% synced with next_fail_hp preview)
+            final_damage = calculate_habit_fail_hp(task, profile, for_next=True)
+
+            task.value = calc_new_value(task.value, "fail", "habit")
             task.neg_streak += 1
             if not transcendence_active:
                 task.pos_streak = 0
-
-            from api.services.combat_service import calculate_habit_fail_hp
-
-            final_damage = calculate_habit_fail_hp(task, profile, for_next=False)
 
             context = {
                 "is_science": False,
@@ -2134,4 +2134,3 @@ def sync_zero_damage_penalties(user, profile=None):
         profile.save(update_fields=["hp"])
 
     return total_damage_to_deduct
-

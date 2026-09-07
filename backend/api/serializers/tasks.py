@@ -240,4 +240,3 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
             "metadata",
             "created_at",
         )
-

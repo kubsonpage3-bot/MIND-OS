@@ -69,12 +69,7 @@ from .serializers import (
     BossEncounterSerializer,
     BossSummonSerializer,
 )
-from api.services.task_service import (
-    complete_task,
-    get_yesterday_uncompleted_dailies,
-    has_completed_any_daily_yesterday,
-    complete_yesterday_dailies,
-)
+from api.services.task_service import complete_task
 from api.services.skill_service import activate_skill
 from api.services.shop_service import buy_item
 from api.services.crafting_service import craft_item
@@ -3349,9 +3344,6 @@ class DailyCheckinView(generics.GenericAPIView):
                 user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
             except Exception:
                 user_tz = zoneinfo.ZoneInfo("UTC")
-
-            local_today = timezone.now().astimezone(user_tz).date()
-
             action = request.data.get("action")
             if action == "skip" or request.data.get("skip") is True:
                 # Habitica-style skip: applies fail penalties to missed dailies and advances the day

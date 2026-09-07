@@ -287,7 +287,6 @@ def get_rank_price_multiplier(rank_id: str) -> float:
     return RANK_PRICE_MULTIPLIERS.get(str(rank_id).upper(), 1.0)
 
 
-
 HUMANITIES_RANK_THRESHOLDS = [
     {"id": "E", "min": 0},
     {"id": "D", "min": 200},
