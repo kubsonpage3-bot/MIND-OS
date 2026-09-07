@@ -122,6 +122,17 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
     return 1;
   }, [hpPercent]);
 
+  // Daily Boss Threat calculation
+  const dailyThreat = activeEncounter?.daily_threat || null;
+  const defStat = profile?.total_stats?.def ?? 0;
+  const threatRank = activeEncounter?.boss?.rank || activeBossTemplate?.rank || 'E';
+  const rankDailyDmg = { E: 10, D: 9, C: 8, B: 7, A: 6, S: 6, SS: 5, SSS: 5 };
+  const baseThreatDmg = dailyThreat?.base_damage ?? (rankDailyDmg[threatRank] || 6);
+  const finalDailyDmg = dailyThreat?.damage ?? Math.max(1, Math.round(baseThreatDmg * (100 / (100 + defStat))));
+  const savedByDef = dailyThreat?.mitigated_by_def ?? Math.max(0, baseThreatDmg - finalDailyDmg);
+  const isBossStunned = dailyThreat?.is_stunned || false;
+  const isPlayerInvulnerable = dailyThreat?.is_invulnerable || false;
+
   // Deal Damage Sequence (optimistic HP drop + visual slash + hit flash + screen shake)
   const dealDamage = useCallback((amount, critical = false, bossColor = "#22c55e") => {
     if (critical) {
@@ -327,8 +338,8 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
             {/* ─── BOSS ARENA STAGE ─── */}
             <div className="flex flex-col items-center relative py-2">
               
-              {/* Boss Phase Indicator Banner */}
-              <div className="mb-2 flex items-center gap-2 z-20">
+              {/* Boss Phase & Daily Threat Banner */}
+              <div className="mb-2 flex items-center gap-2 z-20 flex-wrap justify-center">
                 <span 
                   className={`text-[9px] font-game font-black tracking-widest px-2.5 py-0.5 rounded-full border uppercase shadow-md flex items-center gap-1.5 ${
                     bossPhase === 3 ? "animate-pulse" : ""
@@ -348,6 +359,26 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                     : t("boss_panel_extra.phase_1", "PHASE I • UNYIELDING")
                   }
                 </span>
+
+                {/* Daily Threat Badge */}
+                <div 
+                  className="text-[9.5px] font-mono font-bold tracking-tight px-2.5 py-0.5 rounded-full border shadow-md flex items-center gap-1.5 bg-rose-950/50 border-rose-500/40 text-rose-300 backdrop-blur-xs cursor-help"
+                  title={isBossStunned ? "Босс оглушён: 0 урона" : isPlayerInvulnerable ? "Игрок неуязвим: 0 урона" : `Ежедневный урон босса: -${finalDailyDmg} HP (Базовый: ${baseThreatDmg} HP, DEF ${defStat} снизил на ${savedByDef} HP)`}
+                >
+                  <Swords className="w-3 h-3 text-rose-400" />
+                  {isBossStunned ? (
+                    <span className="text-amber-300">Оглушён (0 HP)</span>
+                  ) : isPlayerInvulnerable ? (
+                    <span className="text-emerald-300">Неуязвимость (0 HP)</span>
+                  ) : (
+                    <>
+                      <span>Угроза: -{finalDailyDmg} HP/день</span>
+                      {savedByDef > 0 && (
+                        <span className="text-[8.5px] text-emerald-400 font-semibold">(DEF -{savedByDef})</span>
+                      )}
+                    </>
+                  )}
+                </div>
 
                 {/* Lore Quote Tooltip / Caption */}
                 {activeBossTemplate.quote && (

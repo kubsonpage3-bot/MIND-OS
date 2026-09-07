@@ -3301,11 +3301,32 @@ class DailyCheckinView(generics.GenericAPIView):
                     }
                 )
 
+            from api.models import BossEncounter
+            from api.services.combat_service import calculate_boss_daily_damage
+
+            active_encounter = BossEncounter.objects.filter(
+                user=request.user, is_defeated=False
+            ).first()
+            boss_threat_info = None
+            if active_encounter:
+                boss_combat = calculate_boss_daily_damage(active_encounter, profile)
+                boss_threat_info = {
+                    "boss_name": active_encounter.boss.name,
+                    "boss_rank": boss_combat.get("boss_rank", "E"),
+                    "damage": boss_combat.get("damage", 0),
+                    "base_damage": boss_combat.get("base_damage", 0),
+                    "mitigated_by_def": boss_combat.get("mitigated_by_def", 0),
+                    "def_stat": boss_combat.get("def_stat", 0),
+                    "is_stunned": boss_combat.get("is_stunned", False),
+                    "is_invulnerable": boss_combat.get("is_invulnerable", False),
+                }
+
             return Response(
                 {
                     "needs_checkin": needs_checkin,
                     "completed_any_yesterday": completed_any_yesterday,
                     "dailies": data,
+                    "boss_threat": boss_threat_info,
                 },
                 status=status.HTTP_200_OK,
             )

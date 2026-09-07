@@ -24,13 +24,15 @@ function getTaskValueColor(tv) {
   return '#f59e0b';
 }
 
-function previewHabitDamage(tv, difficulty, con) {
-  // Purely cosmetic fallback since backend handles real damage
-  return Math.max(1, Math.abs(tv) * 1.5);
-}
-
-function getConStat() {
-  return 5;
+function previewHabitDamage(tv, difficulty, defStat = 0, negStreak = 0) {
+  const BASE_DAMAGE = 2;
+  const DIFF_MULT = { trivial: 0.5, easy: 1.0, medium: 2.0, hard: 3.0, critical: 4.0 };
+  const diffMult = DIFF_MULT[difficulty] || 2.0;
+  const valueMult = tv < 0 ? (1.0 + Math.abs(tv) / 15.0) : Math.max(0.5, 1.0 - tv / 30.0);
+  const streakMult = 1.0 + (((negStreak || 0) + 1) * 0.1);
+  const raw = BASE_DAMAGE * diffMult * valueMult * streakMult;
+  const defMultiplier = 100.0 / (100.0 + Math.max(0, defStat));
+  return Math.max(1, Math.round(raw * defMultiplier));
 }
 
 const DIFFICULTIES = [
@@ -66,13 +68,17 @@ const CATEGORY_ICONS = {
   Other: '📦',
 };
 
-function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick }) {
+function TaskItemRow({ task, profile, completeMutation, deleteTask, onEdit, t, habitClick }) {
   const diff = DIFFICULTIES.find(d => d.id === task.difficulty) || DIFFICULTIES[2];
   const accentColor = CATEGORY_COLORS[task.category] || '#64748b';
   const tv = task.value ?? task.rpgValue ?? 0;
   const tvColor = getTaskValueColor(tv);
-  const con = getConStat();
-  const nextDmg = previewHabitDamage(tv, task.difficulty || 'medium', con);
+  const defStat = profile?.total_stats?.def ?? 0;
+  const nextDmg = (task.next_fail_hp && task.next_fail_hp > 0)
+    ? task.next_fail_hp
+    : (task.nextFailHp && task.nextFailHp > 0)
+    ? task.nextFailHp
+    : previewHabitDamage(tv, task.difficulty || 'medium', defStat, task.negStreak || 0);
 
   const { bursts, trigger: triggerBurst } = usePixelBurst();
   const longPressProps = useLongPress(() => onEdit(task));
@@ -181,8 +187,8 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, habitClick
             <span className="text-rose-400 flex items-center gap-0.5">−{task.negStreak || 0}</span>
           </div>
           {(task.negStreak || 0) > 0 && (
-            <span className="text-amber-400 font-semibold">
-              next: -{Math.round(nextDmg * 10) / 10} HP
+            <span className="text-amber-400 font-semibold" title={`DEF: ${defStat}`}>
+              next: -{Math.round(nextDmg)} HP
             </span>
           )}
         </div>
@@ -540,6 +546,7 @@ export default function HabitsColumn({ habits, onXpGain, onBossDamage, onRankXP,
                 <SortableTaskItem id={task.id}>
                   <TaskItemRow
                     task={task}
+                    profile={profile}
                     completeMutation={completeMutation}
                     deleteTask={deleteTask}
                     onEdit={handleEdit}

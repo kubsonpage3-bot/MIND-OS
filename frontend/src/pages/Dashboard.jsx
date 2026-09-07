@@ -552,6 +552,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         streak: dt.streak || 0,
         posStreak: dt.pos_streak || 0,
         negStreak: dt.neg_streak || 0,
+        next_fail_hp: dt.next_fail_hp || 0,
+        nextFailHp: dt.next_fail_hp || 0,
         createdAt: dt.created_at || new Date().toISOString(),
         defaultHours: dt.default_hours || 1,
         defaultFocus: dt.default_focus || 7,

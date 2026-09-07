@@ -395,6 +395,35 @@ def complete_yesterday_dailies(user, completed_ids: list):
                 }
             )
 
+    # ── Daily Boss Threat Engine ──────────────────────────────────────
+    if not cron_already_ran:
+        from api.models import BossEncounter
+        from api.services.combat_service import calculate_boss_daily_damage
+
+        active_encounter = BossEncounter.objects.filter(
+            user=user, is_defeated=False
+        ).first()
+        if active_encounter:
+            boss_combat = calculate_boss_daily_damage(active_encounter, profile)
+            boss_dmg = boss_combat.get("damage", 0)
+            if boss_dmg > 0:
+                total_dmg += boss_dmg
+            log.append(
+                {
+                    "type": "boss_attack",
+                    "boss_name": boss_combat.get(
+                        "boss_name", active_encounter.boss.name
+                    ),
+                    "boss_rank": boss_combat.get("boss_rank", "E"),
+                    "damage": boss_dmg,
+                    "base_damage": boss_combat.get("base_damage", boss_dmg),
+                    "mitigated_by_def": boss_combat.get("mitigated_by_def", 0),
+                    "is_stunned": boss_combat.get("is_stunned", False),
+                    "is_invulnerable": boss_combat.get("is_invulnerable", False),
+                    "is_enraged": boss_combat.get("is_enraged", False),
+                }
+            )
+
     # Apply HP adjustments
     if total_refund > 0:
         max_hp = profile.total_stats.get("hp_max", 100)
@@ -568,13 +597,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             if not transcendence_active:
                 task.pos_streak = 0
 
-            from api.services.combat_service import calculate_fail_damage
+            from api.services.combat_service import calculate_habit_fail_hp
 
-            base_damage = calculate_fail_damage(task, profile)
-
-            # Увеличиваем урон в зависимости от размера neg_streak (по 10% за каждый провал подряд)  # noqa: E501
-            damage_mult = 1.0 + (task.neg_streak * 0.1)
-            damage = int(base_damage * damage_mult)
+            final_damage = calculate_habit_fail_hp(task, profile, for_next=False)
 
             context = {
                 "is_science": False,
@@ -593,11 +618,12 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             outcome = calculate_task_outcome(
                 user,
                 "habit",
-                base_hp_lost=damage,
+                base_hp_lost=final_damage,
                 is_positive=False,
                 mutator_effects=mutator_effects,
             )
-            final_damage = outcome["hp_lost"]
+            # Ensure outcome reflects the exact SSOT habit damage
+            outcome["hp_lost"] = final_damage
 
             # Fetch active allies level
             active_codes = profile.active_allies or []
@@ -1443,8 +1469,27 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task_rank = getattr(task, "rank", "F").upper()
             rank_multiplier = rank_multipliers.get(task_rank, 1.0)
             task_base_dmg = int(base_dmg * rank_multiplier)
+        elif task_type == Task.TaskType.TODO:
+            raw_value = getattr(task, "value", 1.0)
+            task_value = (
+                1.0 if (raw_value is None or raw_value <= 0) else float(raw_value)
+            )
+            estimated_hours = (
+                getattr(task, "estimated_hours", None)
+                or getattr(task, "default_hours", None)
+                or 0
+            )
+            hours_bonus = (
+                min(2.0, 1.0 + float(estimated_hours) * 0.15)
+                if estimated_hours > 0
+                else 1.0
+            )
+            task_base_dmg = int(base_dmg * task_value * hours_bonus)
         else:
-            task_value = max(0.0, getattr(task, "value", 1.0))
+            raw_value = getattr(task, "value", 1.0)
+            task_value = (
+                1.0 if (raw_value is None or raw_value <= 0) else float(raw_value)
+            )
             task_base_dmg = int(base_dmg * task_value)
 
         system_overload_mult = (
@@ -1943,6 +1988,52 @@ def process_missed_tasks(user):
                     message="streak was broken because they missed a Daily task.",
                     metadata={"username": user.username},
                 )
+
+    # ── Daily Boss Threat Engine ──────────────────────────────────────
+    from api.models import BossEncounter
+    from api.services.combat_service import calculate_boss_daily_damage
+
+    active_encounter = BossEncounter.objects.filter(
+        user=user, is_defeated=False
+    ).first()
+
+    if active_encounter:
+        boss_combat = calculate_boss_daily_damage(active_encounter, profile)
+        boss_dmg = boss_combat.get("damage", 0)
+        if boss_dmg > 0:
+            total_dmg += boss_dmg
+
+        boss_attack_log = {
+            "type": "boss_attack",
+            "boss_name": boss_combat.get("boss_name", active_encounter.boss.name),
+            "boss_rank": boss_combat.get("boss_rank", "E"),
+            "damage": boss_dmg,
+            "base_damage": boss_combat.get("base_damage", boss_dmg),
+            "mitigated_by_def": boss_combat.get("mitigated_by_def", 0),
+            "is_stunned": boss_combat.get("is_stunned", False),
+            "is_invulnerable": boss_combat.get("is_invulnerable", False),
+            "is_enraged": boss_combat.get("is_enraged", False),
+        }
+        log.append(boss_attack_log)
+
+        try:
+            from api.models import UserActivityLog
+
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type=UserActivityLog.ActivityType.HABIT_NEG,
+                title=f"Удар босса: {active_encounter.boss.name}",
+                category="Boss",
+                icon="💀",
+                difficulty="hard",
+                xp_earned=0,
+                gold_earned=0,
+                hp_lost=boss_dmg,
+                streak_value=0,
+                metadata=boss_attack_log,
+            )
+        except Exception as e:
+            logger.warning("Failed to log UserActivityLog for boss attack: %s", e)
 
     daily_regen = passive_effects.get("daily_hp_regen", 0.0)
 

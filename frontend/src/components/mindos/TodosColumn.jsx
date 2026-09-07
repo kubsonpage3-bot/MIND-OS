@@ -382,7 +382,7 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       }
       return { previousTodos };
     },
-    onSuccess: (/** @type {any} */ data) => {
+    onSuccess: (/** @type {any} */ data, todoId) => {
       const isCompleting = data.completed;
       const sign = isCompleting ? '+' : '-';
       const icon = isCompleting ? '✅' : '↩️';
@@ -394,6 +394,22 @@ export default function TodosColumn({ todos = [], onXpGain, onBossDamage, onRank
       const bossDefeated = combatResult?.boss_defeated || false;
       const bossGold = combatResult?.rewards?.boss_gold || data?.rewards?.boss_gold || 0;
       const bossXp = combatResult?.rewards?.boss_xp || data?.rewards?.boss_xp || 0;
+      const task = todos.find(t => String(t.id) === String(todoId));
+
+      if (isCompleting) {
+        onRankXP?.(Math.abs(data.xp_change || 0));
+        if (bossDmg > 0) {
+          onBossDamage?.(
+            bossDmg,
+            isCrit || task?.difficulty === 'hard',
+            bossDefeated,
+            combatResult,
+            combatResult?.rewards || data?.rewards
+          );
+        }
+      } else {
+        onRankXP?.(-Math.abs(data.xp_change || 0));
+      }
 
       showRewardToast({
         xp: Math.abs(data.xp_change),

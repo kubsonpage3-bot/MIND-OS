@@ -946,7 +946,11 @@ class Task(models.Model):
         # Hours bonus: only for Todo/Daily (not Habit — Habits use streak for scaling)
         hours_bonus = 1.0
         if self.task_type in (self.TaskType.TODO, self.TaskType.DAILY):
-            estimated_hours = getattr(self, "estimated_hours", None) or 0
+            estimated_hours = (
+                getattr(self, "estimated_hours", None)
+                or getattr(self, "default_hours", None)
+                or 0
+            )
             if estimated_hours > 0:
                 hours_bonus = min(2.0, 1.0 + float(estimated_hours) * 0.15)
 

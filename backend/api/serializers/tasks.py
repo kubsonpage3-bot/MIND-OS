@@ -17,6 +17,7 @@ class TaskSerializer(serializers.ModelSerializer):
         source="get_difficulty_display", read_only=True
     )
     rewards = serializers.SerializerMethodField()
+    next_fail_hp = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
@@ -38,6 +39,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "neg_streak",
             "order",
             "rewards",
+            "next_fail_hp",
             "category",
             "mastery_category",
             "icon",
@@ -64,6 +66,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "pos_streak",
             "neg_streak",
             "rewards",
+            "next_fail_hp",
             "hp_damage_on_miss",
             "created_at",
             "updated_at",
@@ -72,6 +75,18 @@ class TaskSerializer(serializers.ModelSerializer):
     def get_rewards(self, obj) -> dict:
         """Возвращает словарь с ожидаемыми наградами за задачу."""
         return obj.get_rewards()
+
+    def get_next_fail_hp(self, obj) -> int:
+        """Возвращает ожидаемый штраф HP при следующем нажатии минуса привычки."""
+        if obj.task_type != Task.TaskType.HABIT:
+            return 0
+        user = obj.user
+        profile = getattr(user, "profile", None)
+        if not profile:
+            return 0
+        from api.services.combat_service import calculate_habit_fail_hp
+
+        return calculate_habit_fail_hp(obj, profile, for_next=True)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

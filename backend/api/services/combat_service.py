@@ -173,6 +173,196 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     return max(1, round(raw * (1 - con_reduction)))
 
 
+def calculate_habit_fail_hp(task, profile, for_next=False):
+    """
+    SSOT: Рассчитывает точный урон по HP при срыве привычки (habit negative).
+    Используется как для реального списания в task_service, так и для превью 'next: -X HP'.
+
+    Учитывает:
+      - Базовый урон 2
+      - Сложность задачи (trivial: 0.5, easy: 1.0, medium: 2.0, hard: 3.0, critical: 4.0)
+      - Текущий task.value (Habitica-style: отрицательный value увеличивает штраф)
+      - neg_streak (текущий или следующий при for_next=True, +10% за каждый срыв подряд)
+      - Реальный DEF персонажа (экипировка + класс + пассивки + престиж): def_multiplier = 100 / (100 + DEF)
+      - Навыки персонажа (pain_threshold: -25%, союзник luna L2+: -10%)
+      - Активные мутаторы (например, glass_cannon: +60% входящего урона)
+    """
+    BASE_DAMAGE = 2
+    DIFF_MULT = {
+        "trivial": 0.5,
+        "easy": 1.0,
+        "medium": 2.0,
+        "hard": 3.0,
+        "critical": 4.0,
+    }
+
+    difficulty = getattr(task, "difficulty", "medium") or "medium"
+    diff_mult = DIFF_MULT.get(difficulty, 2.0)
+
+    task_value = getattr(task, "value", 0.0) or 0.0
+    if task_value < 0:
+        value_mult = 1.0 + abs(task_value) / 15.0
+    else:
+        value_mult = max(0.5, 1.0 - task_value / 30.0)
+
+    current_streak = getattr(task, "neg_streak", 0) or 0
+    neg_streak = (current_streak + 1) if for_next else max(1, current_streak)
+    streak_mult = 1.0 + (neg_streak * 0.1)
+
+    raw = BASE_DAMAGE * diff_mult * value_mult * streak_mult
+
+    total_stats = (
+        profile.total_stats
+        if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
+        else {}
+    )
+    def_stat = max(0, total_stats.get("def", 0))
+    def_multiplier = 100.0 / (100.0 + def_stat)
+
+    hp_loss_reduction = 1.0
+    try:
+        if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():
+            hp_loss_reduction -= 0.25
+        luna_ally = profile.recruited_allies.filter(ally_code="luna").first()
+        if luna_ally and luna_ally.level >= 2:
+            hp_loss_reduction -= 0.10
+    except Exception:
+        pass
+    hp_loss_reduction = max(0.0, hp_loss_reduction)
+
+    final_dmg = raw * def_multiplier * hp_loss_reduction
+
+    active_mutators = getattr(profile, "active_mutators", {})
+    if isinstance(active_mutators, dict):
+        active_list = active_mutators.get("active", [])
+        active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+        if "glass_cannon" in active_ids:
+            final_dmg *= 1.6
+
+    return max(1, round(final_dmg))
+
+
+def calculate_boss_daily_damage(encounter, profile):
+    """
+    Рассчитывает ежедневный урон по персонажу от активного непобеждённого босса.
+
+    Баланс по рангам (E -> SSS):
+      - E-ранг: 10 HP/день (короткий спринт 7 дней, высокая цена бездействия)
+      - D-ранг: 9 HP/день
+      - C-ранг: 8 HP/день
+      - B-ранг: 7 HP/день
+      - A-ранг: 6 HP/день
+      - S-ранг: 6 HP/день
+      - SS-ранг: 5 HP/день
+      - SSS-ранг: 5 HP/день (марафон на 90 дней, устойчивый бой)
+
+    Защита и экипировка (DEF):
+      Снижает урон по формуле: 100 / (100 + DEF).
+      Топовая экипировка (DEF 80-120+) снижает урон SS/SSS боссов до 1-2 HP.
+
+    Особые эффекты:
+      - Если босс оглушён (war_cry, decoy_shadow_stun) -> урон 0 HP
+      - Если игрок неуязвим (iron_fast, elixir) -> урон 0 HP
+      - Исступление (HP < 20% от макс) -> +25% урон
+    """
+    from api.constants import (
+        BOSS_DAILY_BASE_DAMAGE,
+        SCROLL_BOSSES_DICT,
+        RANK_TO_LEVEL,
+    )
+    from django.db.models import Q
+
+    if not encounter or getattr(encounter, "is_defeated", False):
+        return {
+            "damage": 0,
+            "base_damage": 0,
+            "mitigated_by_def": 0,
+            "reason": "No active boss",
+        }
+
+    user = profile.user
+    boss = encounter.boss
+    boss_id = getattr(boss, "id_name", "")
+    boss_info = SCROLL_BOSSES_DICT.get(boss_id, {})
+    rank = boss_info.get("rank") or RANK_TO_LEVEL.get(boss.level, "E")
+
+    base_damage = BOSS_DAILY_BASE_DAMAGE.get(rank, 6)
+
+    # 1. Check boss stun
+    now = timezone.now()
+    boss_stunned = (
+        ActiveEffect.objects.filter(
+            user=user, skill_id__in=["war_cry", "decoy_shadow_stun"]
+        )
+        .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+        .exists()
+    )
+
+    if boss_stunned:
+        return {
+            "damage": 0,
+            "base_damage": base_damage,
+            "mitigated_by_def": 0,
+            "is_stunned": True,
+            "is_invulnerable": False,
+            "boss_name": boss.name,
+            "boss_rank": rank,
+            "reason": "Boss is stunned!",
+        }
+
+    # 2. Check player invulnerability
+    player_invulnerable = (
+        ActiveEffect.objects.filter(user=user, skill_id__in=["iron_fast", "elixir"])
+        .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+        .exists()
+    )
+
+    if player_invulnerable:
+        return {
+            "damage": 0,
+            "base_damage": base_damage,
+            "mitigated_by_def": 0,
+            "is_stunned": False,
+            "is_invulnerable": True,
+            "boss_name": boss.name,
+            "boss_rank": rank,
+            "reason": "Player is invulnerable!",
+        }
+
+    # 3. Enrage check: if boss HP < 20% of max
+    is_enraged = False
+    enrage_mult = 1.0
+    if boss.hp_max > 0 and encounter.hp_current < (boss.hp_max * 0.20):
+        is_enraged = True
+        enrage_mult = 1.25
+
+    raw_damage = base_damage * enrage_mult
+
+    # 4. DEF mitigation from total_stats (gear + class + skills + prestige)
+    total_stats = (
+        profile.total_stats
+        if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
+        else {}
+    )
+    def_stat = max(0, total_stats.get("def", 0))
+    def_mitigation = 100.0 / (100.0 + def_stat)
+
+    mitigated_dmg = max(1, round(raw_damage * def_mitigation))
+    saved_by_def = max(0, round(raw_damage) - mitigated_dmg)
+
+    return {
+        "damage": mitigated_dmg,
+        "base_damage": round(raw_damage),
+        "mitigated_by_def": saved_by_def,
+        "is_stunned": False,
+        "is_invulnerable": False,
+        "is_enraged": is_enraged,
+        "boss_name": boss.name,
+        "boss_rank": rank,
+        "def_stat": def_stat,
+    }
+
+
 @transaction.atomic
 def summon_boss(user, boss_id):
     profile = UserProfile.objects.select_for_update().get(user=user)

@@ -21,6 +21,7 @@ class BossSerializer(serializers.ModelSerializer):
 class BossEncounterSerializer(serializers.ModelSerializer):
     boss = BossSerializer(read_only=True)
     idle_damage_applied = serializers.IntegerField(read_only=True, required=False)
+    daily_threat = serializers.SerializerMethodField()
 
     class Meta:
         model = BossEncounter
@@ -34,8 +35,18 @@ class BossEncounterSerializer(serializers.ModelSerializer):
             "started_at",
             "expires_at",
             "idle_damage_applied",
+            "daily_threat",
         )
         read_only_fields = fields
+
+    def get_daily_threat(self, obj) -> dict:
+        user = obj.user
+        profile = getattr(user, "profile", None)
+        if not profile:
+            return {}
+        from api.services.combat_service import calculate_boss_daily_damage
+
+        return calculate_boss_daily_damage(obj, profile)
 
 
 class BossSummonSerializer(serializers.Serializer):

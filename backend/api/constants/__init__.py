@@ -219,6 +219,17 @@ SCROLL_BOSS_DAYS_LIMIT = {
     "SSS": 90,
 }
 
+BOSS_DAILY_BASE_DAMAGE = {
+    "E": 10,
+    "D": 9,
+    "C": 8,
+    "B": 7,
+    "A": 6,
+    "S": 6,
+    "SS": 5,
+    "SSS": 5,
+}
+
 RANK_THRESHOLDS = [
     {"id": "E", "min": 0},
     {"id": "D", "min": 200},
