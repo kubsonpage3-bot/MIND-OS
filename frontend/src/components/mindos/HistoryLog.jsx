@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, Flame, CheckCircle2, XCircle, Search,
-  Calendar, Award, Sparkles, Zap, BookOpen,
+  Calendar, Sparkles, Zap, BookOpen,
   CheckSquare, Timer, ShieldAlert, Trophy,
   Star, Swords, Coins, Activity
 } from "lucide-react";
@@ -463,11 +463,6 @@ function HistoryItemCard({ item }) {
           </div>
           <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[11px] text-[var(--habit-dim)]" style={{ fontFamily: "'Nunito'" }}>
             <span className="font-bold">{timeStr}</span>
-            {isAchievement && achObj?.desc && (
-              <span className="text-[10px] text-muted-foreground/80 italic">
-                {achObj.desc}
-              </span>
-            )}
             {(isStudy || isPomodoro) && item.hours > 0 && (
               <span className="flex items-center gap-0.5 font-bold" style={{ color: cfg.color }}>
                 <Clock className="w-3 h-3" />
