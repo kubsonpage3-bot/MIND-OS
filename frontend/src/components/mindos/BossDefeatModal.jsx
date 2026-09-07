@@ -9,7 +9,7 @@ import { hapticHeavy, hapticSuccess } from '@/hooks/useHaptic';
 import { SCROLLS, SCROLL_BOSS_IMAGES, RANK_COLORS } from './ScrollsPanel';
 import ConfettiBurst from './ConfettiBurst';
 import OptimizedImage from './OptimizedImage';
-import { Swords, Skull, Coins, Zap, Sparkles, Gem, Trophy } from 'lucide-react';
+import { Swords, Coins, Zap, Sparkles, Gem, Trophy } from 'lucide-react';
 
 export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards }) {
   useHardwareBack(isOpen, onClose);

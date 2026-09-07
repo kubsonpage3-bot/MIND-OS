@@ -52,7 +52,7 @@ export default function Login() {
     <div 
       className="flex min-h-screen flex-col items-center justify-center px-4 text-slate-100 relative overflow-hidden bg-cover bg-center select-none"
       style={{
-        backgroundImage: "url('/images/space_pixel_bg.png')",
+        backgroundImage: "url('/images/space_pixel_bg.webp')",
         imageRendering: "pixelated"
       }}
     >

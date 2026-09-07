@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { djangoApi } from '@/api/djangoClient';

@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import { SCROLLS, SCROLL_BOSS_IMAGES, RANK_COLORS } from "./ScrollsPanel";
 import { playSound } from "@/lib/soundEffects.js";
-import { hapticHeavy, hapticLight, hapticSuccess } from "@/hooks/useHaptic";
+import { hapticHeavy, hapticLight } from "@/hooks/useHaptic";
 import OptimizedImage from "./OptimizedImage";
 import BossCombatSlash from "./BossCombatSlash";
 import BossArenaCanvas from "./BossArenaCanvas";

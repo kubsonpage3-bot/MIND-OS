@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ChevronLeft, Brain, Sparkles, ChevronDown, X, Globe } from "lucide-react";
+import { ChevronRight, ChevronLeft, Brain, Sparkles, ChevronDown, X } from "lucide-react";
 import PixelIcon from "./PixelIcon";
 import { SETTINGS_TABS } from "@/components/mindos/SettingsPanel";
 import { prefetchTab } from "@/lib/prefetch";
@@ -8,7 +8,6 @@ import { hapticLight } from "@/hooks/useHaptic";
 import { djangoApi } from "@/api/djangoClient";
 import { useTranslation } from "react-i18next";
 import { getFeatureLocks } from "@/lib/featureLock";
-import { saveSettings } from "@/utils/settings";
 
 function haptic() {
   hapticLight();

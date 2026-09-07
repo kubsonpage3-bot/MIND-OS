@@ -13,7 +13,6 @@ import CreateTaskModal from "./CreateTaskModal";
 import TabGuideModal from "./TabGuideModal";
 import { djangoApi } from "@/api/djangoClient";
 import { showRewardToast } from "./RewardToast";
-import PillTabBar from "@/components/ui/PillTabBar";
 
 const TASK_TABS = [
   { id: 'tasks',     labelKey: 'task_modal.tab_tasks', defaultLabel: 'Tasks' },

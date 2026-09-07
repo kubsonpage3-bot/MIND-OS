@@ -8,15 +8,12 @@ import {
   Check,
   RefreshCw,
   Unlink,
-  Wifi,
-  WifiOff,
   KeyRound,
   Laptop,
   Monitor,
   Globe,
   Clock,
   Plus,
-  ShieldCheck,
   Trash2,
 } from 'lucide-react';
 import { djangoApi } from '@/api/djangoClient';

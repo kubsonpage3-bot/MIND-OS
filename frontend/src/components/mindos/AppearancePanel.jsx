@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { saveSettings } from "@/utils/settings";
 import { useQueryClient } from "@tanstack/react-query";
 import { syncWidgetStats } from "@/utils/widget";
-import { hapticLight } from "@/hooks/useHaptic";
 
 export default function AppearancePanel() {
   const { t } = useTranslation();

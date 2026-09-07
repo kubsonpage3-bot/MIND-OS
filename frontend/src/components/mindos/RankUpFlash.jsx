@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ConfettiBurst from "@/components/mindos/ConfettiBurst";
 import { playSound } from "@/lib/soundEffects";
 import { RANKS, getRankDisplayData } from "@/lib/rankEngine";
-import { Sparkles, ArrowRight, ShieldAlert, Award } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 // Mapping each rank ID to its generated dark fantasy pixel art banner template
 const RANK_BANNERS = {

@@ -1,14 +1,17 @@
 // @ts-nocheck
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { djangoApi } from "@/api/djangoClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { MASTERY_COEFFICIENTS } from "@/lib/cognitiveEngine";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+
+// ~490 kB of emoji data — pulled in only when the user actually opens the picker,
+// so it never lands in the initial bundle. Theme.DARK is the string "dark".
+const EmojiPicker = lazy(() => import('emoji-picker-react'));
 
 const CATEGORIES = ["STEM", "Languages", "Humanities & Arts", "Health & Fitness", "Rest & Recovery", "Mindfulness", "Social & Communication", "Reading & Writing", "Work & Career", "Other"];
 
@@ -273,13 +276,15 @@ export default function CreateTaskForm({ onCreated, hideTypeSelector = false, pr
         
         {showEmojiPicker && (
           <div className="absolute top-16 left-0 z-50">
-            <EmojiPicker
-              onEmojiClick={(emojiData) => {
-                set("icon", emojiData.emoji);
-                setShowEmojiPicker(false);
-              }}
-              theme={Theme.DARK}
-            />
+            <Suspense fallback={null}>
+              <EmojiPicker
+                onEmojiClick={(emojiData) => {
+                  set("icon", emojiData.emoji);
+                  setShowEmojiPicker(false);
+                }}
+                theme="dark"
+              />
+            </Suspense>
           </div>
         )}
       </div>

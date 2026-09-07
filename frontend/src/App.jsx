@@ -9,7 +9,6 @@ import AppShell from '@/components/AppShell';
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const SelectClass = lazy(() => import("./pages/SelectClass"));
-const TestSwipe = lazy(() => import("./pages/TestSwipe"));
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import AnalyticsMigrationGate from '@/components/AnalyticsMigrationGate';
@@ -92,7 +91,6 @@ function ProtectedRoutes() {
         <Route path="/Dashboard" element={<AppShell defaultTab="mind" />} />
         <Route path="/LifeOS" element={<AppShell defaultTab="life" />} />
         <Route path="/select-class" element={<SelectClass />} />
-        <Route path="/test-swipe" element={<TestSwipe />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Navigate to="/" replace />} />
         <Route path="*" element={<PageNotFound />} />

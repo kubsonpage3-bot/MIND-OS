@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { X, Zap, Clock, ShieldAlert, Sparkles, Coins, CheckCircle, Flame, Heart, Activity, ShoppingBag, ArrowRight, Shield, Swords, Package } from 'lucide-react';
+import { X, Zap, Clock, ShieldAlert, Sparkles, Coins, CheckCircle, Flame, Heart, Activity, Package } from 'lucide-react';
 import { useHardwareBack } from '@/utils/modalStack';
 import { getTierColor } from '@/lib/gameState';
 import { getMediaUrl } from '@/api/djangoClient';

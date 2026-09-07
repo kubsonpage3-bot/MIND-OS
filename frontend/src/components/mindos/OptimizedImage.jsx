@@ -44,14 +44,14 @@ export default function OptimizedImage({
     );
   }
 
-  const { filename, baseName } = imageMeta;
+  const { baseName } = imageMeta;
 
   return (
     <picture style={{ display: "contents" }}>
       <source type="image/avif" srcSet={`/images/avif/${baseName}.avif`} />
       <source type="image/webp" srcSet={`/images/webp/${baseName}.webp`} />
       <img
-        src={`/images/original/${filename}`}
+        src={`/images/webp/${baseName}.webp`}
         alt={alt}
         className={className}
         style={style}

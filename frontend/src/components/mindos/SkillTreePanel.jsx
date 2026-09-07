@@ -14,10 +14,6 @@ import {
   BookOpen,
   X,
   Check,
-  Zap,
-  Shield,
-  Flame,
-  Award,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playSound } from "@/lib/soundEffects.js";
