@@ -83,8 +83,10 @@ class Command(BaseCommand):
             if boss_name in existing_boss_titles:
                 continue
             final_xp = int(enc.boss.reward_xp * enc.reward_multiplier)
-            final_gold = int(enc.boss.reward_gold * enc.reward_multiplier)
-            sp_reward = 3 + enc.boss.level * 2
+            from api.constants import BOSS_RANK_SP, RANK_TO_LEVEL
+            sp_reward = getattr(enc.boss, "reward_sp", None) or BOSS_RANK_SP.get(
+                RANK_TO_LEVEL.get(enc.boss.level, "E"), 3
+            )
             if not dry_run:
                 UserActivityLog.objects.create(
                     user=user,

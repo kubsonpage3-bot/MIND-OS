@@ -133,9 +133,22 @@ def process_boss_death(user, encounter):
                     inv_item.stat_bonuses = rolled_stats
                 inv_item.save(update_fields=["quantity", "stat_bonuses"])
 
-    profile.save(update_fields=["gold", "rank_xp"])
+    from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP
+    sp_reward = (
+        getattr(encounter.boss, "reward_sp", None)
+        or SCROLL_BOSSES_DICT.get(encounter.boss.id_name, {}).get("reward", {}).get("sp")
+        or BOSS_RANK_SP.get(RANK_TO_LEVEL.get(encounter.boss.level, "E"), 3)
+    )
+    profile.skill_points = max(0, profile.skill_points + sp_reward)
 
-    return {"gold": final_gold, "xp": final_xp, "item_dropped": item_dropped}
+    profile.save(update_fields=["gold", "rank_xp", "skill_points"])
+
+    return {
+        "gold": final_gold,
+        "xp": final_xp,
+        "boss_sp": sp_reward,
+        "item_dropped": item_dropped,
+    }
 
 
 def calculate_fail_damage(task, profile, checklist_ratio=1.0):
@@ -387,14 +400,16 @@ def summon_boss(user, boss_id):
             f"You already have an active boss: {active_encounter.boss.name}"
         )
 
+    from api.constants import RANK_TO_LEVEL
     boss, created = Boss.objects.get_or_create(
         id_name=boss_id,
         defaults={
             "name": boss_data["name"],
             "hp_max": boss_data["bossHP"],
-            "level": 1,
+            "level": RANK_TO_LEVEL.get(boss_data.get("rank"), 1),
             "reward_gold": reward_data["gold"],
             "reward_xp": reward_data["xp"],
+            "reward_sp": reward_data.get("sp", 3),
             "drop_item_id": boss_data.get("uniqueItem", ""),
         },
     )

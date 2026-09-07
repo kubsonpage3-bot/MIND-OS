@@ -103,10 +103,11 @@ def sell_item(user, item_id: str, quantity: int = 1):
 
     # Calculate sell value (with fallback to tier base cost if item.cost is 0)
     base_value = inv_item.item.cost
-    if (not base_value or base_value == 0) and inv_item.item.gear_class:
-        base_value = GEAR_TIER_BASE_COSTS.get(
-            str(inv_item.item.gear_class).upper(), 100
-        )
+    if (not base_value or base_value == 0) and (
+        inv_item.item.boss_rank or inv_item.item.gear_class
+    ):
+        rank_key = str(inv_item.item.boss_rank or inv_item.item.gear_class).upper()
+        base_value = GEAR_TIER_BASE_COSTS.get(rank_key, 70)
     elif not base_value:
         base_value = 10
 

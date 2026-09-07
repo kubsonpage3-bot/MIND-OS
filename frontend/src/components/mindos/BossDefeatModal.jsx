@@ -45,7 +45,7 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
 
   const bossGold = rewards?.boss_gold ?? bossTemplate?.reward?.gold ?? 0;
   const bossXp = rewards?.boss_xp ?? bossTemplate?.reward?.xp ?? 0;
-  const bossSp = rewards?.boss_sp ?? bossTemplate?.reward?.sp ?? 0;
+  const bossSp = rewards?.boss_sp ?? bossTemplate?.reward?.sp ?? 3;
 
   useEffect(() => {
     if (isOpen) {

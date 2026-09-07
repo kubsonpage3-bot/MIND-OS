@@ -622,7 +622,7 @@ export default function BossPanel({ externalDamage, currentScore, onBossDamage }
                     {/* SP Reward Badge */}
                     <span className="inline-flex items-center gap-1 font-game text-[8.5px] text-purple-300 font-bold px-2 py-0.5 rounded bg-purple-400/10 border border-purple-400/30 shadow-sm">
                       <Zap className="w-2.5 h-2.5 text-purple-400" />
-                      +{activeBossTemplate.reward?.sp || 2} SP
+                      +{activeEncounter.boss?.reward_sp || activeBossTemplate.reward?.sp || 3} SP
                     </span>
 
                     {/* Interactive Unique Artifact Drop Badge */}

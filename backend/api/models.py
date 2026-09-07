@@ -1059,6 +1059,7 @@ class Boss(models.Model):
     level = models.PositiveIntegerField(default=1, verbose_name="Уровень/Ранг")
     reward_gold = models.PositiveIntegerField(verbose_name="Награда (Золото)")
     reward_xp = models.PositiveIntegerField(verbose_name="Награда (XP)")
+    reward_sp = models.PositiveIntegerField(default=3, verbose_name="Награда (SP)")
     # Уникальный дроп (ID предмета)
     drop_item_id = models.CharField(max_length=50, null=True, blank=True)
 

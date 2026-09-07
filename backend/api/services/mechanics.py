@@ -481,8 +481,13 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
 
         gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
-        profile.gold = max(0, profile.gold + final_gold)
-        sp_reward = 3 + boss.level * 2
+        from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP, RANK_TO_LEVEL
+
+        sp_reward = (
+            getattr(boss, "reward_sp", None)
+            or SCROLL_BOSSES_DICT.get(boss.id_name, {}).get("reward", {}).get("sp")
+            or BOSS_RANK_SP.get(RANK_TO_LEVEL.get(boss.level, "E"), 3)
+        )
         profile.skill_points = max(0, profile.skill_points + sp_reward)
 
         # Check omniscience: +0.2 to all 4 cognitive metrics on boss defeat

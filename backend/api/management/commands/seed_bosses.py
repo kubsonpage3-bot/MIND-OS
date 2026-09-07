@@ -34,6 +34,7 @@ class Command(BaseCommand):
                     "level": RANK_TO_LEVEL.get(b["rank"], 1),
                     "reward_gold": b["reward"]["gold"],
                     "reward_xp": b["reward"]["xp"],
+                    "reward_sp": b["reward"].get("sp", 3),
                     "drop_item_id": b["uniqueItem"],
                 },
             )

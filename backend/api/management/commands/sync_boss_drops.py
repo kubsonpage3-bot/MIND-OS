@@ -58,6 +58,11 @@ class Command(BaseCommand):
                 item.source = "boss_drop"
                 rank = RANK_TO_LEVEL.get(boss.level, "E")
                 item.boss_rank = rank
+                item.gear_class = rank
+                from api.constants import GEAR_TIER_BASE_COSTS
+
+                if not item.cost or item.cost == 0:
+                    item.cost = GEAR_TIER_BASE_COSTS.get(rank, 70)
                 item.save()
                 synced_items += 1
 

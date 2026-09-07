@@ -186,6 +186,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     "is_equipped": inv.is_equipped,
                     "stat_bonuses": stats,
                     "gear_class": inv.item.gear_class,
+                    "boss_rank": inv.item.boss_rank,
+                    "cost": inv.item.cost,
                     "stats": stats,
                 }
             )

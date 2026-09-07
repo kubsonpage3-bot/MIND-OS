@@ -13,10 +13,10 @@ import ConsumableDetailModal from "./ConsumableDetailModal";
 // Do NOT track consumable state in localStorage — use the backend profile as SSOT.
 
 const GEAR_TIER_BASE_COSTS = {
-  E: 100,
-  D: 250,
-  C: 600,
-  B: 1500,
+  E: 70,
+  D: 180,
+  C: 450,
+  B: 1400,
   A: 3500,
   S: 8000,
   SS: 20000,
@@ -24,7 +24,8 @@ const GEAR_TIER_BASE_COSTS = {
 };
 
 function getItemSellValue(item) {
-  const baseCost = item.cost || (item.gear_class ? (GEAR_TIER_BASE_COSTS[item.gear_class] || 100) : 10);
+  const rank = item.boss_rank || item.gear_class || item.tier;
+  const baseCost = item.cost || (rank ? (GEAR_TIER_BASE_COSTS[rank] || 70) : 10);
   return Math.max(1, Math.floor(baseCost * 0.30));
 }
 
