@@ -3335,15 +3335,8 @@ class DailyCheckinView(generics.GenericAPIView):
     def post(self, request):
         try:
             profile = UserProfile.objects.get(user=request.user)
-            import zoneinfo
-            from django.utils import timezone
             from api.services.task_service import complete_yesterday_dailies
             from api.serializers.profile import UserProfileSerializer
-
-            try:
-                user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
-            except Exception:
-                user_tz = zoneinfo.ZoneInfo("UTC")
             action = request.data.get("action")
             if action == "skip" or request.data.get("skip") is True:
                 # Habitica-style skip: applies fail penalties to missed dailies and advances the day

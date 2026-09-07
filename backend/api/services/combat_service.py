@@ -57,7 +57,7 @@ def calculate_damage(user, encounter_id, base_damage):
         if effect.skill_id == "battle_fury":
             boost = effect.data.get("physicalDamageBoost", 0.5)
             final_damage += base_damage * boost
-            effect_notes.append(f"BATTLE FURY: +{int(boost*100)}% Boss Damage")
+            effect_notes.append(f"BATTLE FURY: +{int(boost * 100)}% Boss Damage")
 
     final_damage = int(final_damage)
     encounter.hp_current = max(0, encounter.hp_current - final_damage)
