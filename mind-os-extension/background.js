@@ -1,5 +1,5 @@
 // MIND OS Companion — background.js (service worker)
-// Handles: token auth, blocklist sync, declarativeNetRequest rules, alarm-based re-blocking
+// Handles: token auth, blocklist sync, alarm-based re-blocking
 
 async function getApiBase() {
   const { apiBaseUrl } = await browser.storage.local.get('apiBaseUrl');
@@ -26,19 +26,9 @@ async function apiFetch(path, opts = {}) {
 }
 
 // ─── Block / Unblock via content.js overlay ──────────────────────────────────
-// NOTE: No DNR rules are used. Blocking is handled by content.js Shadow DOM overlay.
-
-async function applyBlockRules(blockedSites) {
-  // Remove ALL existing dynamic DNR rules — we no longer use network-level redirect.
-  // Blocking is handled entirely by content.js in-page overlay (Shadow DOM).
-  // DNR redirect was causing blank pages by intercepting main_frame before content.js ran.
-  const existing = await browser.declarativeNetRequest.getDynamicRules();
-  const removeIds = existing.map((r) => r.id);
-  if (removeIds.length > 0) {
-    await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds });
-  }
-  console.log('[MIND OS] DNR rules cleared. Blocking via content.js overlay for', blockedSites.length, 'sites.');
-}
+// NOTE: No DNR rules are used. Blocking is handled entirely by content.js's
+// in-page Shadow DOM overlay (see CHECK_BLOCKED below), so the extension
+// doesn't need the declarativeNetRequest permission at all.
 
 async function temporarilyUnblock(domain, unlockedUntil) {
   // No DNR rules to remove (blocking is content.js-based).
@@ -164,12 +154,13 @@ async function handleMessage(msg) {
     }
 
     case 'UNPAIR': {
-      await extensionApi.storage.local.remove('extensionToken');
-      // Remove all block rules (extension unlinked = no blocking)
-      const rules = await extensionApi.declarativeNetRequest.getDynamicRules();
-      await extensionApi.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: rules.map((r) => r.id),
-      });
+      // Clear all local state — content.js's CHECK_BLOCKED reads blockedSites
+      // from storage, so wiping it here is enough to stop all blocking.
+      await extensionApi.storage.local.remove([
+        'extensionToken', 'blockedSites', 'activeUnlocks', 'gold', 'hp', 'maxHp',
+        'mana', 'max_mana', 'xp', 'xp_to_next_level', 'level', 'rank',
+        'rank_progress_pct', 'streak', 'active_session', 'user_activities', 'today_tasks',
+      ]);
       return { ok: true };
     }
 

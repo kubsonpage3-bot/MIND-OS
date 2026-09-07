@@ -196,6 +196,9 @@ async function syncAndRender() {
   const res = await browser.runtime.sendMessage({ type: 'SYNC' });
   if (!res?.ok) { showPairScreen(); return; }
 
+  const prevGold = state.gold;
+  const prevRank = state.rank;
+
   state.gold           = res.gold ?? 0;
   state.hp             = res.hp ?? 0;
   state.maxHp          = res.maxHp ?? 100;
@@ -240,6 +243,50 @@ async function syncAndRender() {
   renderTodayTasks();
   loadPomodoroStats();
   lastSyncEl.textContent = 'Last sync: ' + new Date().toLocaleTimeString();
+
+  // Gold gain feedback: pulse the header chip whenever the balance goes up.
+  if (prevGold !== null && state.gold > prevGold) {
+    const goldChip = $('goldChip');
+    if (goldChip) {
+      goldChip.classList.remove('pulse');
+      void goldChip.offsetWidth; // restart animation
+      goldChip.classList.add('pulse');
+    }
+  }
+
+  // Rank-up feedback: flash the rank badge whenever it changes.
+  if (prevRank !== null && state.rank !== prevRank && rankBadge) {
+    rankBadge.classList.remove('level-up');
+    void rankBadge.offsetWidth;
+    rankBadge.classList.add('level-up');
+    showGlobalToast(`🎉 RANK UP! ${prevRank} → ${state.rank}`);
+  }
+}
+
+// ─── Shared reward feedback (visible above any tab) ───────────────────────────
+
+let _globalToastTimeout = null;
+function showGlobalToast(text) {
+  const toast = $('globalToast');
+  if (!toast) return;
+  if (_globalToastTimeout) clearTimeout(_globalToastTimeout);
+  toast.textContent = text;
+  toast.classList.remove('hidden', 'playing');
+  void toast.offsetWidth;
+  toast.classList.add('playing');
+  _globalToastTimeout = setTimeout(() => toast.classList.add('hidden'), 2400);
+}
+
+let _flyRewardTimeout = null;
+function showFlyReward(text) {
+  const el = $('flyReward');
+  if (!el) return;
+  if (_flyRewardTimeout) clearTimeout(_flyRewardTimeout);
+  el.textContent = text;
+  el.classList.remove('hidden', 'playing');
+  void el.offsetWidth;
+  el.classList.add('playing');
+  _flyRewardTimeout = setTimeout(() => el.classList.add('hidden'), 1600);
 }
 
 syncNowBtn.addEventListener('click', () => syncAndRender());
@@ -382,29 +429,25 @@ const extModeStandaloneBtn = $('extModeStandaloneBtn');
 const extModeLinkedBtn     = $('extModeLinkedBtn');
 const extActivityBox       = $('extActivityBox');
 const extActivitySelect    = $('extActivitySelect');
-const extDur30Btn          = $('extDur30Btn');
-const extDur60Btn          = $('extDur60Btn');
-const extCharBadge         = $('extCharBadge');
-const extCharIcon          = $('extCharIcon');
-const extCharName          = $('extCharName');
-const extCharMode          = $('extCharMode');
 const extRatingOverlay     = $('extRatingOverlay');
 const extConfirmRatingBtn  = $('extConfirmRatingBtn');
 
 if (extModeStandaloneBtn) {
   extModeStandaloneBtn.addEventListener('click', () => {
+    if (timerRunning) return;
     isLinkedMode = false;
     extModeStandaloneBtn.classList.add('active');
     extModeLinkedBtn.classList.remove('active');
     extActivityBox.classList.add('hidden');
-    timerTotalSeconds = 25 * 60;
-    timerSeconds = 25 * 60;
+    timerTotalSeconds = linkedExtDuration * 60;
+    timerSeconds = linkedExtDuration * 60;
     updateTimerDisplay();
   });
 }
 
 if (extModeLinkedBtn) {
   extModeLinkedBtn.addEventListener('click', () => {
+    if (timerRunning) return;
     isLinkedMode = true;
     extModeLinkedBtn.classList.add('active');
     extModeStandaloneBtn.classList.remove('active');
@@ -423,10 +466,10 @@ if (extActivitySelect) {
 
 const extCustomMinInput = $('extCustomMinInput');
 
-document.querySelectorAll('.dur-preset-btn').forEach((btn) => {
+document.querySelectorAll('.dur-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     if (timerRunning) return;
-    document.querySelectorAll('.dur-preset-btn').forEach((b) => b.classList.remove('active'));
+    document.querySelectorAll('.dur-btn').forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     const mins = parseInt(btn.getAttribute('data-min') || '25', 10);
     linkedExtDuration = mins;
@@ -442,7 +485,7 @@ if (extCustomMinInput) {
     if (timerRunning) return;
     const mins = parseInt(e.target.value, 10);
     if (!isNaN(mins) && mins > 0 && mins <= 480) {
-      document.querySelectorAll('.dur-preset-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.dur-btn').forEach((b) => b.classList.remove('active'));
       linkedExtDuration = mins;
       timerTotalSeconds = mins * 60;
       timerSeconds = mins * 60;
@@ -474,14 +517,14 @@ if (extConfirmRatingBtn) {
 }
 
 function updateCharBadge(modeStr) {
-  const badge = $('extCharBadge');
-  if (!badge) return;
+  const badgeText = $('extCharBadgeText');
+  if (!badgeText) return;
   if (modeStr === 'break') {
-    badge.textContent = '⚡ LIGHTNING · BREAK';
+    badgeText.textContent = '⚡ LIGHTNING · BREAK';
   } else if (modeStr === 'longBreak') {
-    badge.textContent = '🔥 SUMMONER · REST';
+    badgeText.textContent = '🔥 SUMMONER · REST';
   } else {
-    badge.textContent = '💖 BEATRIX · FOCUS';
+    badgeText.textContent = 'BEATRIX · FOCUS';
   }
 }
 
@@ -555,7 +598,7 @@ async function finishSessionWithRating(ratingVal) {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
     const apiBase = await getApiBase();
-    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/complete/`, {
+    const res = await fetch(`${apiBase}/api/pomodoro/sessions/active-session/complete/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -563,10 +606,24 @@ async function finishSessionWithRating(ratingVal) {
       },
       body: JSON.stringify({ rating: ratingVal }),
     });
+    if (res.ok) {
+      const data = await res.json();
+      celebrateCompletion(data);
+    }
     syncAndRender();
   } catch (e) {
     console.error('[MIND OS] finishSessionWithRating error:', e);
   }
+}
+
+// Shared reward feedback for a completed session (linked or standalone).
+function celebrateCompletion(data) {
+  const gold = data?.gold_earned;
+  const xp = data?.xp_earned;
+  if (gold == null && xp == null) return;
+  const text = `+${xp ?? 0} XP  •  +${gold ?? 0} 🪙`;
+  showFlyReward(text);
+  showGlobalToast(text);
 }
 
 // Start active pomodoro session on backend
@@ -641,13 +698,17 @@ async function completePomodoroSession() {
     const endpoint = pomodoroSessionId
       ? `${apiBase}/api/pomodoro/sessions/${pomodoroSessionId}/complete/`
       : `${apiBase}/api/pomodoro/sessions/active-session/complete/`;
-    await fetch(endpoint, {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${extensionToken}`,
       },
     });
+    if (res.ok) {
+      const data = await res.json();
+      celebrateCompletion(data);
+    }
     pomodoroSessionId = null;
     // Sync to pick up new gold/XP
     setTimeout(syncAndRender, 1000);

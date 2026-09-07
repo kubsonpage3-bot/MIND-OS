@@ -4,8 +4,6 @@
   "version": "1.0.0",
   "description": "Site blocker + Pomodoro timer synced with MIND OS. Block distractions, earn gold, stay focused.",
   "permissions": [
-    "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess",
     "storage",
     "tabs",
     "alarms",
@@ -33,19 +31,14 @@
       "run_at": "document_start"
     }
   ],
-  "declarative_net_request": {
-    "rule_resources": [
-      {
-        "id": "blocklist",
-        "enabled": true,
-        "path": "rules.json"
-      }
-    ]
-  },
   "browser_specific_settings": {
     "gecko": {
       "id": "mind-os-companion@mindosgrowth.org",
-      "strict_min_version": "109.0"
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["authenticationInfo"],
+        "optional": ["technicalAndInteraction"]
+      }
     }
   },
   "web_accessible_resources": [

@@ -24,7 +24,7 @@
           <span class="stat-icon">❤️</span>
           <span id="hpValue">—</span>
         </div>
-        <div class="stat-chip">
+        <div class="stat-chip" id="goldChip">
           <span class="stat-icon">🪙</span>
           <span id="goldValue">—</span>
         </div>
@@ -42,6 +42,9 @@
         <span class="xp-meta-txt fire" id="streakBadge">🔥 —</span>
       </div>
     </div>
+
+    <!-- ── GLOBAL TOAST (visible above any tab) ───────────────── -->
+    <div id="globalToast" class="global-toast hidden"></div>
 
     <!-- ── PAIR SCREEN ──────────────────────────────────────── -->
     <div id="pairScreen" class="screen">
@@ -103,8 +106,13 @@
               <div class="ring-inner">
                 <div id="timerDisplay" class="timer-display">25:00</div>
                 <div id="timerLabel" class="timer-label">FOCUS</div>
-                <div id="extCharBadge" class="char-inline">💖 BEATRIX</div>
+                <div id="extCharBadge" class="char-inline">
+                  <img src="pixel_wizard_guardian.png" alt="" class="char-avatar" />
+                  <span id="extCharBadgeText">BEATRIX · FOCUS</span>
+                </div>
               </div>
+              <!-- Flying reward popup (gold/XP gain feedback) -->
+              <div id="flyReward" class="fly-reward hidden"></div>
             </div>
 
             <!-- Controls -->
