@@ -479,6 +479,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         if hp_heal > 0:
             profile.hp = min(profile.max_hp, profile.hp + hp_heal)
 
+        profile.gold += final_gold
         gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
         from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP, RANK_TO_LEVEL

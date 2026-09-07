@@ -40,9 +40,8 @@ MAX_SESSION_HOURS = 16.0
 MIN_FOCUS_FACTOR = 0.5
 MAX_FOCUS_FACTOR = 1.3
 
-# DIS-3: Daily cap on cumulative Habit boss damage per daily-reset window.
-# = 3 × hard tier base_dmg = 3 × round(24 × 3.33) = 3 × 80 = 240.
-# Resets on the same window as process_missed_tasks (user local time).
+# DIS-3: Daily cap constant (kept for backwards compatibility).
+# Habit boss damage is now uncapped to allow continuous boss grinding across multiple encounters.
 DAILY_HABIT_DMG_CAP = 3 * round(BASE_XP * TIER_MULTIPLIER["hard"] * DMG_PER_XP)
 
 

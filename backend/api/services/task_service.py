@@ -1581,29 +1581,17 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         is_crit = gamification_result.get("is_crit", False)
 
-        # DIS-3: Habit daily boss-damage cap — prevents Habit farming from
-        # outscaling Training sessions. Cap = 3 × hard base_dmg = 498.
-        # Only applies to positive Habit completions; all other types unaffected.
-        if task.task_type == Task.TaskType.HABIT and is_positive:
-            from api.services.rewards_service import DAILY_HABIT_DMG_CAP
-
-            remaining = max(0, DAILY_HABIT_DMG_CAP - profile.habit_boss_dmg_today)
-            final_damage_dealt = min(final_damage_dealt, remaining)
-
         profile.save()
         combat_result = apply_boss_damage(user, final_damage_dealt, is_crit)
         profile.refresh_from_db()
 
-        # Track cumulative Habit boss dmg dealt today (for cap enforcement above)
+        # Track cumulative Habit boss dmg dealt today (daily stats)
         if (
             task.task_type == Task.TaskType.HABIT
             and is_positive
             and final_damage_dealt > 0
         ):
-            profile.habit_boss_dmg_today = min(
-                DAILY_HABIT_DMG_CAP,
-                profile.habit_boss_dmg_today + final_damage_dealt,
-            )
+            profile.habit_boss_dmg_today += final_damage_dealt
             profile.save(update_fields=["habit_boss_dmg_today"])
 
         if task.task_type in [Task.TaskType.DAILY, Task.TaskType.TODO]:

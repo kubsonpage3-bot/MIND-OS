@@ -1492,29 +1492,29 @@ def test_dis3_daily_habit_dmg_cap_value():
 
 
 @pytest.mark.django_db
-def test_dis3_habit_boss_dmg_cap_enforced(user, profile):
+def test_dis3_habit_boss_dmg_uncapped(user, profile):
     """
-    DIS-3: Completing more Habits than the cap allows must not push
-    habit_boss_dmg_today above DAILY_HABIT_DMG_CAP (498).
+    Habit boss damage is uncapped: completing multiple habits allows
+    accumulating damage beyond DAILY_HABIT_DMG_CAP (240).
     """
     from api.services.rewards_service import DAILY_HABIT_DMG_CAP
 
-    # Create a Hard Habit (boss_damage=166 each)
+    # Create a Hard Habit (base boss_damage = 80)
     habit = Task.objects.create(
         user=user,
-        title="Hard Habit Cap Test",
+        title="Hard Habit Uncapped Test",
         task_type=Task.TaskType.HABIT,
         difficulty="hard",
     )
 
-    # Complete it 5× — 5 × 166 = 830, should be capped at 498
+    # Complete it 5× — 5 × 80 = 400, should NOT be capped at 240
     for _ in range(5):
         complete_task(user, habit.id, is_positive=True)
 
     profile.refresh_from_db()
-    assert profile.habit_boss_dmg_today <= DAILY_HABIT_DMG_CAP, (
+    assert profile.habit_boss_dmg_today > DAILY_HABIT_DMG_CAP, (
         f"habit_boss_dmg_today ({profile.habit_boss_dmg_today}) "
-        f"exceeded DAILY_HABIT_DMG_CAP ({DAILY_HABIT_DMG_CAP})"
+        f"should exceed DAILY_HABIT_DMG_CAP ({DAILY_HABIT_DMG_CAP})"
     )
 
 
