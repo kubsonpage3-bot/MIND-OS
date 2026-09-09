@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost, EyeOff } from "lucide-react";
+import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost, EyeOff, Skull } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { AnimatePresence, motion } from "framer-motion";
 import PremiumUpgradeModal from "./PremiumUpgradeModal";
@@ -85,6 +85,17 @@ export default function GameplayPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["party", "feed"] });
+    },
+  });
+
+  const bossDiffMutation = useMutation({
+    /**
+     * @param {string} diffId - one of EASY | NORMAL | HARD | EXTREME
+     */
+    mutationFn: (diffId) => djangoApi.profile.update({ boss_difficulty: diffId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
     },
   });
 
@@ -261,6 +272,50 @@ export default function GameplayPanel() {
         </div>
         {rivalDiffMutation.isPending && (
           <div className="text-[9px] font-mono text-center" style={{ color: "rgba(0,229,255,0.4)" }}>{t('johan_diff.syncing', 'Syncing with Johan...')}</div>
+        )}
+      </div>
+
+      {/* Boss Difficulty */}
+      <div className="p-4 rounded-xl border space-y-3 relative overflow-hidden"
+        style={{ borderColor: "rgba(245,158,11,0.25)", background: "linear-gradient(to bottom, rgba(20,10,0,0.6), rgba(18,10,5,0.9))" }}
+      >
+        <div className="flex items-center gap-2">
+          <Skull className="w-4 h-4" style={{ color: "#f59e0b" }} />
+          <span className="font-mono text-xs font-bold" style={{ color: "#f59e0b" }}>{t('boss_diff.title', 'BOSS ENCOUNTER DIFFICULTY')}</span>
+        </div>
+        <p className="text-[10px] font-mono italic" style={{ color: "rgba(245,158,11,0.5)" }}>{t('boss_diff.desc', 'Scales boss max HP and reward multipliers for Gold and XP.')}</p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { id: "EASY",    label: t('boss_diff.easy_label', 'Easy'),    desc: t('boss_diff.easy_desc', '0.5× HP · 0.8× Rewards'),      stat: "0.5× HP",  color: "#00cc88" },
+            { id: "NORMAL",  label: t('boss_diff.normal_label', 'Normal'),  desc: t('boss_diff.normal_desc', '1.0× HP · 1.0× Rewards'),      stat: "1.0× HP",  color: "#00e5ff" },
+            { id: "HARD",    label: t('boss_diff.hard_label', 'Hard'),    desc: t('boss_diff.hard_desc', '2.0× HP · 1.5× Rewards'),       stat: "2.0× HP",  color: "#f59e0b" },
+            { id: "EXTREME", label: t('boss_diff.extreme_label', 'Extreme'), desc: t('boss_diff.extreme_desc', '5.0× HP · 2.5× Rewards'),  stat: "5.0× HP",  color: "#ef4444" },
+          ].map(diff => {
+            const current = profile?.boss_difficulty || "NORMAL";
+            const isActive = current === diff.id;
+            return (
+              <button
+                key={diff.id}
+                onClick={() => bossDiffMutation.mutate(diff.id)}
+                className="py-3 px-2 text-xs font-mono rounded-lg border transition-all text-left"
+                style={{
+                  borderColor: isActive ? diff.color : "rgba(255,255,255,0.08)",
+                  background: isActive ? `${diff.color}18` : "rgba(0,0,0,0.4)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  boxShadow: isActive ? `0 0 14px ${diff.color}33` : "none",
+                }}
+              >
+                <div className="font-bold tracking-wider mb-1" style={{ color: isActive ? diff.color : "inherit" }}>{diff.label.toUpperCase()}</div>
+                <div className="flex flex-col gap-0.5 text-[9px] opacity-80">
+                  <span style={{ color: isActive ? diff.color : "inherit" }}>{diff.stat}</span>
+                  <span>{diff.desc}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {bossDiffMutation.isPending && (
+          <div className="text-[9px] font-mono text-center" style={{ color: "rgba(245,158,11,0.4)" }}>{t('common.saving', 'Saving...')}</div>
         )}
       </div>
 

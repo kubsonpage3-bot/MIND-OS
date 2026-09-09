@@ -390,7 +390,7 @@ def summon_boss(user, boss_id):
     cost = int(boss_data.get("price", 0))
 
     if profile.gold < cost:
-        raise GameLogicError("Not enough gold.")
+        raise GameLogicError(f"Not enough gold. Need {cost}G.")
 
     active_encounter = BossEncounter.objects.filter(
         user=user, is_defeated=False
@@ -435,4 +435,4 @@ def summon_boss(user, boss_id):
         reward_multiplier=mult["reward"],
     )
 
-    return {"detail": f"Summoned {boss.name}!", "encounter": encounter}
+    return {"detail": f"Summoned {boss.name}!", "encounter": encounter, "profile": profile}

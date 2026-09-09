@@ -1135,65 +1135,19 @@ class BossSummonView(generics.GenericAPIView):
 
         boss_id = serializer.validated_data["boss_id"]
 
-        from django.db import transaction  # type: ignore
+        from api.services.combat_service import summon_boss
+        from api.exceptions import GameLogicError
 
-        with transaction.atomic():
-            profile = UserProfile.objects.select_for_update().get(user=request.user)
+        try:
+            res = summon_boss(request.user, boss_id)
+        except GameLogicError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            try:
-                boss = Boss.objects.get(id_name=boss_id)
-            except Boss.DoesNotExist:
-                return Response(
-                    {"detail": "Boss template not found."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            # SSOT: price from SCROLL_BOSSES_DICT, fallback to boss.reward_gold // 2
-            boss_cfg = SCROLL_BOSSES_DICT.get(boss_id, {})
-            summon_cost = int(boss_cfg.get("price", boss.reward_gold // 2))
-            if profile.gold < summon_cost:
-                return Response(
-                    {"detail": f"Not enough gold. Need {summon_cost}G."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Check for active encounters
-            active_encounter = BossEncounter.objects.filter(
-                user=request.user, is_defeated=False
-            ).first()
-            if active_encounter:
-                return Response(
-                    {
-                        "detail": f"You already have an active boss: {active_encounter.boss.name}"  # noqa: E501
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            profile.gold -= summon_cost
-            profile.save(update_fields=["gold"])
-
-            # Apply difficulty multipliers
-            difficulty = profile.boss_difficulty
-            multipliers = {
-                "EASY": {"hp": 0.5, "reward": 0.8},
-                "NORMAL": {"hp": 1.0, "reward": 1.0},
-                "HARD": {"hp": 2.0, "reward": 1.5},
-                "EXTREME": {"hp": 5.0, "reward": 2.5},
-            }
-            mult = multipliers.get(difficulty, multipliers["NORMAL"])
-
-            # Create encounter
-            encounter = BossEncounter.objects.create(
-                user=request.user,
-                boss=boss,
-                hp_current=int(boss.hp_max * mult["hp"]),
-                reward_multiplier=mult["reward"],
-            )
-
+        profile = res.get("profile") or request.user.profile
         return Response(
             {
-                "detail": f"Summoned {boss.name}!",
-                "encounter": BossEncounterSerializer(encounter).data,
+                "detail": res["detail"],
+                "encounter": BossEncounterSerializer(res["encounter"]).data,
                 "profile": UserProfileSerializer(profile).data,
             },
             status=status.HTTP_201_CREATED,

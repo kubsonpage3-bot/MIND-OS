@@ -2319,6 +2319,18 @@
     "extreme_desc": "No mercy. No catch-up.",
     "syncing": "Syncing with Johan..."
   },
+  "boss_diff": {
+    "title": "BOSS ENCOUNTER DIFFICULTY",
+    "desc": "Scales boss max HP and reward multipliers for Gold and XP.",
+    "easy_label": "Easy",
+    "easy_desc": "0.5× HP · 0.8× Rewards",
+    "normal_label": "Normal",
+    "normal_desc": "1.0× HP · 1.0× Rewards",
+    "hard_label": "Hard",
+    "hard_desc": "2.0× HP · 1.5× Rewards",
+    "extreme_label": "Extreme",
+    "extreme_desc": "5.0× HP · 2.5× Rewards"
+  },
   "rival_taunts": {
     "slacking": "{{name}} logged {{hours}}h already today. You have: 0h.",
     "pressure_day": "[Day {{days}}] {{taunt}}",
