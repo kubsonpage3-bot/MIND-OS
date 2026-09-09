@@ -8,8 +8,7 @@ import { djangoApi } from "@/api/djangoClient";
 import OptimizedImage from "./OptimizedImage";
 import { normalizeGold } from "@/lib/utils";
 import GameCard from "@/components/ui/GameCard";
-import ItemDetailModal from "./ItemDetailModal";
-import { useHardwareBack } from "@/utils/modalStack";
+import BossDetailModal from "./BossDetailModal";
 
 const RANK_ORDER = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
 
@@ -80,10 +79,7 @@ function getTimeLeft(activatedAt, daysLimit) {
 export default function ScrollsPanel({ gold, onSpendGold }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [confirmScroll, setConfirmScroll] = useState(null);
   const [selectedScroll, setSelectedScroll] = useState(null);
-
-  useHardwareBack(!!confirmScroll, () => setConfirmScroll(null));
 
   // 1. Загружаем активные энкаунтеры с сервера
   const { data: encountersData = [] } = useQuery({
@@ -135,15 +131,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
   });
 
   const handleBuy = (scroll) => {
-    if (activeEncounter) return;
-    setConfirmScroll(scroll);
-  };
-
-  const confirmBuy = () => {
-    if (!confirmScroll) return;
-    summonMutation.mutate({ bossId: confirmScroll.id, cost: confirmScroll.price });
-    djangoApi.analytics.logEvent("boss_summoned");
-    setConfirmScroll(null);
+    setSelectedScroll(scroll);
   };
 
   const claimReward = (scroll) => {
@@ -269,7 +257,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                         <button
                           onClick={(e) => { e.stopPropagation(); handleBuy(scroll); }}
                           disabled={!canAfford || !!activeEncounter || summonMutation.isPending}
-                          className="w-full py-1.5 text-[10px] font-mono font-black rounded transition-all"
+                          className="w-full py-1.5 text-[10px] font-mono font-black rounded transition-all cursor-pointer"
                           style={{
                             background: canAfford && !activeEncounter ? color : "transparent",
                             color: canAfford && !activeEncounter ? "#000" : "#4a4060",
@@ -278,7 +266,7 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
                             opacity: activeEncounter ? 0.4 : 1,
                           }}
                         >
-                          {activeEncounter ? t('scrolls.btn_active') : summonMutation.isPending && confirmScroll?.id === scroll.id ? t('scrolls.btn_summoning') : `${scroll.price}G - ${t('inventory.buy', 'Buy')}`}
+                          {activeEncounter ? t('scrolls.btn_active') : summonMutation.isPending && selectedScroll?.id === scroll.id ? t('scrolls.btn_summoning') : `${scroll.price}G - ${t('inventory.buy', 'Buy')}`}
                         </button>
                       )}
                       {!rankUnlocked && !isActive && !isDefeated && (
@@ -296,139 +284,22 @@ export default function ScrollsPanel({ gold, onSpendGold }) {
         );
       })}
 
-      {/* Confirm modal */}
-      {typeof document !== "undefined" && createPortal(
-        <AnimatePresence>
-          {confirmScroll && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-              style={{
-                paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
-                paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
-                touchAction: 'none'
-              }}
-              onClick={() => setConfirmScroll(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.85, opacity: 0, y: 15 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.85, opacity: 0, y: 15 }}
-                transition={{ type: "spring", damping: 22, stiffness: 350 }}
-                className="bg-card rounded-2xl p-6 max-w-sm w-full space-y-5 text-center max-h-[85svh] overflow-y-auto"
-                style={{ border: `2px solid ${confirmScroll.color}`, boxShadow: `0 0 40px ${confirmScroll.color}40` }}
-                onClick={e => e.stopPropagation()}
-              >
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ repeat: Infinity, duration: 2.5 }}
-                  className="w-28 h-32 mx-auto"
-                >
-                  <OptimizedImage
-                    src={SCROLL_BOSS_IMAGES[confirmScroll.id]}
-                    alt={confirmScroll.boss}
-                    className="w-full h-full object-cover rounded-xl"
-                    style={{ imageRendering: "pixelated", filter: `drop-shadow(0 0 16px ${confirmScroll.color})` }}
-                  />
-                </motion.div>
-                <div>
-                  <div className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest mb-1">{t('scrolls.modal_summoning')}</div>
-                  <div className="font-mono text-lg font-black" style={{ color: confirmScroll.color }}>{String(t(`scrolls.items.${confirmScroll.id}.boss`, confirmScroll.boss))}</div>
-                  <div className="font-mono text-xs text-muted-foreground/60 mt-1">{String(t(`scrolls.items.${confirmScroll.id}.scrollName`, confirmScroll.scrollName))}</div>
-                  <div className="font-mono text-xs italic mt-1" style={{ color: `${confirmScroll.color}99` }}>{String(t(`scrolls.items.${confirmScroll.id}.quote`, confirmScroll.quote))}</div>
-                </div>
-                <div className="text-sm font-mono text-muted-foreground/70 leading-relaxed">
-                  {t('scrolls.modal_time_limit_part1')}<span className="text-white font-bold">{t('scrolls.modal_time_limit_part2')}</span>{t('scrolls.modal_time_limit_part3')}<br />
-                  {t('scrolls.modal_consequence')}
-                </div>
-                <div className="rounded-xl border border-border bg-muted/20 p-3 text-left space-y-1.5">
-                  <div className="font-mono text-xs font-bold" style={{ color: confirmScroll.color }}>★ {String(t(`scrolls.items.${confirmScroll.id}.uniqueItem_label`, confirmScroll.uniqueItem.label))}</div>
-                  <div className="font-mono text-[11px] text-muted-foreground/60">{String(t(`scrolls.items.${confirmScroll.id}.uniqueItem_effect`, confirmScroll.uniqueItem.effect))}</div>
-                  <div className="font-mono text-[11px] text-yellow-400">+{normalizeGold(confirmScroll.reward.gold).toLocaleString()}G · +{confirmScroll.reward.sp}SP · +{confirmScroll.reward.mp}MP</div>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setConfirmScroll(null)}
-                    className="flex-1 py-2.5 rounded-xl font-mono text-sm border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    {t('scrolls.btn_cancel')}
-                  </button>
-                  <button
-                    onClick={confirmBuy}
-                    className="flex-1 py-2.5 rounded-xl font-mono text-sm font-black transition-all cursor-pointer"
-                    style={{ background: confirmScroll.color, color: "#000", boxShadow: `0 0 16px ${confirmScroll.color}60` }}
-                  >
-                    {t('scrolls.btn_modal_summon', { price: confirmScroll.price })}
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-
-      {/* Reward claim modals removed as backend handles it */}
-
-      {/* Item Detail Modal for Scrolls */}
-      <ItemDetailModal 
-        item={selectedScroll}
+      {/* Dark Gothic Grimoire Modal for Bosses */}
+      <BossDetailModal
+        scroll={selectedScroll}
         isOpen={!!selectedScroll}
         onClose={() => setSelectedScroll(null)}
-        title={selectedScroll ? t(`scrolls.items.${selectedScroll.id}.boss`, selectedScroll.boss) : ""}
-        subtitle={selectedScroll ? t(`scrolls.items.${selectedScroll.id}.scrollName`, selectedScroll.scrollName) : ""}
-        tierColor={selectedScroll ? RANK_COLORS[selectedScroll.rank] : undefined}
-        iconUrl={selectedScroll ? SCROLL_BOSS_IMAGES[selectedScroll.id] : undefined}
-        description={
-          selectedScroll && (
-            <div className="space-y-4 text-left">
-              <div className="font-mono text-xs italic text-center" style={{ color: `${RANK_COLORS[selectedScroll.rank]}99` }}>
-                {String(t(`scrolls.items.${selectedScroll.id}.quote`, selectedScroll.quote))}
-              </div>
-              <div className="rounded border border-slate-700 bg-slate-800/50 p-3 space-y-2">
-                <div className="font-mono text-xs font-bold" style={{ color: RANK_COLORS[selectedScroll.rank] }}>
-                  ★ {String(t(`scrolls.items.${selectedScroll.id}.uniqueItem_label`, selectedScroll.uniqueItem.label))}
-                </div>
-                <div className="font-mono text-[11px] text-slate-400">
-                  {String(t(`scrolls.items.${selectedScroll.id}.uniqueItem_effect`, selectedScroll.uniqueItem.effect))}
-                </div>
-                <div className="font-mono text-[11px] text-yellow-400 pt-1 border-t border-slate-700/50">
-                  +{normalizeGold(selectedScroll.reward.gold).toLocaleString()}G · +{selectedScroll.reward.sp}SP · +{selectedScroll.reward.mp}MP
-                </div>
-              </div>
-            </div>
-          )
-        }
-        actionButton={
-          selectedScroll && (
-            <button
-              onClick={() => { handleBuy(selectedScroll); setSelectedScroll(null); }}
-              disabled={
-                gold < selectedScroll.price || 
-                !!activeEncounter || 
-                summonMutation.isPending || 
-                RANK_ORDER.indexOf(currentRankId) < RANK_ORDER.indexOf(selectedScroll.rank) ||
-                (encounters.some(e => e.boss?.id_name === selectedScroll.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll.id && !e.is_defeated))
-              }
-              className="w-full py-3 text-xs font-mono font-black rounded transition-all"
-              style={{
-                background: (gold >= selectedScroll.price && !activeEncounter && RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(selectedScroll.rank) && !(encounters.some(e => e.boss?.id_name === selectedScroll.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll.id && !e.is_defeated))) ? RANK_COLORS[selectedScroll.rank] : "transparent",
-                color: (gold >= selectedScroll.price && !activeEncounter && RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(selectedScroll.rank) && !(encounters.some(e => e.boss?.id_name === selectedScroll.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll.id && !e.is_defeated))) ? "#000" : "#4a4060",
-                border: `1.5px solid ${(gold >= selectedScroll.price && !activeEncounter && RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(selectedScroll.rank) && !(encounters.some(e => e.boss?.id_name === selectedScroll.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll.id && !e.is_defeated))) ? RANK_COLORS[selectedScroll.rank] : "#2a2040"}`,
-                boxShadow: (gold >= selectedScroll.price && !activeEncounter && RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(selectedScroll.rank) && !(encounters.some(e => e.boss?.id_name === selectedScroll.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll.id && !e.is_defeated))) ? `0 0 10px ${RANK_COLORS[selectedScroll.rank]}50` : "none",
-                opacity: activeEncounter ? 0.4 : 1,
-              }}
-            >
-              {(encounters.some(e => e.boss?.id_name === selectedScroll.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll.id && !e.is_defeated)) ? t('scrolls.defeated') :
-               RANK_ORDER.indexOf(currentRankId) < RANK_ORDER.indexOf(selectedScroll.rank) ? t('scrolls.need_rank', { rank: selectedScroll.rank }) :
-               activeEncounter ? t('scrolls.btn_active') : 
-               summonMutation.isPending && confirmScroll?.id === selectedScroll.id ? t('scrolls.btn_summoning') : 
-               `${selectedScroll.price}G - ${t('inventory.buy', 'Buy')}`}
-            </button>
-          )
-        }
+        encounter={encounters.find(e => e.boss?.id_name === selectedScroll?.id && !e.is_defeated)}
+        isActive={Boolean(encounters.find(e => e.boss?.id_name === selectedScroll?.id && !e.is_defeated))}
+        isDefeated={Boolean(encounters.some(e => e.boss?.id_name === selectedScroll?.id && e.is_defeated) && !encounters.find(e => e.boss?.id_name === selectedScroll?.id && !e.is_defeated))}
+        rankUnlocked={RANK_ORDER.indexOf(currentRankId) >= RANK_ORDER.indexOf(selectedScroll?.rank)}
+        canAfford={gold >= (selectedScroll?.price || 0) && !activeEncounter}
+        userGold={gold}
+        isSummoning={summonMutation.isPending}
+        onSummon={(scroll) => {
+          summonMutation.mutate({ bossId: scroll.id, cost: scroll.price });
+          djangoApi.analytics.logEvent("boss_summoned");
+        }}
       />
     </div>
   );

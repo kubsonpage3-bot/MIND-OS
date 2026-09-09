@@ -382,12 +382,43 @@
     "modal_consequence": "Fail — scroll is lost. Win — receive unique loot.",
     "btn_cancel": "CANCEL",
     "btn_modal_summon": "SUMMON — {{price}}G",
+    "boss_modal": {
+      "title": "Summoning Grimoire",
+      "threat_level": "Rank {{rank}} Threat",
+      "status_active": "● ACTIVE IN ARENA",
+      "status_defeated": "✓ VANQUISHED IN COMBAT",
+      "status_available": "SCROLL READY TO SUMMON",
+      "status_locked": "REQUIRES RANK {{rank}}",
+      "vitals": "Combat Vitals",
+      "health_pool": "Health Pool",
+      "time_limit": "Ritual Duration",
+      "days_count": "{{days}} days",
+      "daily_threat": "Daily Threat",
+      "daily_threat_desc": "{{dmg}} HP/day on missed dailies (mitigated by DEF)",
+      "tactics": "Tactics & Mechanics",
+      "relic_loot": "Unique Relic",
+      "relic_slot": "Slot: {{slot}}",
+      "relic_guaranteed": "Guaranteed drop upon first victory",
+      "spoils_of_war": "Spoils of War",
+      "gold_reward": "{{gold}} Gold",
+      "xp_reward": "{{xp}} Glory XP",
+      "sp_reward": "{{sp}} Skill Points (SP)",
+      "mp_reward": "{{mp}} Mana Surge (MP)",
+      "btn_to_arena": "GO TO BOSS ARENA ⚔️",
+      "btn_vanquished": "BOSS VANQUISHED ✓",
+      "btn_summon": "SUMMON BOSS — {{price}}G",
+      "btn_need_rank": "REQUIRES RANK {{rank}}",
+      "btn_no_gold": "INSUFFICIENT GOLD ({{price}}G)",
+      "btn_summoning": "SUMMONING ENTITY..."
+    },
     "items": {
       "misted_wanderer": {
         "name": "Misted Wanderer",
         "scrollName": "Scroll of the Misted Wanderer",
         "quote": "\"You cannot find what you cannot see.\"",
         "boss": "Misted Wanderer",
+        "desc": "A ghostly phantom roaming the fragments of forgotten memories. It misleads wanderers, pulling them into a haze of hesitation, self-doubt, and procrastination.",
+        "mechanics": "Incorporeal shade. Dispelled by maintaining consistent daily routines and foundational habits.",
         "uniqueItem_label": "Wanderer's Hood",
         "uniqueItem_effect": "+2% gold from Habits"
       },
@@ -396,6 +427,8 @@
         "scrollName": "Scroll of the Nameless Bones",
         "quote": "\"Even dust remembers what it was.\"",
         "boss": "Nameless Skeleton",
+        "desc": "The weathered skeleton of an ancient acolyte buried beneath broken promises. Its rattling bones stand as a grim omen for those who perpetually postpone their lives.",
+        "mechanics": "Vulnerable to Dailies. Each completed daily task shatters its brittle bone armor.",
         "uniqueItem_label": "Bone Bracelet",
         "uniqueItem_effect": "+2% XP from Dailies"
       },
@@ -404,6 +437,8 @@
         "scrollName": "Scroll of the Jackal's Howl",
         "quote": "\"I herald only one thing — your end.\"",
         "boss": "Herald Jackal",
+        "desc": "An ominous beast herald of physical decay. Its piercing howl echoes through tired limbs, inciting lethargy, fatigue, and bodily surrender.",
+        "mechanics": "Fears vigor. Tasks in the Exercise and Health category deal massive critical strikes.",
         "uniqueItem_label": "Herald's Fang",
         "uniqueItem_effect": "+3% XP from Exercise tasks"
       },
@@ -412,6 +447,8 @@
         "scrollName": "Scroll of the Ink Mark",
         "quote": "\"Every word written is a chain forged.\"",
         "boss": "Ink Warden",
+        "desc": "A ruthless keeper of mental archives, forging heavy chains from dark ink to shackle unwritten ideas, drowning clarity in cognitive noise.",
+        "mechanics": "Inky ward. Broken by deep focus sessions, study tasks, and structured knowledge acquisition.",
         "uniqueItem_label": "Warden's Quill",
         "uniqueItem_effect": "+3% XP from Study tasks"
       },
@@ -420,6 +457,8 @@
         "scrollName": "Scroll of the Echoing Bell",
         "quote": "\"The toll rings for you alone.\"",
         "boss": "Abyssal Bellringer",
+        "desc": "A towering obsidian colossus carved from brine and deep stone. Each stroke of its toll shakes resolve, challenging whether you can endure the long march.",
+        "mechanics": "Abyssal toll. Demands continuous deep focus blocks to withstand its psychic resonance.",
         "uniqueItem_label": "Echo Bell",
         "uniqueItem_effect": "+4% Focus stat gain"
       },
@@ -428,6 +467,8 @@
         "scrollName": "Scroll of Bloodfrost",
         "quote": "\"Cold doesn't kill. Hesitation does.\"",
         "boss": "Frost Executioner",
+        "desc": "An unyielding headsman from the frozen wastes. His blade is veiled in rime of pure apathy, instantly freezing noble intentions into brittle ice.",
+        "mechanics": "Glacial grip. Punishes hesitation: the swifter tasks are executed, the weaker his frost armor becomes.",
         "uniqueItem_label": "Frostbite Blade",
         "uniqueItem_effect": "+4% damage to bosses"
       },
@@ -436,6 +477,8 @@
         "scrollName": "Scroll of Spinning Silk",
         "quote": "\"Every thread is a trap I've already set.\"",
         "boss": "Weaving Shade",
+        "desc": "A sinister arachnid shade endlessly spinning webs of false urgency, distraction notifications, and chaotic trivia.",
+        "mechanics": "Sticky silk. Missing dailies drains vital health, but slaying her rewards a protective mantle against future missed tasks.",
         "uniqueItem_label": "Silk-Woven Mantle",
         "uniqueItem_effect": "−5% HP loss on missed daily"
       },
@@ -444,6 +487,8 @@
         "scrollName": "Scroll of Forge Wrath",
         "quote": "\"I forge weapons. You are merely the ore.\"",
         "boss": "Ember Smith",
+        "desc": "A furious subterranean forge master fueled by buried anger and unchanneled drive. He either tempers human will into adamantine steel or incinerates it.",
+        "mechanics": "Blazing furnace. Shattered by completing heavy, high-priority tasks from the To-Do roster.",
         "uniqueItem_label": "Ember Gauntlet",
         "uniqueItem_effect": "+5% gold from To-Dos"
       },
@@ -452,6 +497,8 @@
         "scrollName": "Scroll of the Sanctuary's Tear",
         "quote": "\"I weep not for you, but for what I must do.\"",
         "boss": "Sanctuary Weeper",
+        "desc": "The weeping deity of a desecrated temple. Its tears of molten glass mourn those who gave up right on the threshold of breakthrough.",
+        "mechanics": "Crying glass. Unlocks an artifact that mends player HP on 100% perfect task execution days.",
         "uniqueItem_label": "Glass Tear",
         "uniqueItem_effect": "+5 HP on a perfect day"
       },
@@ -460,6 +507,8 @@
         "scrollName": "Scroll of the Black Tide",
         "quote": "\"The ocean does not drown — it invites.\"",
         "boss": "Shallow Leviathan",
+        "desc": "An abyssal beast lurking beneath the deceptive calm of idle comfort. It gently pulls the soul down into stagnation.",
+        "mechanics": "Tide of complacency. Banishing this titan yields leviathan scales that permanently restore Mana regeneration.",
         "uniqueItem_label": "Leviathan Scale",
         "uniqueItem_effect": "+5% MP regen"
       },
@@ -468,6 +517,8 @@
         "scrollName": "Scroll of the Ashen Name",
         "quote": "\"I have no face because I am everyone's fear.\"",
         "boss": "Faceless King",
+        "desc": "An ancient monarch whose likeness was stricken from history. He embodies primal imposter syndrome and the fear of stepping into greatness.",
+        "mechanics": "Aura of subjugation. Defeating him crowns the victor with the Crown of Ash, boosting XP gains across all life domains.",
         "uniqueItem_label": "Crown of Ash",
         "uniqueItem_effect": "+8% XP from all tasks"
       },
@@ -476,6 +527,8 @@
         "scrollName": "Scroll of the Mine's Groan",
         "quote": "\"The mountain does not fall. It buries.\"",
         "boss": "Ore Golem",
+        "desc": "A monolithic colossus forged of dense titanium rock and meteoric iron. He embodies heavy physical resistance and immovable inertia.",
+        "mechanics": "Meteoric plating. Can only be cracked through relentless, unbroken habit momentum day after day.",
         "uniqueItem_label": "Golem's Grip",
         "uniqueItem_effect": "+8% gold from Habits"
       },
@@ -484,6 +537,8 @@
         "scrollName": "Scroll of the Lunar Scar",
         "quote": "\"Even a wound becomes a crown if you survive it.\"",
         "boss": "Wounded Moon",
+        "desc": "A celestial body fractured by an ancient cataclysm. Its pale light reveals past wounds, transmuting painful scars into unbreakable fortitude.",
+        "mechanics": "Lunar eclipse. Grants the Scar Shard, permanently amplifying combat damage against all bosses.",
         "uniqueItem_label": "Scar Shard",
         "uniqueItem_effect": "+8% damage to bosses"
       },
@@ -492,6 +547,8 @@
         "scrollName": "Scroll of the Forgotten Choir",
         "quote": "\"We sing the names of those erased by time.\"",
         "boss": "Choir of the Forgotten",
+        "desc": "A phantom chorus of whispered regrets from souls who possessed brilliance but lacked the courage to act. Their siren hymn lulls seekers into surrender.",
+        "mechanics": "Psychic discord. Victory expands the genetic ceiling of a primary cognitive metric.",
         "uniqueItem_label": "Forgotten Score",
         "uniqueItem_effect": "+10% to one domain's stat ceiling"
       },
@@ -500,6 +557,8 @@
         "scrollName": "Scroll of Abyssal Greed",
         "quote": "\"There is never enough. Not gold. Not time. Not you.\"",
         "boss": "Bottomless Miser",
+        "desc": "A greedy archdemon hoarding stolen hours and days. He convinces the mortal mind that time is forever running out, breeding chronic panic.",
+        "mechanics": "Time siphon. Bound into an Abyssal Purse that generates a permanent gold multiplier across all accomplishments.",
         "uniqueItem_label": "Abyssal Purse",
         "uniqueItem_effect": "+12% gold from all sources"
       },
@@ -508,6 +567,8 @@
         "scrollName": "Scroll of Winter's Thorn",
         "quote": "\"Beauty and ruin wear the same face.\"",
         "boss": "Winter Thorn",
+        "desc": "The sovereign of eternal frost. Her crystalline spines are breathtakingly gorgeous, yet carry total hypothermic paralysis of willpower.",
+        "mechanics": "Absolute zero. Her frigid plate grants the ultimate ward: immunity to one missed daily every week.",
         "uniqueItem_label": "Winter Plate",
         "uniqueItem_effect": "immune to 1 missed daily/week"
       },
@@ -516,6 +577,8 @@
         "scrollName": "Scroll of the Ashen Throne",
         "quote": "\"Every throne is built on someone's grave. Yours will be no different.\"",
         "boss": "King of the Ashen Throne",
+        "desc": "A dreadful tyrant of incinerated empires, enthroned on the cinder of fragile illusions. He crushes anyone whose discipline wavers.",
+        "mechanics": "Ashen decree. Demands apex mental grit. Yields the Throne Seal (+15% permanent Power Score boost).",
         "uniqueItem_label": "Throne Seal",
         "uniqueItem_effect": "+15% Power Score"
       },
@@ -524,6 +587,8 @@
         "scrollName": "Scroll of the Eclipse Eye",
         "quote": "\"I do not block the light. I consume it.\"",
         "boss": "Eclipse Warden",
+        "desc": "A cosmic sentinel guarding black hole horizons. He devours the light of progress, immersing the mind in pitch-black existential trials.",
+        "mechanics": "Event horizon. Grants the Eclipse Eye, unlocking a coveted 4th companion ally slot.",
         "uniqueItem_label": "Eclipse Eye",
         "uniqueItem_effect": "unlocks an extra ally slot"
       },
@@ -532,6 +597,8 @@
         "scrollName": "Scroll of the Nameless God",
         "quote": "\"I was worshipped before language existed. I will remain after it ends.\"",
         "boss": "Nameless Machine-God",
+        "desc": "An ancient machine-deity of cosmic architecture and cold computation. It was worshipped before language and will endure past its silence.",
+        "mechanics": "90-day grand campaign. Demands flawless lifestyle mastery. Rewards the Mask of the Nameless: permanent +25% loot bonus from all bosses.",
         "uniqueItem_label": "Mask of the Nameless",
         "uniqueItem_effect": "+25% boss rewards, permanently"
       },
@@ -540,6 +607,8 @@
         "scrollName": "Scroll of the Final Dusk",
         "quote": "\"This is not the end of the world. It is the end of yours.\"",
         "boss": "The Final Dusk",
+        "desc": "The absolute horizon. The physical manifestation of cosmic entropy and the end of all worlds. The ultimate final trial of a human life.",
+        "mechanics": "700,000 HP grand confrontation. The terminal test of will. Drops the Blade of the Final Dusk, doubling all boss damage forever.",
         "uniqueItem_label": "Blade of the Final Dusk",
         "uniqueItem_effect": "doubles damage against all bosses"
       }
