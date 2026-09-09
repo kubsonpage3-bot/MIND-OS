@@ -91,6 +91,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "analytics_enabled",
             "anonymous_mode",
             "rival_visibility",
+            "hide_party_task_names",
             "character_name",
             "is_premium",
             "timezone",

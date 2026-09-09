@@ -96,6 +96,10 @@ def process_daily_login(user):
                 user=user, skill_id="streak_shield"
             ).first()
 
+            if shield and shield.expires_at and shield.expires_at <= timezone.now():
+                shield.delete()
+                shield = None
+
             if shield:
                 if shield.data and "uses_left" in shield.data:
                     shield.data["uses_left"] -= 1

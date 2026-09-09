@@ -30,6 +30,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
     did_dailies_today = serializers.SerializerMethodField()
     weekly_tasks_done = serializers.SerializerMethodField()
     buff_cooldown_hours = serializers.SerializerMethodField()
+    active_buffs = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -55,6 +56,7 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             "did_dailies_today",
             "weekly_tasks_done",
             "buff_cooldown_hours",
+            "active_buffs",
         )
         read_only_fields = fields
 
@@ -150,6 +152,34 @@ class PartyMemberProfileSerializer(serializers.ModelSerializer):
             return int(remaining)
         except Exception:
             return 0
+
+    def get_active_buffs(self, obj) -> list:
+        """Return non-expired active party blessings on this member."""
+        from api.models import ActiveEffect
+        from django.utils import timezone
+        from api.services.party_service import PARTY_BUFFS
+
+        try:
+            now = timezone.now()
+            effects = ActiveEffect.objects.filter(
+                user=obj.user,
+                skill_id__in=["xp_boost_24h", "gold_boost_12h", "streak_shield"],
+                expires_at__gt=now,
+            )
+            result = []
+            for ef in effects:
+                meta = PARTY_BUFFS.get(ef.skill_id, {})
+                hours_left = max(1, int((ef.expires_at - now).total_seconds() // 3600)) if ef.expires_at else 0
+                result.append({
+                    "code": ef.skill_id,
+                    "label": meta.get("label", ef.skill_id),
+                    "icon": meta.get("icon", "✨"),
+                    "hours_left": hours_left,
+                    "expires_at": ef.expires_at.isoformat() if ef.expires_at else None,
+                })
+            return result
+        except Exception:
+            return []
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -262,9 +292,10 @@ class PartyEventReactionSerializer(serializers.ModelSerializer):
 
 class PartyEventSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
-    content = serializers.CharField(source="message", read_only=True)
+    content = serializers.SerializerMethodField()
     reactions = PartyEventReactionSerializer(many=True, read_only=True)
     user_reacted = serializers.SerializerMethodField()
+    is_private = serializers.SerializerMethodField()
 
     class Meta:
         from api.models import PartyEvent
@@ -278,6 +309,7 @@ class PartyEventSerializer(serializers.ModelSerializer):
             "created_at",
             "reactions",
             "user_reacted",
+            "is_private",
         )
         read_only_fields = fields
 
@@ -285,6 +317,27 @@ class PartyEventSerializer(serializers.ModelSerializer):
         if obj.member and obj.member.user:
             return obj.member.user.username
         return obj.metadata.get("username", "Unknown Member")
+
+    def get_content(self, obj) -> str:
+        request = self.context.get("request")
+        if obj.event_type in ("task", "task_completed"):
+            creator = obj.member.user if obj.member else None
+            if (
+                creator
+                and hasattr(creator, "profile")
+                and getattr(creator.profile, "hide_party_task_names", False)
+            ):
+                if request and request.user == creator:
+                    return obj.message
+                return "a task"
+        return obj.message
+
+    def get_is_private(self, obj) -> bool:
+        if obj.event_type in ("task", "task_completed"):
+            creator = obj.member.user if obj.member else None
+            if creator and hasattr(creator, "profile"):
+                return bool(getattr(creator.profile, "hide_party_task_names", False))
+        return False
 
     def get_user_reacted(self, obj):
         request = self.context.get("request")

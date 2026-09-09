@@ -1,9 +1,9 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost } from "lucide-react";
+import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost, EyeOff } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import PremiumUpgradeModal from "./PremiumUpgradeModal";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
@@ -78,6 +78,14 @@ export default function GameplayPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
     }
+  });
+
+  const partyPrivacyMutation = useMutation({
+    mutationFn: (/** @type {boolean} */ hide) => djangoApi.profile.update({ hide_party_task_names: hide }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userprofile"] });
+      queryClient.invalidateQueries({ queryKey: ["party", "feed"] });
+    },
   });
 
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -254,6 +262,52 @@ export default function GameplayPanel() {
         {rivalDiffMutation.isPending && (
           <div className="text-[9px] font-mono text-center" style={{ color: "rgba(0,229,255,0.4)" }}>{t('johan_diff.syncing', 'Syncing with Johan...')}</div>
         )}
+      </div>
+
+      {/* Party Activity Privacy */}
+      <div className="p-4 rounded-xl border border-[var(--habit-border)] bg-[var(--habit-panel)] space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <EyeOff className="w-3.5 h-3.5 text-purple-400" />
+            <span className="font-mono text-xs font-bold">{t('settings.partyTaskPrivacyTitle', 'Party Activity Privacy')}</span>
+          </div>
+          <button
+            onClick={() => partyPrivacyMutation.mutate(!profile?.hide_party_task_names)}
+            disabled={partyPrivacyMutation.isPending}
+            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+              profile?.hide_party_task_names
+                ? 'bg-purple-600 justify-end'
+                : 'bg-zinc-800 justify-start'
+            }`}
+          >
+            <motion.div
+              layout
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              className="w-4 h-4 bg-white rounded-full shadow-md"
+            />
+          </button>
+        </div>
+        <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+          {profile?.hide_party_task_names
+            ? t('settings.partyTaskPrivacyOnDesc', 'Your completed tasks are hidden in the warband feed. Allies only see that you completed a task, without revealing its name.')
+            : t('settings.partyTaskPrivacyOffDesc', 'Task names are visible in the warband activity feed. Turn this on to hide specific task names from party members.')}
+        </p>
+        <div className="flex items-center gap-2 pt-1 border-t border-white/[0.04]">
+          <span className="text-[9px] font-pixel px-2 py-0.5 rounded border" style={{
+            background: profile?.hide_party_task_names ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.04)',
+            borderColor: profile?.hide_party_task_names ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.08)',
+            color: profile?.hide_party_task_names ? '#c084fc' : '#6b7280',
+          }}>
+            {profile?.hide_party_task_names
+              ? t('settings.partyTaskPrivacyHidden', '🔒 TASK NAMES HIDDEN')
+              : t('settings.partyTaskPrivacyVisible', '👁️ TASK NAMES VISIBLE')}
+          </span>
+          {partyPrivacyMutation.isPending && (
+            <span className="text-[9px] font-mono text-purple-400/60 animate-pulse">
+              {t('common.saving', 'Saving...')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Change Class */}

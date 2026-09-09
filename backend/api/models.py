@@ -67,6 +67,10 @@ class UserProfile(models.Model):
         default=True,
         verbose_name="Видимость для соперника",
     )
+    hide_party_task_names = models.BooleanField(
+        default=False,
+        verbose_name="Скрывать названия задач в группе",
+    )
     character_name = models.CharField(
         max_length=50,
         blank=True,

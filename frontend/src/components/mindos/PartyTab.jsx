@@ -25,7 +25,17 @@ const FALLBACK_SPRITES = {
   SSS: "/images/webp/c5c7fecf4_generated_image.webp",
 };
 
-function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
+function MemberCard({
+  member,
+  isOwner,
+  isSelf = false,
+  showKick,
+  onKick,
+  onBuff,
+  buffReady = false,
+  buffCooldownH = 0,
+  onClick,
+}) {
   const { t } = useTranslation();
   const { profile } = useDjangoAuth();
   const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
@@ -64,8 +74,6 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
     { code: 'streak_shield', icon: '🛡️', label: 'Streak Shield',  desc: 'Protects their streak for 1 day', manaCost: 60, color: '#60a5fa', bg: 'rgba(30,58,138,0.5)', border: 'rgba(96,165,250,0.4)' },
   ];
 
-  const buffCooldownH = member.buff_cooldown_hours || 0;
-  const buffReady = buffCooldownH === 0;
   const [buffFloat, setBuffFloat] = useState(null); // floating +BUFF text
 
   return (
@@ -131,6 +139,11 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
               <span className="font-pixel font-bold text-sm truncate text-slate-100">
                 {member.username}
               </span>
+              {isSelf && (
+                <span className="text-[9px] font-pixel px-1.5 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-500/50 shadow-[0_0_6px_rgba(168,85,247,0.3)] font-black shrink-0">
+                  {t('party_extra.you', 'YOU')}
+                </span>
+              )}
               {isOwner && (
                 <Crown className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" />
               )}
@@ -162,7 +175,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
                 )}
               </AnimatePresence>
 
-              {onBuff && (
+              {!isSelf && onBuff && (
                 <button
                   onClick={(e) => { e.stopPropagation(); if (buffReady) setShowBuffs(!showBuffs); }}
                   className="px-2.5 py-1 rounded-lg transition-all border flex items-center gap-1.5 text-[10px] font-pixel relative overflow-hidden"
@@ -173,8 +186,9 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
                     borderColor: buffReady ? 'rgba(234,179,8,0.5)' : 'rgba(255,255,255,0.08)',
                     color: buffReady ? '#fbbf24' : '#6b7280',
                     boxShadow: buffReady ? '0 0 10px rgba(234,179,8,0.25)' : 'none',
+                    cursor: buffReady ? 'pointer' : 'not-allowed',
                   }}
-                  title={buffReady ? 'Bless this ally' : `Cooldown: ${buffCooldownH}h remaining`}
+                  title={buffReady ? t('party_extra.bless_ally', 'Bless this ally') : t('party_extra.bless_cooldown', `Cooldown: ${buffCooldownH}h remaining`, { hours: buffCooldownH })}
                 >
                   <Zap className={`w-3 h-3 ${buffReady ? 'text-amber-400 fill-amber-400' : 'text-gray-500'}`}
                     style={buffReady ? { animation: 'pulse 2s infinite' } : {}}
@@ -211,6 +225,23 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
               {member.joined ? new Date(member.joined).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
             </span>
           </div>
+
+          {/* Active Blessings */}
+          {member.active_buffs && member.active_buffs.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {member.active_buffs.map((b) => (
+                <span
+                  key={b.code}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-pixel bg-amber-950/70 text-amber-300 border border-amber-500/40 shadow-[0_0_6px_rgba(245,158,11,0.25)]"
+                  title={`${b.label} (${b.hours_left}h remaining)`}
+                >
+                  <span>{b.icon}</span>
+                  <span>{b.label}</span>
+                  <span className="text-[7px] text-amber-400/80">({b.hours_left}h)</span>
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Dark Fantasy HP & MP Bars */}
           <div className="mt-2 space-y-1.5">
@@ -293,7 +324,7 @@ function MemberCard({ member, isOwner, showKick, onKick, onBuff, onClick }) {
               <div className="flex items-center justify-between text-[9px] font-pixel text-amber-300/80 uppercase tracking-widest">
                 <span className="flex items-center gap-1">
                   <span>🕯️</span>
-                  <span>Choose blessing</span>
+                  <span>{t('party_extra.choose_blessing', `Blessing for ${member.username}`, { name: member.username })}</span>
                 </span>
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-950/70 border border-blue-500/40 text-cyan-300 font-bold shadow-[0_0_8px_rgba(56,189,248,0.25)]">
                   💧 MANA: {myMana} / {myMaxMana} MP
@@ -781,6 +812,8 @@ function NoPartyView({ onCreated, onJoined }) {
 // ─── Feed View ────────────────────────────────────────────────────────────────
 function PartyFeedView({ party }) {
   const { t } = useTranslation();
+  const { profile } = useDjangoAuth();
+  const currentUsername = profile?.username;
   const queryClient = useQueryClient();
   const [chatMsg, setChatMsg] = useState('');
   const chatInputRef = useRef(null);
@@ -940,9 +973,21 @@ function PartyFeedView({ party }) {
                           <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
                             {cfg.label}
                           </span>
-                          <span className="text-[10px] font-mono font-semibold truncate max-w-[120px]" style={{ color: cfg.color }}>
-                            {event.content}
-                          </span>
+                          {event.is_private && event.username === currentUsername ? (
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-purple-950/60 border border-purple-500/40 shadow-[0_0_6px_rgba(168,85,247,0.2)]"
+                              style={{ color: cfg.color }}
+                              title={t('party_extra.hidden_from_warband', 'Task name visible only to you (hidden from warband)')}
+                            >
+                              <span>🔒</span>
+                              <span className="truncate max-w-[140px]">{event.content}</span>
+                              <span className="text-[8px] font-pixel text-purple-300/80">({t('party_extra.private_tag', 'private')})</span>
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono font-semibold truncate max-w-[160px]" style={{ color: cfg.color }}>
+                              {event.content === 'a task' ? t('party_extra.a_task', 'a task') : event.content}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1175,6 +1220,10 @@ function PartyView({ party }) {
   const isCurrentUserOwner = party.created_by_username === currentUsername;
   const memberCap = party.member_cap || 8;
 
+  const currentMember = (party.members || []).find((m) => m.username === currentUsername);
+  const myBuffCooldownH = currentMember?.buff_cooldown_hours || 0;
+  const isMyBuffReady = myBuffCooldownH === 0;
+
   return (
     <div className="space-y-4">
       {/* Gothic Warband Sanctuary Header */}
@@ -1325,17 +1374,23 @@ function PartyView({ party }) {
           <motion.div key="members" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="space-y-3">
             <InviteCodeDisplay code={party.invite_code} />
             <div className="space-y-2">
-              {(party.members || []).map((member) => (
-                <MemberCard
-                  key={member.username}
-                  member={member}
-                  isOwner={member.role === 'OWNER'}
-                  showKick={isCurrentUserOwner && member.username !== currentUsername}
-                  onKick={() => kickMutation.mutate(member.user_id)}
-                  onBuff={(code) => buffMutation.mutate({ username: member.username, code })}
-                  onClick={() => setSelectedMember(member)}
-                />
-              ))}
+              {(party.members || []).map((member) => {
+                const isSelf = member.username === currentUsername;
+                return (
+                  <MemberCard
+                    key={member.username}
+                    member={member}
+                    isOwner={member.role === 'OWNER'}
+                    isSelf={isSelf}
+                    showKick={isCurrentUserOwner && !isSelf}
+                    onKick={() => kickMutation.mutate(member.user_id)}
+                    onBuff={!isSelf ? (code) => buffMutation.mutate({ username: member.username, code }) : null}
+                    buffReady={isMyBuffReady}
+                    buffCooldownH={myBuffCooldownH}
+                    onClick={() => setSelectedMember(member)}
+                  />
+                );
+              })}
             </div>
           </motion.div>
         )}
