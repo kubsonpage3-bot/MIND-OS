@@ -128,7 +128,7 @@ SCROLL_BOSSES = [
         "name": "Ashen Name",
         "price": 800,
         "bossHP": 20000,
-        "reward": {"gold": 2000, "xp": 350, "mp": 50, "sp": 18},
+        "reward": {"gold": 2000, "xp": 240, "mp": 50, "sp": 18},
         "uniqueItem": "crown_of_ash",
     },
     {
@@ -137,7 +137,7 @@ SCROLL_BOSSES = [
         "name": "Mine's Groan",
         "price": 900,
         "bossHP": 22000,
-        "reward": {"gold": 2300, "xp": 400, "mp": 50, "sp": 18},
+        "reward": {"gold": 2300, "xp": 270, "mp": 50, "sp": 18},
         "uniqueItem": "golems_grip",
     },
     {
@@ -146,7 +146,7 @@ SCROLL_BOSSES = [
         "name": "Lunar Scar",
         "price": 1000,
         "bossHP": 25000,
-        "reward": {"gold": 2600, "xp": 450, "mp": 50, "sp": 18},
+        "reward": {"gold": 2600, "xp": 300, "mp": 50, "sp": 18},
         "uniqueItem": "scar_shard",
     },
     {
@@ -155,7 +155,7 @@ SCROLL_BOSSES = [
         "name": "Forgotten Choir",
         "price": 1800,
         "bossHP": 60000,
-        "reward": {"gold": 4500, "xp": 750, "mp": 80, "sp": 28},
+        "reward": {"gold": 4500, "xp": 360, "mp": 80, "sp": 28},
         "uniqueItem": "forgotten_score",
     },
     {
@@ -164,7 +164,7 @@ SCROLL_BOSSES = [
         "name": "Abyssal Greed",
         "price": 2000,
         "bossHP": 70000,
-        "reward": {"gold": 5500, "xp": 850, "mp": 80, "sp": 28},
+        "reward": {"gold": 5500, "xp": 400, "mp": 80, "sp": 28},
         "uniqueItem": "abyssal_purse",
     },
     {
@@ -173,7 +173,7 @@ SCROLL_BOSSES = [
         "name": "Winter's Thorn",
         "price": 2400,
         "bossHP": 80000,
-        "reward": {"gold": 6500, "xp": 1000, "mp": 80, "sp": 28},
+        "reward": {"gold": 6500, "xp": 450, "mp": 80, "sp": 28},
         "uniqueItem": "winter_plate",
     },
     {
@@ -182,7 +182,7 @@ SCROLL_BOSSES = [
         "name": "Ashen Throne",
         "price": 4000,
         "bossHP": 180000,
-        "reward": {"gold": 10000, "xp": 1400, "mp": 120, "sp": 45},
+        "reward": {"gold": 10000, "xp": 550, "mp": 120, "sp": 45},
         "uniqueItem": "throne_seal",
     },
     {
@@ -191,7 +191,7 @@ SCROLL_BOSSES = [
         "name": "Eclipse Eye",
         "price": 4500,
         "bossHP": 200000,
-        "reward": {"gold": 12000, "xp": 1600, "mp": 120, "sp": 45},
+        "reward": {"gold": 12000, "xp": 650, "mp": 120, "sp": 45},
         "uniqueItem": "eclipse_eye",
     },
     {
@@ -200,7 +200,7 @@ SCROLL_BOSSES = [
         "name": "Nameless God",
         "price": 8000,
         "bossHP": 600000,
-        "reward": {"gold": 20000, "xp": 2400, "mp": 200, "sp": 75},
+        "reward": {"gold": 20000, "xp": 850, "mp": 200, "sp": 75},
         "uniqueItem": "mask_nameless",
     },
     {
@@ -209,7 +209,7 @@ SCROLL_BOSSES = [
         "name": "Final Dusk",
         "price": 9000,
         "bossHP": 700000,
-        "reward": {"gold": 24000, "xp": 2800, "mp": 200, "sp": 75},
+        "reward": {"gold": 24000, "xp": 1000, "mp": 200, "sp": 75},
         "uniqueItem": "blade_final_dusk",
     },
 ]
