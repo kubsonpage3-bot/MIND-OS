@@ -166,3 +166,23 @@ def test_streak_shield_expiration_in_daily_service(ally):
     process_daily_login(ally)
     ally.profile.refresh_from_db()
     assert ally.profile.streak == 11
+
+
+@pytest.mark.django_db
+def test_user_profile_serializer_exposes_username_and_user_id(owner):
+    """
+    Ensure UserProfileSerializer exposes top-level 'username' and 'user_id'
+    so frontend components (PartyTab, CharacterHub, etc.) can reliably
+    identify the active user and prevent self-blessing.
+    """
+    from api.serializers.profile import UserProfileSerializer
+
+    serializer = UserProfileSerializer(owner.profile)
+    data = serializer.data
+    assert "username" in data
+    assert data["username"] == owner.username
+    assert "user_id" in data
+    assert data["user_id"] == owner.id
+    assert "user" in data
+    assert data["user"]["username"] == owner.username
+

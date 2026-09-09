@@ -46,7 +46,10 @@ export const DjangoAuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (profile) {
-      setUser({ username: profile.username || 'Hero' });
+      setUser({
+        username: profile.user?.username || profile.username || 'Hero',
+        id: profile.user?.id || profile.user_id || profile.id,
+      });
       
       // Auto-detect and sync timezone if it differs from the backend
       const clientTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -84,7 +87,10 @@ export const DjangoAuthProvider = ({ children }) => {
         queryKey: ['userprofile'],
         queryFn: djangoApi.profile.get,
       });
-      setUser({ username: profileData.username || 'Hero' });
+      setUser({
+        username: profileData.user?.username || profileData.username || 'Hero',
+        id: profileData.user?.id || profileData.user_id || profileData.id,
+      });
       return profileData;
     } catch (err) {
       console.error('Login failed:', err);
@@ -147,7 +153,10 @@ export const DjangoAuthProvider = ({ children }) => {
         queryKey: ['userprofile'],
         queryFn: djangoApi.profile.get,
       });
-      setUser({ username: profileData.username || 'Hero' });
+      setUser({
+        username: profileData.user?.username || profileData.username || 'Hero',
+        id: profileData.user?.id || profileData.user_id || profileData.id,
+      });
       return profileData;
     } catch (err) {
       console.error('Guest login failed:', err);
@@ -171,7 +180,10 @@ export const DjangoAuthProvider = ({ children }) => {
         queryKey: ['userprofile'],
         queryFn: djangoApi.profile.get,
       });
-      setUser({ username: profileData.username || 'Hero' });
+      setUser({
+        username: profileData.user?.username || profileData.username || 'Hero',
+        id: profileData.user?.id || profileData.user_id || profileData.id,
+      });
       return profileData;
     } catch (err) {
       console.error('Guest conversion failed:', err);

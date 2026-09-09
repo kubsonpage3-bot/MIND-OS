@@ -11,6 +11,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
 
     user = UserSerializer(read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
     xp_progress_percent = serializers.SerializerMethodField()
     inventory = serializers.SerializerMethodField()
     equipped = serializers.SerializerMethodField()
@@ -35,6 +37,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "user",
+            "username",
+            "user_id",
             "battery_info",
             "hp",
             "hp_max",

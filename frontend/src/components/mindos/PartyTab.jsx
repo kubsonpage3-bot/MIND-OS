@@ -37,7 +37,14 @@ function MemberCard({
   onClick,
 }) {
   const { t } = useTranslation();
-  const { profile } = useDjangoAuth();
+  const { profile, user } = useDjangoAuth();
+  const currentUsername = profile?.user?.username || profile?.username || user?.username;
+  const currentUserId = profile?.user?.id || profile?.user_id;
+  const effectiveIsSelf = Boolean(
+    isSelf ||
+    (currentUserId && member.user_id && Number(member.user_id) === Number(currentUserId)) ||
+    (currentUsername && member.username && member.username.toLowerCase() === currentUsername.toLowerCase())
+  );
   const rank = getRankDisplayData(member.rank_info?.current_id || 'F', member);
   const hpPct = member.max_hp > 0 ? Math.min((member.hp / member.max_hp) * 100, 100) : 0;
   const maxMp = member.max_mana || member.mana_max || 100;
@@ -139,7 +146,7 @@ function MemberCard({
               <span className="font-pixel font-bold text-sm truncate text-slate-100">
                 {member.username}
               </span>
-              {isSelf && (
+              {effectiveIsSelf && (
                 <span className="text-[9px] font-pixel px-1.5 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-500/50 shadow-[0_0_6px_rgba(168,85,247,0.3)] font-black shrink-0">
                   {t('party_extra.you', 'YOU')}
                 </span>
@@ -175,7 +182,7 @@ function MemberCard({
                 )}
               </AnimatePresence>
 
-              {!isSelf && onBuff && (
+              {!effectiveIsSelf && onBuff && (
                 <button
                   onClick={(e) => { e.stopPropagation(); if (buffReady) setShowBuffs(!showBuffs); }}
                   className="px-2.5 py-1 rounded-lg transition-all border flex items-center gap-1.5 text-[10px] font-pixel relative overflow-hidden"
@@ -308,7 +315,7 @@ function MemberCard({
 
       {/* Buff Altar with Mana System */}
       <AnimatePresence>
-        {showBuffs && (
+        {!effectiveIsSelf && onBuff && showBuffs && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -812,8 +819,9 @@ function NoPartyView({ onCreated, onJoined }) {
 // ─── Feed View ────────────────────────────────────────────────────────────────
 function PartyFeedView({ party }) {
   const { t } = useTranslation();
-  const { profile } = useDjangoAuth();
-  const currentUsername = profile?.username;
+  const { profile, user } = useDjangoAuth();
+  const currentUsername = profile?.user?.username || profile?.username || user?.username;
+  const currentUserId = profile?.user?.id || profile?.user_id;
   const queryClient = useQueryClient();
   const [chatMsg, setChatMsg] = useState('');
   const chatInputRef = useRef(null);
@@ -973,7 +981,10 @@ function PartyFeedView({ party }) {
                           <span className="text-[10px] font-mono" style={{ color: 'var(--habit-dim)' }}>
                             {cfg.label}
                           </span>
-                          {event.is_private && event.username === currentUsername ? (
+                          {event.is_private && (
+                            (currentUserId && event.user_id && Number(event.user_id) === Number(currentUserId)) ||
+                            (currentUsername && event.username && event.username.toLowerCase() === currentUsername.toLowerCase())
+                          ) ? (
                             <span
                               className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-purple-950/60 border border-purple-500/40 shadow-[0_0_6px_rgba(168,85,247,0.2)]"
                               style={{ color: cfg.color }}
@@ -1043,8 +1054,9 @@ function PartyFeedView({ party }) {
 // ─── Leaderboard View ──────────────────────────────────────────────────────────
 function PartyLeaderboardView() {
   const { t } = useTranslation();
-  const { profile } = useDjangoAuth();
-  const currentUsername = profile?.username;
+  const { profile, user } = useDjangoAuth();
+  const currentUsername = profile?.user?.username || profile?.username || user?.username;
+  const currentUserId = profile?.user?.id || profile?.user_id;
 
   const { data, isLoading } = useQuery({
     queryKey: ['party', 'leaderboard'],
@@ -1085,7 +1097,11 @@ function PartyLeaderboardView() {
           </motion.div>
         )}
         {leaderboard.map((mem, i) => {
-          const isMe = mem.user_id === profile?.user_id || mem.raw_username === currentUsername || mem.username === currentUsername;
+          const isMe = Boolean(
+            (currentUserId && mem.user_id && Number(mem.user_id) === Number(currentUserId)) ||
+            (currentUsername && mem.raw_username && mem.raw_username.toLowerCase() === currentUsername.toLowerCase()) ||
+            (currentUsername && mem.username && mem.username.toLowerCase() === currentUsername.toLowerCase())
+          );
           const pct = Math.min(100, ((mem.weekly_xp || 0) / totalXP) * 100);
           const medal = MEDALS[i];
           const medalColor = MEDAL_COLORS[i] || 'var(--habit-dim)';
@@ -1174,7 +1190,7 @@ function PartyLeaderboardView() {
 function PartyView({ party }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { profile } = useDjangoAuth();
+  const { profile, user } = useDjangoAuth();
   const [activeTab, setActiveTab] = useState('members');
   const [leaveError, setLeaveError] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -1216,11 +1232,16 @@ function PartyView({ party }) {
     leaveMutation.mutate();
   };
 
-  const currentUsername = profile?.username;
-  const isCurrentUserOwner = party.created_by_username === currentUsername;
+  const currentUsername = profile?.user?.username || profile?.username || user?.username;
+  const currentUserId = profile?.user?.id || profile?.user_id;
+  const isCurrentUserOwner = (party.created_by && currentUserId && Number(party.created_by) === Number(currentUserId)) ||
+                             (party.created_by_username && currentUsername && party.created_by_username.toLowerCase() === currentUsername.toLowerCase());
   const memberCap = party.member_cap || 8;
 
-  const currentMember = (party.members || []).find((m) => m.username === currentUsername);
+  const currentMember = (party.members || []).find((m) =>
+    (currentUserId && m.user_id && Number(m.user_id) === Number(currentUserId)) ||
+    (currentUsername && m.username && m.username.toLowerCase() === currentUsername.toLowerCase())
+  );
   const myBuffCooldownH = currentMember?.buff_cooldown_hours || 0;
   const isMyBuffReady = myBuffCooldownH === 0;
 
@@ -1375,12 +1396,15 @@ function PartyView({ party }) {
             <InviteCodeDisplay code={party.invite_code} />
             <div className="space-y-2">
               {(party.members || []).map((member) => {
-                const isSelf = member.username === currentUsername;
+                const isSelf = Boolean(
+                  (currentUserId && member.user_id && Number(member.user_id) === Number(currentUserId)) ||
+                  (currentUsername && member.username && member.username.toLowerCase() === currentUsername.toLowerCase())
+                );
                 return (
                   <MemberCard
-                    key={member.username}
+                    key={member.user_id || member.username}
                     member={member}
-                    isOwner={member.role === 'OWNER'}
+                    isOwner={member.role === 'OWNER' || (party.created_by && member.user_id === party.created_by)}
                     isSelf={isSelf}
                     showKick={isCurrentUserOwner && !isSelf}
                     onKick={() => kickMutation.mutate(member.user_id)}
