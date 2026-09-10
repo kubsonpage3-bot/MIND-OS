@@ -419,6 +419,18 @@ class UserProfile(models.Model):
 
         return totals
 
+    def get_equipped_item_codes(self) -> set:
+        """
+        Returns a set of item codes for all currently equipped items.
+        """
+        if self.pk is None:
+            return set()
+        return set(
+            self.inventory_items.filter(is_equipped=True).values_list(
+                "item__code", flat=True
+            )
+        )
+
     @cached_property
     def total_stats(self) -> dict:
         """
@@ -429,8 +441,17 @@ class UserProfile(models.Model):
         cls_stats = self.class_stats
         prestige_mult = 1.0 + (0.10 * float(self.prestige_count))
         passives = self.get_cached_passives()
+        equipped_codes = self.get_equipped_item_codes()
 
         pwr_bonus = passives.get("pwr_stat_bonus", 0)
+        # Throne Seal: +15% Power Score (PWR)
+        if "throne_seal" in equipped_codes:
+            pwr_bonus += max(
+                1,
+                int(
+                    (self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * 0.15
+                ),
+            )
         def_bonus = passives.get("def_stat_bonus", 0)
         foc_bonus = passives.get("foc_stat_bonus", 0)
         mem_bonus = passives.get("mem_stat_bonus", 0)
@@ -1064,6 +1085,7 @@ class Boss(models.Model):
     reward_gold = models.PositiveIntegerField(verbose_name="Награда (Золото)")
     reward_xp = models.PositiveIntegerField(verbose_name="Награда (XP)")
     reward_sp = models.PositiveIntegerField(default=3, verbose_name="Награда (SP)")
+    reward_mp = models.PositiveIntegerField(default=10, verbose_name="Награда (MP)")
     # Уникальный дроп (ID предмета)
     drop_item_id = models.CharField(max_length=50, null=True, blank=True)
 

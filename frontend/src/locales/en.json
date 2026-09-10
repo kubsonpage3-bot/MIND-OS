@@ -976,53 +976,53 @@
       }
     },
     "skills": {
-      "blueprint": {
-        "name": "Blueprint",
-        "desc": "Next 3 tasks logged give +50% Rank XP until midnight."
+      "algorithmic_cascade": {
+        "name": "Algorithmic Cascade",
+        "desc": "Until midnight: each completed task increases rewards of subsequent tasks by +10% XP and Gold (up to +60%)."
       },
-      "system_overload": {
-        "name": "System Overload",
-        "desc": "Deal 3× damage to current boss on next task completion."
+      "quantum_optimization": {
+        "name": "Quantum Optimization",
+        "desc": "For next 4 tasks: +80% Gold and restore +15 Mana on each task completion."
       },
-      "infinite_loop": {
-        "name": "Infinite Loop",
-        "desc": "All sessions in next 2 hours count double for cognitive metrics."
+      "deep_work_surge": {
+        "name": "Deep Work Surge",
+        "desc": "Inflicts powerful direct boss damage and awards bonus XP based on total activity hours logged today."
       },
-      "iron_fast": {
-        "name": "Iron Fast",
-        "desc": "For 24h: each task restores 5 HP. Missed dailies deal 0 HP damage."
+      "eye_of_the_storm": {
+        "name": "Eye of the Storm",
+        "desc": "Until midnight: complete immunity to missed dailies and negative habit damage. Tasks restore +8 HP and +4 MP."
       },
-      "meditation": {
-        "name": "Meditation",
-        "desc": "For 12h: other skills cost 50% less mana, next 3 focus sessions get +30% Focus Rating."
+      "inner_sanctuary": {
+        "name": "Inner Sanctuary",
+        "desc": "Instantly restores 50% of maximum Health."
       },
-      "transcendence": {
-        "name": "Transcendence",
-        "desc": "For 48h: streak cannot break. Rival XP frozen."
+      "enlightenment": {
+        "name": "Enlightenment",
+        "desc": "For 12 hours: 100% guaranteed task critical hits on bosses with 2.5x critical damage multiplier."
       },
-      "babel_mode": {
-        "name": "Babel Mode",
-        "desc": "Next language session counts across all language subjects."
+      "rosetta_protocol": {
+        "name": "Rosetta Protocol",
+        "desc": "Until midnight: +35% Rank XP from all tasks and +20% cognitive metric gains."
       },
-      "polyglot_surge": {
-        "name": "Polyglot Surge",
-        "desc": "Push all language subject ranks forward by 2 virtual hours each."
+      "lexical_resonance": {
+        "name": "Lexical Resonance",
+        "desc": "Inflict true mental damage to the active boss scaling with MEM and FOC."
       },
-      "memetic_transfer": {
-        "name": "Memetic Transfer",
-        "desc": "For 24h: Gc and Vm gains also mirror as Gf gains at 50% rate."
+      "cognitive_echo": {
+        "name": "Cognitive Echo",
+        "desc": "Next completed task duplicates (2x) all its rewards: XP, Gold, and boss damage."
       },
-      "battle_fury": {
-        "name": "Battle Fury",
-        "desc": "For 1h: +50% physical damage, -20% mana regen."
+      "execution": {
+        "name": "Execution",
+        "desc": "Crushing boss strike. If boss has <35% HP, inflicts 5x damage to instantly execute it."
       },
-      "war_cry": {
-        "name": "War Cry",
-        "desc": "Reduce boss HP by 10% and stun boss for 1h."
+      "blood_harvest": {
+        "name": "Blood Harvest",
+        "desc": "For 24 hours: +40% task boss damage, and 20% of damage dealt heals player HP (vampirism)."
       },
-      "tactical_retreat": {
-        "name": "Tactical Retreat",
-        "desc": "Reset boss encounter, gain 25% max mana back."
+      "titans_roar": {
+        "name": "Titan's Roar",
+        "desc": "Slices 15% maximum boss HP and empowers the next 3 completed tasks to deal 2x damage."
       }
     },
     "skillTree": {
@@ -1108,7 +1108,7 @@
       },
       "mindguard": {
         "name": "Mindguard",
-        "desc": "Active skill cooldowns reduced by 15%"
+        "desc": "Active skill mana costs reduced by 15%"
       },
       "aura_of_focus": {
         "name": "Aura of Focus",
@@ -2828,6 +2828,7 @@
     "gold_reward": "GOLD REWARD",
     "xp_reward": "XP REWARD",
     "sp_reward": "SKILL POINTS",
+    "mp_reward": "MANA REWARD",
     "final_blow": "FINAL BLOW",
     "critical_hit": "CRITICAL HIT",
     "unique_drop": "UNIQUE DROP",

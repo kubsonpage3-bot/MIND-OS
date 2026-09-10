@@ -175,24 +175,39 @@ def calculate_cognitive_gains(activity, hours, eff_total, profile, mastery_categ
         ratio = current / ceiling
         return max(0.0, 1.0 - (ratio**2))
 
-    # Base gain formula from frontend: coeff * hours * multiplier * effTotal
+    rosetta_mult = 1.0
+    try:
+        from api.models import ActiveEffect
+        if hasattr(profile, "user") and profile.user:
+            if ActiveEffect.objects.filter(
+                user=profile.user, skill_id="rosetta_protocol", expires_at__gt=timezone.now()
+            ).exists():
+                rosetta_mult = 1.20
+    except Exception:
+        rosetta_mult = 1.0
+
+    # Base gain formula from frontend: coeff * hours * multiplier * effTotal * rosetta_mult
     return {
         "gf": coeffs.get("gf", 0)
         * hours
         * eff_total
-        * get_growth_multiplier(profile.gf, profile.gf_ceiling),
+        * get_growth_multiplier(profile.gf, profile.gf_ceiling)
+        * rosetta_mult,
         "gc": coeffs.get("gc", 0)
         * hours
         * eff_total
-        * get_growth_multiplier(profile.gc, profile.gc_ceiling),
+        * get_growth_multiplier(profile.gc, profile.gc_ceiling)
+        * rosetta_mult,
         "ps": coeffs.get("ps", 0)
         * hours
         * eff_total
-        * get_growth_multiplier(profile.ps, profile.ps_ceiling),
+        * get_growth_multiplier(profile.ps, profile.ps_ceiling)
+        * rosetta_mult,
         "vm": coeffs.get("vm", 0)
         * hours
         * eff_total
-        * get_growth_multiplier(profile.vm, profile.vm_ceiling),
+        * get_growth_multiplier(profile.vm, profile.vm_ceiling)
+        * rosetta_mult,
     }
 
 
@@ -335,8 +350,8 @@ def calculate_task_outcome(
         from api.models import ActiveEffect
         from django.db.models import Q
 
-        war_cry_active = ActiveEffect.objects.filter(
-            user=user, skill_id="war_cry"
+        titans_roar_active = ActiveEffect.objects.filter(
+            user=user, skill_id="titans_roar", expires_at__gt=timezone.now()
         ).exists()
 
         decoy_shadow_stun = (
@@ -345,7 +360,7 @@ def calculate_task_outcome(
             .exists()
         )
 
-        if war_cry_active or decoy_shadow_stun:
+        if titans_roar_active or decoy_shadow_stun:
             print("[Mechanics] Boss is stunned! Nullifying base HP lost.")
             base_hp_lost = 0
 
@@ -360,6 +375,15 @@ def calculate_task_outcome(
         luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
         if luna_ally and luna_ally.level >= 2:
             hp_loss_reduction -= 0.10  # 10% reduction
+
+        # Silk Mantle: −5% HP loss on missed daily
+        equipped_codes = (
+            profile.get_equipped_item_codes()
+            if hasattr(profile, "get_equipped_item_codes")
+            else set()
+        )
+        if "silk_mantle" in equipped_codes:
+            hp_loss_reduction -= 0.05
 
         # Ensure we don't reduce below 0
         hp_loss_reduction = max(0.0, hp_loss_reduction)
@@ -444,6 +468,19 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     if profile.unlocked_skills.filter(skill_code="apex_predator").exists():  # type: ignore
         boss_dmg_mult += 0.30
 
+    # Boss damage multipliers from equipped items
+    equipped_codes = (
+        profile.get_equipped_item_codes()
+        if hasattr(profile, "get_equipped_item_codes")
+        else set()
+    )
+    if "frostbite_blade" in equipped_codes:
+        boss_dmg_mult += 0.04
+    if "scar_shard" in equipped_codes:
+        boss_dmg_mult += 0.08
+    if "blade_final_dusk" in equipped_codes:
+        boss_dmg_mult *= 2.0
+
     final_damage_dealt = int(final_damage_dealt * boss_dmg_mult)
 
     active_encounter.hp_current = max(
@@ -461,8 +498,27 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     if boss_defeated and boss is not None:
         active_encounter.expires_at = timezone.now()
         profile = UserProfile.objects.select_for_update().get(user=user)
+        equipped_codes = (
+            profile.get_equipped_item_codes()
+            if hasattr(profile, "get_equipped_item_codes")
+            else set()
+        )
         xp_reward = int(boss.reward_xp * active_encounter.reward_multiplier)
         gold_reward = int(boss.reward_gold * active_encounter.reward_multiplier)
+
+        # Mask of the Nameless: +25% boss rewards, permanently
+        has_mask_nameless = (
+            "mask_nameless" in equipped_codes
+            or profile.inventory_items.filter(item__code="mask_nameless").exists()
+            or profile.inventory_items.filter(item__code="mask_of_the_nameless").exists()
+        )
+        if has_mask_nameless:
+            xp_reward = int(xp_reward * 1.25)
+            gold_reward = int(gold_reward * 1.25)
+
+        # Abyssal Purse: +12% gold from all sources
+        if "abyssal_purse" in equipped_codes:
+            gold_reward = int(gold_reward * 1.12)
 
         final_xp = max(0, int(xp_reward * profile.xp_multiplier))
         final_gold = max(0, int(gold_reward * profile.gold_multiplier))
@@ -474,6 +530,17 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         mana_restore = passives.get("boss_kill_mana_restore", 0)
         if mana_restore > 0:
             profile.mana = min(profile.max_mana, profile.mana + mana_restore)
+
+        # Base Boss MP Reward
+        from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP, RANK_TO_LEVEL
+
+        mp_reward = (
+            getattr(boss, "reward_mp", None)
+            or SCROLL_BOSSES_DICT.get(boss.id_name, {}).get("reward", {}).get("mp", 10)
+        )
+        profile.mana = min(
+            profile.total_stats.get("mana_max", 100), profile.mana + mp_reward
+        )
 
         hp_heal = passives.get("boss_kill_hp_heal", 0)
         if hp_heal > 0:
@@ -547,6 +614,7 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
             "boss_xp": final_xp,
             "boss_gold": final_gold,
             "boss_sp": sp_reward,
+            "boss_mp": mp_reward,
             "item_dropped": item_dropped,
             "item_name": item_name,
             "item_stat_bonuses": rolled_stats,
@@ -1307,6 +1375,35 @@ def get_passive_multipliers(profile, context: dict):
         # Humanities XP Boost
         if "humanitiesXpBoost" in effect.data and is_language:
             effects["humanities_xp_mult"] += effect.data["humanitiesXpBoost"]
+
+        # Enlightenment (Ascetic): 100% crit chance, 2.5x crit damage
+        if effect.skill_id == "enlightenment":
+            effects["always_crit"] = True
+            effects["crit_chance_bonus"] = 1.0
+            effects["crit_damage_mult"] = 2.5
+
+    # UNIQUE BOSS DROP ITEMS (PASSIVES WHEN EQUIPPED)
+    equipped_codes = (
+        profile.get_equipped_item_codes()
+        if hasattr(profile, "get_equipped_item_codes")
+        else set()
+    )
+
+    # Echo Bell: +4% Focus stat gain
+    if "echo_bell" in equipped_codes:
+        effects["foc_mult"] += 0.04
+
+    # Leviathan Scale: +5% MP regen
+    if "leviathan_scale" in equipped_codes:
+        effects["mana_regen_mult"] += 0.05
+
+    # Forgotten Score: +10% to cognitive domain metrics
+    if "forgotten_score" in equipped_codes:
+        effects["cognitive_metric_multiplier"] += 0.10
+        effects["gf_mult"] += 0.10
+        effects["gc_mult"] += 0.10
+        effects["ps_mult"] += 0.10
+        effects["vm_mult"] += 0.10
 
     if "iron_conditioning" in unlocked_skills and is_exercise:
         effects["xp_mult"] += 0.15

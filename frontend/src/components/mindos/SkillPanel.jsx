@@ -73,18 +73,20 @@ export default function SkillPanel({ classId }) {
       // Optimistic active effects and cooldowns update
       if (prevEffects) {
         const skill = cls?.skills.find(s => s.id === skillId);
-        const cdHours = skill ? 24 : 0;
-        const fakeCdUntil = new Date(Date.now() + cdHours * 3600000).toISOString();
+        const cdHours = skill?.cooldownH || 0;
+        const newCooldowns = cdHours > 0
+          ? [
+              ...(prevEffects.cooldowns || []).filter(c => c.skill_id !== skillId),
+              { skill_id: skillId, cooldown_until: new Date(Date.now() + cdHours * 3600000).toISOString() }
+            ]
+          : (prevEffects.cooldowns || []).filter(c => c.skill_id !== skillId);
 
         queryClient.setQueryData(["active_effects"], {
           active_effects: [
             ...(prevEffects.active_effects || []),
-            { effect_id: `${skillId}_effect`, skill_id: skillId, data: {}, expires_at: new Date(Date.now() + cdHours * 3600000).toISOString() }
+            { effect_id: `${skillId}_effect`, skill_id: skillId, data: {}, expires_at: new Date(Date.now() + 24 * 3600000).toISOString() }
           ],
-          cooldowns: [
-            ...(prevEffects.cooldowns || []).filter(c => c.skill_id !== skillId),
-            { skill_id: skillId, cooldown_until: fakeCdUntil }
-          ]
+          cooldowns: newCooldowns
         });
       }
 

@@ -9,8 +9,7 @@ import { useHardwareBack } from '@/utils/modalStack';
 import { hapticHeavy, hapticSuccess } from '@/hooks/useHaptic';
 import { SCROLLS, SCROLL_BOSS_IMAGES, RANK_COLORS } from './ScrollsPanel';
 import ConfettiBurst from './ConfettiBurst';
-import OptimizedImage from './OptimizedImage';
-import { Swords, Coins, Zap, Sparkles, Gem, Trophy } from 'lucide-react';
+import { Swords, Coins, Zap, Sparkles, Gem, Trophy, Droplets } from 'lucide-react';
 
 export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards }) {
   useHardwareBack(isOpen, onClose);
@@ -46,6 +45,7 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
   const bossGold = rewards?.boss_gold ?? bossTemplate?.reward?.gold ?? 0;
   const bossXp = rewards?.boss_xp ?? bossTemplate?.reward?.xp ?? 0;
   const bossSp = rewards?.boss_sp ?? bossTemplate?.reward?.sp ?? 3;
+  const bossMp = rewards?.boss_mp ?? bossTemplate?.reward?.mp ?? 10;
 
   useEffect(() => {
     if (isOpen) {
@@ -226,7 +226,7 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
                   <span>{t('boss_defeat.rewards_title', 'SPOILS OF BATTLE')}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {/* Gold */}
                   <div className="p-2.5 rounded-xl bg-black/40 border border-amber-500/30 flex flex-col items-center text-center">
                     <Coins className="w-4 h-4 text-amber-400 mb-1" />
@@ -257,6 +257,17 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
                     </span>
                     <span className="font-mono font-black text-xs text-cyan-400 mt-0.5">
                       +{bossSp} SP
+                    </span>
+                  </div>
+
+                  {/* MP */}
+                  <div className="p-2.5 rounded-xl bg-black/40 border border-blue-500/30 flex flex-col items-center text-center">
+                    <Droplets className="w-4 h-4 text-blue-400 mb-1" />
+                    <span className="font-mono text-[9px] text-gray-400 uppercase">
+                      {t('boss_defeat.mp_reward', 'MANA')}
+                    </span>
+                    <span className="font-mono font-black text-xs text-blue-400 mt-0.5">
+                      +{bossMp} MP
                     </span>
                   </div>
                 </div>

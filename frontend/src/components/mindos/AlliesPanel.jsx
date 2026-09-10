@@ -203,9 +203,12 @@ export default function AlliesPanel({ onSpendGold }) {
     }
   });
 
+  const hasEclipseEye = profile?.inventory_items?.some(i => i.is_equipped && i.item?.code === 'eclipse_eye') || profile?.equipped?.neural_link?.id === 'eclipse_eye';
+  const maxAllies = hasEclipseEye ? 4 : 3;
+
   const activateAlly = (allyId) => {
     const current = profile?.active_allies || [];
-    if (current.length >= 3) return;
+    if (current.length >= maxAllies) return;
     if (!current.includes(allyId)) {
       updateAlliesMutation.mutate([...current, allyId]);
     }
@@ -294,7 +297,7 @@ export default function AlliesPanel({ onSpendGold }) {
                 onRecruit={recruit}
                 onUpgrade={upgrade}
                 isActive={profile?.active_allies?.includes(ally.id)}
-                isFull={(profile?.active_allies?.length || 0) >= 3}
+                isFull={(profile?.active_allies?.length || 0) >= maxAllies}
                 onActivate={(e) => activateAlly(ally.id)}
                 onDeactivate={(e) => deactivateAlly(ally.id)}
               />

@@ -19,18 +19,23 @@ CLASS_DEFS = {
         "color": "#00e5ff",
         "max_mana": 120,
         "skills": [
-            {"id": "blueprint", "name": "BLUEPRINT", "mana": 40, "cooldown_h": 24},
             {
-                "id": "system_overload",
-                "name": "SYSTEM OVERLOAD",
-                "mana": 70,
-                "cooldown_h": 24,
+                "id": "algorithmic_cascade",
+                "name": "ALGORITHMIC CASCADE",
+                "mana": 50,
+                "cooldown_h": 0,
             },
             {
-                "id": "infinite_loop",
-                "name": "INFINITE LOOP",
+                "id": "quantum_optimization",
+                "name": "QUANTUM OPTIMIZATION",
+                "mana": 90,
+                "cooldown_h": 0,
+            },
+            {
+                "id": "deep_work_surge",
+                "name": "DEEP WORK SURGE",
                 "mana": 100,
-                "cooldown_h": 24,
+                "cooldown_h": 0,
             },
         ],
     },
@@ -39,13 +44,23 @@ CLASS_DEFS = {
         "color": "#9944ff",
         "max_mana": 100,
         "skills": [
-            {"id": "iron_fast", "name": "IRON FAST", "mana": 35, "cooldown_h": 24},
-            {"id": "meditation", "name": "MEDITATION", "mana": 60, "cooldown_h": 24},
             {
-                "id": "transcendence",
-                "name": "TRANSCENDENCE",
-                "mana": 90,
-                "cooldown_h": 24,
+                "id": "eye_of_the_storm",
+                "name": "EYE OF THE STORM",
+                "mana": 40,
+                "cooldown_h": 0,
+            },
+            {
+                "id": "inner_sanctuary",
+                "name": "INNER SANCTUARY",
+                "mana": 60,
+                "cooldown_h": 0,
+            },
+            {
+                "id": "enlightenment",
+                "name": "ENLIGHTENMENT",
+                "mana": 80,
+                "cooldown_h": 0,
             },
         ],
     },
@@ -54,18 +69,23 @@ CLASS_DEFS = {
         "color": "#00cc88",
         "max_mana": 110,
         "skills": [
-            {"id": "babel_mode", "name": "BABEL MODE", "mana": 40, "cooldown_h": 24},
             {
-                "id": "polyglot_surge",
-                "name": "POLYGLOT SURGE",
-                "mana": 65,
-                "cooldown_h": 24,
+                "id": "rosetta_protocol",
+                "name": "ROSETTA PROTOCOL",
+                "mana": 40,
+                "cooldown_h": 0,
             },
             {
-                "id": "memetic_transfer",
-                "name": "MEMETIC TRANSFER",
-                "mana": 95,
-                "cooldown_h": 24,
+                "id": "lexical_resonance",
+                "name": "LEXICAL RESONANCE",
+                "mana": 65,
+                "cooldown_h": 0,
+            },
+            {
+                "id": "cognitive_echo",
+                "name": "COGNITIVE ECHO",
+                "mana": 75,
+                "cooldown_h": 0,
             },
         ],
     },
@@ -74,13 +94,23 @@ CLASS_DEFS = {
         "color": "#ff3355",
         "max_mana": 110,
         "skills": [
-            {"id": "battle_fury", "name": "BATTLE FURY", "mana": 45, "cooldown_h": 24},
-            {"id": "war_cry", "name": "WAR CRY", "mana": 75, "cooldown_h": 24},
             {
-                "id": "tactical_retreat",
-                "name": "TACTICAL RETREAT",
-                "mana": 80,
-                "cooldown_h": 24,
+                "id": "execution",
+                "name": "EXECUTION",
+                "mana": 65,
+                "cooldown_h": 0,
+            },
+            {
+                "id": "blood_harvest",
+                "name": "BLOOD HARVEST",
+                "mana": 50,
+                "cooldown_h": 0,
+            },
+            {
+                "id": "titans_roar",
+                "name": "TITAN'S ROAR",
+                "mana": 75,
+                "cooldown_h": 0,
             },
         ],
     },
@@ -153,6 +183,10 @@ def activate_skill(user, skill_id):
     effective_mana_cost = skill_def["mana"]
     used_void_clarity = False
 
+    # Mindguard: reduces mana cost of active skills by 15%
+    if has_mindguard:
+        effective_mana_cost = math.floor(effective_mana_cost * 0.85)
+
     # Meditation active effect: reduces mana cost of other skills by 50%
     has_meditation = ActiveEffect.objects.filter(
         user=profile.user, skill_id="meditation"
@@ -205,11 +239,12 @@ def activate_skill(user, skill_id):
             None,
         )
 
-    # Проверка кулдауна
-    cd = SkillCooldown.objects.filter(user=profile.user, skill_id=skill_id).first()
-    if cd and cd.cooldown_until > timezone.now():
-        remaining = cd.cooldown_until - timezone.now()
-        return False, f"Cooldown: {_fmt_td(remaining)} remaining", None, None
+    # Проверка кулдауна (только если у скилла настроен кулдаун > 0)
+    if skill_def.get("cooldown_h", 0) > 0:
+        cd = SkillCooldown.objects.filter(user=profile.user, skill_id=skill_id).first()
+        if cd and cd.cooldown_until > timezone.now():
+            remaining = cd.cooldown_until - timezone.now()
+            return False, f"Cooldown: {_fmt_td(remaining)} remaining", None, None
 
     # Списываем ресурсы
     if mana_to_deduct > 0:
@@ -230,21 +265,19 @@ def activate_skill(user, skill_id):
 
     profile.save(update_fields=save_fields)
 
-    # Ставим кулдаун
-    effective_cooldown_h = skill_def["cooldown_h"]
-    if has_mindguard:
-        effective_cooldown_h *= 0.85
+    # Ставим кулдаун (только если кулдаун > 0)
+    effective_cooldown_h = skill_def.get("cooldown_h", 0)
+    if effective_cooldown_h > 0:
+        cooldown_reduction = passive_effects.get("cooldown_reduction", 0.0)
+        if cooldown_reduction > 0:
+            effective_cooldown_h *= 1.0 - cooldown_reduction
 
-    cooldown_reduction = passive_effects.get("cooldown_reduction", 0.0)
-    if cooldown_reduction > 0:
-        effective_cooldown_h *= 1.0 - cooldown_reduction
-
-    cd_until = timezone.now() + timedelta(hours=effective_cooldown_h)
-    SkillCooldown.objects.update_or_create(
-        user=profile.user,
-        skill_id=skill_id,
-        defaults={"cooldown_until": cd_until},
-    )
+        cd_until = timezone.now() + timedelta(hours=effective_cooldown_h)
+        SkillCooldown.objects.update_or_create(
+            user=profile.user,
+            skill_id=skill_id,
+            defaults={"cooldown_until": cd_until},
+        )
 
     # Создаём эффект
     effect_data = _create_effect(skill_id, profile)
@@ -311,66 +344,70 @@ def _create_effect(skill_id, profile):
     now = timezone.now()
 
     base = {
-        "blueprint": (
-            "blueprint_effect",
-            {"tasksRemaining": 3, "xpBoost": 0.5},
+        # Architect
+        "algorithmic_cascade": (
+            "algorithmic_cascade_effect",
+            {"cascade_streak": 0},
             get_midnight(),
         ),
-        "system_overload": (
-            "system_overload_effect",
-            {"damageMultiplier": 3, "active": True},
-            now + timedelta(hours=24),
+        "quantum_optimization": (
+            "quantum_optimization_effect",
+            {"tasksRemaining": 4, "goldBoost": 0.80, "manaPerTask": 15},
+            get_midnight(),
         ),
-        "infinite_loop": (
-            "infinite_loop_effect",
-            {"cognitiveMetricsBoost": 2},
-            now + timedelta(hours=2),
+        "deep_work_surge": (
+            "deep_work_surge_effect",
+            {"active": True},
+            None,
         ),
-        "iron_fast": (
-            "iron_fast_effect",
-            {"healingPerTask": 5, "noDailyPenalty": True},
-            now + timedelta(hours=24),
+        # Ascetic
+        "eye_of_the_storm": (
+            "eye_of_the_storm_effect",
+            {"immune_to_penalties": True, "heal_per_task": 8, "mana_per_task": 4},
+            get_midnight(),
         ),
-        "meditation": (
-            "meditation_effect",
-            {"sessionsRemaining": 3, "focusBoost": 0.3},
+        "inner_sanctuary": (
+            "inner_sanctuary_effect",
+            {"active": True},
+            None,
+        ),
+        "enlightenment": (
+            "enlightenment_effect",
+            {"always_crit": True, "crit_damage_mult": 2.5},
             now + timedelta(hours=12),
         ),
-        "transcendence": (
-            "transcendence_effect",
-            {"streakCannotBreak": True, "rivalXPFrozen": True},
-            now + timedelta(hours=48),
-        ),
-        "babel_mode": (
-            "babel_mode_effect",
-            {"tripleSubjectCount": True},
+        # Linguist
+        "rosetta_protocol": (
+            "rosetta_protocol_effect",
+            {"rosetta_xp_boost": 0.35, "cognitiveBoost": 0.20},
             get_midnight(),
         ),
-        "polyglot_surge": (
-            "polyglot_surge_effect",
-            {"virtualHours": 2},
+        "lexical_resonance": (
+            "lexical_resonance_effect",
+            {"active": True},
             None,
-        ),  # мгновенный
-        "memetic_transfer": (
-            "memetic_transfer_effect",
-            {"memoryTaskProgressBoost": 2, "mirrorGcVmToGf": True},
+        ),  # мгновенный пси-урон
+        "cognitive_echo": (
+            "cognitive_echo_effect",
+            {"active": True, "charges": 1},
             now + timedelta(hours=24),
         ),
-        "battle_fury": (
-            "battle_fury_effect",
-            {"physicalDamageBoost": 0.5, "manaRegenPenalty": 0.2},
-            now + timedelta(hours=1),
-        ),
-        "war_cry": (
-            "war_cry_effect",
-            {"bossHPPercentReduction": 0.10, "stunBossFor": 3600},
-            now + timedelta(hours=1),
-        ),
-        "tactical_retreat": (
-            "tactical_retreat_effect",
-            {"manaRestored": True},
+        # Warlord
+        "execution": (
+            "execution_effect",
+            {"active": True},
             None,
-        ),  # мгновенный
+        ),  # мгновенное добивание
+        "blood_harvest": (
+            "blood_harvest_effect",
+            {"boss_damage_boost": 0.40, "vampirism_ratio": 0.20},
+            now + timedelta(hours=24),
+        ),
+        "titans_roar": (
+            "titans_roar_effect",
+            {"boss_stunned": True, "charges": 3, "damage_mult": 2.0},
+            get_midnight(),
+        ),
     }
 
     entry = base.get(skill_id)
@@ -383,56 +420,128 @@ def _create_effect(skill_id, profile):
 
     # Мгновенные эффекты
 
-    if skill_id == "polyglot_surge":
-        from api.services.mechanics import calculate_cognitive_gains, get_user_language_activities
-        from api.models import TrainingSession
+    if skill_id == "lexical_resonance":
+        total_stats = (
+            profile.total_stats
+            if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
+            else {}
+        )
+        mem = total_stats.get("mem", getattr(profile, "base_mem", 10) or 10)
+        foc = total_stats.get("foc", getattr(profile, "base_foc", 10) or 10)
+        direct_damage = max(50, int(mem * 8 + foc * 6))
 
-        gains = calculate_cognitive_gains("languages", 2, 1.0, profile)
-        profile.gf = (profile.gf or 100.0) + gains.get("gf", 0)
-        profile.gc = (profile.gc or 100.0) + gains.get("gc", 0)
-        profile.ps = (profile.ps or 100.0) + gains.get("ps", 0)
-        profile.vm = (profile.vm or 100.0) + gains.get("vm", 0)
-        profile.save(update_fields=["gf", "gc", "ps", "vm"])
-
-        # Push all language subject ranks forward by 2 virtual hours each
-        lang_activities = get_user_language_activities(profile.user)
-        for act in lang_activities:
-            TrainingSession.objects.create(
-                user_profile=profile,
-                activity_key=act,
-                hours=2.0,
-                focus_rating=10.0,
-                efficiency=1.0,
-                xp_earned=0,
-                gf_gain=0, gc_gain=0, ps_gain=0, vm_gain=0
-            )
-        return None
-
-    if skill_id == "war_cry":
         encounter = BossEncounter.objects.filter(
             user=profile.user, is_defeated=False
         ).first()
         if encounter and encounter.boss:
-            dmg = int(encounter.boss.hp_max * 0.10)
-            encounter.hp_current = max(0, encounter.hp_current - dmg)
-            # Ensure boss doesn't die instantly from war_cry (must be finished by a task or click)
+            encounter.hp_current = max(0, encounter.hp_current - direct_damage)
             if encounter.hp_current <= 0:
-                encounter.hp_current = 1
-            encounter.save(update_fields=["hp_current"])
-        # Return the effect for the stun duration
-        return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
+                encounter.hp_current = 0
+                encounter.is_defeated = True
+                encounter.expires_at = timezone.now()
+                encounter.save()
+                from api.services.combat_service import process_boss_death
 
-    if skill_id == "tactical_retreat":
-        mana_restore = math.floor(profile.max_mana * 0.25)
-        profile.mana = min(profile.max_mana, profile.mana + mana_restore)
-        profile.save(update_fields=["mana"])
+                process_boss_death(profile.user, encounter)
+            else:
+                encounter.save(update_fields=["hp_current"])
+        return None
+
+    if skill_id == "deep_work_surge":
+        import zoneinfo
+        from django.db.models import Sum
+        from api.models import TrainingSession
+        from api.services.combat_service import process_boss_death
+        from api.services.profile_service import gain_xp
+
+        try:
+            user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+        except Exception:
+            user_tz = zoneinfo.ZoneInfo("UTC")
+        local_today = timezone.now().astimezone(user_tz).date()
+
+        total_hours = (
+            TrainingSession.objects.filter(
+                user_profile=profile, created_at__date=local_today
+            ).aggregate(total=Sum("hours"))["total"]
+            or 0.0
+        )
+        total_stats = (
+            profile.total_stats
+            if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
+            else {}
+        )
+        foc = total_stats.get("foc", getattr(profile, "base_foc", 10) or 10)
+        direct_damage = max(100, int(total_hours * 150 + foc * 10))
+        bonus_xp = int(total_hours * 30)
+
+        if bonus_xp > 0:
+            gain_xp(profile, bonus_xp)
+            profile.rank_xp = max(0, profile.rank_xp + bonus_xp)
+            profile.save(update_fields=["rank_xp"])
+
         encounter = BossEncounter.objects.filter(
             user=profile.user, is_defeated=False
         ).first()
         if encounter and encounter.boss:
-            encounter.hp_current = encounter.boss.hp_max
-            encounter.save(update_fields=["hp_current"])
+            encounter.hp_current = max(0, encounter.hp_current - direct_damage)
+            if encounter.hp_current <= 0:
+                encounter.hp_current = 0
+                encounter.is_defeated = True
+                encounter.expires_at = timezone.now()
+                encounter.save()
+                process_boss_death(profile.user, encounter)
+            else:
+                encounter.save(update_fields=["hp_current"])
         return None
+
+    if skill_id == "inner_sanctuary":
+        heal_amount = max(1, int(profile.max_hp * 0.50))
+        profile.hp = min(profile.max_hp, profile.hp + heal_amount)
+        profile.save(update_fields=["hp"])
+        return None
+
+    if skill_id == "execution":
+        from api.services.combat_service import process_boss_death
+
+        total_stats = (
+            profile.total_stats
+            if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
+            else {}
+        )
+        pwr = total_stats.get("pwr", getattr(profile, "base_pwr", 10) or 10)
+
+        encounter = BossEncounter.objects.filter(
+            user=profile.user, is_defeated=False
+        ).first()
+        if encounter and encounter.boss:
+            hp_max = max(1, encounter.boss.hp_max)
+            hp_ratio = encounter.hp_current / hp_max
+            if hp_ratio <= 0.35:
+                direct_damage = max(encounter.hp_current, int(pwr * 20))
+            else:
+                direct_damage = max(50, int(pwr * 8))
+
+            encounter.hp_current = max(0, encounter.hp_current - direct_damage)
+            if encounter.hp_current <= 0:
+                encounter.hp_current = 0
+                encounter.is_defeated = True
+                encounter.expires_at = timezone.now()
+                encounter.save()
+                process_boss_death(profile.user, encounter)
+            else:
+                encounter.save(update_fields=["hp_current"])
+        return None
+
+    if skill_id == "titans_roar":
+        encounter = BossEncounter.objects.filter(
+            user=profile.user, is_defeated=False
+        ).first()
+        if encounter and encounter.boss:
+            dmg = int(encounter.boss.hp_max * 0.15)
+            encounter.hp_current = max(1, encounter.hp_current - dmg)
+            encounter.save(update_fields=["hp_current"])
+        return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
 
     return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
 
@@ -460,32 +569,52 @@ def apply_effects_on_task_complete(profile, task):
     }
 
     for effect in effects:
-        # BLUEPRINT: +50% XP за следующие 3 задачи
-        if effect.skill_id == "blueprint" and effect.data.get("tasksRemaining", 0) > 0:
-            bonus = math.floor(task.get_rewards()["xp"] * effect.data["xpBoost"])
-            result["xp_bonus"] += bonus
-            remaining = effect.data["tasksRemaining"] - 1
-            if remaining <= 0:
+        # ALGORITHMIC CASCADE: streak and reward bonuses
+        if effect.skill_id == "algorithmic_cascade":
+            streak = effect.data.get("cascade_streak", 0)
+            bonus_pct = int(min(0.60, streak * 0.10) * 100)
+            result["notes"].append(f"ALGORITHMIC CASCADE: streak {streak} (+{bonus_pct}% rewards)")
+
+        # QUANTUM OPTIMIZATION: +80% Gold, +15 MP за задачу
+        if effect.skill_id == "quantum_optimization" and effect.data.get("tasksRemaining", 0) > 0:
+            mana_gain = effect.data.get("manaPerTask", 15)
+            profile.mana = min(profile.max_mana, profile.mana + mana_gain)
+            rem = effect.data["tasksRemaining"] - 1
+            if rem <= 0:
                 effect.delete()
                 result["effect_ids_consumed"].append(effect.effect_id)
             else:
-                effect.data["tasksRemaining"] = remaining
+                effect.data["tasksRemaining"] = rem
                 effect.save(update_fields=["data"])
-            result["notes"].append(f"BLUEPRINT: +{bonus} XP")
+            result["notes"].append(f"QUANTUM OPTIMIZATION: +80% Gold, +{mana_gain} MP ({rem} remaining)")
 
-        # IRON FAST: +5 HP за задачу
-        if effect.skill_id == "iron_fast":
-            heal = effect.data.get("healingPerTask", 5)
+        # EYE OF THE STORM: +8 HP, +4 MP за задачу
+        if effect.skill_id == "eye_of_the_storm":
+            heal = effect.data.get("heal_per_task", 8)
+            mana_gain = effect.data.get("mana_per_task", 4)
             profile.hp = min(profile.max_hp, profile.hp + heal)
+            profile.mana = min(profile.max_mana, profile.mana + mana_gain)
             result["hp_heal"] += heal
-            result["notes"].append(f"IRON FAST: +{heal} HP")
+            result["notes"].append(f"EYE OF THE STORM: +{heal} HP, +{mana_gain} MP")
 
-        # SYSTEM OVERLOAD: помечаем как готовый к потреблению
-        if effect.skill_id == "system_overload" and effect.data.get("active"):
-            result["notes"].append("SYSTEM OVERLOAD: 3x boss damage ready!")
-            result["system_overload_triggered"] = True
-            effect.data["active"] = False
-            effect.save(update_fields=["data"])
+        # TITAN'S ROAR: уменьшаем счетчик ударов с удвоенным уроном
+        if effect.skill_id == "titans_roar" and effect.data.get("charges", 0) > 0:
+            rem = effect.data["charges"] - 1
+            result["notes"].append(f"TITAN'S ROAR: 2x Boss Damage dealt! ({rem} remaining)")
+            if rem <= 0:
+                effect.delete()
+                result["effect_ids_consumed"].append(effect.effect_id)
+            else:
+                effect.data["charges"] = rem
+                effect.save(update_fields=["data"])
+
+        # BLOOD HARVEST: вампиризм
+        if effect.skill_id == "blood_harvest":
+            result["notes"].append("BLOOD HARVEST: +40% Boss DMG, 20% Vampiric HP Heal")
+
+        # COGNITIVE ECHO: отмечаем удвоение
+        if effect.skill_id == "cognitive_echo":
+            result["notes"].append("COGNITIVE ECHO: 2x all rewards!")
 
     if result["hp_heal"] > 0:
         profile.save(update_fields=["hp"])

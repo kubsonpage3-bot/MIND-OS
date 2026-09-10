@@ -35,6 +35,7 @@ class Command(BaseCommand):
                     "reward_gold": b["reward"]["gold"],
                     "reward_xp": b["reward"]["xp"],
                     "reward_sp": b["reward"].get("sp", 3),
+                    "reward_mp": b["reward"].get("mp", 10),
                     "drop_item_id": b["uniqueItem"],
                 },
             )

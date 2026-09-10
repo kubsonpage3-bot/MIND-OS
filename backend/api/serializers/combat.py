@@ -14,6 +14,7 @@ class BossSerializer(serializers.ModelSerializer):
             "reward_gold",
             "reward_xp",
             "reward_sp",
+            "reward_mp",
             "drop_item_id",
         )
         read_only_fields = fields

@@ -59,6 +59,23 @@ def calculate_damage(user, encounter_id, base_damage):
             final_damage += base_damage * boost
             effect_notes.append(f"BATTLE FURY: +{int(boost * 100)}% Boss Damage")
 
+    # Equipped boss items effects on damage
+    profile_for_gear = getattr(user, "profile", None)
+    equipped_codes = (
+        profile_for_gear.get_equipped_item_codes()
+        if profile_for_gear
+        else set()
+    )
+    if "frostbite_blade" in equipped_codes:
+        final_damage *= 1.04
+        effect_notes.append("FROSTBITE BLADE: +4% Boss Damage")
+    if "scar_shard" in equipped_codes:
+        final_damage *= 1.08
+        effect_notes.append("SCAR SHARD: +8% Boss Damage")
+    if "blade_final_dusk" in equipped_codes:
+        final_damage *= 2.0
+        effect_notes.append("BLADE OF FINAL DUSK: 2x Boss Damage!")
+
     final_damage = int(final_damage)
     encounter.hp_current = max(0, encounter.hp_current - final_damage)
     encounter.save()
@@ -82,12 +99,35 @@ def process_boss_death(user, encounter):
     encounter.save()
 
     profile = user.profile
+    equipped_codes = profile.get_equipped_item_codes()
     final_gold = int(encounter.boss.reward_gold * encounter.reward_multiplier)
     final_xp = int(encounter.boss.reward_xp * encounter.reward_multiplier)
+
+    # Mask of the Nameless: +25% boss rewards, permanently
+    has_mask_nameless = (
+        "mask_nameless" in equipped_codes
+        or profile.inventory_items.filter(item__code="mask_nameless").exists()
+        or profile.inventory_items.filter(item__code="mask_of_the_nameless").exists()
+    )
+    if has_mask_nameless:
+        final_gold = int(final_gold * 1.25)
+        final_xp = int(final_xp * 1.25)
+
+    # Abyssal Purse: +12% gold from all sources
+    if "abyssal_purse" in equipped_codes:
+        final_gold = int(final_gold * 1.12)
 
     profile.gold += final_gold
     gain_xp(profile, final_xp)
     profile.rank_xp = max(0, profile.rank_xp + final_xp)
+
+    # Base Boss MP Reward
+    from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP
+    mp_reward = (
+        getattr(encounter.boss, "reward_mp", None)
+        or SCROLL_BOSSES_DICT.get(encounter.boss.id_name, {}).get("reward", {}).get("mp", 10)
+    )
+    profile.mana = min(profile.total_stats.get("mana_max", 100), profile.mana + mp_reward)
 
     # Trigger push notification
     from api.services.push_service import send_notification_to_user
@@ -133,7 +173,6 @@ def process_boss_death(user, encounter):
                     inv_item.stat_bonuses = rolled_stats
                 inv_item.save(update_fields=["quantity", "stat_bonuses"])
 
-    from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP
     sp_reward = (
         getattr(encounter.boss, "reward_sp", None)
         or SCROLL_BOSSES_DICT.get(encounter.boss.id_name, {}).get("reward", {}).get("sp")
@@ -141,12 +180,13 @@ def process_boss_death(user, encounter):
     )
     profile.skill_points = max(0, profile.skill_points + sp_reward)
 
-    profile.save(update_fields=["gold", "rank_xp", "skill_points"])
+    profile.save(update_fields=["gold", "rank_xp", "skill_points", "mana"])
 
     return {
         "gold": final_gold,
         "xp": final_xp,
         "boss_sp": sp_reward,
+        "boss_mp": mp_reward,
         "item_dropped": item_dropped,
     }
 
@@ -305,7 +345,7 @@ def calculate_boss_daily_damage(encounter, profile):
     now = timezone.now()
     boss_stunned = (
         ActiveEffect.objects.filter(
-            user=user, skill_id__in=["war_cry", "decoy_shadow_stun"]
+            user=user, skill_id__in=["war_cry", "decoy_shadow_stun", "titans_roar"]
         )
         .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
         .exists()
@@ -325,7 +365,9 @@ def calculate_boss_daily_damage(encounter, profile):
 
     # 2. Check player invulnerability
     player_invulnerable = (
-        ActiveEffect.objects.filter(user=user, skill_id__in=["iron_fast", "elixir"])
+        ActiveEffect.objects.filter(
+            user=user, skill_id__in=["iron_fast", "eye_of_the_storm", "elixir"]
+        )
         .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
         .exists()
     )

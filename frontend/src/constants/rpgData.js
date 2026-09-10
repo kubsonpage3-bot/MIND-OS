@@ -109,9 +109,9 @@ export const CLASSES = {
     stats: { pwr: 3, def: 4, foc: 12, mem: 10, spd: 5, lck: 6 },
     maxMana: 120,
     skills: [
-      { id: "blueprint", name: "BLUEPRINT", mana: 40, cooldownH: 24, desc: "Next 3 tasks logged give +50% Rank XP until midnight." },
-      { id: "system_overload", name: "SYSTEM OVERLOAD", mana: 70, cooldownH: 24, desc: "Deal 3× damage to current boss on next task completion." },
-      { id: "infinite_loop", name: "INFINITE LOOP", mana: 100, cooldownH: 24, desc: "All sessions in next 2 hours count double for cognitive metrics." },
+      { id: "algorithmic_cascade", name: "ALGORITHMIC CASCADE", mana: 50, cooldownH: 0, desc: "Until midnight: each task completed today increases rewards of subsequent tasks by +10% XP & Gold (up to +60%)." },
+      { id: "quantum_optimization", name: "QUANTUM OPTIMIZATION", mana: 90, cooldownH: 0, desc: "For next 4 tasks: +80% Gold and restore +15 Mana per task completed." },
+      { id: "deep_work_surge", name: "DEEP WORK SURGE", mana: 100, cooldownH: 0, desc: "Deal massive boss damage and gain bonus XP scaling with hours logged in activities today." },
     ],
   },
   ascetic: {
@@ -122,9 +122,9 @@ export const CLASSES = {
     stats: { pwr: 7, def: 8, foc: 7, mem: 10, spd: 7, lck: 6 },
     maxMana: 100,
     skills: [
-      { id: "iron_fast", name: "IRON FAST", mana: 35, cooldownH: 24, desc: "For 24h: each task restores 5 HP. Missed dailies deal 0 HP damage." },
-      { id: "meditation", name: "MEDITATION", mana: 60, cooldownH: 24, desc: "For 12h: other skills cost 50% less mana, next 3 focus sessions get +30% Focus Rating." },
-      { id: "transcendence", name: "TRANSCENDENCE", mana: 90, cooldownH: 24, desc: "For 48h: streak cannot break. Rival XP frozen." },
+      { id: "eye_of_the_storm", name: "EYE OF THE STORM", mana: 40, cooldownH: 0, desc: "Until midnight: complete immunity to missed daily and negative habit penalties. Tasks restore +8 HP and +4 MP." },
+      { id: "inner_sanctuary", name: "INNER SANCTUARY", mana: 60, cooldownH: 0, desc: "Instantly heal 50% of maximum HP." },
+      { id: "enlightenment", name: "ENLIGHTENMENT", mana: 80, cooldownH: 0, desc: "For 12 hours: 100% guaranteed task critical hits with 2.5x critical damage." },
     ],
   },
   linguist: {
@@ -135,9 +135,9 @@ export const CLASSES = {
     stats: { pwr: 5, def: 5, foc: 10, mem: 11, spd: 9, lck: 5 },
     maxMana: 110,
     skills: [
-      { id: "babel_mode", name: "BABEL MODE", mana: 40, cooldownH: 24, desc: "Next language session counts across all language subjects." },
-      { id: "polyglot_surge", name: "POLYGLOT SURGE", mana: 65, cooldownH: 24, desc: "Push all language subject ranks forward by 2 virtual hours each." },
-      { id: "memetic_transfer", name: "MEMETIC TRANSFER", mana: 95, cooldownH: 24, desc: "For 24h: Gc and Vm gains also mirror as Gf gains at 50% rate." },
+      { id: "rosetta_protocol", name: "ROSETTA PROTOCOL", mana: 40, cooldownH: 0, desc: "Until midnight: +35% Rank XP across all tasks and +20% cognitive metric gains." },
+      { id: "lexical_resonance", name: "LEXICAL RESONANCE", mana: 65, cooldownH: 0, desc: "Inflict true mental damage to the active boss scaling with MEM and FOC." },
+      { id: "cognitive_echo", name: "COGNITIVE ECHO", mana: 75, cooldownH: 0, desc: "Next completed task duplicates (2x) all its rewards: XP, Gold, and boss damage." },
     ],
   },
   warlord: {
@@ -148,9 +148,9 @@ export const CLASSES = {
     stats: { pwr: 14, def: 10, foc: 5, mem: 4, spd: 10, lck: 7 },
     maxMana: 110,
     skills: [
-      { id: "battle_fury", name: "BATTLE FURY", mana: 45, cooldownH: 24, desc: "For 1h: +50% physical damage, -20% mana regen." },
-      { id: "war_cry", name: "WAR CRY", mana: 75, cooldownH: 24, desc: "Reduce boss HP by 10% and stun boss for 1h." },
-      { id: "tactical_retreat", name: "TACTICAL RETREAT", mana: 80, cooldownH: 24, desc: "Reset boss encounter, gain 25% max mana back." },
+      { id: "execution", name: "EXECUTION", mana: 65, cooldownH: 0, desc: "Strike active boss. If boss has <35% HP, deal 5x massive execution damage to instantly finish it." },
+      { id: "blood_harvest", name: "BLOOD HARVEST", mana: 50, cooldownH: 0, desc: "For 24 hours: +40% task boss damage, and 20% of damage dealt heals player HP (Vampirism)." },
+      { id: "titans_roar", name: "TITAN'S ROAR", mana: 75, cooldownH: 0, desc: "Slice 15% max HP from active boss and empower next 3 tasks to deal 2x Boss Damage." },
     ],
   },
 };
@@ -196,7 +196,7 @@ export const SKILL_TREE = {
     nodes: [
       { id: "inner_stillness", tier: 1, name: "Inner Stillness", desc: "Prayer/Meditation sessions give +20% Rank XP", sp: 3, gold: 100 },
       { id: "resilience", tier: 2, name: "Resilience", desc: "Mana regeneration +25% — the spirit endures", requires: "inner_stillness", sp: 6, gold: 250 },
-      { id: "mindguard", tier: 3, name: "Mindguard", desc: "Active skill cooldowns reduced by 15%", requires: "resilience", sp: 10, gold: 500 },
+      { id: "mindguard", tier: 3, name: "Mindguard", desc: "Active skill mana costs reduced by 15%", requires: "resilience", sp: 10, gold: 500 },
       { id: "aura_of_focus", tier: 4, name: "Aura of Focus", desc: "All recruited ally bonuses amplified by +10%", requires: "mindguard", sp: 15, gold: 800 },
       { id: "transcendent_will", tier: 5, name: "Transcendent Will", desc: "Rival XP accumulation slowed by 10% permanently", requires: "aura_of_focus", sp: 22, gold: 1500 },
       { id: "void_clarity", tier: 6, name: "VOID CLARITY", desc: "Once per week: use any active skill at 0 mana cost", requires: "transcendent_will", sp: 35, gold: 3000 },

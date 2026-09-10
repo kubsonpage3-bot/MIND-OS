@@ -283,7 +283,7 @@ def complete_yesterday_dailies(user, completed_ids: list):
         user=user, skill_id="transcendence"
     ).exists()
     iron_fast_active = ActiveEffect.objects.filter(
-        user=user, skill_id="iron_fast"
+        user=user, skill_id__in=["iron_fast", "eye_of_the_storm"]
     ).exists()
     elixir_active = ActiveEffect.objects.filter(
         user=user, skill_id="elixir", expires_at__gt=tz.now()
@@ -595,6 +595,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             # Calculate exact damage at moment of failure (100% synced with next_fail_hp preview)
             final_damage = calculate_habit_fail_hp(task, profile, for_next=True)
+            if ActiveEffect.objects.filter(
+                user=user, skill_id="eye_of_the_storm", expires_at__gt=timezone.now()
+            ).exists():
+                final_damage = 0
 
             task.value = calc_new_value(task.value, "fail", "habit")
             task.neg_streak += 1
@@ -837,12 +841,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         base_mana * passive_effects.get("mana_regen_mult", 1.0)
     ) + passive_effects.get("mana_flat_bonus", 0)
 
-    battle_fury_active = ActiveEffect.objects.filter(
-        user=user, skill_id="battle_fury"
-    ).exists()
-    if battle_fury_active:
-        mana_gained = int(mana_gained * 0.8)
-
     # Calculate additive multipliers
     gold_mult = (
         mutator_effects.get("gold_mult", 1.0)
@@ -884,6 +882,43 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
         final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+        equipped_codes = profile.get_equipped_item_codes()
+
+        # Crown of Ash: +8% XP from all tasks
+        if "crown_of_ash" in equipped_codes:
+            final_xp = int(final_xp * 1.08)
+
+        # Abyssal Purse: +12% gold from all sources
+        if "abyssal_purse" in equipped_codes:
+            final_gold = int(final_gold * 1.12)
+
+        # Ember Gauntlet: +5% gold from To-Dos
+        if task.task_type == Task.TaskType.TODO and "ember_gauntlet" in equipped_codes:
+            final_gold = int(final_gold * 1.05)
+
+        # Golem's Grip: +8% gold from Habits
+        if task.task_type == Task.TaskType.HABIT and "golems_grip" in equipped_codes:
+            final_gold = int(final_gold * 1.08)
+
+        # Wanderer's Hood: +2% gold from Habits
+        if task.task_type == Task.TaskType.HABIT and "wanderers_hood" in equipped_codes:
+            final_gold = int(final_gold * 1.02)
+
+        # Bone Bracelet: +2% XP from Dailies
+        if task.task_type == Task.TaskType.DAILY and "bone_bracelet" in equipped_codes:
+            final_xp = int(final_xp * 1.02)
+
+        # Herald's Fang: +3% XP from Exercise tasks
+        if task.category == "exercise" and "heralds_fang" in equipped_codes:
+            final_xp = int(final_xp * 1.03)
+
+        # Warden's Quill: +3% XP from Study tasks
+        if (
+            task.category in ("study", "academics", "reading")
+            and "wardens_quill" in equipped_codes
+        ):
+            final_xp = int(final_xp * 1.03)
+
         # Party buff: XP boost (xp_boost_24h effect from party member)
         if ActiveEffect.objects.filter(
             user=user, skill_id="xp_boost_24h", expires_at__gt=timezone.now()
@@ -895,6 +930,43 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             user=user, skill_id="gold_boost_12h", expires_at__gt=timezone.now()
         ).exists():
             final_gold = int(final_gold * 1.20)
+
+        # Rosetta Protocol: +35% XP from all tasks
+        if ActiveEffect.objects.filter(
+            user=user, skill_id="rosetta_protocol", expires_at__gt=timezone.now()
+        ).exists():
+            final_xp = int(final_xp * 1.35)
+
+        # Algorithmic Cascade: +10% per task streak today, cap +60%
+        cascade_eff = ActiveEffect.objects.filter(
+            user=user, skill_id="algorithmic_cascade", expires_at__gt=timezone.now()
+        ).first()
+        if cascade_eff:
+            cascade_streak = cascade_eff.data.get("cascade_streak", 0)
+            cascade_mult = min(0.60, cascade_streak * 0.10)
+            if cascade_mult > 0:
+                final_xp = int(final_xp * (1.0 + cascade_mult))
+                final_gold = int(final_gold * (1.0 + cascade_mult))
+            cascade_eff.data["cascade_streak"] = cascade_streak + 1
+            cascade_eff.save(update_fields=["data"])
+
+        # Quantum Optimization: +80% Gold
+        quantum_eff = ActiveEffect.objects.filter(
+            user=user, skill_id="quantum_optimization", expires_at__gt=timezone.now()
+        ).first()
+        if quantum_eff and quantum_eff.data.get("tasksRemaining", 0) > 0:
+            final_gold = int(final_gold * 1.80)
+
+        # Cognitive Echo: 2x XP and 2x Gold on next task completion
+        cognitive_echo_effect = ActiveEffect.objects.filter(
+            user=user, skill_id="cognitive_echo", expires_at__gt=timezone.now()
+        ).first()
+        is_cognitive_echo_active = False
+        if cognitive_echo_effect:
+            final_xp *= 2
+            final_gold *= 2
+            is_cognitive_echo_active = True
+            cognitive_echo_effect.delete()
 
         active_codes = profile.active_allies or []
 
@@ -1349,6 +1421,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     # ── Применяем эффекты скиллов ──────────────────────────────────────
     skill_effects = apply_effects_on_task_complete(profile, task)
+    if is_cognitive_echo_active:
+        skill_effects["notes"].append("COGNITIVE ECHO: 2x all rewards!")
     if skill_effects["xp_bonus"] > 0:
         leveled_up = gain_xp(profile, skill_effects["xp_bonus"]) or leveled_up
         profile.rank_xp = max(0, profile.rank_xp + skill_effects["xp_bonus"])
@@ -1425,17 +1499,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             add_unique_subject_today(stats, category)
 
-            # BABEL MODE: Count languages as 3 subjects
-            if (
-                is_language
-                and ActiveEffect.objects.filter(
-                    user=user, skill_id="babel_mode"
-                ).exists()
-            ):
-                add_unique_subject_today(stats, "Languages")
-                add_unique_subject_today(stats, "English")
-                add_unique_subject_today(stats, "Vocabulary")
-                ActiveEffect.objects.filter(user=user, skill_id="babel_mode").delete()
 
         # Урон от статов
         damage_dealt = gamification_result.get("damage_dealt", 0)
@@ -1492,20 +1555,34 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             )
             task_base_dmg = int(base_dmg * task_value)
 
-        system_overload_mult = (
-            3.0 if skill_effects.get("system_overload_triggered") else 1.0
-        )
-        battle_fury_mult = 1.5 if battle_fury_active else 1.0
-
         final_damage_dealt = max(
             0,
             int(
                 (task_base_dmg + (damage_dealt or 0))
                 * profile.damage_multiplier
-                * system_overload_mult
-                * battle_fury_mult
             ),
         )
+
+        # Blood Harvest (Warlord): +40% Boss Damage and 20% Vampirism heal
+        blood_harvest_effect = ActiveEffect.objects.filter(
+            user=user, skill_id="blood_harvest", expires_at__gt=timezone.now()
+        ).first()
+        if blood_harvest_effect:
+            final_damage_dealt = int(final_damage_dealt * 1.40)
+            vamp_heal = max(1, int(final_damage_dealt * 0.20))
+            profile.hp = min(profile.max_hp, profile.hp + vamp_heal)
+            profile.save(update_fields=["hp"])
+
+        # Titan's Roar (Warlord): 2x Boss Damage for 3 charges
+        titans_roar_effect = ActiveEffect.objects.filter(
+            user=user, skill_id="titans_roar", expires_at__gt=timezone.now()
+        ).first()
+        if titans_roar_effect and titans_roar_effect.data.get("charges", 0) > 0:
+            final_damage_dealt = int(final_damage_dealt * 2.0)
+
+        # Cognitive Echo: 2x boss damage from task
+        if "is_cognitive_echo_active" in locals() and is_cognitive_echo_active:
+            final_damage_dealt = int(final_damage_dealt * 2)
 
         # Grier Level 4 Revenge Mark
         grier_level = recruited_allies.get("grier", 0)
@@ -1785,8 +1862,8 @@ def process_missed_tasks(user):
     from api.services.combat_service import calculate_fail_damage
     from api.models import ActiveEffect
 
-    iron_fast_active = ActiveEffect.objects.filter(
-        user=user, skill_id="iron_fast"
+    eye_of_the_storm_active = ActiveEffect.objects.filter(
+        user=user, skill_id="eye_of_the_storm"
     ).exists()
     transcendence_active = ActiveEffect.objects.filter(
         user=user, skill_id="transcendence"
@@ -1847,7 +1924,7 @@ def process_missed_tasks(user):
                 profile.hp = int(profile.hp * 0.50)
 
             dmg = calculate_fail_damage(task, profile)
-            if iron_fast_active or elixir_active:
+            if eye_of_the_storm_active or elixir_active:
                 dmg = 0
             context = {
                 "is_science": False,
@@ -1903,6 +1980,17 @@ def process_missed_tasks(user):
             below_20_hp = profile.hp < profile.total_stats.get("hp_max", 100) * 0.20
             if grier_l5_active and below_20_hp:
                 final_dmg = 0
+
+            # Winter Plate: immune to 1 missed daily/week
+            equipped_codes = profile.get_equipped_item_codes()
+            if "winter_plate" in equipped_codes and final_dmg > 0:
+                current_week_str = timezone.now().strftime("%Y-W%W")
+                streaks = profile.category_streaks or {}
+                if streaks.get("winter_plate_week") != current_week_str:
+                    streaks["winter_plate_week"] = current_week_str
+                    profile.category_streaks = streaks
+                    profile.save(update_fields=["category_streaks"])
+                    final_dmg = 0
 
             # Grier Level 2 Shield Slam
             if outcome.get("grier_shield_slam") and profile.mana >= 5:
@@ -2025,9 +2113,18 @@ def process_missed_tasks(user):
 
     daily_regen = passive_effects.get("daily_hp_regen", 0.0)
 
+    # Glass Tear: +5 HP on a perfect day (scheduled dailies existed and none missed)
+    if (
+        has_scheduled_dailies
+        and not has_missed_scheduled_daily
+        and "glass_tear" in profile.get_equipped_item_codes()
+    ):
+        daily_regen += 5.0
+
     profile.hp = max(0, profile.hp - total_dmg)
     if daily_regen > 0:
-        profile.hp = min(profile.max_hp, profile.hp + daily_regen)
+        max_hp = profile.total_stats.get("hp_max", 100)
+        profile.hp = min(max_hp, profile.hp + int(daily_regen))
 
     profile.last_daily_cron_at = local_today
     profile.last_daily_checkin_at = local_today

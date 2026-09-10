@@ -36,7 +36,8 @@ const RANK_COLORS = {
 const SLOT_ROLES = [
   { id: "vanguard", role: "VANGUARD", icon: Shield },
   { id: "specialist", role: "SPECIALIST", icon: Zap },
-  { id: "support", role: "SUPPORT", icon: Sparkles }
+  { id: "support", role: "SUPPORT", icon: Sparkles },
+  { id: "eclipse", role: "ECLIPSE", icon: Sparkles }
 ];
 
 export default function ActivePartyWidget() {
@@ -85,8 +86,11 @@ export default function ActivePartyWidget() {
     });
   };
   
-  // Create 3 slots
-  const slots = [0, 1, 2].map(index => {
+  const hasEclipseEye = profile?.inventory_items?.some(i => i.is_equipped && i.item?.code === 'eclipse_eye') || profile?.equipped?.neural_link?.id === 'eclipse_eye';
+  const slotCount = hasEclipseEye ? 4 : 3;
+  const slotIndices = Array.from({ length: slotCount }, (_, i) => i);
+  // Create slots (3 default, 4 if Eclipse Eye is equipped)
+  const slots = slotIndices.map(index => {
     const allyId = activeAllyIds[index];
     if (allyId && recruitedLevels[allyId] !== undefined) {
       return ALLIES.find(a => a.id === allyId) || null;
@@ -135,7 +139,7 @@ export default function ActivePartyWidget() {
       
       {/* Slots Grid */}
       <div className="p-3.5 relative z-10">
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid ${slotCount === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'} gap-3`}>
           {slots.map((ally, index) => {
             const slotConfig = SLOT_ROLES[index];
             const RoleIcon = slotConfig.icon;

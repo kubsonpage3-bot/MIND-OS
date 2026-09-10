@@ -279,7 +279,7 @@ items_data = [
     },
     {
         "id": "heralds_fang",
-        "slot": "core",
+        "slot": "neural_link",
         "name": "Herald's Fang",
         "tier": "Rare",
         "cost": 0,
@@ -287,7 +287,7 @@ items_data = [
     },
     {
         "id": "wardens_quill",
-        "slot": "arms",
+        "slot": "offhand",
         "name": "Warden's Quill",
         "tier": "Rare",
         "cost": 0,
@@ -295,7 +295,7 @@ items_data = [
     },
     {
         "id": "echo_bell",
-        "slot": "ring1",
+        "slot": "offhand",
         "name": "Echo Bell",
         "tier": "Epic",
         "cost": 0,
@@ -327,7 +327,7 @@ items_data = [
     },
     {
         "id": "glass_tear",
-        "slot": "ring2",
+        "slot": "neural_link",
         "name": "Glass Tear",
         "tier": "Epic",
         "cost": 0,
@@ -359,7 +359,7 @@ items_data = [
     },
     {
         "id": "scar_shard",
-        "slot": "core",
+        "slot": "ring2",
         "name": "Scar Shard",
         "tier": "Legendary",
         "cost": 0,
@@ -367,7 +367,7 @@ items_data = [
     },
     {
         "id": "forgotten_score",
-        "slot": "neural_link",
+        "slot": "offhand",
         "name": "Forgotten Score",
         "tier": "Legendary",
         "cost": 0,
@@ -375,7 +375,7 @@ items_data = [
     },
     {
         "id": "abyssal_purse",
-        "slot": "ring1",
+        "slot": "ring2",
         "name": "Abyssal Purse",
         "tier": "Legendary",
         "cost": 0,
@@ -391,7 +391,7 @@ items_data = [
     },
     {
         "id": "throne_seal",
-        "slot": "ring2",
+        "slot": "ring1",
         "name": "Throne Seal",
         "tier": "Mythic",
         "cost": 0,

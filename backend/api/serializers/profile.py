@@ -259,6 +259,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     instance.save(update_fields=["active_allies"])
         return ret
 
+    def validate_active_allies(self, value):
+        if isinstance(value, list):
+            instance = self.instance
+            max_allies = (
+                4
+                if instance and hasattr(instance, "get_equipped_item_codes") and "eclipse_eye" in instance.get_equipped_item_codes()
+                else 3
+            )
+            if len(value) > max_allies:
+                raise ValidationError(
+                    f"Maximum of {max_allies} active allies allowed."
+                )
+        return value
+
     def update(self, instance, validated_data):
         # Premium class check
         if "character_class" in validated_data:
@@ -334,8 +348,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             if "active_allies" in data:
                 active_allies_data = data["active_allies"]
                 if isinstance(active_allies_data, list):
-                    if len(active_allies_data) > 3:
-                        raise ValidationError("Maximum of 3 active allies allowed.")
+                    max_allies = (
+                        4
+                        if "eclipse_eye" in instance.get_equipped_item_codes()
+                        else 3
+                    )
+                    if len(active_allies_data) > max_allies:
+                        raise ValidationError(
+                            f"Maximum of {max_allies} active allies allowed."
+                        )
                     # Validate that all active allies are actually recruited
                     recruited_codes = set(
                         instance.recruited_allies.values_list("ally_code", flat=True)

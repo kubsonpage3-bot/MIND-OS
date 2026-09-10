@@ -763,10 +763,10 @@ def test_void_clarity_weekly_cast(user, profile):
 
 
 @pytest.mark.django_db
-def test_mindguard_cooldown_reduction(user, profile):
+def test_mindguard_mana_cost_reduction(user, profile):
+    """Test that mindguard reduces active skill mana cost by 15% and class skills have 0 cooldown."""
     from api.models import UnlockedSkill, SkillCooldown
     from api.services.skill_service import activate_skill
-    from django.utils import timezone
 
     profile.mana = 100
     profile.save()
@@ -774,16 +774,81 @@ def test_mindguard_cooldown_reduction(user, profile):
     # Create mindguard
     UnlockedSkill.objects.create(user_profile=profile, skill_code="mindguard")
 
-    # Activate skill (blueprint normally has 24h cooldown)
+    # Activate skill: blueprint normally costs 40 mana.
+    # With mindguard (15% reduction): floor(40 * 0.85) = 34 mana.
     success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
 
-    cd = SkillCooldown.objects.get(user=user, skill_id="blueprint")
-    now = timezone.now()
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 34  # 66
 
-    # Check if cooldown is around 24 * 0.85 = 20.4 hours
-    delta_hours = (cd.cooldown_until - now).total_seconds() / 3600
-    assert 20.3 < delta_hours < 20.5
+    # Verify no cooldown was created
+    assert not SkillCooldown.objects.filter(user=user, skill_id="blueprint").exists()
+
+    # Activate blueprint again immediately: should succeed without any cooldown block!
+    success2, msg2, _, _ = activate_skill(user, "blueprint")
+    assert success2 is True
+
+    profile.refresh_from_db()
+    assert profile.mana == 66 - 34  # 32
+
+
+@pytest.mark.django_db
+def test_all_classes_skills_have_zero_cooldown(user, profile):
+    """Test that all 4 class skills can be cast repeatedly with 0 cooldown as long as mana is available."""
+    from api.models import SkillCooldown
+    from api.services.skill_service import activate_skill
+
+    # 1. Architect: algorithmic_cascade
+    profile.character_class = "architect"
+    profile.mana = 120
+    profile.save()
+
+    s1, _, _, _ = activate_skill(user, "algorithmic_cascade")
+    assert s1 is True
+    s2, _, _, _ = activate_skill(user, "algorithmic_cascade")
+    assert s2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 120 - 50 - 50  # 20
+
+    # 2. Ascetic: eye_of_the_storm
+    profile.character_class = "ascetic"
+    profile.mana = 100
+    profile.save()
+
+    s1, _, _, _ = activate_skill(user, "eye_of_the_storm")
+    assert s1 is True
+    s2, _, _, _ = activate_skill(user, "eye_of_the_storm")
+    assert s2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 40 - 40  # 20
+
+    # 3. Linguist: rosetta_protocol
+    profile.character_class = "linguist"
+    profile.mana = 200
+    profile.save()
+
+    s1, _, _, _ = activate_skill(user, "rosetta_protocol")
+    assert s1 is True
+    s2, _, _, _ = activate_skill(user, "rosetta_protocol")
+    assert s2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 200 - 40 - 40  # 120
+
+    # 4. Warlord: blood_harvest
+    profile.character_class = "warlord"
+    profile.mana = 110
+    profile.save()
+
+    s1, _, _, _ = activate_skill(user, "blood_harvest")
+    assert s1 is True
+    s2, _, _, _ = activate_skill(user, "blood_harvest")
+    assert s2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 110 - 50 - 50  # 10
+
+    # Verify zero SkillCooldown records exist for user
+    assert SkillCooldown.objects.filter(user=user).count() == 0
 
 
 @pytest.mark.django_db
@@ -1604,3 +1669,476 @@ def test_calc_new_value_clamped_delta():
             assert (
                 delta_fail <= 1.0001
             ), f"Fail delta {delta_fail} exceeded 1.0 for {val}"
+
+
+@pytest.mark.django_db
+def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile):
+    from api.models import ActiveEffect
+    from api.services.skill_service import activate_skill
+    from api.services.mechanics import calculate_cognitive_gains
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "linguist"
+    profile.mana = 100
+    profile.save()
+
+    # Baseline cognitive gains without buff
+    base_gains = calculate_cognitive_gains("focus", 2.0, 8.0, profile)
+
+    # Baseline task completion without buff
+    todo_base = Task.objects.create(
+        user=user,
+        title="Base Task",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    init_xp = profile.xp
+    complete_task(user, todo_base.id, is_positive=True)
+    profile.refresh_from_db()
+    base_xp_earned = profile.xp - init_xp
+
+    mana_before = profile.mana
+    # Activate Rosetta Protocol
+    success, msg, effect, _ = activate_skill(user, "rosetta_protocol")
+    assert success is True
+    assert ActiveEffect.objects.filter(user=user, skill_id="rosetta_protocol").exists()
+
+    profile.refresh_from_db()
+    assert profile.mana == mana_before - 40
+
+    # Cognitive gains should be boosted by +20%
+    boosted_gains = calculate_cognitive_gains("focus", 2.0, 8.0, profile)
+    assert pytest.approx(boosted_gains["gc"], rel=1e-3) == base_gains["gc"] * 1.20
+
+    # Task XP should be boosted by +35%
+    todo_boosted = Task.objects.create(
+        user=user,
+        title="Rosetta Task",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    xp_before = profile.xp
+    complete_task(user, todo_boosted.id, is_positive=True)
+    profile.refresh_from_db()
+    rosetta_xp_earned = profile.xp - xp_before
+
+    assert rosetta_xp_earned == int(base_xp_earned * 1.35)
+
+
+@pytest.mark.django_db
+def test_linguist_lexical_resonance_boss_damage(user, profile):
+    from api.models import Boss, BossEncounter, ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "linguist"
+    profile.mana = 100
+    profile.base_mem = 15
+    profile.base_foc = 12
+    profile.save()
+
+    boss = Boss.objects.create(name="Resonance Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50)
+    encounter = BossEncounter.objects.create(user=user, boss=boss, hp_current=1000, is_defeated=False)
+
+    # Expected damage: total_stats includes linguist class bonuses (mem: 15+11=26, foc: 12+10=22)
+    # int(26 * 8 + 22 * 6) = 208 + 132 = 340
+    success, msg, _, _ = activate_skill(user, "lexical_resonance")
+    assert success is True
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 65
+
+    encounter.refresh_from_db()
+    assert encounter.hp_current == 1000 - 340
+    assert encounter.is_defeated is False
+
+    # Test fatal blow
+    encounter.hp_current = 50
+    encounter.save()
+    profile.mana = 65
+    profile.save()
+
+    success2, _, _, _ = activate_skill(user, "lexical_resonance")
+    assert success2 is True
+    encounter.refresh_from_db()
+    assert encounter.hp_current == 0
+    assert encounter.is_defeated is True
+
+
+@pytest.mark.django_db
+def test_linguist_cognitive_echo_duplicates_task_rewards(user, profile):
+    from api.models import Boss, BossEncounter, Task, ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "linguist"
+    profile.mana = 100
+    profile.save()
+
+    boss = Boss.objects.create(name="Echo Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50)
+    encounter = BossEncounter.objects.create(user=user, boss=boss, hp_current=1000, is_defeated=False)
+
+    todo1 = Task.objects.create(user=user, title="Task 1", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+    todo2 = Task.objects.create(user=user, title="Task 2", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+
+    # Activate cognitive echo
+    success, _, _, _ = activate_skill(user, "cognitive_echo")
+    assert success is True
+    assert ActiveEffect.objects.filter(user=user, skill_id="cognitive_echo").exists()
+
+    init_xp = profile.xp
+    init_gold = profile.gold
+    init_boss_hp = encounter.hp_current
+
+    from unittest.mock import patch
+
+    with patch("random.random", return_value=0.99):
+        # Complete first task: should consume echo and double rewards
+        res1 = complete_task(user, todo1.id, is_positive=True)
+        profile.refresh_from_db()
+        encounter.refresh_from_db()
+
+        echo_xp = profile.xp - init_xp
+        echo_gold = profile.gold - init_gold
+        dmg_echo = init_boss_hp - encounter.hp_current
+        assert "COGNITIVE ECHO: 2x all rewards!" in res1["skill_effects"]
+
+        # Verify effect is deleted after use
+        assert not ActiveEffect.objects.filter(user=user, skill_id="cognitive_echo").exists()
+
+        # Complete second task: normal rewards (not doubled)
+        init_xp2 = profile.xp
+        init_gold2 = profile.gold
+        prev_boss_hp = encounter.hp_current
+
+        res2 = complete_task(user, todo2.id, is_positive=True)
+        profile.refresh_from_db()
+        encounter.refresh_from_db()
+
+        normal_xp = profile.xp - init_xp2
+        normal_gold = profile.gold - init_gold2
+        dmg_normal = prev_boss_hp - encounter.hp_current
+
+        assert echo_xp == normal_xp * 2
+        assert echo_gold == normal_gold * 2
+        assert dmg_echo == dmg_normal * 2
+
+
+@pytest.mark.django_db
+def test_architect_algorithmic_cascade_and_quantum_optimization(user, profile):
+    from api.models import ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "architect"
+    profile.mana = 200
+    profile.save()
+
+    # 1. Algorithmic Cascade
+    s1, _, _, _ = activate_skill(user, "algorithmic_cascade")
+    assert s1 is True
+    profile.refresh_from_db()
+    assert profile.mana == 200 - 50  # 150
+
+    effect = ActiveEffect.objects.get(user=user, skill_id="algorithmic_cascade")
+    assert effect.data.get("cascade_streak") == 0
+
+    t1 = Task.objects.create(
+        user=user,
+        title="Cascade T1",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    res1 = complete_task(user, t1.id, is_positive=True)
+    profile.refresh_from_db()
+
+    # After first task, streak was 0 -> streak updated to 1
+    effect.refresh_from_db()
+    assert effect.data.get("cascade_streak") == 1
+    assert any("ALGORITHMIC CASCADE" in note for note in res1.get("skill_effects", []))
+
+    t2 = Task.objects.create(
+        user=user,
+        title="Cascade T2",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    res2 = complete_task(user, t2.id, is_positive=True)
+    effect.refresh_from_db()
+    assert effect.data.get("cascade_streak") == 2
+    assert any("ALGORITHMIC CASCADE" in note for note in res2.get("skill_effects", []))
+
+    # Clean up effect
+    ActiveEffect.objects.filter(user=user).delete()
+
+    # 2. Quantum Optimization (90 MP)
+    profile.mana = 100
+    profile.save()
+
+    s2, _, _, _ = activate_skill(user, "quantum_optimization")
+    assert s2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 90  # 10
+
+    q_effect = ActiveEffect.objects.get(user=user, skill_id="quantum_optimization")
+    assert q_effect.data.get("tasksRemaining") == 4
+
+    t3 = Task.objects.create(
+        user=user,
+        title="Quantum T3",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    res3 = complete_task(user, t3.id, is_positive=True)
+    profile.refresh_from_db()
+    # 10 mana + 15 (quantum optimization) + 3 (base task mana regen) = 28
+    assert profile.mana == 28
+    q_effect.refresh_from_db()
+    assert q_effect.data.get("tasksRemaining") == 3
+    assert any("QUANTUM OPTIMIZATION" in note for note in res3.get("skill_effects", []))
+
+
+@pytest.mark.django_db
+def test_architect_deep_work_surge(user, profile):
+    from api.models import Boss, BossEncounter, TrainingSession, ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "architect"
+    profile.mana = 100
+    profile.base_foc = 15
+    profile.save()
+
+    boss = Boss.objects.create(
+        name="Deep Work Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50
+    )
+    encounter = BossEncounter.objects.create(
+        user=user, boss=boss, hp_current=1000, is_defeated=False
+    )
+
+    # Create 2 training sessions for today: 2.0h and 1.5h = 3.5h total
+    TrainingSession.objects.create(user_profile=profile, activity_key="math", hours=2.0)
+    TrainingSession.objects.create(
+        user_profile=profile, activity_key="physics", hours=1.5
+    )
+
+    rank_xp_before = profile.rank_xp
+    # FOC: base_foc 15 + architect bonus 12 = 27
+    # Damage: max(100, int(3.5 * 150 + 27 * 10)) = 525 + 270 = 795
+    # Bonus XP: int(3.5 * 30) = 105
+    success, _, _, _ = activate_skill(user, "deep_work_surge")
+    assert success is True
+
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 100  # 0
+    assert profile.rank_xp - rank_xp_before == 105
+    assert profile.level == 2
+
+    encounter.refresh_from_db()
+    assert encounter.hp_current == 1000 - 795  # 205
+
+
+@pytest.mark.django_db
+def test_ascetic_eye_of_the_storm_and_inner_sanctuary(user, profile):
+    from api.models import ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "ascetic"
+    profile.mana = 100
+    profile.hp = 50
+    profile.save()
+
+    # 1. Inner Sanctuary (60 MP): heals 50% max HP (+50 HP)
+    success_heal, _, _, _ = activate_skill(user, "inner_sanctuary")
+    assert success_heal is True
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 60  # 40
+    assert profile.hp == 50 + 50  # 100
+
+    # 2. Eye of the Storm (40 MP)
+    profile.hp = 60
+    profile.mana = 50
+    profile.save()
+
+    success_eye, _, _, _ = activate_skill(user, "eye_of_the_storm")
+    assert success_eye is True
+    profile.refresh_from_db()
+    assert profile.mana == 50 - 40  # 10
+
+    # Complete a task: heals +8 HP, restores +4 MP + 3 MP base task regen = 17 MP
+    t = Task.objects.create(
+        user=user,
+        title="Storm Task",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    complete_task(user, t.id, is_positive=True)
+    profile.refresh_from_db()
+    assert profile.hp == 60 + 8  # 68
+    assert profile.mana == 10 + 4 + 3  # 17
+
+    # Negative habit penalty: 0 HP damage due to Eye of the Storm
+    habit = Task.objects.create(
+        user=user,
+        title="Bad Habit",
+        task_type=Task.TaskType.HABIT,
+        difficulty=Task.Difficulty.HARD,
+    )
+    hp_before_habit = profile.hp
+    complete_task(user, habit.id, is_positive=False)
+    profile.refresh_from_db()
+    assert profile.hp == hp_before_habit
+
+
+@pytest.mark.django_db
+def test_ascetic_enlightenment_guaranteed_crits(user, profile):
+    from api.models import Boss, BossEncounter, ActiveEffect
+    from api.services.skill_service import activate_skill
+    from api.services.mechanics import get_passive_multipliers
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "ascetic"
+    profile.mana = 100
+    profile.save()
+
+    success, _, _, _ = activate_skill(user, "enlightenment")
+    assert success is True
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 80  # 20
+
+    multipliers = get_passive_multipliers(profile, {})
+    assert multipliers.get("always_crit") is True
+    assert multipliers.get("crit_damage_mult") == 2.5
+    assert multipliers.get("crit_chance_bonus") == 1.0
+
+    boss = Boss.objects.create(
+        name="Enlighten Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50
+    )
+    encounter = BossEncounter.objects.create(
+        user=user, boss=boss, hp_current=1000, is_defeated=False
+    )
+
+    t = Task.objects.create(
+        user=user,
+        title="Crit Task",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    res = complete_task(user, t.id, is_positive=True)
+    assert res["gamification_result"]["is_crit"] is True
+
+
+@pytest.mark.django_db
+def test_warlord_execution_threshold(user, profile):
+    from api.models import Boss, BossEncounter, ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "warlord"
+    profile.mana = 150
+    profile.base_pwr = 20
+    profile.save()
+
+    boss = Boss.objects.create(
+        name="Execution Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50
+    )
+    encounter = BossEncounter.objects.create(
+        user=user, boss=boss, hp_current=500, is_defeated=False
+    )
+
+    # 1. Boss HP is 500 / 1000 = 50% (> 35% threshold)
+    # Total PWR = base_pwr(20) + warlord class bonus(14) = 34
+    # Damage: max(50, int(34 * 8)) = 272
+    s1, _, _, _ = activate_skill(user, "execution")
+    assert s1 is True
+    encounter.refresh_from_db()
+    assert encounter.hp_current == 500 - 272  # 228
+    assert encounter.is_defeated is False
+
+    # 2. Boss HP is now 228 / 1000 = 22.8% (<= 35% threshold)
+    profile.mana = 65
+    profile.save()
+
+    # Execute damage: max(hp_current, int(34 * 20)) = max(228, 680) = 680 -> instant death
+    s2, _, _, _ = activate_skill(user, "execution")
+    assert s2 is True
+    encounter.refresh_from_db()
+    assert encounter.hp_current == 0
+    assert encounter.is_defeated is True
+
+
+@pytest.mark.django_db
+def test_warlord_blood_harvest_and_titans_roar(user, profile):
+    from api.models import Boss, BossEncounter, ActiveEffect
+    from api.services.skill_service import activate_skill
+
+    ActiveEffect.objects.filter(user=user).delete()
+    profile.character_class = "warlord"
+    profile.mana = 150
+    profile.hp = 50
+    profile.save()
+
+    boss = Boss.objects.create(
+        name="Warlord Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50
+    )
+    encounter = BossEncounter.objects.create(
+        user=user, boss=boss, hp_current=1000, is_defeated=False
+    )
+
+    # 1. Blood Harvest (50 MP)
+    s1, _, _, _ = activate_skill(user, "blood_harvest")
+    assert s1 is True
+    profile.refresh_from_db()
+    assert profile.mana == 150 - 50  # 100
+
+    t1 = Task.objects.create(
+        user=user,
+        title="Vampirism Task",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    res1 = complete_task(user, t1.id, is_positive=True)
+    profile.refresh_from_db()
+
+    # Should have healed HP via vampirism
+    assert profile.hp > 50
+    assert any("BLOOD HARVEST" in note for note in res1.get("skill_effects", []))
+
+    # Clean up effect for next test
+    ActiveEffect.objects.filter(user=user).delete()
+
+    # 2. Titan's Roar (75 MP)
+    profile.mana = 100
+    profile.save()
+    encounter.hp_current = 1000
+    encounter.save()
+
+    s2, _, _, _ = activate_skill(user, "titans_roar")
+    assert s2 is True
+    profile.refresh_from_db()
+    assert profile.mana == 100 - 75  # 25
+
+    encounter.refresh_from_db()
+    # 15% of 1000 sliced: 1000 - 150 = 850
+    assert encounter.hp_current == 850
+
+    t_roar_effect = ActiveEffect.objects.get(user=user, skill_id="titans_roar")
+    assert t_roar_effect.data.get("charges") == 3
+
+    t2 = Task.objects.create(
+        user=user,
+        title="Titan Strike",
+        task_type=Task.TaskType.TODO,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    res2 = complete_task(user, t2.id, is_positive=True)
+    encounter.refresh_from_db()
+    t_roar_effect.refresh_from_db()
+
+    assert t_roar_effect.data.get("charges") == 2
+    assert any(
+        "TITAN'S ROAR" in note
+        for note in res2.get("skill_effects", [])
+    )
+
+
