@@ -57,7 +57,7 @@ def credit_boss_defeat(apps, schema_editor):
             profile.rank_xp += 150
             profile.save(update_fields=["gold", "skill_points", "rank_xp"])
 
-            item = Item.objects.filter(code="jackal_glaive").first()
+            item = Item.objects.filter(code="heralds_fang").first()
             if not item:
                 item = Item.objects.filter(code="bone_bracelet").first()
 
@@ -77,7 +77,7 @@ def credit_boss_defeat(apps, schema_editor):
                     title=boss.name if boss else "Herald Jackal",
                     xp_earned=150,
                     gold_earned=250,
-                    metadata={"boss_level": 2, "sp_reward": 3, "item_dropped": "jackal_glaive"},
+                    metadata={"boss_level": 2, "sp_reward": 3, "item_dropped": item.code if item else "heralds_fang"},
                 )
 
 

@@ -422,8 +422,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
                 stats.bosses_defeated = max(1, defeated_count)
                 stats.save(update_fields=["bosses_defeated"])
 
-            if not profile.inventory_items.filter(item__code__in=["jackal_glaive", "abyssal_quill", "nameless_bones"]).exists():
-                glaive_item = Item.objects.filter(code="jackal_glaive").first()
+            if not profile.inventory_items.filter(item__code__in=["heralds_fang", "jackal_glaive", "abyssal_quill", "nameless_bones"]).exists():
+                glaive_item = Item.objects.filter(code__in=["heralds_fang", "jackal_glaive"]).first()
                 if glaive_item:
                     rules = BOSS_RANK_STATS.get("D", {"count": 1, "min": 1, "max": 2})
                     rolled_stats = {s: random.randint(rules["min"], rules["max"]) for s in random.sample(POSSIBLE_STATS, rules["count"])}
@@ -444,7 +444,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
                         title="Herald Jackal",
                         xp_earned=150,
                         gold_earned=250,
-                        metadata={"boss_level": 2, "sp_reward": 3, "item_dropped": "jackal_glaive"},
+                        metadata={"boss_level": 2, "sp_reward": 3, "item_dropped": "heralds_fang"},
                     )
                 except Exception:
                     pass
