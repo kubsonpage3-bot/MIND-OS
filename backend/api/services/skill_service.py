@@ -131,6 +131,20 @@ def _fmt_td(td):
     return f"{h:02d}:{m:02d}:{s:02d}"
 
 
+
+class SkillActivationResult(tuple):
+    """
+    Tuple subclass for backward-compatibility.
+    Unpacks as 4 elements: (success, message, class_data, effects).
+    Exposes .combat property: result.combat -> combat_result dictionary or None.
+    """
+
+    def __new__(cls, success, message, class_data, effects, combat=None):
+        instance = super().__new__(cls, (success, message, class_data, effects))
+        instance.combat = combat
+        return instance
+
+
 # ─── Активация скилла ────────────────────────────────────────────────────
 
 
@@ -167,6 +181,21 @@ def activate_skill(user, skill_id):
             None,
             None,
         )
+
+    # Ensure pure combat attack skills have a target before charging mana
+    from api.models import BossEncounter
+
+    if skill_id in ["lexical_resonance", "execution"]:
+        has_active_boss = BossEncounter.objects.filter(
+            user=profile.user, is_defeated=False
+        ).exists()
+        if not has_active_boss:
+            return (
+                False,
+                "No active boss encounter to target! Summon a boss from Scrolls first.",
+                None,
+                None,
+            )
 
     # Passives checks
     has_void_clarity = UnlockedSkill.objects.filter(
@@ -280,7 +309,7 @@ def activate_skill(user, skill_id):
         )
 
     # Создаём эффект
-    effect_data = _create_effect(skill_id, profile)
+    effect_data, combat_result = _create_effect(skill_id, profile)
 
     if effect_data:
         ActiveEffect.objects.update_or_create(
@@ -314,7 +343,13 @@ def activate_skill(user, skill_id):
 
     skill_boss_damage = passive_effects.get("skill_boss_damage", 0)
     if skill_boss_damage > 0:
-        apply_boss_damage(profile.user, skill_boss_damage)
+        passive_combat = apply_boss_damage(profile.user, skill_boss_damage)
+        if not combat_result:
+            combat_result = passive_combat
+
+    # Refresh profile if combat occurred so mana/gold/xp/sp are up to date
+    if combat_result:
+        profile.refresh_from_db()
 
     # Собираем ответ
     effects_qs = ActiveEffect.objects.filter(user=profile.user).values(
@@ -336,7 +371,9 @@ def activate_skill(user, skill_id):
         ],
     }
 
-    return True, f"{skill_def['name']} activated!", class_data, list(effects_qs)
+    return SkillActivationResult(
+        True, f"{skill_def['name']} activated!", class_data, list(effects_qs), combat=combat_result
+    )
 
 
 def _create_effect(skill_id, profile):
@@ -412,7 +449,7 @@ def _create_effect(skill_id, profile):
 
     entry = base.get(skill_id)
     if not entry:
-        return None
+        return None, None
 
     effect_id, data, expires_at = entry
 
@@ -430,28 +467,13 @@ def _create_effect(skill_id, profile):
         foc = total_stats.get("foc", getattr(profile, "base_foc", 10) or 10)
         direct_damage = max(50, int(mem * 8 + foc * 6))
 
-        encounter = BossEncounter.objects.filter(
-            user=profile.user, is_defeated=False
-        ).first()
-        if encounter and encounter.boss:
-            encounter.hp_current = max(0, encounter.hp_current - direct_damage)
-            if encounter.hp_current <= 0:
-                encounter.hp_current = 0
-                encounter.is_defeated = True
-                encounter.expires_at = timezone.now()
-                encounter.save()
-                from api.services.combat_service import process_boss_death
-
-                process_boss_death(profile.user, encounter)
-            else:
-                encounter.save(update_fields=["hp_current"])
-        return None
+        combat_result = apply_boss_damage(profile.user, direct_damage)
+        return None, combat_result
 
     if skill_id == "deep_work_surge":
         import zoneinfo
         from django.db.models import Sum
         from api.models import TrainingSession
-        from api.services.combat_service import process_boss_death
         from api.services.profile_service import gain_xp
 
         try:
@@ -480,30 +502,16 @@ def _create_effect(skill_id, profile):
             profile.rank_xp = max(0, profile.rank_xp + bonus_xp)
             profile.save(update_fields=["rank_xp"])
 
-        encounter = BossEncounter.objects.filter(
-            user=profile.user, is_defeated=False
-        ).first()
-        if encounter and encounter.boss:
-            encounter.hp_current = max(0, encounter.hp_current - direct_damage)
-            if encounter.hp_current <= 0:
-                encounter.hp_current = 0
-                encounter.is_defeated = True
-                encounter.expires_at = timezone.now()
-                encounter.save()
-                process_boss_death(profile.user, encounter)
-            else:
-                encounter.save(update_fields=["hp_current"])
-        return None
+        combat_result = apply_boss_damage(profile.user, direct_damage)
+        return None, combat_result
 
     if skill_id == "inner_sanctuary":
         heal_amount = max(1, int(profile.max_hp * 0.50))
         profile.hp = min(profile.max_hp, profile.hp + heal_amount)
         profile.save(update_fields=["hp"])
-        return None
+        return None, None
 
     if skill_id == "execution":
-        from api.services.combat_service import process_boss_death
-
         total_stats = (
             profile.total_stats
             if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
@@ -514,36 +522,30 @@ def _create_effect(skill_id, profile):
         encounter = BossEncounter.objects.filter(
             user=profile.user, is_defeated=False
         ).first()
+        combat_result = None
         if encounter and encounter.boss:
             hp_max = max(1, encounter.boss.hp_max)
             hp_ratio = encounter.hp_current / hp_max
-            if hp_ratio <= 0.35:
+            is_execute = (hp_ratio <= 0.35)
+            if is_execute:
                 direct_damage = max(encounter.hp_current, int(pwr * 20))
             else:
                 direct_damage = max(50, int(pwr * 8))
 
-            encounter.hp_current = max(0, encounter.hp_current - direct_damage)
-            if encounter.hp_current <= 0:
-                encounter.hp_current = 0
-                encounter.is_defeated = True
-                encounter.expires_at = timezone.now()
-                encounter.save()
-                process_boss_death(profile.user, encounter)
-            else:
-                encounter.save(update_fields=["hp_current"])
-        return None
+            combat_result = apply_boss_damage(profile.user, direct_damage, is_crit=is_execute)
+        return None, combat_result
 
     if skill_id == "titans_roar":
         encounter = BossEncounter.objects.filter(
             user=profile.user, is_defeated=False
         ).first()
+        combat_result = None
         if encounter and encounter.boss:
             dmg = int(encounter.boss.hp_max * 0.15)
-            encounter.hp_current = max(1, encounter.hp_current - dmg)
-            encounter.save(update_fields=["hp_current"])
-        return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
+            combat_result = apply_boss_damage(profile.user, dmg)
+        return {"effect_id": effect_id, "data": data, "expires_at": expires_at}, combat_result
 
-    return {"effect_id": effect_id, "data": data, "expires_at": expires_at}
+    return {"effect_id": effect_id, "data": data, "expires_at": expires_at}, None
 
 
 # ─── Применение эффектов после выполнения задачи ─────────────────────────

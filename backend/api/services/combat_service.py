@@ -182,6 +182,29 @@ def process_boss_death(user, encounter):
 
     profile.save(update_fields=["gold", "rank_xp", "skill_points", "mana"])
 
+    # Update UserStats and UserActivityLog for boss defeat
+    try:
+        from api.models import UserStats, UserActivityLog
+
+        stats, _ = UserStats.objects.get_or_create(user=user)
+        stats.bosses_defeated += 1
+        stats.save(update_fields=["bosses_defeated"])
+
+        UserActivityLog.objects.create(
+            user=user,
+            activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT,
+            title=encounter.boss.name,
+            xp_earned=final_xp,
+            gold_earned=final_gold,
+            metadata={
+                "boss_level": encounter.boss.level,
+                "sp_reward": sp_reward,
+                "item_dropped": item_dropped,
+            },
+        )
+    except Exception:
+        pass
+
     return {
         "gold": final_gold,
         "xp": final_xp,

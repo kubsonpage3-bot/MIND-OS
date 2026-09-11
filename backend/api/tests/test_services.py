@@ -1757,11 +1757,28 @@ def test_linguist_lexical_resonance_boss_damage(user, profile):
     profile.mana = 65
     profile.save()
 
-    success2, _, _, _ = activate_skill(user, "lexical_resonance")
+    res2 = activate_skill(user, "lexical_resonance")
+    success2, _, _, _ = res2
     assert success2 is True
+    assert res2.combat is not None
+    assert res2.combat["boss_defeated"] is True
+    assert res2.combat["rewards"] is not None
+
     encounter.refresh_from_db()
     assert encounter.hp_current == 0
     assert encounter.is_defeated is True
+
+    from api.models import UserStats, UserActivityLog
+    stats = UserStats.objects.get(user=user)
+    assert stats.bosses_defeated >= 1
+    assert UserActivityLog.objects.filter(user=user, activity_type="boss_defeat").exists()
+
+    # Test no active boss validation
+    profile.mana = 65
+    profile.save()
+    s_no_boss, err_msg, _, _ = activate_skill(user, "lexical_resonance")
+    assert s_no_boss is False
+    assert "No active boss" in err_msg
 
 
 @pytest.mark.django_db
@@ -2140,5 +2157,30 @@ def test_warlord_blood_harvest_and_titans_roar(user, profile):
         "TITAN'S ROAR" in note
         for note in res2.get("skill_effects", [])
     )
+
+
+@pytest.mark.django_db
+def test_skill_activate_view_returns_combat(user, profile):
+    from rest_framework.test import APIClient
+    from api.models import Boss, BossEncounter
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+    profile.character_class = "linguist"
+    profile.mana = 100
+    profile.save()
+
+    boss = Boss.objects.create(name="Target Boss", level=1, hp_max=1000, reward_xp=100, reward_gold=50)
+    BossEncounter.objects.create(user=user, boss=boss, hp_current=100, is_defeated=False)
+
+    response = client.post("/api/skills/activate/", {"skill_id": "lexical_resonance"}, format="json")
+    assert response.status_code == 200
+    data = response.json()
+    assert "combat" in data
+    assert data["combat"] is not None
+    assert data["combat"]["boss_defeated"] is True
+    assert data["combat"]["damage_dealt"] > 0
+    assert "rewards" in data["combat"]
+
 
 

@@ -884,6 +884,21 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     return () => window.removeEventListener("mindos:test_boss_defeat", handleTestDefeat);
   }, [handleBossDamage]);
 
+  useEffect(() => {
+    const handleBossDamageEvent = (e) => {
+      const detail = e.detail || {};
+      handleBossDamage(
+        detail.amount || 0,
+        detail.isCritical || false,
+        detail.isDefeated || false,
+        detail.combatResult || null,
+        detail.rewards || null
+      );
+    };
+    window.addEventListener("mindos:boss_damage", handleBossDamageEvent);
+    return () => window.removeEventListener("mindos:boss_damage", handleBossDamageEvent);
+  }, [handleBossDamage]);
+
   const handleRewardFly = useCallback((reward) => {
     const id = Date.now() + Math.random();
     setFlyingRewards(prev => [...prev, { ...reward, id }]);

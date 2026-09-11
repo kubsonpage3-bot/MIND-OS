@@ -119,13 +119,40 @@ export default function SkillPanel({ classId }) {
     onSuccess: (data) => {
       const dataObj = /** @type {any} */ (data);
       const skillName = glowing ? t(`rpgData.skills.${glowing}.name`, cls?.skills.find(s => s.id === glowing)?.name) : 'Skill';
-      setToast(dataObj?.detail || t('skillPanel.activatedMsg', { defaultValue: `${skillName} activated!`, name: skillName }));
-      setTimeout(() => setToast(null), 3000);
+
+      if (dataObj?.combat) {
+        const combat = dataObj.combat;
+        window.dispatchEvent(new CustomEvent("mindos:boss_damage", {
+          detail: {
+            amount: combat.damage_dealt || 0,
+            isCritical: combat.is_critical || false,
+            isDefeated: combat.boss_defeated || false,
+            combatResult: combat,
+            rewards: combat.rewards || null,
+          }
+        }));
+
+        if (combat.boss_defeated) {
+          const gold = combat.rewards?.boss_gold || 0;
+          const xp = combat.rewards?.boss_xp || 0;
+          setToast(`💀 ${combat.boss_name || 'BOSS'} SLAIN! +${gold}G +${xp}XP`);
+        } else if (combat.damage_dealt > 0) {
+          setToast(`⚔️ -${combat.damage_dealt} DMG TO ${combat.boss_name || 'BOSS'}!`);
+        } else {
+          setToast(dataObj?.detail || t('skillPanel.activatedMsg', { defaultValue: `${skillName} activated!`, name: skillName }));
+        }
+      } else {
+        setToast(dataObj?.detail || t('skillPanel.activatedMsg', { defaultValue: `${skillName} activated!`, name: skillName }));
+      }
+      setTimeout(() => setToast(null), 3500);
     },
     onSettled: () => {
       // Invalidate queries to sync with backend
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       queryClient.invalidateQueries({ queryKey: ["active_effects"] });
+      queryClient.invalidateQueries({ queryKey: ["combat_encounters"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["history"] });
     }
   });
 
