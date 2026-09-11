@@ -404,7 +404,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
                 ])
 
         # Auto-sync boss defeat stats with actual defeated encounters
-        from api.models import UserStats, BossEncounter, Item, InventoryItem, UserActivityLog
+        from api.models import UserStats, BossEncounter
         stats, _ = UserStats.objects.get_or_create(user=self.request.user)
         defeated_encs = BossEncounter.objects.filter(user=self.request.user, is_defeated=True)
         defeated_count = defeated_encs.count()
@@ -412,42 +412,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             stats.bosses_defeated = defeated_count
             stats.save(update_fields=["bosses_defeated"])
 
-        # Crediting boss victory & rewards for KubsonMercer
-        username_lower = getattr(self.request.user, "username", "").lower()
-        if username_lower in ["kubsonmercer", "kubsonpage3"]:
-            from api.constants import BOSS_RANK_STATS, POSSIBLE_STATS
-            import random
-
-            if stats.bosses_defeated < max(1, defeated_count):
-                stats.bosses_defeated = max(1, defeated_count)
-                stats.save(update_fields=["bosses_defeated"])
-
-            if not profile.inventory_items.filter(item__code__in=["heralds_fang", "jackal_glaive", "abyssal_quill", "nameless_bones"]).exists():
-                glaive_item = Item.objects.filter(code__in=["heralds_fang", "jackal_glaive"]).first()
-                if glaive_item:
-                    rules = BOSS_RANK_STATS.get("D", {"count": 1, "min": 1, "max": 2})
-                    rolled_stats = {s: random.randint(rules["min"], rules["max"]) for s in random.sample(POSSIBLE_STATS, rules["count"])}
-                    inv_item, created = InventoryItem.objects.get_or_create(
-                        user_profile=profile, item=glaive_item,
-                        defaults={"stat_bonuses": rolled_stats}
-                    )
-                    if created:
-                        profile.gold += 250
-                        profile.skill_points += 3
-                        fields_to_update.extend(["gold", "skill_points"])
-
-            if not UserActivityLog.objects.filter(user=self.request.user, activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT).exists():
-                try:
-                    UserActivityLog.objects.create(
-                        user=self.request.user,
-                        activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT,
-                        title="Herald Jackal",
-                        xp_earned=150,
-                        gold_earned=250,
-                        metadata={"boss_level": 2, "sp_reward": 3, "item_dropped": "heralds_fang"},
-                    )
-                except Exception:
-                    pass
 
         if profile.last_seen_at:
             setattr(

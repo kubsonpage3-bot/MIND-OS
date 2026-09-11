@@ -827,6 +827,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     mutator_effects = apply_active_mutators(profile, context)
     passive_effects = get_passive_multipliers(profile, context)
+    is_cognitive_echo_active = False
 
     active_list = (
         profile.active_mutators.get("active", [])

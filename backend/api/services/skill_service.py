@@ -148,12 +148,35 @@ class SkillActivationResult(tuple):
 # ─── Активация скилла ────────────────────────────────────────────────────
 
 
+SKILL_ALIASES = {
+    # architect
+    "blueprint": "algorithmic_cascade",
+    "system_overload": "deep_work_surge",
+    "infinite_loop": "quantum_optimization",
+    # ascetic
+    "iron_fast": "eye_of_the_storm",
+    "meditation": "inner_sanctuary",
+    "transcendence": "enlightenment",
+    # linguist
+    "babel_mode": "rosetta_protocol",
+    "polyglot_surge": "lexical_resonance",
+    "memetic_transfer": "cognitive_echo",
+    # warlord
+    "battle_fury": "execution",
+    "war_cry": "titans_roar",
+    "tactical_retreat": "blood_harvest",
+}
+
+
 @transaction.atomic
 def activate_skill(user, skill_id):
     """
     Активирует скилл для пользователя с использованием транзакции.
     Возвращает (success, message, class_data, effects).
     """
+    # Resolve skill ID aliases for backward-compatibility
+    resolved_id = SKILL_ALIASES.get(skill_id, skill_id)
+
     # Блокируем профиль для защиты от гонки (race conditions)
     profile, _ = UserProfile.objects.select_for_update().get_or_create(user=user)
 
@@ -173,7 +196,9 @@ def activate_skill(user, skill_id):
     if not class_def:
         return False, f"Unknown class: {char_class}", None, None
 
-    skill_def: Any = next((s for s in class_def["skills"] if s["id"] == skill_id), None)
+    skill_def: Any = next(
+        (s for s in class_def["skills"] if s["id"] in [skill_id, resolved_id]), None
+    )
     if not skill_def:
         return (
             False,
@@ -181,6 +206,10 @@ def activate_skill(user, skill_id):
             None,
             None,
         )
+
+    # Use resolved canonical skill ID for mechanics
+    canonical_id = skill_def["id"]
+
 
     # Ensure pure combat attack skills have a target before charging mana
     from api.models import BossEncounter
@@ -309,14 +338,14 @@ def activate_skill(user, skill_id):
         )
 
     # Создаём эффект
-    effect_data, combat_result = _create_effect(skill_id, profile)
+    effect_data, combat_result = _create_effect(canonical_id, profile)
 
     if effect_data:
         ActiveEffect.objects.update_or_create(
             user=profile.user,
             effect_id=effect_data["effect_id"],
             defaults={
-                "skill_id": skill_id,
+                "skill_id": canonical_id,
                 "data": effect_data["data"],
                 "expires_at": effect_data["expires_at"],
             },
