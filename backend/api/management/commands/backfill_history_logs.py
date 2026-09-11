@@ -83,6 +83,7 @@ class Command(BaseCommand):
             if boss_name in existing_boss_titles:
                 continue
             final_xp = int(enc.boss.reward_xp * enc.reward_multiplier)
+            final_gold = int(enc.boss.reward_gold * enc.reward_multiplier)
             from api.constants import BOSS_RANK_SP, RANK_TO_LEVEL
             sp_reward = getattr(enc.boss, "reward_sp", None) or BOSS_RANK_SP.get(
                 RANK_TO_LEVEL.get(enc.boss.level, "E"), 3
