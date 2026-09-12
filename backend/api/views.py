@@ -1227,10 +1227,12 @@ class ToggleEquipView(generics.GenericAPIView):
                 inv_item.is_equipped = False
 
             inv_item.save(update_fields=["is_equipped"])
+            profile.invalidate_cached_stats()
 
         profile_fresh = UserProfile.objects.prefetch_related(
             "inventory_items__item__effects"
         ).get(user=request.user)
+        profile_fresh.invalidate_cached_stats()
         return Response(
             {
                 "detail": f"{'Equipped' if inv_item.is_equipped else 'Unequipped'} {inv_item.item.name}.",  # noqa: E501

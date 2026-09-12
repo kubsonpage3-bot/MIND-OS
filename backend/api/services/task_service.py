@@ -885,40 +885,24 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         equipped_codes = profile.get_equipped_item_codes()
 
-        # Crown of Ash: +8% XP from all tasks
-        if "crown_of_ash" in equipped_codes:
-            final_xp = int(final_xp * 1.08)
+        # NOTE: Most item passives (crown_of_ash XP, abyssal_purse gold, wanderers_hood daily XP,
+        # bone_bracelet LCK, heralds_fang PWR, wardens_quill flat_xp, glass_tear HP heal,
+        # golems_grip DEF, winter_plate DMG reduction, eclipse_eye crit, etc.) are now
+        # applied through get_passive_multipliers() → passive_effects pipeline (xp_mult, gold_mult,
+        # flat_xp, stat bonuses, etc.). Only task-type-specific bonuses that need final_xp/final_gold
+        # context remain here.
 
-        # Abyssal Purse: +12% gold from all sources
-        if "abyssal_purse" in equipped_codes:
-            final_gold = int(final_gold * 1.12)
+        # Note: Crown of Ash (+12% XP) and Abyssal Purse (+12% gold) are already
+        # cleanly applied via get_passive_multipliers() -> passive_effects (xp_mult, gold_mult)
+        # above at the base calculation layer. No second multiplication needed here.
 
-        # Ember Gauntlet: +5% gold from To-Dos
+        # Ember Gauntlet: +6% boss damage (via passive_effects) + +5% gold from To-Dos specifically
         if task.task_type == Task.TaskType.TODO and "ember_gauntlet" in equipped_codes:
             final_gold = int(final_gold * 1.05)
 
-        # Golem's Grip: +8% gold from Habits
+        # Golem's Grip: +6 DEF (via passive_effects stat bonus) + +8% gold from Habits specifically
         if task.task_type == Task.TaskType.HABIT and "golems_grip" in equipped_codes:
             final_gold = int(final_gold * 1.08)
-
-        # Wanderer's Hood: +2% gold from Habits
-        if task.task_type == Task.TaskType.HABIT and "wanderers_hood" in equipped_codes:
-            final_gold = int(final_gold * 1.02)
-
-        # Bone Bracelet: +2% XP from Dailies
-        if task.task_type == Task.TaskType.DAILY and "bone_bracelet" in equipped_codes:
-            final_xp = int(final_xp * 1.02)
-
-        # Herald's Fang: +3% XP from Exercise tasks
-        if task.category == "exercise" and "heralds_fang" in equipped_codes:
-            final_xp = int(final_xp * 1.03)
-
-        # Warden's Quill: +3% XP from Study tasks
-        if (
-            task.category in ("study", "academics", "reading")
-            and "wardens_quill" in equipped_codes
-        ):
-            final_xp = int(final_xp * 1.03)
 
         # Party buff: XP boost (xp_boost_24h effect from party member)
         if ActiveEffect.objects.filter(
@@ -1026,10 +1010,20 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 least_xp_ally.total_xp_received += ally_xp_share
                 least_xp_ally.save(update_fields=["total_xp_received"])
 
-        # Null Zone conversion
+        # Null Zone: Zero out XP (already zeroed by final_xp_mult=0), convert original XP to gold
         if "null_zone" in active_ids:
-            final_gold += int(final_xp * 0.5)
+            raw_xp = rewards.get("xp", 0) + flat_xp_bonus
+            final_gold += int(raw_xp * 0.5)
             final_xp = 0
+
+        # Alchemist: XP overflow above current level cap converts to gold at 2:1
+        if mutator_effects.get("alchemist_overflow_rate", 0.0) > 0 and final_xp > 0:
+            xp_to_next = max(1, profile.xp_to_next_level - profile.xp)
+            if final_xp > xp_to_next:
+                overflow_xp = final_xp - xp_to_next
+                final_xp = xp_to_next  # Cap XP at level threshold
+                gold_from_overflow = int(overflow_xp * mutator_effects["alchemist_overflow_rate"])
+                final_gold += gold_from_overflow
 
         # The Gambler's Ledger redirect
         if "gamblers_ledger" in active_ids:
@@ -1089,17 +1083,36 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 profile.hp = max(0, profile.hp - 1)
                 check_death(profile)
 
+        # Glass Tear: +2 HP on each task completion (all task types)
+        glass_tear_heal = passive_effects.get("task_completion_hp_heal", 0)
+        if glass_tear_heal > 0:
+            profile.hp = min(
+                profile.total_stats.get("hp_max", 100), profile.hp + glass_tear_heal
+            )
+
         if task.task_type == Task.TaskType.DAILY:
             completed_heal = passive_effects.get("daily_completed_hp_heal", 0)
             if completed_heal > 0:
                 profile.hp = min(
                     profile.total_stats.get("hp_max", 100), profile.hp + completed_heal
                 )
+            # Wanderer's Hood: +10% XP from daily tasks
+            daily_xp_mult = passive_effects.get("daily_task_xp_mult", 1.0)
+            if daily_xp_mult > 1.0:
+                final_xp = int(final_xp * daily_xp_mult)
 
         leveled_up = gain_xp(profile, final_xp)
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
         profile.gold = max(0, profile.gold + final_gold)
         profile.mana = min(profile.max_mana, profile.mana + mana_gained)
+
+        # Sacrificial Altar: Spend 5 HP to gain 1 SP on each task completion
+        if mutator_effects.get("sacrificial_altar_active", False):
+            hp_cost = 5
+            if profile.hp > hp_cost:  # Only if we won't die from it
+                profile.hp = max(1, profile.hp - hp_cost)
+                profile.skill_points = max(0, profile.skill_points + 1)
+                check_death(profile)
 
         # Group 3 Mutator stats
         profile.tasks_completed_today += 1

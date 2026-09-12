@@ -282,7 +282,7 @@ def calculate_task_outcome(
     stats = profile.total_stats
 
     pwr = stats.get("pwr", 0)
-    foc = stats.get("foc", 0) * passive_effects.get("foc_mult", 1.0)
+    foc = stats.get("foc", 0)
     spd = stats.get("spd", 0)
     lck = stats.get("lck", 0)
     def_stat = stats.get("def", 0)
@@ -506,13 +506,8 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         xp_reward = int(boss.reward_xp * active_encounter.reward_multiplier)
         gold_reward = int(boss.reward_gold * active_encounter.reward_multiplier)
 
-        # Mask of the Nameless: +25% boss rewards, permanently
-        has_mask_nameless = (
-            "mask_nameless" in equipped_codes
-            or profile.inventory_items.filter(item__code="mask_nameless").exists()
-            or profile.inventory_items.filter(item__code="mask_of_the_nameless").exists()
-        )
-        if has_mask_nameless:
+        # Mask of the Nameless: +25% boss rewards (canonical code: mask_nameless)
+        if "mask_nameless" in equipped_codes:
             xp_reward = int(xp_reward * 1.25)
             gold_reward = int(gold_reward * 1.25)
 
@@ -820,6 +815,12 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         "trigger_mirror": False,
         "silent_mode": False,
         "streak_xp_bonus": 0,
+        # New keys for previously-missing mutators
+        "null_zone_active": False,        # Disables XP, converts to gold bonus
+        "gamblers_ledger_active": False,  # Routes gold to ledger account
+        "alchemist_overflow_rate": 0.0,   # XP overflow-to-gold conversion rate
+        "sacrificial_altar_active": False, # Spend HP to gain SP
+        "chronomancer_active": False,     # Streak freeze flag
     }
 
     user_tz_str = profile.timezone if profile.timezone else "UTC"
@@ -902,6 +903,13 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     # ── ECONOMY ──
     if "loan_shark" in active_ids:
         effects["gold_mult"] += 0.40
+        if "compound" in active_ids:
+            # Synergy bonus: loan_shark + compound yield +15% extra gold on tasks
+            effects["gold_mult"] += 0.15
+
+    if "compound" in active_ids:
+        effects["compound_active"] = True
+
 
     if "miser" in active_ids:
         effects["shop_cost_mult"] *= 0.80
@@ -1118,6 +1126,51 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             0.0, min(5.0, 1.0 + (effects["damage_taken_mult"] - 1.0) * mutator_amp)
         )
 
+    # ── PREVIOUSLY-MISSING MUTATORS ────────────────────────────────────
+
+    # null_zone: Tasks give 0 XP but convert 50% of XP value to bonus Gold.
+    # Boss damage from this task is doubled (applied in task_service via flag).
+    if "null_zone" in active_ids:
+        effects["null_zone_active"] = True
+        # Zero out XP; 50% of XP value is converted to bonus Gold in task_service
+        effects["final_xp_mult"] = 0.0
+
+    # alchemist: When XP would overflow the current level cap, convert the overflow
+    # portion to gold at 2 gold per 1 XP overflow. Main conversion handled in
+    # task_service using the flag.
+    if "alchemist" in active_ids:
+        effects["alchemist_overflow_rate"] = 2.0  # 2 gold per overflow XP
+
+    # gamblers_ledger: All gold rewards are redirected to a locked ledger account.
+    # The ledger pays out weekly with +50% bonus (handled in daily_service).
+    # At death, the ledger is wiped. Flag read by task_service.
+    if "gamblers_ledger" in active_ids:
+        effects["gamblers_ledger_active"] = True
+
+    # mirror_match: 30% chance to auto-complete another task from the same category
+    # with 50% rewards. Flag read by task_service (already implemented there).
+    # Nothing additional needed here beyond signaling active state.
+
+    # twin_souls: Shares 15% of XP/Gold with the least-XP active ally.
+    # Flag read by task_service (already implemented there).
+
+    # time_dilation: 3x XP and Gold (already set via final_xp_mult *= 3.0 above).
+    # Adding the downside: +30% incoming damage to balance the extreme multiplier.
+    if "time_dilation" in active_ids:
+        effects["damage_taken_mult"] += 0.30
+
+    # chronomancer: Protects streak on a missed day (14-day cooldown).
+    # Activation logic is in daily_service.py. Flag used for UI display.
+    if "chronomancer" in active_ids:
+        effects["chronomancer_active"] = True
+
+    # sacrificial_altar: On each task completion, spend 5 HP to gain 1 SP.
+    # Applied in task_service after task is completed. Flag signals active state.
+    if "sacrificial_altar" in active_ids:
+        effects["sacrificial_altar_active"] = True
+        # Drawback: -5% gold per task (ritual cost)
+        effects["gold_mult"] -= 0.05
+
     return effects
 
 
@@ -1325,6 +1378,11 @@ def get_passive_multipliers(profile, context: dict):
         "bran_ingredient_chance": 0.0,
         "meldor_salvage_ingredient_chance": 0.0,
         "shop_cost_mult": 1.0,
+        # Item-passive new keys
+        "task_completion_hp_heal": 0,      # glass_tear: HP heal per task
+        "daily_task_xp_mult": 1.0,         # wanderers_hood: XP mult for daily tasks only
+        "missed_daily_hp_reduction": 0.0,  # silk_mantle/luna/winter_plate: reduce missed-daily HP loss
+        "damage_taken_mult": 1.0,          # winter_plate: reduce incoming damage mult
     }
 
     focus_rating = context.get("focus_rating", 0.0)
@@ -1389,14 +1447,65 @@ def get_passive_multipliers(profile, context: dict):
         else set()
     )
 
+    # ── E-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
+    # Wanderer's Hood (E - Misted Wanderer): +10% XP from daily tasks
+    if "wanderers_hood" in equipped_codes:
+        effects["daily_task_xp_mult"] = effects.get("daily_task_xp_mult", 1.0) + 0.10
+
+    # Bone Bracelet (E - Nameless Bones): +2 LCK stat bonus
+    if "bone_bracelet" in equipped_codes:
+        effects["lck_stat_bonus"] = effects.get("lck_stat_bonus", 0) + 2
+
+    # ── D-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
+    # Herald's Fang (D): +3 PWR stat bonus
+    if "heralds_fang" in equipped_codes:
+        effects["pwr_stat_bonus"] = effects.get("pwr_stat_bonus", 0) + 3
+
+    # Warden's Quill (D): +1 flat XP per task completion
+    if "wardens_quill" in equipped_codes:
+        effects["flat_xp"] = effects.get("flat_xp", 0) + 1
+
+    # ── C-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
     # Echo Bell: +4% Focus stat gain
     if "echo_bell" in equipped_codes:
         effects["foc_mult"] += 0.04
+
+    # Silk Mantle: -5% HP loss from missed dailies (already applied below in missed_daily_hp_reduction)
+    if "silk_mantle" in equipped_codes:
+        effects["missed_daily_hp_reduction"] = effects.get("missed_daily_hp_reduction", 0.0) + 0.05
+
+    # Frostbite Blade: +4% boss damage (also applied in apply_boss_damage directly)
+    if "frostbite_blade" in equipped_codes:
+        effects["boss_dmg_mult"] += 0.04
+
+    # ── B-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
+    # Glass Tear (B): Heal +2 HP on each task completion
+    if "glass_tear" in equipped_codes:
+        effects["task_completion_hp_heal"] = effects.get("task_completion_hp_heal", 0) + 2
 
     # Leviathan Scale: +5% MP regen
     if "leviathan_scale" in equipped_codes:
         effects["mana_regen_mult"] += 0.05
 
+    # Ember Gauntlet (B - Forge Wrath): +6% boss damage + +2 PWR
+    if "ember_gauntlet" in equipped_codes:
+        effects["boss_dmg_mult"] += 0.06
+        effects["pwr_stat_bonus"] = effects.get("pwr_stat_bonus", 0) + 2
+
+    # ── A-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
+    # Crown of Ash (A): +12% XP from all tasks
+    if "crown_of_ash" in equipped_codes:
+        effects["xp_mult"] += 0.12
+
+    # Golem's Grip (A): +6 DEF stat bonus
+    if "golems_grip" in equipped_codes:
+        effects["def_stat_bonus"] = effects.get("def_stat_bonus", 0) + 6
+
+    # Scar Shard: +8% boss damage
+    if "scar_shard" in equipped_codes:
+        effects["boss_dmg_mult"] += 0.08
+
+    # ── S-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
     # Forgotten Score: +10% to cognitive domain metrics
     if "forgotten_score" in equipped_codes:
         effects["cognitive_metric_multiplier"] += 0.10
@@ -1404,6 +1513,31 @@ def get_passive_multipliers(profile, context: dict):
         effects["gc_mult"] += 0.10
         effects["ps_mult"] += 0.10
         effects["vm_mult"] += 0.10
+
+    # Abyssal Purse: +12% gold from all sources
+    if "abyssal_purse" in equipped_codes:
+        effects["gold_mult"] += 0.12
+
+    # Winter Plate (S - Thorn): -12% incoming HP damage from missed dailies & habits
+    if "winter_plate" in equipped_codes:
+        effects["missed_daily_hp_reduction"] = effects.get("missed_daily_hp_reduction", 0.0) + 0.12
+        effects["damage_taken_mult"] = effects.get("damage_taken_mult", 1.0) - 0.12
+
+    # ── SS-RANK BOSS DROP PASSIVES ────────────────────────────────────────────
+    # Throne Seal (SS): +15% PWR score (also applied in total_stats directly)
+    # Note: The +15% PWR bonus is already in models.py total_stats for total_stats dict.
+    # Here we add an additional gold bonus passive for this elite item.
+    if "throne_seal" in equipped_codes:
+        effects["gold_mult"] += 0.10  # +10% gold from all sources
+
+    # Eclipse Eye (SS): +15% critical hit damage multiplier
+    if "eclipse_eye" in equipped_codes:
+        effects["crit_damage_mult"] = effects.get("crit_damage_mult", 1.0) + 0.15
+
+    # ── SSS-RANK BOSS DROP PASSIVES ───────────────────────────────────────────
+    # Mask of the Nameless: +25% boss rewards (handled in apply_boss_damage)
+    # Blade of Final Dusk: 2x boss damage (handled in apply_boss_damage)
+    # Both are kept exclusively in apply_boss_damage to avoid double-applying.
 
     if "iron_conditioning" in unlocked_skills and is_exercise:
         effects["xp_mult"] += 0.15

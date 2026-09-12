@@ -431,6 +431,15 @@ class UserProfile(models.Model):
             )
         )
 
+    def invalidate_cached_stats(self):
+        """
+        Clears cached properties for stats, equipment, and passives so they are re-evaluated
+        when gear, skills, allies, or conditions change.
+        """
+        self.__dict__.pop("_cached_passives", None)
+        for prop in ("total_stats", "equip_stats", "class_stats"):
+            self.__dict__.pop(prop, None)
+
     @cached_property
     def total_stats(self) -> dict:
         """
@@ -443,13 +452,22 @@ class UserProfile(models.Model):
         passives = self.get_cached_passives()
         equipped_codes = self.get_equipped_item_codes()
 
+        # Bran Level 4 (bran_overdrive): +30% equipped gear stat bonuses
+        gear_mult = 1.30 if passives.get("bran_overdrive", False) else 1.0
+        equip_pwr = int(equip.get("pwr", 0) * gear_mult)
+        equip_foc = int(equip.get("foc", 0) * gear_mult)
+        equip_spd = int(equip.get("spd", 0) * gear_mult)
+        equip_lck = int(equip.get("lck", 0) * gear_mult)
+        equip_def = int(equip.get("def", 0) * gear_mult)
+        equip_mem = int(equip.get("mem", 0) * gear_mult)
+
         pwr_bonus = passives.get("pwr_stat_bonus", 0)
         # Throne Seal: +15% Power Score (PWR)
         if "throne_seal" in equipped_codes:
             pwr_bonus += max(
                 1,
                 int(
-                    (self.base_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * 0.15
+                    (self.base_pwr + cls_stats["pwr"] + equip_pwr) * 0.15
                 ),
             )
         def_bonus = passives.get("def_stat_bonus", 0)
@@ -457,6 +475,7 @@ class UserProfile(models.Model):
         mem_bonus = passives.get("mem_stat_bonus", 0)
         spd_bonus = passives.get("spd_stat_bonus", 0)
         lck_bonus = passives.get("lck_stat_bonus", 0)
+        foc_mult = passives.get("foc_mult", 1.0)
 
         has_rhea_l1 = passives.get("rhea_cosmic_shuffle", False)
         active_muts = (
@@ -500,27 +519,27 @@ class UserProfile(models.Model):
 
         return {
             "pwr": int(
-                (shuffled_pwr + cls_stats["pwr"] + equip.get("pwr", 0)) * prestige_mult
+                (shuffled_pwr + cls_stats["pwr"] + equip_pwr) * prestige_mult
             )
             + pwr_bonus,
             "foc": int(
-                (shuffled_foc + cls_stats["foc"] + equip.get("foc", 0)) * prestige_mult
-            )
-            + foc_bonus,
+                ((shuffled_foc + cls_stats["foc"] + equip_foc) * prestige_mult + foc_bonus)
+                * foc_mult
+            ),
             "spd": int(
-                (shuffled_spd + cls_stats["spd"] + equip.get("spd", 0)) * prestige_mult
+                (shuffled_spd + cls_stats["spd"] + equip_spd) * prestige_mult
             )
             + spd_bonus,
             "lck": int(
-                (shuffled_lck + cls_stats["lck"] + equip.get("lck", 0)) * prestige_mult
+                (shuffled_lck + cls_stats["lck"] + equip_lck) * prestige_mult
             )
             + lck_bonus,
             "def": int(
-                (shuffled_def + cls_stats["def"] + equip.get("def", 0)) * prestige_mult
+                (shuffled_def + cls_stats["def"] + equip_def) * prestige_mult
             )
             + def_bonus,
             "mem": int(
-                (shuffled_mem + cls_stats["mem"] + equip.get("mem", 0)) * prestige_mult
+                (shuffled_mem + cls_stats["mem"] + equip_mem) * prestige_mult
             )
             + mem_bonus,
             "damage_multiplier": float(

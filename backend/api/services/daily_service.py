@@ -43,6 +43,13 @@ def process_daily_login(user):
     # New calendar day detected!
     delta = (today - profile.last_login_date).days
 
+    active_list = (
+        profile.active_mutators.get("active", [])
+        if isinstance(profile.active_mutators, dict)
+        else []
+    )
+    active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+
     # Check if party streak broke
     try:
         membership = user.party_membership
@@ -73,12 +80,6 @@ def process_daily_login(user):
     else:
         # Check Chronomancer first (cooldown 14 days, freezes streak)
         chronomancer_triggered = False
-        active_list = (
-            profile.active_mutators.get("active", [])
-            if isinstance(profile.active_mutators, dict)
-            else []
-        )
-        active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
         if "chronomancer" in active_ids:
             cooldown_passed = True
             if profile.last_chronomancer_used:
@@ -160,6 +161,18 @@ def process_daily_login(user):
         ).exists()
     ):
         profile.gold += 200
+
+    # ── Economy Mutators: loan_shark & compound ─────────────────────────────
+    # loan_shark: lose 30G every midnight (reduced to 15G if compound synergy active)
+    if "loan_shark" in active_ids:
+        loan_penalty = 15 if "compound" in active_ids else 30
+        profile.gold = max(0, profile.gold - loan_penalty)
+
+    # compound: every 100G generates +1G/day passively (+2G/100G with loan_shark synergy)
+    if "compound" in active_ids:
+        compound_rate = 2 if "loan_shark" in active_ids else 1
+        interest = (profile.gold // 100) * compound_rate
+        profile.gold += interest
 
     _sync_max_streak(user, profile)
 

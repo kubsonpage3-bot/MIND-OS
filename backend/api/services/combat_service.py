@@ -9,6 +9,7 @@ from api.models import (
     UserProfile,
 )
 from api.services.profile_service import gain_xp
+from api.services import mechanics
 from api.constants import SCROLL_BOSSES_DICT, BOSS_DIFFICULTY_MULTIPLIERS
 from api.exceptions import GameLogicError
 import random
@@ -28,6 +29,13 @@ POSSIBLE_STATS = ["pwr", "def", "foc", "mem", "spd", "lck"]
 
 @transaction.atomic
 def calculate_damage(user, encounter_id, base_damage):
+    """
+    Calculates final damage from a manual boss strike, processing special skill effects
+    (System Overload, Battle Fury), then delegates to mechanics.apply_boss_damage() —
+    the single source of truth for boss HP reduction, defeat logic, rewards, and saves.
+    Equipment bonuses (frostbite_blade, scar_shard, blade_final_dusk, apex_predator,
+    boss_kill HP/MP heals, omniscience, item drops) are all handled by apply_boss_damage.
+    """
     try:
         encounter = BossEncounter.objects.select_for_update().get(
             id=encounter_id, user=user
@@ -39,13 +47,12 @@ def calculate_damage(user, encounter_id, base_damage):
         return 0
 
     final_damage = float(base_damage)
-
-    # Интеграция с ActiveEffects
-    effects = ActiveEffect.objects.filter(user=user)
     effect_notes = []
 
+    # ── Special skill-activation effects ────────────────────────────────────
+    effects = ActiveEffect.objects.filter(user=user)
     for effect in effects:
-        # System Overload: 3x damage
+        # System Overload: 3x damage (consumed on use)
         if effect.skill_id == "system_overload" and effect.data.get("active"):
             mult = effect.data.get("damageMultiplier", 3)
             final_damage *= mult
@@ -53,165 +60,39 @@ def calculate_damage(user, encounter_id, base_damage):
             effect.save(update_fields=["data"])
             effect_notes.append(f"SYSTEM OVERLOAD: x{mult} Boss Damage!")
 
-        # Battle Fury: Доп. урон
+        # Battle Fury: flat % extra damage
         if effect.skill_id == "battle_fury":
             boost = effect.data.get("physicalDamageBoost", 0.5)
             final_damage += base_damage * boost
             effect_notes.append(f"BATTLE FURY: +{int(boost * 100)}% Boss Damage")
 
-    # Equipped boss items effects on damage
-    profile_for_gear = getattr(user, "profile", None)
-    equipped_codes = (
-        profile_for_gear.get_equipped_item_codes()
-        if profile_for_gear
-        else set()
-    )
-    if "frostbite_blade" in equipped_codes:
-        final_damage *= 1.04
-        effect_notes.append("FROSTBITE BLADE: +4% Boss Damage")
-    if "scar_shard" in equipped_codes:
-        final_damage *= 1.08
-        effect_notes.append("SCAR SHARD: +8% Boss Damage")
-    if "blade_final_dusk" in equipped_codes:
-        final_damage *= 2.0
-        effect_notes.append("BLADE OF FINAL DUSK: 2x Boss Damage!")
+    # ── Delegate everything else to the unified SSOT ─────────────────────────
+    # apply_boss_damage applies: equipment multipliers, apex_predator, ActiveEffect
+    # bossDamageMultiplier, reduces HP, and on defeat: gold/XP/SP/MP rewards,
+    # HP heal (Luna L4), mana restore (Void L3), omniscience cognitive bonus,
+    # item drop, push notification, UserActivityLog, UserStats.
+    from api.services.mechanics import apply_boss_damage
 
-    final_damage = int(final_damage)
-    encounter.hp_current = max(0, encounter.hp_current - final_damage)
-    encounter.save()
+    result = apply_boss_damage(user, int(final_damage))
 
-    rewards = None
-    if encounter.hp_current == 0:
-        rewards = process_boss_death(user, encounter)
+    if result is None:
+        # No active encounter found (race condition guard)
+        return {
+            "damage_dealt": 0,
+            "boss_hp_remaining": encounter.hp_current,
+            "boss_defeated": encounter.is_defeated,
+            "rewards": None,
+            "effect_notes": effect_notes,
+        }
 
-    return {
-        "damage_dealt": final_damage,
-        "boss_hp_remaining": encounter.hp_current,
-        "boss_defeated": encounter.is_defeated,
-        "rewards": rewards,
-        "effect_notes": effect_notes,
-    }
+    result["effect_notes"] = effect_notes
+    return result
 
 
-def process_boss_death(user, encounter):
-    encounter.is_defeated = True
-    encounter.expires_at = timezone.now()
-    encounter.save()
-
-    profile = user.profile
-    equipped_codes = profile.get_equipped_item_codes()
-    final_gold = int(encounter.boss.reward_gold * encounter.reward_multiplier)
-    final_xp = int(encounter.boss.reward_xp * encounter.reward_multiplier)
-
-    # Mask of the Nameless: +25% boss rewards, permanently
-    has_mask_nameless = (
-        "mask_nameless" in equipped_codes
-        or profile.inventory_items.filter(item__code="mask_nameless").exists()
-        or profile.inventory_items.filter(item__code="mask_of_the_nameless").exists()
-    )
-    if has_mask_nameless:
-        final_gold = int(final_gold * 1.25)
-        final_xp = int(final_xp * 1.25)
-
-    # Abyssal Purse: +12% gold from all sources
-    if "abyssal_purse" in equipped_codes:
-        final_gold = int(final_gold * 1.12)
-
-    profile.gold += final_gold
-    gain_xp(profile, final_xp)
-    profile.rank_xp = max(0, profile.rank_xp + final_xp)
-
-    # Base Boss MP Reward
-    from api.constants import SCROLL_BOSSES_DICT, BOSS_RANK_SP
-    mp_reward = (
-        getattr(encounter.boss, "reward_mp", None)
-        or SCROLL_BOSSES_DICT.get(encounter.boss.id_name, {}).get("reward", {}).get("mp", 10)
-    )
-    profile.mana = min(profile.total_stats.get("mana_max", 100), profile.mana + mp_reward)
-
-    # Trigger push notification
-    from api.services.push_service import send_notification_to_user
-
-    send_notification_to_user(
-        user=user,
-        pref_key="boss_defeated",
-        title="Boss Defeated! 🎉",
-        body=f"You successfully defeated {encounter.boss.name} and earned {final_gold} gold!",
-        url="/character/boss",
-    )
-
-    # Добавление уникального лута в инвентарь
-    item_dropped = None
-    if encounter.boss.drop_item_id:
-        from api.constants import RANK_TO_LEVEL
-        item_code = encounter.boss.drop_item_id
-        item = Item.objects.filter(code=item_code).first()
-        if not item:
-            if item_code == "mask_nameless":
-                item = Item.objects.filter(code="mask_of_the_nameless").first()
-            elif item_code == "mask_of_the_nameless":
-                item = Item.objects.filter(code="mask_nameless").first()
-
-        if item:
-            item_dropped = item.code
-            rolled_stats = {}
-            rank = item.boss_rank or RANK_TO_LEVEL.get(encounter.boss.level, "E")
-            if rank in BOSS_RANK_STATS:
-                rules = BOSS_RANK_STATS[rank]
-                chosen_stats = random.sample(POSSIBLE_STATS, rules["count"])
-                for stat in chosen_stats:
-                    rolled_stats[stat] = random.randint(rules["min"], rules["max"])
-
-            inv_item, created = InventoryItem.objects.get_or_create(
-                user_profile=profile,
-                item=item,
-                defaults={"stat_bonuses": rolled_stats},
-            )
-            if not created:
-                inv_item.quantity += 1
-                if not inv_item.stat_bonuses and rolled_stats:
-                    inv_item.stat_bonuses = rolled_stats
-                inv_item.save(update_fields=["quantity", "stat_bonuses"])
-
-    sp_reward = (
-        getattr(encounter.boss, "reward_sp", None)
-        or SCROLL_BOSSES_DICT.get(encounter.boss.id_name, {}).get("reward", {}).get("sp")
-        or BOSS_RANK_SP.get(RANK_TO_LEVEL.get(encounter.boss.level, "E"), 3)
-    )
-    profile.skill_points = max(0, profile.skill_points + sp_reward)
-
-    profile.save(update_fields=["gold", "rank_xp", "skill_points", "mana"])
-
-    # Update UserStats and UserActivityLog for boss defeat
-    try:
-        from api.models import UserStats, UserActivityLog
-
-        stats, _ = UserStats.objects.get_or_create(user=user)
-        stats.bosses_defeated += 1
-        stats.save(update_fields=["bosses_defeated"])
-
-        UserActivityLog.objects.create(
-            user=user,
-            activity_type=UserActivityLog.ActivityType.BOSS_DEFEAT,
-            title=encounter.boss.name,
-            xp_earned=final_xp,
-            gold_earned=final_gold,
-            metadata={
-                "boss_level": encounter.boss.level,
-                "sp_reward": sp_reward,
-                "item_dropped": item_dropped,
-            },
-        )
-    except Exception:
-        pass
-
-    return {
-        "gold": final_gold,
-        "xp": final_xp,
-        "boss_sp": sp_reward,
-        "boss_mp": mp_reward,
-        "item_dropped": item_dropped,
-    }
+# process_boss_death() has been removed.
+# All boss-defeat logic is consolidated in mechanics.apply_boss_damage().
+# This prevents duplication and ensures HP heal (Luna L4), mana restore (Void L3),
+# omniscience cognitive bonus, and all rewards are always applied correctly.
 
 
 def calculate_fail_damage(task, profile, checklist_ratio=1.0):
@@ -245,8 +126,20 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     total_stats = profile.total_stats if isinstance(profile.total_stats, dict) else {}
     con_stat = max(1, total_stats.get("def", 1))
     con_reduction = min(0.55, (con_stat - 1) * 0.035)
+
+    # Item passives: Silk Mantle (-5%), Winter Plate (-12%), Luna L2 (-10%)
+    item_reduction = 0.0
+    try:
+        from api.services.mechanics import get_passive_multipliers
+
+        passives = get_passive_multipliers(profile, {})
+        item_reduction = passives.get("missed_daily_hp_reduction", 0.0)
+    except Exception:
+        pass
+
+    total_reduction = min(0.75, con_reduction + item_reduction)
     raw = BASE_DAMAGE * diff_mult * value_mult * checklist_ratio
-    return max(1, round(raw * (1 - con_reduction)))
+    return max(1, round(raw * (1 - total_reduction)))
 
 
 def calculate_habit_fail_hp(task, profile, for_next=False):
@@ -260,8 +153,8 @@ def calculate_habit_fail_hp(task, profile, for_next=False):
       - Текущий task.value (Habitica-style: отрицательный value увеличивает штраф)
       - neg_streak (текущий или следующий при for_next=True, +10% за каждый срыв подряд)
       - Реальный DEF персонажа (экипировка + класс + пассивки + престиж): def_multiplier = 100 / (100 + DEF)
-      - Навыки персонажа (pain_threshold: -25%, союзник luna L2+: -10%)
-      - Активные мутаторы (например, glass_cannon: +60% входящего урона)
+      - Навыки персонажа (pain_threshold: -25%, союзник luna L2+: -10%, winter_plate: -12%)
+      - Активные мутаторы (например, glass_cannon: +60% входящего урона, time_dilation: +30%)
     """
     BASE_DAMAGE = 2
     DIFF_MULT = {
@@ -302,6 +195,13 @@ def calculate_habit_fail_hp(task, profile, for_next=False):
         luna_ally = profile.recruited_allies.filter(ally_code="luna").first()
         if luna_ally and luna_ally.level >= 2:
             hp_loss_reduction -= 0.10
+        equipped_codes = (
+            profile.get_equipped_item_codes()
+            if hasattr(profile, "get_equipped_item_codes")
+            else set()
+        )
+        if "winter_plate" in equipped_codes:
+            hp_loss_reduction -= 0.12
     except Exception:
         pass
     hp_loss_reduction = max(0.0, hp_loss_reduction)
@@ -314,6 +214,8 @@ def calculate_habit_fail_hp(task, profile, for_next=False):
         active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
         if "glass_cannon" in active_ids:
             final_dmg *= 1.6
+        if "time_dilation" in active_ids:
+            final_dmg *= 1.3
 
     return max(1, round(final_dmg))
 
