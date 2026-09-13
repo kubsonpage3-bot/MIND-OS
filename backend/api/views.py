@@ -1547,10 +1547,12 @@ class TrainingLogView(generics.GenericAPIView):
             ps_mult = passive_effects.get("ps_mult", 1.0)
             vm_mult = passive_effects.get("vm_mult", 1.0)
             boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
-            gf_flat_bonus = mutator_effects.get("gc_flat", 0.0) + passive_effects.get(
-                "gf_flat_bonus", 0.0
-            )
-            gc_flat_bonus = passive_effects.get("gc_flat_bonus", 0.0)
+            # NOTE: mutator_effects["gc_flat"] (e.g. lexicon's "+0.01 Gc per
+            # session") belongs on Gc, not Gf — was misrouted here before.
+            gf_flat_bonus = passive_effects.get("gf_flat_bonus", 0.0)
+            gc_flat_bonus = mutator_effects.get(
+                "gc_flat", 0.0
+            ) + passive_effects.get("gc_flat_bonus", 0.0)
 
             unlocked_skills = set(
                 profile.unlocked_skills.values_list("skill_code", flat=True)  # type: ignore

@@ -474,6 +474,21 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         boss_dmg_mult += 0.08
     if "blade_final_dusk" in equipped_codes:
         boss_dmg_mult *= 2.0
+    # Ember Gauntlet: +6% boss damage (was only wired into the dead
+    # get_passive_multipliers()["boss_dmg_mult"] pipeline, never applied)
+    if "ember_gauntlet" in equipped_codes:
+        boss_dmg_mult += 0.06
+
+    # Void ally: +10% boss damage (L1-4), +50% (L5+) -- same dead-pipeline gap.
+    active_codes = profile.active_allies or []
+    if "void" in active_codes:
+        void_ally = profile.recruited_allies.filter(ally_code="void").first()  # type: ignore
+        if void_ally:
+            has_aura = profile.unlocked_skills.filter(  # type: ignore
+                skill_code="aura_of_focus"
+            ).exists()
+            ally_mult = 1.10 if has_aura else 1.0
+            boss_dmg_mult += (0.50 if void_ally.level >= 5 else 0.10) * ally_mult
 
     final_damage_dealt = int(final_damage_dealt * boss_dmg_mult)
 
