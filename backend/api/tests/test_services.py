@@ -1253,8 +1253,12 @@ def test_allies_perk_fixes(user, profile):
         # complete Daily - gold multiplier should have +5% bonus
         res_daily = complete_task(user, daily_task.id)
         assert res_daily["rewards"]["gold"] >= res_todo["rewards"]["gold"]
-        passives_neko = get_passive_multipliers(profile, {})
-        assert passives_neko.get("daily_gold_mult") == 1.05
+        # daily_gold_mult was a dead key nothing read; the real bonus now
+        # lands on gold_mult, scoped to task_type == "daily".
+        passives_neko_daily = get_passive_multipliers(profile, {"task_type": "daily"})
+        assert passives_neko_daily.get("gold_mult") == pytest.approx(1.05)
+        passives_neko_todo = get_passive_multipliers(profile, {"task_type": "todo"})
+        assert passives_neko_todo.get("gold_mult") == 1.0
 
         # Let's verify neko level 2 (streak_xp_mult) and level 3 (mana_flat_bonus)
         neko.level = 3

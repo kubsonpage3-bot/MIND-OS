@@ -1392,9 +1392,7 @@ def get_passive_multipliers(profile, context: dict):
         "prestige_bonus": 0.0,
         "skill_cost_reduction": 0.0,
         "prestige_start_rank": "E",
-        "daily_gold_mult": 1.0,
         "daily_completed_hp_heal": 0,
-        "streak_xp_mult": 0.0,
         "mana_flat_bonus": 0,
         "pwr_stat_bonus": 0,
         "def_stat_bonus": 0,
@@ -1674,13 +1672,22 @@ def get_passive_multipliers(profile, context: dict):
         effects["science_threshold_reduction"] += 0.10 * ally_mult
 
     neko_level = recruited_allies.get("neko", 0)
-    if neko_level >= 1:
-        effects["daily_gold_mult"] += 0.05 * ally_mult
-    if neko_level >= 2:
-        effects["streak_xp_mult"] += 0.08 * ally_mult
+    if neko_level >= 1 and context.get("task_type") == "daily":
+        # "Daily task completions give +5% extra Gold" -- was written to the
+        # dead "daily_gold_mult" key, which nothing ever read.
+        effects["gold_mult"] += 0.05 * ally_mult
+    if neko_level >= 2 and context.get("task_streak", 0) > 0:
+        # "Streak bonus XP +8%" -- was written to the dead "streak_xp_mult"
+        # key. Applies XP the same way other streak-scoped bonuses do
+        # (monks_path, ascetic_loop): only while an actual streak is active.
+        effects["xp_mult"] += 0.08 * ally_mult
     if neko_level >= 3:
         effects["mana_flat_bonus"] += int(3 * ally_mult)
     if neko_level >= 4:
+        # NOTE: this flag is consumed for HABIT streak protection in
+        # task_service.py's negative-habit path. It used to also (wrongly)
+        # gate DAILY streak protection in process_missed_tasks -- removed
+        # there, since the perk says "Habit streaks", not Daily.
         effects["habit_shield"] = True
     if neko_level >= 5:
         effects["gold_mult"] += 0.15 * ally_mult

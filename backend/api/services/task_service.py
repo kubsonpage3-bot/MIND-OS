@@ -584,6 +584,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.value = calc_new_value(task.value, "complete", "habit")
             task.pos_streak += 1
             task.neg_streak = 0
+            if isinstance(task.last_reward_data, dict):
+                task.last_reward_data["habit_shield_used"] = False
             # Streak bonus capped at 1.3x (reached at streak=15, +2% per step).
             # Cap matches focus_factor ceiling — habit discipline has real value
             # but cannot outpace a genuine training session indefinitely.
@@ -603,7 +605,27 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.value = calc_new_value(task.value, "fail", "habit")
             task.neg_streak += 1
             if not transcendence_active:
-                task.pos_streak = 0
+                # Neko L4: "Habit streaks never break on first miss." A quick
+                # direct check (passive_effects isn't computed yet at this
+                # point in the function) mirroring the lookup pattern used
+                # elsewhere for ally perks.
+                neko_shield_active = False
+                if "neko" in (profile.active_allies or []):
+                    neko_ally = profile.recruited_allies.filter(  # type: ignore
+                        ally_code="neko"
+                    ).first()
+                    neko_shield_active = bool(neko_ally and neko_ally.level >= 4)
+
+                if not isinstance(task.last_reward_data, dict):
+                    task.last_reward_data = {}
+
+                if neko_shield_active and not task.last_reward_data.get(
+                    "habit_shield_used", False
+                ):
+                    task.last_reward_data["habit_shield_used"] = True
+                else:
+                    task.pos_streak = 0
+                    task.last_reward_data["habit_shield_used"] = False
 
             context = {
                 "is_science": False,
@@ -1563,6 +1585,23 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             ),
         )
 
+        # Kage L5 Executioner: 5x damage to boss below 15% HP. (The downside
+        # half of this perk -- +50% HP damage taken on task failure -- is
+        # in process_missed_tasks; this is the reward half, which was
+        # missing entirely.)
+        if recruited_allies.get("kage", 0) >= 5:
+            from api.models import BossEncounter as _BossEncounter
+
+            _kage_encounter = _BossEncounter.objects.filter(
+                user=user, is_defeated=False
+            ).first()
+            if (
+                _kage_encounter
+                and _kage_encounter.boss
+                and _kage_encounter.hp_current < _kage_encounter.boss.hp_max * 0.15
+            ):
+                final_damage_dealt *= 5
+
         # Blood Harvest (Warlord): +40% Boss Damage and 20% Vampirism heal
         blood_harvest_effect = ActiveEffect.objects.filter(
             user=user, skill_id="blood_harvest", expires_at__gt=timezone.now()
@@ -2123,20 +2162,9 @@ def process_missed_tasks(user):
             total_dmg += final_dmg
             task.is_completed = False
             if not streak_protected:
-                habit_shield = passive_effects.get("habit_shield", False)
-                if not isinstance(task.last_reward_data, dict):
-                    task.last_reward_data = {}
-
-                if habit_shield:
-                    shield_used = task.last_reward_data.get("shield_used", False)
-                    if not shield_used:
-                        task.last_reward_data["shield_used"] = True
-                    else:
-                        task.streak = 0
-                        task.last_reward_data["shield_used"] = False
-                else:
-                    task.streak = 0
-                    task.last_reward_data["shield_used"] = False
+                # Neko L4's shield is for Habit streaks specifically (see the
+                # negative-habit completion path), not Dailies.
+                task.streak = 0
 
             task.value = calc_new_value(task.value, "fail", "daily")
 
