@@ -1876,7 +1876,9 @@ class TrainingLogView(generics.GenericAPIView):
             )  # Base 10 + PWR from mechanics
 
             final_damage_dealt = int(
-                (raw_boss_dmg + damage_dealt) * profile.damage_multiplier
+                (raw_boss_dmg + damage_dealt)
+                * profile.damage_multiplier
+                * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
             )
             is_crit = outcome.get("is_crit", False)
 

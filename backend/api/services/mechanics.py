@@ -393,12 +393,6 @@ def calculate_task_outcome(
         if mutator_effects:
             final_hp_lost *= mutator_effects.get("damage_taken_mult", 1.0)
 
-            # Mirror mutator: 30% chance to negate damage and convert to XP
-            if mutator_effects.get("trigger_mirror") and final_hp_lost > 0:
-                if random.random() < 0.30:
-                    result["xp_earned"] += int(final_hp_lost)
-                    final_hp_lost = 0
-
         # Grier L2: Shield slam
         grier_ally = profile.recruited_allies.filter(ally_code="grier").first()  # type: ignore
         if grier_ally and grier_ally.level >= 2 and profile.mana >= 5:
@@ -716,6 +710,32 @@ def revert_boss_damage(user, encounter_id, damage_to_heal):
         pass
 
 
+def set_mutator_data(profile, mutator_id, updates: dict):
+    """
+    Merges `updates` into the stored `data` dict of one active mutator
+    (profile.active_mutators["active"][i]["data"]), in place on `profile`.
+    Used for mutators that need to remember state day-to-day (momentum's
+    streak counter, phantom_load's yesterday_hours, iron_routine's penalty
+    window, ...). Caller must still save(update_fields=["active_mutators", ...]).
+    Silently no-ops if the mutator isn't in the active list (nothing to update).
+    """
+    active_mutators = profile.active_mutators or {}
+    if not isinstance(active_mutators, dict):
+        return
+    active_list = active_mutators.get("active", [])
+    changed = False
+    for m in active_list:
+        if isinstance(m, dict) and m.get("id") == mutator_id:
+            data = m.get("data") or {}
+            data.update(updates)
+            m["data"] = data
+            changed = True
+            break
+    if changed:
+        active_mutators["active"] = active_list
+        profile.active_mutators = active_mutators
+
+
 def check_and_expire_mutators(profile):
     """
     Checks if active mutators have expired based on their durationDays.
@@ -810,16 +830,12 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         "gc_flat": 0.0,
         "shop_cost_mult": 1.0,
         "is_dead": False,
-        "trigger_volatile": False,
-        "trigger_echo": False,
-        "trigger_mirror": False,
         "silent_mode": False,
         "streak_xp_bonus": 0,
+        "mirror_boss_dmg_mult": 1.0,       # Same-category-as-last-session boss dmg boost
         # New keys for previously-missing mutators
         "null_zone_active": False,        # Disables XP, converts to gold bonus
         "gamblers_ledger_active": False,  # Routes gold to ledger account
-        "alchemist_overflow_rate": 0.0,   # XP overflow-to-gold conversion rate
-        "sacrificial_altar_active": False, # Spend HP to gain SP
         "chronomancer_active": False,     # Streak freeze flag
     }
 
@@ -969,8 +985,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             effects["final_gold_mult"] *= 2.0
 
     if "mirror" in active_ids:
+        # "Same domain task as last session: +15% boss damage."
         if task_category and profile.last_completed_category == task_category:
-            effects["trigger_mirror"] = True
+            effects["mirror_boss_dmg_mult"] = 1.15
 
     # ── WILD ──
     if "gambler" in active_ids:
@@ -1135,11 +1152,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         # Zero out XP; 50% of XP value is converted to bonus Gold in task_service
         effects["final_xp_mult"] = 0.0
 
-    # alchemist: When XP would overflow the current level cap, convert the overflow
-    # portion to gold at 2 gold per 1 XP overflow. Main conversion handled in
-    # task_service using the flag.
-    if "alchemist" in active_ids:
-        effects["alchemist_overflow_rate"] = 2.0  # 2 gold per overflow XP
+    # alchemist: "At daily reset, converts all unspent Mana into Gold" — settled
+    # once/day in task_service.process_missed_tasks (the one reliable daily-
+    # rollover hook this app actually invokes). Nothing to do here per-request.
 
     # gamblers_ledger: All gold rewards are redirected to a locked ledger account.
     # The ledger pays out weekly with +50% bonus (handled in daily_service).
@@ -1155,21 +1170,16 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     # Flag read by task_service (already implemented there).
 
     # time_dilation: 3x XP and Gold (already set via final_xp_mult *= 3.0 above).
-    # Adding the downside: +30% incoming damage to balance the extreme multiplier.
-    if "time_dilation" in active_ids:
-        effects["damage_taken_mult"] += 0.30
+    # No other drawback — the description only promises the 2h minimum session
+    # requirement (enforced in serializers/training.py), nothing about damage.
 
     # chronomancer: Protects streak on a missed day (14-day cooldown).
     # Activation logic is in daily_service.py. Flag used for UI display.
     if "chronomancer" in active_ids:
         effects["chronomancer_active"] = True
 
-    # sacrificial_altar: On each task completion, spend 5 HP to gain 1 SP.
-    # Applied in task_service after task is completed. Flag signals active state.
-    if "sacrificial_altar" in active_ids:
-        effects["sacrificial_altar_active"] = True
-        # Drawback: -5% gold per task (ritual cost)
-        effects["gold_mult"] -= 0.05
+    # sacrificial_altar: its one described effect is the manual "delete an old
+    # Habit/Daily for a reward" action (views.py). No passive per-task cost.
 
     return effects
 
