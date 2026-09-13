@@ -353,8 +353,9 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 gc_mult = passive_effects.get("gc_mult", 1.0)
                 ps_mult = passive_effects.get("ps_mult", 1.0)
                 vm_mult = passive_effects.get("vm_mult", 1.0)
-                gf_flat_bonus = mutator_effects.get("gc_flat", 0.0) + passive_effects.get("gf_flat_bonus", 0.0)
-                gc_flat_bonus = passive_effects.get("gc_flat_bonus", 0.0)
+                # NOTE: mutator_effects["gc_flat"] belongs on Gc, not Gf.
+                gf_flat_bonus = passive_effects.get("gf_flat_bonus", 0.0)
+                gc_flat_bonus = mutator_effects.get("gc_flat", 0.0) + passive_effects.get("gc_flat_bonus", 0.0)
 
                 gf_gain = gains.get("gf", 0.0)
                 gc_gain = gains.get("gc", 0.0)

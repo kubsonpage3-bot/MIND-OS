@@ -553,6 +553,18 @@ function HistoryItemCard({ item }) {
           ))}
         </div>
       )}
+
+      {/* Reward breakdown — why this entry paid out what it did */}
+      {Array.isArray(item.metadata?.breakdown) && item.metadata.breakdown.length > 0 && (
+        <div className={`flex gap-1 mt-2 ${gains.length === 0 ? "pt-2.5 border-t border-[var(--habit-border)]" : ""} flex-wrap pl-2.5`}>
+          {item.metadata.breakdown.map((note, i) => (
+            <span key={i} className="px-1.5 py-0.5 rounded text-[9px] font-semibold text-[var(--habit-dim)] bg-[var(--habit-border)]/40"
+              style={{ fontFamily: "'Nunito'" }}>
+              {note}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

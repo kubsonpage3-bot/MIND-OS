@@ -24,7 +24,8 @@ def test_user_and_profile():
 
 
 @pytest.mark.django_db
-def test_miser_mutator_discount(test_user_and_profile):
+def test_miser_blocks_shop_spending(test_user_and_profile):
+    # "Cannot spend Gold on shop items." -- not a discount, an outright block.
     user, profile, stats = test_user_and_profile
 
     # Create shop item
@@ -37,7 +38,7 @@ def test_miser_mutator_discount(test_user_and_profile):
         },
     )
 
-    # Verify cost without miser
+    # Verify purchase succeeds without miser
     profile.active_mutators = {}
     profile.save()
 
@@ -45,14 +46,15 @@ def test_miser_mutator_discount(test_user_and_profile):
     assert success
     assert p_after.gold == 900  # 1000 - 100
 
-    # Verify cost with miser
+    # With miser active, the same purchase is blocked and gold is untouched.
     p_after.gold = 1000
     p_after.active_mutators = {"active": [{"id": "miser"}]}
     p_after.save()
 
     success, msg, p_after2 = buy_item(user, "test_scroll_miser")
-    assert success
-    assert p_after2.gold == 920  # 1000 - 80 (20% discount)
+    assert not success
+    assert "cannot spend" in msg.lower()
+    assert p_after2.gold == 1000
 
 
 @pytest.mark.django_db

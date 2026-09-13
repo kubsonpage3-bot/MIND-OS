@@ -164,7 +164,7 @@ def test_vivian_perks(test_user_and_profile):
     )
     profile.active_allies = ["vivian"]
     profile.hp = 100
-    profile.mana = 5  # Insufficient mana for iron_fast (requires 35 mana)
+    profile.mana = 5  # Insufficient mana for iron_fast (alias for eye_of_the_storm, requires 40 mana)
     profile.character_class = "ascetic"
     profile.save()
 
@@ -191,7 +191,7 @@ def test_vivian_perks(test_user_and_profile):
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 0
-    assert profile.hp == 85  # Lost 15 HP
+    assert profile.hp == 82  # missing_mana=35 -> hp_cost=ceil(35/2)=18, lost 18 HP
 
     task = Task.objects.create(
         user=user, title="Todo 1", task_type=Task.TaskType.TODO, difficulty="medium"

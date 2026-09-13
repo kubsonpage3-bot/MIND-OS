@@ -393,12 +393,6 @@ def calculate_task_outcome(
         if mutator_effects:
             final_hp_lost *= mutator_effects.get("damage_taken_mult", 1.0)
 
-            # Mirror mutator: 30% chance to negate damage and convert to XP
-            if mutator_effects.get("trigger_mirror") and final_hp_lost > 0:
-                if random.random() < 0.30:
-                    result["xp_earned"] += int(final_hp_lost)
-                    final_hp_lost = 0
-
         # Grier L2: Shield slam
         grier_ally = profile.recruited_allies.filter(ally_code="grier").first()  # type: ignore
         if grier_ally and grier_ally.level >= 2 and profile.mana >= 5:
@@ -480,6 +474,21 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         boss_dmg_mult += 0.08
     if "blade_final_dusk" in equipped_codes:
         boss_dmg_mult *= 2.0
+    # Ember Gauntlet: +6% boss damage (was only wired into the dead
+    # get_passive_multipliers()["boss_dmg_mult"] pipeline, never applied)
+    if "ember_gauntlet" in equipped_codes:
+        boss_dmg_mult += 0.06
+
+    # Void ally: +10% boss damage (L1-4), +50% (L5+) -- same dead-pipeline gap.
+    active_codes = profile.active_allies or []
+    if "void" in active_codes:
+        void_ally = profile.recruited_allies.filter(ally_code="void").first()  # type: ignore
+        if void_ally:
+            has_aura = profile.unlocked_skills.filter(  # type: ignore
+                skill_code="aura_of_focus"
+            ).exists()
+            ally_mult = 1.10 if has_aura else 1.0
+            boss_dmg_mult += (0.50 if void_ally.level >= 5 else 0.10) * ally_mult
 
     final_damage_dealt = int(final_damage_dealt * boss_dmg_mult)
 
@@ -716,6 +725,32 @@ def revert_boss_damage(user, encounter_id, damage_to_heal):
         pass
 
 
+def set_mutator_data(profile, mutator_id, updates: dict):
+    """
+    Merges `updates` into the stored `data` dict of one active mutator
+    (profile.active_mutators["active"][i]["data"]), in place on `profile`.
+    Used for mutators that need to remember state day-to-day (momentum's
+    streak counter, phantom_load's yesterday_hours, iron_routine's penalty
+    window, ...). Caller must still save(update_fields=["active_mutators", ...]).
+    Silently no-ops if the mutator isn't in the active list (nothing to update).
+    """
+    active_mutators = profile.active_mutators or {}
+    if not isinstance(active_mutators, dict):
+        return
+    active_list = active_mutators.get("active", [])
+    changed = False
+    for m in active_list:
+        if isinstance(m, dict) and m.get("id") == mutator_id:
+            data = m.get("data") or {}
+            data.update(updates)
+            m["data"] = data
+            changed = True
+            break
+    if changed:
+        active_mutators["active"] = active_list
+        profile.active_mutators = active_mutators
+
+
 def check_and_expire_mutators(profile):
     """
     Checks if active mutators have expired based on their durationDays.
@@ -810,16 +845,12 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         "gc_flat": 0.0,
         "shop_cost_mult": 1.0,
         "is_dead": False,
-        "trigger_volatile": False,
-        "trigger_echo": False,
-        "trigger_mirror": False,
         "silent_mode": False,
         "streak_xp_bonus": 0,
+        "mirror_boss_dmg_mult": 1.0,       # Same-category-as-last-session boss dmg boost
         # New keys for previously-missing mutators
         "null_zone_active": False,        # Disables XP, converts to gold bonus
         "gamblers_ledger_active": False,  # Routes gold to ledger account
-        "alchemist_overflow_rate": 0.0,   # XP overflow-to-gold conversion rate
-        "sacrificial_altar_active": False, # Spend HP to gain SP
         "chronomancer_active": False,     # Streak freeze flag
     }
 
@@ -931,7 +962,10 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         effects["xp_mult"] += bonus
 
     if "ascetic_loop" in active_ids and context.get("task_type") == "daily":
-        effects["flat_xp"] += 5
+        # "Streak gives Rank XP: streak x0.2/day. Break streak: lose all bonus
+        # XP." — scales with the daily's own streak rather than a flat +5;
+        # once the streak resets to 0 the bonus naturally drops to 0 too.
+        effects["flat_xp"] += context.get("task_streak", 0) * 0.2
 
     # ── CHALLENGE ──
     if "diversity_lock" in active_ids:
@@ -969,8 +1003,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             effects["final_gold_mult"] *= 2.0
 
     if "mirror" in active_ids:
+        # "Same domain task as last session: +15% boss damage."
         if task_category and profile.last_completed_category == task_category:
-            effects["trigger_mirror"] = True
+            effects["mirror_boss_dmg_mult"] = 1.15
 
     # ── WILD ──
     if "gambler" in active_ids:
@@ -1135,11 +1170,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         # Zero out XP; 50% of XP value is converted to bonus Gold in task_service
         effects["final_xp_mult"] = 0.0
 
-    # alchemist: When XP would overflow the current level cap, convert the overflow
-    # portion to gold at 2 gold per 1 XP overflow. Main conversion handled in
-    # task_service using the flag.
-    if "alchemist" in active_ids:
-        effects["alchemist_overflow_rate"] = 2.0  # 2 gold per overflow XP
+    # alchemist: "At daily reset, converts all unspent Mana into Gold" — settled
+    # once/day in task_service.process_missed_tasks (the one reliable daily-
+    # rollover hook this app actually invokes). Nothing to do here per-request.
 
     # gamblers_ledger: All gold rewards are redirected to a locked ledger account.
     # The ledger pays out weekly with +50% bonus (handled in daily_service).
@@ -1155,21 +1188,16 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     # Flag read by task_service (already implemented there).
 
     # time_dilation: 3x XP and Gold (already set via final_xp_mult *= 3.0 above).
-    # Adding the downside: +30% incoming damage to balance the extreme multiplier.
-    if "time_dilation" in active_ids:
-        effects["damage_taken_mult"] += 0.30
+    # No other drawback — the description only promises the 2h minimum session
+    # requirement (enforced in serializers/training.py), nothing about damage.
 
     # chronomancer: Protects streak on a missed day (14-day cooldown).
     # Activation logic is in daily_service.py. Flag used for UI display.
     if "chronomancer" in active_ids:
         effects["chronomancer_active"] = True
 
-    # sacrificial_altar: On each task completion, spend 5 HP to gain 1 SP.
-    # Applied in task_service after task is completed. Flag signals active state.
-    if "sacrificial_altar" in active_ids:
-        effects["sacrificial_altar_active"] = True
-        # Drawback: -5% gold per task (ritual cost)
-        effects["gold_mult"] -= 0.05
+    # sacrificial_altar: its one described effect is the manual "delete an old
+    # Habit/Daily for a reward" action (views.py). No passive per-task cost.
 
     return effects
 
@@ -1364,9 +1392,7 @@ def get_passive_multipliers(profile, context: dict):
         "prestige_bonus": 0.0,
         "skill_cost_reduction": 0.0,
         "prestige_start_rank": "E",
-        "daily_gold_mult": 1.0,
         "daily_completed_hp_heal": 0,
-        "streak_xp_mult": 0.0,
         "mana_flat_bonus": 0,
         "pwr_stat_bonus": 0,
         "def_stat_bonus": 0,
@@ -1646,13 +1672,22 @@ def get_passive_multipliers(profile, context: dict):
         effects["science_threshold_reduction"] += 0.10 * ally_mult
 
     neko_level = recruited_allies.get("neko", 0)
-    if neko_level >= 1:
-        effects["daily_gold_mult"] += 0.05 * ally_mult
-    if neko_level >= 2:
-        effects["streak_xp_mult"] += 0.08 * ally_mult
+    if neko_level >= 1 and context.get("task_type") == "daily":
+        # "Daily task completions give +5% extra Gold" -- was written to the
+        # dead "daily_gold_mult" key, which nothing ever read.
+        effects["gold_mult"] += 0.05 * ally_mult
+    if neko_level >= 2 and context.get("task_streak", 0) > 0:
+        # "Streak bonus XP +8%" -- was written to the dead "streak_xp_mult"
+        # key. Applies XP the same way other streak-scoped bonuses do
+        # (monks_path, ascetic_loop): only while an actual streak is active.
+        effects["xp_mult"] += 0.08 * ally_mult
     if neko_level >= 3:
         effects["mana_flat_bonus"] += int(3 * ally_mult)
     if neko_level >= 4:
+        # NOTE: this flag is consumed for HABIT streak protection in
+        # task_service.py's negative-habit path. It used to also (wrongly)
+        # gate DAILY streak protection in process_missed_tasks -- removed
+        # there, since the perk says "Habit streaks", not Daily.
         effects["habit_shield"] = True
     if neko_level >= 5:
         effects["gold_mult"] += 0.15 * ally_mult

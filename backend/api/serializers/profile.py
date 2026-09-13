@@ -244,21 +244,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         return calculate_battery_level(obj)
 
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        if instance.pk:
-            recruited_codes = set(
-                instance.recruited_allies.values_list("ally_code", flat=True)
-            )
-            active = ret.get("active_allies") or []
-            if isinstance(active, list):
-                cleaned_active = [code for code in active if code in recruited_codes]
-                ret["active_allies"] = cleaned_active
-                if cleaned_active != active:
-                    instance.active_allies = cleaned_active
-                    instance.save(update_fields=["active_allies"])
-        return ret
-
     def validate_active_allies(self, value):
         if isinstance(value, list):
             instance = self.instance
@@ -430,6 +415,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+
+        # Self-heal active_allies: drop any code that isn't (or is no longer) recruited.
+        if instance.pk:
+            recruited_codes = set(
+                instance.recruited_allies.values_list("ally_code", flat=True)
+            )
+            active_allies = data.get("active_allies") or []
+            if isinstance(active_allies, list):
+                cleaned_allies = [
+                    code for code in active_allies if code in recruited_codes
+                ]
+                data["active_allies"] = cleaned_allies
+                if cleaned_allies != active_allies:
+                    instance.active_allies = cleaned_allies
+                    instance.save(update_fields=["active_allies"])
+
         raw_mutators = instance.active_mutators
         if isinstance(raw_mutators, dict):
             active = raw_mutators.get("active", [])

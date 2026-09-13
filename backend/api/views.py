@@ -1260,7 +1260,7 @@ class PrestigeView(generics.GenericAPIView):
     def post(self, request):
         from django.db import transaction  # type: ignore
         from api.constants import get_prestige_xp_required
-        from api.services.rpg_service import respec_skill_nodes
+        from api.services.profile_service import execute_prestige
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -1270,59 +1270,8 @@ class PrestigeView(generics.GenericAPIView):
                     {"detail": (f"You must reach {required_xp} " "XP to prestige.")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            from api.services.mechanics import get_passive_multipliers
 
-            passive_effects = get_passive_multipliers(profile, {})
-            p_bonus = passive_effects.get("prestige_bonus", 0.0)
-
-            profile.prestige_count += 1
-            profile.damage_multiplier = round(
-                profile.damage_multiplier + 0.1 + p_bonus, 4
-            )
-            profile.gold_multiplier = round(profile.gold_multiplier + 0.15 + p_bonus, 4)
-            profile.xp_multiplier = round(profile.xp_multiplier + 0.15 + p_bonus, 4)
-
-            # Increase IQ ceilings permanently by flat +5.0 points per prestige
-            profile.gf_ceiling = round(profile.gf_ceiling + 5.0, 2)
-            profile.gc_ceiling = round(profile.gc_ceiling + 5.0, 2)
-            profile.ps_ceiling = round(profile.ps_ceiling + 5.0, 2)
-            profile.vm_ceiling = round(profile.vm_ceiling + 5.0, 2)
-
-            profile.level = 1
-            profile.xp = 0
-            profile.xp_to_next_level = 100
-
-            # Use computed max_hp and max_mana properties
-            profile.hp = profile.max_hp
-            profile.mana = profile.max_mana
-
-            # Start rank
-            start_rank = passive_effects.get("prestige_start_rank", "E")
-            if start_rank == "C":
-                profile.rank_xp = 600
-            else:
-                profile.rank_xp = 0
-
-            # Grant +5 Skill Points as promised in UI
-            profile.skill_points = (profile.skill_points or 0) + 5
-
-            profile.save()
-
-            # Free skill tree respec (refunds all spent nodes back as skill points)
-            respec_skill_nodes(request.user, free=True)
-
-            # Reset training tasks if they exist in the DB (safe check for 'rank' field)
-            from api.models import Task
-
-            task_fields = [f.name for f in Task._meta.get_fields()]
-            if "rank" in task_fields:
-                Task.objects.filter(user=request.user, task_type="training").update(
-                    rank="F", value=0.0
-                )
-
-            # Unequip all inventory items
-            profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)  # type: ignore
-            profile.save()
+            execute_prestige(profile, request.user)
 
         return Response(
             {
@@ -1598,10 +1547,12 @@ class TrainingLogView(generics.GenericAPIView):
             ps_mult = passive_effects.get("ps_mult", 1.0)
             vm_mult = passive_effects.get("vm_mult", 1.0)
             boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
-            gf_flat_bonus = mutator_effects.get("gc_flat", 0.0) + passive_effects.get(
-                "gf_flat_bonus", 0.0
-            )
-            gc_flat_bonus = passive_effects.get("gc_flat_bonus", 0.0)
+            # NOTE: mutator_effects["gc_flat"] (e.g. lexicon's "+0.01 Gc per
+            # session") belongs on Gc, not Gf — was misrouted here before.
+            gf_flat_bonus = passive_effects.get("gf_flat_bonus", 0.0)
+            gc_flat_bonus = mutator_effects.get(
+                "gc_flat", 0.0
+            ) + passive_effects.get("gc_flat_bonus", 0.0)
 
             unlocked_skills = set(
                 profile.unlocked_skills.values_list("skill_code", flat=True)  # type: ignore
@@ -1638,19 +1589,6 @@ class TrainingLogView(generics.GenericAPIView):
                 gains = {k: 0.0 for k in gains}
 
             from api.models import ActiveEffect
-
-            meditation_effect = ActiveEffect.objects.filter(
-                user=request.user, skill_id="meditation"
-            ).first()
-            if (
-                meditation_effect
-                and meditation_effect.data.get("sessionsRemaining", 0) > 0
-            ):
-                meditation_effect.data["sessionsRemaining"] -= 1
-                meditation_effect.save(update_fields=["data"])
-                print(
-                    f"[Training View] Meditation active. Focus rating boosted. Remaining sessions: {meditation_effect.data['sessionsRemaining']}."
-                )
 
             if ActiveEffect.objects.filter(
                 user=request.user, skill_id="infinite_loop"
@@ -1694,6 +1632,26 @@ class TrainingLogView(generics.GenericAPIView):
             base_gold = rewards["gold"] * gold_mult
             raw_boss_dmg = rewards["dmg"]
 
+            # Reward breakdown — surfaced in the response and UserActivityLog.metadata
+            # so History can show *why* a session paid out what it did, not just the total.
+            breakdown = [f"Base +{rewards['xp']} XP"]
+            if xp_mult != 1.0:
+                breakdown.append(f"Mutators/passives {xp_mult:+.0%}")
+            if flat_xp_bonus:
+                breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+
+            # Apply "final" multiplicative mutators (echo, gambler, volatile,
+            # time_dilation, diversity_lock, zero_hour) — same as task_service.py's
+            # _complete_task_logic. Without this, these mutators only affected
+            # Task completions and silently did nothing for Activity/Study logs.
+            final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
+            final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
+            if final_xp_mult != 1.0:
+                base_xp = int(base_xp * final_xp_mult)
+                breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
+            if final_gold_mult != 1.0:
+                base_gold = int(base_gold * final_gold_mult)
+
             if task:
                 # Increment completion stats for custom button tasks
                 task.completion_count += 1
@@ -1709,7 +1667,17 @@ class TrainingLogView(generics.GenericAPIView):
                 passive_effects=passive_effects,
             )
 
+            pwr_pct = min(0.50, profile.total_stats.get("pwr", 0) * 0.005)
+            if pwr_pct > 0:
+                breakdown.append(f"PWR +{pwr_pct:.1%}")
+            if outcome.get("is_crit"):
+                crit_mult = passive_effects.get("crit_damage_mult", 2.0)
+                foc_crit_chance = min(1.0, profile.total_stats.get("foc", 0) * 0.005)
+                breakdown.append(f"Crit! (×{crit_mult:g}, {foc_crit_chance:.1%} chance)")
+
             final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
+            if profile.xp_multiplier != 1.0:
+                breakdown.append(f"Gear/Prestige ×{profile.xp_multiplier:.2f}")
             if lyra_zero_rewards:
                 final_xp = 0
 
@@ -1718,6 +1686,7 @@ class TrainingLogView(generics.GenericAPIView):
                     (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
                 )
                 final_xp += godmind_bonus
+                breakdown.append(f"Godmind +{godmind_bonus} XP")
 
             task_cat_lower = task_category.lower() if task_category else ""
             if (
@@ -1878,7 +1847,9 @@ class TrainingLogView(generics.GenericAPIView):
             )  # Base 10 + PWR from mechanics
 
             final_damage_dealt = int(
-                (raw_boss_dmg + damage_dealt) * profile.damage_multiplier
+                (raw_boss_dmg + damage_dealt)
+                * profile.damage_multiplier
+                * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
             )
             is_crit = outcome.get("is_crit", False)
 
@@ -1943,6 +1914,7 @@ class TrainingLogView(generics.GenericAPIView):
                 metadata={
                     "activity_key": activity,
                     "efficiency": eff_total,
+                    "breakdown": breakdown,
                 },
             )
         except Exception as e:
@@ -1954,6 +1926,7 @@ class TrainingLogView(generics.GenericAPIView):
                 "profile": UserProfileSerializer(profile).data,
                 "gold_earned": final_gold,
                 "xp_earned": final_xp,
+                "breakdown": breakdown,
                 "combat": combat_result,
                 "gf_gain": gf_gain,
                 "gc_gain": gc_gain,

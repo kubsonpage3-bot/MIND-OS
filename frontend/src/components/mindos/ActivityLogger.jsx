@@ -615,10 +615,12 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
               const pwr = stats.pwr || 0;
               const spd = stats.spd || 0;
               const lck = stats.lck || 0;
+              const foc = stats.foc || 0;
 
               const pwrPct = Math.min(0.50, pwr * 0.005);
               const spdPct = Math.min(0.50, spd * 0.005);
               const lckGoldMult = lck <= 100 ? (1.0 + lck / 100.0) : (2.0 + (lck - 100) * 0.005);
+              const critChance = Math.min(1, foc * 0.005);
 
               const actObj = allActivities[selectedActivity];
               const actMastery = actObj?.masteryCategory || resolveMasteryCategory(selectedActivity);
@@ -628,6 +630,21 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
               const expectedXp = Math.max(0, Math.round(previewRewards.xp * classXpMult * (1.0 + pwrPct) * xpMultStats));
               const expectedGold = Math.max(0, Math.round(previewRewards.gold * (1.0 + spdPct) * lckGoldMult * goldMultStats));
               const expectedDmg = Math.max(0, Math.round((previewRewards.dmg + 10 + pwr) * dmgMultStats));
+
+              // Range: this baseline (guaranteed) up to what a lucky crit +
+              // an active "burst" mutator (echo/gambler/volatile/time_dilation)
+              // could realistically stack to. Neither is shown as guaranteed --
+              // crit is a per-session dice roll, burst mutators are conditional.
+              const activeMutatorIds = (
+                Array.isArray(profile?.active_mutators?.active) ? profile.active_mutators.active : []
+              ).map(m => (typeof m === "string" ? m : m?.id));
+              const burstMult = activeMutatorIds.includes("time_dilation") ? 3
+                : activeMutatorIds.some(id => ["echo", "gambler", "volatile", "double_nothing"].includes(id)) ? 2
+                : 1;
+              const maxMult = burstMult * 2; // x2 on top for a landed crit
+              const maxXp = Math.round(expectedXp * maxMult);
+              const maxGold = Math.round(expectedGold * burstMult);
+              const showRange = maxMult > 1;
 
               return (
                 <div className="rounded-xl border border-border/40 bg-muted/10 p-3 font-mono text-xs space-y-2">
@@ -641,11 +658,15 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                   </div>
                   <div className="flex justify-around gap-4 text-center">
                     <div>
-                      <div className="text-blue-400 font-pixel text-lg">+{expectedXp} XP</div>
+                      <div className="text-blue-400 font-pixel text-lg">
+                        +{expectedXp}{showRange ? `–${maxXp}` : ""} XP
+                      </div>
                       <div className="text-[8.5px] text-muted-foreground mt-0.5">{t('training_extra.experience', 'Experience')}</div>
                     </div>
                     <div>
-                      <div className="text-yellow-500 font-pixel text-lg">+{expectedGold}G</div>
+                      <div className="text-yellow-500 font-pixel text-lg">
+                        +{expectedGold}{showRange ? `–${maxGold}` : ""}G
+                      </div>
                       <div className="text-[8.5px] text-muted-foreground mt-0.5">{t('training_extra.gold', 'Gold')}</div>
                     </div>
                     <div>
@@ -653,6 +674,16 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                       <div className="text-[8.5px] text-muted-foreground mt-0.5">{t('training_extra.boss_dmg', 'Boss DMG')}</div>
                     </div>
                   </div>
+                  {showRange && (
+                    <div className="text-center text-[8px] text-muted-foreground/60">
+                      {t('training_extra.range_hint', 'Higher end needs a landed crit + your active burst mutator to both hit')}
+                    </div>
+                  )}
+                  {!showRange && critChance > 0 && (
+                    <div className="text-center text-[8px] text-muted-foreground/60">
+                      {t('training_extra.crit_hint', `~${Math.round(critChance * 100)}% crit chance can double this`)}
+                    </div>
+                  )}
                 </div>
               );
             })()}

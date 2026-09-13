@@ -584,6 +584,8 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.value = calc_new_value(task.value, "complete", "habit")
             task.pos_streak += 1
             task.neg_streak = 0
+            if isinstance(task.last_reward_data, dict):
+                task.last_reward_data["habit_shield_used"] = False
             # Streak bonus capped at 1.3x (reached at streak=15, +2% per step).
             # Cap matches focus_factor ceiling — habit discipline has real value
             # but cannot outpace a genuine training session indefinitely.
@@ -603,7 +605,27 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             task.value = calc_new_value(task.value, "fail", "habit")
             task.neg_streak += 1
             if not transcendence_active:
-                task.pos_streak = 0
+                # Neko L4: "Habit streaks never break on first miss." A quick
+                # direct check (passive_effects isn't computed yet at this
+                # point in the function) mirroring the lookup pattern used
+                # elsewhere for ally perks.
+                neko_shield_active = False
+                if "neko" in (profile.active_allies or []):
+                    neko_ally = profile.recruited_allies.filter(  # type: ignore
+                        ally_code="neko"
+                    ).first()
+                    neko_shield_active = bool(neko_ally and neko_ally.level >= 4)
+
+                if not isinstance(task.last_reward_data, dict):
+                    task.last_reward_data = {}
+
+                if neko_shield_active and not task.last_reward_data.get(
+                    "habit_shield_used", False
+                ):
+                    task.last_reward_data["habit_shield_used"] = True
+                else:
+                    task.pos_streak = 0
+                    task.last_reward_data["habit_shield_used"] = False
 
             context = {
                 "is_science": False,
@@ -677,10 +699,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
 
-            if "ironman" in active_ids:
-                profile.hp = max(1, int(profile.hp * 0.75))
-                profile.gold = max(0, int(profile.gold * 0.90))
-
             profile.save(
                 update_fields=[
                     "hp",
@@ -693,7 +711,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 ]
             )
 
-            died = check_death(profile)
+            # Ironman: "HP hits 0 -> forced prestige" instead of the normal
+            # death reset (no minimum Rank XP threshold — it's forced).
+            if profile.hp <= 0 and "ironman" in active_ids:
+                from api.services.profile_service import execute_prestige
+
+                execute_prestige(profile, user)
+                died = False
+            else:
+                died = check_death(profile)
 
             if not isinstance(task.last_reward_data, dict):
                 task.last_reward_data = {}
@@ -859,11 +885,20 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     base_xp = int((rewards.get("xp", 0) + flat_xp_bonus) * xp_mult)
     base_gold = int(rewards.get("gold", 0) * gold_mult)
 
+    # Reward breakdown — surfaced in UserActivityLog.metadata so History can
+    # show *why* a task paid out what it did, not just the total.
+    reward_breakdown = [f"Base +{rewards.get('xp', 0)} XP"]
+    if xp_mult != 1.0:
+        reward_breakdown.append(f"Mutators/passives {xp_mult:+.0%}")
+    if flat_xp_bonus:
+        reward_breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+
     final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
     final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
 
     if final_xp_mult != 1.0:
         base_xp = int(base_xp * final_xp_mult)
+        reward_breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
     if final_gold_mult != 1.0:
         base_gold = int(base_gold * final_gold_mult)
 
@@ -882,6 +917,16 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
         final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
+
+        pwr_pct = min(0.50, profile.total_stats.get("pwr", 0) * 0.005)
+        if pwr_pct > 0:
+            reward_breakdown.append(f"PWR +{pwr_pct:.1%}")
+        if outcome.get("is_crit"):
+            crit_mult = passive_effects.get("crit_damage_mult", 2.0)
+            foc_crit_chance = min(1.0, profile.total_stats.get("foc", 0) * 0.005)
+            reward_breakdown.append(f"Crit! (×{crit_mult:g}, {foc_crit_chance:.1%} chance)")
+        if profile.xp_multiplier != 1.0:
+            reward_breakdown.append(f"Gear/Prestige ×{profile.xp_multiplier:.2f}")
 
         equipped_codes = profile.get_equipped_item_codes()
 
@@ -988,10 +1033,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             else:
                 final_gold = int(final_gold * 0.85)
 
-        if mutator_effects.get("trigger_echo") and random.random() < 0.10:
-            final_xp *= 2
-            final_gold *= 2
-
         # Twin Souls split
         if "twin_souls" in active_ids and active_codes:
             active_recruited = RecruitedAlly.objects.filter(
@@ -1016,36 +1057,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             final_gold += int(raw_xp * 0.5)
             final_xp = 0
 
-        # Alchemist: XP overflow above current level cap converts to gold at 2:1
-        if mutator_effects.get("alchemist_overflow_rate", 0.0) > 0 and final_xp > 0:
-            xp_to_next = max(1, profile.xp_to_next_level - profile.xp)
-            if final_xp > xp_to_next:
-                overflow_xp = final_xp - xp_to_next
-                final_xp = xp_to_next  # Cap XP at level threshold
-                gold_from_overflow = int(overflow_xp * mutator_effects["alchemist_overflow_rate"])
-                final_gold += gold_from_overflow
-
         # The Gambler's Ledger redirect
         if "gamblers_ledger" in active_ids:
             profile.ledger_gold += final_gold
             final_gold = 0
-
-        if mutator_effects.get("trigger_volatile"):
-            stat_list = [
-                "base_pwr",
-                "base_foc",
-                "base_spd",
-                "base_lck",
-                "base_def",
-                "base_mem",
-            ]
-            stat_choice = random.choice(stat_list)
-            current_val = getattr(profile, stat_choice)
-            if random.random() < 0.5:
-                setattr(profile, stat_choice, current_val + 1)
-            else:
-                setattr(profile, stat_choice, max(0, current_val - 1))
-            profile.save(update_fields=[stat_choice])
 
         # Lyra Level 5 Time Paradox Activation on completing a Daily
         lyra_level = recruited_allies.get("lyra", 0)
@@ -1105,14 +1120,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         profile.rank_xp = max(0, profile.rank_xp + final_xp)
         profile.gold = max(0, profile.gold + final_gold)
         profile.mana = min(profile.max_mana, profile.mana + mana_gained)
-
-        # Sacrificial Altar: Spend 5 HP to gain 1 SP on each task completion
-        if mutator_effects.get("sacrificial_altar_active", False):
-            hp_cost = 5
-            if profile.hp > hp_cost:  # Only if we won't die from it
-                profile.hp = max(1, profile.hp - hp_cost)
-                profile.skill_points = max(0, profile.skill_points + 1)
-                check_death(profile)
 
         # Group 3 Mutator stats
         profile.tasks_completed_today += 1
@@ -1574,8 +1581,26 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             int(
                 (task_base_dmg + (damage_dealt or 0))
                 * profile.damage_multiplier
+                * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
             ),
         )
+
+        # Kage L5 Executioner: 5x damage to boss below 15% HP. (The downside
+        # half of this perk -- +50% HP damage taken on task failure -- is
+        # in process_missed_tasks; this is the reward half, which was
+        # missing entirely.)
+        if recruited_allies.get("kage", 0) >= 5:
+            from api.models import BossEncounter as _BossEncounter
+
+            _kage_encounter = _BossEncounter.objects.filter(
+                user=user, is_defeated=False
+            ).first()
+            if (
+                _kage_encounter
+                and _kage_encounter.boss
+                and _kage_encounter.hp_current < _kage_encounter.boss.hp_max * 0.15
+            ):
+                final_damage_dealt *= 5
 
         # Blood Harvest (Warlord): +40% Boss Damage and 20% Vampirism heal
         blood_harvest_effect = ActiveEffect.objects.filter(
@@ -1782,6 +1807,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                     "is_positive": is_positive,
                     "value_after": task.value,
                     "combat_result": combat_result if combat_result else None,
+                    "breakdown": reward_breakdown if is_positive else [],
                 },
             )
     except Exception as e:
@@ -1873,6 +1899,78 @@ def process_missed_tasks(user):
     total_dmg = 0
     log = []
 
+    # ── Daily mutator settlement (loan_shark, cursed_clock, compound,
+    #    alchemist, momentum, phantom_load) ─────────────────────────────────
+    # This lazy cron (fired on the first request after local midnight) is the
+    # one reliable "once per calendar day" hook this app actually invokes —
+    # the daily_mutator_tick management command is never scheduled anywhere,
+    # so per-day mutator settlement has to happen here instead.
+    _mutators_now = profile.active_mutators or {}
+    _mutator_list = (
+        _mutators_now.get("active", []) if isinstance(_mutators_now, dict) else []
+    )
+    _mutator_ids_today = [
+        m.get("id") if isinstance(m, dict) else m for m in _mutator_list
+    ]
+    if _mutator_ids_today:
+        from datetime import datetime as _dt
+        from django.db.models import Sum
+        from api.models import TrainingSession
+        from api.services.mechanics import set_mutator_data
+
+        # Explicit UTC-anchored range in the profile's own timezone — never use
+        # created_at__date here, it implicitly converts to the global
+        # settings.TIME_ZONE (Europe/Moscow) instead of the profile's timezone.
+        _day_start = _dt.combine(
+            profile.last_daily_cron_at, _dt.min.time(), tzinfo=user_tz
+        )
+        _day_end = _day_start + timedelta(days=1)
+        yesterday_hours = (
+            TrainingSession.objects.filter(
+                user_profile=profile, created_at__gte=_day_start, created_at__lt=_day_end
+            ).aggregate(total=Sum("hours"))["total"]
+            or 0.0
+        )
+
+        if "loan_shark" in _mutator_ids_today:
+            profile.gold = max(0, profile.gold - 30)
+
+        if "cursed_clock" in _mutator_ids_today:
+            idle_hours = max(0.0, 14.0 - yesterday_hours)
+            profile.gold = max(0, profile.gold - int(idle_hours * 2))
+
+        if "compound" in _mutator_ids_today:
+            profile.gold += min(300, profile.gold // 100)
+
+        if "alchemist" in _mutator_ids_today:
+            mana_gold = min(200, profile.mana * 2)
+            profile.gold += mana_gold
+            profile.mana = 0
+
+        if "momentum" in _mutator_ids_today:
+            prev_days = 0
+            for m in _mutator_list:
+                if isinstance(m, dict) and m.get("id") == "momentum":
+                    prev_days = (m.get("data") or {}).get("days", 0)
+                    break
+            new_days = prev_days + 1 if yesterday_hours >= 1.0 else 0
+            set_mutator_data(profile, "momentum", {"days": new_days})
+
+        if "phantom_load" in _mutator_ids_today:
+            set_mutator_data(
+                profile, "phantom_load", {"yesterday_hours": yesterday_hours}
+            )
+
+        if "miser" in _mutator_ids_today:
+            # "Cannot spend Gold on shop items. Each 24h without spending:
+            # +5 Rank XP." The spend-block above makes "without spending"
+            # unconditional while this is active, so the bonus is a flat
+            # +5 Rank XP each day it settles.
+            from api.services.profile_service import gain_xp
+
+            gain_xp(profile, 5)
+            profile.rank_xp = max(0, profile.rank_xp + 5)
+
     from api.services.combat_service import calculate_fail_damage
     from api.models import ActiveEffect
 
@@ -1886,9 +1984,43 @@ def process_missed_tasks(user):
         user=user, skill_id="elixir", expires_at__gt=timezone.now()
     ).exists()
 
-    from api.services.mechanics import get_passive_multipliers
+    from api.services.mechanics import get_passive_multipliers, set_mutator_data
 
     passive_effects = get_passive_multipliers(profile, {})
+
+    # Note: Chronomancer's streak-protection half already runs, self-contained,
+    # in daily_service.process_daily_login() at the moment the bank is granted
+    # (chronomancer_triggered skips the streak-break there entirely). Its
+    # "and finish tasks later" half is a separate, still-open gap — see the
+    # audit notes; chronomancer_banked_days is intentionally left untouched
+    # here rather than repurposed for a streak system it wasn't meant for.
+
+    # Double or Nothing: "Miss 2 days in a row: streak resets to 0" — the
+    # first miss is a grace day (streak protected); only a second CONSECUTIVE
+    # miss actually resets it.
+    _dn_active_mutators = profile.active_mutators or {}
+    _dn_list = (
+        _dn_active_mutators.get("active", [])
+        if isinstance(_dn_active_mutators, dict)
+        else []
+    )
+    _dn_ids = [m.get("id") if isinstance(m, dict) else m for m in _dn_list]
+    double_nothing_protects = False
+    if "double_nothing" in _dn_ids:
+        _dn_data = {}
+        for m in _dn_list:
+            if isinstance(m, dict) and m.get("id") == "double_nothing":
+                _dn_data = m.get("data") or {}
+                break
+        if _dn_data.get("missed_once"):
+            set_mutator_data(profile, "double_nothing", {"missed_once": False})
+        else:
+            set_mutator_data(profile, "double_nothing", {"missed_once": True})
+            double_nothing_protects = True
+
+    streak_protected = (
+        transcendence_active or double_nothing_protects
+    )
 
     has_scheduled_dailies = False
     has_missed_scheduled_daily = False
@@ -1930,12 +2062,18 @@ def process_missed_tasks(user):
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
 
-            if "ironman" in active_ids:
-                profile.hp = max(1, int(profile.hp * 0.75))
-                profile.gold = max(0, int(profile.gold * 0.90))
+            # Ironman: "HP hits 0 -> forced prestige." No artificial HP floor
+            # or extra gold cut here — let the normal fail damage below apply,
+            # and check for an actual HP-0 forced prestige at the end of this
+            # function (once total_dmg for the whole run is known).
 
-            if "double_nothing" in active_ids:
-                profile.hp = int(profile.hp * 0.50)
+            # Iron Routine: "Miss a daily -> lose bonus for 24h."
+            if "iron_routine" in active_ids:
+                set_mutator_data(
+                    profile,
+                    "iron_routine",
+                    {"penalty_until": (timezone.now() + timedelta(hours=24)).isoformat()},
+                )
 
             dmg = calculate_fail_damage(task, profile)
             if eye_of_the_storm_active or elixir_active:
@@ -2023,25 +2161,13 @@ def process_missed_tasks(user):
 
             total_dmg += final_dmg
             task.is_completed = False
-            if not transcendence_active:
-                habit_shield = passive_effects.get("habit_shield", False)
-                if not isinstance(task.last_reward_data, dict):
-                    task.last_reward_data = {}
-
-                if habit_shield:
-                    shield_used = task.last_reward_data.get("shield_used", False)
-                    if not shield_used:
-                        task.last_reward_data["shield_used"] = True
-                    else:
-                        task.streak = 0
-                        task.last_reward_data["shield_used"] = False
-                else:
-                    task.streak = 0
-                    task.last_reward_data["shield_used"] = False
+            if not streak_protected:
+                # Neko L4's shield is for Habit streaks specifically (see the
+                # negative-habit completion path), not Dailies.
+                task.streak = 0
 
             task.value = calc_new_value(task.value, "fail", "daily")
 
-            # Mirror might give XP on failed dailies
             xp_gained = outcome.get("xp_earned", 0)
             if xp_gained > 0:
                 gain_xp(profile, xp_gained)
@@ -2148,6 +2274,8 @@ def process_missed_tasks(user):
             "gold",
             "last_daily_cron_at",
             "last_daily_checkin_at",
+            "xp",
+            "xp_to_next_level",
             "rank_xp",
             "level",
             "tasks_completed_today",
@@ -2158,10 +2286,20 @@ def process_missed_tasks(user):
             "total_overdue_tasks",
             "mana",
             "grier_revenge_charges",
+            "active_mutators",
         ]
     )
 
-    died = check_death(profile)
+    # Ironman: "HP hits 0 -> forced prestige. In return: all Rank XP +15%
+    # forever." — a forced prestige (no minimum Rank XP threshold, unlike the
+    # voluntary one) instead of the normal death reset.
+    if profile.hp <= 0 and "ironman" in _mutator_ids_today:
+        from api.services.profile_service import execute_prestige
+
+        execute_prestige(profile, user)
+        died = False
+    else:
+        died = check_death(profile)
 
     return {
         "fired": True,

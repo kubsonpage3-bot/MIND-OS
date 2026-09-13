@@ -10,7 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Applies daily mutator ticks (Loan Shark, Cursed Clock, Compound)."
+    """
+    SUPERSEDED: this command is not scheduled anywhere in this deployment (no
+    cron/celery-beat entry calls it), so loan_shark/cursed_clock/compound/
+    alchemist were silently never ticking in production. That logic now lives
+    in api.services.task_service.process_missed_tasks(), which the app itself
+    reliably fires once per calendar day (first request after local midnight).
+    Do NOT schedule this command without first removing the duplicate logic
+    there, or those mutators will double-apply.
+    """
+
+    help = "SUPERSEDED — see process_missed_tasks(). Kept only for reference."
 
     def handle(self, *args, **options):
         self.stdout.write("Starting daily mutator tick...")
