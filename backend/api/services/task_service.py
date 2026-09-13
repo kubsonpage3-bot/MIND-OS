@@ -863,11 +863,20 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     base_xp = int((rewards.get("xp", 0) + flat_xp_bonus) * xp_mult)
     base_gold = int(rewards.get("gold", 0) * gold_mult)
 
+    # Reward breakdown — surfaced in UserActivityLog.metadata so History can
+    # show *why* a task paid out what it did, not just the total.
+    reward_breakdown = [f"Base +{rewards.get('xp', 0)} XP"]
+    if xp_mult != 1.0:
+        reward_breakdown.append(f"Mutators/passives {xp_mult:+.0%}")
+    if flat_xp_bonus:
+        reward_breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+
     final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
     final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
 
     if final_xp_mult != 1.0:
         base_xp = int(base_xp * final_xp_mult)
+        reward_breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
     if final_gold_mult != 1.0:
         base_gold = int(base_gold * final_gold_mult)
 
@@ -886,6 +895,16 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
         final_gold = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
+
+        pwr_pct = min(0.50, profile.total_stats.get("pwr", 0) * 0.005)
+        if pwr_pct > 0:
+            reward_breakdown.append(f"PWR +{pwr_pct:.1%}")
+        if outcome.get("is_crit"):
+            crit_mult = passive_effects.get("crit_damage_mult", 2.0)
+            foc_crit_chance = min(1.0, profile.total_stats.get("foc", 0) * 0.005)
+            reward_breakdown.append(f"Crit! (×{crit_mult:g}, {foc_crit_chance:.1%} chance)")
+        if profile.xp_multiplier != 1.0:
+            reward_breakdown.append(f"Gear/Prestige ×{profile.xp_multiplier:.2f}")
 
         equipped_codes = profile.get_equipped_item_codes()
 
@@ -1749,6 +1768,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                     "is_positive": is_positive,
                     "value_after": task.value,
                     "combat_result": combat_result if combat_result else None,
+                    "breakdown": reward_breakdown if is_positive else [],
                 },
             )
     except Exception as e:

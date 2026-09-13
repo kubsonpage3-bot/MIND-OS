@@ -1632,6 +1632,14 @@ class TrainingLogView(generics.GenericAPIView):
             base_gold = rewards["gold"] * gold_mult
             raw_boss_dmg = rewards["dmg"]
 
+            # Reward breakdown — surfaced in the response and UserActivityLog.metadata
+            # so History can show *why* a session paid out what it did, not just the total.
+            breakdown = [f"Base +{rewards['xp']} XP"]
+            if xp_mult != 1.0:
+                breakdown.append(f"Mutators/passives {xp_mult:+.0%}")
+            if flat_xp_bonus:
+                breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+
             # Apply "final" multiplicative mutators (echo, gambler, volatile,
             # time_dilation, diversity_lock, zero_hour) — same as task_service.py's
             # _complete_task_logic. Without this, these mutators only affected
@@ -1640,6 +1648,7 @@ class TrainingLogView(generics.GenericAPIView):
             final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
             if final_xp_mult != 1.0:
                 base_xp = int(base_xp * final_xp_mult)
+                breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
             if final_gold_mult != 1.0:
                 base_gold = int(base_gold * final_gold_mult)
 
@@ -1658,7 +1667,17 @@ class TrainingLogView(generics.GenericAPIView):
                 passive_effects=passive_effects,
             )
 
+            pwr_pct = min(0.50, profile.total_stats.get("pwr", 0) * 0.005)
+            if pwr_pct > 0:
+                breakdown.append(f"PWR +{pwr_pct:.1%}")
+            if outcome.get("is_crit"):
+                crit_mult = passive_effects.get("crit_damage_mult", 2.0)
+                foc_crit_chance = min(1.0, profile.total_stats.get("foc", 0) * 0.005)
+                breakdown.append(f"Crit! (×{crit_mult:g}, {foc_crit_chance:.1%} chance)")
+
             final_xp = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
+            if profile.xp_multiplier != 1.0:
+                breakdown.append(f"Gear/Prestige ×{profile.xp_multiplier:.2f}")
             if lyra_zero_rewards:
                 final_xp = 0
 
@@ -1667,6 +1686,7 @@ class TrainingLogView(generics.GenericAPIView):
                     (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
                 )
                 final_xp += godmind_bonus
+                breakdown.append(f"Godmind +{godmind_bonus} XP")
 
             task_cat_lower = task_category.lower() if task_category else ""
             if (
@@ -1894,6 +1914,7 @@ class TrainingLogView(generics.GenericAPIView):
                 metadata={
                     "activity_key": activity,
                     "efficiency": eff_total,
+                    "breakdown": breakdown,
                 },
             )
         except Exception as e:
@@ -1905,6 +1926,7 @@ class TrainingLogView(generics.GenericAPIView):
                 "profile": UserProfileSerializer(profile).data,
                 "gold_earned": final_gold,
                 "xp_earned": final_xp,
+                "breakdown": breakdown,
                 "combat": combat_result,
                 "gf_gain": gf_gain,
                 "gc_gain": gc_gain,
