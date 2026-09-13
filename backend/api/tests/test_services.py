@@ -93,15 +93,15 @@ def test_daily_revert_then_complete_again(user, profile):
 
 @pytest.mark.django_db
 def test_activate_skill_success(user, profile):
-    # architect blueprint skill costs 40 mana
+    # architect blueprint skill (alias for algorithmic_cascade) costs 50 mana
     initial_mana = profile.mana
     success, message, class_data, effects = activate_skill(user, "blueprint")
 
     profile.refresh_from_db()
     assert success is True
-    assert profile.mana == initial_mana - 40
+    assert profile.mana == initial_mana - 50
     assert len(effects) == 1
-    assert effects[0]["effect_id"] == "blueprint_effect"
+    assert effects[0]["effect_id"] == "algorithmic_cascade_effect"
 
 
 @pytest.mark.django_db
@@ -116,33 +116,38 @@ def test_activate_skill_no_mana(user, profile):
 
 @pytest.mark.django_db
 def test_blueprint_effect_cleanup(user, profile):
+    # blueprint is an alias for algorithmic_cascade: instead of a 3-charge
+    # consumable, it now builds a same-day streak (+10%/task, cap +60%) that
+    # lives until midnight rather than being deleted after N uses.
     from api.models import ActiveEffect
 
     # 1. Activate blueprint skill
     success, message, class_data, effects = activate_skill(user, "blueprint")
     assert success is True
-    assert ActiveEffect.objects.filter(user=user, skill_id="blueprint").count() == 1
+    assert (
+        ActiveEffect.objects.filter(user=user, skill_id="algorithmic_cascade").count()
+        == 1
+    )
 
-    # Verify tasksRemaining is 3 initially
-    effect = ActiveEffect.objects.get(user=user, skill_id="blueprint")
-    assert effect.data["tasksRemaining"] == 3
+    effect = ActiveEffect.objects.get(user=user, skill_id="algorithmic_cascade")
+    assert effect.data["cascade_streak"] == 0
 
-    # 2. Complete first task
+    # 2. Complete first task -> streak increments
     t1 = Task.objects.create(user=user, title="T1", task_type=Task.TaskType.TODO)
     complete_task(user, t1.id, True)
     effect.refresh_from_db()
-    assert effect.data["tasksRemaining"] == 2
+    assert effect.data["cascade_streak"] == 1
 
-    # 3. Complete second task
+    # 3. Complete second task -> streak keeps climbing
     t2 = Task.objects.create(user=user, title="T2", task_type=Task.TaskType.TODO)
     complete_task(user, t2.id, True)
     effect.refresh_from_db()
-    assert effect.data["tasksRemaining"] == 1
+    assert effect.data["cascade_streak"] == 2
 
-    # 4. Complete third task (should trigger deletion)
-    t3 = Task.objects.create(user=user, title="T3", task_type=Task.TaskType.TODO)
-    complete_task(user, t3.id, True)
-    assert ActiveEffect.objects.filter(user=user, skill_id="blueprint").count() == 0
+    # 4. Effect persists (until midnight) rather than being deleted after use
+    assert ActiveEffect.objects.filter(
+        user=user, skill_id="algorithmic_cascade"
+    ).exists()
 
 
 class ServiceMechanicsTests(TestCase):
@@ -734,19 +739,19 @@ def test_void_clarity_weekly_cast(user, profile):
     # Create void_clarity
     UnlockedSkill.objects.create(user_profile=profile, skill_code="void_clarity")
 
-    # First cast: should cost 0 mana instead of 40 (blueprint)
+    # First cast: should cost 0 mana instead of 50 (blueprint -> algorithmic_cascade)
     success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 100  # Mana not deducted
 
-    # Second cast immediately: should cost 70 mana (system_overload)
+    # Second cast immediately: should cost 100 mana (system_overload -> deep_work_surge)
     # Also need to reset blueprint cooldown if we want to cast blueprint again,
     # but we can just cast a different skill
     success, msg, _, _ = activate_skill(user, "system_overload")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 30  # 100 - 70
+    assert profile.mana == 0  # 100 - 100
 
     # Fast forward void_clarity_last_used by 8 days
     profile.void_clarity_last_used = timezone.now() - timedelta(days=8)
@@ -759,7 +764,7 @@ def test_void_clarity_weekly_cast(user, profile):
     success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 30  # Mana not deducted again
+    assert profile.mana == 0  # Mana not deducted again
 
 
 @pytest.mark.django_db
@@ -774,13 +779,13 @@ def test_mindguard_mana_cost_reduction(user, profile):
     # Create mindguard
     UnlockedSkill.objects.create(user_profile=profile, skill_code="mindguard")
 
-    # Activate skill: blueprint normally costs 40 mana.
-    # With mindguard (15% reduction): floor(40 * 0.85) = 34 mana.
+    # Activate skill: blueprint (algorithmic_cascade) normally costs 50 mana.
+    # With mindguard (15% reduction): floor(50 * 0.85) = 42 mana.
     success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
 
     profile.refresh_from_db()
-    assert profile.mana == 100 - 34  # 66
+    assert profile.mana == 100 - 42  # 58
 
     # Verify no cooldown was created
     assert not SkillCooldown.objects.filter(user=user, skill_id="blueprint").exists()
@@ -790,7 +795,7 @@ def test_mindguard_mana_cost_reduction(user, profile):
     assert success2 is True
 
     profile.refresh_from_db()
-    assert profile.mana == 66 - 34  # 32
+    assert profile.mana == 58 - 42  # 16
 
 
 @pytest.mark.django_db
@@ -1134,60 +1139,29 @@ def test_open_loot_chest(user, profile):
 
 
 @pytest.mark.django_db
-def test_meditation_skill_activation_and_mana_discount(user, profile):
+def test_inner_sanctuary_instant_heal(user, profile):
+    # meditation is an alias for inner_sanctuary: the old mana-discount +
+    # focus-rating-boost kit was retired and replaced with an instant heal
+    # of 50% of max HP, with no persistent ActiveEffect left behind.
     from api.models import ActiveEffect
 
-    # Setup Ascetic profile
     profile.character_class = "ascetic"
     profile.mana = 100
+    profile.hp = 10
     profile.save()
 
-    # Activate meditation (costs 60 mana)
     success, message, class_data, effects = activate_skill(user, "meditation")
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 40  # 100 - 60
 
-    # Verify active effect was created
-    med_effect = ActiveEffect.objects.filter(user=user, skill_id="meditation").first()
-    assert med_effect is not None
-    assert med_effect.data.get("sessionsRemaining") == 3
-    assert med_effect.data.get("focusBoost") == 0.3
+    expected_hp = min(profile.max_hp, 10 + int(profile.max_hp * 0.50))
+    assert profile.hp == expected_hp
 
-    # Now activate iron_fast (base cost: 35)
-    # Since meditation is active, it should get a 50% discount: floor(35 * 0.5) = 17 mana
-    success2, message2, class_data2, effects2 = activate_skill(user, "iron_fast")
-    assert success2 is True
-    profile.refresh_from_db()
-    assert profile.mana == 23  # 40 - 17
-
-
-@pytest.mark.django_db
-def test_meditation_focus_boost_validation(user, profile):
-    from api.serializers.training import TrainingLogSerializer
-
-    profile.character_class = "ascetic"
-    profile.mana = 100
-    profile.save()
-
-    # Activate meditation
-    activate_skill(user, "meditation")
-
-    # Verify serializer applies 30% focus rating boost (7.0 -> 9.1)
-    data = {
-        "hours": 1.0,
-        "focus_rating": 7.0,
-        "efficiency": 1.391,
-        "activity": "coding",
-        "flat_xp_bonus": 0,
-    }
-    serializer = TrainingLogSerializer(
-        data=data, context={"request": type("Request", (), {"user": user})()}
-    )
-
-    # We trigger validation
-    assert serializer.is_valid() is True
-    assert serializer.validated_data["focus_rating"] == 9.1
+    # Instant effect: nothing lingers for other skills/tasks to discount off of
+    assert not ActiveEffect.objects.filter(
+        user=user, skill_id__in=["inner_sanctuary", "meditation"]
+    ).exists()
 
 
 @pytest.mark.django_db
@@ -1476,7 +1450,7 @@ def test_unknown_tier_raises():
 def test_daily_task_value_single_increment_on_cron_reset(user, profile):
     from api.models import Task
     from api.services.task_service import complete_task, process_missed_tasks
-    import datetime
+    from django.utils import timezone as django_timezone
 
     daily = Task.objects.create(
         user=user,
@@ -1496,7 +1470,10 @@ def test_daily_task_value_single_increment_on_cron_reset(user, profile):
     ), "Value should increase after completion"
 
     # 2. Advance time to tomorrow and run process_missed_tasks cron
-    profile.last_daily_cron_at = datetime.date.today() - datetime.timedelta(days=1)
+    # Anchor on UTC (profile.timezone defaults to "UTC") to match production's
+    # local_today calc — naive datetime.date.today() uses the host's wall-clock
+    # timezone and can drift a day off from UTC, making the cron a no-op.
+    profile.last_daily_cron_at = django_timezone.now().date() - timedelta(days=1)
     profile.save()
 
     process_missed_tasks(user)
@@ -1588,12 +1565,13 @@ def test_dis3_habit_boss_dmg_resets_with_cron(user, profile):
     """
     DIS-3: habit_boss_dmg_today must reset to 0 when process_missed_tasks fires.
     """
-    import datetime
+    from django.utils import timezone as django_timezone
     from api.services.task_service import process_missed_tasks
 
     # Pre-set counter as if cap was already hit today
     profile.habit_boss_dmg_today = 498
-    profile.last_daily_cron_at = datetime.date.today() - datetime.timedelta(days=1)
+    # Anchor on UTC (see test_daily_task_value_single_increment_on_cron_reset)
+    profile.last_daily_cron_at = django_timezone.now().date() - timedelta(days=1)
     profile.save()
 
     process_missed_tasks(user)

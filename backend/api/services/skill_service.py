@@ -245,16 +245,6 @@ def activate_skill(user, skill_id):
     if has_mindguard:
         effective_mana_cost = math.floor(effective_mana_cost * 0.85)
 
-    # Meditation active effect: reduces mana cost of other skills by 50%
-    has_meditation = ActiveEffect.objects.filter(
-        user=profile.user, skill_id="meditation"
-    ).exists()
-    if has_meditation and skill_id != "meditation":
-        effective_mana_cost = math.floor(effective_mana_cost * 0.5)
-        print(
-            f"[Skill Activation] Meditation active. Reducing mana cost by 50% to: {effective_mana_cost}."
-        )
-
     if has_void_clarity:
         now = timezone.now()
         if (
@@ -509,11 +499,17 @@ def _create_effect(skill_id, profile):
             user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
         except Exception:
             user_tz = zoneinfo.ZoneInfo("UTC")
-        local_today = timezone.now().astimezone(user_tz).date()
+        # Use an explicit UTC-aware range in the profile's own timezone rather
+        # than created_at__date: Django's __date lookup converts to the global
+        # settings.TIME_ZONE (Europe/Moscow), not the profile's timezone, which
+        # silently returned 0 sessions for non-Moscow users depending on time of day.
+        now_dt = timezone.now().astimezone(user_tz)
+        start_of_day = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = now_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         total_hours = (
             TrainingSession.objects.filter(
-                user_profile=profile, created_at__date=local_today
+                user_profile=profile, created_at__range=(start_of_day, end_of_day)
             ).aggregate(total=Sum("hours"))["total"]
             or 0.0
         )
