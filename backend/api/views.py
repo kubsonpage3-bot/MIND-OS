@@ -1681,6 +1681,17 @@ class TrainingLogView(generics.GenericAPIView):
             base_gold = rewards["gold"] * gold_mult
             raw_boss_dmg = rewards["dmg"]
 
+            # Apply "final" multiplicative mutators (echo, gambler, volatile,
+            # time_dilation, diversity_lock, zero_hour) — same as task_service.py's
+            # _complete_task_logic. Without this, these mutators only affected
+            # Task completions and silently did nothing for Activity/Study logs.
+            final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
+            final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
+            if final_xp_mult != 1.0:
+                base_xp = int(base_xp * final_xp_mult)
+            if final_gold_mult != 1.0:
+                base_gold = int(base_gold * final_gold_mult)
+
             if task:
                 # Increment completion stats for custom button tasks
                 task.completion_count += 1
