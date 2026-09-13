@@ -159,28 +159,14 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   const {
     saveSession,
     isSaving,
+    isCompleting,
     activeSession,
     startActiveSession,
     pauseActiveSession,
     resetActiveSession,
     completeActiveSession,
   } = usePomodoro();
-
-  // ── Sync from Backend Active Session (SSOT) ──────────────────────────────────
-  useEffect(() => {
-    if (activeSession?.active && !isRunningRef.current) {
-      if (activeSession.linked_activity_key) {
-        setLinkedMode(true);
-        setSelectedActivity(activeSession.linked_activity_key);
-        setLinkedDuration(activeSession.duration_minutes);
-      }
-      setMode(activeSession.mode || 'work');
-      setTimeLeft(activeSession.remaining_seconds);
-      if (!activeSession.is_paused && activeSession.remaining_seconds > 0) {
-        setIsRunning(true);
-      }
-    }
-  }, [activeSession]);
+  const isBusySaving = isSaving || isCompleting;
 
   // --- Compiled Activities ---
   const allActivities = useMemo(() => {
@@ -323,6 +309,33 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     }
   }, [saveSession]); // saveSession is stable from useMutation
 
+  // ── Sync from Backend Active Session (SSOT) ──────────────────────────────────
+  useEffect(() => {
+    if (activeSession?.active && !isRunningRef.current) {
+      if (activeSession.linked_activity_key) {
+        setLinkedMode(true);
+        setSelectedActivity(activeSession.linked_activity_key);
+        setLinkedDuration(activeSession.duration_minutes);
+      }
+      setMode(activeSession.mode || 'work');
+      setTimeLeft(activeSession.remaining_seconds);
+      if (!activeSession.is_paused && activeSession.remaining_seconds > 0) {
+        setIsRunning(true);
+      } else if (activeSession.remaining_seconds <= 0) {
+        // Active session expired while away in another tab / background
+        setIsRunning(false);
+        if (activeSession.linked_activity_key) {
+          setShowRatingOverlay(prev => {
+            if (!prev) setRatingCountdown(10);
+            return true;
+          });
+        } else {
+          handleCycleComplete();
+        }
+      }
+    }
+  }, [activeSession, handleCycleComplete]);
+
   // ─── TIMER TICK (TIMESTAMP-BASED & BACKGROUND-SAFE) ─────────────────────────
   const timeLeftRef = useRef(timeLeft);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
@@ -411,7 +424,11 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     playSound("pomodoro_complete");
 
     // completeActiveSession handles PomodoroSession, TrainingSession, XP/Gold, and stats
-    completeActiveSession({ rating: rating || 3 });
+    completeActiveSession({
+      rating: rating || 7,
+      activity_key: selectedActivityRef.current,
+      duration_minutes: linkedDuration,
+    });
 
     setJustCompleted(true);
     setTimeout(() => setJustCompleted(false), 2500);
@@ -421,6 +438,20 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     setTimeLeft(restDuration * 60);
     setLinkedMode(false);
   }, [linkedDuration, resetActiveSession, completeActiveSession, preset.work]);
+
+  const handleManualComplete = useCallback(() => {
+    if (linkedMode) {
+      if (!selectedActivity) {
+        toast.error(t('pomodoro_ui.select_activity_first', 'Please select an activity first!'));
+        return;
+      }
+      setIsRunning(false);
+      setShowRatingOverlay(true);
+      setRatingCountdown(10);
+    } else {
+      handleCycleComplete();
+    }
+  }, [linkedMode, selectedActivity, handleCycleComplete, t]);
 
   useEffect(() => {
     if (!showRatingOverlay) return;
@@ -730,26 +761,48 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
                 {isRunning ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
               </motion.button>
 
-              {/* Save status indicator */}
-              <div className="w-12 h-12 rounded-full border flex items-center justify-center"
-                style={{ borderColor: `${char.accent}30` }}
+              {/* Manual complete button / Save status indicator */}
+              <motion.button
+                onClick={handleManualComplete}
+                disabled={isBusySaving}
+                whileTap={{ scale: 0.9 }}
+                className="w-12 h-12 rounded-full border flex items-center justify-center transition-all group"
+                style={{
+                  borderColor: (isRunning || justCompleted || (linkedMode && selectedActivity))
+                    ? 'rgba(34, 197, 94, 0.4)'
+                    : `${char.accent}30`,
+                  background: (isRunning || justCompleted || (linkedMode && selectedActivity))
+                    ? 'rgba(34, 197, 94, 0.08)'
+                    : 'transparent',
+                }}
+                title={
+                  linkedMode
+                    ? t('pomodoro_ui.complete_and_log', 'Complete & Log Focus')
+                    : t('pomodoro_ui.complete_cycle', 'Complete Cycle')
+                }
               >
                 <AnimatePresence mode="wait">
-                  {isSaving ? (
+                  {isBusySaving ? (
                     <motion.div key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                       <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
                     </motion.div>
                   ) : justCompleted ? (
                     <motion.div key="done" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ opacity: 0 }}>
-                      <CheckCircle2 className="w-4 h-4" style={{ color: char.color }} />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     </motion.div>
                   ) : (
-                    <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 0.3 }}>
-                      <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                    <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <CheckCircle2
+                        className={`w-4 h-4 transition-colors ${
+                          (isRunning || (linkedMode && selectedActivity))
+                            ? 'text-emerald-400 group-hover:text-emerald-300'
+                            : 'text-muted-foreground group-hover:text-foreground'
+                        }`}
+                      />
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.button>
             </div>
           </div>
         </motion.div>

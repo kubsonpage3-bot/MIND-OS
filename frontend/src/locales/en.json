@@ -2472,7 +2472,10 @@
     "linked_focus_mode": "LINKED FOCUS MODE",
     "session_complete": "Session Complete!",
     "focus_quality": "How was your focus quality?",
-    "browser_notifications": "Browser Notifications"
+    "browser_notifications": "Browser Notifications",
+    "complete_and_log": "Complete & Log Focus",
+    "complete_cycle": "Complete Cycle",
+    "select_activity_first": "Please select an activity first!"
   },
   "calendar_connect": {
     "title": "Google Calendar Integration",

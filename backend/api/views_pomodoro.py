@@ -247,8 +247,8 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="active-session/complete")
     def active_session_complete(self, request):
-        rating = int(request.data.get("rating", 3))
-        rating = max(1, min(5, rating))
+        rating = int(request.data.get("rating", 7))
+        rating = max(1, min(10, rating))
 
         with transaction.atomic():
             active = (
@@ -256,9 +256,16 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 .filter(user=request.user)
                 .first()
             )
-            duration = active.duration_minutes if active else 25
-            mode = active.mode if active else "work"
-            activity_key = active.linked_activity_key if active else None
+            duration = int(
+                request.data.get("duration_minutes")
+                or (active.duration_minutes if active else 25)
+            )
+            mode = request.data.get("mode") or (active.mode if active else "work")
+            activity_key = (
+                request.data.get("activity_key")
+                or request.data.get("linked_activity_key")
+                or (active.linked_activity_key if active else None)
+            )
             if active:
                 active.delete()
 
@@ -336,7 +343,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 base_xp = (base_xp + flat_xp_bonus) * xp_mult
                 base_gold = base_gold * gold_mult
 
-                eff_total = min(1.0, rating / 5.0)
+                eff_total = min(1.0, max(0.2, rating / 10.0))
                 gains = calculate_cognitive_gains(
                     activity_key, hours, eff_total, profile,
                     mastery_category=task.mastery_category if task else "",

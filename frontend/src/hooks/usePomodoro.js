@@ -120,6 +120,10 @@ export function usePomodoro() {
         toast.success(`Focus logged! +${data.xp_earned} XP, +${data.gold_earned}G`);
       }
     },
+    onError: (error) => {
+      console.error('Failed to complete Pomodoro session:', error);
+      toast.error('Failed to log focus session. Please check your connection.');
+    },
   });
 
   return {
@@ -141,6 +145,7 @@ export function usePomodoro() {
     pauseActiveSession: pauseActiveSessionMutation.mutate,
     resetActiveSession: resetActiveSessionMutation.mutate,
     completeActiveSession: completeActiveSessionMutation.mutate,
+    isCompleting: completeActiveSessionMutation.isPending,
 
     saveSession: saveSessionMutation.mutate,
     isSaving: saveSessionMutation.isPending,

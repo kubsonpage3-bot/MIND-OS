@@ -150,3 +150,50 @@ def test_active_session_complete_custom_task(auth_client, user):
     # Verify TrainingSession created
     ts = TrainingSession.objects.get(user_profile__user=user, activity_key=custom_key)
     assert ts.hours == 0.5
+
+
+@pytest.mark.django_db
+def test_active_session_complete_with_rating_scale_10(auth_client, user):
+    auth_client.post(
+        "/api/pomodoro/sessions/active-session/start/",
+        {"linked_activity_key": "history", "duration_minutes": 30},
+        format="json",
+    )
+
+    complete_res = auth_client.post(
+        "/api/pomodoro/sessions/active-session/complete/",
+        {"rating": 9},
+        format="json",
+    )
+    assert complete_res.status_code == 200
+    data = complete_res.json()
+    assert data["success"] is True
+
+    ts = TrainingSession.objects.get(user_profile__user=user, activity_key="history")
+    assert ts.hours == 0.5
+    assert ts.focus_rating == 9.0
+
+
+@pytest.mark.django_db
+def test_active_session_complete_fallback_without_active_session(auth_client, user):
+    # Ensure no active session exists
+    assert ActivePomodoroSession.objects.filter(user=user).count() == 0
+
+    complete_res = auth_client.post(
+        "/api/pomodoro/sessions/active-session/complete/",
+        {
+            "activity_key": "history",
+            "duration_minutes": 30,
+            "rating": 8,
+        },
+        format="json",
+    )
+    assert complete_res.status_code == 200
+    data = complete_res.json()
+    assert data["success"] is True
+    assert data["hours_logged"] == 0.5
+
+    ts = TrainingSession.objects.get(user_profile__user=user, activity_key="history")
+    assert ts.hours == 0.5
+    assert ts.focus_rating == 8.0
+

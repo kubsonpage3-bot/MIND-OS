@@ -2471,7 +2471,10 @@
     "linked_focus_mode": "РЕЖИМ СВЯЗАННОГО ФОКУСА",
     "session_complete": "Сессия завершена!",
     "focus_quality": "Как была твоя концентрация?",
-    "browser_notifications": "Уведомления браузера"
+    "browser_notifications": "Уведомления браузера",
+    "complete_and_log": "Завершить и записать фокус",
+    "complete_cycle": "Завершить цикл",
+    "select_activity_first": "Пожалуйста, выберите активность!"
   },
   "calendar_connect": {
     "title": "Интеграция с Google Calendar",
