@@ -9,6 +9,7 @@ import { useHardwareBack } from '@/utils/modalStack';
 import { hapticHeavy, hapticSuccess } from '@/hooks/useHaptic';
 import { SCROLLS, SCROLL_BOSS_IMAGES, RANK_COLORS } from './ScrollsPanel';
 import ConfettiBurst from './ConfettiBurst';
+import OptimizedImage from './OptimizedImage';
 import { Swords, Coins, Zap, Sparkles, Gem, Trophy, Droplets } from 'lucide-react';
 
 export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards }) {
@@ -276,7 +277,7 @@ export default function BossDefeatModal({ isOpen, onClose, combatResult, rewards
                 {(uniqueItem || rewards?.item_dropped) && (() => {
                   const dropLabel = rewards?.item_name || uniqueItem?.label || "Unique Artifact";
                   const rolledStats = rewards?.item_stat_bonuses;
-                  const statDesc = rolledStats && Object.keys(rolledStats).length > 0
+                  const statDesc = rolledStats && typeof rolledStats === 'object' && Object.keys(rolledStats).length > 0
                     ? Object.entries(rolledStats).map(([k, v]) => `${k.toUpperCase()} +${v}`).join(" · ")
                     : (uniqueItem?.effect || "");
 

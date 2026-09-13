@@ -1,8 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { djangoApi } from "@/api/djangoClient";
 import OptimizedImage from "./OptimizedImage";
