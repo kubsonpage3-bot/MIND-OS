@@ -427,3 +427,28 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 )
 
         return instance
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        raw_mutators = instance.active_mutators
+        if isinstance(raw_mutators, dict):
+            active = raw_mutators.get("active", [])
+            purchased = raw_mutators.get("purchased", [])
+        elif isinstance(raw_mutators, list):
+            active = [m for m in raw_mutators if isinstance(m, dict)]
+            purchased = [
+                m if isinstance(m, str) else m.get("id")
+                for m in raw_mutators
+                if m
+            ]
+        else:
+            active = []
+            purchased = []
+
+        active_ids = [m.get("id") if isinstance(m, dict) else m for m in active]
+        for aid in active_ids:
+            if aid and aid not in purchased:
+                purchased.append(aid)
+
+        data["active_mutators"] = {"active": active, "purchased": purchased}
+        return data

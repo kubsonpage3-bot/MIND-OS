@@ -195,9 +195,9 @@ class UserProfile(models.Model):
         null=True, blank=True, verbose_name="Последняя тренировка"
     )
 
-    # Активные мутаторы (список ID мутаторов)
+    # Активные мутаторы (словарь active / purchased)
     active_mutators = models.JSONField(
-        default=list, blank=True, verbose_name="Активные мутаторы"
+        default=dict, blank=True, verbose_name="Активные мутаторы"
     )
 
     # Активные союзники (список ID союзников, макс 3)

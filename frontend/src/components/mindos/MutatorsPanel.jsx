@@ -39,14 +39,18 @@ export default function MutatorsPanel({ onSpendGold }) {
     setWonMutatorItem(null);
   });
 
-  const mutators = profile?.active_mutators || { active: [], purchased: [] };
+  const rawMutators = profile?.active_mutators;
   const gold = profile?.gold || 0;
 
-  const active = mutators.active || [];
-  const purchased = mutators.purchased || [];
+  const active = Array.isArray(rawMutators?.active)
+    ? rawMutators.active
+    : (Array.isArray(rawMutators) ? rawMutators.filter(m => typeof m === 'object' && m?.id) : []);
+  const purchased = Array.isArray(rawMutators?.purchased)
+    ? rawMutators.purchased
+    : (Array.isArray(rawMutators) ? rawMutators.map(m => typeof m === 'string' ? m : m?.id).filter(Boolean) : []);
 
   const isActive = (id) => active.some(m => (typeof m === 'object' ? m.id : m) === id);
-  const isPurchased = (id) => purchased.includes(id);
+  const isPurchased = (id) => purchased.includes(id) || isActive(id);
 
   const getActiveSynergyIds = () => active.map(m => (typeof m === 'object' ? m.id : m));
 

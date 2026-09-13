@@ -3892,8 +3892,21 @@ class OpenMutatorChestView(generics.GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            active_mutators = profile.active_mutators or {}
-            purchased = active_mutators.get("purchased", [])
+            raw_mutators = profile.active_mutators
+            if isinstance(raw_mutators, dict):
+                active_mutators = {
+                    "active": list(raw_mutators.get("active", [])),
+                    "purchased": list(raw_mutators.get("purchased", [])),
+                }
+            elif isinstance(raw_mutators, list):
+                active_mutators = {
+                    "active": [m for m in raw_mutators if isinstance(m, dict)],
+                    "purchased": [m if isinstance(m, str) else m.get("id") for m in raw_mutators if m],
+                }
+            else:
+                active_mutators = {"active": [], "purchased": []}
+
+            purchased = active_mutators["purchased"]
 
             # Pool of all active (non-disabled) mutators that the user doesn't already own
             pool = [
@@ -3948,11 +3961,27 @@ class ToggleMutatorView(generics.GenericAPIView):
                     {"error": "Invalid mutator ID"}, status=status.HTTP_400_BAD_REQUEST
                 )
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-            active_mutators = profile.active_mutators or {}
-            purchased = active_mutators.get("purchased", [])
-            active_list = active_mutators.get("active", [])
+            raw_mutators = profile.active_mutators
+            if isinstance(raw_mutators, dict):
+                active_mutators = {
+                    "active": list(raw_mutators.get("active", [])),
+                    "purchased": list(raw_mutators.get("purchased", [])),
+                }
+            elif isinstance(raw_mutators, list):
+                active_mutators = {
+                    "active": [m for m in raw_mutators if isinstance(m, dict)],
+                    "purchased": [m if isinstance(m, str) else m.get("id") for m in raw_mutators if m],
+                }
+            else:
+                active_mutators = {"active": [], "purchased": []}
 
-            if mutator_id not in purchased:
+            purchased = active_mutators["purchased"]
+            active_list = active_mutators["active"]
+
+            active_ids = [
+                m.get("id") if isinstance(m, dict) else m for m in active_list
+            ]
+            if mutator_id not in purchased and mutator_id not in active_ids:
                 return Response(
                     {"error": "You do not own this mutator."},
                     status=status.HTTP_403_FORBIDDEN,
