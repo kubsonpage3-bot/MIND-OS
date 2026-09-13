@@ -230,3 +230,75 @@ def test_double_nothing_survives_one_miss_resets_on_second(profile_mut):
     process_missed_tasks(user)
     daily.refresh_from_db()
     assert daily.streak == 0
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Previously `disabled: true` mutators (unreachable via shop/chest either way,
+# but fixed to match their descriptions so they're correct if ever re-enabled)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_ascetic_loop_scales_with_streak_not_flat(profile_mut):
+    user, profile = profile_mut
+    profile.active_mutators = {"active": [{"id": "ascetic_loop"}]}
+    profile.save()
+
+    effects_streak_10 = apply_active_mutators(
+        profile, {"task_type": "daily", "task_streak": 10}
+    )
+    assert effects_streak_10["flat_xp"] == pytest.approx(2.0)  # 10 * 0.2
+
+    effects_streak_0 = apply_active_mutators(
+        profile, {"task_type": "daily", "task_streak": 0}
+    )
+    assert effects_streak_0["flat_xp"] == 0  # streak broke -> bonus gone
+
+
+@pytest.mark.django_db
+def test_miser_blocks_shop_and_grants_daily_xp(profile_mut):
+    from api.services.shop_service import buy_item
+    from api.models import Item
+
+    user, profile = profile_mut
+    Item.objects.update_or_create(
+        code="test_miser_item",
+        defaults={"name": "Test Item", "cost": 50, "item_type": "consumable"},
+    )
+    profile.active_mutators = {"active": [{"id": "miser"}]}
+    profile.last_daily_cron_at = yesterday_local(profile)
+    profile.rank_xp = 0
+    profile.save()
+
+    success, msg, _ = buy_item(user, "test_miser_item")
+    assert not success
+    assert "cannot spend" in msg.lower()
+
+    process_missed_tasks(user)
+    profile.refresh_from_db()
+    assert profile.rank_xp == 5
+
+
+@pytest.mark.django_db
+def test_ironman_forced_prestige_on_hp_zero_no_artificial_floor(profile_mut):
+    user, profile = profile_mut
+    profile.active_mutators = {"active": [{"id": "ironman"}]}
+    profile.hp = 1  # one more hit finishes it off
+    profile.gold = 500
+    profile.last_daily_cron_at = yesterday_local(profile)
+    profile.prestige_count = 0
+    profile.save()
+
+    daily = Task.objects.create(
+        user=user, title="Daily", task_type=Task.TaskType.DAILY, streak=3
+    )
+
+    process_missed_tasks(user)
+    profile.refresh_from_db()
+    daily.refresh_from_db()
+
+    # Forced prestige happened (not the old artificial "floor HP at 1, -10%
+    # gold" fudge that made HP=0 unreachable in the first place).
+    assert profile.prestige_count == 1
+    assert profile.hp == profile.max_hp
+    assert profile.gold == 500  # untouched by the old undocumented -10% cut

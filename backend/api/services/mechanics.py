@@ -947,7 +947,10 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         effects["xp_mult"] += bonus
 
     if "ascetic_loop" in active_ids and context.get("task_type") == "daily":
-        effects["flat_xp"] += 5
+        # "Streak gives Rank XP: streak x0.2/day. Break streak: lose all bonus
+        # XP." — scales with the daily's own streak rather than a flat +5;
+        # once the streak resets to 0 the bonus naturally drops to 0 too.
+        effects["flat_xp"] += context.get("task_streak", 0) * 0.2
 
     # ── CHALLENGE ──
     if "diversity_lock" in active_ids:

@@ -677,10 +677,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
 
-            if "ironman" in active_ids:
-                profile.hp = max(1, int(profile.hp * 0.75))
-                profile.gold = max(0, int(profile.gold * 0.90))
-
             profile.save(
                 update_fields=[
                     "hp",
@@ -693,7 +689,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 ]
             )
 
-            died = check_death(profile)
+            # Ironman: "HP hits 0 -> forced prestige" instead of the normal
+            # death reset (no minimum Rank XP threshold — it's forced).
+            if profile.hp <= 0 and "ironman" in active_ids:
+                from api.services.profile_service import execute_prestige
+
+                execute_prestige(profile, user)
+                died = False
+            else:
+                died = check_death(profile)
 
             if not isinstance(task.last_reward_data, dict):
                 task.last_reward_data = {}
@@ -1898,6 +1902,16 @@ def process_missed_tasks(user):
                 profile, "phantom_load", {"yesterday_hours": yesterday_hours}
             )
 
+        if "miser" in _mutator_ids_today:
+            # "Cannot spend Gold on shop items. Each 24h without spending:
+            # +5 Rank XP." The spend-block above makes "without spending"
+            # unconditional while this is active, so the bonus is a flat
+            # +5 Rank XP each day it settles.
+            from api.services.profile_service import gain_xp
+
+            gain_xp(profile, 5)
+            profile.rank_xp = max(0, profile.rank_xp + 5)
+
     from api.services.combat_service import calculate_fail_damage
     from api.models import ActiveEffect
 
@@ -1989,9 +2003,10 @@ def process_missed_tasks(user):
                 m.get("id") if isinstance(m, dict) else m for m in active_list
             ]
 
-            if "ironman" in active_ids:
-                profile.hp = max(1, int(profile.hp * 0.75))
-                profile.gold = max(0, int(profile.gold * 0.90))
+            # Ironman: "HP hits 0 -> forced prestige." No artificial HP floor
+            # or extra gold cut here — let the normal fail damage below apply,
+            # and check for an actual HP-0 forced prestige at the end of this
+            # function (once total_dmg for the whole run is known).
 
             # Iron Routine: "Miss a daily -> lose bonus for 24h."
             if "iron_routine" in active_ids:
@@ -2211,6 +2226,8 @@ def process_missed_tasks(user):
             "gold",
             "last_daily_cron_at",
             "last_daily_checkin_at",
+            "xp",
+            "xp_to_next_level",
             "rank_xp",
             "level",
             "tasks_completed_today",
@@ -2225,7 +2242,16 @@ def process_missed_tasks(user):
         ]
     )
 
-    died = check_death(profile)
+    # Ironman: "HP hits 0 -> forced prestige. In return: all Rank XP +15%
+    # forever." — a forced prestige (no minimum Rank XP threshold, unlike the
+    # voluntary one) instead of the normal death reset.
+    if profile.hp <= 0 and "ironman" in _mutator_ids_today:
+        from api.services.profile_service import execute_prestige
+
+        execute_prestige(profile, user)
+        died = False
+    else:
+        died = check_death(profile)
 
     return {
         "fired": True,

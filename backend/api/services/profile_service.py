@@ -6,6 +6,56 @@ from api.constants import RANK_THRESHOLDS, HUMANITIES_RANK_THRESHOLDS
 
 
 @transaction.atomic
+def execute_prestige(profile: UserProfile, user) -> None:
+    """
+    The actual prestige reset: permanent multiplier bonuses, ceiling bumps,
+    level/rank/gear/skill-tree reset. Shared by PrestigeView (voluntary,
+    gated on a minimum Rank XP threshold) and Ironman's forced prestige on
+    HP hitting 0 (no threshold — that's the risk you signed up for).
+    """
+    from api.services.mechanics import get_passive_multipliers
+    from api.services.rpg_service import respec_skill_nodes
+
+    passive_effects = get_passive_multipliers(profile, {})
+    p_bonus = passive_effects.get("prestige_bonus", 0.0)
+
+    profile.prestige_count += 1
+    profile.damage_multiplier = round(profile.damage_multiplier + 0.1 + p_bonus, 4)
+    profile.gold_multiplier = round(profile.gold_multiplier + 0.15 + p_bonus, 4)
+    profile.xp_multiplier = round(profile.xp_multiplier + 0.15 + p_bonus, 4)
+
+    profile.gf_ceiling = round(profile.gf_ceiling + 5.0, 2)
+    profile.gc_ceiling = round(profile.gc_ceiling + 5.0, 2)
+    profile.ps_ceiling = round(profile.ps_ceiling + 5.0, 2)
+    profile.vm_ceiling = round(profile.vm_ceiling + 5.0, 2)
+
+    profile.level = 1
+    profile.xp = 0
+    profile.xp_to_next_level = 100
+
+    profile.hp = profile.max_hp
+    profile.mana = profile.max_mana
+
+    start_rank = passive_effects.get("prestige_start_rank", "E")
+    profile.rank_xp = 600 if start_rank == "C" else 0
+
+    profile.skill_points = (profile.skill_points or 0) + 5
+
+    profile.save()
+
+    respec_skill_nodes(user, free=True)
+
+    from api.models import Task
+
+    task_fields = [f.name for f in Task._meta.get_fields()]
+    if "rank" in task_fields:
+        Task.objects.filter(user=user, task_type="training").update(rank="F", value=0.0)
+
+    profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)  # type: ignore
+    profile.save()
+
+
+@transaction.atomic
 def gain_xp(profile: UserProfile, amount: int) -> bool:
     """
     Начисляет опыт персонажу.

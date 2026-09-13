@@ -43,6 +43,20 @@ def buy_item(user, item_id: str):
     )
     actual_cost = int(item.cost * rank_mult * shop_mult)
 
+    # Miser: "Cannot spend Gold on shop items." Free (cost 0) items still go
+    # through — there's nothing to spend.
+    active_mutators = profile.active_mutators or {}
+    active_ids = [
+        m.get("id") if isinstance(m, dict) else m
+        for m in (active_mutators.get("active", []) if isinstance(active_mutators, dict) else [])
+    ]
+    if "miser" in active_ids and actual_cost > 0:
+        return (
+            False,
+            "Miser is active: you cannot spend Gold on shop items.",
+            profile,
+        )
+
     if profile.gold < actual_cost:
         return False, "Not enough gold", profile
 

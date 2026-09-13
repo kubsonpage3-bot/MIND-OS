@@ -1260,7 +1260,7 @@ class PrestigeView(generics.GenericAPIView):
     def post(self, request):
         from django.db import transaction  # type: ignore
         from api.constants import get_prestige_xp_required
-        from api.services.rpg_service import respec_skill_nodes
+        from api.services.profile_service import execute_prestige
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
@@ -1270,59 +1270,8 @@ class PrestigeView(generics.GenericAPIView):
                     {"detail": (f"You must reach {required_xp} " "XP to prestige.")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            from api.services.mechanics import get_passive_multipliers
 
-            passive_effects = get_passive_multipliers(profile, {})
-            p_bonus = passive_effects.get("prestige_bonus", 0.0)
-
-            profile.prestige_count += 1
-            profile.damage_multiplier = round(
-                profile.damage_multiplier + 0.1 + p_bonus, 4
-            )
-            profile.gold_multiplier = round(profile.gold_multiplier + 0.15 + p_bonus, 4)
-            profile.xp_multiplier = round(profile.xp_multiplier + 0.15 + p_bonus, 4)
-
-            # Increase IQ ceilings permanently by flat +5.0 points per prestige
-            profile.gf_ceiling = round(profile.gf_ceiling + 5.0, 2)
-            profile.gc_ceiling = round(profile.gc_ceiling + 5.0, 2)
-            profile.ps_ceiling = round(profile.ps_ceiling + 5.0, 2)
-            profile.vm_ceiling = round(profile.vm_ceiling + 5.0, 2)
-
-            profile.level = 1
-            profile.xp = 0
-            profile.xp_to_next_level = 100
-
-            # Use computed max_hp and max_mana properties
-            profile.hp = profile.max_hp
-            profile.mana = profile.max_mana
-
-            # Start rank
-            start_rank = passive_effects.get("prestige_start_rank", "E")
-            if start_rank == "C":
-                profile.rank_xp = 600
-            else:
-                profile.rank_xp = 0
-
-            # Grant +5 Skill Points as promised in UI
-            profile.skill_points = (profile.skill_points or 0) + 5
-
-            profile.save()
-
-            # Free skill tree respec (refunds all spent nodes back as skill points)
-            respec_skill_nodes(request.user, free=True)
-
-            # Reset training tasks if they exist in the DB (safe check for 'rank' field)
-            from api.models import Task
-
-            task_fields = [f.name for f in Task._meta.get_fields()]
-            if "rank" in task_fields:
-                Task.objects.filter(user=request.user, task_type="training").update(
-                    rank="F", value=0.0
-                )
-
-            # Unequip all inventory items
-            profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)  # type: ignore
-            profile.save()
+            execute_prestige(profile, request.user)
 
         return Response(
             {
