@@ -988,10 +988,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             else:
                 final_gold = int(final_gold * 0.85)
 
-        if mutator_effects.get("trigger_echo") and random.random() < 0.10:
-            final_xp *= 2
-            final_gold *= 2
-
         # Twin Souls split
         if "twin_souls" in active_ids and active_codes:
             active_recruited = RecruitedAlly.objects.filter(
@@ -1029,23 +1025,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         if "gamblers_ledger" in active_ids:
             profile.ledger_gold += final_gold
             final_gold = 0
-
-        if mutator_effects.get("trigger_volatile"):
-            stat_list = [
-                "base_pwr",
-                "base_foc",
-                "base_spd",
-                "base_lck",
-                "base_def",
-                "base_mem",
-            ]
-            stat_choice = random.choice(stat_list)
-            current_val = getattr(profile, stat_choice)
-            if random.random() < 0.5:
-                setattr(profile, stat_choice, current_val + 1)
-            else:
-                setattr(profile, stat_choice, max(0, current_val - 1))
-            profile.save(update_fields=[stat_choice])
 
         # Lyra Level 5 Time Paradox Activation on completing a Daily
         lyra_level = recruited_allies.get("lyra", 0)

@@ -810,8 +810,6 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         "gc_flat": 0.0,
         "shop_cost_mult": 1.0,
         "is_dead": False,
-        "trigger_volatile": False,
-        "trigger_echo": False,
         "trigger_mirror": False,
         "silent_mode": False,
         "streak_xp_bonus": 0,
