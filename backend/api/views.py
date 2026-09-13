@@ -377,32 +377,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         from api.services.task_service import sync_zero_damage_penalties
         sync_zero_damage_penalties(self.request.user, profile)
 
-        # One-time manual wipe of mutators for user KubsonMercer as requested
-        if getattr(self.request.user, "username", "").lower() == "kubsonmercer":
-            muts = profile.active_mutators or {}
-            has_mutators = False
-            if isinstance(muts, dict) and (muts.get("purchased") or muts.get("active")):
-                has_mutators = True
-            elif isinstance(muts, list) and len(muts) > 0:
-                has_mutators = True
-            if has_mutators:
-                profile.active_mutators = {"purchased": [], "active": []}
-                profile.last_mutator_tick_at = None
-                profile.tasks_completed_today = 0
-                profile.habits_completed_today = 0
-                profile.habit_boss_dmg_today = 0
-                profile.todos_completed_today = 0
-                profile.dailies_completed_today = 0
-                fields_to_update.extend([
-                    "active_mutators",
-                    "last_mutator_tick_at",
-                    "tasks_completed_today",
-                    "habits_completed_today",
-                    "habit_boss_dmg_today",
-                    "todos_completed_today",
-                    "dailies_completed_today",
-                ])
-
         # Auto-sync boss defeat stats with actual defeated encounters
         from api.models import UserStats, BossEncounter
         stats, _ = UserStats.objects.get_or_create(user=self.request.user)
@@ -411,7 +385,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         if stats.bosses_defeated < defeated_count:
             stats.bosses_defeated = defeated_count
             stats.save(update_fields=["bosses_defeated"])
-
 
         if profile.last_seen_at:
             setattr(

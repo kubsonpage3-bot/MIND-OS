@@ -2,10 +2,9 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from api.models import (
-    UserProfile, Task, TrainingSession, RecruitedAlly,
-    InventoryItem,
-    ActiveEffect, SkillCooldown, BossEncounter, UserActivityLog
+    UserProfile, Task, TrainingSession, RecruitedAlly, UserActivityLog
 )
+
 
 @pytest.mark.django_db
 class TestResetDataEndpoints:
@@ -133,11 +132,11 @@ class TestResetDataEndpoints:
         assert self.profile.gold == 500  # Gold preserved
         assert self.profile.active_mutators == {"purchased": [], "active": []}
 
-    def test_kubsonmercer_auto_wipe(self):
+    def test_kubsonmercer_preserves_mutators(self):
         from django.contrib.auth.models import User
         u = User.objects.create_user(username="KubsonMercer", password="password123")
         p = u.profile
-        p.active_mutators = {"purchased": ["ironman"], "active": ["ironman"]}
+        p.active_mutators = {"purchased": ["bloodwork", "chronomancer"], "active": ["chronomancer"]}
         p.save()
 
         client = APIClient()
@@ -146,7 +145,8 @@ class TestResetDataEndpoints:
         assert res.status_code == 200
 
         p.refresh_from_db()
-        assert p.active_mutators == {"purchased": [], "active": []}
+        assert "bloodwork" in p.active_mutators["purchased"]
+        assert "chronomancer" in p.active_mutators["purchased"]
 
     def test_user_profile_view_auto_heals_weekly_xp(self):
         self.profile.level = 1
@@ -160,4 +160,3 @@ class TestResetDataEndpoints:
 
         self.profile.refresh_from_db()
         assert self.profile.weekly_xp == 18
-
