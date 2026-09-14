@@ -10,8 +10,7 @@ calc.
 """
 import pytest
 from django.contrib.auth.models import User
-from api.models import UserProfile, RecruitedAlly, Task, Boss, BossEncounter
-from api.services.mechanics import apply_active_mutators
+from api.models import RecruitedAlly, Task, Boss, BossEncounter
 from api.services.task_service import complete_task
 
 
@@ -36,7 +35,6 @@ def test_neko_l1_daily_gold_bonus_applies(profile_ally):
     profile.active_allies = ["neko"]
     profile.save()
 
-    effects = apply_active_mutators(profile, {"task_type": "daily"})
     # Neko's ally-level effects live in get_passive_multipliers, not
     # apply_active_mutators -- check via that instead.
     from api.services.mechanics import get_passive_multipliers

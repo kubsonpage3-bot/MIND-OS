@@ -21,7 +21,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 from api.models import UserStats, Task, TrainingSession, RecruitedAlly
-from api.services.mechanics import apply_active_mutators, calculate_task_outcome
+from api.services.mechanics import apply_active_mutators
 from api.services.task_service import process_missed_tasks
 
 
