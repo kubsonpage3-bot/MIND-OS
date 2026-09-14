@@ -3130,6 +3130,27 @@ class DailyCheckinView(generics.GenericAPIView):
                     status=status.HTTP_200_OK,
                 )
 
+            # If user completed at least one daily yesterday and missed others, auto-rollover and penalize missed dailies silently
+            if completed_any_yesterday and len(yesterday_missed) > 0 and not force_test:
+                cron_res = process_missed_tasks(request.user)
+                profile.refresh_from_db()
+                profile.last_daily_checkin_at = local_today
+                profile.save(update_fields=["last_daily_checkin_at"])
+                return Response(
+                    {
+                        "needs_checkin": False,
+                        "completed_any_yesterday": True,
+                        "dailies": [],
+                        "cron_result": {
+                            "fired": cron_res.get("fired", False),
+                            "total_dmg": cron_res.get("total_dmg", 0),
+                            "died": cron_res.get("died", False),
+                            "log": cron_res.get("log", []),
+                        },
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
             # Only show if user completed ZERO dailies yesterday and missed at least one scheduled daily
             needs_checkin = (
                 (not completed_any_yesterday) and len(yesterday_missed) > 0

@@ -364,28 +364,33 @@ def calculate_task_outcome(
             print("[Mechanics] Boss is stunned! Nullifying base HP lost.")
             base_hp_lost = 0
 
-        # For negative habits/missed dailies: DEF reduces HP damage taken by (100 / (100 + DEF))  # noqa: E501
-        def_multiplier = 100.0 / (100.0 + def_stat)
+        if task_type in ["daily", "habit"]:
+            # For dailies and habits, base_hp_lost is calculated via calculate_fail_damage or
+            # calculate_habit_fail_hp in combat_service, which already incorporates the user's
+            # full DEF stat mitigation and equipment/skill passives (pain_threshold, luna, silk_mantle).
+            final_hp_lost = float(base_hp_lost)
+        else:
+            # For other task types: DEF reduces HP damage taken by (100 / (100 + DEF))  # noqa: E501
+            def_multiplier = 100.0 / (100.0 + def_stat)
 
-        # Check unlocked skills, items, and recruited allies for HP loss reduction
-        reduction_val = passive_effects.get("missed_daily_hp_reduction", 0.0) if passive_effects else 0.0
-        if reduction_val == 0.0:
-            if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
-                reduction_val += 0.25
-            luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
-            if luna_ally and luna_ally.level >= 2:
-                reduction_val += 0.10
-            equipped_codes = (
-                profile.get_equipped_item_codes()
-                if hasattr(profile, "get_equipped_item_codes")
-                else set()
-            )
-            if "silk_mantle" in equipped_codes:
-                reduction_val += 0.05
+            # Check unlocked skills, items, and recruited allies for HP loss reduction
+            reduction_val = passive_effects.get("missed_daily_hp_reduction", 0.0) if passive_effects else 0.0
+            if reduction_val == 0.0:
+                if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
+                    reduction_val += 0.25
+                luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
+                if luna_ally and luna_ally.level >= 2:
+                    reduction_val += 0.10
+                equipped_codes = (
+                    profile.get_equipped_item_codes()
+                    if hasattr(profile, "get_equipped_item_codes")
+                    else set()
+                )
+                if "silk_mantle" in equipped_codes:
+                    reduction_val += 0.05
 
-        hp_loss_reduction = max(0.0, 1.0 - reduction_val)
-
-        final_hp_lost = base_hp_lost * def_multiplier * hp_loss_reduction
+            hp_loss_reduction = max(0.0, 1.0 - reduction_val)
+            final_hp_lost = base_hp_lost * def_multiplier * hp_loss_reduction
 
         if mutator_effects:
             final_hp_lost *= mutator_effects.get("damage_taken_mult", 1.0)

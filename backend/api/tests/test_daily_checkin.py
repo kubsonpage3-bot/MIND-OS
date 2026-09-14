@@ -355,3 +355,169 @@ def test_reset_data_clears_checkin_and_does_not_prompt(checkin_user):
     assert res_checkin.data["needs_checkin"] is False
 
 
+@pytest.mark.django_db
+def test_partial_completion_auto_rollover_penalizes_missed_dailies(checkin_user):
+    """
+    Critical Test: When a user completed 1 daily yesterday and missed another,
+    GET /api/daily-checkin/ must NOT show the modal (needs_checkin=False),
+    BUT it MUST automatically penalize the missed daily, reset its streak,
+    deduct HP, advance last_daily_cron_at to today, and log the event.
+    """
+    user, profile = checkin_user
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    yesterday_dt = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
+
+    profile.last_daily_cron_at = yesterday
+    profile.last_daily_checkin_at = yesterday
+    profile.hp = 100
+    profile.save()
+
+    task_done = Task.objects.create(
+        user=user,
+        title="Completed Yesterday",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=True,
+        last_completed_at=yesterday_dt,
+    )
+    task_missed = Task.objects.create(
+        user=user,
+        title="Missed Yesterday",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=False,
+        streak=5,
+        difficulty=Task.Difficulty.HARD,
+    )
+    Task.objects.filter(id__in=[task_done.id, task_missed.id]).update(
+        created_at=yesterday_dt - timedelta(days=2)
+    )
+
+    # Call daily check-in
+    response = client.get("/api/daily-checkin/", HTTP_HOST="localhost")
+    assert response.status_code == 200
+    assert response.data["needs_checkin"] is False
+    assert response.data["completed_any_yesterday"] is True
+
+    profile.refresh_from_db()
+    task_done.refresh_from_db()
+    task_missed.refresh_from_db()
+
+    # 1. HP was deducted for the missed daily
+    assert profile.hp < 100
+    # 2. Missed daily streak was reset
+    assert task_missed.streak == 0
+    # 3. Completed daily is unlocked/reset for today
+    assert task_done.is_completed is False
+    # 4. Dates were advanced to today
+    assert profile.last_daily_cron_at == today
+    assert profile.last_daily_checkin_at == today
+
+    # 5. UserActivityLog has entry for missed daily
+    missed_logs = UserActivityLog.objects.filter(
+        user=user,
+        task=task_missed,
+        activity_type=UserActivityLog.ActivityType.HABIT_NEG,
+    )
+    assert missed_logs.exists()
+    assert missed_logs.first().hp_lost > 0
+
+
+@pytest.mark.django_db
+def test_checkin_modal_parity_winter_plate_and_ironman(checkin_user):
+    """
+    Verifies that complete_yesterday_dailies respects Winter Plate immunity
+    and Ironman forced prestige instead of demoting on death.
+    """
+    from api.models import Item, InventoryItem
+
+    user, profile = checkin_user
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    yesterday_dt = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
+
+    profile.last_daily_cron_at = yesterday
+    profile.last_daily_checkin_at = yesterday
+    profile.hp = 100
+    profile.save()
+
+    # Equip Winter Plate
+    plate, _ = Item.objects.get_or_create(
+        code="winter_plate",
+        defaults={"name": "Winter Plate", "slot_type": "armor"},
+    )
+    InventoryItem.objects.create(
+        user_profile=profile,
+        item=plate,
+        is_equipped=True,
+    )
+    profile.invalidate_cached_stats()
+
+    task = Task.objects.create(
+        user=user,
+        title="Winter Walk",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=False,
+        difficulty=Task.Difficulty.MEDIUM,
+    )
+    Task.objects.filter(id=task.id).update(created_at=yesterday_dt - timedelta(days=1))
+
+    # Skip via check-in modal -> Winter Plate should absorb the damage (0 damage)
+    res = client.post("/api/daily-checkin/", {"action": "skip"}, format="json")
+    assert res.status_code == 200
+    assert res.data["total_dmg"] == 0
+
+    profile.refresh_from_db()
+    assert profile.hp == 100  # Absorbed by Winter Plate!
+
+
+@pytest.mark.django_db
+def test_accurate_refund_matches_recorded_damage(checkin_user):
+    """
+    Verifies that when cron has already run and penalized a task,
+    a subsequent retroactive checkin refunds the EXACT recorded fail_hp.
+    """
+    user, profile = checkin_user
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+
+    profile.last_daily_cron_at = yesterday
+    profile.save()
+
+    task = Task.objects.create(
+        user=user,
+        title="Retro Refund Daily",
+        task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+        is_completed=False,
+        difficulty=Task.Difficulty.HARD,
+    )
+    Task.objects.filter(id=task.id).update(created_at=timezone.now() - timedelta(days=2))
+
+    # 1. Cron runs and penalizes task
+    cron_res = process_missed_tasks(user)
+    assert cron_res["fired"] is True
+    profile.refresh_from_db()
+    task.refresh_from_db()
+
+    assert "fail_hp" in task.last_reward_data
+    recorded_hp = task.last_reward_data["fail_hp"]
+    assert recorded_hp > 0
+
+    hp_after_cron = profile.hp
+
+    # 2. Retroactive checkin
+    checkin_res = complete_yesterday_dailies(user, completed_ids=[task.id])
+    assert checkin_res["total_refund"] == recorded_hp
+    profile.refresh_from_db()
+    assert profile.hp == hp_after_cron + recorded_hp
+
+

@@ -237,6 +237,187 @@ def get_yesterday_uncompleted_dailies(user):
     return result
 
 
+def apply_missed_daily_penalty(
+    user,
+    profile,
+    task,
+    passive_effects=None,
+    active_ids=None,
+    streak_protected=False,
+    damage_immune=False,
+):
+    """
+    SSOT: Applies fail damage, mutator side effects, ally perks, streak decay,
+    task value degradation, and activity logging for a single missed daily task.
+    Used by both process_missed_tasks (automatic rollover) and complete_yesterday_dailies (check-in modal).
+    Returns a dict:
+      - "final_dmg": int
+      - "outcome": dict
+    """
+    from datetime import timedelta
+    from django.utils import timezone
+    from api.services.combat_service import calculate_fail_damage
+    from api.services.mechanics import (
+        apply_active_mutators,
+        calculate_task_outcome,
+        get_passive_multipliers,
+        set_mutator_data,
+    )
+    from api.models import UserActivityLog
+
+    if passive_effects is None:
+        passive_effects = get_passive_multipliers(profile, {})
+
+    if active_ids is None:
+        active_mutators = profile.active_mutators or {}
+        active_list = (
+            active_mutators.get("active", [])
+            if isinstance(active_mutators, dict)
+            else []
+        )
+        active_ids = [
+            m.get("id") if isinstance(m, dict) else m for m in active_list
+        ]
+
+    # Iron Routine: "Miss a daily -> lose bonus for 24h."
+    if "iron_routine" in active_ids:
+        set_mutator_data(
+            profile,
+            "iron_routine",
+            {"penalty_until": (timezone.now() + timedelta(hours=24)).isoformat()},
+        )
+
+    dmg = calculate_fail_damage(task, profile)
+    if damage_immune:
+        dmg = 0
+
+    context = {
+        "is_science": False,
+        "is_language": False,
+        "is_exercise": False,
+        "is_prayer": False,
+        "task_type": "daily",
+        "hours": 0,
+    }
+    mutator_effects = apply_active_mutators(
+        profile, context, trigger_side_effects=False
+    )
+
+    outcome = calculate_task_outcome(
+        user,
+        "daily",
+        base_hp_lost=dmg,
+        is_positive=False,
+        mutator_effects=mutator_effects,
+    )
+    final_dmg = outcome.get("hp_lost", dmg)
+    if damage_immune:
+        final_dmg = 0
+
+    active_codes = profile.active_allies or []
+    recruited_allies = {
+        a.ally_code: a.level
+        for a in profile.recruited_allies.filter(ally_code__in=active_codes)
+    }
+
+    # Rhea Level 3: Gravity Well +30% HP damage penalty on miss
+    if passive_effects.get("rhea_gravity_well", False):
+        final_dmg = int(final_dmg * 1.30)
+
+    # Kage Level 5 Executioner: failed daily when boss < 15% HP deals 50% more HP damage
+    kage_level = recruited_allies.get("kage", 0)
+    if kage_level >= 5:
+        from api.models import BossEncounter
+
+        active_encounter = BossEncounter.objects.filter(
+            user=user, is_defeated=False
+        ).first()
+        if (
+            active_encounter
+            and active_encounter.hp_current
+            < active_encounter.boss.hp_max * 0.15
+        ):
+            final_dmg = int(final_dmg * 1.5)
+
+    # Grier Level 5 Unbreakable Will: below 20% HP, prevents all HP damage from missed dailies
+    grier_l5_active = passive_effects.get("grier_unbreakable_will", False)
+    below_20_hp = profile.hp < profile.total_stats.get("hp_max", 100) * 0.20
+    if grier_l5_active and below_20_hp:
+        final_dmg = 0
+
+    # Winter Plate: immune to 1 missed daily/week
+    equipped_codes = profile.get_equipped_item_codes()
+    if "winter_plate" in equipped_codes and final_dmg > 0:
+        current_week_str = timezone.now().strftime("%Y-W%W")
+        streaks = profile.category_streaks or {}
+        if streaks.get("winter_plate_week") != current_week_str:
+            streaks["winter_plate_week"] = current_week_str
+            profile.category_streaks = streaks
+            profile.save(update_fields=["category_streaks"])
+            final_dmg = 0
+
+    # Grier Level 2 Shield Slam
+    if outcome.get("grier_shield_slam") and profile.mana >= 5:
+        profile.mana = max(0, profile.mana - 5)
+        profile.save(update_fields=["mana"])
+        from api.services.mechanics import apply_boss_damage
+
+        apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
+        profile.refresh_from_db()
+
+    # Grier Level 4 Revenge Mark: failed daily adds charge
+    if recruited_allies.get("grier", 0) >= 4:
+        profile.grier_revenge_charges = min(
+            3, profile.grier_revenge_charges + 1
+        )
+        profile.save(update_fields=["grier_revenge_charges"])
+
+    task.is_completed = False
+    if not streak_protected:
+        task.streak = 0
+
+    task.value = calc_new_value(task.value, "fail", "daily")
+
+    if not isinstance(task.last_reward_data, dict):
+        task.last_reward_data = {}
+    task.last_reward_data["fail_hp"] = final_dmg
+    task.save()
+
+    xp_gained = outcome.get("xp_earned", 0)
+    if xp_gained > 0:
+        from api.services.profile_service import gain_xp
+
+        gain_xp(profile, xp_gained)
+        profile.rank_xp += xp_gained
+
+    # Record UserActivityLog for daily missed
+    try:
+        UserActivityLog.objects.create(
+            user=user,
+            activity_type=UserActivityLog.ActivityType.HABIT_NEG,
+            task=task,
+            title=f"Пропущен дейлик: {task.title}",
+            category=task.category or "Other",
+            difficulty=task.difficulty,
+            hp_lost=final_dmg,
+            streak_value=0,
+            metadata={
+                "type": "daily_missed",
+                "task_id": task.id,
+                "damage": final_dmg,
+            },
+        )
+    except Exception as e:
+        logger.warning(
+            "Failed to create UserActivityLog for missed daily %s: %s", task.id, e
+        )
+
+    return {
+        "final_dmg": final_dmg,
+        "outcome": outcome,
+    }
+
+
 @transaction.atomic
 def complete_yesterday_dailies(user, completed_ids: list):
     """
@@ -252,9 +433,9 @@ def complete_yesterday_dailies(user, completed_ids: list):
     from datetime import datetime, time, timedelta
     from django.utils import timezone as tz
     from api.services.combat_service import calculate_fail_damage
-    from api.services.mechanics import apply_active_mutators
     from api.models import ActiveEffect, UserActivityLog
     from api.services.profile_service import gain_xp, check_death
+    from api.services.mechanics import get_passive_multipliers
 
     profile = UserProfile.objects.select_for_update().get(user=user)
 
@@ -288,6 +469,19 @@ def complete_yesterday_dailies(user, completed_ids: list):
     elixir_active = ActiveEffect.objects.filter(
         user=user, skill_id="elixir", expires_at__gt=tz.now()
     ).exists()
+
+    _active_mutators = profile.active_mutators or {}
+    _active_list = (
+        _active_mutators.get("active", [])
+        if isinstance(_active_mutators, dict)
+        else []
+    )
+    active_ids = [
+        m.get("id") if isinstance(m, dict) else m for m in _active_list
+    ]
+
+    passive_effects = get_passive_multipliers(profile, {})
+    has_missed_scheduled_daily = False
 
     for task in missed_tasks:
         fail_dmg = calculate_fail_damage(task, profile)
@@ -336,9 +530,18 @@ def complete_yesterday_dailies(user, completed_ids: list):
                     "Failed to record retroactive checkin activity log: %s", e
                 )
 
-            # If cron already ran, user was already penalized for this task, so refund the damage!
-            if cron_already_ran and fail_dmg > 0:
-                total_refund += fail_dmg
+            # If cron already ran, user was already penalized for this task, so refund the exact damage dealt!
+            if cron_already_ran:
+                recorded_fail_hp = (
+                    task.last_reward_data.get("fail_hp")
+                    if isinstance(task.last_reward_data, dict)
+                    else None
+                )
+                refund_amount = (
+                    recorded_fail_hp if recorded_fail_hp is not None else fail_dmg
+                )
+                if refund_amount > 0:
+                    total_refund += refund_amount
 
             total_xp += final_xp
             total_gold += final_gold
@@ -349,41 +552,38 @@ def complete_yesterday_dailies(user, completed_ids: list):
                     "title": task.title,
                     "xp": final_xp,
                     "gold": final_gold,
-                    "refunded_hp": fail_dmg if cron_already_ran else 0,
+                    "refunded_hp": (
+                        (recorded_fail_hp if recorded_fail_hp is not None else fail_dmg)
+                        if cron_already_ran
+                        else 0
+                    ),
                 }
             )
         else:
             # ── Uncompleted task ──────────────────────────────────
-            context = {
-                "is_science": False,
-                "is_language": False,
-                "is_exercise": False,
-                "is_prayer": False,
-                "task_type": "daily",
-                "hours": 0,
-            }
-            mutator_effects = apply_active_mutators(
-                profile, context, trigger_side_effects=False
-            )
-            outcome = calculate_task_outcome(
-                user,
-                "daily",
-                base_hp_lost=fail_dmg,
-                is_positive=False,
-                mutator_effects=mutator_effects,
-            )
-            final_dmg = outcome["hp_lost"]
-            if iron_fast_active or elixir_active:
-                final_dmg = 0
-
+            has_missed_scheduled_daily = True
             if not cron_already_ran:
-                # Apply penalty since cron hasn't executed yet
-                if not transcendence_active:
-                    task.streak = 0
-                    task.value = calc_new_value(task.value, "fail", "daily")
-                task.is_completed = False
-                task.save()
+                profile.total_overdue_tasks += 1
+                penalty_res = apply_missed_daily_penalty(
+                    user=user,
+                    profile=profile,
+                    task=task,
+                    passive_effects=passive_effects,
+                    active_ids=active_ids,
+                    streak_protected=transcendence_active,
+                    damage_immune=(iron_fast_active or elixir_active),
+                )
+                final_dmg = penalty_res["final_dmg"]
                 total_dmg += final_dmg
+            else:
+                recorded_fail_hp = (
+                    task.last_reward_data.get("fail_hp")
+                    if isinstance(task.last_reward_data, dict)
+                    else None
+                )
+                final_dmg = (
+                    recorded_fail_hp if recorded_fail_hp is not None else fail_dmg
+                )
 
             log.append(
                 {
@@ -394,6 +594,26 @@ def complete_yesterday_dailies(user, completed_ids: list):
                     "already_penalized": cron_already_ran,
                 }
             )
+
+    # ── Timezone-Safe Party Streak Decay ──────────────────────────────
+    if not cron_already_ran and has_missed_scheduled_daily:
+        if hasattr(user, "party_membership"):
+            membership = user.party_membership
+            party = membership.party
+            if party.streak > 0:
+                party.streak = 0
+                party.last_streak_update_date = local_today
+                party.save(update_fields=["streak", "last_streak_update_date"])
+
+                from api.models import PartyEvent
+
+                PartyEvent.objects.create(
+                    party=party,
+                    member=membership,
+                    event_type="milestone",
+                    message="streak was broken because they missed a Daily task.",
+                    metadata={"username": user.username},
+                )
 
     # ── Daily Boss Threat Engine ──────────────────────────────────────
     if not cron_already_ran:
@@ -462,7 +682,14 @@ def complete_yesterday_dailies(user, completed_ids: list):
         ]
     )
 
-    died = check_death(profile)
+    # Ironman: "HP hits 0 -> forced prestige. In return: all Rank XP +15% forever."
+    if profile.hp <= 0 and "ironman" in active_ids:
+        from api.services.profile_service import execute_prestige
+
+        execute_prestige(profile, user)
+        died = False
+    else:
+        died = check_death(profile)
 
     return {
         "total_xp": total_xp,
@@ -2051,6 +2278,7 @@ def process_missed_tasks(user):
 
         if was_completed:
             task.is_completed = False
+            task.save(update_fields=["is_completed"])
             # Note: Do not clear task.last_completed_at so check-in history and streak audit know it was done yesterday.
             # Tomorrow's clicks are never blocked because _complete_task_logic checks last_completed_local == local_today.
             log.append({"type": "daily_done", "id": task.id, "title": task.title})
@@ -2059,126 +2287,17 @@ def process_missed_tasks(user):
             has_missed_scheduled_daily = True
             profile.total_overdue_tasks += 1
 
-            active_mutators = profile.active_mutators or {}
-            active_list = (
-                active_mutators.get("active", [])
-                if isinstance(active_mutators, dict)
-                else []
+            penalty_res = apply_missed_daily_penalty(
+                user=user,
+                profile=profile,
+                task=task,
+                passive_effects=passive_effects,
+                active_ids=_mutator_ids_today,
+                streak_protected=streak_protected,
+                damage_immune=(eye_of_the_storm_active or elixir_active),
             )
-            active_ids = [
-                m.get("id") if isinstance(m, dict) else m for m in active_list
-            ]
-
-            # Ironman: "HP hits 0 -> forced prestige." No artificial HP floor
-            # or extra gold cut here — let the normal fail damage below apply,
-            # and check for an actual HP-0 forced prestige at the end of this
-            # function (once total_dmg for the whole run is known).
-
-            # Iron Routine: "Miss a daily -> lose bonus for 24h."
-            if "iron_routine" in active_ids:
-                set_mutator_data(
-                    profile,
-                    "iron_routine",
-                    {"penalty_until": (timezone.now() + timedelta(hours=24)).isoformat()},
-                )
-
-            dmg = calculate_fail_damage(task, profile)
-            if eye_of_the_storm_active or elixir_active:
-                dmg = 0
-            context = {
-                "is_science": False,
-                "is_language": False,
-                "is_exercise": False,
-                "is_prayer": False,
-                "task_type": "daily",
-                "hours": 0,
-            }
-            from api.services.mechanics import apply_active_mutators
-
-            mutator_effects = apply_active_mutators(
-                profile, context, trigger_side_effects=False
-            )
-
-            outcome = calculate_task_outcome(
-                user,
-                "daily",
-                base_hp_lost=dmg,
-                is_positive=False,
-                mutator_effects=mutator_effects,
-            )
-            final_dmg = outcome["hp_lost"]
-
-            active_codes = profile.active_allies or []
-
-            recruited_allies = {
-                a.ally_code: a.level
-                for a in profile.recruited_allies.filter(ally_code__in=active_codes)  # type: ignore[attr-defined]
-            }
-
-            # Rhea Level 3: Gravity Well +30% HP damage penalty on miss
-            if passive_effects.get("rhea_gravity_well", False):
-                final_dmg = int(final_dmg * 1.30)
-
-            # Kage Level 5 Executioner: failed daily when boss < 15% HP deals 50% more HP damage
-            kage_level = recruited_allies.get("kage", 0)
-            if kage_level >= 5:
-                from api.models import BossEncounter
-
-                active_encounter = BossEncounter.objects.filter(
-                    user=user, is_defeated=False
-                ).first()
-                if (
-                    active_encounter
-                    and active_encounter.hp_current
-                    < active_encounter.boss.hp_max * 0.15
-                ):
-                    final_dmg = int(final_dmg * 1.5)
-
-            # Grier Level 5 Unbreakable Will: below 20% HP, prevents all HP damage from missed dailies
-            grier_l5_active = passive_effects.get("grier_unbreakable_will", False)
-            below_20_hp = profile.hp < profile.total_stats.get("hp_max", 100) * 0.20
-            if grier_l5_active and below_20_hp:
-                final_dmg = 0
-
-            # Winter Plate: immune to 1 missed daily/week
-            equipped_codes = profile.get_equipped_item_codes()
-            if "winter_plate" in equipped_codes and final_dmg > 0:
-                current_week_str = timezone.now().strftime("%Y-W%W")
-                streaks = profile.category_streaks or {}
-                if streaks.get("winter_plate_week") != current_week_str:
-                    streaks["winter_plate_week"] = current_week_str
-                    profile.category_streaks = streaks
-                    profile.save(update_fields=["category_streaks"])
-                    final_dmg = 0
-
-            # Grier Level 2 Shield Slam
-            if outcome.get("grier_shield_slam") and profile.mana >= 5:
-                profile.mana = max(0, profile.mana - 5)
-                profile.save()
-                from api.services.mechanics import apply_boss_damage
-
-                apply_boss_damage(user, outcome["grier_shield_slam_dmg"])
-                profile.refresh_from_db()
-
-            # Grier Level 4 Revenge Mark: failed daily adds charge
-            if recruited_allies.get("grier", 0) >= 4:
-                profile.grier_revenge_charges = min(
-                    3, profile.grier_revenge_charges + 1
-                )
-
+            final_dmg = penalty_res["final_dmg"]
             total_dmg += final_dmg
-            task.is_completed = False
-            if not streak_protected:
-                # Neko L4's shield is for Habit streaks specifically (see the
-                # negative-habit completion path), not Dailies.
-                task.streak = 0
-
-            task.value = calc_new_value(task.value, "fail", "daily")
-
-            xp_gained = outcome.get("xp_earned", 0)
-            if xp_gained > 0:
-                gain_xp(profile, xp_gained)
-                profile.rank_xp += xp_gained
 
             log.append(
                 {
@@ -2186,11 +2305,9 @@ def process_missed_tasks(user):
                     "id": task.id,
                     "title": task.title,
                     "damage": final_dmg,
-                    "gamification_result": outcome,
+                    "gamification_result": penalty_res["outcome"],
                 }
             )
-
-        task.save()
 
     # Timezone-Safe Party Streak Decay
     if has_scheduled_dailies and has_missed_scheduled_daily:

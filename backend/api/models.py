@@ -962,6 +962,15 @@ class Task(models.Model):
 
     @property
     def hp_damage_on_miss(self) -> int:
+        user = getattr(self, "user", None)
+        profile = getattr(user, "profile", None) if user else None
+        if profile:
+            try:
+                from api.services.combat_service import calculate_fail_damage
+
+                return calculate_fail_damage(self, profile)
+            except Exception:
+                pass
         from api.services.rewards_service import MISS_PENALTY
 
         diff = (
