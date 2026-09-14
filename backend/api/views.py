@@ -1621,9 +1621,11 @@ class TrainingLogView(generics.GenericAPIView):
             breakdown = [f"Base +{rewards['xp']} XP"]
             breakdown.extend(describe_active_sources(profile))
             if xp_mult != 1.0:
-                breakdown.append(f"Bonuses (mutators/allies/gear/skills) {xp_mult:+.0%}")
+                breakdown.append(f"XP bonuses (mutators/allies/gear/skills) {xp_mult - 1.0:+.0%}")
             if flat_xp_bonus:
                 breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+            if gold_mult != 1.0:
+                breakdown.append(f"Gold bonuses (mutators/allies/gear/skills) {gold_mult - 1.0:+.0%}")
 
             # Apply "final" multiplicative mutators (echo, gambler, volatile,
             # time_dilation, diversity_lock, zero_hour) — same as task_service.py's

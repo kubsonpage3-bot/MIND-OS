@@ -359,9 +359,11 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 breakdown = [f"Base +{int(base_xp)} XP"]
                 breakdown.extend(describe_active_sources(profile))
                 if xp_mult != 1.0:
-                    breakdown.append(f"Bonuses (mutators/allies/gear/skills) {xp_mult:+.0%}")
+                    breakdown.append(f"XP bonuses (mutators/allies/gear/skills) {xp_mult - 1.0:+.0%}")
                 if flat_xp_bonus:
                     breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+                if gold_mult != 1.0:
+                    breakdown.append(f"Gold bonuses (mutators/allies/gear/skills) {gold_mult - 1.0:+.0%}")
 
                 base_xp = (base_xp + flat_xp_bonus) * xp_mult
                 base_gold = base_gold * gold_mult

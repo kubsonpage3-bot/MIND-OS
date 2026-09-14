@@ -893,9 +893,11 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     reward_breakdown = [f"Base +{rewards.get('xp', 0)} XP"]
     reward_breakdown.extend(describe_active_sources(profile))
     if xp_mult != 1.0:
-        reward_breakdown.append(f"Bonuses (mutators/allies/gear/skills) {xp_mult:+.0%}")
+        reward_breakdown.append(f"XP bonuses (mutators/allies/gear/skills) {xp_mult - 1.0:+.0%}")
     if flat_xp_bonus:
         reward_breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+    if gold_mult != 1.0:
+        reward_breakdown.append(f"Gold bonuses (mutators/allies/gear/skills) {gold_mult - 1.0:+.0%}")
 
     final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
     final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
