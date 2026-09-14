@@ -127,12 +127,17 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["crit_chance_bonus"] == 0.10
 
-        # 10. unbreakable
+        # 10. pain_threshold
+        UnlockedSkill.objects.create(user_profile=profile, skill_code="pain_threshold")
+        effects = get_passive_multipliers(profile, {})
+        assert effects["missed_daily_hp_reduction"] == 0.25
+
+        # 11. unbreakable
         UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")
         effects = get_passive_multipliers(profile, {})
         assert effects["daily_hp_regen"] == 3.0
 
-        # 11. apex_predator
+        # 12. apex_predator
         UnlockedSkill.objects.create(user_profile=profile, skill_code="apex_predator")
         effects = get_passive_multipliers(profile, {})
         assert effects["boss_dmg_mult"] == 1.30
@@ -198,7 +203,13 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["mana_regen_mult"] == 1.25
 
-        # 19. aura_of_focus
+        # 19. mindguard
+        UnlockedSkill.objects.create(user_profile=profile, skill_code="mindguard")
+        effects = get_passive_multipliers(profile, {})
+        assert effects["skill_mana_cost_reduction_pct"] == 0.15
+        assert SKILL_TREE_CONFIG["mindguard"]["mana_cost_reduction"] == 0.15
+
+        # 20. aura_of_focus
         UnlockedSkill.objects.create(user_profile=profile, skill_code="aura_of_focus")
         effects = get_passive_multipliers(profile, {})
         assert effects["ally_stat_mult"] == 1.10

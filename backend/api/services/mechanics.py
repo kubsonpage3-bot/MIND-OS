@@ -367,26 +367,23 @@ def calculate_task_outcome(
         # For negative habits/missed dailies: DEF reduces HP damage taken by (100 / (100 + DEF))  # noqa: E501
         def_multiplier = 100.0 / (100.0 + def_stat)
 
-        # Check unlocked skills and recruited allies for HP loss reduction
-        hp_loss_reduction = 1.0
-        if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
-            hp_loss_reduction -= 0.25  # 25% reduction
+        # Check unlocked skills, items, and recruited allies for HP loss reduction
+        reduction_val = passive_effects.get("missed_daily_hp_reduction", 0.0) if passive_effects else 0.0
+        if reduction_val == 0.0:
+            if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
+                reduction_val += 0.25
+            luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
+            if luna_ally and luna_ally.level >= 2:
+                reduction_val += 0.10
+            equipped_codes = (
+                profile.get_equipped_item_codes()
+                if hasattr(profile, "get_equipped_item_codes")
+                else set()
+            )
+            if "silk_mantle" in equipped_codes:
+                reduction_val += 0.05
 
-        luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
-        if luna_ally and luna_ally.level >= 2:
-            hp_loss_reduction -= 0.10  # 10% reduction
-
-        # Silk Mantle: −5% HP loss on missed daily
-        equipped_codes = (
-            profile.get_equipped_item_codes()
-            if hasattr(profile, "get_equipped_item_codes")
-            else set()
-        )
-        if "silk_mantle" in equipped_codes:
-            hp_loss_reduction -= 0.05
-
-        # Ensure we don't reduce below 0
-        hp_loss_reduction = max(0.0, hp_loss_reduction)
+        hp_loss_reduction = max(0.0, 1.0 - reduction_val)
 
         final_hp_lost = base_hp_lost * def_multiplier * hp_loss_reduction
 
@@ -1387,6 +1384,7 @@ def get_passive_multipliers(profile, context: dict):
         "guaranteed_loot_drop": False,
         "cooldown_reduction": 0.0,
         "skill_mana_cost_reduction": 0,
+        "skill_mana_cost_reduction_pct": 0.0,
         "skill_boss_damage": 0,
         "daily_free_skill": False,
         "prestige_bonus": 0.0,
@@ -1655,6 +1653,12 @@ def get_passive_multipliers(profile, context: dict):
     if "transcendent_will" in unlocked_skills:
         # Rival advancement speed reduced by 10% (stacks with living_library)
         effects["rival_xp_reduction"] += 0.10
+
+    if "pain_threshold" in unlocked_skills:
+        effects["missed_daily_hp_reduction"] += 0.25
+
+    if "mindguard" in unlocked_skills:
+        effects["skill_mana_cost_reduction_pct"] = 0.15
 
     # ALLIES
     ally_mult = effects["ally_stat_mult"]

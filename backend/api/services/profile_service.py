@@ -16,6 +16,11 @@ def execute_prestige(profile: UserProfile, user) -> None:
     from api.services.mechanics import get_passive_multipliers
     from api.services.rpg_service import respec_skill_nodes
 
+    # 1. First respec skill nodes to refund all SP and revert skill-tree ceiling buffs in DB
+    respec_skill_nodes(user, free=True)
+    profile.refresh_from_db()
+
+    # 2. Re-read passives now that skills are reset (allies/mutators still active)
     passive_effects = get_passive_multipliers(profile, {})
     p_bonus = passive_effects.get("prestige_bonus", 0.0)
 
@@ -39,11 +44,8 @@ def execute_prestige(profile: UserProfile, user) -> None:
     start_rank = passive_effects.get("prestige_start_rank", "E")
     profile.rank_xp = 600 if start_rank == "C" else 0
 
+    # 3. Add +5 Skill Points bonus on top of all refunded SP
     profile.skill_points = (profile.skill_points or 0) + 5
-
-    profile.save()
-
-    respec_skill_nodes(user, free=True)
 
     from api.models import Task
 

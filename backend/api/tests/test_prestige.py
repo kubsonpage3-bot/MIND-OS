@@ -17,6 +17,7 @@ def test_prestige_snowball_mechanic():
     profile.mana = 100
     profile.hp = 100
     profile.gold = 0
+    profile.skill_points = 0
     profile.save()
     # Add skills
     profile.unlocked_skills.create(skill_code="focus_boost")
@@ -47,6 +48,8 @@ def test_prestige_snowball_mechanic():
     assert profile.prestige_count == 1
     assert profile.rank_xp == 0
     assert profile.unlocked_skills.count() == 0
+    # Retains 6 refunded SP (from endurance_protocol) + 5 bonus prestige SP = 11
+    assert profile.skill_points == 11
     assert profile.gf_ceiling == 110.0
     assert profile.gc_ceiling == 110.0
     assert profile.ps_ceiling == 110.0

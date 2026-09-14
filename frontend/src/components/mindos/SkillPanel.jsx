@@ -163,8 +163,32 @@ export default function SkillPanel({ classId }) {
     const cdUntil = storedCd ? new Date(storedCd.cooldown_until).getTime() : 0;
     const remaining = cdUntil - now;
     const onCooldown = remaining > 0;
-    const hasMana = (profile?.mana || 0) >= sk.mana;
-    return { onCooldown, remaining, hasMana, available: !onCooldown && hasMana };
+
+    let cost = sk.mana;
+    const unlocked = profile?.unlocked_skills || [];
+    if (unlocked.includes("mindguard")) {
+      cost = Math.floor(cost * 0.85);
+    }
+    const allyMult = unlocked.includes("aura_of_focus") ? 1.1 : 1.0;
+    const activeAllies = profile?.active_allies || [];
+    const recruited = profile?.recruited_allies || {};
+    if (activeAllies.includes("hex") && (recruited["hex"] || 0) >= 2) {
+      cost -= Math.floor(10 * allyMult);
+    }
+    cost = Math.max(0, cost);
+
+    const currentMana = profile?.mana || 0;
+    let hasMana = currentMana >= cost;
+    let hpCost = 0;
+    if (!hasMana && activeAllies.includes("vivian")) {
+      const missing = cost - currentMana;
+      hpCost = Math.ceil(missing / 2);
+      if ((profile?.hp || 0) >= hpCost) {
+        hasMana = true;
+      }
+    }
+
+    return { onCooldown, remaining, hasMana, cost, hpCost, available: !onCooldown && hasMana };
   };
 
   const activateSkill = (skill) => {
@@ -265,8 +289,20 @@ export default function SkillPanel({ classId }) {
               </div>
               <div className="shrink-0 text-right">
                 <div className="text-[10px] font-mono font-bold" style={{ color: state.hasMana ? cls.color : "#ef4444" }}>
-                  {skill.mana} MP
+                  {state.cost !== skill.mana ? (
+                    <span>
+                      <span className="line-through text-muted-foreground/50 mr-1">{skill.mana}</span>
+                      {state.cost} MP
+                    </span>
+                  ) : (
+                    `${state.cost} MP`
+                  )}
                 </div>
+                {state.hpCost > 0 && (
+                  <div className="text-[9px] font-mono text-rose-400 font-bold">
+                    +{state.hpCost} HP
+                  </div>
+                )}
                 <div className="text-[9px] font-mono text-muted-foreground/50 mt-0.5 tracking-widest">
                   {formatCountdown(state.remaining, t)}
                 </div>
@@ -295,7 +331,13 @@ export default function SkillPanel({ classId }) {
                 />
               )}
               <span className="relative z-10">
-                {state.onCooldown ? `⧗ ${formatCountdown(state.remaining, t)}` : !state.hasMana ? t('skillPanel.notEnoughMana', "✗ NOT ENOUGH MANA") : t('skillPanel.useSkill', "► USE SKILL")}
+                {state.onCooldown
+                  ? `⧗ ${formatCountdown(state.remaining, t)}`
+                  : !state.hasMana
+                  ? t('skillPanel.notEnoughMana', "✗ NOT ENOUGH MANA")
+                  : state.hpCost > 0
+                  ? t('skillPanel.useSkillBlood', { defaultValue: `► USE (${state.hpCost} HP)`, hp: state.hpCost })
+                  : t('skillPanel.useSkill', "► USE SKILL")}
               </span>
             </motion.button>
           </motion.div>

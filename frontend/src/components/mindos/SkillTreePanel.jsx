@@ -193,12 +193,34 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
   const sp = profile?.skill_points || 0;
   const currentGold = profile?.gold || gold || 0;
 
+  // Yuki Level 4 discount: -25% SP and Gold for Skill Tree nodes (+10% with Aura of Focus)
+  const yukiActive = profile?.active_allies?.includes("yuki");
+  const yukiLevel = profile?.recruited_allies?.["yuki"] || 0;
+  const hasAura = unlocked.includes("aura_of_focus");
+  const allyMult = hasAura ? 1.10 : 1.0;
+  const costReduction = (yukiActive && yukiLevel >= 4) ? (0.25 * allyMult) : 0;
+
+  const getNodeCost = (node) => {
+    if (!node || node.isStart) return { sp: 0, gold: 0, isDiscounted: false };
+    const baseSp = node.sp || 0;
+    const baseGold = node.gold || 0;
+    if (costReduction > 0) {
+      return {
+        sp: Math.max(0, Math.floor(baseSp * (1.0 - costReduction))),
+        gold: Math.max(0, Math.floor(baseGold * (1.0 - costReduction))),
+        isDiscounted: true,
+      };
+    }
+    return { sp: baseSp, gold: baseGold, isDiscounted: false };
+  };
+
   const canUnlock = (node) => {
     if (!node || node.isStart) return false;
     if (unlocked.includes(node.id)) return false;
     if (node.requires && !unlocked.includes(node.requires)) return false;
-    if (sp < (node.sp || 0)) return false;
-    if (currentGold < (node.gold || 0)) return false;
+    const cost = getNodeCost(node);
+    if (sp < cost.sp) return false;
+    if (currentGold < cost.gold) return false;
     return true;
   };
 
@@ -269,11 +291,11 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
     const newNodes = preset.nodes.filter((id) => !unlocked.includes(id));
     const spNeeded = newNodes.reduce((acc, id) => {
       const node = GRAPH_DATA.nodes.find((n) => n.id === id);
-      return acc + (node?.sp || 0);
+      return acc + getNodeCost(node).sp;
     }, 0);
     const goldNeeded = newNodes.reduce((acc, id) => {
       const node = GRAPH_DATA.nodes.find((n) => n.id === id);
-      return acc + (node?.gold || 0);
+      return acc + getNodeCost(node).gold;
     }, 0);
 
     if (spNeeded > sp || goldNeeded > currentGold) {
@@ -391,13 +413,14 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
               const isSelected = selectedNodeId === node.id;
               const branch = SKILL_TREE[activeMobileBranch];
               const isKeystone = node.tier === 6;
+              const nodeCost = getNodeCost(node);
 
               let state = "LOCKED";
               if (isNodeUnlocked) state = "MASTERED";
               else if (
                 prereqMet &&
-                sp >= (node.sp || 0) &&
-                currentGold >= (node.gold || 0)
+                sp >= nodeCost.sp &&
+                currentGold >= nodeCost.gold
               )
                 state = "AVAILABLE";
 
@@ -490,20 +513,20 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                           <span
                             className={cn(
                               "text-[10px] font-bold block",
-                              sp < node.sp ? "text-red-400" : "text-amber-300"
+                              sp < nodeCost.sp ? "text-red-400" : "text-amber-300"
                             )}
                           >
-                            {node.sp} SP
+                            {nodeCost.sp} SP
                           </span>
                           <span
                             className={cn(
                               "text-[9px] block opacity-80",
-                              currentGold < node.gold
+                              currentGold < nodeCost.gold
                                 ? "text-red-400"
                                 : "text-slate-400"
                             )}
                           >
-                            {node.gold}G
+                            {nodeCost.gold}G
                           </span>
                         </div>
                       )}
@@ -584,9 +607,10 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                   const targetNode = GRAPH_DATA.nodes.find(
                     (n) => n.id === link.targetId
                   );
+                  const targetCost = getNodeCost(targetNode);
                   const targetCanAfford = targetNode
-                    ? sp >= (targetNode.sp || 0) &&
-                      currentGold >= (targetNode.gold || 0)
+                    ? sp >= targetCost.sp &&
+                      currentGold >= targetCost.gold
                     : false;
                   const isTargetAvailable =
                     isSourceUnlocked && !isTargetUnlocked && targetCanAfford;
@@ -640,13 +664,14 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                   node.isStart || !node.requires || unlocked.includes(node.requires);
                 const isSelected = selectedNodeId === node.id;
                 const isKeystone = node.tier === 6;
+                const nodeCost = getNodeCost(node);
 
                 let state = "LOCKED";
                 if (isUnlocked) state = "MASTERED";
                 else if (
                   prereqMet &&
-                  sp >= (node.sp || 0) &&
-                  currentGold >= (node.gold || 0)
+                  sp >= nodeCost.sp &&
+                  currentGold >= nodeCost.gold
                 )
                   state = "AVAILABLE";
 
@@ -898,31 +923,36 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-center justify-between text-xs font-mono px-1">
-                          <span className="text-slate-400">Cost:</span>
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={cn(
-                                "font-bold font-mono",
-                                sp < selectedNode.sp
-                                  ? "text-red-400"
-                                  : "text-amber-300"
-                              )}
-                            >
-                              {selectedNode.sp} SP
-                            </span>
-                            <span
-                              className={cn(
-                                "font-bold font-mono",
-                                currentGold < selectedNode.gold
-                                  ? "text-red-400"
-                                  : "text-amber-300"
-                              )}
-                            >
-                              {selectedNode.gold} G
-                            </span>
-                          </div>
-                        </div>
+                        {(() => {
+                          const selectedCost = getNodeCost(selectedNode);
+                          return (
+                            <div className="flex items-center justify-between text-xs font-mono px-1">
+                              <span className="text-slate-400">Cost:</span>
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className={cn(
+                                    "font-bold font-mono",
+                                    sp < selectedCost.sp
+                                      ? "text-red-400"
+                                      : "text-amber-300"
+                                  )}
+                                >
+                                  {selectedCost.sp} SP
+                                </span>
+                                <span
+                                  className={cn(
+                                    "font-bold font-mono",
+                                    currentGold < selectedCost.gold
+                                      ? "text-red-400"
+                                      : "text-amber-300"
+                                  )}
+                                >
+                                  {selectedCost.gold} G
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         <button
                           onClick={() => unlock(selectedNode)}
@@ -1039,42 +1069,47 @@ export default function SkillTreePanel({ skillTree, onUpdate, gold, onSpendGold 
                       <Check className="w-4 h-4" /> MASTERED
                     </div>
                   ) : (
-                    <>
-                      <div className="flex items-center gap-2 text-xs font-mono font-bold mb-1.5">
-                        <span
-                          className={
-                            sp < selectedNode.sp
-                              ? "text-red-400"
-                              : "text-amber-300"
-                          }
-                        >
-                          {selectedNode.sp} SP
-                        </span>
-                        <span
-                          className={
-                            currentGold < selectedNode.gold
-                              ? "text-red-400"
-                              : "text-amber-300"
-                          }
-                        >
-                          {selectedNode.gold} G
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => unlock(selectedNode)}
-                        disabled={
-                          !canUnlock(selectedNode) || buyMutation.isPending
-                        }
-                        className="px-4 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md cursor-pointer"
-                        style={{
-                          borderColor: selectedNode.color,
-                          color: "#fff",
-                          background: `${selectedNode.color}33`,
-                        }}
-                      >
-                        {buyMutation.isPending ? "..." : "UNLOCK"}
-                      </button>
-                    </>
+                    (() => {
+                      const selectedCost = getNodeCost(selectedNode);
+                      return (
+                        <>
+                          <div className="flex items-center gap-2 text-xs font-mono font-bold mb-1.5">
+                            <span
+                              className={
+                                sp < selectedCost.sp
+                                  ? "text-red-400"
+                                  : "text-amber-300"
+                              }
+                            >
+                              {selectedCost.sp} SP
+                            </span>
+                            <span
+                              className={
+                                currentGold < selectedCost.gold
+                                  ? "text-red-400"
+                                  : "text-amber-300"
+                              }
+                            >
+                              {selectedCost.gold} G
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => unlock(selectedNode)}
+                            disabled={
+                              !canUnlock(selectedNode) || buyMutation.isPending
+                            }
+                            className="px-4 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md cursor-pointer"
+                            style={{
+                              borderColor: selectedNode.color,
+                              color: "#fff",
+                              background: `${selectedNode.color}33`,
+                            }}
+                          >
+                            {buyMutation.isPending ? "..." : "UNLOCK"}
+                          </button>
+                        </>
+                      );
+                    })()
                   )}
 
                   {/* Prerequisite warning */}

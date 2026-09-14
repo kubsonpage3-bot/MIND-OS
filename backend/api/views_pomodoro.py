@@ -336,6 +336,9 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 mutator_effects = apply_active_mutators(profile, context)
                 passive_effects = get_passive_multipliers(profile, context)
 
+                # Deep concentration: focus minimum counts as 7.0
+                eff_rating = max(float(rating), passive_effects.get("min_focus", 0.0))
+
                 xp_mult = mutator_effects.get("xp_mult", 1.0) + passive_effects.get("xp_mult", 1.0) - 1.0
                 gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
                 flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
@@ -343,7 +346,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 base_xp = (base_xp + flat_xp_bonus) * xp_mult
                 base_gold = base_gold * gold_mult
 
-                eff_total = min(1.0, max(0.2, rating / 10.0))
+                eff_total = min(1.0, max(0.2, eff_rating / 10.0))
                 gains = calculate_cognitive_gains(
                     activity_key, hours, eff_total, profile,
                     mastery_category=task.mastery_category if task else "",
@@ -379,11 +382,52 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 xp_earned = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
                 gold_earned = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+                # Godmind: IQ contribution to Rank XP
+                if passive_effects.get("godmind_active", False):
+                    godmind_bonus = int(
+                        (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
+                    )
+                    xp_earned += godmind_bonus
+
+                # Cross-training: language sessions give +30% humanities XP
+                if context.get("is_language") and profile.unlocked_skills.filter(skill_code="cross_training").exists():
+                    profile.humanities_xp += (
+                        hours * 0.3 * passive_effects.get("humanities_xp_mult", 1.0)
+                    )
+
+                # Golden mind / task loot drops
+                if outcome.get("item_dropped"):
+                    from api.models import Item, InventoryItem
+
+                    item_obj = Item.objects.filter(code=outcome["item_dropped"]).first()
+                    if item_obj:
+                        inv_item, created = InventoryItem.objects.get_or_create(
+                            user_profile=profile, item=item_obj
+                        )
+                        if not created:
+                            inv_item.quantity += 1
+                            inv_item.save(update_fields=["quantity"])
+
+                # Flow state: record training date
+                profile.last_training_at = timezone.now().date()
+
+                # Polymath: track unique subjects today
+                try:
+                    from api.models import UserStats
+                    from api.services.mechanics import add_unique_subject_today
+
+                    stats, _ = UserStats.objects.get_or_create(user=request.user)
+                    subj = activity_key or (task.category if task else None)
+                    if subj:
+                        add_unique_subject_today(stats, subj)
+                except Exception:
+                    pass
+
                 training_session = TrainingSession.objects.create(
                     user_profile=profile,
                     activity_key=activity_key,
                     hours=hours,
-                    focus_rating=float(rating),
+                    focus_rating=float(eff_rating),
                     efficiency=eff_total,
                     xp_earned=xp_earned,
                     gf_gain=gf_gain,
@@ -391,15 +435,36 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     ps_gain=ps_gain,
                     vm_gain=vm_gain,
                 )
+
+                from api.services.profile_service import gain_xp
+
+                gain_xp(profile, xp_earned)
+                profile.rank_xp = max(0, profile.rank_xp + xp_earned)
+                profile.gold += gold_earned
+                profile.save(
+                    update_fields=[
+                        "gold",
+                        "rank_xp",
+                        "gf",
+                        "gc",
+                        "ps",
+                        "vm",
+                        "last_training_at",
+                        "humanities_xp",
+                    ]
+                )
             else:
                 # Standalone (unlinked) session: no activity/allies/mutators context
                 # to apply stats against, so keep the flat baseline reward.
                 gold_earned = base_gold
                 xp_earned = base_xp
 
-            profile.gold += gold_earned
-            profile.xp += xp_earned
-            profile.save(update_fields=["gold", "xp", "gf", "gc", "ps", "vm"])
+                from api.services.profile_service import gain_xp
+
+                gain_xp(profile, xp_earned)
+                profile.rank_xp = max(0, profile.rank_xp + xp_earned)
+                profile.gold += gold_earned
+                profile.save(update_fields=["gold", "rank_xp"])
 
             try:
                 from api.models import UserActivityLog

@@ -422,7 +422,7 @@ SKILL_TREE_CONFIG = {
         "sp": 10,
         "gold": 500,
         "requires": "resilience",
-        "cooldown_reduction": 0.15,
+        "mana_cost_reduction": 0.15,
     },
     "aura_of_focus": {
         "sp": 15,
