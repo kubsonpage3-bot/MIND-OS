@@ -142,5 +142,5 @@ def test_habit_completion_with_mutator_stacks_correctly(_mock_random, clean_prof
     from api.models import UserActivityLog
 
     log = UserActivityLog.objects.filter(user=user).latest("created_at")
-    bonus_note = next(n for n in log.metadata["breakdown"] if "XP bonuses" in n)
+    bonus_note = next(n for n in log.metadata["breakdown"] if "Ironman" in n)
     assert "+15%" in bonus_note

@@ -1613,19 +1613,20 @@ class TrainingLogView(generics.GenericAPIView):
             raw_boss_dmg = rewards["dmg"]
 
             # Reward breakdown — surfaced in the response and UserActivityLog.metadata
-            # so History can show *why* a session paid out what it did: which
-            # mutators/allies/gear/skill-tree nodes are in play, plus the
-            # numeric effect of stats, crit, and multipliers.
-            from api.services.mechanics import describe_active_sources
-
+            # so History shows *precisely* which mutator/ally/gear/skill-tree
+            # source actually fired on THIS session (not just what's toggled
+            # on), plus the numeric effect of stats, crit, and multipliers.
             breakdown = [f"Base +{rewards['xp']} XP"]
-            breakdown.extend(describe_active_sources(profile))
-            if xp_mult != 1.0:
-                breakdown.append(f"XP bonuses (mutators/allies/gear/skills) {xp_mult - 1.0:+.0%}")
+            breakdown.extend(mutator_effects.get("_sources", []))
+            breakdown.extend(passive_effects.get("_sources", []))
             if flat_xp_bonus:
                 breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
-            if gold_mult != 1.0:
-                breakdown.append(f"Gold bonuses (mutators/allies/gear/skills) {gold_mult - 1.0:+.0%}")
+            # Safety net: something moved xp_mult/gold_mult that isn't
+            # instrumented above yet -- say so instead of going silent.
+            if xp_mult != 1.0 and not any("XP" in n or "%" in n for n in breakdown[1:]):
+                breakdown.append(f"Other XP bonuses {xp_mult - 1.0:+.0%}")
+            if gold_mult != 1.0 and not any("Gold" in n for n in breakdown):
+                breakdown.append(f"Other Gold bonuses {gold_mult - 1.0:+.0%}")
 
             # Apply "final" multiplicative mutators (echo, gambler, volatile,
             # time_dilation, diversity_lock, zero_hour) — same as task_service.py's

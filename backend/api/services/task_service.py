@@ -885,19 +885,20 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     base_xp = int((rewards.get("xp", 0) + flat_xp_bonus) * xp_mult)
     base_gold = int(rewards.get("gold", 0) * gold_mult)
 
-    # Reward breakdown — surfaced in UserActivityLog.metadata so History can
-    # show *why* a task paid out what it did: which mutators/allies/gear/
-    # skill-tree nodes are in play, plus the numeric effect of stats/crit/mults.
-    from api.services.mechanics import describe_active_sources
-
+    # Reward breakdown — surfaced in UserActivityLog.metadata so History
+    # shows *precisely* which mutator/ally/gear/skill-tree source actually
+    # fired on THIS task (not just what's toggled on/unlocked).
     reward_breakdown = [f"Base +{rewards.get('xp', 0)} XP"]
-    reward_breakdown.extend(describe_active_sources(profile))
-    if xp_mult != 1.0:
-        reward_breakdown.append(f"XP bonuses (mutators/allies/gear/skills) {xp_mult - 1.0:+.0%}")
+    reward_breakdown.extend(mutator_effects.get("_sources", []))
+    reward_breakdown.extend(passive_effects.get("_sources", []))
     if flat_xp_bonus:
         reward_breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
-    if gold_mult != 1.0:
-        reward_breakdown.append(f"Gold bonuses (mutators/allies/gear/skills) {gold_mult - 1.0:+.0%}")
+    # Safety net: something moved xp_mult/gold_mult that isn't instrumented
+    # above yet -- say so instead of going silent.
+    if xp_mult != 1.0 and not any("XP" in n or "%" in n for n in reward_breakdown[1:]):
+        reward_breakdown.append(f"Other XP bonuses {xp_mult - 1.0:+.0%}")
+    if gold_mult != 1.0 and not any("Gold" in n for n in reward_breakdown):
+        reward_breakdown.append(f"Other Gold bonuses {gold_mult - 1.0:+.0%}")
 
     final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
     final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)

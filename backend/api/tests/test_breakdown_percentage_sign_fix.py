@@ -35,7 +35,7 @@ def test_negative_bonus_shows_minus_sign_not_plus(profile_bonus_sign):
 
     log = UserActivityLog.objects.filter(user=user).latest("created_at")
     breakdown = log.metadata.get("breakdown", [])
-    bonus_note = next((n for n in breakdown if "XP bonuses" in n), None)
+    bonus_note = next((n for n in breakdown if "Bloodwork" in n), None)
     assert bonus_note is not None
     assert "-5%" in bonus_note
     assert "+95%" not in bonus_note

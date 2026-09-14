@@ -352,18 +352,18 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
                 flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
 
-                # Reward breakdown -- same shape as TrainingLogView/_complete_task_logic,
-                # so History shows *why* a linked Pomodoro paid out what it did.
-                from api.services.mechanics import describe_active_sources
-
+                # Reward breakdown -- same shape as TrainingLogView/_complete_task_logic:
+                # precisely which mutator/ally/gear/skill-tree source actually
+                # fired on THIS Pomodoro, not just what's toggled on.
                 breakdown = [f"Base +{int(base_xp)} XP"]
-                breakdown.extend(describe_active_sources(profile))
-                if xp_mult != 1.0:
-                    breakdown.append(f"XP bonuses (mutators/allies/gear/skills) {xp_mult - 1.0:+.0%}")
+                breakdown.extend(mutator_effects.get("_sources", []))
+                breakdown.extend(passive_effects.get("_sources", []))
                 if flat_xp_bonus:
                     breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
-                if gold_mult != 1.0:
-                    breakdown.append(f"Gold bonuses (mutators/allies/gear/skills) {gold_mult - 1.0:+.0%}")
+                if xp_mult != 1.0 and not any("XP" in n or "%" in n for n in breakdown[1:]):
+                    breakdown.append(f"Other XP bonuses {xp_mult - 1.0:+.0%}")
+                if gold_mult != 1.0 and not any("Gold" in n for n in breakdown):
+                    breakdown.append(f"Other Gold bonuses {gold_mult - 1.0:+.0%}")
 
                 base_xp = (base_xp + flat_xp_bonus) * xp_mult
                 base_gold = base_gold * gold_mult

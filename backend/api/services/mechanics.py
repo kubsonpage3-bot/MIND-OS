@@ -3,120 +3,6 @@ from typing import Any
 from django.utils import timezone
 from api.models import UserProfile, Item
 
-# ─── Display names for reward-breakdown notes ──────────────────────────────
-# Short labels only (not full descriptions) — used to tell the player *which*
-# mutators/gear are in play on a given reward, alongside the numeric notes
-# (base, %, crit, etc.) built at each reward call site.
-MUTATOR_LABELS = {
-    "bloodwork": "Bloodwork", "monks_path": "Monk's Path", "iron_routine": "Iron Routine",
-    "lexicon": "Lexicon", "night_owl": "Night Owl", "early_riser": "Early Riser",
-    "tunnel_vision": "Tunnel Vision", "loan_shark": "Loan Shark", "compound": "Compound",
-    "miser": "Miser", "tithe": "Tithe", "ascetic_loop": "Ascetic Loop",
-    "double_nothing": "Double or Nothing", "momentum": "Momentum",
-    "diversity_lock": "Diversity Lock", "silence": "Silence", "ironman": "Ironman",
-    "glass_cannon": "Glass Cannon", "zero_hour": "Zero Hour", "catalyst": "Catalyst",
-    "echo": "Echo", "mirror": "Mirror", "resonance": "Resonance", "gambler": "Gambler",
-    "phantom_load": "Phantom Load", "cursed_clock": "Cursed Clock", "deja_vu": "Déjà Vu",
-    "volatile": "Volatile", "weight_of_history": "Weight of History",
-    "mirror_match": "Mirror Match", "alchemist": "Alchemist", "time_dilation": "Time Dilation",
-    "sacrificial_altar": "Sacrificial Altar", "twin_souls": "Twin Souls",
-    "inversion": "Inversion", "gamblers_ledger": "Gambler's Ledger", "parasite": "Parasite",
-    "null_zone": "Null Zone", "chronomancer": "Chronomancer",
-}
-
-GEAR_LABELS = {
-    "wanderers_hood": "Wanderer's Hood", "bone_bracelet": "Bone Bracelet",
-    "heralds_fang": "Herald's Fang", "wardens_quill": "Warden's Quill",
-    "echo_bell": "Echo Bell", "silk_mantle": "Silk Mantle",
-    "frostbite_blade": "Frostbite Blade", "glass_tear": "Glass Tear",
-    "leviathan_scale": "Leviathan Scale", "ember_gauntlet": "Ember Gauntlet",
-    "crown_of_ash": "Crown of Ash", "golems_grip": "Golem's Grip",
-    "scar_shard": "Scar Shard", "forgotten_score": "Forgotten Score",
-    "abyssal_purse": "Abyssal Purse", "winter_plate": "Winter Plate",
-    "throne_seal": "Throne Seal", "eclipse_eye": "Eclipse Eye",
-    "blade_final_dusk": "Blade of Final Dusk", "mask_nameless": "Mask of the Nameless",
-}
-
-ALLY_LABELS = {
-    "kira": "Kira", "neko": "Neko", "void": "Void", "luna": "Luna",
-    "sakura": "Sakura", "hex": "Hex", "yuki": "Yuki", "nene": "Nene",
-    "grier": "Grier", "lyra": "Lyra", "meldor": "Meldor", "kage": "Kage",
-    "zephyr": "Zephyr", "bran": "Bran", "vivian": "Vivian", "rhea": "Rhea",
-}
-
-SKILL_TREE_LABELS = {
-    "sharp_focus": "Sharp Focus", "deep_concentration": "Deep Concentration",
-    "flow_state": "Flow State", "neural_expansion": "Neural Expansion",
-    "cognitive_supremacy": "Cognitive Supremacy", "godmind": "Godmind",
-    "iron_conditioning": "Iron Conditioning", "endurance_protocol": "Endurance Protocol",
-    "combat_reflexes": "Combat Reflexes", "pain_threshold": "Pain Threshold",
-    "unbreakable": "Unbreakable", "apex_predator": "Apex Predator",
-    "resource_awareness": "Resource Awareness", "compound_returns": "Compound Returns",
-    "loot_magnetism": "Fortune's Pull", "market_knowledge": "Market Knowledge",
-    "fortunes_favor": "Fortune's Favor", "golden_mind": "Golden Mind",
-    "inner_stillness": "Inner Stillness", "resilience": "Resilience",
-    "mindguard": "Mindguard", "aura_of_focus": "Aura of Focus",
-    "transcendent_will": "Transcendent Will", "void_clarity": "Void Clarity",
-    "polymath": "Polymath", "cross_training": "Cross-Training",
-    "encyclopedia": "Encyclopedia", "master_of_arts": "Master of Arts",
-    "living_library": "Living Library", "omniscience": "Omniscience",
-}
-
-
-def describe_active_sources(profile) -> list[str]:
-    """
-    Short "what's in play" notes for reward breakdowns: active mutators,
-    passive-bearing equipped gear, active recruited allies, and unlocked
-    skill-tree nodes. Doesn't attempt to re-derive whether each one's
-    condition actually fired this time (that's what the numeric notes built
-    at each call site are for) -- this is the "here's what could be
-    influencing this" list the player asked to see.
-    """
-    notes = []
-    active_mutators = profile.active_mutators or {}
-    active_list = (
-        active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
-    )
-    active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
-    mutator_names = [MUTATOR_LABELS.get(mid, mid) for mid in active_ids if mid]
-    if mutator_names:
-        notes.append("Mutators: " + ", ".join(mutator_names))
-
-    try:
-        equipped_codes = (
-            profile.get_equipped_item_codes()
-            if hasattr(profile, "get_equipped_item_codes")
-            else set()
-        )
-    except Exception:
-        equipped_codes = set()
-    gear_names = [GEAR_LABELS[code] for code in equipped_codes if code in GEAR_LABELS]
-    if gear_names:
-        notes.append("Gear: " + ", ".join(gear_names))
-
-    try:
-        active_ally_codes = profile.active_allies or []
-        recruited = profile.recruited_allies.filter(ally_code__in=active_ally_codes)  # type: ignore
-        ally_names = [
-            f"{ALLY_LABELS.get(a.ally_code, a.ally_code)} Lv{a.level}" for a in recruited
-        ]
-    except Exception:
-        ally_names = []
-    if ally_names:
-        notes.append("Allies: " + ", ".join(ally_names))
-
-    try:
-        unlocked_codes = profile.unlocked_skills.values_list("skill_code", flat=True)  # type: ignore
-        skill_names = [
-            SKILL_TREE_LABELS[code] for code in unlocked_codes if code in SKILL_TREE_LABELS
-        ]
-    except Exception:
-        skill_names = []
-    if skill_names:
-        notes.append("Skill Tree: " + ", ".join(skill_names))
-
-    return notes
-
 
 def get_unique_subjects_today(stats):
     if not stats:
@@ -963,7 +849,12 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         "null_zone_active": False,        # Disables XP, converts to gold bonus
         "gamblers_ledger_active": False,  # Routes gold to ledger account
         "chronomancer_active": False,     # Streak freeze flag
+        # Precise "what actually fired on THIS reward" notes -- reward-
+        # breakdown call sites use this instead of just listing every
+        # toggled-on mutator regardless of whether its condition was met.
+        "_sources": [],
     }
+    src = effects["_sources"].append
 
     user_tz_str = profile.timezone if profile.timezone else "UTC"
     try:
@@ -977,8 +868,10 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     if "bloodwork" in active_ids:
         if is_science:
             effects["xp_mult"] += 0.20
+            src("Bloodwork: +20% XP (Science)")
         else:
             effects["xp_mult"] -= 0.05
+            src("Bloodwork: -5% XP (not Science)")
 
     if "monks_path" in active_ids and (
         context.get("is_prayer")
@@ -987,7 +880,9 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         or task_category == "Mindfulness"
     ):
         effects["xp_mult"] += 0.40
-        effects["flat_xp"] += 2 * context.get("task_streak", 0)
+        streak_bonus = 2 * context.get("task_streak", 0)
+        effects["flat_xp"] += streak_bonus
+        src(f"Monk's Path: +40% XP{f' +{streak_bonus} flat' if streak_bonus else ''}")
 
     if "iron_routine" in active_ids and (
         context.get("is_exercise") or task_category == "Exercise"
@@ -1007,23 +902,29 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
 
         if not penalty_active:
             effects["xp_mult"] += 0.25
+            src("Iron Routine: +25% XP")
 
+    if "lexicon" in active_ids and is_language:
+        effects["xp_mult"] += 0.20
+        src("Lexicon: +20% XP")
     if "lexicon" in active_ids:
-        if is_language:
-            effects["xp_mult"] += 0.20
         effects["gc_flat"] += 0.01
 
     if "night_owl" in active_ids:
         if current_hour >= 21 or current_hour < 9:
             effects["xp_mult"] += 0.30
+            src("Night Owl: +30% XP")
         else:
             effects["xp_mult"] -= 0.10
+            src("Night Owl: -10% XP")
 
     if "early_riser" in active_ids:
         if 4 <= current_hour < 9:
             effects["xp_mult"] += 0.30
+            src("Early Riser: +30% XP")
         elif current_hour >= 21 or current_hour < 4:
             effects["xp_mult"] -= 0.10
+            src("Early Riser: -10% XP")
 
     if "tunnel_vision" in active_ids:
         stats = getattr(profile.user, "stats", None)
@@ -1033,10 +934,12 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             unique_today.add(current_cat)
         if len(unique_today) <= 1:
             effects["xp_mult"] += 0.50
+            src("Tunnel Vision: +50% XP")
 
     if "time_dilation" in active_ids:
         effects["final_xp_mult"] *= 3.0
         effects["final_gold_mult"] *= 3.0
+        src("Time Dilation: ×3 XP/Gold")
 
     if "inversion" in active_ids:
         # focus_rating inversion is handled inside views.py
@@ -1045,9 +948,11 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     # ── ECONOMY ──
     if "loan_shark" in active_ids:
         effects["gold_mult"] += 0.40
+        src("Loan Shark: +40% Gold")
         if "compound" in active_ids:
             # Synergy bonus: loan_shark + compound yield +15% extra gold on tasks
             effects["gold_mult"] += 0.15
+            src("Loan Shark + Compound synergy: +15% Gold")
 
     if "compound" in active_ids:
         effects["compound_active"] = True
@@ -1058,6 +963,7 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
 
     if "tithe" in active_ids:
         effects["xp_mult"] += 0.15
+        src("Tithe: +15% XP")
         if trigger_side_effects:
             if profile.gold >= 3:
                 profile.gold -= 3
@@ -1071,38 +977,50 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         momentum_days = get_mutator_data("momentum").get("days", 0)
         bonus = min(0.20, momentum_days * 0.02)
         effects["xp_mult"] += bonus
+        if bonus > 0:
+            src(f"Momentum: +{bonus:.0%} XP ({momentum_days}d streak)")
 
     if "ascetic_loop" in active_ids and context.get("task_type") == "daily":
         # "Streak gives Rank XP: streak x0.2/day. Break streak: lose all bonus
         # XP." — scales with the daily's own streak rather than a flat +5;
         # once the streak resets to 0 the bonus naturally drops to 0 too.
-        effects["flat_xp"] += context.get("task_streak", 0) * 0.2
+        streak_flat = context.get("task_streak", 0) * 0.2
+        effects["flat_xp"] += streak_flat
+        if streak_flat:
+            src(f"Ascetic Loop: +{streak_flat:g} flat XP")
 
     # ── CHALLENGE ──
     if "diversity_lock" in active_ids:
         if task_category and profile.last_completed_category == task_category:
             effects["final_xp_mult"] = 0.0
+            src("Diversity Lock: 0 XP/Gold (same subject as last time)")
         else:
             effects["xp_mult"] += 0.20
+            src("Diversity Lock: +20% XP")
 
     if "silence" in active_ids:
         effects["silent_mode"] = True
 
     if "ironman" in active_ids:
         effects["xp_mult"] += 0.15
+        src("Ironman: +15% XP")
 
     if "glass_cannon" in active_ids:
         effects["xp_mult"] += 0.25
         effects["damage_taken_mult"] += 0.60
+        src("Glass Cannon: +25% XP")
 
     if "zero_hour" in active_ids:
         effects["final_gold_mult"] = 0.0
+        src("Zero Hour: 0 Gold")
 
     # ── SYNERGY ──
     if "catalyst" in active_ids:
         other_mutators = len(active_ids) - 1
         if other_mutators > 0:
-            effects["xp_mult"] += 0.08 * other_mutators
+            bonus = 0.08 * other_mutators
+            effects["xp_mult"] += bonus
+            src(f"Catalyst: +{bonus:.0%} XP ({other_mutators} other mutators)")
 
     if "echo" in active_ids:
         if (
@@ -1112,6 +1030,7 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         ):
             effects["final_xp_mult"] *= 2.0
             effects["final_gold_mult"] *= 2.0
+            src("Echo: ×2 XP/Gold (switched subject)")
 
     if "mirror" in active_ids:
         # "Same domain task as last session: +15% boss damage."
@@ -1124,22 +1043,31 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         if roll < 0.20:
             effects["final_xp_mult"] *= 2.0
             effects["final_gold_mult"] *= 2.0
+            src("Gambler: ×2 XP/Gold (won the roll)")
         elif roll < 0.40:
             effects["final_xp_mult"] = 0.0
             effects["final_gold_mult"] = 0.0
+            src("Gambler: 0 XP/Gold (lost the roll)")
 
     if "double_nothing" in active_ids:
         streak = context.get("task_streak", 0)
         if streak in [3, 7, 14, 30, 50, 100, 365]:
             effects["final_xp_mult"] *= 2.0
             effects["final_gold_mult"] *= 2.0
+            src(f"Double or Nothing: ×2 XP/Gold ({streak}d milestone)")
 
     if "phantom_load" in active_ids:
         yesterday_hours = get_mutator_data("phantom_load").get("yesterday_hours", 0.0)
-        effects["xp_mult"] += yesterday_hours * 0.30
+        bonus = yesterday_hours * 0.30
+        effects["xp_mult"] += bonus
+        if bonus > 0:
+            src(f"Phantom Load: +{bonus:.0%} XP ({yesterday_hours:g}h yesterday)")
 
     if "cursed_clock" in active_ids:
-        effects["flat_xp"] += int(hours * 1)
+        flat = int(hours * 1)
+        effects["flat_xp"] += flat
+        if flat:
+            src(f"Cursed Clock: +{flat} flat XP")
 
     if "deja_vu" in active_ids:
         if (
@@ -1147,23 +1075,30 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             and task_category == profile.last_completed_category
         ):
             effects["xp_mult"] += 0.50
+            src("Déjà Vu: +50% XP (3rd day, same subject)")
 
     if "volatile" in active_ids:
         tasks_today = profile.tasks_completed_today
         if tasks_today == 0:
             effects["final_xp_mult"] *= 2.0
             effects["final_gold_mult"] *= 2.0
+            src("Volatile: ×2 XP/Gold (first task today)")
         elif tasks_today >= 4:
             effects["final_xp_mult"] *= 1.5
             effects["final_gold_mult"] *= 1.5
+            src("Volatile: ×1.5 XP/Gold (5th+ task today)")
         else:
             effects["final_xp_mult"] *= 0.90
             effects["final_gold_mult"] *= 0.90
+            src("Volatile: ×0.9 XP/Gold")
 
     if "weight_of_history" in active_ids:
         total_hours = profile.total_hours_logged
         if total_hours > 0:
-            effects["xp_mult"] += (total_hours // 100) * 0.01
+            bonus = (total_hours // 100) * 0.01
+            effects["xp_mult"] += bonus
+            if bonus > 0:
+                src(f"Weight of History: +{bonus:.0%} XP ({int(total_hours)}h lifetime)")
 
     # Resonance: If 2+ active mutators share a category, +10% to ALL their effects.
     # To implement this easily without hardcoding categories, we'll give a global 10% multiplier to the final multiplier if there are duplicates in the categories
@@ -1236,6 +1171,7 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             effects["xp_mult"] = 1.0 + (effects["xp_mult"] - 1.0) * amp
         if effects["gold_mult"] > 1.0:
             effects["gold_mult"] = 1.0 + (effects["gold_mult"] - 1.0) * amp
+        src(f"Resonance: ×{amp:g} to other mutator bonuses")
 
     active_codes = profile.active_allies or []
     recruited_allies = {
@@ -1271,12 +1207,14 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         effects["damage_taken_mult"] = max(
             0.0, min(5.0, 1.0 + (effects["damage_taken_mult"] - 1.0) * mutator_amp)
         )
+        src(f"×{mutator_amp:g} to all active mutator effects (Parasite/Meldor)")
 
     # ── PREVIOUSLY-MISSING MUTATORS ────────────────────────────────────
 
     # null_zone: Tasks give 0 XP but convert 50% of XP value to bonus Gold.
     # Boss damage from this task is doubled (applied in task_service via flag).
     if "null_zone" in active_ids:
+        src("Null Zone: 0 XP, converted to Gold instead")
         effects["null_zone_active"] = True
         # Zero out XP; 50% of XP value is converted to bonus Gold in task_service
         effects["final_xp_mult"] = 0.0
@@ -1290,6 +1228,7 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     # At death, the ledger is wiped. Flag read by task_service.
     if "gamblers_ledger" in active_ids:
         effects["gamblers_ledger_active"] = True
+        src("Gambler's Ledger: Gold banked for weekly payout instead")
 
     # mirror_match: 30% chance to auto-complete another task from the same category
     # with 50% rewards. Flag read by task_service (already implemented there).
@@ -1549,7 +1488,9 @@ def get_passive_multipliers(profile, context: dict):
         "daily_task_xp_mult": 1.0,         # wanderers_hood: XP mult for daily tasks only
         "missed_daily_hp_reduction": 0.0,  # silk_mantle/luna/winter_plate: reduce missed-daily HP loss
         "damage_taken_mult": 1.0,          # winter_plate: reduce incoming damage mult
+        "_sources": [],
     }
+    src = effects["_sources"].append
 
     focus_rating = context.get("focus_rating", 0.0)
     is_exercise = context.get("is_exercise", False)
@@ -1561,6 +1502,7 @@ def get_passive_multipliers(profile, context: dict):
     # SKILLS
     if "sharp_focus" in unlocked_skills and focus_rating >= 8.0:
         effects["xp_mult"] += 0.10
+        src("Sharp Focus: +10% XP (Focus 8+)")
 
     if "cross_training" in unlocked_skills and is_language:
         # Language sessions grant 30% XP bonus to humanities rank as well
@@ -1582,6 +1524,7 @@ def get_passive_multipliers(profile, context: dict):
         if eff_type == "xp_booster" or "xpBoost" in effect.data:
             val = effect.data.get("xpBoost", 0.5)
             effects["xp_mult"] += val
+            src(f"{effect.skill_id or 'XP buff'}: +{val:.0%} XP")
 
         # Boss Damage Plus
         if eff_type == "boss_damage_plus" or "bossDamageMultiplier" in effect.data:
@@ -1591,6 +1534,7 @@ def get_passive_multipliers(profile, context: dict):
         # Legacy Gold Boost
         if "gold_boost" in effect.data:
             effects["gold_mult"] += effect.data["gold_boost"]
+            src(f"{effect.skill_id or 'Gold buff'}: +{effect.data['gold_boost']:.0%} Gold")
 
         # Cooldown Reduction Buff (Focus Scroll)
         if "cooldown_reduction" in effect.data:
@@ -1617,6 +1561,8 @@ def get_passive_multipliers(profile, context: dict):
     # Wanderer's Hood (E - Misted Wanderer): +10% XP from daily tasks
     if "wanderers_hood" in equipped_codes:
         effects["daily_task_xp_mult"] = effects.get("daily_task_xp_mult", 1.0) + 0.10
+        if context.get("task_type") == "daily":
+            src("Wanderer's Hood: +10% XP (Daily)")
 
     # Bone Bracelet (E - Nameless Bones): +2 LCK stat bonus
     if "bone_bracelet" in equipped_codes:
@@ -1630,6 +1576,7 @@ def get_passive_multipliers(profile, context: dict):
     # Warden's Quill (D): +1 flat XP per task completion
     if "wardens_quill" in equipped_codes:
         effects["flat_xp"] = effects.get("flat_xp", 0) + 1
+        src("Warden's Quill: +1 flat XP")
 
     # ── C-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
     # Echo Bell: +4% Focus stat gain
@@ -1662,6 +1609,7 @@ def get_passive_multipliers(profile, context: dict):
     # Crown of Ash (A): +12% XP from all tasks
     if "crown_of_ash" in equipped_codes:
         effects["xp_mult"] += 0.12
+        src("Crown of Ash: +12% XP")
 
     # Golem's Grip (A): +6 DEF stat bonus
     if "golems_grip" in equipped_codes:
@@ -1683,6 +1631,7 @@ def get_passive_multipliers(profile, context: dict):
     # Abyssal Purse: +12% gold from all sources
     if "abyssal_purse" in equipped_codes:
         effects["gold_mult"] += 0.12
+        src("Abyssal Purse: +12% Gold")
 
     # Winter Plate (S - Thorn): -12% incoming HP damage from missed dailies & habits
     if "winter_plate" in equipped_codes:
@@ -1695,6 +1644,7 @@ def get_passive_multipliers(profile, context: dict):
     # Here we add an additional gold bonus passive for this elite item.
     if "throne_seal" in equipped_codes:
         effects["gold_mult"] += 0.10  # +10% gold from all sources
+        src("Throne Seal: +10% Gold")
 
     # Eclipse Eye (SS): +15% critical hit damage multiplier
     if "eclipse_eye" in equipped_codes:
@@ -1707,12 +1657,15 @@ def get_passive_multipliers(profile, context: dict):
 
     if "iron_conditioning" in unlocked_skills and is_exercise:
         effects["xp_mult"] += 0.15
+        src("Iron Conditioning: +15% XP")
 
     if "inner_stillness" in unlocked_skills and is_prayer:
         effects["xp_mult"] += 0.20
+        src("Inner Stillness: +20% XP")
 
     if "resource_awareness" in unlocked_skills:
         effects["gold_mult"] += 0.10
+        src("Resource Awareness: +10% Gold")
 
     if "cognitive_supremacy" in unlocked_skills:
         effects["gf_mult"] += 0.20
@@ -1730,6 +1683,7 @@ def get_passive_multipliers(profile, context: dict):
         today = timezone.now().date()
         if profile.last_training_at != today:
             effects["xp_mult"] += 0.50
+            src("Flow State: +50% XP (first session today)")
 
     if "polymath" in unlocked_skills:
         stats = getattr(profile.user, "stats", None)
@@ -1737,6 +1691,7 @@ def get_passive_multipliers(profile, context: dict):
             unique_today = get_unique_subjects_today(stats)
             if len(unique_today) >= 3:
                 effects["flat_xp"] += 20
+                src("Polymath: +20 flat XP (3+ subjects today)")
 
     # BATCH 1 SKILLS
     if "combat_reflexes" in unlocked_skills:
@@ -1807,9 +1762,9 @@ def get_passive_multipliers(profile, context: dict):
 
     kira_level = recruited_allies.get("kira", 0)
     if kira_level >= 1 and is_science:
-        effects["xp_mult"] += 0.05 * ally_mult
-    if kira_level >= 2 and is_science:
-        effects["xp_mult"] += 0.05 * ally_mult
+        kira_bonus = (0.05 if kira_level < 2 else 0.10) * ally_mult
+        effects["xp_mult"] += kira_bonus
+        src(f"Kira Lv{kira_level}: +{kira_bonus:.0%} XP (Science)")
     if kira_level >= 3 and is_science:
         effects["gf_flat_bonus"] += 0.002 * ally_mult
     if kira_level >= 4 and is_science:
@@ -1822,11 +1777,13 @@ def get_passive_multipliers(profile, context: dict):
         # "Daily task completions give +5% extra Gold" -- was written to the
         # dead "daily_gold_mult" key, which nothing ever read.
         effects["gold_mult"] += 0.05 * ally_mult
+        src(f"Neko Lv{neko_level}: +5% Gold (Daily)")
     if neko_level >= 2 and context.get("task_streak", 0) > 0:
         # "Streak bonus XP +8%" -- was written to the dead "streak_xp_mult"
         # key. Applies XP the same way other streak-scoped bonuses do
         # (monks_path, ascetic_loop): only while an actual streak is active.
         effects["xp_mult"] += 0.08 * ally_mult
+        src(f"Neko Lv{neko_level}: +8% XP (streak)")
     if neko_level >= 3:
         effects["mana_flat_bonus"] += int(3 * ally_mult)
     if neko_level >= 4:
@@ -1837,6 +1794,7 @@ def get_passive_multipliers(profile, context: dict):
         effects["habit_shield"] = True
     if neko_level >= 5:
         effects["gold_mult"] += 0.15 * ally_mult
+        src(f"Neko Lv{neko_level}: +15% Gold")
 
     # VOID
     void_level = recruited_allies.get("void", 0)
@@ -1856,6 +1814,7 @@ def get_passive_multipliers(profile, context: dict):
     luna_level = recruited_allies.get("luna", 0)
     if luna_level >= 1 and is_exercise:
         effects["xp_mult"] += 0.08 * ally_mult
+        src(f"Luna Lv{luna_level}: +8% XP (Exercise)")
     if luna_level >= 2:
         effects["missed_daily_hp_reduction"] += 0.10 * ally_mult
     if luna_level >= 3:
@@ -1869,11 +1828,13 @@ def get_passive_multipliers(profile, context: dict):
     sakura_level = recruited_allies.get("sakura", 0)
     if sakura_level >= 1 and is_language:
         effects["xp_mult"] += 0.10 * ally_mult
+        src(f"Sakura Lv{sakura_level}: +10% XP (Languages)")
     if sakura_level >= 2:
         effects["gc_mult"] += 0.10 * ally_mult
         effects["vm_mult"] += 0.10 * ally_mult
     if sakura_level >= 4:
         effects["xp_mult"] += 0.08 * ally_mult
+        src(f"Sakura Lv{sakura_level}: +8% XP")
     if sakura_level >= 5:
         effects["language_threshold_reduction"] += 0.20 * ally_mult
 
@@ -1881,6 +1842,7 @@ def get_passive_multipliers(profile, context: dict):
     yuki_level = recruited_allies.get("yuki", 0)
     if yuki_level >= 1:
         effects["xp_mult"] += 0.08 * ally_mult
+        src(f"Yuki Lv{yuki_level}: +8% XP")
     if yuki_level >= 2:
         effects["max_mana_bonus"] += int(20 * ally_mult)
     if yuki_level >= 3:
@@ -1894,6 +1856,7 @@ def get_passive_multipliers(profile, context: dict):
     nene_level = recruited_allies.get("nene", 0)
     if nene_level >= 1 and (is_meditation or is_prayer):
         effects["xp_mult"] += 0.15 * ally_mult
+        src(f"Nene Lv{nene_level}: +15% XP (Prayer/Meditation)")
     if nene_level >= 2:
         effects["triple_subject_gold_bonus"] += int(30 * ally_mult)
     if nene_level >= 3:
@@ -1925,6 +1888,7 @@ def get_passive_multipliers(profile, context: dict):
         if focus_rating >= 9.0:
             effects["grier_l1_heal"] = True
             effects["gold_mult"] -= 0.25 * ally_mult
+            src(f"Grier Lv{grier_level}: -25% Gold (+2 HP, Focus 9+)")
     if grier_level >= 3:
         effects["max_hp_bonus"] += int(40 * ally_mult)
         effects["spd_stat_bonus"] -= int(4 * ally_mult)
@@ -1975,6 +1939,7 @@ def get_passive_multipliers(profile, context: dict):
     if bran_level >= 1:
         effects["drop_chance_bonus"] += 0.08 * ally_mult
         effects["xp_mult"] -= 0.10 * ally_mult
+        src(f"Bran Lv{bran_level}: -10% XP (+8% drop chance)")
     if bran_level >= 2:
         effects["shop_cost_mult"] -= 0.15 * ally_mult
     if bran_level >= 3:
@@ -1996,6 +1961,7 @@ def get_passive_multipliers(profile, context: dict):
     if vivian_level >= 5 and profile.hp == 1:
         effects["always_crit"] = True
         effects["xp_mult"] += 1.0 * ally_mult
+        src(f"Vivian Lv{vivian_level}: +100% XP + guaranteed crit (1 HP)")
 
     # RHEA
     rhea_level = recruited_allies.get("rhea", 0)
@@ -2032,6 +1998,7 @@ def get_passive_multipliers(profile, context: dict):
             )
             if resolved_cat == target_mastery:
                 effects["xp_mult"] += 0.20
+                src(f"{char_class.title()} class passive: +20% XP ({target_mastery.title()})")
 
     return effects
 

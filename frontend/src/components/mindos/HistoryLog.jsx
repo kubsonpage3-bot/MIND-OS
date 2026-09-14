@@ -554,51 +554,33 @@ function HistoryItemCard({ item }) {
         </div>
       )}
 
-      {/* Reward breakdown — why this entry paid out what it did */}
+      {/* Reward breakdown — precisely which mutator/ally/gear/skill actually
+          fired on THIS entry (not a blanket "everything you own" dump), plus
+          the numeric effect. Each note is self-contained, e.g. "Bloodwork:
+          -5% XP (not Science)" or "Kira Lv2: +10% XP (Science)" — color-coded
+          by whether it helped, hurt, or is just informational (Base/Flat). */}
       {Array.isArray(item.metadata?.breakdown) && item.metadata.breakdown.length > 0 && (() => {
-        // "Mutators: A, B" / "Gear: X, Y" / "Allies: Z" / "Skill Tree: N" are
-        // source lists (what's in play); everything else is a numeric note
-        // about this specific session (base, %, crit, multiplier). Styled
-        // differently so it reads as "sources → effect" at a glance.
-        const SOURCE_STYLE = {
-          Mutators: { color: "#c084fc", bg: "rgba(192,132,252,0.12)", icon: "🎲" },
-          Gear: { color: "#38bdf8", bg: "rgba(56,189,248,0.12)", icon: "⚔" },
-          Allies: { color: "#4ade80", bg: "rgba(74,222,128,0.12)", icon: "🤝" },
-          "Skill Tree": { color: "#fbbf24", bg: "rgba(251,191,36,0.12)", icon: "🌳" },
+        const classify = (note, isFirst) => {
+          if (isFirst || /^Flat bonus/.test(note)) return "neutral";
+          if (/(^|\s)-\d|:\s*0(\s|$)|0 XP|0 Gold/.test(note)) return "negative";
+          return "positive";
         };
-        const sourceNotes = [];
-        const numericNotes = [];
-        item.metadata.breakdown.forEach((note) => {
-          const prefix = Object.keys(SOURCE_STYLE).find((p) => note.startsWith(`${p}: `));
-          if (prefix) sourceNotes.push({ prefix, text: note.slice(prefix.length + 2) });
-          else numericNotes.push(note);
-        });
+        const STYLE = {
+          positive: { color: "#4ade80", bg: "rgba(74,222,128,0.10)", border: "rgba(74,222,128,0.25)" },
+          negative: { color: "#f87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.25)" },
+          neutral: { color: "var(--habit-dim)", bg: "var(--habit-border)", border: "transparent" },
+        };
         return (
-          <div className={`mt-2 space-y-1.5 ${gains.length === 0 ? "pt-2.5 border-t border-[var(--habit-border)]" : ""} pl-2.5`}>
-            {sourceNotes.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
-                {sourceNotes.map(({ prefix, text }, i) => {
-                  const s = SOURCE_STYLE[prefix];
-                  return (
-                    <span key={i} className="px-1.5 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1"
-                      style={{ fontFamily: "'Nunito'", color: s.color, background: s.bg, border: `1px solid ${s.color}30` }}>
-                      <span>{s.icon}</span>
-                      <span className="opacity-70">{prefix}:</span> {text}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-            {numericNotes.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
-                {numericNotes.map((note, i) => (
-                  <span key={i} className="px-1.5 py-0.5 rounded text-[9px] font-semibold text-[var(--habit-dim)] bg-[var(--habit-border)]/40"
-                    style={{ fontFamily: "'Nunito'" }}>
-                    {note}
-                  </span>
-                ))}
-              </div>
-            )}
+          <div className={`flex gap-1 mt-2 ${gains.length === 0 ? "pt-2.5 border-t border-[var(--habit-border)]" : ""} flex-wrap pl-2.5`}>
+            {item.metadata.breakdown.map((note, i) => {
+              const s = STYLE[classify(note, i === 0)];
+              return (
+                <span key={i} className="px-1.5 py-0.5 rounded text-[9px] font-semibold"
+                  style={{ fontFamily: "'Nunito'", color: s.color, background: s.bg, border: `1px solid ${s.border}` }}>
+                  {note}
+                </span>
+              );
+            })}
           </div>
         );
       })()}
