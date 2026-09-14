@@ -313,12 +313,21 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     apply_active_mutators,
                     get_passive_multipliers,
                     calculate_task_outcome,
+                    ACTIVITY_CATEGORY_MAP,
                 )
 
                 mastery = resolve_mastery_category(
                     activity=activity_key,
                     task_category=task.category if task else None,
                     task_mastery_category=task.mastery_category if task else None,
+                )
+                # Same task_category derivation as TrainingLogView (falls back
+                # to ACTIVITY_CATEGORY_MAP for a plain activity_key, not just a
+                # linked custom task) -- Echo/Mirror/Diversity Lock compare this
+                # across calls, so a Study log and a Pomodoro of the same
+                # subject must resolve to the same category string.
+                task_category = (
+                    task.category if task else ACTIVITY_CATEGORY_MAP.get(activity_key, "Other")
                 )
                 context = {
                     "is_science": mastery == "sciences",
@@ -329,7 +338,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     "hours": hours,
                     "focus_rating": float(rating),
                     "activity": activity_key,
-                    "task_category": task.category if task else "",
+                    "task_category": task_category,
                     "task_mastery_category": task.mastery_category if task else "",
                 }
 
@@ -343,8 +352,31 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
                 flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
 
+                # Reward breakdown -- same shape as TrainingLogView/_complete_task_logic,
+                # so History shows *why* a linked Pomodoro paid out what it did.
+                from api.services.mechanics import describe_active_sources
+
+                breakdown = [f"Base +{int(base_xp)} XP"]
+                breakdown.extend(describe_active_sources(profile))
+                if xp_mult != 1.0:
+                    breakdown.append(f"Bonuses (mutators/allies/gear/skills) {xp_mult:+.0%}")
+                if flat_xp_bonus:
+                    breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
+
                 base_xp = (base_xp + flat_xp_bonus) * xp_mult
                 base_gold = base_gold * gold_mult
+
+                # "Final" multiplicative mutators (echo, gambler, volatile,
+                # time_dilation, diversity_lock, zero_hour) -- same fix as
+                # TrainingLogView; without this a linked Pomodoro session
+                # never triggered these mutators at all.
+                final_xp_mult = mutator_effects.get("final_xp_mult", 1.0)
+                final_gold_mult = mutator_effects.get("final_gold_mult", 1.0)
+                if final_xp_mult != 1.0:
+                    base_xp = int(base_xp * final_xp_mult)
+                    breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
+                if final_gold_mult != 1.0:
+                    base_gold = int(base_gold * final_gold_mult)
 
                 eff_total = min(1.0, max(0.2, eff_rating / 10.0))
                 gains = calculate_cognitive_gains(
@@ -382,12 +414,23 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 xp_earned = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
                 gold_earned = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+                pwr_pct = min(0.50, profile.total_stats.get("pwr", 0) * 0.005)
+                if pwr_pct > 0:
+                    breakdown.append(f"PWR +{pwr_pct:.1%}")
+                if outcome.get("is_crit"):
+                    crit_mult = passive_effects.get("crit_damage_mult", 2.0)
+                    foc_crit_chance = min(1.0, profile.total_stats.get("foc", 0) * 0.005)
+                    breakdown.append(f"Crit! (×{crit_mult:g}, {foc_crit_chance:.1%} chance)")
+                if profile.xp_multiplier != 1.0:
+                    breakdown.append(f"Gear/Prestige ×{profile.xp_multiplier:.2f}")
+
                 # Godmind: IQ contribution to Rank XP
                 if passive_effects.get("godmind_active", False):
                     godmind_bonus = int(
                         (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
                     )
                     xp_earned += godmind_bonus
+                    breakdown.append(f"Godmind +{godmind_bonus} XP")
 
                 # Cross-training: language sessions give +30% humanities XP
                 if context.get("is_language") and profile.unlocked_skills.filter(skill_code="cross_training").exists():
@@ -441,6 +484,60 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 gain_xp(profile, xp_earned)
                 profile.rank_xp = max(0, profile.rank_xp + xp_earned)
                 profile.gold += gold_earned
+
+                # Category streak tracking -- Echo/Mirror/Diversity Lock/Deja Vu
+                # all key off this; without it a linked Pomodoro was invisible
+                # to "did the last session use the same/different category" checks.
+                if mastery:
+                    today_str = str(timezone.now().date())
+                    streaks = dict(profile.category_streaks or {})
+                    cat_data = streaks.get(mastery)
+                    if not isinstance(cat_data, dict):
+                        cat_data = {"days": 1, "last_active_date": today_str}
+                    else:
+                        last_active_str = cat_data.get("last_active_date")
+                        if last_active_str and last_active_str != today_str:
+                            try:
+                                from datetime import datetime as _dt
+
+                                last_active_date = _dt.strptime(
+                                    str(last_active_str), "%Y-%m-%d"
+                                ).date()
+                                yesterday = timezone.now().date() - timedelta(days=1)
+                                cat_data["days"] = (
+                                    cat_data.get("days", 0) + 1
+                                    if last_active_date == yesterday
+                                    else 1
+                                )
+                            except Exception:
+                                cat_data["days"] = 1
+                            cat_data["last_active_date"] = today_str
+                    streaks[mastery] = cat_data
+                    profile.category_streaks = streaks
+
+                if task_category:
+                    if profile.last_completed_category == task_category:
+                        profile.same_category_streak += 1
+                    else:
+                        profile.same_category_streak = 1
+                        profile.last_completed_category = task_category
+
+                # Boss damage -- a linked Pomodoro is a study session like any
+                # other and should deal damage like one; previously it dealt none.
+                from api.services.rewards_service import training_rewards
+                from api.services.mechanics import apply_boss_damage
+
+                dmg_rewards = training_rewards("medium", hours, eff_rating)
+                pwr_dmg = outcome.get("damage_dealt", 10)
+                final_damage_dealt = int(
+                    (dmg_rewards["dmg"] + pwr_dmg)
+                    * profile.damage_multiplier
+                    * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
+                )
+                combat_result = apply_boss_damage(
+                    request.user, final_damage_dealt, outcome.get("is_crit", False)
+                )
+
                 profile.save(
                     update_fields=[
                         "gold",
@@ -451,6 +548,9 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                         "vm",
                         "last_training_at",
                         "humanities_xp",
+                        "category_streaks",
+                        "last_completed_category",
+                        "same_category_streak",
                     ]
                 )
             else:
@@ -458,6 +558,8 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 # to apply stats against, so keep the flat baseline reward.
                 gold_earned = base_gold
                 xp_earned = base_xp
+                breakdown = []
+                combat_result = None
 
                 from api.services.profile_service import gain_xp
 
@@ -482,6 +584,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     focus_rating=float(rating) if rating else None,
                     xp_earned=xp_earned,
                     gold_earned=gold_earned,
+                    boss_damage=combat_result.get("damage_dealt", 0) if combat_result else 0,
                     cognitive_gains={
                         "gf": gf_gain if activity_key else 0,
                         "gc": gc_gain if activity_key else 0,
@@ -493,6 +596,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     metadata={
                         "duration_minutes": duration,
                         "activity_key": activity_key,
+                        "breakdown": breakdown,
                     },
                 )
             except Exception as e:
@@ -506,5 +610,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 "gold_earned": gold_earned,
                 "xp_earned": xp_earned,
                 "hours_logged": hours,
+                "combat": combat_result,
+                "breakdown": breakdown,
             }
         )

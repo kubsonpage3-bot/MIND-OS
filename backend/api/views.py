@@ -1363,27 +1363,7 @@ class TrainingLogView(generics.GenericAPIView):
             except (ValueError, Task.DoesNotExist):
                 pass
 
-        ACTIVITY_CATEGORY_MAP = {
-            "mathematics": "Sciences",
-            "physics": "Sciences",
-            "chemistry": "Sciences",
-            "biology": "Sciences",
-            "computer_science": "Sciences",
-            "coding": "Sciences",
-            "chess": "Sciences",
-            "history": "Humanities & Arts",
-            "philosophy": "Humanities & Arts",
-            "reading": "Humanities & Arts",
-            "psychology": "Humanities & Arts",
-            "creative_answers": "Sciences",
-            "english": "Languages",
-            "german": "Languages",
-            "vocabulary": "Languages",
-            "languages": "Languages",
-            "exercise": "Health & Fitness",
-            "running": "Health & Fitness",
-            "prayer": "Mindfulness",
-        }
+        from api.services.mechanics import ACTIVITY_CATEGORY_MAP
 
         SCIENCE_ACTIVITIES = {
             "mathematics",
@@ -1633,10 +1613,15 @@ class TrainingLogView(generics.GenericAPIView):
             raw_boss_dmg = rewards["dmg"]
 
             # Reward breakdown — surfaced in the response and UserActivityLog.metadata
-            # so History can show *why* a session paid out what it did, not just the total.
+            # so History can show *why* a session paid out what it did: which
+            # mutators/allies/gear/skill-tree nodes are in play, plus the
+            # numeric effect of stats, crit, and multipliers.
+            from api.services.mechanics import describe_active_sources
+
             breakdown = [f"Base +{rewards['xp']} XP"]
+            breakdown.extend(describe_active_sources(profile))
             if xp_mult != 1.0:
-                breakdown.append(f"Mutators/passives {xp_mult:+.0%}")
+                breakdown.append(f"Bonuses (mutators/allies/gear/skills) {xp_mult:+.0%}")
             if flat_xp_bonus:
                 breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
 

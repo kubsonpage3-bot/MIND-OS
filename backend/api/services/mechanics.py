@@ -3,6 +3,120 @@ from typing import Any
 from django.utils import timezone
 from api.models import UserProfile, Item
 
+# ─── Display names for reward-breakdown notes ──────────────────────────────
+# Short labels only (not full descriptions) — used to tell the player *which*
+# mutators/gear are in play on a given reward, alongside the numeric notes
+# (base, %, crit, etc.) built at each reward call site.
+MUTATOR_LABELS = {
+    "bloodwork": "Bloodwork", "monks_path": "Monk's Path", "iron_routine": "Iron Routine",
+    "lexicon": "Lexicon", "night_owl": "Night Owl", "early_riser": "Early Riser",
+    "tunnel_vision": "Tunnel Vision", "loan_shark": "Loan Shark", "compound": "Compound",
+    "miser": "Miser", "tithe": "Tithe", "ascetic_loop": "Ascetic Loop",
+    "double_nothing": "Double or Nothing", "momentum": "Momentum",
+    "diversity_lock": "Diversity Lock", "silence": "Silence", "ironman": "Ironman",
+    "glass_cannon": "Glass Cannon", "zero_hour": "Zero Hour", "catalyst": "Catalyst",
+    "echo": "Echo", "mirror": "Mirror", "resonance": "Resonance", "gambler": "Gambler",
+    "phantom_load": "Phantom Load", "cursed_clock": "Cursed Clock", "deja_vu": "Déjà Vu",
+    "volatile": "Volatile", "weight_of_history": "Weight of History",
+    "mirror_match": "Mirror Match", "alchemist": "Alchemist", "time_dilation": "Time Dilation",
+    "sacrificial_altar": "Sacrificial Altar", "twin_souls": "Twin Souls",
+    "inversion": "Inversion", "gamblers_ledger": "Gambler's Ledger", "parasite": "Parasite",
+    "null_zone": "Null Zone", "chronomancer": "Chronomancer",
+}
+
+GEAR_LABELS = {
+    "wanderers_hood": "Wanderer's Hood", "bone_bracelet": "Bone Bracelet",
+    "heralds_fang": "Herald's Fang", "wardens_quill": "Warden's Quill",
+    "echo_bell": "Echo Bell", "silk_mantle": "Silk Mantle",
+    "frostbite_blade": "Frostbite Blade", "glass_tear": "Glass Tear",
+    "leviathan_scale": "Leviathan Scale", "ember_gauntlet": "Ember Gauntlet",
+    "crown_of_ash": "Crown of Ash", "golems_grip": "Golem's Grip",
+    "scar_shard": "Scar Shard", "forgotten_score": "Forgotten Score",
+    "abyssal_purse": "Abyssal Purse", "winter_plate": "Winter Plate",
+    "throne_seal": "Throne Seal", "eclipse_eye": "Eclipse Eye",
+    "blade_final_dusk": "Blade of Final Dusk", "mask_nameless": "Mask of the Nameless",
+}
+
+ALLY_LABELS = {
+    "kira": "Kira", "neko": "Neko", "void": "Void", "luna": "Luna",
+    "sakura": "Sakura", "hex": "Hex", "yuki": "Yuki", "nene": "Nene",
+    "grier": "Grier", "lyra": "Lyra", "meldor": "Meldor", "kage": "Kage",
+    "zephyr": "Zephyr", "bran": "Bran", "vivian": "Vivian", "rhea": "Rhea",
+}
+
+SKILL_TREE_LABELS = {
+    "sharp_focus": "Sharp Focus", "deep_concentration": "Deep Concentration",
+    "flow_state": "Flow State", "neural_expansion": "Neural Expansion",
+    "cognitive_supremacy": "Cognitive Supremacy", "godmind": "Godmind",
+    "iron_conditioning": "Iron Conditioning", "endurance_protocol": "Endurance Protocol",
+    "combat_reflexes": "Combat Reflexes", "pain_threshold": "Pain Threshold",
+    "unbreakable": "Unbreakable", "apex_predator": "Apex Predator",
+    "resource_awareness": "Resource Awareness", "compound_returns": "Compound Returns",
+    "loot_magnetism": "Fortune's Pull", "market_knowledge": "Market Knowledge",
+    "fortunes_favor": "Fortune's Favor", "golden_mind": "Golden Mind",
+    "inner_stillness": "Inner Stillness", "resilience": "Resilience",
+    "mindguard": "Mindguard", "aura_of_focus": "Aura of Focus",
+    "transcendent_will": "Transcendent Will", "void_clarity": "Void Clarity",
+    "polymath": "Polymath", "cross_training": "Cross-Training",
+    "encyclopedia": "Encyclopedia", "master_of_arts": "Master of Arts",
+    "living_library": "Living Library", "omniscience": "Omniscience",
+}
+
+
+def describe_active_sources(profile) -> list[str]:
+    """
+    Short "what's in play" notes for reward breakdowns: active mutators,
+    passive-bearing equipped gear, active recruited allies, and unlocked
+    skill-tree nodes. Doesn't attempt to re-derive whether each one's
+    condition actually fired this time (that's what the numeric notes built
+    at each call site are for) -- this is the "here's what could be
+    influencing this" list the player asked to see.
+    """
+    notes = []
+    active_mutators = profile.active_mutators or {}
+    active_list = (
+        active_mutators.get("active", []) if isinstance(active_mutators, dict) else []
+    )
+    active_ids = [m.get("id") if isinstance(m, dict) else m for m in active_list]
+    mutator_names = [MUTATOR_LABELS.get(mid, mid) for mid in active_ids if mid]
+    if mutator_names:
+        notes.append("Mutators: " + ", ".join(mutator_names))
+
+    try:
+        equipped_codes = (
+            profile.get_equipped_item_codes()
+            if hasattr(profile, "get_equipped_item_codes")
+            else set()
+        )
+    except Exception:
+        equipped_codes = set()
+    gear_names = [GEAR_LABELS[code] for code in equipped_codes if code in GEAR_LABELS]
+    if gear_names:
+        notes.append("Gear: " + ", ".join(gear_names))
+
+    try:
+        active_ally_codes = profile.active_allies or []
+        recruited = profile.recruited_allies.filter(ally_code__in=active_ally_codes)  # type: ignore
+        ally_names = [
+            f"{ALLY_LABELS.get(a.ally_code, a.ally_code)} Lv{a.level}" for a in recruited
+        ]
+    except Exception:
+        ally_names = []
+    if ally_names:
+        notes.append("Allies: " + ", ".join(ally_names))
+
+    try:
+        unlocked_codes = profile.unlocked_skills.values_list("skill_code", flat=True)  # type: ignore
+        skill_names = [
+            SKILL_TREE_LABELS[code] for code in unlocked_codes if code in SKILL_TREE_LABELS
+        ]
+    except Exception:
+        skill_names = []
+    if skill_names:
+        notes.append("Skill Tree: " + ", ".join(skill_names))
+
+    return notes
+
 
 def get_unique_subjects_today(stats):
     if not stats:
@@ -1197,6 +1311,34 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
     # Habit/Daily for a reward" action (views.py). No passive per-task cost.
 
     return effects
+
+
+# Shared with TrainingLogView and the linked-Pomodoro completion handler so
+# both derive the same task_category string for an activity_key -- Echo,
+# Mirror, and Diversity Lock compare this across calls (profile.
+# last_completed_category), so the two logging paths must agree on it or a
+# Study log and a Pomodoro of the same subject look like a category switch.
+ACTIVITY_CATEGORY_MAP = {
+    "mathematics": "Sciences",
+    "physics": "Sciences",
+    "chemistry": "Sciences",
+    "biology": "Sciences",
+    "computer_science": "Sciences",
+    "coding": "Sciences",
+    "chess": "Sciences",
+    "history": "Humanities & Arts",
+    "philosophy": "Humanities & Arts",
+    "reading": "Humanities & Arts",
+    "psychology": "Humanities & Arts",
+    "creative_answers": "Sciences",
+    "english": "Languages",
+    "german": "Languages",
+    "vocabulary": "Languages",
+    "languages": "Languages",
+    "exercise": "Health & Fitness",
+    "running": "Health & Fitness",
+    "prayer": "Mindfulness",
+}
 
 
 def resolve_mastery_category(

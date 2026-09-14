@@ -886,10 +886,14 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     base_gold = int(rewards.get("gold", 0) * gold_mult)
 
     # Reward breakdown — surfaced in UserActivityLog.metadata so History can
-    # show *why* a task paid out what it did, not just the total.
+    # show *why* a task paid out what it did: which mutators/allies/gear/
+    # skill-tree nodes are in play, plus the numeric effect of stats/crit/mults.
+    from api.services.mechanics import describe_active_sources
+
     reward_breakdown = [f"Base +{rewards.get('xp', 0)} XP"]
+    reward_breakdown.extend(describe_active_sources(profile))
     if xp_mult != 1.0:
-        reward_breakdown.append(f"Mutators/passives {xp_mult:+.0%}")
+        reward_breakdown.append(f"Bonuses (mutators/allies/gear/skills) {xp_mult:+.0%}")
     if flat_xp_bonus:
         reward_breakdown.append(f"Flat bonus +{flat_xp_bonus:g} XP")
 
