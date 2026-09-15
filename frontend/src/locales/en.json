@@ -998,7 +998,7 @@
       },
       "enlightenment": {
         "name": "Enlightenment",
-        "desc": "For 12 hours: 100% guaranteed task critical hits on bosses with 2.5x critical damage multiplier."
+        "desc": "For 12 hours: 100% guaranteed critical hits on the boss (tasks & sessions) with 2.5x critical damage multiplier."
       },
       "rosetta_protocol": {
         "name": "Rosetta Protocol",

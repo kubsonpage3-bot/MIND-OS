@@ -124,7 +124,7 @@ export const CLASSES = {
     skills: [
       { id: "eye_of_the_storm", name: "EYE OF THE STORM", mana: 40, cooldownH: 0, desc: "Until midnight: complete immunity to missed daily and negative habit penalties. Sessions restore +8 HP and +4 MP." },
       { id: "inner_sanctuary", name: "INNER SANCTUARY", mana: 60, cooldownH: 0, desc: "Instantly heal 50% of maximum HP." },
-      { id: "enlightenment", name: "ENLIGHTENMENT", mana: 80, cooldownH: 0, desc: "For 12 hours: 100% guaranteed task critical hits with 2.5x critical damage." },
+      { id: "enlightenment", name: "ENLIGHTENMENT", mana: 80, cooldownH: 0, desc: "For 12 hours: 100% guaranteed critical hits on the boss (tasks & sessions) with 2.5x critical damage." },
     ],
   },
   linguist: {
