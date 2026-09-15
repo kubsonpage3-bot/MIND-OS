@@ -397,6 +397,50 @@ def test_mutator_chest_insufficient_gold(test_user_and_profile_mutators):
 
 
 @pytest.mark.django_db
+def test_mutator_chest_cost_escalates_25_percent_per_owned(test_user_and_profile_mutators):
+    """Mutators only ever come from chests (direct purchase disabled), so a
+    flat 100G forever made unlocking the whole pool a non-event by the end.
+    1st chest 100G, 2nd 125G, 3rd 156G, 4th 195G -- 25% more per mutator
+    already owned, matching the escalating cost the mutator-cache design
+    (chests, loot, etc.) already uses elsewhere in this game."""
+    from api.views import get_mutator_chest_cost
+    from rest_framework.test import APIClient
+
+    assert get_mutator_chest_cost(0) == 100
+    assert get_mutator_chest_cost(1) == 125
+    assert get_mutator_chest_cost(2) == 156
+    assert get_mutator_chest_cost(3) == 195
+
+    user, profile, stats = test_user_and_profile_mutators
+    profile.gold = 124  # one short of the 2nd chest's 125G
+    profile.active_mutators = {"purchased": ["bloodwork"]}  # 1 already owned
+    profile.save()
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    res_short = client.post("/api/mutators/chest/open/")
+    assert res_short.status_code == 400
+    assert "125G" in res_short.data["error"]
+
+    profile.gold = 125
+    profile.save()
+    # Which mutator gets won isn't under test here -- pin random.choice so
+    # this test doesn't perturb the shared random module state for whatever
+    # test runs after it in the same process (this suite doesn't reset/mock
+    # random.random() everywhere it should, so any incidental extra draw
+    # from the global RNG can shift an unrelated later test's crit roll).
+    with mock.patch("random.choice", side_effect=lambda seq: seq[0]):
+        res_ok = client.post("/api/mutators/chest/open/")
+    assert res_ok.status_code == 200
+    assert res_ok.data["gold_spent"] == 125
+    assert res_ok.data["next_chest_cost"] == 156
+
+    profile.refresh_from_db()
+    assert profile.gold == 0
+
+
+@pytest.mark.django_db
 def test_mutator_chest_all_unlocked(test_user_and_profile_mutators):
     user, profile, stats = test_user_and_profile_mutators
     from api.constants.mutators import MUTATORS_CONFIG
@@ -462,7 +506,11 @@ def test_mutator_chest_exclusion(test_user_and_profile_mutators):
     profile.active_mutators = {
         "purchased": [m_id for m_id in active_ids if m_id != target_unowned]
     }
-    profile.gold = 1000
+    # Chest cost escalates 25% per mutator already owned (see
+    # get_mutator_chest_cost) -- with ~37 already owned that's an enormous
+    # number, so use a gold pile large enough regardless of the exact
+    # exponent rather than hardcoding a number tied to the current formula.
+    profile.gold = 10**12
     profile.save()
 
     # Open chest, must yield target_unowned.

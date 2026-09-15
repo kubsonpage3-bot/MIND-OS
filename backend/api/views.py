@@ -3826,10 +3826,21 @@ class BuyMutatorView(generics.GenericAPIView):
         )
 
 
+def get_mutator_chest_cost(owned_count: int) -> int:
+    """
+    Mutator Chests are the only way to unlock a mutator (direct purchase is
+    disabled), so a flat 100G forever made unlocking the whole pool feel
+    like a non-event by the end. Escalates 25% per mutator already owned:
+    1st chest 100G, 2nd 125G, 3rd 156G, 4th 195G, etc.
+    """
+    return round(100 * (1.25**owned_count))
+
+
 class OpenMutatorChestView(generics.GenericAPIView):
     """
     POST /api/mutators/chest/open/
-    Opens a mutator chest, costing 100 gold, and grants a random unowned mutator.
+    Opens a mutator chest and grants a random unowned mutator. Cost
+    escalates 25% per mutator already owned (see get_mutator_chest_cost).
     """
 
     permission_classes = [IsAuthenticated]
@@ -3840,16 +3851,8 @@ class OpenMutatorChestView(generics.GenericAPIView):
         from api.constants.mutators import MUTATORS_CONFIG
         import random
 
-        cost = 100
-
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
-
-            if profile.gold < cost:
-                return Response(
-                    {"error": "Not enough gold. Mutator Chest costs 100G."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
 
             raw_mutators = profile.active_mutators
             if isinstance(raw_mutators, dict):
@@ -3880,6 +3883,17 @@ class OpenMutatorChestView(generics.GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+            # Checked after the pool-empty case: with an empty pool there's
+            # nothing to buy at any price, so that's the more fundamental
+            # reason to reject the request regardless of gold.
+            cost = get_mutator_chest_cost(len(purchased))
+
+            if profile.gold < cost:
+                return Response(
+                    {"error": f"Not enough gold. Mutator Chest costs {cost}G."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             won_mutator_id = random.choice(pool)
 
             # Deduct gold and grant mutator
@@ -3894,6 +3908,8 @@ class OpenMutatorChestView(generics.GenericAPIView):
             return Response(
                 {
                     "won_mutator_id": won_mutator_id,
+                    "gold_spent": cost,
+                    "next_chest_cost": get_mutator_chest_cost(len(purchased)),
                     "profile": UserProfileSerializer(profile).data,
                 },
                 status=status.HTTP_200_OK,

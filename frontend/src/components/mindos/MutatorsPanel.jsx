@@ -56,6 +56,13 @@ export default function MutatorsPanel({ onSpendGold }) {
     ? rawMutators.purchased
     : (Array.isArray(rawMutators) ? rawMutators.map(m => typeof m === 'string' ? m : m?.id).filter(Boolean) : []);
 
+  // Mutators only ever come from chests (direct purchase is disabled), so a
+  // flat 100G forever made unlocking the whole pool a non-event by the end.
+  // Escalates 25% per mutator already owned -- 1st chest 100G, 2nd 125G,
+  // 3rd 156G, 4th 195G... -- mirrored from get_mutator_chest_cost() in
+  // views.py, which is the actual source of truth charged server-side.
+  const chestCost = Math.round(100 * Math.pow(1.25, purchased.length));
+
   const isActive = (id) => active.some(m => (typeof m === 'object' ? m.id : m) === id);
   const isPurchased = (id) => purchased.includes(id) || isActive(id);
 
@@ -152,7 +159,7 @@ export default function MutatorsPanel({ onSpendGold }) {
   });
 
   const handleOpenMutatorChest = () => {
-    if (isAllUnlocked || gold < 100 || openChestMutation.isPending || isOpeningChest) return;
+    if (isAllUnlocked || gold < chestCost || openChestMutation.isPending || isOpeningChest) return;
     setIsOpeningChest(true);
     setWonMutatorItem(null);
     openChestMutation.mutate();
@@ -277,18 +284,23 @@ export default function MutatorsPanel({ onSpendGold }) {
           <div className="shrink-0 w-full sm:w-auto text-right flex flex-col gap-1 items-end">
             <button
               onClick={handleOpenMutatorChest}
-              disabled={isAllUnlocked || gold < 100 || openChestMutation.isPending || isOpeningChest}
+              disabled={isAllUnlocked || gold < chestCost || openChestMutation.isPending || isOpeningChest}
               className={`w-full sm:w-auto px-5 py-2.5 text-xs font-mono font-bold rounded-lg border transition-all z-10 ${
                 isAllUnlocked ? "border-border bg-muted/20 text-muted-foreground/45 cursor-not-allowed" :
-                gold < 100 ? "border-red-900/40 bg-red-950/20 text-red-400/60 cursor-not-allowed" :
+                gold < chestCost ? "border-red-900/40 bg-red-950/20 text-red-400/60 cursor-not-allowed" :
                 "border-primary bg-primary/10 hover:bg-primary/20 text-primary-foreground hover:shadow-[0_0_12px_hsla(var(--primary),0.3)]"
               }`}
             >
-              {openChestMutation.isPending || isOpeningChest ? "DECRYPTING..." : isAllUnlocked ? "ALL UNLOCKED" : "OPEN CHEST (100G)"}
+              {openChestMutation.isPending || isOpeningChest ? "DECRYPTING..." : isAllUnlocked ? "ALL UNLOCKED" : `OPEN CHEST (${chestCost}G)`}
             </button>
-            {!isAllUnlocked && gold < 100 && (
+            {!isAllUnlocked && gold < chestCost && (
               <span className="text-[9px] font-mono text-red-500/80 mr-1 mt-0.5">
-                Requires 100G (You have {gold}G)
+                Requires {chestCost}G (You have {gold}G)
+              </span>
+            )}
+            {!isAllUnlocked && gold >= chestCost && purchased.length > 0 && (
+              <span className="text-[9px] font-mono text-muted-foreground/60 mr-1 mt-0.5">
+                Next chest: {Math.round(100 * Math.pow(1.25, purchased.length + 1))}G
               </span>
             )}
           </div>
