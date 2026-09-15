@@ -378,6 +378,19 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     base_xp = int(base_xp * final_xp_mult)
                     breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
                 if final_gold_mult != 1.0:
+                    if final_gold_mult == 0.0:
+                        from api.services.mechanics import record_zero_hour_gold
+
+                        _active_mutators_now = profile.active_mutators or {}
+                        _active_ids_now = [
+                            m.get("id") if isinstance(m, dict) else m
+                            for m in (
+                                _active_mutators_now.get("active", [])
+                                if isinstance(_active_mutators_now, dict)
+                                else []
+                            )
+                        ]
+                        record_zero_hour_gold(profile, _active_ids_now, base_gold)
                     base_gold = int(base_gold * final_gold_mult)
 
                 eff_total = min(1.0, max(0.2, eff_rating / 10.0))
@@ -553,6 +566,11 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                         "category_streaks",
                         "last_completed_category",
                         "same_category_streak",
+                        # record_zero_hour_gold() above mutates
+                        # profile.active_mutators in place (accumulating
+                        # withheld Gold) -- must be in update_fields or the
+                        # save silently drops it.
+                        "active_mutators",
                     ]
                 )
             else:

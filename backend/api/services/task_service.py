@@ -1202,6 +1202,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         base_xp = int(base_xp * final_xp_mult)
         reward_breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
     if final_gold_mult != 1.0:
+        if final_gold_mult == 0.0:
+            from api.services.mechanics import record_zero_hour_gold
+
+            record_zero_hour_gold(profile, active_ids, base_gold)
         base_gold = int(base_gold * final_gold_mult)
 
     mirror_autocomplete_data = None
@@ -1373,10 +1377,16 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 profile.mana = max(0, int(profile.mana * 0.5))
                 profile.time_paradox_charges = 3
 
-        # Lyra Level 5 Time Paradox Reward duplication on Todo
+        # Lyra Level 5 Time Paradox Reward duplication on Todo. Description:
+        # "duplicates rewards AND boss damage of next 3 completed Todos" --
+        # only XP/Gold were ever doubled here; final_damage_dealt is computed
+        # much later in this function, so lyra_time_paradox_triggered is
+        # threaded through to double it there too (see below).
+        lyra_time_paradox_triggered = False
         if task.task_type == Task.TaskType.TODO and profile.time_paradox_charges > 0:
             final_xp *= 2
             final_gold *= 2
+            lyra_time_paradox_triggered = True
             profile.time_paradox_charges = max(0, profile.time_paradox_charges - 1)
 
         # Grier Level 5: disable mana regen below 20% HP
@@ -1923,6 +1933,12 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         # Cognitive Echo: 2x boss damage from task
         if "is_cognitive_echo_active" in locals() and is_cognitive_echo_active:
+            final_damage_dealt = int(final_damage_dealt * 2)
+
+        # Lyra Level 5 Time Paradox: boss damage half of "duplicates rewards
+        # and boss damage" -- see the reward half above, where the charge for
+        # THIS task was already consumed.
+        if lyra_time_paradox_triggered:
             final_damage_dealt = int(final_damage_dealt * 2)
 
         # Grier Level 4 Revenge Mark

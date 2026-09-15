@@ -143,6 +143,37 @@ def test_linked_pomodoro_records_breakdown_in_history(auth_client, user):
 
 
 @pytest.mark.django_db
+def test_linked_pomodoro_zero_hour_accumulates_withheld_gold(auth_client, user):
+    """record_zero_hour_gold() mutates profile.active_mutators in place --
+    this path's profile.save() uses an explicit update_fields list (unlike
+    TrainingLogView/task_service.py's bare save()), so it's easy to silently
+    drop the mutation if active_mutators isn't in that list."""
+    user.profile.active_mutators = {
+        "active": [{"id": "zero_hour", "duration": 7, "data": {}}]
+    }
+    user.profile.save()
+
+    auth_client.post(
+        "/api/pomodoro/sessions/active-session/start/",
+        {"linked_activity_key": "mathematics", "duration_minutes": 150},
+        format="json",
+    )
+    res = auth_client.post(
+        "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
+    )
+    assert res.status_code == 200
+    assert res.json()["gold_earned"] == 0
+
+    user.profile.refresh_from_db()
+    zh_data = next(
+        m["data"]
+        for m in user.profile.active_mutators["active"]
+        if m["id"] == "zero_hour"
+    )
+    assert zh_data["withheld_gold"] > 0
+
+
+@pytest.mark.django_db
 def test_unlinked_pomodoro_still_flat_no_regression(auth_client, user):
     auth_client.post(
         "/api/pomodoro/sessions/active-session/start/",

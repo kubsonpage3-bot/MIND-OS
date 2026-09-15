@@ -298,13 +298,35 @@ def test_lyra_l5_time_paradox(test_user_and_profile):
     assert profile.mana == 55
     assert profile.time_paradox_charges == 3
 
-    # Complete Todo -> consumes charge, duplicates rewards
+    # Baseline: a Todo with NO charge active (charges exhausted first).
+    from unittest.mock import patch
+
+    profile.time_paradox_charges = 0
+    profile.save()
+    task_baseline = Task.objects.create(
+        user=user, title="Todo Baseline", task_type=Task.TaskType.TODO, is_completed=False
+    )
+    with patch("random.random", return_value=0.99):  # no crit
+        res_baseline = complete_task(user, task_baseline.id, is_positive=True)
+    baseline_xp = res_baseline["rewards"]["xp"]
+    baseline_dmg = res_baseline["combat"]["damage_dealt"]
+    assert baseline_xp > 0
+    assert baseline_dmg > 0
+
+    # Now with a charge active: description promises "duplicates rewards
+    # AND boss damage" -- both must be exactly 2x the no-charge baseline,
+    # not just XP/Gold (boss damage doubling was missing entirely).
+    profile.time_paradox_charges = 3
+    profile.save()
     task_todo = Task.objects.create(
         user=user, title="Todo", task_type=Task.TaskType.TODO, is_completed=False
     )
-    complete_task(user, task_todo.id, is_positive=True)
+    with patch("random.random", return_value=0.99):  # no crit
+        res_todo = complete_task(user, task_todo.id, is_positive=True)
     profile.refresh_from_db()
     assert profile.time_paradox_charges == 2
+    assert res_todo["rewards"]["xp"] == pytest.approx(baseline_xp * 2, abs=1)
+    assert res_todo["combat"]["damage_dealt"] == pytest.approx(baseline_dmg * 2, abs=1)
 
 
 @pytest.mark.django_db

@@ -1638,6 +1638,10 @@ class TrainingLogView(generics.GenericAPIView):
                 base_xp = int(base_xp * final_xp_mult)
                 breakdown.append(f"Mutator burst ×{final_xp_mult:g}")
             if final_gold_mult != 1.0:
+                if final_gold_mult == 0.0:
+                    from api.services.mechanics import record_zero_hour_gold
+
+                    record_zero_hour_gold(profile, active_ids, base_gold)
                 base_gold = int(base_gold * final_gold_mult)
 
             if task:

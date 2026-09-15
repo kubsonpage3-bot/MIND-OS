@@ -778,6 +778,7 @@ def check_and_expire_mutators(profile):
     now_ms = time.time() * 1000
     new_active_list = []
     mutators_changed = False
+    payout_changed = False
 
     for m in active_list:
         if not isinstance(m, dict):
@@ -796,6 +797,21 @@ def check_and_expire_mutators(profile):
                     from api.services.mechanics import apply_boss_damage
 
                     apply_boss_damage(profile.user, 200)
+
+                # Zero Hour: "No Gold earned for 7 days. Afterwards: receive
+                # 3x of everything you would have earned." Only the penalty
+                # half (final_gold_mult=0.0, see below) ever existed; the
+                # payout was never implemented at all. record_zero_hour_gold()
+                # accumulates the withheld Gold into this mutator's own data
+                # as it's zeroed out task by task -- pay out 3x of that here,
+                # on expiry, instead of the player just losing 7 days of gold
+                # for nothing.
+                if m.get("id") == "zero_hour":
+                    withheld = (m.get("data") or {}).get("withheld_gold", 0)
+                    if withheld > 0:
+                        profile.gold += withheld * 3
+                        payout_changed = True
+
                 continue
 
         new_active_list.append(m)
@@ -803,7 +819,37 @@ def check_and_expire_mutators(profile):
     if mutators_changed:
         active_mutators["active"] = new_active_list
         profile.active_mutators = active_mutators
-        profile.save(update_fields=["active_mutators", "mana"])
+        update_fields = ["active_mutators", "mana"]
+        if payout_changed:
+            update_fields.append("gold")
+        profile.save(update_fields=update_fields)
+
+
+def record_zero_hour_gold(profile, active_ids, would_be_gold):
+    """
+    Zero Hour zeroes Gold rewards for 7 days in exchange for a 3x payout of
+    everything withheld once it expires (see check_and_expire_mutators).
+    Called from every reward call site right where final_gold_mult would
+    otherwise zero out `would_be_gold` -- an approximation of "what you
+    would have earned" (the additive gold_mult layer, before the final
+    PWR/crit/LCK refinements calculate_task_outcome would have applied to a
+    non-zeroed amount, which can't be known without actually rolling crit/
+    LCK for a reward that was never granted).
+    """
+    if "zero_hour" not in active_ids or would_be_gold <= 0:
+        return
+    active_mutators = profile.active_mutators or {}
+    if not isinstance(active_mutators, dict):
+        return
+    active_list = active_mutators.get("active", [])
+    for m in active_list:
+        if isinstance(m, dict) and m.get("id") == "zero_hour":
+            data = m.get("data") or {}
+            data["withheld_gold"] = data.get("withheld_gold", 0) + would_be_gold
+            m["data"] = data
+            active_mutators["active"] = active_list
+            profile.active_mutators = active_mutators
+            break
 
 
 def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = True):

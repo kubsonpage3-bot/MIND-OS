@@ -411,3 +411,127 @@ def test_ironman_forced_prestige_on_hp_zero_no_artificial_floor(profile_mut):
     assert profile.prestige_count == 1
     assert profile.hp == profile.max_hp
     assert profile.gold == 500  # untouched by the old undocumented -10% cut
+
+
+@pytest.mark.django_db
+def test_zero_hour_zeroes_gold_and_accumulates_withheld_amount(profile_mut):
+    """Description: "No Gold earned for 7 days. Afterwards: receive 3x of
+    everything you would have earned." Only the zeroing half ever existed --
+    completing a task with Zero Hour active must both pay 0 Gold AND record
+    the would-be amount so it can be paid out 3x on expiry (see the payout
+    test below)."""
+    from api.services.task_service import complete_task
+
+    user, profile = profile_mut
+    profile.active_mutators = {
+        "active": [{"id": "zero_hour", "duration": 7, "data": {}}]
+    }
+    profile.save()
+
+    task = Task.objects.create(
+        user=user, title="Todo", task_type=Task.TaskType.TODO, difficulty="medium"
+    )
+    res = complete_task(user, task.id, is_positive=True)
+    profile.refresh_from_db()
+
+    assert res["rewards"]["gold"] == 0
+    zh_data = next(
+        m["data"] for m in profile.active_mutators["active"] if m["id"] == "zero_hour"
+    )
+    assert zh_data["withheld_gold"] > 0
+
+
+@pytest.mark.django_db
+def test_zero_hour_pays_3x_withheld_gold_on_expiry(profile_mut):
+    """The payout half, previously missing entirely: once the 7-day window
+    expires, the player receives 3x the Gold that was withheld -- not just
+    the mutator quietly disappearing with nothing to show for the week of
+    0-Gold tasks."""
+    from api.services.mechanics import check_and_expire_mutators
+    import time
+
+    user, profile = profile_mut
+    profile.gold = 100
+    activated_8_days_ago = (time.time() - 8 * 24 * 3600) * 1000
+    profile.active_mutators = {
+        "active": [
+            {
+                "id": "zero_hour",
+                "duration": 7,
+                "activatedAt": activated_8_days_ago,
+                "data": {"withheld_gold": 250},
+            }
+        ]
+    }
+    profile.save()
+
+    check_and_expire_mutators(profile)
+    profile.refresh_from_db()
+
+    assert profile.gold == 100 + 250 * 3
+    assert profile.active_mutators.get("active", []) == []  # mutator removed
+
+
+@pytest.mark.django_db
+def test_activity_log_zero_hour_accumulates_withheld_gold(profile_mut):
+    """Same accumulation, through the Activity/Study log endpoint
+    (TrainingLogView) rather than a Task completion."""
+    from rest_framework.test import APIClient
+    from api.services.mechanics import calculate_training_efficiency
+
+    user, profile = profile_mut
+    profile.active_mutators = {
+        "active": [{"id": "zero_hour", "duration": 7, "data": {}}]
+    }
+    profile.save()
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    hours, focus = 1.0, 8.0
+    eff = calculate_training_efficiency(
+        profile, focus=focus, hours=hours, streak_days=profile.streak,
+        hours_today=0.0, subject_hours_today=0.0,
+    )
+    res = client.post(
+        "/api/training/log/",
+        {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+        format="json",
+    )
+    assert res.status_code == 200, res.data
+    assert res.data["gold_earned"] == 0
+
+    profile.refresh_from_db()
+    zh_data = next(
+        m["data"] for m in profile.active_mutators["active"] if m["id"] == "zero_hour"
+    )
+    assert zh_data["withheld_gold"] > 0
+
+
+@pytest.mark.django_db
+def test_zero_hour_expires_with_no_withheld_gold_pays_nothing(profile_mut):
+    """No tasks completed during the 7 days -> nothing withheld -> nothing
+    paid out, and no crash from a missing/zero withheld_gold key."""
+    from api.services.mechanics import check_and_expire_mutators
+    import time
+
+    user, profile = profile_mut
+    profile.gold = 100
+    activated_8_days_ago = (time.time() - 8 * 24 * 3600) * 1000
+    profile.active_mutators = {
+        "active": [
+            {
+                "id": "zero_hour",
+                "duration": 7,
+                "activatedAt": activated_8_days_ago,
+                "data": {},
+            }
+        ]
+    }
+    profile.save()
+
+    check_and_expire_mutators(profile)
+    profile.refresh_from_db()
+
+    assert profile.gold == 100
+    assert profile.active_mutators.get("active", []) == []
