@@ -2246,9 +2246,15 @@ def process_missed_tasks(user):
             profile.gold += min(300, profile.gold // 100)
 
         if "alchemist" in _mutator_ids_today:
+            # Description: "converts ALL unspent Mana into Gold." Above the
+            # 200-gold cap, this used to zero the ENTIRE mana pool regardless
+            # -- e.g. 150 mana only ever pays out for 100 of it (200g / 2),
+            # but all 150 were being destroyed, silently discarding the
+            # other 50 with nothing to show for it. Only spend the mana
+            # actually paid for; the rest carries over untouched.
             mana_gold = min(200, profile.mana * 2)
             profile.gold += mana_gold
-            profile.mana = 0
+            profile.mana = max(0, profile.mana - (mana_gold // 2))
 
         if "momentum" in _mutator_ids_today:
             prev_days = 0

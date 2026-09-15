@@ -1318,8 +1318,8 @@
       },
       "phantom_load": {
         "name": "Phantom Load",
-        "desc": "Yesterday's hours count as +30% today for Rank XP calculation.",
-        "bonus": "Transfers 30% of yesterday's training time into a direct XP bonus today.",
+        "desc": "Yesterday's hours count as +30% today for Rank XP calculation, capped at +60%.",
+        "bonus": "Transfers 30% of yesterday's training time into a direct XP bonus today, up to a +60% cap (reached at 2h).",
         "penalty": "If no hours were logged yesterday, bonus is 0.",
         "mechanics": "Carries forward yesterday's hard work to propel today's gains."
       },
@@ -1360,8 +1360,8 @@
       },
       "alchemist": {
         "name": "Alchemist",
-        "desc": "At daily reset, converts all unspent Mana into Gold (1 Mana = 2 Gold).",
-        "bonus": "Converts remaining Mana into Gold at a 1 MP = 2 Gold rate at midnight.",
+        "desc": "At daily reset, converts unspent Mana into Gold (1 Mana = 2 Gold, up to 200 Gold/day).",
+        "bonus": "Converts remaining Mana into Gold at a 1 MP = 2 Gold rate at midnight, capped at 200 Gold/day; leftover Mana beyond the cap carries over.",
         "penalty": "No penalty.",
         "mechanics": "Monetizes unused daily mana reserves."
       },

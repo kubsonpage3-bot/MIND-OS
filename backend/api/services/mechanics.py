@@ -916,10 +916,15 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         effects["gc_flat"] += 0.01
 
     if "night_owl" in active_ids:
-        if current_hour >= 21 or current_hour < 9:
+        # Description: "Sessions after 21:00 give +30%. Before 09:00: -10%."
+        # The bonus window used to swallow the whole overnight stretch
+        # (>=21:00 OR <9:00 both counted as bonus), which is the exact
+        # window the description says should be a PENALTY, and daytime
+        # (9:00-21:00) was wrongly penalized instead of neutral.
+        if current_hour >= 21:
             effects["xp_mult"] += 0.30
             src("Night Owl: +30% XP")
-        else:
+        elif current_hour < 9:
             effects["xp_mult"] -= 0.10
             src("Night Owl: -10% XP")
 
@@ -942,9 +947,19 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             src("Tunnel Vision: +50% XP")
 
     if "time_dilation" in active_ids:
-        effects["final_xp_mult"] *= 3.0
-        effects["final_gold_mult"] *= 3.0
-        src("Time Dilation: ×3 XP/Gold")
+        # Description: "Sessions require a minimum of 2.0 hours to submit,
+        # but grant 3.0x". The 2h floor was only enforced by a hard
+        # ValidationError in serializers/training.py's manual Study Log form
+        # -- it never touched task_type="training" completions logged
+        # through a linked Pomodoro session (no such check there), and did
+        # nothing at all to stop it from applying to instant Habit/Daily/Todo
+        # clicks, which have no concept of "hours" to gate on in the first
+        # place. Gating here directly makes the mutator self-consistently
+        # session-only + 2h+ regardless of which endpoint calls it.
+        if context.get("task_type") == "training" and context.get("hours", 0) >= 2.0:
+            effects["final_xp_mult"] *= 3.0
+            effects["final_gold_mult"] *= 3.0
+            src("Time Dilation: ×3 XP/Gold (2h+ session)")
 
     if "inversion" in active_ids:
         # focus_rating inversion is handled inside views.py
@@ -1073,7 +1088,13 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
 
     if "phantom_load" in active_ids:
         yesterday_hours = get_mutator_data("phantom_load").get("yesterday_hours", 0.0)
-        bonus = yesterday_hours * 0.30
+        # Uncapped, this scaled without limit (an 8h study day -> +240% XP);
+        # every comparable "scales with your effort" mutator in this game is
+        # capped (its own synergy partner Momentum caps at +20%). Capped at
+        # +60%, reached at 2h logged yesterday -- the same 2h threshold Time
+        # Dilation now uses for its own session-based bonus, so a solid
+        # deep-work day maxes both consistently.
+        bonus = min(0.60, yesterday_hours * 0.30)
         effects["xp_mult"] += bonus
         if bonus > 0:
             src(f"Phantom Load: +{bonus:.0%} XP ({yesterday_hours:g}h yesterday)")

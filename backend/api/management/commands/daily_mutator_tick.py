@@ -109,9 +109,13 @@ class Command(BaseCommand):
 
                 # 4. Alchemist: Convert Mana to Gold (1 Mana = 2 Gold, max 200G/day cap)
                 if "alchemist" in active_ids:
+                    # Only spend the mana actually paid for -- above the
+                    # 200-gold cap this used to zero the WHOLE mana pool
+                    # (e.g. 150 mana only ever pays for 100 of it, but all
+                    # 150 were destroyed with nothing to show for the rest).
                     mana_gold = min(200, p.mana * 2)
                     p.gold += mana_gold
-                    p.mana = 0
+                    p.mana = max(0, p.mana - (mana_gold // 2))
                     logger.info(
                         f"Alchemist applied for {p.user.username}: converted {mana_gold // 2} Mana to +{mana_gold}G"
                     )

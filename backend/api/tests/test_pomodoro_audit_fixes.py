@@ -42,6 +42,34 @@ def auth_client(user):
 
 @pytest.mark.django_db
 def test_linked_pomodoro_applies_final_xp_mult(auth_client, user):
+    # 150 min = 2.5h: Time Dilation only fires for task_type="training" AND
+    # hours >= 2.0 (see mechanics.py) -- a 30 min pomodoro used to also get
+    # the x3 despite being nowhere near the mutator's own advertised "2h
+    # minimum", which is exactly the bug that got fixed. Use a real 2h+
+    # session here so this test still verifies what it's meant to (that
+    # final_xp_mult is applied at all for a linked Pomodoro).
+    auth_client.post(
+        "/api/pomodoro/sessions/active-session/start/",
+        {"linked_activity_key": "mathematics", "duration_minutes": 150},
+        format="json",
+    )
+    res = auth_client.post(
+        "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
+    )
+    assert res.status_code == 200
+    data = res.json()
+    # base_xp for 150min would be ~450 (duration*3); time_dilation is x3 on
+    # top of everything else -- just assert it's a large multiple of the
+    # flat baseline (450), not a lucky roll.
+    assert data["xp_earned"] >= 450 * 2
+    assert any("Mutator burst" in note for note in data["breakdown"])
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_under_2h_does_not_get_time_dilation(auth_client, user):
+    """A short linked Pomodoro (no hours-check existed for this path at all
+    before) must NOT get Time Dilation's x3 -- only real 2h+ sessions
+    should, matching the mutator's own description."""
     auth_client.post(
         "/api/pomodoro/sessions/active-session/start/",
         {"linked_activity_key": "mathematics", "duration_minutes": 30},
@@ -52,11 +80,9 @@ def test_linked_pomodoro_applies_final_xp_mult(auth_client, user):
     )
     assert res.status_code == 200
     data = res.json()
-    # base_xp for 30min would be ~90 (duration*3); time_dilation is x3 on top
-    # of everything else -- just assert it's a large multiple of the flat
-    # baseline (90), not a lucky roll.
-    assert data["xp_earned"] >= 90 * 2
-    assert any("Mutator burst" in note for note in data["breakdown"])
+    assert not any("Mutator burst" in note for note in data["breakdown"])
+    # base_xp for 30min would be ~90; no x3 burst should push it past that.
+    assert data["xp_earned"] < 90 * 2
 
 
 @pytest.mark.django_db

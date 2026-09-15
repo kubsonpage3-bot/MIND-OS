@@ -114,8 +114,35 @@ def test_phantom_load_was_dead_now_populated(profile_mut):
     )
     assert pl_data["yesterday_hours"] == 3.0
 
+    # 3.0h * 30% = 90% would be uncapped; capped at 60% (see the dedicated
+    # cap test below), so 3h yesterday just means "hit the cap".
     effects = apply_active_mutators(profile, {})
-    assert effects["xp_mult"] == pytest.approx(1.0 + 3.0 * 0.30)
+    assert effects["xp_mult"] == pytest.approx(1.0 + 0.60)
+
+
+@pytest.mark.django_db
+def test_phantom_load_bonus_is_capped(profile_mut):
+    """Uncapped, yesterday_hours * 30% scaled without limit -- an 8h study
+    day would have given +240% XP. Capped at +60% (reached at 2h logged
+    yesterday), matching every other "scales with your effort" mutator in
+    this game (its own synergy partner Momentum caps at +20%)."""
+    user, profile = profile_mut
+
+    # Below the cap: 1h -> +30%, uncapped and capped agree here.
+    profile.active_mutators = {
+        "active": [{"id": "phantom_load", "data": {"yesterday_hours": 1.0}}]
+    }
+    profile.save()
+    effects = apply_active_mutators(profile, {})
+    assert effects["xp_mult"] == pytest.approx(1.0 + 0.30)
+
+    # Well past the cap: 8h would be +240% uncapped, must clamp to +60%.
+    profile.active_mutators = {
+        "active": [{"id": "phantom_load", "data": {"yesterday_hours": 8.0}}]
+    }
+    profile.save()
+    effects = apply_active_mutators(profile, {})
+    assert effects["xp_mult"] == pytest.approx(1.0 + 0.60)
 
 
 @pytest.mark.django_db
@@ -161,6 +188,26 @@ def test_alchemist_daily_reset_converts_mana_no_overflow_mechanic(profile_mut):
 
 
 @pytest.mark.django_db
+def test_alchemist_preserves_mana_above_the_gold_cap(profile_mut):
+    """"Converts ALL unspent Mana into Gold" -- above the 200-gold cap (100
+    mana), the whole mana pool used to get zeroed regardless of how much was
+    actually paid for. 150 mana only pays out for 100 of it (200g / 2); the
+    other 50 must carry over, not vanish."""
+    user, profile = profile_mut
+    profile.active_mutators = {"active": [{"id": "alchemist"}]}
+    profile.mana = 150
+    profile.gold = 100
+    profile.last_daily_cron_at = yesterday_local(profile)
+    profile.save()
+
+    process_missed_tasks(user)
+    profile.refresh_from_db()
+
+    assert profile.gold == 300  # 100 + min(200, 150*2)=200
+    assert profile.mana == 50  # 150 - (200 // 2) = 50, NOT zeroed
+
+
+@pytest.mark.django_db
 def test_mirror_gives_boss_damage_not_dodge_to_xp(profile_mut):
     user, profile = profile_mut
     profile.active_mutators = {"active": [{"id": "mirror"}]}
@@ -193,9 +240,71 @@ def test_time_dilation_no_undocumented_damage_penalty(profile_mut):
     profile.active_mutators = {"active": [{"id": "time_dilation"}]}
     profile.save()
 
-    effects = apply_active_mutators(profile, {})
+    effects = apply_active_mutators(
+        profile, {"task_type": "training", "hours": 2.0}
+    )
     assert effects["final_xp_mult"] == pytest.approx(3.0)
     assert effects["damage_taken_mult"] == 1.0  # no hidden +30%
+
+
+@pytest.mark.django_db
+def test_time_dilation_only_applies_to_2h_plus_sessions(profile_mut):
+    """Description: "Sessions require a minimum of 2.0 hours to submit, but
+    grant 3.0x". The 2h floor was only ever enforced as a hard block on the
+    manual Study Log form -- it never touched task_type="training" completions
+    logged through a linked Pomodoro (no such check there), and did nothing
+    to stop an instant Habit/Daily/Todo click (task_type != "training", no
+    "hours" concept at all) from getting the x3 for free."""
+    user, profile = profile_mut
+    profile.active_mutators = {"active": [{"id": "time_dilation"}]}
+    profile.save()
+
+    # Regular task completion: task_type isn't "training" at all.
+    effects_habit = apply_active_mutators(profile, {"task_type": "habit"})
+    assert effects_habit["final_xp_mult"] == 1.0
+    effects_daily = apply_active_mutators(profile, {"task_type": "daily", "hours": 5})
+    assert effects_daily["final_xp_mult"] == 1.0
+
+    # A "session" under 2h (e.g. a short linked Pomodoro) -- no bonus.
+    effects_short = apply_active_mutators(
+        profile, {"task_type": "training", "hours": 0.5}
+    )
+    assert effects_short["final_xp_mult"] == 1.0
+
+    # A real 2h+ session -- bonus applies.
+    effects_long = apply_active_mutators(
+        profile, {"task_type": "training", "hours": 2.5}
+    )
+    assert effects_long["final_xp_mult"] == pytest.approx(3.0)
+
+
+@pytest.mark.django_db
+def test_night_owl_bonus_and_penalty_windows(profile_mut):
+    """Description: "Sessions after 21:00 give +30%. Before 09:00: -10%."
+    The bonus window used to swallow the whole overnight stretch (>=21:00 OR
+    <9:00 both counted as bonus, the exact window that should be a penalty),
+    and 9:00-21:00 was wrongly penalized instead of neutral."""
+    import zoneinfo
+    from unittest.mock import patch
+
+    user, profile = profile_mut
+    profile.timezone = "UTC"
+    profile.active_mutators = {"active": [{"id": "night_owl"}]}
+    profile.save()
+
+    def at_hour(h):
+        return timezone.now().astimezone(zoneinfo.ZoneInfo("UTC")).replace(
+            hour=h, minute=0, second=0, microsecond=0
+        )
+
+    with patch("django.utils.timezone.now", return_value=at_hour(22)):
+        assert apply_active_mutators(profile, {})["xp_mult"] == pytest.approx(1.30)
+
+    with patch("django.utils.timezone.now", return_value=at_hour(5)):
+        assert apply_active_mutators(profile, {})["xp_mult"] == pytest.approx(0.90)
+
+    with patch("django.utils.timezone.now", return_value=at_hour(14)):
+        assert apply_active_mutators(profile, {})["xp_mult"] == pytest.approx(1.0)
 
 
 @pytest.mark.django_db
