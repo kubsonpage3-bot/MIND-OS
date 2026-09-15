@@ -14,7 +14,7 @@ from api.models import (
 from api.services.task_service import complete_task, process_missed_tasks
 from api.services.inventory_service import consume_item
 from api.services.skill_service import activate_skill
-from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
 from api.views import VivianDarkSacrificeView, RheaChaosControlView
 
 
@@ -276,3 +276,50 @@ def test_rhea_perks(test_user_and_profile):
     active_muts = profile.active_mutators.get("active", [])
     assert len(active_muts) == 1
     assert active_muts[0]["id"] != "double_nothing"
+
+
+@pytest.mark.django_db
+def test_rhea_l5_grants_4th_mutator_slot(test_user_and_profile):
+    """
+    Rhea Level 5's own description promises "Increases max active mutators
+    limit from 3 to 4" -- the -30 Max HP drawback was wired up, but the
+    PATCH /api/profile/ cap check never actually granted the 4th slot. Below
+    Level 5 (or recruited-but-inactive), the cap must stay at 3.
+
+    The active_mutators cap is only enforced when the serializer sees a real
+    request (it reads request.data, not the serializer's own validated_data)
+    -- exactly how UserProfileView.as_view() calls it in production -- so this
+    goes through the real PATCH endpoint rather than instantiating the
+    serializer directly with no context, which would silently skip the check.
+    """
+    user, profile = test_user_and_profile
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="rhea", level=5)
+    profile.active_allies = []
+    profile.active_mutators = {"active": [], "purchased": ["ironman", "bloodwork", "night_owl", "lexicon"]}
+    profile.save()
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    four_mutators = {
+        "active": [{"id": "ironman"}, {"id": "bloodwork"}, {"id": "night_owl"}, {"id": "lexicon"}],
+        "purchased": ["ironman", "bloodwork", "night_owl", "lexicon"],
+    }
+
+    # Rhea recruited but NOT active -> still capped at 3.
+    res = client.patch(
+        "/api/profile/", {"active_mutators": four_mutators}, format="json"
+    )
+    assert res.status_code == 400, res.data
+    profile.refresh_from_db()
+    assert len(profile.active_mutators.get("active", [])) == 0
+
+    # Rhea L5 active -> 4th slot unlocked.
+    profile.active_allies = ["rhea"]
+    profile.save()
+    res = client.patch(
+        "/api/profile/", {"active_mutators": four_mutators}, format="json"
+    )
+    assert res.status_code == 200, res.data
+    profile.refresh_from_db()
+    assert len(profile.active_mutators.get("active", [])) == 4

@@ -21,8 +21,6 @@ const CAT_LABELS = {
   wild: { label: "WILD", color: "#00e5ff" },
 };
 
-const MAX_ACTIVE = 3;
-
 export default function MutatorsPanel({ onSpendGold }) {
   const { t } = useTranslation();
   const [confirmIronman, setConfirmIronman] = useState(false);
@@ -32,6 +30,15 @@ export default function MutatorsPanel({ onSpendGold }) {
   const [wonMutatorItem, setWonMutatorItem] = useState(null);
   const { profile, refreshProfile } = useDjangoAuth();
   const queryClient = useQueryClient();
+
+  // Base 3 slots, +1 per prestige, +1 more if Rhea (Void Explorer) is
+  // recruited to Level 5 AND active -- matches the cap the backend now
+  // actually enforces (serializers/profile.py). Previously hardcoded to 3,
+  // which silently ate the slot Rhea L5 promises (-30 Max HP for it, with
+  // no matching benefit) and any prestige-earned slots too.
+  const rheaLevel = profile?.recruited_allies?.rhea || 0;
+  const hasRheaSlot = rheaLevel >= 5 && (profile?.active_allies || []).includes('rhea');
+  const MAX_ACTIVE = 3 + (profile?.prestige_count || 0) + (hasRheaSlot ? 1 : 0);
 
   useHardwareBack(!!selectedMutator || isOpeningChest, () => {
     setSelectedMutator(null);
@@ -636,7 +643,7 @@ export default function MutatorsPanel({ onSpendGold }) {
           setWonMutatorItem(null);
         }}
         chestThemeColor="#00e5ff"
-        equipLabel={active.length >= MAX_ACTIVE && (!wonMutatorItem || !isActive(wonMutatorItem.id)) ? t("chest_modal.slots_full", "SLOTS FULL (3/3)") : t("chest_modal.activate_mutator", "ACTIVATE MUTATOR")}
+        equipLabel={active.length >= MAX_ACTIVE && (!wonMutatorItem || !isActive(wonMutatorItem.id)) ? t("chest_modal.slots_full", "SLOTS FULL ({{n}}/{{max}})", { n: active.length, max: MAX_ACTIVE }) : t("chest_modal.activate_mutator", "ACTIVATE MUTATOR")}
         equippedLabel={t("chest_modal.mutator_active", "MUTATOR ACTIVE")}
       />
     </div>

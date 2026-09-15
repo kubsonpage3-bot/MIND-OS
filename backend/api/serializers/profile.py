@@ -320,7 +320,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 active_mutators_data = data["active_mutators"]
                 if isinstance(active_mutators_data, dict):
                     active_list = active_mutators_data.get("active", [])
-                    max_mutators = 3 + instance.prestige_count
+                    # Rhea Level 5 ("Increases max active mutators limit from 3
+                    # to 4, at cost of -30 permanent Max HP") only ever applied
+                    # its HP drawback via get_passive_multipliers -- this cap
+                    # never actually granted the 4th slot it's paid for.
+                    rhea_bonus_slot = 0
+                    if "rhea" in (instance.active_allies or []):
+                        rhea_ally = instance.recruited_allies.filter(
+                            ally_code="rhea"
+                        ).first()
+                        if rhea_ally and rhea_ally.level >= 5:
+                            rhea_bonus_slot = 1
+                    max_mutators = 3 + instance.prestige_count + rhea_bonus_slot
                     # Must be a list of dicts, but we just check length
                     if len(active_list) > max_mutators:
                         raise ValidationError(
