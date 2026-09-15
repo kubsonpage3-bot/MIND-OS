@@ -1296,7 +1296,14 @@ function WelcomeBackCheckin() {
   }, []);
 
   const hasChosenClass = profile?.character_class && profile.character_class.toLowerCase() !== 'wanderer';
-  const isNewUser = !hasChosenClass || !profile?.seen_guides?.['main_tutorial'];
+  // Note: gated on hasChosenClass alone (dailies only exist once a class is picked —
+  // see seed_starter_tasks), NOT on seen_guides.main_tutorial. That flag belongs to an
+  // unrelated onboarding tour and can get stuck false forever (toast dismissed via a
+  // different path, migrated/legacy account, etc.), which would permanently hide this
+  // modal for a real, long-time player. The backend already independently guards against
+  // showing this to brand-new accounts (user_joined_date >= local_today check), so this
+  // is a redundant-but-safe frontend gate, not the source of truth.
+  const isNewUser = !hasChosenClass;
   const hasDailies = Array.isArray(dailies) && dailies.length > 0;
   const isVisible = (!isNewUser && !dismissed && needsCheckin && hasDailies) || (testOpen && !dismissed && hasDailies);
 
