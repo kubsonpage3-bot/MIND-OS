@@ -3063,11 +3063,11 @@ class DailyCheckinView(generics.GenericAPIView):
             profile = UserProfile.objects.get(user=request.user)
             import zoneinfo
             from datetime import timedelta
-            from django.utils import timezone
             from api.services.task_service import (
                 get_yesterday_uncompleted_dailies,
                 has_completed_any_daily_yesterday,
                 process_missed_tasks,
+                get_daily_cutoff_time,
             )
 
             try:
@@ -3075,7 +3075,11 @@ class DailyCheckinView(generics.GenericAPIView):
             except Exception:
                 user_tz = zoneinfo.ZoneInfo("UTC")
 
-            local_today = timezone.now().astimezone(user_tz).date()
+            # Rhea Level 3 (Gravity Well) extends the daily deadline by 4h --
+            # must use the same cutoff every other daily-rollover function uses,
+            # or a player with that perk gets falsely flagged as having missed
+            # a daily they completed within the extended window.
+            local_today = get_daily_cutoff_time(profile).astimezone(user_tz).date()
             yesterday = local_today - timedelta(days=1)
 
             force_test = request.query_params.get("force") in ["1", "true", "True"]

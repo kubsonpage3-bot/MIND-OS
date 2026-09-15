@@ -320,10 +320,18 @@ def test_calculate_task_outcome(user):
     assert res["xp_earned"] == int(10 * 1.05)  # 10
     assert res["gold_earned"] == int(10 * 1.10)  # 11
 
-    # Negative task
-    res_neg = calculate_task_outcome(user, "habit", base_hp_lost=50, is_positive=False)
-    # def=100 -> 100 / (100 + 100) = 0.5 -> 50 * 0.5 = 25
+    # Negative "todo": DEF mitigation is applied INSIDE calculate_task_outcome
+    # for this task type. def=100 -> 100 / (100 + 100) = 0.5 -> 50 * 0.5 = 25
+    res_neg = calculate_task_outcome(user, "todo", base_hp_lost=50, is_positive=False)
     assert res_neg["hp_lost"] == 25
+
+    # Negative "habit"/"daily": DEF mitigation is applied by the CALLER
+    # (calculate_habit_fail_hp / calculate_fail_damage in combat_service.py)
+    # before base_hp_lost ever reaches here, so calculate_task_outcome must
+    # pass it through unchanged for these two task types -- applying DEF a
+    # second time here was the "double DEF mitigation" bug fixed upstream.
+    res_neg_habit = calculate_task_outcome(user, "habit", base_hp_lost=50, is_positive=False)
+    assert res_neg_habit["hp_lost"] == 50
 
 
 @pytest.mark.django_db

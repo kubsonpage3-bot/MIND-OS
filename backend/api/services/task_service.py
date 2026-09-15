@@ -14,6 +14,57 @@ from api.services.mechanics import calculate_task_outcome
 logger = logging.getLogger(__name__)
 
 
+def get_daily_grace_offset(profile, passive_effects=None):
+    """
+    Returns how far past local midnight a day's dailies stay "open" for this
+    profile. Zero for everyone. Rhea Level 3 (Gravity Well) makes it 4h (i.e.
+    the daily deadline is effectively 4 AM local time instead of midnight).
+
+    IMPORTANT: this offset must be applied to BOTH sides of any "does this
+    timestamp belong to calendar day D" comparison -- the current time (via
+    get_daily_cutoff_time) AND any stored timestamp (last_completed_at,
+    created_at, activity log created_at) being tested against a day boundary.
+    Shifting only one side turns a 4h grace window into a full extra day of
+    drift, which is worse than not shifting at all.
+    """
+    from datetime import timedelta as _timedelta
+
+    try:
+        if passive_effects is None:
+            from api.services.mechanics import get_passive_multipliers
+
+            passive_effects = get_passive_multipliers(profile, {})
+        if passive_effects.get("rhea_gravity_well", False):
+            return _timedelta(hours=4)
+    except Exception:
+        pass
+    return _timedelta(0)
+
+
+def get_daily_cutoff_time(profile, passive_effects=None):
+    """
+    Returns the timestamp to treat as "now" when deciding which calendar day
+    a daily task belongs to (i.e. before computing any local "today"/"yesterday"
+    boundary). Normally this is just the real current time -- daily reset is
+    midnight local time. Rhea Level 3 (Gravity Well) extends that deadline by
+    4h (effectively to 4 AM local time), so for a player with that perk active
+    a day hasn't "ended" yet even though the calendar date has already rolled
+    over.
+
+    Every place that decides whether "now" falls on "today" or "yesterday"
+    (has_completed_any_daily_yesterday, get_yesterday_uncompleted_dailies,
+    process_missed_tasks, complete_yesterday_dailies, DailyCheckinView.get) MUST
+    route through this helper instead of calling timezone.now() directly --
+    otherwise Gravity Well silently stops applying for that one check even
+    though it's honored everywhere else. When comparing a STORED timestamp
+    against the resulting day label, use get_daily_grace_offset() directly
+    on that timestamp too (see its docstring) rather than re-deriving "now".
+    """
+    from django.utils import timezone as _tz
+
+    return _tz.now() - get_daily_grace_offset(profile, passive_effects=passive_effects)
+
+
 def is_daily_scheduled_for_date(task, date_val) -> bool:
     """
     Checks if a daily task is scheduled to run on a given date based on repeat_weekdays.
@@ -155,18 +206,26 @@ def has_completed_any_daily_yesterday(user, yesterday_date=None) -> bool:
     from django.utils import timezone as tz
     from api.models import UserProfile, Task, UserActivityLog
 
+    profile = None
     try:
         profile = UserProfile.objects.get(user=user)
         user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
     except Exception:
         user_tz = zoneinfo.ZoneInfo("UTC")
 
+    grace = get_daily_grace_offset(profile) if profile else timedelta(0)
+
     if yesterday_date is None:
-        local_now = tz.now().astimezone(user_tz)
+        cutoff_now = tz.now() - grace
+        local_now = cutoff_now.astimezone(user_tz)
         yesterday_date = (local_now - timedelta(days=1)).date()
 
-    start_of_yesterday = datetime.combine(yesterday_date, time.min).replace(tzinfo=user_tz)
-    end_of_yesterday = datetime.combine(yesterday_date, time.max).replace(tzinfo=user_tz)
+    # The real-time window representing "yesterday" is shifted later by the
+    # same grace offset (e.g. 4 AM yesterday -> 4 AM today instead of
+    # midnight -> midnight), so a completion logged at 2 AM still lands
+    # inside "yesterday"'s window instead of falling just outside it.
+    start_of_yesterday = datetime.combine(yesterday_date, time.min).replace(tzinfo=user_tz) + grace
+    end_of_yesterday = datetime.combine(yesterday_date, time.max).replace(tzinfo=user_tz) + grace
 
     # 1. Check UserActivityLog for daily activity created yesterday
     if UserActivityLog.objects.filter(
@@ -206,22 +265,30 @@ def get_yesterday_uncompleted_dailies(user):
     except Exception:
         user_tz = zoneinfo.ZoneInfo("UTC")
 
-    yesterday = (tz.now().astimezone(user_tz) - timedelta(days=1)).date()
-    start_of_yesterday = datetime.combine(yesterday, time.min).replace(tzinfo=user_tz)
-    end_of_yesterday = datetime.combine(yesterday, time.max).replace(tzinfo=user_tz)
+    grace = get_daily_grace_offset(profile)
+    cutoff_now = tz.now() - grace
+    yesterday = (cutoff_now.astimezone(user_tz) - timedelta(days=1)).date()
+    # Same grace-shifted window as has_completed_any_daily_yesterday -- see its
+    # comment. A timestamp is tested against "yesterday" by shifting it back
+    # by the same grace period before taking its date, which is equivalent to
+    # widening the window on both ends and keeps this symmetric with how
+    # `yesterday` itself was derived from "now" above.
+    start_of_yesterday = datetime.combine(yesterday, time.min).replace(tzinfo=user_tz) + grace
+    end_of_yesterday = datetime.combine(yesterday, time.max).replace(tzinfo=user_tz) + grace
 
     dailies = Task.objects.filter(user=user, task_type=Task.TaskType.DAILY)
     result = []
     for task in dailies:
         # A task created after yesterday could not possibly have been due yesterday!
-        if task.created_at and task.created_at.astimezone(user_tz).date() > yesterday:
+        if task.created_at and (task.created_at.astimezone(user_tz) - grace).date() > yesterday:
             continue
         if not is_daily_scheduled_for_date(task, yesterday):
             continue
-        # Check if completed yesterday
+        # Check if completed yesterday (shift the stored timestamp back by the
+        # same grace offset before comparing -- see get_daily_grace_offset).
         was_completed_yesterday = False
         if task.last_completed_at:
-            local_date = task.last_completed_at.astimezone(user_tz).date()
+            local_date = (task.last_completed_at.astimezone(user_tz) - grace).date()
             was_completed_yesterday = (local_date == yesterday)
         if not was_completed_yesterday:
             # Fallback check on UserActivityLog
@@ -444,7 +511,8 @@ def complete_yesterday_dailies(user, completed_ids: list):
     except Exception:
         user_tz = zoneinfo.ZoneInfo("UTC")
 
-    local_now = tz.now().astimezone(user_tz)
+    cutoff_now = get_daily_cutoff_time(profile)
+    local_now = cutoff_now.astimezone(user_tz)
     local_today = local_now.date()
     yesterday = local_today - timedelta(days=1)
     yesterday_dt = datetime.combine(yesterday, time(12, 0)).replace(tzinfo=user_tz)
@@ -2104,10 +2172,11 @@ def process_missed_tasks(user):
 
     passive_effects = get_passive_multipliers(profile, {})
 
-    # Rhea Level 3: Gravity Well (4h daily deadline extension)
-    adjusted_now = timezone.now()
-    if passive_effects.get("rhea_gravity_well", False):
-        adjusted_now -= timedelta(hours=4)
+    # Rhea Level 3: Gravity Well (4h daily deadline extension) -- routed through
+    # the shared get_daily_cutoff_time() so this stays in sync with the same
+    # adjustment applied in has_completed_any_daily_yesterday/
+    # get_yesterday_uncompleted_dailies/complete_yesterday_dailies/DailyCheckinView.
+    adjusted_now = get_daily_cutoff_time(profile, passive_effects=passive_effects)
 
     local_today = adjusted_now.astimezone(user_tz).date()
 

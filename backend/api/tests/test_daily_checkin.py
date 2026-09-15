@@ -480,6 +480,54 @@ def test_checkin_modal_parity_winter_plate_and_ironman(checkin_user):
 
 
 @pytest.mark.django_db
+def test_gravity_well_extends_deadline_consistently_everywhere(checkin_user):
+    """
+    Rhea Level 3 (Gravity Well) extends the daily deadline to 4 AM local time.
+    A daily finished at 2 AM must count towards the PREVIOUS calendar day's
+    requirement (not get flagged as missed for it), while one still untouched
+    must keep showing as missed -- both has_completed_any_daily_yesterday and
+    get_yesterday_uncompleted_dailies must apply the SAME 4h grace window,
+    or the two disagree with each other and the modal reports it wrong.
+    """
+    from unittest.mock import patch
+    from api.models import RecruitedAlly
+
+    user, profile = checkin_user
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="rhea", level=3)
+    profile.active_allies = ["rhea"]
+    profile.save()
+
+    # Anchor "now" to 05:00 -- just past the 4 AM grace cutoff, so yesterday's
+    # extended window [yesterday 04:00, today 04:00) has just closed.
+    now_real = timezone.now().replace(hour=5, minute=0, second=0, microsecond=0)
+
+    done_task = Task.objects.create(
+        user=user, title="Night Owl Reading", task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+    )
+    missed_task = Task.objects.create(
+        user=user, title="Untouched Daily", task_type=Task.TaskType.DAILY,
+        repeat_weekdays=127,
+    )
+    Task.objects.filter(id__in=[done_task.id, missed_task.id]).update(
+        created_at=now_real - timedelta(days=3)
+    )
+
+    # Finished at 02:00 (today's literal calendar date) -- inside yesterday's
+    # extended window, so it must satisfy YESTERDAY's requirement.
+    done_task.last_completed_at = now_real.replace(hour=2, minute=0)
+    done_task.save()
+
+    with patch("django.utils.timezone.now", return_value=now_real):
+        missed = get_yesterday_uncompleted_dailies(user)
+        completed_any = has_completed_any_daily_yesterday(user)
+
+    assert done_task not in missed
+    assert missed_task in missed
+    assert completed_any is True
+
+
+@pytest.mark.django_db
 def test_accurate_refund_matches_recorded_damage(checkin_user):
     """
     Verifies that when cron has already run and penalized a task,
