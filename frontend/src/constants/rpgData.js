@@ -163,9 +163,9 @@ export const SKILL_TREE = {
     nodes: [
       { id: "sharp_focus", tier: 1, name: "Sharp Focus", desc: "Sessions with Focus 8+ give +10% bonus Rank XP", sp: 3, gold: 100 },
       { id: "deep_concentration", tier: 2, name: "Deep Concentration", desc: "Focus minimum counts as 7.0 — no more half-effort sessions", requires: "sharp_focus", sp: 6, gold: 250 },
-      { id: "flow_state", tier: 3, name: "Flow State", desc: "First session each day gives +50% Rank XP", requires: "deep_concentration", sp: 10, gold: 500 },
+      { id: "flow_state", tier: 3, name: "Flow State", desc: "First session each day gives +20% Rank XP", requires: "deep_concentration", sp: 10, gold: 500 },
       { id: "neural_expansion", tier: 4, name: "Neural Expansion", desc: "Gf ceiling +5 permanently. Your mind breaks through its old limits.", requires: "flow_state", sp: 15, gold: 800 },
-      { id: "cognitive_supremacy", tier: 5, name: "Cognitive Supremacy", desc: "All cognitive metric gains +20% from every source", requires: "neural_expansion", sp: 22, gold: 1500 },
+      { id: "cognitive_supremacy", tier: 5, name: "Cognitive Supremacy", desc: "Gf/Gc/Ps/Vm gains ×2 from every session, permanently", requires: "neural_expansion", sp: 22, gold: 1500 },
       { id: "godmind", tier: 6, name: "GODMIND", desc: "Each session grants bonus Rank XP from your cognitive stats (0.5×) + bonus daily login XP", requires: "cognitive_supremacy", sp: 35, gold: 3000 },
     ],
   },

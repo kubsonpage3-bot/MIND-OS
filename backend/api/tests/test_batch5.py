@@ -172,12 +172,16 @@ def test_godmind_and_cross_training(user, profile):
     hours = 2.0
     is_language = True
 
-    # Godmind logic
-    godmind_bonus = int((profile.gf + profile.gc + profile.ps + profile.vm) * 0.5)
+    # Godmind logic -- description says "IQ score (AVG of gf+gc+ps+vm)";
+    # the real implementation used to sum instead of average (a 4x bug,
+    # since all 4 metrics have an enforced floor of 100), fixed to match
+    # the description.
+    godmind_iq = (profile.gf + profile.gc + profile.ps + profile.vm) / 4.0
+    godmind_bonus = int(godmind_iq * 0.5)
     final_xp = base_xp + godmind_bonus
 
     # Check godmind bonus logic
-    assert godmind_bonus == int(400 * 0.5) == 200
+    assert godmind_bonus == int(100 * 0.5) == 50
     print(
         f"\n[test_godmind] base_xp={base_xp}, godmind_bonus={godmind_bonus}, final_xp={final_xp}"
     )
@@ -190,6 +194,91 @@ def test_godmind_and_cross_training(user, profile):
     print(
         f"\n[test_cross_training] hours={hours}, humanities_xp={profile.humanities_xp}"
     )
+
+
+@pytest.mark.django_db
+def test_godmind_real_endpoint_uses_average_not_sum(user, profile):
+    """End-to-end through the real /api/training/log/ endpoint (not a
+    reimplementation): with all 4 metrics at their floor of 100, Godmind
+    must add ~50 flat XP (avg 100 x 0.5), not ~200 (the old summed bug)."""
+    from rest_framework.test import APIClient
+    from api.services.mechanics import calculate_training_efficiency
+
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="godmind")
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    hours, focus = 1.0, 8.0
+    eff = calculate_training_efficiency(
+        profile, focus=focus, hours=hours, streak_days=profile.streak,
+        hours_today=0.0, subject_hours_today=0.0,
+    )
+    res = client.post(
+        "/api/training/log/",
+        {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+        format="json",
+    )
+    assert res.status_code == 200, res.data
+
+    godmind_note = next(n for n in res.data["breakdown"] if n.startswith("Godmind"))
+    assert "+50 XP" in godmind_note, godmind_note
+    assert "+200 XP" not in godmind_note
+
+
+@pytest.mark.django_db
+def test_cognitive_supremacy_doubles_gf_gc_gains_on_real_endpoint():
+    """Redesigned per user decision from a flat +20% to all 4 metrics into a
+    permanent x2 (+100%) to Gf/Gc/Ps/Vm gains -- e.g. a math session should
+    gain exactly twice the Gf/Gc it otherwise would. Compares two identical
+    profiles (one with the skill, one without) logging the identical
+    session, rather than assuming the exact underlying gain formula."""
+    from rest_framework.test import APIClient
+    from api.services.mechanics import calculate_training_efficiency
+
+    def make_profile(username):
+        u = User.objects.create_user(username=username, password="pw")
+        p, _ = UserProfile.objects.get_or_create(user=u)
+        p.gf, p.gc, p.ps, p.vm = 100.0, 100.0, 100.0, 100.0
+        p.gf_ceiling = p.gc_ceiling = p.ps_ceiling = p.vm_ceiling = 150.0
+        p.save()
+        return u, p
+
+    def log_math(user, profile):
+        client = APIClient()
+        client.force_authenticate(user=user)
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        res = client.post(
+            "/api/training/log/",
+            {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+            format="json",
+        )
+        assert res.status_code == 200, res.data
+        profile.refresh_from_db()
+        return profile
+
+    user_a, profile_a = make_profile("cogsup_baseline")
+    user_b, profile_b = make_profile("cogsup_boosted")
+    UnlockedSkill.objects.create(user_profile=profile_b, skill_code="cognitive_supremacy")
+
+    gf_before_a, gc_before_a = profile_a.gf, profile_a.gc
+    gf_before_b, gc_before_b = profile_b.gf, profile_b.gc
+
+    profile_a = log_math(user_a, profile_a)
+    profile_b = log_math(user_b, profile_b)
+
+    gf_gain_baseline = profile_a.gf - gf_before_a
+    gc_gain_baseline = profile_a.gc - gc_before_a
+    gf_gain_boosted = profile_b.gf - gf_before_b
+    gc_gain_boosted = profile_b.gc - gc_before_b
+
+    assert gf_gain_baseline > 0
+    assert gf_gain_boosted == pytest.approx(gf_gain_baseline * 2, abs=0.01)
+    assert gc_gain_boosted == pytest.approx(gc_gain_baseline * 2, abs=0.01)
 
 
 @pytest.mark.django_db

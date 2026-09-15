@@ -1750,10 +1750,22 @@ def get_passive_multipliers(profile, context: dict):
         src("Resource Awareness: +10% Gold")
 
     if "cognitive_supremacy" in unlocked_skills:
-        effects["gf_mult"] += 0.20
-        effects["gc_mult"] += 0.20
-        effects["ps_mult"] += 0.20
-        effects["vm_mult"] += 0.20
+        # Redesigned per user decision: was a flat, unconditional +20% to all
+        # 4 cognitive metrics -- wildly disproportionate to its tier-5 peers
+        # in the other 4 branches (+3 HP regen/day, 2x daily login gold,
+        # -10% rival XP, etc). Now a permanent, unconditional x2 (+100%) to
+        # Gf/Gc/Ps/Vm gains from every session -- e.g. a math session now
+        # gains twice the Gf/Gc it otherwise would, forever, once unlocked.
+        effects["gf_mult"] += 1.0
+        effects["gc_mult"] += 1.0
+        effects["ps_mult"] += 1.0
+        effects["vm_mult"] += 1.0
+        # Only note it on sessions that actually touch Gf/Gc/Ps/Vm (training/
+        # activity logs) -- a Habit/Daily/Todo completion never calls
+        # calculate_cognitive_gains, so the note (and the frontend's red
+        # highlight keyed off it) would be misleading there.
+        if context.get("task_type") == "training":
+            src("Cognitive Supremacy: ×2 Gf/Gc/Ps/Vm gains")
 
     if "encyclopedia" in unlocked_skills:
         effects["gc_mult"] += 0.20
@@ -1762,10 +1774,14 @@ def get_passive_multipliers(profile, context: dict):
         effects["boss_dmg_mult"] += 0.30
 
     if "flow_state" in unlocked_skills:
+        # Was +50% -- wildly disproportionate to its tier-3 peers in the
+        # other branches (+10% crit chance, +3% drop chance, -15% mana
+        # cost, +20% Gc). Reduced to +20% per user decision, in line with
+        # unconditional tier-1 nodes like Inner Stillness.
         today = timezone.now().date()
         if profile.last_training_at != today:
-            effects["xp_mult"] += 0.50
-            src("Flow State: +50% XP (first session today)")
+            effects["xp_mult"] += 0.20
+            src("Flow State: +20% XP (first session today)")
 
     if "polymath" in unlocked_skills:
         stats = getattr(profile.user, "stats", None)

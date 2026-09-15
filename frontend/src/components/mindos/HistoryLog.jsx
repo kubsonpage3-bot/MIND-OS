@@ -421,9 +421,28 @@ function HistoryItemCard({ item }) {
     .filter(([mk]) => (item.cognitive_gains?.[mk] || 0) > 0)
     .map(([mk, mc]) => ({ mk, mc, val: item.cognitive_gains[mk] }));
 
+  // Cognitive Supremacy doubles Gf/Gc/Ps/Vm gains on every session -- give
+  // sessions it actually fired on a red outline so it's visible at a glance,
+  // not just buried as one line in the breakdown below.
+  const hasCognitiveSupremacy = Array.isArray(item.metadata?.breakdown)
+    && item.metadata.breakdown.some(n => typeof n === "string" && n.includes("Cognitive Supremacy"));
+
   return (
     <div className="group p-3.5 rounded-2xl border transition-all duration-200 relative overflow-hidden hover:shadow-lg"
-      style={{ background: "var(--habit-panel)", borderColor: cfg.border }}>
+      style={{
+        background: "var(--habit-panel)",
+        borderColor: hasCognitiveSupremacy ? "rgba(239,68,68,0.65)" : cfg.border,
+        boxShadow: hasCognitiveSupremacy ? "0 0 10px rgba(239,68,68,0.2)" : undefined,
+      }}>
+      {hasCognitiveSupremacy && (
+        <span
+          className="absolute top-2 right-2 text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider z-10"
+          style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.4)", fontFamily: "'Nunito'" }}
+          title="Cognitive Supremacy: ×2 Gf/Gc/Ps/Vm gains"
+        >
+          ×2 IQ
+        </span>
+      )}
       {/* Left accent bar */}
       <div className="absolute left-0 top-2.5 bottom-2.5 w-0.5 rounded-full" style={{ background: cfg.color }} />
 

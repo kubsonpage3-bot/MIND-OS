@@ -1674,9 +1674,14 @@ class TrainingLogView(generics.GenericAPIView):
                 final_xp = 0
 
             if "godmind" in unlocked_skills:
-                godmind_bonus = int(
-                    (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
-                )
+                # Bug: this summed all 4 metrics instead of averaging them,
+                # as the skill's own description says ("IQ score (avg of
+                # gf+gc+ps+vm) contributes 0.5x to Rank XP"). All 4 have an
+                # enforced floor of 100.0, so this was a guaranteed minimum
+                # +200 flat XP on EVERY session -- 8-10x a typical session's
+                # base XP -- instead of the intended ~50.
+                godmind_iq = (profile.gf + profile.gc + profile.ps + profile.vm) / 4.0
+                godmind_bonus = int(godmind_iq * 0.5)
                 final_xp += godmind_bonus
                 breakdown.append(f"Godmind +{godmind_bonus} XP")
 

@@ -1036,7 +1036,7 @@
       },
       "flow_state": {
         "name": "Flow State",
-        "desc": "First session each day gives 1.5× Rank XP"
+        "desc": "First session each day gives 1.2× Rank XP"
       },
       "neural_expansion": {
         "name": "Neural Expansion",
@@ -1044,7 +1044,7 @@
       },
       "cognitive_supremacy": {
         "name": "Cognitive Supremacy",
-        "desc": "All cognitive metric gains +20%"
+        "desc": "Gf/Gc/Ps/Vm gains ×2 from every session, permanently"
       },
       "godmind": {
         "name": "Godmind",

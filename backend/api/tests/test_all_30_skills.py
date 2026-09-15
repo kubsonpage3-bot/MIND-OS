@@ -78,25 +78,28 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["min_focus"] == 7.0
 
-        # 3. flow_state
+        # 3. flow_state -- reduced from +50% to +20% (was wildly disproportionate
+        # to its tier-3 peers in the other branches: +10% crit chance, +3%
+        # drop chance, -15% mana cost, +20% Gc)
         UnlockedSkill.objects.create(user_profile=profile, skill_code="flow_state")
         profile.last_training_at = timezone.now().date() - timedelta(days=1)
         effects = get_passive_multipliers(profile, {"focus_rating": 8.0})
-        # sharp_focus (0.10) + flow_state (0.50)
-        assert round(effects["xp_mult"], 2) == 1.60
+        # sharp_focus (0.10) + flow_state (0.20)
+        assert round(effects["xp_mult"], 2) == 1.30
 
         # 4. neural_expansion
         UnlockedSkill.objects.create(user_profile=profile, skill_code="neural_expansion")
         effects = get_passive_multipliers(profile, {})
         assert effects["gf_ceiling_flat"] == 5.0
 
-        # 5. cognitive_supremacy
+        # 5. cognitive_supremacy -- redesigned from a flat +20% to all 4
+        # metrics into a permanent x2 (+100%) to Gf/Gc/Ps/Vm gains
         UnlockedSkill.objects.create(user_profile=profile, skill_code="cognitive_supremacy")
         effects = get_passive_multipliers(profile, {})
-        assert effects["gf_mult"] == 1.20
-        assert effects["gc_mult"] == 1.20
-        assert effects["ps_mult"] == 1.20
-        assert effects["vm_mult"] == 1.20
+        assert effects["gf_mult"] == 2.0
+        assert effects["gc_mult"] == 2.0
+        assert effects["ps_mult"] == 2.0
+        assert effects["vm_mult"] == 2.0
 
         # 6. godmind
         UnlockedSkill.objects.create(user_profile=profile, skill_code="godmind")

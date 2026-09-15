@@ -439,11 +439,15 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 if profile.xp_multiplier != 1.0:
                     breakdown.append(f"Gear/Prestige ×{profile.xp_multiplier:.2f}")
 
-                # Godmind: IQ contribution to Rank XP
+                # Godmind: IQ contribution to Rank XP. Bug: summed all 4
+                # metrics instead of averaging them (see views.py's
+                # TrainingLogView for the full explanation) -- fixed to a
+                # true average, matching the skill's own description.
                 if passive_effects.get("godmind_active", False):
-                    godmind_bonus = int(
-                        (profile.gf + profile.gc + profile.ps + profile.vm) * 0.5
-                    )
+                    godmind_iq = (
+                        profile.gf + profile.gc + profile.ps + profile.vm
+                    ) / 4.0
+                    godmind_bonus = int(godmind_iq * 0.5)
                     xp_earned += godmind_bonus
                     breakdown.append(f"Godmind +{godmind_bonus} XP")
 

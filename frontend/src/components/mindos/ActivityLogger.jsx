@@ -586,6 +586,10 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
             />
 
             {/* Expected gains */}
+            {(() => {
+              const hasCognitiveSupremacy = Array.isArray(profile?.unlocked_skills)
+                && profile.unlocked_skills.includes('cognitive_supremacy');
+              return (
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(METRIC_CONFIG).map(([mk, mc]) => {
                 const coeff = allActivities[selectedActivity].coefficients[mk] || 0;
@@ -593,17 +597,33 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
                 const current = profile?.[mk] || 0;
                 const growthMult = Math.max(0, 1 - Math.pow(current / ceiling, 2));
                 const rawGain = coeff * logValue * growthMult;
-                const effGain = rawGain * efficiency.total;
+                // Cognitive Supremacy doubles Gf/Gc/Ps/Vm gains permanently
+                // (see get_passive_multipliers) -- reflect it in the preview
+                // and mark the tile so it's obviously not the base rate.
+                const effGain = rawGain * efficiency.total * (hasCognitiveSupremacy ? 2 : 1);
                 return (
-                  <div key={mk} className="text-center p-2 rounded-lg bg-muted/40">
+                  <div
+                    key={mk}
+                    className="text-center p-2 rounded-lg bg-muted/40"
+                    style={hasCognitiveSupremacy && effGain > 0 ? {
+                      border: '1.5px solid rgba(239,68,68,0.65)',
+                      boxShadow: '0 0 8px rgba(239,68,68,0.25)',
+                    } : undefined}
+                    title={hasCognitiveSupremacy && effGain > 0 ? t('training_extra.cognitive_supremacy_hint', 'Cognitive Supremacy: ×2 (already included)') : undefined}
+                  >
                     <div className={`text-xl font-pixel text-${mc.color}`}>{mc.abbr}</div>
                     <div className="text-lg font-pixel text-foreground/70 mt-0.5">
                       {effGain > 0 ? `+${effGain.toFixed(3)}` : "—"}
                     </div>
+                    {hasCognitiveSupremacy && effGain > 0 && (
+                      <div className="text-[7px] font-pixel text-red-400 mt-0.5 uppercase tracking-wide">×2</div>
+                    )}
                   </div>
                 );
               })}
             </div>
+              );
+            })()}
 
             {/* Expected Rewards preview */}
             {previewRewards && (() => {
