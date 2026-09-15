@@ -7,7 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 from api.models import Task, UserProfile, Item, InventoryItem, RecruitedAlly
 from api.services.rewards_service import task_rewards
-from api.services.skill_service import apply_effects_on_task_complete
 from api.services.profile_service import gain_xp, check_death
 from api.services.mechanics import calculate_task_outcome
 
@@ -1148,7 +1147,6 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     mutator_effects = apply_active_mutators(profile, context)
     passive_effects = get_passive_multipliers(profile, context)
-    is_cognitive_echo_active = False
 
     active_list = (
         profile.active_mutators.get("active", [])
@@ -1267,42 +1265,10 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
         ).exists():
             final_gold = int(final_gold * 1.20)
 
-        # Rosetta Protocol: +35% XP from all tasks
-        if ActiveEffect.objects.filter(
-            user=user, skill_id="rosetta_protocol", expires_at__gt=timezone.now()
-        ).exists():
-            final_xp = int(final_xp * 1.35)
-
-        # Algorithmic Cascade: +10% per task streak today, cap +60%
-        cascade_eff = ActiveEffect.objects.filter(
-            user=user, skill_id="algorithmic_cascade", expires_at__gt=timezone.now()
-        ).first()
-        if cascade_eff:
-            cascade_streak = cascade_eff.data.get("cascade_streak", 0)
-            cascade_mult = min(0.60, cascade_streak * 0.10)
-            if cascade_mult > 0:
-                final_xp = int(final_xp * (1.0 + cascade_mult))
-                final_gold = int(final_gold * (1.0 + cascade_mult))
-            cascade_eff.data["cascade_streak"] = cascade_streak + 1
-            cascade_eff.save(update_fields=["data"])
-
-        # Quantum Optimization: +80% Gold
-        quantum_eff = ActiveEffect.objects.filter(
-            user=user, skill_id="quantum_optimization", expires_at__gt=timezone.now()
-        ).first()
-        if quantum_eff and quantum_eff.data.get("tasksRemaining", 0) > 0:
-            final_gold = int(final_gold * 1.80)
-
-        # Cognitive Echo: 2x XP and 2x Gold on next task completion
-        cognitive_echo_effect = ActiveEffect.objects.filter(
-            user=user, skill_id="cognitive_echo", expires_at__gt=timezone.now()
-        ).first()
-        is_cognitive_echo_active = False
-        if cognitive_echo_effect:
-            final_xp *= 2
-            final_gold *= 2
-            is_cognitive_echo_active = True
-            cognitive_echo_effect.delete()
+        # Rosetta Protocol, Algorithmic Cascade, Quantum Optimization, and
+        # Cognitive Echo moved to Activity/Pomodoro session completions only
+        # (see mechanics.apply_session_active_skills) -- per user decision,
+        # these 4 no longer affect Task (Habit/Daily/Todo) completions.
 
         active_codes = profile.active_allies or []
 
@@ -1752,10 +1718,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
     profile.save()
 
-    # ── Применяем эффекты скиллов ──────────────────────────────────────
-    skill_effects = apply_effects_on_task_complete(profile, task)
-    if is_cognitive_echo_active:
-        skill_effects["notes"].append("COGNITIVE ECHO: 2x all rewards!")
+    # ── Эффекты скиллов ──────────────────────────────────────────────
+    # apply_effects_on_task_complete used to fire Algorithmic Cascade,
+    # Quantum Optimization, Eye of the Storm's heal/mana, Titan's Roar,
+    # Blood Harvest, and Cognitive Echo here -- all 6 moved to Activity/
+    # Pomodoro session completions only (mechanics.apply_session_active_skills),
+    # per user decision, so there's nothing left for a Task completion to
+    # apply. Kept as an empty stub since skill_effects["notes"] is still
+    # surfaced in this function's response payload below.
+    skill_effects = {"notes": [], "xp_bonus": 0}
     if skill_effects["xp_bonus"] > 0:
         leveled_up = gain_xp(profile, skill_effects["xp_bonus"]) or leveled_up
         profile.rank_xp = max(0, profile.rank_xp + skill_effects["xp_bonus"])
@@ -1914,26 +1885,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             ):
                 final_damage_dealt *= 5
 
-        # Blood Harvest (Warlord): +40% Boss Damage and 20% Vampirism heal
-        blood_harvest_effect = ActiveEffect.objects.filter(
-            user=user, skill_id="blood_harvest", expires_at__gt=timezone.now()
-        ).first()
-        if blood_harvest_effect:
-            final_damage_dealt = int(final_damage_dealt * 1.40)
-            vamp_heal = max(1, int(final_damage_dealt * 0.20))
-            profile.hp = min(profile.max_hp, profile.hp + vamp_heal)
-            profile.save(update_fields=["hp"])
-
-        # Titan's Roar (Warlord): 2x Boss Damage for 3 charges
-        titans_roar_effect = ActiveEffect.objects.filter(
-            user=user, skill_id="titans_roar", expires_at__gt=timezone.now()
-        ).first()
-        if titans_roar_effect and titans_roar_effect.data.get("charges", 0) > 0:
-            final_damage_dealt = int(final_damage_dealt * 2.0)
-
-        # Cognitive Echo: 2x boss damage from task
-        if "is_cognitive_echo_active" in locals() and is_cognitive_echo_active:
-            final_damage_dealt = int(final_damage_dealt * 2)
+        # Blood Harvest, Titan's Roar, and Cognitive Echo's boss-damage half
+        # moved to Activity/Pomodoro sessions only (see
+        # mechanics.apply_session_active_skills) -- per user decision.
 
         # Lyra Level 5 Time Paradox: boss damage half of "duplicates rewards
         # and boss damage" -- see the reward half above, where the charge for

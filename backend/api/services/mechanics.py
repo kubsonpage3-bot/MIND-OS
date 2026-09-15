@@ -426,6 +426,102 @@ def calculate_task_outcome(
     return result
 
 
+def apply_session_active_skills(user, profile) -> dict:
+    """
+    Per user decision: 6 class-skill ActiveEffects moved from Task
+    completions to Activity/Study-log and Pomodoro SESSION completions --
+    Algorithmic Cascade, Quantum Optimization, Cognitive Echo, Rosetta
+    Protocol's XP half (its cognitive-metric half already lives in
+    calculate_cognitive_gains), Blood Harvest, Titan's Roar, and Eye of the
+    Storm's heal/mana-per-completion half. Eye of the Storm's OTHER half --
+    immunity to missed-daily/negative-habit penalties -- stays Task-only on
+    purpose: a logged session has no "failure" state for it to protect
+    against.
+
+    Called ONCE per session completion (TrainingLogView, linked Pomodoro
+    completion). Performs side effects directly on `profile` (mana/HP gain;
+    caller must still profile.save() the touched fields) and on the
+    ActiveEffect rows (counter decrement / deletion on consumption), and
+    returns the multipliers for the caller to apply to ITS OWN final_xp/
+    final_gold/final_damage_dealt, plus human-readable notes for the reward
+    breakdown.
+    """
+    from api.models import ActiveEffect
+    from django.db.models import Q
+
+    result = {
+        "xp_mult": 1.0,
+        "gold_mult": 1.0,
+        "boss_dmg_mult": 1.0,
+        "blood_harvest_active": False,
+        "notes": [],
+    }
+
+    effects = ActiveEffect.objects.filter(user=user).filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
+    )
+
+    for effect in effects:
+        if effect.skill_id == "rosetta_protocol":
+            result["xp_mult"] *= 1.35
+            result["notes"].append("Rosetta Protocol: +35% XP")
+
+        elif effect.skill_id == "algorithmic_cascade":
+            streak = effect.data.get("cascade_streak", 0)
+            cascade_mult = min(0.60, streak * 0.10)
+            if cascade_mult > 0:
+                result["xp_mult"] *= 1.0 + cascade_mult
+                result["gold_mult"] *= 1.0 + cascade_mult
+                result["notes"].append(
+                    f"Algorithmic Cascade: +{cascade_mult:.0%} (streak {streak})"
+                )
+            effect.data["cascade_streak"] = streak + 1
+            effect.save(update_fields=["data"])
+
+        elif effect.skill_id == "quantum_optimization" and effect.data.get("tasksRemaining", 0) > 0:
+            result["gold_mult"] *= 1.80
+            mana_gain = effect.data.get("manaPerTask", 15)
+            profile.mana = min(profile.max_mana, profile.mana + mana_gain)
+            rem = effect.data["tasksRemaining"] - 1
+            if rem <= 0:
+                effect.delete()
+            else:
+                effect.data["tasksRemaining"] = rem
+                effect.save(update_fields=["data"])
+            result["notes"].append(f"Quantum Optimization: +80% Gold ({rem} left)")
+
+        elif effect.skill_id == "eye_of_the_storm":
+            heal = effect.data.get("heal_per_task", 8)
+            mana_gain = effect.data.get("mana_per_task", 4)
+            profile.hp = min(profile.max_hp, profile.hp + heal)
+            profile.mana = min(profile.max_mana, profile.mana + mana_gain)
+            result["notes"].append(f"Eye of the Storm: +{heal} HP, +{mana_gain} MP")
+
+        elif effect.skill_id == "cognitive_echo":
+            result["xp_mult"] *= 2.0
+            result["gold_mult"] *= 2.0
+            result["boss_dmg_mult"] *= 2.0
+            result["notes"].append("Cognitive Echo: ×2 XP/Gold/Boss DMG")
+            effect.delete()
+
+        elif effect.skill_id == "blood_harvest":
+            result["boss_dmg_mult"] *= 1.40
+            result["blood_harvest_active"] = True
+            result["notes"].append("Blood Harvest: +40% Boss DMG")
+
+        elif effect.skill_id == "titans_roar" and effect.data.get("charges", 0) > 0:
+            result["boss_dmg_mult"] *= 2.0
+            rem = effect.data["charges"] - 1
+            result["notes"].append(f"Titan's Roar: ×2 Boss DMG ({rem} left)")
+            if rem <= 0:
+                effect.delete()
+            else:
+                effect.data["charges"] = rem
+                effect.save(update_fields=["data"])
+
+    return result
+
+
 def apply_boss_damage(user, final_damage_dealt, is_crit=False):
     """
     Applies calculated damage to the active BossEncounter, handles defeat,

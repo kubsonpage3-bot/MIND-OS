@@ -118,8 +118,33 @@ def test_activate_skill_no_mana(user, profile):
 def test_blueprint_effect_cleanup(user, profile):
     # blueprint is an alias for algorithmic_cascade: instead of a 3-charge
     # consumable, it now builds a same-day streak (+10%/task, cap +60%) that
-    # lives until midnight rather than being deleted after N uses.
+    # lives until midnight rather than being deleted after N uses. Moved
+    # from Task completions to Activity session completions only, per user
+    # decision -- see mechanics.apply_session_active_skills.
     from api.models import ActiveEffect
+    from api.services.mechanics import calculate_training_efficiency
+    from rest_framework.test import APIClient
+
+    profile.character_class = "architect"
+    profile.mana = 200
+    profile.save()
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    def log_session():
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        res = client.post(
+            "/api/training/log/",
+            {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+            format="json",
+        )
+        assert res.status_code == 200, res.data
+        return res.data
 
     # 1. Activate blueprint skill
     success, message, class_data, effects = activate_skill(user, "blueprint")
@@ -132,15 +157,13 @@ def test_blueprint_effect_cleanup(user, profile):
     effect = ActiveEffect.objects.get(user=user, skill_id="algorithmic_cascade")
     assert effect.data["cascade_streak"] == 0
 
-    # 2. Complete first task -> streak increments
-    t1 = Task.objects.create(user=user, title="T1", task_type=Task.TaskType.TODO)
-    complete_task(user, t1.id, True)
+    # 2. Complete first session -> streak increments
+    log_session()
     effect.refresh_from_db()
     assert effect.data["cascade_streak"] == 1
 
-    # 3. Complete second task -> streak keeps climbing
-    t2 = Task.objects.create(user=user, title="T2", task_type=Task.TaskType.TODO)
-    complete_task(user, t2.id, True)
+    # 3. Complete second session -> streak keeps climbing
+    log_session()
     effect.refresh_from_db()
     assert effect.data["cascade_streak"] == 2
 
@@ -148,6 +171,12 @@ def test_blueprint_effect_cleanup(user, profile):
     assert ActiveEffect.objects.filter(
         user=user, skill_id="algorithmic_cascade"
     ).exists()
+
+    # 5. A Task completion must not touch the streak anymore.
+    t1 = Task.objects.create(user=user, title="T1", task_type=Task.TaskType.TODO)
+    complete_task(user, t1.id, True)
+    effect.refresh_from_db()
+    assert effect.data["cascade_streak"] == 2  # unchanged
 
 
 class ServiceMechanicsTests(TestCase):
@@ -1663,29 +1692,41 @@ def test_calc_new_value_clamped_delta():
 
 @pytest.mark.django_db
 def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile):
+    """Rosetta's +35% XP half moved from Task completions to Activity/
+    Pomodoro session completions only, per user decision -- its cognitive-
+    metric half already lived in calculate_cognitive_gains and is untouched."""
     from api.models import ActiveEffect
     from api.services.skill_service import activate_skill
-    from api.services.mechanics import calculate_cognitive_gains
+    from api.services.mechanics import calculate_cognitive_gains, calculate_training_efficiency
+    from rest_framework.test import APIClient
 
     ActiveEffect.objects.filter(user=user).delete()
     profile.character_class = "linguist"
     profile.mana = 100
     profile.save()
 
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    def log_session():
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        res = client.post(
+            "/api/training/log/",
+            {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+            format="json",
+        )
+        assert res.status_code == 200, res.data
+        return res.data["xp_earned"]
+
     # Baseline cognitive gains without buff
     base_gains = calculate_cognitive_gains("focus", 2.0, 8.0, profile)
 
-    # Baseline task completion without buff
-    todo_base = Task.objects.create(
-        user=user,
-        title="Base Task",
-        task_type=Task.TaskType.TODO,
-        difficulty=Task.Difficulty.MEDIUM,
-    )
-    init_xp = profile.xp
-    complete_task(user, todo_base.id, is_positive=True)
-    profile.refresh_from_db()
-    base_xp_earned = profile.xp - init_xp
+    # Baseline session completion without buff
+    base_xp_earned = log_session()
 
     mana_before = profile.mana
     # Activate Rosetta Protocol
@@ -1696,23 +1737,27 @@ def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile):
     profile.refresh_from_db()
     assert profile.mana == mana_before - 40
 
-    # Cognitive gains should be boosted by +20%
+    # Cognitive gains should still be boosted by +20% (unaffected by the move)
     boosted_gains = calculate_cognitive_gains("focus", 2.0, 8.0, profile)
     assert pytest.approx(boosted_gains["gc"], rel=1e-3) == base_gains["gc"] * 1.20
 
-    # Task XP should be boosted by +35%
-    todo_boosted = Task.objects.create(
-        user=user,
-        title="Rosetta Task",
-        task_type=Task.TaskType.TODO,
+    # Session XP should now be boosted by +35% (moved here from Tasks)
+    rosetta_xp_earned = log_session()
+    assert rosetta_xp_earned == pytest.approx(base_xp_earned * 1.35, abs=1)
+
+    # Task completions must NOT get this bonus anymore -- check the reward
+    # breakdown rather than the raw XP number (which crit/PWR RNG can shift
+    # regardless of Rosetta) for a robust "did this note fire" assertion.
+    from api.models import UserActivityLog
+
+    todo = Task.objects.create(
+        user=user, title="Unboosted Task", task_type=Task.TaskType.TODO,
         difficulty=Task.Difficulty.MEDIUM,
     )
-    xp_before = profile.xp
-    complete_task(user, todo_boosted.id, is_positive=True)
-    profile.refresh_from_db()
-    rosetta_xp_earned = profile.xp - xp_before
-
-    assert rosetta_xp_earned == int(base_xp_earned * 1.35)
+    complete_task(user, todo.id, is_positive=True)
+    log = UserActivityLog.objects.filter(user=user, task=todo).latest("created_at")
+    breakdown = log.metadata.get("breakdown", [])
+    assert not any("Rosetta" in n for n in breakdown)
 
 
 @pytest.mark.django_db
@@ -1772,73 +1817,114 @@ def test_linguist_lexical_resonance_boss_damage(user, profile):
 
 
 @pytest.mark.django_db
-def test_linguist_cognitive_echo_duplicates_task_rewards(user, profile):
-    from api.models import Boss, BossEncounter, Task, ActiveEffect
+def test_linguist_cognitive_echo_duplicates_session_rewards(user, profile):
+    """Moved from Task completions to Activity session completions only,
+    per user decision -- a Task completion must no longer consume/benefit
+    from it at all."""
+    from api.models import Boss, BossEncounter, Task, ActiveEffect, UserActivityLog
     from api.services.skill_service import activate_skill
+    from api.services.mechanics import calculate_training_efficiency
+    from rest_framework.test import APIClient
+    from unittest.mock import patch
 
     ActiveEffect.objects.filter(user=user).delete()
     profile.character_class = "linguist"
     profile.mana = 100
     profile.save()
 
-    boss = Boss.objects.create(name="Echo Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50)
-    encounter = BossEncounter.objects.create(user=user, boss=boss, hp_current=1000, is_defeated=False)
+    boss = Boss.objects.create(name="Echo Target", level=1, hp_max=1_000_000, reward_xp=100, reward_gold=50)
+    encounter = BossEncounter.objects.create(user=user, boss=boss, hp_current=1_000_000, is_defeated=False)
 
-    todo1 = Task.objects.create(user=user, title="Task 1", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
-    todo2 = Task.objects.create(user=user, title="Task 2", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    def log_session():
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        with patch("random.random", return_value=0.99):  # no crit
+            res = client.post(
+                "/api/training/log/",
+                {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+                format="json",
+            )
+        assert res.status_code == 200, res.data
+        return res.data
 
     # Activate cognitive echo
     success, _, _, _ = activate_skill(user, "cognitive_echo")
     assert success is True
     assert ActiveEffect.objects.filter(user=user, skill_id="cognitive_echo").exists()
 
-    init_xp = profile.xp
-    init_gold = profile.gold
     init_boss_hp = encounter.hp_current
 
-    from unittest.mock import patch
+    # First session: should consume echo and double rewards
+    res1 = log_session()
+    encounter.refresh_from_db()
+    echo_xp, echo_gold = res1["xp_earned"], res1["gold_earned"]
+    dmg_echo = init_boss_hp - encounter.hp_current
+    assert any("Cognitive Echo" in n for n in res1["breakdown"])
 
+    # Verify effect is consumed after use
+    assert not ActiveEffect.objects.filter(user=user, skill_id="cognitive_echo").exists()
+
+    # Second session: normal rewards (not doubled)
+    prev_boss_hp = encounter.hp_current
+    res2 = log_session()
+    encounter.refresh_from_db()
+    normal_xp, normal_gold = res2["xp_earned"], res2["gold_earned"]
+    dmg_normal = prev_boss_hp - encounter.hp_current
+
+    assert echo_xp == pytest.approx(normal_xp * 2, abs=1)
+    assert echo_gold == pytest.approx(normal_gold * 2, abs=1)
+    assert dmg_echo == pytest.approx(dmg_normal * 2, abs=2)
+
+    # A Task completion must not be able to consume/benefit from it either.
+    profile.mana = 100
+    profile.save(update_fields=["mana"])
+    success3, _, _, _ = activate_skill(user, "cognitive_echo")
+    assert success3 is True
+    todo = Task.objects.create(user=user, title="Untouched by Echo", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
     with patch("random.random", return_value=0.99):
-        # Complete first task: should consume echo and double rewards
-        res1 = complete_task(user, todo1.id, is_positive=True)
-        profile.refresh_from_db()
-        encounter.refresh_from_db()
-
-        echo_xp = profile.xp - init_xp
-        echo_gold = profile.gold - init_gold
-        dmg_echo = init_boss_hp - encounter.hp_current
-        assert "COGNITIVE ECHO: 2x all rewards!" in res1["skill_effects"]
-
-        # Verify effect is deleted after use
-        assert not ActiveEffect.objects.filter(user=user, skill_id="cognitive_echo").exists()
-
-        # Complete second task: normal rewards (not doubled)
-        init_xp2 = profile.xp
-        init_gold2 = profile.gold
-        prev_boss_hp = encounter.hp_current
-
-        res2 = complete_task(user, todo2.id, is_positive=True)
-        profile.refresh_from_db()
-        encounter.refresh_from_db()
-
-        normal_xp = profile.xp - init_xp2
-        normal_gold = profile.gold - init_gold2
-        dmg_normal = prev_boss_hp - encounter.hp_current
-
-        assert echo_xp == normal_xp * 2
-        assert echo_gold == normal_gold * 2
-        assert dmg_echo == dmg_normal * 2
+        complete_task(user, todo.id, is_positive=True)
+    log = UserActivityLog.objects.filter(user=user, task=todo).latest("created_at")
+    assert not any("Cognitive Echo" in n for n in log.metadata.get("breakdown", []))
+    # Still active -- a Task completion doesn't consume it.
+    assert ActiveEffect.objects.filter(user=user, skill_id="cognitive_echo").exists()
 
 
 @pytest.mark.django_db
 def test_architect_algorithmic_cascade_and_quantum_optimization(user, profile):
-    from api.models import ActiveEffect
+    """Both moved from Task completions to Activity session completions
+    only, per user decision."""
+    from api.models import ActiveEffect, UserActivityLog
     from api.services.skill_service import activate_skill
+    from api.services.mechanics import calculate_training_efficiency
+    from rest_framework.test import APIClient
 
     ActiveEffect.objects.filter(user=user).delete()
     profile.character_class = "architect"
     profile.mana = 200
     profile.save()
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    def log_session():
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        res = client.post(
+            "/api/training/log/",
+            {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+            format="json",
+        )
+        assert res.status_code == 200, res.data
+        return res.data
 
     # 1. Algorithmic Cascade
     s1, _, _, _ = activate_skill(user, "algorithmic_cascade")
@@ -1849,32 +1935,23 @@ def test_architect_algorithmic_cascade_and_quantum_optimization(user, profile):
     effect = ActiveEffect.objects.get(user=user, skill_id="algorithmic_cascade")
     assert effect.data.get("cascade_streak") == 0
 
-    t1 = Task.objects.create(
-        user=user,
-        title="Cascade T1",
-        task_type=Task.TaskType.TODO,
-        difficulty=Task.Difficulty.MEDIUM,
-    )
-    res1 = complete_task(user, t1.id, is_positive=True)
-    profile.refresh_from_db()
-
-    # After first task, streak was 0 -> streak updated to 1
+    log_session()  # 1st session: streak was 0 (no bonus yet) -> becomes 1
     effect.refresh_from_db()
     assert effect.data.get("cascade_streak") == 1
-    assert any("ALGORITHMIC CASCADE" in note for note in res1.get("skill_effects", []))
 
-    t2 = Task.objects.create(
-        user=user,
-        title="Cascade T2",
-        task_type=Task.TaskType.TODO,
-        difficulty=Task.Difficulty.MEDIUM,
-    )
-    res2 = complete_task(user, t2.id, is_positive=True)
+    res2 = log_session()  # 2nd session: streak was 1 -> +10% bonus applies, becomes 2
     effect.refresh_from_db()
     assert effect.data.get("cascade_streak") == 2
-    assert any("ALGORITHMIC CASCADE" in note for note in res2.get("skill_effects", []))
+    assert any("Algorithmic Cascade" in note for note in res2["breakdown"])
 
-    # Clean up effect
+    # A Task completion must not touch the streak or get the bonus.
+    todo = Task.objects.create(user=user, title="Untouched by Cascade", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+    complete_task(user, todo.id, is_positive=True)
+    effect.refresh_from_db()
+    assert effect.data.get("cascade_streak") == 2  # unchanged
+    log = UserActivityLog.objects.filter(user=user, task=todo).latest("created_at")
+    assert not any("Algorithmic Cascade" in n for n in log.metadata.get("breakdown", []))
+
     ActiveEffect.objects.filter(user=user).delete()
 
     # 2. Quantum Optimization (90 MP)
@@ -1889,19 +1966,21 @@ def test_architect_algorithmic_cascade_and_quantum_optimization(user, profile):
     q_effect = ActiveEffect.objects.get(user=user, skill_id="quantum_optimization")
     assert q_effect.data.get("tasksRemaining") == 4
 
-    t3 = Task.objects.create(
-        user=user,
-        title="Quantum T3",
-        task_type=Task.TaskType.TODO,
-        difficulty=Task.Difficulty.MEDIUM,
-    )
-    res3 = complete_task(user, t3.id, is_positive=True)
+    mana_before = profile.mana
+    res3 = log_session()
     profile.refresh_from_db()
-    # 10 mana + 15 (quantum optimization) + 3 (base task mana regen) = 28
-    assert profile.mana == 28
+    assert profile.mana >= mana_before + 15  # at least the +15 MP from Quantum Optimization
     q_effect.refresh_from_db()
     assert q_effect.data.get("tasksRemaining") == 3
-    assert any("QUANTUM OPTIMIZATION" in note for note in res3.get("skill_effects", []))
+    assert any("Quantum Optimization" in note for note in res3["breakdown"])
+
+    # A Task completion must not consume a charge or get the bonus either.
+    todo2 = Task.objects.create(user=user, title="Untouched by Quantum", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+    complete_task(user, todo2.id, is_positive=True)
+    q_effect.refresh_from_db()
+    assert q_effect.data.get("tasksRemaining") == 3  # unchanged
+    log2 = UserActivityLog.objects.filter(user=user, task=todo2).latest("created_at")
+    assert not any("Quantum Optimization" in n for n in log2.metadata.get("breakdown", []))
 
 
 @pytest.mark.django_db
@@ -1972,19 +2051,45 @@ def test_ascetic_eye_of_the_storm_and_inner_sanctuary(user, profile):
     profile.refresh_from_db()
     assert profile.mana == 50 - 40  # 10
 
-    # Complete a task: heals +8 HP, restores +4 MP + 3 MP base task regen = 17 MP
+    # Heal/mana-per-completion half moved from Task to Activity session
+    # completions only, per user decision -- a Task completion no longer
+    # heals/restores mana for it (the penalty-immunity half below stays
+    # Task-only: a logged session has no "failure" state to protect).
+    from api.services.mechanics import calculate_training_efficiency
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+    hours, focus = 1.0, 8.0
+    eff = calculate_training_efficiency(
+        profile, focus=focus, hours=hours, streak_days=profile.streak,
+        hours_today=0.0, subject_hours_today=0.0,
+    )
+    res = client.post(
+        "/api/training/log/",
+        {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+        format="json",
+    )
+    assert res.status_code == 200, res.data
+    profile.refresh_from_db()
+    assert profile.hp == 60 + 8  # +8 HP from Eye of the Storm
+    assert profile.mana >= 10 + 4  # at least +4 MP from Eye of the Storm
+    assert any("Eye of the Storm" in n for n in res.data["breakdown"])
+
+    # A Task completion must not heal/restore mana for it anymore.
     t = Task.objects.create(
         user=user,
         title="Storm Task",
         task_type=Task.TaskType.TODO,
         difficulty=Task.Difficulty.MEDIUM,
     )
+    hp_before_task = profile.hp
     complete_task(user, t.id, is_positive=True)
     profile.refresh_from_db()
-    assert profile.hp == 60 + 8  # 68
-    assert profile.mana == 10 + 4 + 3  # 17
+    assert profile.hp == hp_before_task  # unchanged -- no more +8 HP here
 
-    # Negative habit penalty: 0 HP damage due to Eye of the Storm
+    # Negative habit penalty: 0 HP damage due to Eye of the Storm (this half
+    # is unaffected by the move -- a Task-only concept by nature)
     habit = Task.objects.create(
         user=user,
         title="Bad Habit",
@@ -2076,8 +2181,13 @@ def test_warlord_execution_threshold(user, profile):
 
 @pytest.mark.django_db
 def test_warlord_blood_harvest_and_titans_roar(user, profile):
-    from api.models import Boss, BossEncounter, ActiveEffect
+    """Both moved from Task completions to Activity session completions
+    only, per user decision. Titan's Roar's instant 15%-max-HP nuke on
+    activation is unaffected (fires immediately, not on a completion)."""
+    from api.models import Boss, BossEncounter, ActiveEffect, UserActivityLog
     from api.services.skill_service import activate_skill
+    from api.services.mechanics import calculate_training_efficiency
+    from rest_framework.test import APIClient
 
     ActiveEffect.objects.filter(user=user).delete()
     profile.character_class = "warlord"
@@ -2086,11 +2196,28 @@ def test_warlord_blood_harvest_and_titans_roar(user, profile):
     profile.save()
 
     boss = Boss.objects.create(
-        name="Warlord Target", level=1, hp_max=1000, reward_xp=100, reward_gold=50
+        name="Warlord Target", level=1, hp_max=1_000_000, reward_xp=100, reward_gold=50
     )
     encounter = BossEncounter.objects.create(
-        user=user, boss=boss, hp_current=1000, is_defeated=False
+        user=user, boss=boss, hp_current=1_000_000, is_defeated=False
     )
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    def log_session():
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        res = client.post(
+            "/api/training/log/",
+            {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+            format="json",
+        )
+        assert res.status_code == 200, res.data
+        return res.data
 
     # 1. Blood Harvest (50 MP)
     s1, _, _, _ = activate_skill(user, "blood_harvest")
@@ -2098,26 +2225,28 @@ def test_warlord_blood_harvest_and_titans_roar(user, profile):
     profile.refresh_from_db()
     assert profile.mana == 150 - 50  # 100
 
-    t1 = Task.objects.create(
-        user=user,
-        title="Vampirism Task",
-        task_type=Task.TaskType.TODO,
-        difficulty=Task.Difficulty.MEDIUM,
-    )
-    res1 = complete_task(user, t1.id, is_positive=True)
+    res1 = log_session()
     profile.refresh_from_db()
 
     # Should have healed HP via vampirism
     assert profile.hp > 50
-    assert any("BLOOD HARVEST" in note for note in res1.get("skill_effects", []))
+    assert any("Blood Harvest" in note for note in res1["breakdown"])
 
-    # Clean up effect for next test
+    # A Task completion must not benefit from it anymore.
+    hp_before_task = profile.hp
+    todo = Task.objects.create(user=user, title="Untouched by Blood Harvest", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+    complete_task(user, todo.id, is_positive=True)
+    profile.refresh_from_db()
+    assert profile.hp == hp_before_task  # no more vampiric heal here
+    log1 = UserActivityLog.objects.filter(user=user, task=todo).latest("created_at")
+    assert not any("Blood Harvest" in n for n in log1.metadata.get("breakdown", []))
+
     ActiveEffect.objects.filter(user=user).delete()
 
-    # 2. Titan's Roar (75 MP)
+    # 2. Titan's Roar (75 MP) -- instant nuke on activation is unaffected
     profile.mana = 100
     profile.save()
-    encounter.hp_current = 1000
+    encounter.hp_current = 1_000_000
     encounter.save()
 
     s2, _, _, _ = activate_skill(user, "titans_roar")
@@ -2126,27 +2255,32 @@ def test_warlord_blood_harvest_and_titans_roar(user, profile):
     assert profile.mana == 100 - 75  # 25
 
     encounter.refresh_from_db()
-    # 15% of 1000 sliced: 1000 - 150 = 850
-    assert encounter.hp_current == 850
+    # 15% of 1,000,000 sliced instantly on activation
+    assert encounter.hp_current == 850_000
 
     t_roar_effect = ActiveEffect.objects.get(user=user, skill_id="titans_roar")
     assert t_roar_effect.data.get("charges") == 3
 
-    t2 = Task.objects.create(
-        user=user,
-        title="Titan Strike",
-        task_type=Task.TaskType.TODO,
-        difficulty=Task.Difficulty.MEDIUM,
-    )
-    res2 = complete_task(user, t2.id, is_positive=True)
+    boss_hp_before = encounter.hp_current
+    res2 = log_session()
     encounter.refresh_from_db()
     t_roar_effect.refresh_from_db()
 
     assert t_roar_effect.data.get("charges") == 2
-    assert any(
-        "TITAN'S ROAR" in note
-        for note in res2.get("skill_effects", [])
-    )
+    assert any("Titan's Roar" in note for note in res2["breakdown"])
+    dmg_with_roar = boss_hp_before - encounter.hp_current
+
+    # A Task completion must not consume a charge or double its damage either.
+    boss_hp_before2 = encounter.hp_current
+    todo2 = Task.objects.create(user=user, title="Untouched by Roar", task_type=Task.TaskType.TODO, difficulty=Task.Difficulty.MEDIUM)
+    complete_task(user, todo2.id, is_positive=True)
+    encounter.refresh_from_db()
+    t_roar_effect.refresh_from_db()
+    assert t_roar_effect.data.get("charges") == 2  # unchanged
+    dmg_without_roar = boss_hp_before2 - encounter.hp_current
+    assert dmg_without_roar < dmg_with_roar  # no x2 here anymore
+    log2 = UserActivityLog.objects.filter(user=user, task=todo2).latest("created_at")
+    assert not any("Titan's Roar" in n for n in log2.metadata.get("breakdown", []))
 
 
 @pytest.mark.django_db

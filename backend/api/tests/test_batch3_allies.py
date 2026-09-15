@@ -198,8 +198,11 @@ def test_vivian_perks(test_user_and_profile):
     )
     complete_task(user, task.id, is_positive=True)
     profile.refresh_from_db()
-    # 85 + 2 (Crimson Surge L3) + 5 (Iron Fast active skill heal) = 92 HP
-    assert profile.hp == 92
+    # 82 + 2 (Vivian Crimson Surge L3). Eye of the Storm's own +8 HP/+4 MP
+    # heal used to also apply here -- moved to Activity/Pomodoro session
+    # completions only, per user decision, so a Task completion no longer
+    # gets it.
+    assert profile.hp == 84
 
     # Now level up Vivian to Level 4 to test Life Drain
     vivian.level = 4
@@ -209,8 +212,9 @@ def test_vivian_perks(test_user_and_profile):
     )
     complete_task(user, task2.id, is_positive=True)
     profile.refresh_from_db()
-    # 92 + 5 (Life Drain L4 is 10% of 50 boss damage) = 97 HP (or full 100 HP if skill heal triggers again)
-    assert profile.hp >= 96
+    # 84 + 5 (Life Drain L4 is 10% of 50 boss damage) = 89, then Crimson
+    # Surge L3 heals int(missing_hp_pct * 10) * 2 = int(0.11 * 10) * 2 = 2 -> 91
+    assert profile.hp >= 90
 
     # Vivian L2 Active Endpoint: Dark Sacrifice
     profile.hp = 50

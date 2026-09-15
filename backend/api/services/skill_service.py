@@ -8,7 +8,6 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from api.models import UserProfile, ActiveEffect, SkillCooldown, UnlockedSkill
-from typing import Any
 from .mechanics import get_passive_multipliers, apply_boss_damage
 
 # ─── Определения классов и скиллов (зеркало rpgSystem.js) ─────────────────
@@ -574,81 +573,10 @@ def _create_effect(skill_id, profile):
 
 
 # ─── Применение эффектов после выполнения задачи ─────────────────────────
-
-
-def apply_effects_on_task_complete(profile, task):
-    """
-    Вызывается ПОСЛЕ начисления базовых наград.
-    Возвращает { xp_bonus, hp_heal, effect_ids_consumed, notes }.
-    """
-    # Сначала удаляем протухшие
-    ActiveEffect.objects.filter(
-        user=profile.user, expires_at__lt=timezone.now()
-    ).delete()
-
-    effects = ActiveEffect.objects.filter(user=profile.user)
-    result: dict[str, Any] = {
-        "xp_bonus": 0,
-        "hp_heal": 0,
-        "effect_ids_consumed": [],
-        "notes": [],
-        "system_overload_triggered": False,
-    }
-
-    for effect in effects:
-        # ALGORITHMIC CASCADE: streak and reward bonuses
-        if effect.skill_id == "algorithmic_cascade":
-            streak = effect.data.get("cascade_streak", 0)
-            bonus_pct = int(min(0.60, streak * 0.10) * 100)
-            result["notes"].append(f"ALGORITHMIC CASCADE: streak {streak} (+{bonus_pct}% rewards)")
-
-        # QUANTUM OPTIMIZATION: +80% Gold, +15 MP за задачу
-        if effect.skill_id == "quantum_optimization" and effect.data.get("tasksRemaining", 0) > 0:
-            mana_gain = effect.data.get("manaPerTask", 15)
-            profile.mana = min(profile.max_mana, profile.mana + mana_gain)
-            rem = effect.data["tasksRemaining"] - 1
-            if rem <= 0:
-                effect.delete()
-                result["effect_ids_consumed"].append(effect.effect_id)
-            else:
-                effect.data["tasksRemaining"] = rem
-                effect.save(update_fields=["data"])
-            result["notes"].append(f"QUANTUM OPTIMIZATION: +80% Gold, +{mana_gain} MP ({rem} remaining)")
-
-        # EYE OF THE STORM: +8 HP, +4 MP за задачу
-        if effect.skill_id == "eye_of_the_storm":
-            heal = effect.data.get("heal_per_task", 8)
-            mana_gain = effect.data.get("mana_per_task", 4)
-            profile.hp = min(profile.max_hp, profile.hp + heal)
-            profile.mana = min(profile.max_mana, profile.mana + mana_gain)
-            result["hp_heal"] += heal
-            result["notes"].append(f"EYE OF THE STORM: +{heal} HP, +{mana_gain} MP")
-
-        # TITAN'S ROAR: уменьшаем счетчик ударов с удвоенным уроном
-        if effect.skill_id == "titans_roar" and effect.data.get("charges", 0) > 0:
-            rem = effect.data["charges"] - 1
-            result["notes"].append(f"TITAN'S ROAR: 2x Boss Damage dealt! ({rem} remaining)")
-            if rem <= 0:
-                effect.delete()
-                result["effect_ids_consumed"].append(effect.effect_id)
-            else:
-                effect.data["charges"] = rem
-                effect.save(update_fields=["data"])
-
-        # BLOOD HARVEST: вампиризм
-        if effect.skill_id == "blood_harvest":
-            result["notes"].append("BLOOD HARVEST: +40% Boss DMG, 20% Vampiric HP Heal")
-
-        # COGNITIVE ECHO: отмечаем удвоение
-        if effect.skill_id == "cognitive_echo":
-            result["notes"].append("COGNITIVE ECHO: 2x all rewards!")
-
-    if result["hp_heal"] > 0:
-        profile.save(update_fields=["hp"])
-
-    # Чистим истекшие
-    ActiveEffect.objects.filter(
-        user=profile.user, expires_at__lt=timezone.now()
-    ).delete()
-
-    return result
+#
+# apply_effects_on_task_complete() used to live here, handling Algorithmic
+# Cascade, Quantum Optimization, Eye of the Storm's heal/mana, Titan's Roar,
+# Blood Harvest, and Cognitive Echo for Task completions. All 6 moved to
+# Activity/Pomodoro session completions only (see
+# mechanics.apply_session_active_skills), per user decision -- removed here
+# since it had no callers left.

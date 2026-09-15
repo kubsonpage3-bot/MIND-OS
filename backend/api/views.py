@@ -1715,6 +1715,21 @@ class TrainingLogView(generics.GenericAPIView):
             if lyra_zero_rewards:
                 final_gold = 0
 
+            # Session-scoped class skills (Algorithmic Cascade, Quantum
+            # Optimization, Eye of the Storm's heal/mana, Rosetta Protocol's
+            # XP half, Cognitive Echo, Blood Harvest, Titan's Roar) -- moved
+            # here from Task completions only, per user decision. Mutates
+            # profile.mana/hp directly; picked up by the profile.save()
+            # further below.
+            from api.services.mechanics import apply_session_active_skills
+
+            session_skills = apply_session_active_skills(request.user, profile)
+            if session_skills["xp_mult"] != 1.0:
+                final_xp = int(final_xp * session_skills["xp_mult"])
+            if session_skills["gold_mult"] != 1.0:
+                final_gold = int(final_gold * session_skills["gold_mult"])
+            breakdown.extend(session_skills["notes"])
+
             # Twin Souls split
             active_codes = profile.active_allies or []
             if "twin_souls" in active_ids and active_codes:
@@ -1847,8 +1862,14 @@ class TrainingLogView(generics.GenericAPIView):
                 (raw_boss_dmg + damage_dealt)
                 * profile.damage_multiplier
                 * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
+                * session_skills["boss_dmg_mult"]
             )
             is_crit = outcome.get("is_crit", False)
+
+            if session_skills["blood_harvest_active"]:
+                vamp_heal = max(1, int(final_damage_dealt * 0.20))
+                profile.hp = min(profile.max_hp, profile.hp + vamp_heal)
+                profile.save(update_fields=["hp"])
 
             combat_result = apply_boss_damage(request.user, final_damage_dealt, is_crit)
 

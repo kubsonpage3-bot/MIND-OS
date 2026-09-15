@@ -429,6 +429,20 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 xp_earned = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
                 gold_earned = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
 
+                # Session-scoped class skills (Algorithmic Cascade, Quantum
+                # Optimization, Eye of the Storm's heal/mana, Rosetta
+                # Protocol's XP half, Cognitive Echo, Blood Harvest, Titan's
+                # Roar) -- moved here from Task completions only, per user
+                # decision. Mutates profile.mana/hp directly.
+                from api.services.mechanics import apply_session_active_skills
+
+                session_skills = apply_session_active_skills(request.user, profile)
+                if session_skills["xp_mult"] != 1.0:
+                    xp_earned = int(xp_earned * session_skills["xp_mult"])
+                if session_skills["gold_mult"] != 1.0:
+                    gold_earned = int(gold_earned * session_skills["gold_mult"])
+                breakdown.extend(session_skills["notes"])
+
                 pwr_pct = min(0.50, profile.total_stats.get("pwr", 0) * 0.005)
                 if pwr_pct > 0:
                     breakdown.append(f"PWR +{pwr_pct:.1%}")
@@ -552,7 +566,12 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     (dmg_rewards["dmg"] + pwr_dmg)
                     * profile.damage_multiplier
                     * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
+                    * session_skills["boss_dmg_mult"]
                 )
+                if session_skills["blood_harvest_active"]:
+                    vamp_heal = max(1, int(final_damage_dealt * 0.20))
+                    profile.hp = min(profile.max_hp, profile.hp + vamp_heal)
+
                 combat_result = apply_boss_damage(
                     request.user, final_damage_dealt, outcome.get("is_crit", False)
                 )
@@ -575,6 +594,12 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                         # withheld Gold) -- must be in update_fields or the
                         # save silently drops it.
                         "active_mutators",
+                        # apply_session_active_skills() (Quantum Optimization/
+                        # Eye of the Storm mana+heal) and the Blood Harvest
+                        # vampiric heal just above both mutate hp/mana in
+                        # place -- same silent-drop risk as active_mutators.
+                        "hp",
+                        "mana",
                     ]
                 )
             else:
