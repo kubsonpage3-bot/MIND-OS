@@ -109,8 +109,8 @@ export const CLASSES = {
     stats: { pwr: 3, def: 4, foc: 12, mem: 10, spd: 5, lck: 6 },
     maxMana: 120,
     skills: [
-      { id: "algorithmic_cascade", name: "ALGORITHMIC CASCADE", mana: 50, cooldownH: 0, desc: "Until midnight: each task completed today increases rewards of subsequent tasks by +10% XP & Gold (up to +60%)." },
-      { id: "quantum_optimization", name: "QUANTUM OPTIMIZATION", mana: 90, cooldownH: 0, desc: "For next 4 tasks: +80% Gold and restore +15 Mana per task completed." },
+      { id: "algorithmic_cascade", name: "ALGORITHMIC CASCADE", mana: 50, cooldownH: 0, desc: "Until midnight: each session logged today increases rewards of subsequent sessions by +10% XP & Gold (up to +60%)." },
+      { id: "quantum_optimization", name: "QUANTUM OPTIMIZATION", mana: 90, cooldownH: 0, desc: "For next 4 sessions: +80% Gold and restore +15 Mana per session logged." },
       { id: "deep_work_surge", name: "DEEP WORK SURGE", mana: 100, cooldownH: 0, desc: "Deal massive boss damage and gain bonus XP scaling with hours logged in activities today." },
     ],
   },
@@ -122,7 +122,7 @@ export const CLASSES = {
     stats: { pwr: 7, def: 8, foc: 7, mem: 10, spd: 7, lck: 6 },
     maxMana: 100,
     skills: [
-      { id: "eye_of_the_storm", name: "EYE OF THE STORM", mana: 40, cooldownH: 0, desc: "Until midnight: complete immunity to missed daily and negative habit penalties. Tasks restore +8 HP and +4 MP." },
+      { id: "eye_of_the_storm", name: "EYE OF THE STORM", mana: 40, cooldownH: 0, desc: "Until midnight: complete immunity to missed daily and negative habit penalties. Sessions restore +8 HP and +4 MP." },
       { id: "inner_sanctuary", name: "INNER SANCTUARY", mana: 60, cooldownH: 0, desc: "Instantly heal 50% of maximum HP." },
       { id: "enlightenment", name: "ENLIGHTENMENT", mana: 80, cooldownH: 0, desc: "For 12 hours: 100% guaranteed task critical hits with 2.5x critical damage." },
     ],
@@ -135,9 +135,9 @@ export const CLASSES = {
     stats: { pwr: 5, def: 5, foc: 10, mem: 11, spd: 9, lck: 5 },
     maxMana: 110,
     skills: [
-      { id: "rosetta_protocol", name: "ROSETTA PROTOCOL", mana: 40, cooldownH: 0, desc: "Until midnight: +35% Rank XP across all tasks and +20% cognitive metric gains." },
+      { id: "rosetta_protocol", name: "ROSETTA PROTOCOL", mana: 40, cooldownH: 0, desc: "Until midnight: +35% Session XP and +20% cognitive metric gains." },
       { id: "lexical_resonance", name: "LEXICAL RESONANCE", mana: 65, cooldownH: 0, desc: "Inflict true mental damage to the active boss scaling with MEM and FOC." },
-      { id: "cognitive_echo", name: "COGNITIVE ECHO", mana: 75, cooldownH: 0, desc: "Next completed task duplicates (2x) all its rewards: XP, Gold, and boss damage." },
+      { id: "cognitive_echo", name: "COGNITIVE ECHO", mana: 75, cooldownH: 0, desc: "Next completed session duplicates (2x) all its rewards: XP, Gold, and boss damage." },
     ],
   },
   warlord: {
@@ -149,8 +149,8 @@ export const CLASSES = {
     maxMana: 110,
     skills: [
       { id: "execution", name: "EXECUTION", mana: 65, cooldownH: 0, desc: "Strike active boss. If boss has <35% HP, deal 5x massive execution damage to instantly finish it." },
-      { id: "blood_harvest", name: "BLOOD HARVEST", mana: 50, cooldownH: 0, desc: "For 24 hours: +40% task boss damage, and 20% of damage dealt heals player HP (Vampirism)." },
-      { id: "titans_roar", name: "TITAN'S ROAR", mana: 75, cooldownH: 0, desc: "Slice 15% max HP from active boss and empower next 3 tasks to deal 2x Boss Damage." },
+      { id: "blood_harvest", name: "BLOOD HARVEST", mana: 50, cooldownH: 0, desc: "For 24 hours: +40% session boss damage, and 20% of damage dealt heals player HP (Vampirism)." },
+      { id: "titans_roar", name: "TITAN'S ROAR", mana: 75, cooldownH: 0, desc: "Slice 15% max HP from active boss and empower next 3 sessions to deal 2x Boss Damage." },
     ],
   },
 };

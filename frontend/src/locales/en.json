@@ -978,11 +978,11 @@
     "skills": {
       "algorithmic_cascade": {
         "name": "Algorithmic Cascade",
-        "desc": "Until midnight: each completed task increases rewards of subsequent tasks by +10% XP and Gold (up to +60%)."
+        "desc": "Until midnight: each logged session increases rewards of subsequent sessions by +10% XP and Gold (up to +60%)."
       },
       "quantum_optimization": {
         "name": "Quantum Optimization",
-        "desc": "For next 4 tasks: +80% Gold and restore +15 Mana on each task completion."
+        "desc": "For next 4 sessions: +80% Gold and restore +15 Mana on each session logged."
       },
       "deep_work_surge": {
         "name": "Deep Work Surge",
@@ -990,7 +990,7 @@
       },
       "eye_of_the_storm": {
         "name": "Eye of the Storm",
-        "desc": "Until midnight: complete immunity to missed dailies and negative habit damage. Tasks restore +8 HP and +4 MP."
+        "desc": "Until midnight: complete immunity to missed dailies and negative habit damage. Sessions restore +8 HP and +4 MP."
       },
       "inner_sanctuary": {
         "name": "Inner Sanctuary",
@@ -1002,7 +1002,7 @@
       },
       "rosetta_protocol": {
         "name": "Rosetta Protocol",
-        "desc": "Until midnight: +35% Rank XP from all tasks and +20% cognitive metric gains."
+        "desc": "Until midnight: +35% Session XP and +20% cognitive metric gains."
       },
       "lexical_resonance": {
         "name": "Lexical Resonance",
@@ -1010,7 +1010,7 @@
       },
       "cognitive_echo": {
         "name": "Cognitive Echo",
-        "desc": "Next completed task duplicates (2x) all its rewards: XP, Gold, and boss damage."
+        "desc": "Next completed session duplicates (2x) all its rewards: XP, Gold, and boss damage."
       },
       "execution": {
         "name": "Execution",
@@ -1018,11 +1018,11 @@
       },
       "blood_harvest": {
         "name": "Blood Harvest",
-        "desc": "For 24 hours: +40% task boss damage, and 20% of damage dealt heals player HP (vampirism)."
+        "desc": "For 24 hours: +40% session boss damage, and 20% of damage dealt heals player HP (vampirism)."
       },
       "titans_roar": {
         "name": "Titan's Roar",
-        "desc": "Slices 15% maximum boss HP and empowers the next 3 completed tasks to deal 2x damage."
+        "desc": "Slices 15% maximum boss HP and empowers the next 3 completed sessions to deal 2x damage."
       }
     },
     "skillTree": {
