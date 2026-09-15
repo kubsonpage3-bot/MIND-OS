@@ -2,7 +2,7 @@ import { precacheAndRoute } from 'workbox-precaching';
 
 precacheAndRoute(self.__WB_MANIFEST);
 
-const CACHE_NAME = 'mind-os-cache-v2';
+const CACHE_NAME = 'mind-os-cache-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -79,9 +79,18 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          // Fallback to cache if offline
-          return caches.match(event.request);
+        .catch(async () => {
+          // Network failed (e.g. a hashed chunk from a deploy that landed
+          // moments after this tab loaded index.html). Fall back to a
+          // cached copy if we have one -- but caches.match() resolves to
+          // undefined on a miss, and respondWith(undefined) is invalid:
+          // the browser throws "A ServiceWorker intercepted the request
+          // and an unexpected error occurred" and the whole module load
+          // (the entire app) fails with a blank white screen instead of a
+          // normal, catchable network error. Always resolve to a real
+          // Response by retrying the network once more on a cache miss.
+          const cached = await caches.match(event.request);
+          return cached || fetch(event.request);
         })
     );
     return;
