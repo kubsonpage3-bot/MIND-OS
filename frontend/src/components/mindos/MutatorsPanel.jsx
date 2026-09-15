@@ -21,6 +21,20 @@ const CAT_LABELS = {
   wild: { label: "WILD", color: "#00e5ff" },
 };
 
+// Mirrors get_mutator_chest_cost() in views.py (the actual source of truth
+// charged server-side): escalates 25% per mutator already owned for the
+// first 14 chests (100G -> 1819G), then locks at a flat 2000G after that --
+// uncapped, chest #38 would cost ~385 000G, a different kind of non-event
+// (nobody realistically grinds to it) rather than a late-game gold sink.
+const MUTATOR_CHEST_ESCALATION_CAP = 14;
+const MUTATOR_CHEST_MAX_COST = 2000;
+function getMutatorChestCost(ownedCount) {
+  if (ownedCount < MUTATOR_CHEST_ESCALATION_CAP) {
+    return Math.round(100 * Math.pow(1.25, ownedCount));
+  }
+  return MUTATOR_CHEST_MAX_COST;
+}
+
 export default function MutatorsPanel({ onSpendGold }) {
   const { t } = useTranslation();
   const [confirmIronman, setConfirmIronman] = useState(false);
@@ -56,12 +70,7 @@ export default function MutatorsPanel({ onSpendGold }) {
     ? rawMutators.purchased
     : (Array.isArray(rawMutators) ? rawMutators.map(m => typeof m === 'string' ? m : m?.id).filter(Boolean) : []);
 
-  // Mutators only ever come from chests (direct purchase is disabled), so a
-  // flat 100G forever made unlocking the whole pool a non-event by the end.
-  // Escalates 25% per mutator already owned -- 1st chest 100G, 2nd 125G,
-  // 3rd 156G, 4th 195G... -- mirrored from get_mutator_chest_cost() in
-  // views.py, which is the actual source of truth charged server-side.
-  const chestCost = Math.round(100 * Math.pow(1.25, purchased.length));
+  const chestCost = getMutatorChestCost(purchased.length);
 
   const isActive = (id) => active.some(m => (typeof m === 'object' ? m.id : m) === id);
   const isPurchased = (id) => purchased.includes(id) || isActive(id);
@@ -300,7 +309,7 @@ export default function MutatorsPanel({ onSpendGold }) {
             )}
             {!isAllUnlocked && gold >= chestCost && purchased.length > 0 && (
               <span className="text-[9px] font-mono text-muted-foreground/60 mr-1 mt-0.5">
-                Next chest: {Math.round(100 * Math.pow(1.25, purchased.length + 1))}G
+                Next chest: {getMutatorChestCost(purchased.length + 1)}G
               </span>
             )}
           </div>

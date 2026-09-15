@@ -3826,14 +3826,23 @@ class BuyMutatorView(generics.GenericAPIView):
         )
 
 
+MUTATOR_CHEST_ESCALATION_CAP = 14  # chests 1-14 escalate; 15th+ locks at MUTATOR_CHEST_MAX_COST
+MUTATOR_CHEST_MAX_COST = 2000
+
+
 def get_mutator_chest_cost(owned_count: int) -> int:
     """
     Mutator Chests are the only way to unlock a mutator (direct purchase is
     disabled), so a flat 100G forever made unlocking the whole pool feel
-    like a non-event by the end. Escalates 25% per mutator already owned:
-    1st chest 100G, 2nd 125G, 3rd 156G, 4th 195G, etc.
+    like a non-event by the end. Escalates 25% per mutator already owned for
+    the first 14 chests (100G -> 1819G), then locks at a flat 2000G for
+    every chest after that -- uncapped, chest #38 would cost ~385 000G,
+    which is a different kind of non-event (nobody realistically grinds to
+    it) rather than the intended late-game gold sink.
     """
-    return round(100 * (1.25**owned_count))
+    if owned_count < MUTATOR_CHEST_ESCALATION_CAP:
+        return round(100 * (1.25**owned_count))
+    return MUTATOR_CHEST_MAX_COST
 
 
 class OpenMutatorChestView(generics.GenericAPIView):

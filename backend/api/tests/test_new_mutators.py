@@ -401,8 +401,9 @@ def test_mutator_chest_cost_escalates_25_percent_per_owned(test_user_and_profile
     """Mutators only ever come from chests (direct purchase disabled), so a
     flat 100G forever made unlocking the whole pool a non-event by the end.
     1st chest 100G, 2nd 125G, 3rd 156G, 4th 195G -- 25% more per mutator
-    already owned, matching the escalating cost the mutator-cache design
-    (chests, loot, etc.) already uses elsewhere in this game."""
+    already owned for the first 14 chests, then locked at a flat 2000G
+    (uncapped, chest #38 would cost ~385 000G -- a different kind of
+    non-event, since nobody realistically grinds to that)."""
     from api.views import get_mutator_chest_cost
     from rest_framework.test import APIClient
 
@@ -410,6 +411,9 @@ def test_mutator_chest_cost_escalates_25_percent_per_owned(test_user_and_profile
     assert get_mutator_chest_cost(1) == 125
     assert get_mutator_chest_cost(2) == 156
     assert get_mutator_chest_cost(3) == 195
+    assert get_mutator_chest_cost(13) == 1819  # 14th chest -- last one that escalates
+    assert get_mutator_chest_cost(14) == 2000  # 15th chest -- cap kicks in
+    assert get_mutator_chest_cost(37) == 2000  # last (39th) chest -- still capped
 
     user, profile, stats = test_user_and_profile_mutators
     profile.gold = 124  # one short of the 2nd chest's 125G
