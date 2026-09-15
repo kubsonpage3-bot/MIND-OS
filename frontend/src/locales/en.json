@@ -1290,9 +1290,9 @@
       },
       "echo": {
         "name": "Echo",
-        "desc": "Switching task categories gives double rewards (2.0x XP and 2.0x Gold) on the next task.",
-        "bonus": "2.0x XP and 2.0x Gold on the first task of a new category.",
-        "penalty": "Repeating the same category does not trigger the double reward.",
+        "desc": "Switching task categories has a 30% chance to give double rewards (2.0x XP and 2.0x Gold) on that task.",
+        "bonus": "30% chance of 2.0x XP and 2.0x Gold when switching to a new category.",
+        "penalty": "Repeating the same category never triggers the double reward, and switching only rolls a 30% chance.",
         "mechanics": "Synergizes extraordinarily well with Diversity Lock."
       },
       "mirror": {

@@ -598,7 +598,7 @@ export const MUTATORS = [
   { id: "zero_hour",  name: "ZERO HOUR", icon: getMediaUrl("/static/items/zero_hour.webp"), cost: 500, cat: "challenge", toggle: false, durationDays: 7, desc: "No Gold earned for 7 days. After: get back 3× everything you would've earned.", synergy: null },
   // ── SYNERGY BUILDERS ──
   { id: "catalyst",  name: "CATALYST", icon: getMediaUrl("/static/items/catalyst.webp"), cost: 750, cat: "synergy", toggle: false, durationDays: null, desc: "Each OTHER active mutator gives +8% Rank XP. Alone: useless.", synergy: null },
-  { id: "echo",  name: "ECHO", icon: getMediaUrl("/static/items/echo.webp"), cost: 600, cat: "synergy", toggle: false, durationDays: null, desc: "Last subject logged gives double metric gains on NEXT session (diff subject).", synergy: "lexicon" },
+  { id: "echo",  name: "ECHO", icon: getMediaUrl("/static/items/echo.webp"), cost: 600, cat: "synergy", toggle: false, durationDays: null, desc: "Switching subject gives a 30% chance of double metric gains on that session.", synergy: "lexicon" },
   { id: "mirror",  name: "MIRROR", icon: getMediaUrl("/static/items/mirror.webp"), cost: 550, cat: "synergy", toggle: false, durationDays: null, desc: "Same domain task as last session: +15% boss damage.", synergy: "tunnel_vision" },
   { id: "resonance",  name: "RESONANCE", icon: getMediaUrl("/static/items/resonance.webp"), cost: 700, cat: "synergy", toggle: false, durationDays: null, desc: "If 2+ active mutators share a category: +10% to ALL their effects.", synergy: null },
   // ── WILD ──

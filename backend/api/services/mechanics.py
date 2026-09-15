@@ -1033,9 +1033,19 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             and profile.last_completed_category
             and profile.last_completed_category != task_category
         ):
-            effects["final_xp_mult"] *= 2.0
-            effects["final_gold_mult"] *= 2.0
-            src("Echo: ×2 XP/Gold (switched subject)")
+            # Was a guaranteed ×2 on every category switch -- since
+            # last_completed_category updates unconditionally on every single
+            # completion (task_service.py), just ping-ponging between 2
+            # categories triggered this on literally every task, with no
+            # randomness/cooldown/cap unlike every other burst mutator
+            # (Gambler, Volatile, Time Dilation, Double or Nothing). Capped to
+            # a 30% chance per user decision, bringing its EV in line with
+            # Gambler's (0.3×2.0 = 0.6 vs Gambler's 1.0, still the strongest
+            # upside-only wild mutator but no longer a free, deterministic x2).
+            if random.random() < 0.30:
+                effects["final_xp_mult"] *= 2.0
+                effects["final_gold_mult"] *= 2.0
+                src("Echo: ×2 XP/Gold (switched subject, 30% proc)")
 
     if "mirror" in active_ids:
         # "Same domain task as last session: +15% boss damage."
