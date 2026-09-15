@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Gamepad2, Calendar, Timer, ChevronDown, UserCog, Lock, Globe, Ghost, EyeOff, Skull } from "lucide-react";
 import BottomSheet from "@/components/ui/BottomSheet";
@@ -19,12 +19,51 @@ const WEEK_START_OPTIONS = [
 
 
 
-const JOHAN_DIFFICULTIES = [
-  { id: "EASY",    label: "Easy",    desc: "Johan trains slow.",      xp_mult: "×0.6 XP",  color: "#00cc88" },
-  { id: "NORMAL",  label: "Normal",  desc: "Balanced challenge.",      xp_mult: "×0.9 XP",  color: "#00e5ff" },
-  { id: "HARD",    label: "Hard",    desc: "Johan pushes hard.",       xp_mult: "×1.2 XP",  color: "#f59e0b" },
-  { id: "EXTREME", label: "Extreme", desc: "No mercy. No catch-up.",  xp_mult: "×1.6 XP",  color: "#ef4444" },
-];
+// Mirrors rival_service.py's JOHAN_DIFFICULTIES / get_diff_cfg_for_slider so
+// the slider preview here matches what the backend will actually roll,
+// without a network round-trip on every drag tick. Easy/Normal/Hard/Extreme
+// are anchor points on a continuous 0-130 slider (not 4 separate presets);
+// anything between or slightly past them is interpolated/extrapolated from
+// the same 4 points, exactly like the backend.
+const JOHAN_SLIDER_MIN = 0;
+const JOHAN_SLIDER_MAX = 130;
+
+function johanActiveDayRange(target, skip, surge, spread = 0.20) {
+  const denom = (1 - skip) * (1 + 0.3 * surge);
+  const mid = target / denom;
+  return [mid * (1 - spread), mid * (1 + spread)];
+}
+
+const JOHAN_DIFFICULTY_ANCHORS = [
+  { pos: 30,  id: "EASY",    label: "Easy",    desc: "Johan trains slow.",     color: "#00cc88", target: 50,  skip: 0.28,  surge: 0.05 },
+  { pos: 60,  id: "NORMAL",  label: "Normal",  desc: "Balanced challenge.",    color: "#00e5ff", target: 80,  skip: 0.12,  surge: 0.10 },
+  { pos: 90,  id: "HARD",    label: "Hard",    desc: "Johan pushes hard.",     color: "#f59e0b", target: 150, skip: 0.05,  surge: 0.20 },
+  { pos: 115, id: "EXTREME", label: "Extreme", desc: "No mercy. No catch-up.", color: "#ef4444", target: 300, skip: 0.015, surge: 0.35 },
+].map(a => ({ ...a, range: johanActiveDayRange(a.target, a.skip, a.surge) }));
+
+function lerp(a, b, t) { return a + t * (b - a); }
+
+/** Interpolates (or extrapolates past the outermost anchors) a preview
+ * { target, rangeLo, rangeHi, nearestLabel, nearestColor } for any slider
+ * position in [JOHAN_SLIDER_MIN, JOHAN_SLIDER_MAX]. */
+function johanPreviewForSlider(pos) {
+  const anchors = JOHAN_DIFFICULTY_ANCHORS;
+  const p = Math.max(JOHAN_SLIDER_MIN, Math.min(JOHAN_SLIDER_MAX, pos));
+  let a0, a1;
+  if (p <= anchors[0].pos) { a0 = anchors[0]; a1 = anchors[1]; }
+  else if (p >= anchors[anchors.length - 1].pos) { a0 = anchors[anchors.length - 2]; a1 = anchors[anchors.length - 1]; }
+  else {
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (anchors[i].pos <= p && p <= anchors[i + 1].pos) { a0 = anchors[i]; a1 = anchors[i + 1]; break; }
+    }
+  }
+  const t = (p - a0.pos) / (a1.pos - a0.pos);
+  const target = Math.max(5, lerp(a0.target, a1.target, t));
+  const rangeLo = Math.max(10, lerp(a0.range[0], a1.range[0], t));
+  const rangeHi = Math.max(15, lerp(a0.range[1], a1.range[1], t));
+  const nearest = anchors.reduce((best, a) => Math.abs(a.pos - p) < Math.abs(best.pos - p) ? a : best);
+  return { target, rangeLo, rangeHi, nearestLabel: nearest.label, nearestColor: nearest.color };
+}
 
 
 
@@ -58,13 +97,11 @@ export default function GameplayPanel() {
   const { t } = useTranslation();
   
   const rivalDiffMutation = useMutation({
-    /**
-     * @param {string} diffId - one of EASY | NORMAL | HARD | EXTREME
-     */
-    mutationFn: (diffId) => {
+    /** @param {number} sliderPos - 0-130 */
+    mutationFn: (sliderPos) => {
       const current = profile?.rival_data || {};
       return djangoApi.profile.update({
-        rival_data: { ...current, rivalDifficulty: diffId, lastUpdated: null },
+        rival_data: { ...current, rivalDifficultySlider: sliderPos, lastUpdated: null },
       });
     },
     onSuccess: () => {
@@ -72,6 +109,28 @@ export default function GameplayPanel() {
       queryClient.invalidateQueries({ queryKey: ["rival"] });
     },
   });
+
+  // Same fallback order as the backend's get_slider_position(): explicit
+  // numeric slider first, then the legacy EASY/NORMAL/HARD/EXTREME string
+  // (for profiles saved before the slider existed), then Normal's anchor.
+  const savedSliderPos = (() => {
+    const rd = profile?.rival_data || {};
+    if (typeof rd.rivalDifficultySlider === "number") return rd.rivalDifficultySlider;
+    const legacy = JOHAN_DIFFICULTY_ANCHORS.find(a => a.id === rd.rivalDifficulty);
+    if (legacy) return legacy.pos;
+    return 60;
+  })();
+  const [johanSliderPos, setJohanSliderPos] = useState(savedSliderPos);
+  const johanCommitTimer = useRef(null);
+  useEffect(() => { setJohanSliderPos(savedSliderPos); }, [savedSliderPos]);
+
+  const handleJohanSliderChange = (val) => {
+    setJohanSliderPos(val);
+    if (johanCommitTimer.current) clearTimeout(johanCommitTimer.current);
+    johanCommitTimer.current = setTimeout(() => {
+      rivalDiffMutation.mutate(val);
+    }, 400);
+  };
 
   const tzMutation = useMutation({
     mutationFn: (/** @type {string} */ tz) => djangoApi.profile.update({ timezone: tz }),
@@ -240,36 +299,54 @@ export default function GameplayPanel() {
           <span className="font-mono text-xs font-bold" style={{ color: "#00e5ff" }}>{t('johan_diff.title', 'RIVAL — JOHAN DIFFICULTY')}</span>
         </div>
         <p className="text-[10px] font-mono italic" style={{ color: "rgba(0,229,255,0.5)" }}>{t('johan_diff.desc', 'Controls how fast Johan accumulates XP and how aggressive his surge days are.')}</p>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { id: "EASY",    label: t('johan_diff.easy_label', 'Easy'),    desc: t('johan_diff.easy_desc', 'Johan trains slow.'),      xp_mult: "×0.6 XP",  color: "#00cc88" },
-            { id: "NORMAL",  label: t('johan_diff.normal_label', 'Normal'),  desc: t('johan_diff.normal_desc', 'Balanced challenge.'),      xp_mult: "×0.9 XP",  color: "#00e5ff" },
-            { id: "HARD",    label: t('johan_diff.hard_label', 'Hard'),    desc: t('johan_diff.hard_desc', 'Johan pushes hard.'),       xp_mult: "×1.2 XP",  color: "#f59e0b" },
-            { id: "EXTREME", label: t('johan_diff.extreme_label', 'Extreme'), desc: t('johan_diff.extreme_desc', 'No mercy. No catch-up.'),  xp_mult: "×1.6 XP",  color: "#ef4444" },
-          ].map(diff => {
-            const current = profile?.rival_data?.rivalDifficulty || "NORMAL";
-            const isActive = current === diff.id;
-            return (
-              <button
-                key={diff.id}
-                onClick={() => rivalDiffMutation.mutate(diff.id)}
-                className="py-3 px-2 text-xs font-mono rounded-lg border transition-all text-left"
-                style={{
-                  borderColor: isActive ? diff.color : "rgba(255,255,255,0.08)",
-                  background: isActive ? `${diff.color}18` : "rgba(0,0,0,0.4)",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
-                  boxShadow: isActive ? `0 0 14px ${diff.color}33` : "none",
-                }}
-              >
-                <div className="font-bold tracking-wider mb-1" style={{ color: isActive ? diff.color : "inherit" }}>{diff.label.toUpperCase()}</div>
-                <div className="flex flex-col gap-0.5 text-[9px] opacity-80">
-                  <span style={{ color: isActive ? diff.color : "inherit" }}>{diff.xp_mult}</span>
-                  <span>{diff.desc}</span>
+
+        {(() => {
+          const preview = johanPreviewForSlider(johanSliderPos);
+          return (
+            <>
+              {/* Live readout for the current slider position */}
+              <div className="rounded-lg border p-2.5 text-center"
+                style={{ borderColor: `${preview.nearestColor}40`, background: `${preview.nearestColor}0d` }}>
+                <div className="font-mono text-xs font-black tracking-widest" style={{ color: preview.nearestColor }}>
+                  {t('johan_diff.leaning', 'LEANING')} {preview.nearestLabel.toUpperCase()}
                 </div>
-              </button>
-            );
-          })}
-        </div>
+                <div className="font-mono text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
+                  ~{Math.round(preview.target)} XP/{t('johan_diff.day', 'day')} ({Math.round(preview.rangeLo)}–{Math.round(preview.rangeHi)})
+                </div>
+              </div>
+
+              {/* Slider track, colored across the Easy->Extreme gradient */}
+              <div className="relative pt-1 pb-5">
+                <input
+                  type="range"
+                  min={JOHAN_SLIDER_MIN}
+                  max={JOHAN_SLIDER_MAX}
+                  step={1}
+                  value={johanSliderPos}
+                  onChange={(e) => handleJohanSliderChange(Number(e.target.value))}
+                  className="w-full appearance-none cursor-pointer relative z-10"
+                  style={{
+                    height: 6,
+                    borderRadius: 999,
+                    background: "linear-gradient(to right, #00cc8899, #00e5ff99, #f59e0b99, #ef4444cc)",
+                    accentColor: preview.nearestColor,
+                  }}
+                />
+                {/* Anchor tick marks for Easy/Normal/Hard/Extreme */}
+                {JOHAN_DIFFICULTY_ANCHORS.map(a => (
+                  <div key={a.id} className="absolute top-0 flex flex-col items-center"
+                    style={{ left: `${(a.pos / JOHAN_SLIDER_MAX) * 100}%`, transform: "translateX(-50%)" }}>
+                    <div className="w-0.5 h-2 mt-1" style={{ background: `${a.color}90` }} />
+                    <span className="text-[7.5px] font-mono mt-3 uppercase tracking-wide whitespace-nowrap" style={{ color: `${a.color}c0` }}>
+                      {a.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
+
         {rivalDiffMutation.isPending && (
           <div className="text-[9px] font-mono text-center" style={{ color: "rgba(0,229,255,0.4)" }}>{t('johan_diff.syncing', 'Syncing with Johan...')}</div>
         )}

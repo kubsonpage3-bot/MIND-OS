@@ -18,9 +18,28 @@ ACTIVITIES = {
 ALL_SUBJECTS = list(ACTIVITIES.keys())
 
 # ── Difficulty config ──────────────────────────────────────────────────────────
+# Each tier's target_avg_xp is the intended long-run OVERALL daily average
+# (including skip days as 0 and surge days' bonus) -- Easy ~50, Normal ~80,
+# Hard ~150, Extreme ~300. daily_xp_range is the range rolled on an ACTIVE
+# day (see calc_johan_daily_xp) and is derived, not hand-picked: skip days
+# pull the overall average down and surge days pull it up, so the active-day
+# range has to sit above target_avg_xp by however much those two cancel out,
+# or e.g. Easy's 28% skip rate alone would drag a naive 40-60 active range
+# down to ~37 overall instead of 50.
+def _active_day_range(target_avg_xp, skip_chance, surge_chance, spread_pct=0.20):
+    # E[daily] = (1 - skip_chance) * E[active_day] and E[active_day] itself
+    # gets a further (1 + 0.3*surge_chance) lift from the x1.3 surge bonus a
+    # fraction of active days receive -- solve for the active-day midpoint
+    # that makes the overall expectation land on target_avg_xp, then spread
+    # +/-spread_pct around it for day-to-day variance.
+    denom = (1 - skip_chance) * (1 + 0.3 * surge_chance)
+    mid = target_avg_xp / denom
+    return (round(mid * (1 - spread_pct), 1), round(mid * (1 + spread_pct), 1))
+
+
 JOHAN_DIFFICULTIES = {
     "EASY": {
-        "xp_mult": 0.60,
+        "target_avg_xp": 50,
         "surge_mult": 1.2,
         "hours_range": (0.5, 1.5),
         "focus_range": (3.0, 5.0),
@@ -28,7 +47,7 @@ JOHAN_DIFFICULTIES = {
         "surge_chance": 0.05,
     },
     "NORMAL": {
-        "xp_mult": 0.90,
+        "target_avg_xp": 80,
         "surge_mult": 1.5,
         "hours_range": (1.0, 2.5),
         "focus_range": (5.0, 7.0),
@@ -36,7 +55,7 @@ JOHAN_DIFFICULTIES = {
         "surge_chance": 0.10,
     },
     "HARD": {
-        "xp_mult": 1.20,
+        "target_avg_xp": 150,
         "surge_mult": 1.8,
         "hours_range": (2.0, 4.0),
         "focus_range": (6.0, 8.0),
@@ -44,7 +63,7 @@ JOHAN_DIFFICULTIES = {
         "surge_chance": 0.20,
     },
     "EXTREME": {
-        "xp_mult": 1.60,
+        "target_avg_xp": 300,
         "surge_mult": 2.0,
         "hours_range": (3.0, 6.0),
         "focus_range": (7.0, 9.5),
@@ -52,12 +71,101 @@ JOHAN_DIFFICULTIES = {
         "surge_chance": 0.35,
     },
 }
+for _cfg in JOHAN_DIFFICULTIES.values():
+    _cfg["daily_xp_range"] = _active_day_range(
+        _cfg["target_avg_xp"], _cfg["skip_chance"], _cfg["surge_chance"]
+    )
 DEFAULT_DIFFICULTY = "NORMAL"
+
+# ── Continuous difficulty slider ────────────────────────────────────────────
+# Replaces the 4 discrete buttons with one 0-130 slider. The 4 named tiers
+# above are just anchor points on it; everything in between (and slightly
+# beyond either end) is linearly interpolated/extrapolated from them, so
+# e.g. "80" lands honestly between Hard(90) and Normal(60) rather than
+# forcing a pick of one preset or the other.
+SLIDER_MIN = 0
+SLIDER_MAX = 130
+SLIDER_POSITION_BY_LABEL = {"EASY": 30, "NORMAL": 60, "HARD": 90, "EXTREME": 115}
+SLIDER_ANCHORS = sorted(
+    ((pos, JOHAN_DIFFICULTIES[label]) for label, pos in SLIDER_POSITION_BY_LABEL.items()),
+    key=lambda pair: pair[0],
+)
+
+
+def get_slider_position(stored_rival_data: dict) -> float:
+    """Numeric slider position (0-130) for this profile's stored rival data.
+    Falls back to the legacy string rivalDifficulty (EASY/NORMAL/HARD/EXTREME)
+    for profiles saved before the slider existed, then to Normal (60)."""
+    raw = stored_rival_data.get("rivalDifficultySlider")
+    if raw is not None:
+        try:
+            return max(SLIDER_MIN, min(SLIDER_MAX, float(raw)))
+        except (TypeError, ValueError):
+            pass
+    legacy_label = stored_rival_data.get("rivalDifficulty")
+    if legacy_label in SLIDER_POSITION_BY_LABEL:
+        return SLIDER_POSITION_BY_LABEL[legacy_label]
+    return SLIDER_POSITION_BY_LABEL[DEFAULT_DIFFICULTY]
+
+
+def nearest_difficulty_label(slider_pos: float) -> str:
+    """Nearest named tier to a slider position -- kept only so old code/UI
+    that still expects a rivalDifficulty string has something sane to show."""
+    return min(
+        SLIDER_POSITION_BY_LABEL,
+        key=lambda label: abs(SLIDER_POSITION_BY_LABEL[label] - slider_pos),
+    )
+
+
+def _lerp(a, b, t):
+    return a + t * (b - a)
+
+
+def get_diff_cfg_for_slider(slider_pos: float) -> dict:
+    """Interpolates (or, past the outermost anchors, extrapolates along the
+    same slope) a full diff_cfg for any slider position in [SLIDER_MIN,
+    SLIDER_MAX]. Values are clamped to sane floors/ceilings so the
+    extrapolated ends (0 and 130) can't produce nonsense (negative hours,
+    >100% skip chance, etc)."""
+    pos = max(SLIDER_MIN, min(SLIDER_MAX, slider_pos))
+
+    if pos <= SLIDER_ANCHORS[0][0]:
+        p0, c0 = SLIDER_ANCHORS[0]
+        p1, c1 = SLIDER_ANCHORS[1]
+    elif pos >= SLIDER_ANCHORS[-1][0]:
+        p0, c0 = SLIDER_ANCHORS[-2]
+        p1, c1 = SLIDER_ANCHORS[-1]
+    else:
+        p0, c0, p1, c1 = None, None, None, None
+        for (pa, ca), (pb, cb) in zip(SLIDER_ANCHORS, SLIDER_ANCHORS[1:]):
+            if pa <= pos <= pb:
+                p0, c0, p1, c1 = pa, ca, pb, cb
+                break
+
+    t = (pos - p0) / (p1 - p0)
+
+    return {
+        "target_avg_xp": max(5.0, _lerp(c0["target_avg_xp"], c1["target_avg_xp"], t)),
+        "daily_xp_range": (
+            max(10.0, _lerp(c0["daily_xp_range"][0], c1["daily_xp_range"][0], t)),
+            max(15.0, _lerp(c0["daily_xp_range"][1], c1["daily_xp_range"][1], t)),
+        ),
+        "surge_mult": max(1.0, _lerp(c0["surge_mult"], c1["surge_mult"], t)),
+        "hours_range": (
+            max(0.25, _lerp(c0["hours_range"][0], c1["hours_range"][0], t)),
+            max(0.5, _lerp(c0["hours_range"][1], c1["hours_range"][1], t)),
+        ),
+        "focus_range": (
+            max(1.0, min(10.0, _lerp(c0["focus_range"][0], c1["focus_range"][0], t))),
+            max(1.0, min(10.0, _lerp(c0["focus_range"][1], c1["focus_range"][1], t))),
+        ),
+        "skip_chance": max(0.0, min(0.6, _lerp(c0["skip_chance"], c1["skip_chance"], t))),
+        "surge_chance": max(0.0, min(0.6, _lerp(c0["surge_chance"], c1["surge_chance"], t))),
+    }
 
 
 def get_difficulty(stored_rival_data: dict) -> dict:
-    key = stored_rival_data.get("rivalDifficulty", DEFAULT_DIFFICULTY)
-    return JOHAN_DIFFICULTIES.get(key, JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY])
+    return get_diff_cfg_for_slider(get_slider_position(stored_rival_data))
 
 
 def make_prng(seed_str):
@@ -185,11 +293,42 @@ def generate_daily_sessions(date_str, user_id, pattern, specializations, diff_cf
 
 
 def calc_johan_daily_xp(sessions: list, diff_cfg: dict) -> float:
-    """Daily XP Johan earns based on his actual generated sessions."""
-    total_base_xp = 0.0
-    for s in sessions:
-        total_base_xp += calculate_base_training_xp(s["hours"], s["focus"])
-    return round(total_base_xp * diff_cfg["xp_mult"], 1)
+    """Daily XP Johan earns. Rolled within diff_cfg["daily_xp_range"] using a
+    seed derived from the session list itself (so this stays deterministic
+    for a given date+user without needing them as separate params here --
+    `sessions` was itself generated from a date+user seed). Averages two
+    independent rolls to bias toward the middle of the range (most days
+    land near the average, only occasionally near an edge), mimicking a
+    real person's day-to-day variance instead of a flat, robotic number.
+    Empty `sessions` (a skip day) is always 0 XP.
+    """
+    if not sessions:
+        return 0.0
+
+    xp_range = diff_cfg.get("daily_xp_range")
+    if not xp_range:
+        # Legacy fallback, in case an old-shape diff_cfg (xp_mult, no
+        # daily_xp_range) is ever passed directly.
+        total_base_xp = sum(
+            calculate_base_training_xp(s["hours"], s["focus"]) for s in sessions
+        )
+        return round(total_base_xp * diff_cfg.get("xp_mult", 1.0), 1)
+
+    seed_str = "|".join(
+        f"{s.get('subject')}:{s.get('hours')}:{s.get('focus')}:{s.get('scheduledTime')}"
+        for s in sessions
+    )
+    roll = (make_prng(seed_str)() + make_prng(seed_str + "_b")()) / 2.0
+    lo, hi = xp_range
+    value = lo + roll * (hi - lo)
+
+    # Surge day: detectable from the session's own patternMsg (set by
+    # get_day_pattern) without needing pattern as a separate parameter here.
+    is_surge = sessions[0].get("patternMsg") == "JOHAN: intensive session today."
+    if is_surge:
+        value *= 1.3
+
+    return round(value, 1)
 
 
 # ponytail: kept for test_batch5 compatibility
@@ -217,10 +356,9 @@ def compute_rival_data(user_profile):
 
     stored = user_profile.rival_data or {}
 
-    rival_difficulty = stored.get("rivalDifficulty", DEFAULT_DIFFICULTY)
-    diff_cfg = JOHAN_DIFFICULTIES.get(
-        rival_difficulty, JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
-    )
+    slider_pos = get_slider_position(stored)
+    diff_cfg = get_diff_cfg_for_slider(slider_pos)
+    rival_difficulty = nearest_difficulty_label(slider_pos)
 
     if stored.get("lastUpdated") == today:
         return stored
@@ -375,6 +513,7 @@ def compute_rival_data(user_profile):
         "dailySessions": sessions,
         "lastUpdated": today,
         "rivalDifficulty": rival_difficulty,
+        "rivalDifficultySlider": slider_pos,
         "behindDays": behind_days,
         "weeklyHistory": weekly_history,
         "specializations": specializations,
