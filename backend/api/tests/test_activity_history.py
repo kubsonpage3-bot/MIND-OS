@@ -297,14 +297,14 @@ def test_self_healing_history_reconciliation():
 
 
 @pytest.mark.django_db
-def test_rank_xp_reconciliation_with_activity_history():
+def test_rank_xp_not_overwritten_by_activity_history_sum():
     user = User.objects.create_user(username="syncuser", password="password123")
     client = APIClient()
     client.force_authenticate(user=user)
 
-    # Set profile.rank_xp artificially higher to simulate drift (437 vs 415 in history)
+    # Simulate profile after a rank penalty or death demotion (e.g. 200 vs 415 in history)
     profile = user.profile
-    profile.rank_xp = 437
+    profile.rank_xp = 200
     profile.save(update_fields=["rank_xp"])
 
     # Create activity logs totaling 415 XP
@@ -321,20 +321,20 @@ def test_rank_xp_reconciliation_with_activity_history():
         xp_earned=200,
     )
 
-    # Verify history query heals and synchronizes rank_xp to 415
+    # Verify history query returns stats.total_xp == 415 but preserves profile.rank_xp == 200
     res_hist = client.get("/api/history/?days=all")
     assert res_hist.status_code == 200
     hist_data = res_hist.json()
     assert hist_data["stats"]["total_xp"] == 415
-    assert hist_data["profile"]["rank_xp"] == 415
+    assert hist_data["profile"]["rank_xp"] == 200
 
-    # Verify profile endpoint also reflects synced rank_xp
+    # Verify profile endpoint also preserves rank_xp == 200 without overwriting
     profile.refresh_from_db()
-    assert profile.rank_xp == 415
+    assert profile.rank_xp == 200
 
     res_prof = client.get("/api/profile/")
     assert res_prof.status_code == 200
-    assert res_prof.json()["rank_xp"] == 415
+    assert res_prof.json()["rank_xp"] == 200
 
 
 @pytest.mark.django_db

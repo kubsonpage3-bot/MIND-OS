@@ -488,10 +488,15 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     if (!currentRank) return;
 
     if (prevRankRef.current && prevRankRef.current !== currentRank) {
-      setRankUpNotif({
-        oldRank: prevRankRef.current,
-        newRank: currentRank,
-      });
+      const RANK_ORDER = ["E", "D", "C", "B", "A", "S", "SS", "SSS"];
+      const prevIdx = RANK_ORDER.indexOf(prevRankRef.current);
+      const currentIdx = RANK_ORDER.indexOf(currentRank);
+      if (prevIdx !== -1 && currentIdx > prevIdx) {
+        setRankUpNotif({
+          oldRank: prevRankRef.current,
+          newRank: currentRank,
+        });
+      }
     }
     prevRankRef.current = currentRank;
   }, [djangoProfile?.rank_info?.current_id]);
