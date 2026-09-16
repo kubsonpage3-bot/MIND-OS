@@ -409,8 +409,12 @@ def compute_rival_data(user_profile):
     from django.db.models import Sum
     from api.services.mechanics import get_passive_multipliers
 
+    # "transcendence" is the old activation name for this skill --
+    # activate_skill() resolves it through SKILL_ALIASES and always stores
+    # the ActiveEffect under the canonical "enlightenment", so a literal
+    # skill_id="transcendence" filter here could never match anything.
     transcendence_active = ActiveEffect.objects.filter(
-        user=user_profile.user, skill_id="transcendence"
+        user=user_profile.user, skill_id__in=["transcendence", "enlightenment"]
     ).exists()
 
     # Get passive effects for rival reduction skills

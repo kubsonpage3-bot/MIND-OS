@@ -527,8 +527,13 @@ def complete_yesterday_dailies(user, completed_ids: list):
     total_refund = 0
     log = []
 
+    # "transcendence" is the old activation name for this skill --
+    # activate_skill() resolves it through SKILL_ALIASES and always stores
+    # the ActiveEffect under the canonical "enlightenment", so a literal
+    # skill_id="transcendence" filter here could never match anything. Same
+    # skill_id__in pattern as iron_fast_active below.
     transcendence_active = ActiveEffect.objects.filter(
-        user=user, skill_id="transcendence"
+        user=user, skill_id__in=["transcendence", "enlightenment"]
     ).exists()
     iron_fast_active = ActiveEffect.objects.filter(
         user=user, skill_id__in=["iron_fast", "eye_of_the_storm"]
@@ -784,8 +789,13 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     # ── Логика по типу задачи ─────────────────────────────────────────
     from api.models import ActiveEffect
 
+    # "transcendence" is the old activation name for this skill --
+    # activate_skill() resolves it through SKILL_ALIASES and always stores
+    # the ActiveEffect under the canonical "enlightenment", so a literal
+    # skill_id="transcendence" filter here could never match anything. Same
+    # skill_id__in pattern as iron_fast_active below.
     transcendence_active = ActiveEffect.objects.filter(
-        user=user, skill_id="transcendence"
+        user=user, skill_id__in=["transcendence", "enlightenment"]
     ).exists()
     if task.task_type == Task.TaskType.TODO:
         if is_positive:
@@ -2256,8 +2266,13 @@ def process_missed_tasks(user):
     eye_of_the_storm_active = ActiveEffect.objects.filter(
         user=user, skill_id="eye_of_the_storm"
     ).exists()
+    # "transcendence" is the old activation name for this skill --
+    # activate_skill() resolves it through SKILL_ALIASES and always stores
+    # the ActiveEffect under the canonical "enlightenment", so a literal
+    # skill_id="transcendence" filter here could never match anything. Same
+    # skill_id__in pattern as iron_fast_active below.
     transcendence_active = ActiveEffect.objects.filter(
-        user=user, skill_id="transcendence"
+        user=user, skill_id__in=["transcendence", "enlightenment"]
     ).exists()
     elixir_active = ActiveEffect.objects.filter(
         user=user, skill_id="elixir", expires_at__gt=timezone.now()

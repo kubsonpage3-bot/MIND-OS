@@ -610,6 +610,22 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 profile.rank_xp = max(0, profile.rank_xp + xp_earned)
                 profile.gold += gold_earned
 
+                # UserStats -- same counters _complete_task_logic updates for
+                # Task completions (total_tasks_completed/total_gold_earned/
+                # prayer_sessions feed title_service's milestone titles); a
+                # linked Pomodoro session is real progress too and was
+                # silently excluded from them before.
+                from api.models import UserStats as _UserStats
+
+                _stats, _ = _UserStats.objects.get_or_create(user=request.user)
+                _stats.total_tasks_completed += 1
+                _stats.total_gold_earned += gold_earned
+                if task_category == "Prayer/Meditation":
+                    _stats.prayer_sessions += 1
+                _stats.save(
+                    update_fields=["total_tasks_completed", "total_gold_earned", "prayer_sessions"]
+                )
+
                 # Category streak tracking -- Echo/Mirror/Diversity Lock/Deja Vu
                 # all key off this; without it a linked Pomodoro was invisible
                 # to "did the last session use the same/different category" checks.

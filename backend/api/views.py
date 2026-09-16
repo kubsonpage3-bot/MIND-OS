@@ -1744,6 +1744,22 @@ class TrainingLogView(generics.GenericAPIView):
             profile.rank_xp = max(0, profile.rank_xp + final_xp)
             profile.gold = max(0, profile.gold + final_gold)
 
+            # UserStats -- same counters _complete_task_logic updates for Task
+            # completions (total_tasks_completed/total_gold_earned/
+            # prayer_sessions feed title_service's milestone titles); an
+            # Activity Log session is real progress too and was silently
+            # excluded from them before.
+            from api.models import UserStats as _UserStats
+
+            _stats, _ = _UserStats.objects.get_or_create(user=request.user)
+            _stats.total_tasks_completed += 1
+            _stats.total_gold_earned += final_gold
+            if task_category == "Prayer/Meditation":
+                _stats.prayer_sessions += 1
+            _stats.save(
+                update_fields=["total_tasks_completed", "total_gold_earned", "prayer_sessions"]
+            )
+
             # Handle item drops
             if outcome.get("item_dropped"):
                 from api.models import Item, InventoryItem
