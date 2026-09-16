@@ -58,10 +58,14 @@ def test_linked_pomodoro_applies_final_xp_mult(auth_client, user):
     )
     assert res.status_code == 200
     data = res.json()
-    # base_xp for 150min would be ~450 (duration*3); time_dilation is x3 on
-    # top of everything else -- just assert it's a large multiple of the
-    # flat baseline (450), not a lucky roll.
-    assert data["xp_earned"] >= 450 * 2
+    # base_xp now comes from training_rewards() (medium tier, 2.5h, focus 5)
+    # instead of the old flat "duration * 3" rate; time_dilation is x3 on top
+    # of everything else -- just assert it's a large multiple of that real
+    # baseline, not a lucky roll.
+    from api.services.rewards_service import training_rewards
+
+    base_xp = training_rewards("medium", 2.5, 5.0)["xp"]
+    assert data["xp_earned"] >= base_xp * 2
     assert any("Mutator burst" in note for note in data["breakdown"])
 
 

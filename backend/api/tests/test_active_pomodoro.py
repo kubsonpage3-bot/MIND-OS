@@ -91,9 +91,14 @@ def test_active_session_complete_30_minutes_logs_training(auth_client, user):
     assert ts.hours == 0.5
     assert ts.focus_rating == 5.0
 
-    # Check Gold & XP awarded
+    # Check Gold & XP awarded -- a linked Pomodoro now scores through the
+    # same training_rewards() formula as a manual Activity Log, not the old
+    # flat "duration * 2" rate.
+    from api.services.rewards_service import training_rewards
+
     profile = UserProfile.objects.get(user=user)
-    assert profile.gold >= 60  # 30 * 2
+    expected_gold = training_rewards("medium", 0.5, 5.0)["gold"]
+    assert profile.gold == expected_gold
 
 
 @pytest.mark.django_db

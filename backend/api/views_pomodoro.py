@@ -348,6 +348,18 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 # Deep concentration: focus minimum counts as 7.0
                 eff_rating = max(float(rating), passive_effects.get("min_focus", 0.0))
 
+                # Reward base -- same training_rewards() formula as a manual
+                # Activity Log (TrainingLogView), instead of the old flat
+                # "3 XP/min" rate: a linked Pomodoro session is a study
+                # session like any other and must score the same as logging
+                # the same activity/duration/focus by hand.
+                from api.services.rewards_service import training_rewards
+
+                tier = task.difficulty if task else "medium"
+                training_reward_calc = training_rewards(tier, hours, eff_rating)
+                base_xp = training_reward_calc["xp"]
+                base_gold = training_reward_calc["gold"]
+
                 xp_mult = mutator_effects.get("xp_mult", 1.0) + passive_effects.get("xp_mult", 1.0) - 1.0
                 gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
                 flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
@@ -557,13 +569,13 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
 
                 # Boss damage -- a linked Pomodoro is a study session like any
                 # other and should deal damage like one; previously it dealt none.
-                from api.services.rewards_service import training_rewards
+                # Reuses training_reward_calc (real tier) instead of a
+                # hardcoded "medium", consistent with the XP/Gold above.
                 from api.services.mechanics import apply_boss_damage
 
-                dmg_rewards = training_rewards("medium", hours, eff_rating)
                 pwr_dmg = outcome.get("damage_dealt", 10)
                 final_damage_dealt = int(
-                    (dmg_rewards["dmg"] + pwr_dmg)
+                    (training_reward_calc["dmg"] + pwr_dmg)
                     * profile.damage_multiplier
                     * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
                     * session_skills["boss_dmg_mult"]
