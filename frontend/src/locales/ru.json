@@ -791,7 +791,12 @@
     "recovery_window": "ОКНО ВОССТАНОВЛЕНИЯ",
     "you_btn": "ВЫ",
     "weeklyWinTitle": "Ты обогнал {{name}} на этой неделе!",
-    "mutatorChest": "Сундук мутаторов"
+    "mutatorChest": "Сундук мутаторов",
+    "weeklyVictory": "ПОБЕДА НЕДЕЛИ",
+    "rewardSlot": "Награда",
+    "claimReward": "Забрать награду",
+    "equipFailed": "Не удалось экипировать предмет.",
+    "activateFailed": "Не удалось активировать мутатор."
   },
   "projection": {
     "avgPace": "ПРОГНОЗЫ ПРИ ТЕКУЩЕМ ТЕМПЕ",

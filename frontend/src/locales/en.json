@@ -792,7 +792,12 @@
     "recovery_window": "RECOVERY WINDOW",
     "you_btn": "YOU",
     "weeklyWinTitle": "You beat {{name}} this week!",
-    "mutatorChest": "Mutator Chest"
+    "mutatorChest": "Mutator Chest",
+    "weeklyVictory": "WEEKLY VICTORY",
+    "rewardSlot": "Reward",
+    "claimReward": "Claim Reward",
+    "equipFailed": "Failed to equip item.",
+    "activateFailed": "Failed to activate mutator."
   },
   "projection": {
     "avgPace": "PROJECTIONS AT CURRENT AVG PACE",

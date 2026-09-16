@@ -5,7 +5,6 @@ import { useProfileMount } from "@/utils/perf";
 import OptimizedImage from "./OptimizedImage";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { ACTIVITIES } from "@/lib/cognitiveEngine";
-import { MUTATORS } from "@/constants/rpgData";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +12,7 @@ import { djangoApi } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import PartyTab from "./PartyTab";
 import TabGuideModal from "./TabGuideModal";
+import RivalWeeklyRewardModal from "./RivalWeeklyRewardModal";
 
 const RIVAL_JOHAN_KEY = 'rivalTab.johan';
 
@@ -228,7 +228,6 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
   const [isTyping, setIsTyping] = useState(false);
   const [prevJohanXP, setPrevJohanXP] = useState(null);
   const [prevPlayerXP, setPrevPlayerXP] = useState(null);
-  const [weeklyRewardDismissed, setWeeklyRewardDismissed] = useState(false);
   const toastTimerRef = useRef(null);
 
   const { profile, refreshProfile } = useDjangoAuth();
@@ -429,42 +428,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
         <>
           <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
 
-          <AnimatePresence>
-            {weeklyReward && !weeklyRewardDismissed && (
-              <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                className="rounded-2xl p-4 relative overflow-hidden"
-                style={{
-                  background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(6,12,20,0.98))",
-                  border: "1.5px solid rgba(245,158,11,0.5)",
-                  boxShadow: "0 0 20px rgba(245,158,11,0.25)",
-                }}
-              >
-                <button
-                  onClick={() => setWeeklyRewardDismissed(true)}
-                  className="absolute top-2 right-2 text-[10px] font-mono text-muted-foreground/60 hover:text-muted-foreground"
-                >
-                  ✕
-                </button>
-                <div className="font-pixel text-[11px] text-amber-400 mb-1">
-                  🏆 {t('rivalTab.weeklyWinTitle', 'You beat {{name}} this week!', { name: RIVAL_NAME })}
-                </div>
-                <div className="text-xs font-mono" style={{ color: "var(--habit-text)" }}>
-                  {weeklyReward.mutator && (
-                    <div>+1 {t('rivalTab.mutatorChest', 'Mutator Chest')} — {(() => {
-                      const mut = MUTATORS.find(m => m.id === weeklyReward.mutator.mutator_id);
-                      return t(`rpgData.mutators.${weeklyReward.mutator.mutator_id}.name`, mut?.name || weeklyReward.mutator.mutator_id);
-                    })()}</div>
-                  )}
-                  {weeklyReward.item && (
-                    <div>+1 Quantum Safe — [{weeklyReward.item.gear_class}] {weeklyReward.item.item_name}</div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <RivalWeeklyRewardModal weeklyReward={weeklyReward} rivalName={RIVAL_NAME} />
 
           <AnimatePresence>
             {sessionToast && (

@@ -7,6 +7,59 @@ from api.models import InventoryItem, Item, LootChest, UserProfile
 from api.exceptions import GameLogicError
 
 
+def _roll_and_grant_item(profile, drop_rates: dict) -> dict | None:
+    """
+    Shared roll+grant core for open_chest (paid) and grant_free_chest
+    (reward flows): weighted-rolls a gear_class from drop_rates, picks a
+    random equipment Item of that class (falling back to E-class), adds it
+    to the player's inventory, bumps the chests_opened stat, and returns the
+    full item dict both AnimatedChestModal reveal UIs expect. Returns None
+    if no eligible item exists at all.
+    """
+    classes = list(drop_rates.keys())
+    weights = [float(drop_rates[c]) for c in classes]
+    rolled_class = random.choices(classes, weights=weights, k=1)[0]
+
+    eligible_items = list(
+        Item.objects.filter(gear_class=rolled_class, item_type=Item.ItemType.EQUIPMENT)
+    )
+    if not eligible_items:
+        eligible_items = list(
+            Item.objects.filter(gear_class="E", item_type=Item.ItemType.EQUIPMENT)
+        )
+        rolled_class = "E"
+    if not eligible_items:
+        return None
+
+    won_item = random.choice(eligible_items)
+    inv_item, created = InventoryItem.objects.get_or_create(
+        user_profile=profile, item=won_item, defaults={"quantity": 1, "is_equipped": False}
+    )
+    if not created:
+        inv_item.quantity += 1
+        inv_item.save(update_fields=["quantity"])
+
+    from api.models import UserStats
+
+    stats, _ = UserStats.objects.get_or_create(user=profile.user)
+    stats.chests_opened = max(0, stats.chests_opened) + 1
+    stats.save(update_fields=["chests_opened"])
+
+    return {
+        "code": won_item.code,
+        "name": won_item.name,
+        "gear_class": rolled_class,
+        "slot_type": won_item.slot_type,
+        "icon_url": won_item.icon_url,
+        "description": won_item.description,
+        "stats": {
+            effect.effect_name: effect.effect_value
+            for effect in won_item.effects.all()
+        },
+        "is_new": created,
+    }
+
+
 @transaction.atomic
 def open_chest(user, chest_type: str) -> Tuple[bool, str, dict]:
     """
@@ -50,69 +103,20 @@ def open_chest(user, chest_type: str) -> Tuple[bool, str, dict]:
 
     profile.save(update_fields=["gold"])
 
-    # Roll gear_class using weighted random
-    drop_rates: dict = chest.drop_rates
-    classes = list(drop_rates.keys())  # ['E', 'D', 'C', 'B', 'A', 'S']
-    weights = [float(drop_rates[c]) for c in classes]
-    rolled_class = random.choices(classes, weights=weights, k=1)[0]
-
-    # Pick a random item of that gear_class (equipment, not consumable)
-    eligible_items = list(
-        Item.objects.filter(
-            gear_class=rolled_class,
-            item_type=Item.ItemType.EQUIPMENT,
-        )
-    )
-    if not eligible_items:
-        # Fallback: pick any E-class item if no items for rolled class
-        eligible_items = list(
-            Item.objects.filter(
-                gear_class="E",
-                item_type=Item.ItemType.EQUIPMENT,
-            )
-        )
-        rolled_class = "E"
-
-    won_item = random.choice(eligible_items)
-
-    # Add to inventory (or increment quantity)
-    inv_item, created = InventoryItem.objects.get_or_create(
-        user_profile=profile,
-        item=won_item,
-        defaults={"quantity": 1, "is_equipped": False},
-    )
-    if not created:
-        inv_item.quantity += 1
-        inv_item.save(update_fields=["quantity"])
-
-    # Track stat for title unlock
-    from api.models import UserStats
-
-    stats, _ = UserStats.objects.get_or_create(user=user)
-    stats.chests_opened = max(0, stats.chests_opened) + 1
-    stats.save(update_fields=["chests_opened"])
+    item = _roll_and_grant_item(profile, chest.drop_rates)
+    if item is None:
+        raise GameLogicError("No eligible items exist for this chest.")
 
     return (
         True,
-        f"You obtained [{rolled_class}] {won_item.name}!",
+        f"You obtained [{item['gear_class']}] {item['name']}!",
         {
-            "item": {
-                "code": won_item.code,
-                "name": won_item.name,
-                "gear_class": won_item.gear_class,
-                "slot_type": won_item.slot_type,
-                "icon_url": won_item.icon_url,
-                "description": won_item.description,
-                "stats": {
-                    effect.effect_name: effect.effect_value
-                    for effect in won_item.effects.all()
-                },
-            },
-            "rolled_class": rolled_class,
+            "item": item,
+            "rolled_class": item["gear_class"],
             "chest_type": chest_type,
             "gold_spent": 0 if is_refunded else actual_cost,
             "gold_remaining": profile.gold,
-            "is_new": created,
+            "is_new": item["is_new"],
             "is_refunded": is_refunded,
         },
     )
@@ -132,43 +136,11 @@ def grant_free_chest(profile, chest_type: str) -> dict | None:
     except LootChest.DoesNotExist:
         return None
 
-    drop_rates: dict = chest.drop_rates
-    classes = list(drop_rates.keys())
-    weights = [float(drop_rates[c]) for c in classes]
-    rolled_class = random.choices(classes, weights=weights, k=1)[0]
-
-    eligible_items = list(
-        Item.objects.filter(gear_class=rolled_class, item_type=Item.ItemType.EQUIPMENT)
-    )
-    if not eligible_items:
-        eligible_items = list(
-            Item.objects.filter(gear_class="E", item_type=Item.ItemType.EQUIPMENT)
-        )
-        rolled_class = "E"
-    if not eligible_items:
+    item = _roll_and_grant_item(profile, chest.drop_rates)
+    if item is None:
         return None
 
-    won_item = random.choice(eligible_items)
-    inv_item, created = InventoryItem.objects.get_or_create(
-        user_profile=profile, item=won_item, defaults={"quantity": 1, "is_equipped": False}
-    )
-    if not created:
-        inv_item.quantity += 1
-        inv_item.save(update_fields=["quantity"])
-
-    from api.models import UserStats
-
-    stats, _ = UserStats.objects.get_or_create(user=profile.user)
-    stats.chests_opened = max(0, stats.chests_opened) + 1
-    stats.save(update_fields=["chests_opened"])
-
-    return {
-        "item_code": won_item.code,
-        "item_name": won_item.name,
-        "gear_class": rolled_class,
-        "chest_type": chest_type,
-        "chest_name": chest.name,
-    }
+    return {**item, "chest_type": chest_type, "chest_name": chest.name}
 
 
 def grant_free_mutator(profile) -> dict | None:

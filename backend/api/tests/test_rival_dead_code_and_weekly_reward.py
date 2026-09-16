@@ -137,7 +137,7 @@ def test_weekly_reward_grants_mutator_and_quantum_safe_when_player_ahead(profile
     # DB may have many real E-class equipment items seeded via migrations,
     # so the roll isn't guaranteed to land on this test's own fixture item --
     # check inventory for whichever item the result actually says was won.
-    won_code = data["weeklyReward"]["item"]["item_code"]
+    won_code = data["weeklyReward"]["item"]["code"]
     assert InventoryItem.objects.filter(
         user_profile=profile, item__code=won_code
     ).exists()
