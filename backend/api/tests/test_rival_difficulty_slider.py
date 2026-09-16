@@ -67,8 +67,9 @@ def test_active_day_xp_never_exceeds_range_plus_surge_bonus(label):
     for t in totals:
         if t == 0:
             continue  # skip day
-        # Surge days get a further x1.3 on top of the range.
-        assert lo - 0.01 <= t <= hi * 1.3 + 0.01, f"{label}: {t} outside [{lo}, {hi*1.3}]"
+        # Surge days get a further x1.3 on top of the range; weak days get
+        # a further x0.6 below it.
+        assert lo * 0.6 - 0.01 <= t <= hi * 1.3 + 0.01, f"{label}: {t} outside [{lo*0.6}, {hi*1.3}]"
 
 
 def test_slider_at_anchor_matches_named_tier_exactly():

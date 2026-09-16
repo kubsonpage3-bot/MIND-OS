@@ -1,38 +1,56 @@
 from datetime import datetime, timezone, timedelta
 from api.services.mechanics import calculate_base_training_xp
 
-# Mirrors the frontend ACTIVITIES config for picking rival subjects
+# Real activity keys, matching frontend/src/lib/cognitiveEngine.js's ACTIVITIES
+# dict exactly (NOT a separate made-up vocabulary) -- RivalTab.jsx looks up
+# `ACTIVITIES[session.subject]` from that same real dict for icons/labels, so
+# a subject key that only exists here would always render as an unresolved
+# icon. Keeping the two in sync also lets get_johan_specializations() mirror
+# the player's own real logged subjects (see below).
 ACTIVITIES = {
-    "reading": "Reading",
-    "math": "Math",
-    "coding": "Coding",
-    "language": "Language",
+    "mathematics": "Mathematics",
     "physics": "Physics",
-    "music": "Music",
-    "art": "Art",
-    "writing": "Writing",
+    "history": "History",
+    "english": "English",
+    "philosophy": "Philosophy",
+    "vocabulary": "Vocabulary",
+    "chess": "Chess",
+    "coding": "Coding",
+    "creative_answers": "Creative Writing",
     "exercise": "Exercise",
-    "meditation": "Meditation",
+    "prayer": "Prayer",
+    "running": "Running",
+    "reading": "Reading",
+    "german": "German",
+    "languages": "Languages",
 }
 
 ALL_SUBJECTS = list(ACTIVITIES.keys())
 
+# Flat chance of a "weak" (light/distracted, 0.6x output) day, checked after
+# skip/surge -- doesn't scale with difficulty, a light day can happen to
+# Johan regardless of how hard he's set to grind. Referenced by
+# _active_day_range below, so it must be defined before that call runs.
+WEAK_DAY_CHANCE = 0.15
+
 # ── Difficulty config ──────────────────────────────────────────────────────────
 # Each tier's target_avg_xp is the intended long-run OVERALL daily average
-# (including skip days as 0 and surge days' bonus) -- Easy ~50, Normal ~80,
-# Hard ~150, Extreme ~300. daily_xp_range is the range rolled on an ACTIVE
-# day (see calc_johan_daily_xp) and is derived, not hand-picked: skip days
-# pull the overall average down and surge days pull it up, so the active-day
-# range has to sit above target_avg_xp by however much those two cancel out,
-# or e.g. Easy's 28% skip rate alone would drag a naive 40-60 active range
-# down to ~37 overall instead of 50.
+# (including skip days as 0, surge days' bonus, and weak days' penalty) --
+# Easy ~50, Normal ~80, Hard ~150, Extreme ~300. daily_xp_range is the range
+# rolled on an ACTIVE day (see calc_johan_daily_xp) and is derived, not
+# hand-picked: skip days pull the overall average down and surge days pull
+# it up, so the active-day range has to sit above target_avg_xp by however
+# much those two cancel out, or e.g. Easy's 28% skip rate alone would drag a
+# naive 40-60 active range down to ~37 overall instead of 50.
 def _active_day_range(target_avg_xp, skip_chance, surge_chance, spread_pct=0.20):
-    # E[daily] = (1 - skip_chance) * E[active_day] and E[active_day] itself
-    # gets a further (1 + 0.3*surge_chance) lift from the x1.3 surge bonus a
-    # fraction of active days receive -- solve for the active-day midpoint
-    # that makes the overall expectation land on target_avg_xp, then spread
+    # E[daily] = (1 - skip_chance) * E[active_day]. E[active_day] itself is a
+    # weighted mix of surge (1.3x, happens on `surge_chance` of active days),
+    # weak (0.6x, happens on WEAK_DAY_CHANCE of the REMAINING non-surge active
+    # days), and normal (1.0x) days -- solve for the active-day midpoint that
+    # makes the overall expectation land on target_avg_xp, then spread
     # +/-spread_pct around it for day-to-day variance.
-    denom = (1 - skip_chance) * (1 + 0.3 * surge_chance)
+    weak_frac = (1 - surge_chance) * WEAK_DAY_CHANCE
+    denom = (1 - skip_chance) * (1 + 0.3 * surge_chance - 0.4 * weak_frac)
     mid = target_avg_xp / denom
     return (round(mid * (1 - spread_pct), 1), round(mid * (1 + spread_pct), 1))
 
@@ -197,10 +215,23 @@ def get_day_pattern(date_str, user_id, diff_cfg):
     if rand() < diff_cfg["surge_chance"]:
         return {"type": "surge", "msg": "JOHAN: intensive session today."}
 
+    if rand() < WEAK_DAY_CHANCE:
+        return {"type": "weak", "msg": "Johan put in a light, distracted session."}
+
     if (1 <= day_of_month <= 7) or (15 <= day_of_month <= 21):
         return {"type": "morning", "msg": "Early session logged."}
 
     return {"type": "night", "msg": "Late night grind."}
+
+
+def get_johan_cooldown_days(today_str: str, user_id, diff_cfg) -> int:
+    """1 if yesterday was a Johan surge day (a 'recovery window' the day
+    after going hard), else 0. Observational only -- doesn't change today's
+    actual generated pattern/sessions/XP, just surfaces the flavor badge."""
+    today = datetime.strptime(today_str, "%Y-%m-%d")
+    yesterday_str = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday_pattern = get_day_pattern(yesterday_str, user_id, diff_cfg)
+    return 1 if yesterday_pattern["type"] == "surge" else 0
 
 
 def get_session_time_range(pattern):
@@ -212,15 +243,43 @@ def get_session_time_range(pattern):
     return 8, 20
 
 
-def get_johan_specializations(user_id) -> list:
-    """Seed 3 specialization subjects from user_id — stable per user."""
-    rand = make_prng(f"{user_id}_spec")
-    pool = ALL_SUBJECTS[:]
-    specs = []
-    for _ in range(3):
-        idx = int(rand() * len(pool))
-        specs.append(pool[idx])
-        pool.pop(idx)
+def get_johan_specializations(user_profile) -> list:
+    """Johan's 3 'specialization' subjects mirror the player's own most-
+    trained real subjects (by total logged hours), so the head-to-head race
+    is in categories the player actually cares about instead of random ones.
+    A player with fewer than 3 distinct logged subjects (or none yet) gets
+    the remainder filled from a seeded random pick, stable per user.
+
+    Accepts either a real UserProfile (production callers -- looks up their
+    TrainingSession history) or a raw user_id (pure-math calibration tests
+    that simulate Johan without a real DB profile) -- the latter has no
+    session history to mirror, so it skips straight to the random fallback.
+    """
+    from api.models import TrainingSession, UserProfile
+    from django.db.models import Sum
+
+    if isinstance(user_profile, UserProfile):
+        user_id = user_profile.user.id
+        real_subjects = list(
+            TrainingSession.objects.filter(user_profile=user_profile)
+            .filter(activity_key__in=ALL_SUBJECTS)
+            .values("activity_key")
+            .annotate(total_hours=Sum("hours"))
+            .order_by("-total_hours")
+            .values_list("activity_key", flat=True)[:3]
+        )
+        specs = list(dict.fromkeys(real_subjects))
+    else:
+        user_id = user_profile
+        specs = []
+
+    if len(specs) < 3:
+        rand = make_prng(f"{user_id}_spec")
+        pool = [s for s in ALL_SUBJECTS if s not in specs]
+        while len(specs) < 3 and pool:
+            idx = int(rand() * len(pool))
+            specs.append(pool.pop(idx))
+
     return specs
 
 
@@ -258,9 +317,13 @@ def generate_daily_sessions(date_str, user_id, pattern, specializations, diff_cf
         hours = h_min + rand() * (h_max - h_min)
         if pattern["type"] == "surge" and count == 1:
             hours *= diff_cfg["surge_mult"]
+        elif pattern["type"] == "weak":
+            hours *= 0.6
 
         hours = round(hours * 2.0) / 2.0
         focus = round((f_min + rand() * (f_max - f_min)) * 10) / 10.0
+        if pattern["type"] == "weak":
+            focus = max(1.0, round((focus - 1.5) * 10) / 10.0)
 
         hh = scheduled_minutes // 60
         mm = scheduled_minutes % 60
@@ -322,19 +385,16 @@ def calc_johan_daily_xp(sessions: list, diff_cfg: dict) -> float:
     lo, hi = xp_range
     value = lo + roll * (hi - lo)
 
-    # Surge day: detectable from the session's own patternMsg (set by
+    # Surge/weak days: detectable from the session's own patternMsg (set by
     # get_day_pattern) without needing pattern as a separate parameter here.
     is_surge = sessions[0].get("patternMsg") == "JOHAN: intensive session today."
+    is_weak = sessions[0].get("patternMsg") == "Johan put in a light, distracted session."
     if is_surge:
         value *= 1.3
+    elif is_weak:
+        value *= 0.6
 
     return round(value, 1)
-
-
-# ponytail: kept for test_batch5 compatibility
-def calc_johan_xp(sessions, day_number=None):
-    diff_cfg = JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
-    return calc_johan_daily_xp(sessions, diff_cfg)
 
 
 def calc_johan_streak(today_str: str, user_id, diff_cfg) -> int:
@@ -364,10 +424,11 @@ def compute_rival_data(user_profile):
         return stored
 
     pattern = get_day_pattern(today, user_id, diff_cfg)
-    specializations = get_johan_specializations(user_id)
+    specializations = get_johan_specializations(user_profile)
     sessions = generate_daily_sessions(
         today, user_id, pattern, specializations, diff_cfg
     )
+    cooldown_days = get_johan_cooldown_days(today, user_id, diff_cfg)
 
     # ── Persistent XP accumulation (offline-aware) ─────────────
     # Calculate XP for EVERY day missed since last login, not just today.
@@ -485,6 +546,28 @@ def compute_rival_data(user_profile):
     p_week_xp = sum(d["player"]["rank_xp_gained"] for d in weekly_history)
     j_week_xp = round(sum(d["johan"]["rank_xp_gained"] for d in weekly_history), 1)
 
+    # ── Weekly reward: beat Johan on the trailing 7-day window -> 1 free
+    # Mutator Chest + 1 free Quantum Safe, once per ISO calendar week. This
+    # function only runs once per real day (see the lastUpdated guard at the
+    # top), so the FIRST run in a new ISO week is also the only evaluation
+    # for that week -- stamping weeklyRewardGrantedWeek here makes later
+    # runs the same week a no-op even if the player checks again after
+    # falling behind, so the reward can't be farmed by re-checking daily.
+    iso_year, iso_week_num, _ = end_date.isocalendar()
+    current_iso_week = f"{iso_year}-W{iso_week_num:02d}"
+    last_rewarded_week = stored.get("weeklyRewardGrantedWeek")
+    weekly_reward = None
+    weekly_reward_week = last_rewarded_week
+    if current_iso_week != last_rewarded_week and p_week_xp > j_week_xp:
+        from api.services.chest_service import grant_free_chest, grant_free_mutator
+
+        weekly_reward = {
+            "week": current_iso_week,
+            "mutator": grant_free_mutator(user_profile),
+            "item": grant_free_chest(user_profile, "quantum_safe"),
+        }
+        weekly_reward_week = current_iso_week
+
     # RivalTab's "Weekly Comparison / Head-to-Head" card reads
     # johanWeekHours/johanAvgFocus/johanSubjectsWeek/johanWeekRankXP directly
     # off the top-level payload — they were never populated (only the
@@ -514,7 +597,13 @@ def compute_rival_data(user_profile):
         "johanAccumulatedXP": johan_xp,
         "totalXP": johan_xp,
         "streak": johan_streak,
-        "dailySessions": sessions,
+        # RivalTab.jsx reads `todaySessions` (session list, toast-on-appear
+        # detection); this used to be sent as "dailySessions", a key nothing
+        # in the frontend actually reads, so the whole "today" session list
+        # and the "Johan logged a session" toast were permanently empty.
+        "todaySessions": sessions,
+        "currentPattern": pattern["type"],
+        "johanCooldownDays": cooldown_days,
         "lastUpdated": today,
         "rivalDifficulty": rival_difficulty,
         "rivalDifficultySlider": slider_pos,
@@ -531,6 +620,8 @@ def compute_rival_data(user_profile):
             "playerXP": p_week_xp,
             "johanXP": j_week_xp,
         },
+        "weeklyRewardGrantedWeek": weekly_reward_week,
+        "weeklyReward": weekly_reward,
     }
 
     user_profile.rival_data = new_data

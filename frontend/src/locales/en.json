@@ -790,7 +790,9 @@
     "morning_person": "Morning Person",
     "night_owl": "Night Owl",
     "recovery_window": "RECOVERY WINDOW",
-    "you_btn": "YOU"
+    "you_btn": "YOU",
+    "weeklyWinTitle": "You beat {{name}} this week!",
+    "mutatorChest": "Mutator Chest"
   },
   "projection": {
     "avgPace": "PROJECTIONS AT CURRENT AVG PACE",

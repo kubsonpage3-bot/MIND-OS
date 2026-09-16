@@ -5,6 +5,7 @@ import { useProfileMount } from "@/utils/perf";
 import OptimizedImage from "./OptimizedImage";
 import { getRankDisplayData } from "@/lib/rankEngine";
 import { ACTIVITIES } from "@/lib/cognitiveEngine";
+import { MUTATORS } from "@/constants/rpgData";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -227,6 +228,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
   const [isTyping, setIsTyping] = useState(false);
   const [prevJohanXP, setPrevJohanXP] = useState(null);
   const [prevPlayerXP, setPrevPlayerXP] = useState(null);
+  const [weeklyRewardDismissed, setWeeklyRewardDismissed] = useState(false);
   const toastTimerRef = useRef(null);
 
   const { profile, refreshProfile } = useDjangoAuth();
@@ -239,16 +241,22 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   const rivalData = rivalDataQuery || profile?.rival_data;
 
-  const rivalDataMutation = useMutation({
-    mutationFn: (newData) => djangoApi.profile.update({ rival_data: newData }),
+  // The ALERTS toggle below used to write to rival_data.rivalEnabled, a key
+  // nothing ever read -- the actual "Johan overtook you" push notification
+  // (push_service.send_rival_overtook_warnings) checks
+  // notification_preferences.rival_overtook instead (same setting
+  // NotificationsPanel's "Rival overtook you" row controls), so write there
+  // to make this a real, working shortcut instead of a no-op.
+  const notificationPrefs = profile?.notification_preferences || {};
+  const notifPrefsMutation = useMutation({
+    mutationFn: (newPrefs) => djangoApi.profile.update({ notification_preferences: newPrefs }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userprofile"] });
       refreshProfile();
     }
   });
 
-  const savedRivalData = profile?.rival_data || {};
-  const [rivalEnabled, setRivalEnabled] = useState(savedRivalData.rivalEnabled ?? true);
+  const [rivalEnabled, setRivalEnabled] = useState(notificationPrefs.rival_overtook !== false);
 
   // Detect when Johan "logs a session"
   useEffect(() => {
@@ -322,7 +330,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
 
   if (isRivalLoading || !rivalData) return <div className="py-8 text-center text-muted-foreground/40 text-xs font-mono">{t('rivalTab.loading')}</div>;
 
-  const { totalXP: johanXP, streak: johanStreak, todaySessions = [], weeklyHistory = [] } = rivalData;
+  const { totalXP: johanXP, streak: johanStreak, todaySessions = [], weeklyHistory = [], weeklyReward } = rivalData;
 
   const rivalAhead = johanXP > playerRankXP;
   const playerAhead = playerRankXP > johanXP;
@@ -422,6 +430,43 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
           <TabGuideModal guideId="rival" profile={queryClient.getQueryData(["userprofile"]) || {}} />
 
           <AnimatePresence>
+            {weeklyReward && !weeklyRewardDismissed && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                className="rounded-2xl p-4 relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(6,12,20,0.98))",
+                  border: "1.5px solid rgba(245,158,11,0.5)",
+                  boxShadow: "0 0 20px rgba(245,158,11,0.25)",
+                }}
+              >
+                <button
+                  onClick={() => setWeeklyRewardDismissed(true)}
+                  className="absolute top-2 right-2 text-[10px] font-mono text-muted-foreground/60 hover:text-muted-foreground"
+                >
+                  ✕
+                </button>
+                <div className="font-pixel text-[11px] text-amber-400 mb-1">
+                  🏆 {t('rivalTab.weeklyWinTitle', 'You beat {{name}} this week!', { name: RIVAL_NAME })}
+                </div>
+                <div className="text-xs font-mono" style={{ color: "var(--habit-text)" }}>
+                  {weeklyReward.mutator && (
+                    <div>+1 {t('rivalTab.mutatorChest', 'Mutator Chest')} — {(() => {
+                      const mut = MUTATORS.find(m => m.id === weeklyReward.mutator.mutator_id);
+                      return t(`rpgData.mutators.${weeklyReward.mutator.mutator_id}.name`, mut?.name || weeklyReward.mutator.mutator_id);
+                    })()}</div>
+                  )}
+                  {weeklyReward.item && (
+                    <div>+1 Quantum Safe — [{weeklyReward.item.gear_class}] {weeklyReward.item.item_name}</div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
             {sessionToast && (
               <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -464,8 +509,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
               onClick={() => {
                 const newVal = !rivalEnabled;
                 setRivalEnabled(newVal);
-                const updatedData = { ...savedRivalData, rivalEnabled: newVal };
-                rivalDataMutation.mutate(updatedData);
+                notifPrefsMutation.mutate({ ...notificationPrefs, rival_overtook: newVal });
                 if (newVal && "Notification" in window && Notification.permission !== "granted") {
                   Notification.requestPermission();
                 }
@@ -519,7 +563,7 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
                 <span className="font-pixel text-[9px] px-2 py-0.5 rounded" style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid #94a3b844" }}>{t('rivalTab.light')}</span>
               )}
               {(rivalData.johanCooldownDays || 0) > 0 && (
-                <span className="font-pixel text-[9px] px-2 py-0.5 rounded animate-pulse" style={{ background: "rgba(0,204,136,0.2)", color: "#00cc88", border: "1px solid #00cc8860" }}>✨ RECOVERY WINDOW</span>
+                <span className="font-pixel text-[9px] px-2 py-0.5 rounded animate-pulse" style={{ background: "rgba(0,204,136,0.2)", color: "#00cc88", border: "1px solid #00cc8860" }}>✨ {t('rivalTab.recovery_window')}</span>
               )}
             </div>
           </div>

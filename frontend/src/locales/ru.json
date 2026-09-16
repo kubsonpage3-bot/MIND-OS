@@ -789,7 +789,9 @@
     "morning_person": "Ранняя пташка",
     "night_owl": "Полуночник",
     "recovery_window": "ОКНО ВОССТАНОВЛЕНИЯ",
-    "you_btn": "ВЫ"
+    "you_btn": "ВЫ",
+    "weeklyWinTitle": "Ты обогнал {{name}} на этой неделе!",
+    "mutatorChest": "Сундук мутаторов"
   },
   "projection": {
     "avgPace": "ПРОГНОЗЫ ПРИ ТЕКУЩЕМ ТЕМПЕ",

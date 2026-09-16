@@ -61,7 +61,7 @@ def test_transcendent_will(profile):
     # Calculate what today's daily should be
     user_id = profile.user.id
     pattern = get_day_pattern(today, user_id, diff_cfg)
-    specializations = get_johan_specializations(user_id)
+    specializations = get_johan_specializations(profile)
     sessions = generate_daily_sessions(
         today, user_id, pattern, specializations, diff_cfg
     )
@@ -92,11 +92,11 @@ def test_johan_session_determinism(profile):
     diff_cfg = JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
 
     pattern1 = get_day_pattern(date_str, user_id, diff_cfg)
-    specs1 = get_johan_specializations(user_id)
+    specs1 = get_johan_specializations(profile)
     sessions1 = generate_daily_sessions(date_str, user_id, pattern1, specs1, diff_cfg)
 
     pattern2 = get_day_pattern(date_str, user_id, diff_cfg)
-    specs2 = get_johan_specializations(user_id)
+    specs2 = get_johan_specializations(profile)
     sessions2 = generate_daily_sessions(date_str, user_id, pattern2, specs2, diff_cfg)
 
     assert pattern1 == pattern2
