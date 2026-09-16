@@ -101,6 +101,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "timezone",
             "notification_preferences",
             "pomodoro_settings",
+            "hidden_activities",
             "offline_seconds",
             "weekly_xp",
             "dismissed_insights",

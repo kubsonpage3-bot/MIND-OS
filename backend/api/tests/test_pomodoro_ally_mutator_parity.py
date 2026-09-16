@@ -104,7 +104,11 @@ def test_linked_pomodoro_lyra_l4_reduces_skill_cooldowns(auth_client, user):
 
 
 @pytest.mark.django_db
-def test_linked_pomodoro_zephyr_l1_different_subject_bonus(auth_client, user):
+def test_linked_pomodoro_zephyr_l1_different_subject_bonus(auth_client, user, monkeypatch):
+    # See the Lyra L1 test above: pin off Crit Focus randomness so the
+    # same-subject roll can't outscore the different-subject roll by chance.
+    monkeypatch.setattr("api.services.mechanics.random.random", lambda: 1.0)
+
     profile = UserProfile.objects.get(user=user)
     RecruitedAlly.objects.create(user_profile=profile, ally_code="zephyr", level=1)
     profile.active_allies = ["zephyr"]
@@ -121,7 +125,9 @@ def test_linked_pomodoro_zephyr_l1_different_subject_bonus(auth_client, user):
 
 
 @pytest.mark.django_db
-def test_linked_pomodoro_inversion_flips_focus_rating(auth_client, user):
+def test_linked_pomodoro_inversion_flips_focus_rating(auth_client, user, monkeypatch):
+    monkeypatch.setattr("api.services.mechanics.random.random", lambda: 1.0)
+
     profile = UserProfile.objects.get(user=user)
 
     baseline = start_and_complete(auth_client, duration_minutes=60, rating=10)

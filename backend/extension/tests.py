@@ -94,7 +94,105 @@ def test_status_returns_gold_and_hp(client, user, ext_token):
     assert data["gold"] == 500
     assert data["hp"] == 80
     assert "user_activities" in data
-    assert len(data["user_activities"]) >= 18
+    from api.constants.activities import ACTIVITY_CATALOG
+
+    assert len(data["user_activities"]) == len(ACTIVITY_CATALOG)
+
+
+@pytest.mark.django_db
+def test_status_user_activities_excludes_hidden(client, user, ext_token):
+    """
+    Hiding an activity on the Training tab (UserProfile.hidden_activities)
+    must also drop it from the extension's Linked-Pomodoro picker -- the two
+    surfaces share one list now instead of the extension showing its own
+    fixed catalog regardless of what the player actually uses.
+    """
+    profile = UserProfile.objects.get(user=user)
+    profile.hidden_activities = ["chess", "running"]
+    profile.save()
+
+    res = client.get(
+        "/api/extension/status/",
+        HTTP_AUTHORIZATION=f"Bearer {ext_token.token}",
+    )
+    assert res.status_code == 200
+    keys = [a["key"] for a in res.json()["user_activities"]]
+    assert "chess" not in keys
+    assert "running" not in keys
+    assert "mathematics" in keys
+
+
+@pytest.mark.django_db
+def test_status_user_activities_includes_custom_task(client, user, ext_token):
+    from api.models import Task
+
+    task = Task.objects.create(
+        user=user, title="Chemistry", task_type="button", icon="💎"
+    )
+
+    res = client.get(
+        "/api/extension/status/",
+        HTTP_AUTHORIZATION=f"Bearer {ext_token.token}",
+    )
+    assert res.status_code == 200
+    keys = {a["key"]: a["label"] for a in res.json()["user_activities"]}
+    assert keys.get(f"custom_task_{task.id}") == "Chemistry"
+
+
+@pytest.mark.django_db
+def test_extension_activity_catalog_matches_frontend_cognitive_engine():
+    """
+    Guards against the drift that caused this catalog to exist in the first
+    place: the backend's ACTIVITY_CATALOG (which builds the extension's
+    Linked-Pomodoro picker) must have exactly the same keys as ACTIVITIES in
+    frontend/src/lib/cognitiveEngine.js (the real Training-tab source of
+    truth). If this fails, either a new activity was added to one side only,
+    or a stale key was left behind on one side -- keep them in lockstep
+    rather than letting the extension quietly pick up ghost/ different
+    activities again.
+    """
+    import re
+    from pathlib import Path
+    from django.conf import settings
+    from api.constants.activities import ACTIVITY_CATALOG_KEYS
+
+    frontend_file = (
+        Path(settings.BASE_DIR).parent
+        / "frontend"
+        / "src"
+        / "lib"
+        / "cognitiveEngine.js"
+    )
+    if not frontend_file.exists():
+        pytest.skip("frontend/ not checked out alongside backend/ in this environment")
+
+    src = frontend_file.read_text(encoding="utf-8")
+    match = re.search(r"export const ACTIVITIES = \{([\s\S]*?)\n\};", src)
+    assert match, "Could not locate ACTIVITIES block in cognitiveEngine.js"
+    frontend_keys = set(re.findall(r"^\s{2}([a-z_]+):\s*\{", match.group(1), re.MULTILINE))
+
+    assert frontend_keys == ACTIVITY_CATALOG_KEYS
+
+
+@pytest.mark.django_db
+def test_hidden_activities_round_trips_through_profile_patch(client, user):
+    """
+    The Training tab (web) writes hidden_activities via PATCH /api/profile/;
+    the extension reads it back via GET /api/extension/status/. Confirms
+    the two actually share the one persisted list end-to-end.
+    """
+    from rest_framework.test import APIClient
+
+    api_client = APIClient()
+    api_client.force_authenticate(user=user)
+
+    res = api_client.patch(
+        "/api/profile/", {"hidden_activities": ["exercise"]}, format="json"
+    )
+    assert res.status_code == 200
+
+    profile = UserProfile.objects.get(user=user)
+    assert profile.hidden_activities == ["exercise"]
 
 
 # ── Unlock site ───────────────────────────────────────────────────────────────

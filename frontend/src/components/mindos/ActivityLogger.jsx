@@ -1,19 +1,29 @@
 // @ts-nocheck
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { METRIC_CONFIG, computeEfficiency, getSmartRecommendation, MASTERY_COEFFICIENTS, CATEGORY_ICONS, ACTIVITIES, resolveMasteryCategory } from "@/lib/cognitiveEngine";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Zap, Trash2, RotateCcw } from "lucide-react";
 import { djangoApi } from "@/api/djangoClient";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import EfficiencyMeter from "./EfficiencyMeter";
 import SubjectRankBadge, { SubjectRankProgressBar } from "./SubjectRankBadge";
 import CreateTaskForm from "./CreateTaskForm";
 
-function loadHiddenActivities() {
-  try { return JSON.parse(localStorage.getItem("mindos_hidden_activities") || "[]"); } catch { return []; }
+// One-time migration: hidden-activity picks used to live only in this
+// browser's localStorage, invisible to the Pomodoro extension and to any
+// other device. Read it once, hand the caller the list to persist to the
+// profile, then clear it so this never runs again.
+function takeLegacyHiddenActivities() {
+  try {
+    const raw = localStorage.getItem("mindos_hidden_activities");
+    localStorage.removeItem("mindos_hidden_activities");
+    const list = JSON.parse(raw || "[]");
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
 }
-function saveHiddenActivities(list) { localStorage.setItem("mindos_hidden_activities", JSON.stringify(list)); }
 
 const BASE_XP = 3;
 const TIER_MULTIPLIER = {
@@ -70,9 +80,31 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
   const [focusRating, setFocusRating] = useState(7);
   const [feedbackMsg, setFeedbackMsg] = useState(null);
   const [goldFloat, setGoldFloat] = useState(null);
-  const [hiddenActivities, setHiddenActivities] = useState(loadHiddenActivities);
+  const [hiddenActivities, setHiddenActivities] = useState(() => profile?.hidden_activities || []);
   const [deleteMode, setDeleteMode] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null); // activity key pending confirmation
+  const didMigrateLegacyHidden = useRef(false);
+
+  const hiddenActivitiesMutation = useMutation({
+    mutationFn: (list) => djangoApi.profile.update({ hidden_activities: list }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["userprofile"] }),
+  });
+
+  // Keep local state in step with the server (e.g. hidden elsewhere, or the
+  // legacy migration below just landed) without fighting in-flight edits.
+  useEffect(() => {
+    if (profile?.hidden_activities) setHiddenActivities(profile.hidden_activities);
+  }, [profile?.hidden_activities]);
+
+  useEffect(() => {
+    if (didMigrateLegacyHidden.current || !profile) return;
+    didMigrateLegacyHidden.current = true;
+    const legacy = takeLegacyHiddenActivities();
+    if (legacy.length === 0) return;
+    const merged = Array.from(new Set([...(profile.hidden_activities || []), ...legacy]));
+    setHiddenActivities(merged);
+    hiddenActivitiesMutation.mutate(merged);
+  }, [profile]);
 
   const userClass = profile?.character_class ? profile.character_class.toLowerCase().trim() : "";
   const heroTargetMastery = CLASS_MASTERY_MAP[userClass] || null;
@@ -263,7 +295,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
     } else {
       const updated = [...hiddenActivities, key];
       setHiddenActivities(updated);
-      saveHiddenActivities(updated);
+      hiddenActivitiesMutation.mutate(updated);
     }
     setConfirmDelete(null);
     if (selectedActivity === key) setSelectedActivity(null);
@@ -271,7 +303,7 @@ export default function ActivityLogger({ onLog, isLogging, profile, logs = [], t
 
   const restoreActivities = () => {
     setHiddenActivities([]);
-    saveHiddenActivities([]);
+    hiddenActivitiesMutation.mutate([]);
     setDeleteMode(false);
   };
 

@@ -91,7 +91,6 @@ let timerInterval    = null;
 let timerRunning     = false;
 let timerSeconds     = 25 * 60;
 let timerTotalSeconds = 25 * 60;
-let pomodoroSessionId = null;  // track active session
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
@@ -155,6 +154,12 @@ disconnectBtn.addEventListener('click', async () => {
 
 // ─── Sync ────────────────────────────────────────────────────────────────────
 
+// Offline-before-first-sync fallback only — the real, authoritative list
+// (which also respects hidden activities + custom tasks) comes from
+// SYNC's `user_activities` and is built server-side from
+// api.constants.activities.ACTIVITY_CATALOG. Keep this mirrored to that
+// catalog (and to ACTIVITIES in cognitiveEngine.js) if it ever changes —
+// it must NOT contain activity keys the backend doesn't actually score.
 const DEFAULT_BASE_ACTIVITIES = [
   { key: 'mathematics', label: 'Mathematics', icon: '∑' },
   { key: 'physics', label: 'Physics', icon: '⚛' },
@@ -171,9 +176,6 @@ const DEFAULT_BASE_ACTIVITIES = [
   { key: 'reading', label: 'Reading', icon: '📖' },
   { key: 'german', label: 'German', icon: '🇩🇪' },
   { key: 'languages', label: 'Other Languages', icon: '🌐' },
-  { key: 'psychology', label: 'Psychology', icon: '💗' },
-  { key: 'chemistry', label: 'Chemistry', icon: '💎' },
-  { key: 'neuroscience', label: 'Neuroscience', icon: '🧠' },
 ];
 
 function renderActivityOptions(activities) {
@@ -644,11 +646,6 @@ async function openPomodoroSession() {
         mode: 'work',
       }),
     });
-    if (res.ok) {
-      const data = await res.json();
-      // Capture session id so completePomodoroSession can use it
-      if (data.id) pomodoroSessionId = data.id;
-    }
   } catch (e) {
     console.error('[MIND OS] openPomodoroSession error:', e);
   }
@@ -694,11 +691,7 @@ async function completePomodoroSession() {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
     const apiBase = await getApiBase();
-    // Use specific session id if captured, otherwise fall back to active-session endpoint
-    const endpoint = pomodoroSessionId
-      ? `${apiBase}/api/pomodoro/sessions/${pomodoroSessionId}/complete/`
-      : `${apiBase}/api/pomodoro/sessions/active-session/complete/`;
-    const res = await fetch(endpoint, {
+    const res = await fetch(`${apiBase}/api/pomodoro/sessions/active-session/complete/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -709,7 +702,6 @@ async function completePomodoroSession() {
       const data = await res.json();
       celebrateCompletion(data);
     }
-    pomodoroSessionId = null;
     // Sync to pick up new gold/XP
     setTimeout(syncAndRender, 1000);
   } catch (e) {

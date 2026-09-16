@@ -243,6 +243,14 @@ class UserProfile(models.Model):
         default=dict, blank=True, verbose_name="Настройки помодоро"
     )
 
+    # Активности, скрытые пользователем из Training/Activities и из
+    # линкованного выбора в Pomodoro (сайт + расширение). Список ключей
+    # (см. api.constants.activities.ACTIVITY_CATALOG и cognitiveEngine.js
+    # ACTIVITIES) или "custom_task_<id>" для собственных задач-кнопок.
+    hidden_activities = models.JSONField(
+        default=list, blank=True, verbose_name="Скрытые активности"
+    )
+
     # Поля для мутаторов (Group 3)
     tasks_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено задач сегодня (momentum)"

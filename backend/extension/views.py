@@ -13,6 +13,7 @@ from rest_framework.response import Response
 
 from api.models import UserProfile
 from api.constants import RANK_THRESHOLDS
+from api.constants.activities import ACTIVITY_CATALOG
 from .models import BlockedSite, ExtensionToken, PairingCode, SiteUnlock
 from .permissions import IsExtensionAuthenticated
 from .serializers import BlockedSiteSerializer, SiteUnlockSerializer
@@ -193,28 +194,11 @@ def status_view(request):
             "started_at": active_pomo.started_at,
         }
 
-    BASE_ACTIVITIES = [
-        {"key": "mathematics", "label": "Mathematics", "icon": "∑"},
-        {"key": "physics", "label": "Physics", "icon": "⚛"},
-        {"key": "history", "label": "History", "icon": "📜"},
-        {"key": "english", "label": "English", "icon": "✍"},
-        {"key": "philosophy", "label": "Philosophy", "icon": "φ"},
-        {"key": "vocabulary", "label": "Vocabulary", "icon": "Aa"},
-        {"key": "chess", "label": "Chess / Logic", "icon": "♟"},
-        {"key": "coding", "label": "Coding", "icon": "</>"},
-        {"key": "creative_answers", "label": "Creative Answers", "icon": "💡"},
-        {"key": "exercise", "label": "Exercise", "icon": "⚡"},
-        {"key": "prayer", "label": "Prayer / Meditation", "icon": "🕊️"},
-        {"key": "running", "label": "Running", "icon": "🏃"},
-        {"key": "reading", "label": "Reading", "icon": "📖"},
-        {"key": "german", "label": "German", "icon": "🇩🇪"},
-        {"key": "languages", "label": "Other Languages", "icon": "🌐"},
-        {"key": "psychology", "label": "Psychology", "icon": "💗"},
-        {"key": "chemistry", "label": "Chemistry", "icon": "💎"},
-        {"key": "neuroscience", "label": "Neuroscience", "icon": "🧠"},
-    ]
+    hidden = set(profile.hidden_activities or [])
 
-    # Button tasks (custom activities) with today's completion status
+    # Button tasks (custom activities) with today's completion status.
+    # today_tasks (the Quests tab) intentionally ignores `hidden` -- hiding
+    # only affects the Linked-Pomodoro activity picker, not the quest list.
     today_str = now.date().isoformat()
     custom_tasks = Task.objects.filter(user=request.user, task_type="button")
     custom_activities = []
@@ -225,9 +209,10 @@ def status_view(request):
             t.last_completed_at is not None
             and t.last_completed_at.date().isoformat() == today_str
         )
-        custom_activities.append(
-            {"key": task_key, "label": t.title, "icon": t.icon or "🔘"}
-        )
+        if task_key not in hidden:
+            custom_activities.append(
+                {"key": task_key, "label": t.title, "icon": t.icon or "🔘"}
+            )
         today_tasks.append(
             {
                 "id": t.id,
@@ -238,7 +223,8 @@ def status_view(request):
             }
         )
 
-    user_activities = BASE_ACTIVITIES + custom_activities
+    base_activities = [a for a in ACTIVITY_CATALOG if a["key"] not in hidden]
+    user_activities = base_activities + custom_activities
 
     rank_data = _rank_progress(profile.rank_xp)
 
