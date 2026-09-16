@@ -66,7 +66,13 @@ def test_linked_pomodoro_lyra_l1_short_session_zeroes_rewards(auth_client, user)
 
 
 @pytest.mark.django_db
-def test_linked_pomodoro_lyra_l1_long_session_gets_xp_bonus(auth_client, user):
+def test_linked_pomodoro_lyra_l1_long_session_gets_xp_bonus(auth_client, user, monkeypatch):
+    # Crit Focus (FOC-based) is random and would occasionally make the
+    # uninverted baseline roll higher than the Lyra-boosted session by
+    # chance, flaking this comparison. Pin it off so the test isolates
+    # the Lyra L1 duration bonus.
+    monkeypatch.setattr("api.services.mechanics.random.random", lambda: 1.0)
+
     profile = UserProfile.objects.get(user=user)
 
     baseline = start_and_complete(auth_client, duration_minutes=150, rating=8)
