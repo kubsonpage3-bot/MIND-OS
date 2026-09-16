@@ -345,8 +345,48 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 mutator_effects = apply_active_mutators(profile, context)
                 passive_effects = get_passive_multipliers(profile, context)
 
-                # Deep concentration: focus minimum counts as 7.0
-                eff_rating = max(float(rating), passive_effects.get("min_focus", 0.0))
+                active_list = (
+                    profile.active_mutators.get("active", [])
+                    if isinstance(profile.active_mutators, dict)
+                    else []
+                )
+                active_ids = [
+                    m.get("id") if isinstance(m, dict) else m for m in active_list
+                ]
+
+                # Allies -- same lookup as TrainingLogView, so a linked
+                # Pomodoro isn't invisible to Lyra/Zephyr's training-specific
+                # perks below.
+                from api.models import RecruitedAlly
+
+                active_codes = profile.active_allies or []
+                recruited_allies = {
+                    a.ally_code: a.level
+                    for a in RecruitedAlly.objects.filter(
+                        user_profile=profile, ally_code__in=active_codes
+                    )
+                }
+
+                # Lyra Level 3 Decaying Focus -- same curve as TrainingLogView.
+                if passive_effects.get("decaying_focus", False) and hours > 0:
+                    chunks = max(1, int(hours / 0.25))
+                    total_focus = 0.0
+                    for c in range(chunks):
+                        t_start = c * 0.25
+                        if t_start < 0.5:
+                            val = 10.0
+                        else:
+                            decay_steps = int((t_start - 0.5) / 0.25) + 1
+                            val = max(1.0, 10.0 - 1.5 * decay_steps)
+                        total_focus += val
+                    eff_rating = total_focus / chunks
+                else:
+                    # Deep concentration: focus minimum counts as 7.0
+                    eff_rating = max(float(rating), passive_effects.get("min_focus", 0.0))
+
+                # Inversion focus quality flip
+                if "inversion" in active_ids:
+                    eff_rating = 11.0 - eff_rating
 
                 # Reward base -- same training_rewards() formula as a manual
                 # Activity Log (TrainingLogView), instead of the old flat
@@ -363,6 +403,41 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 xp_mult = mutator_effects.get("xp_mult", 1.0) + passive_effects.get("xp_mult", 1.0) - 1.0
                 gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
                 flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
+
+                # Lyra Level 1 duration requirements
+                lyra_level = recruited_allies.get("lyra", 0)
+                lyra_zero_rewards = False
+                if lyra_level >= 1:
+                    if hours > 2.0:
+                        xp_mult += 0.30
+                    elif hours < 0.5:
+                        lyra_zero_rewards = True
+                        xp_mult = 0.0
+                        gold_mult = 0.0
+                        flat_xp_bonus = 0
+
+                # Zephyr Level 1: different focus subject gives +20% Rank XP
+                zephyr_level = recruited_allies.get("zephyr", 0)
+                if zephyr_level >= 1:
+                    last_session = (
+                        TrainingSession.objects.filter(user_profile=profile)
+                        .order_by("-created_at")
+                        .first()
+                    )
+                    is_different_subject = True
+                    if last_session and last_session.activity_key == activity_key:
+                        is_different_subject = False
+                    if is_different_subject:
+                        xp_mult += 0.20
+
+                # Lyra Level 4 active skill cooldowns reduction
+                if lyra_level >= 4 and hours > 0:
+                    from api.models import SkillCooldown
+
+                    cooldowns = SkillCooldown.objects.filter(user=request.user)
+                    for cd in cooldowns:
+                        cd.cooldown_until -= timedelta(hours=hours)
+                        cd.save(update_fields=["cooldown_until"])
 
                 # Reward breakdown -- same shape as TrainingLogView/_complete_task_logic:
                 # precisely which mutator/ally/gear/skill-tree source actually
@@ -410,6 +485,8 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     activity_key, hours, eff_total, profile,
                     mastery_category=task.mastery_category if task else "",
                 )
+                if lyra_zero_rewards:
+                    gains = {k: 0.0 for k in gains}
 
                 gf_mult = passive_effects.get("gf_mult", 1.0)
                 gc_mult = passive_effects.get("gc_mult", 1.0)
@@ -440,6 +517,9 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 )
                 xp_earned = max(0, int(outcome["xp_earned"] * profile.xp_multiplier))
                 gold_earned = max(0, int(outcome["gold_earned"] * profile.gold_multiplier))
+                if lyra_zero_rewards:
+                    xp_earned = 0
+                    gold_earned = 0
 
                 # Session-scoped class skills (Algorithmic Cascade, Quantum
                 # Optimization, Eye of the Storm's heal/mana, Rosetta
