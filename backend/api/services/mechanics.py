@@ -1823,7 +1823,12 @@ def get_passive_multipliers(profile, context: dict):
             effects["xp_mult"] += 0.20
             src("Flow State: +20% XP (first session today)")
 
-    if "polymath" in unlocked_skills:
+    # Polymath: was firing on every XP-earning action for the rest of the
+    # day once 3 subjects were logged, including Habit/Daily/Todo
+    # completions -- a trivial task's ~3 XP base getting +20 flat (an 8x
+    # multiplier) clearly wasn't the intent of a cheap Tier-1 node. Scoped
+    # to Training/Pomodoro sessions only, per user decision.
+    if "polymath" in unlocked_skills and context.get("task_type") == "training":
         stats = getattr(profile.user, "stats", None)
         if stats:
             unique_today = get_unique_subjects_today(stats)

@@ -236,10 +236,23 @@ class TestAll30Skills:
         assert profile.void_clarity_last_used is not None
 
     def test_knowledge_branch_skills(self, user, profile):
-        # 22. polymath
+        # 22. polymath -- +20 flat XP once 3+ unique subjects are logged
+        # today, scoped to Training/Pomodoro sessions only (not Habit/
+        # Daily/Todo -- see test_skills_and_allies_multipliers in
+        # test_services.py for the negative case).
         UnlockedSkill.objects.create(user_profile=profile, skill_code="polymath")
-        effects = get_passive_multipliers(profile, {})
-        # Tested when user has 3+ unique subjects today
+        from api.models import UserStats
+        from django.utils import timezone as tz
+
+        stats, _ = UserStats.objects.get_or_create(user=user)
+        stats.unique_subjects_today = {
+            "date": str(tz.now().date()),
+            "subjects": ["Math", "Physics", "Chemistry"],
+        }
+        stats.save()
+
+        effects = get_passive_multipliers(profile, {"task_type": "training"})
+        assert effects["flat_xp"] == 20
 
         # 23. cross_training
         UnlockedSkill.objects.create(user_profile=profile, skill_code="cross_training")

@@ -632,15 +632,44 @@ def test_skills_and_allies_multipliers(user, profile):
     stats.save()
     profile = UserProfile.objects.get(id=profile.id)
 
-    effects3 = get_passive_multipliers(profile, {})
+    # Scoped to Training/Pomodoro sessions only, per user decision -- a
+    # trivial Habit/Daily/Todo completion (~3 XP base) getting +20 flat on
+    # top was never the intent of a cheap Tier-1 node.
+    effects3 = get_passive_multipliers(profile, {"task_type": "training"})
     assert effects3["flat_xp"] == 20
 
-    # 4. Void boss damage -- applied directly in apply_boss_damage(), not
-    # through get_passive_multipliers(); see test_boss_dmg_mult_gaps.py.
-    RecruitedAlly.objects.create(user_profile=profile, ally_code="void", level=1)
-    profile.active_allies = ["void"]
-    profile.save()
-    profile.refresh_from_db()
+    effects3_task = get_passive_multipliers(profile, {"task_type": "daily"})
+    assert effects3_task["flat_xp"] == 0
+
+
+@pytest.mark.django_db
+def test_polymath_does_not_flat_bonus_a_trivial_task(user, profile):
+    """
+    Real report: completing a trivial Todo (~3 XP base) after logging 3+
+    subjects earlier that day returned 23 XP with "Flat bonus +20 XP" in
+    the history breakdown -- Polymath's +20 was stacking onto every single
+    XP-earning action for the rest of the day, dwarfing a trivial task's
+    own reward 8x over. Scoped to Training/Pomodoro sessions only.
+    """
+    from django.utils import timezone as tz
+    from api.models import UnlockedSkill, UserStats, UserActivityLog
+
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="polymath")
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    stats.unique_subjects_today = {
+        "date": str(tz.now().date()),
+        "subjects": ["Math", "Physics", "Chemistry"],
+    }
+    stats.save()
+
+    todo = Task.objects.create(
+        user=user, title="Trivial Todo", task_type=Task.TaskType.TODO, difficulty="trivial"
+    )
+    result = complete_task(user, todo.id, is_positive=True)
+    assert result["xp_earned"] < 10  # not the old 3 (base) + 20 (flat) = 23
+
+    log = UserActivityLog.objects.filter(user=user, task=todo).latest("created_at")
+    assert not any("Flat bonus" in n for n in log.metadata.get("breakdown", []))
 
 
 @pytest.mark.django_db
