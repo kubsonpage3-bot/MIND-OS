@@ -152,15 +152,9 @@ def process_daily_login(user):
         godmind_xp = int(iq_score * 0.5)
         profile.rank_xp += godmind_xp
 
-    # compound_returns: every 7-day streak milestone gives +200G bonus
-    if (
-        profile.streak > 0
-        and profile.streak % 7 == 0
-        and UnlockedSkill.objects.filter(
-            user_profile=profile, skill_code="compound_returns"
-        ).exists()
-    ):
-        profile.gold += 200
+    # compound_returns: now a passive gold_mult that scales with streak
+    # length (get_passive_multipliers), not a flat 7-day milestone tick --
+    # see mechanics.py.
 
     # ── Economy Mutators: loan_shark & compound ─────────────────────────────
     # loan_shark: lose 30G every midnight (reduced to 15G if compound synergy active)

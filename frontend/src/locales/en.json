@@ -1087,7 +1087,7 @@
       },
       "compound_returns": {
         "name": "Compound Returns",
-        "desc": "7-day perfect streak gives bonus 200G"
+        "desc": "+0.5% Gold per streak day, up to +15% (30-day streak)"
       },
       "loot_magnetism": {
         "name": "Fortune's Pull",

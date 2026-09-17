@@ -184,7 +184,7 @@ export const SKILL_TREE = {
     label: "WEALTH", color: "#f0c040",
     nodes: [
       { id: "resource_awareness", tier: 1, name: "Resource Awareness", desc: "All task completions give +10% Gold", sp: 3, gold: 100 },
-      { id: "compound_returns", tier: 2, name: "Compound Returns", desc: "Every 7-day streak milestone awards +200G bonus", requires: "resource_awareness", sp: 6, gold: 250 },
+      { id: "compound_returns", tier: 2, name: "Compound Returns", desc: "+0.5% Gold per streak day, up to +15% (30-day streak)", requires: "resource_awareness", sp: 6, gold: 250 },
       { id: "loot_magnetism", tier: 3, name: "Fortune's Pull", desc: "Item drop chance from tasks +3%", requires: "compound_returns", sp: 10, gold: 500 },
       { id: "market_knowledge", tier: 4, name: "Market Knowledge", desc: "Selling items gives 60% of buy price (base: 30%)", requires: "loot_magnetism", sp: 15, gold: 800 },
       { id: "fortunes_favor", tier: 5, name: "Fortune's Favor", desc: "Daily login bonus gold doubled: 100G instead of 50G", requires: "market_knowledge", sp: 22, gold: 1500 },

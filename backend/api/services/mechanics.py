@@ -1582,7 +1582,6 @@ def get_passive_multipliers(profile, context: dict):
         "rival_xp_reduction": 0.0,
         "godmind_active": False,
         "fortunes_favor": False,
-        "compound_returns": False,
         "triple_subject_gold_bonus": 0,
         "weekly_free_mana": False,
         "cognitive_metric_multiplier": 0.0,
@@ -1882,8 +1881,15 @@ def get_passive_multipliers(profile, context: dict):
         effects["fortunes_favor"] = True
 
     if "compound_returns" in unlocked_skills:
-        # 7-day streak multiples bonus (flag read by daily_service)
-        effects["compound_returns"] = True
+        # Redesigned per user decision: was a flat +200G every 7th streak
+        # day (didn't actually "compound" anything). Now a passive Gold
+        # multiplier that grows with the current streak -- +0.5%/day,
+        # capped at +15% (reached at a 30-day streak) -- and vanishes the
+        # instant the streak breaks, same as the name promises.
+        bonus = min(0.15, profile.streak * 0.005)
+        effects["gold_mult"] += bonus
+        if bonus > 0:
+            src(f"Compound Returns: +{bonus:.1%} Gold ({profile.streak}d streak)")
 
     if "master_of_arts" in unlocked_skills:
         # Humanities rank thresholds reduced by 15%

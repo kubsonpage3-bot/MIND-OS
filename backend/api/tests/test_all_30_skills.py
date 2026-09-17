@@ -180,20 +180,21 @@ class TestAll30Skills:
         assert ok2 is True
         assert p2.gold == 30 + int(100 * MARKET_KNOWLEDGE_SELL_RATE)  # 30 + 60 = 90
 
-        # 16. fortunes_favor & compound_returns in daily login
+        # 16. fortunes_favor in daily login (compound_returns is now a
+        # passive Gold multiplier, covered in test_services.py, not a
+        # daily-login flat bonus)
         UnlockedSkill.objects.create(user_profile=profile, skill_code="fortunes_favor")
-        UnlockedSkill.objects.create(user_profile=profile, skill_code="compound_returns")
 
         profile.streak = 6
         profile.last_login_date = timezone.now().date() - timedelta(days=1)
         profile.gold = 0
         profile.save()
 
-        # Logging in advances streak to 7 -> triggers +100G (fortunes_favor) + 200G (compound_returns at streak 7)
+        # Logging in advances streak to 7 -> triggers +100G (fortunes_favor)
         process_daily_login(user)
         profile.refresh_from_db()
         assert profile.streak == 7
-        assert profile.gold == 100 + 200
+        assert profile.gold == 100
 
     def test_spirit_branch_skills(self, user, profile):
         # 17. inner_stillness

@@ -383,8 +383,8 @@ SKILL_TREE_CONFIG = {
         "sp": 6,
         "gold": 250,
         "requires": "resource_awareness",
-        "streak_bonus_gold": 200,
-        "streak_bonus_every": 7,
+        "gold_multiplier_per_streak_day": 0.005,
+        "gold_multiplier_cap": 0.15,
     },
     "loot_magnetism": {
         "sp": 10,

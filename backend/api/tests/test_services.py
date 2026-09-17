@@ -973,11 +973,13 @@ def test_daily_login_streak(user, profile):
     p = process_daily_login(user)
     assert p.streak == 5
 
-    # 5. Unlock skills and check compound_returns & fortunes_favor
+    # 5. Unlock fortunes_favor, check daily login bonus
+    # (compound_returns is now a passive Gold multiplier that scales with
+    # streak length, not a daily-login flat bonus -- see
+    # test_compound_returns_gold_mult_scales_with_streak_and_caps below.)
     from api.models import UnlockedSkill
 
     UnlockedSkill.objects.create(user_profile=p, skill_code="fortunes_favor")
-    UnlockedSkill.objects.create(user_profile=p, skill_code="compound_returns")
 
     # 5a. Simulate day change to reach streak 6
     UserProfile.objects.filter(id=p.id).update(
@@ -988,31 +990,33 @@ def test_daily_login_streak(user, profile):
     gold_before = p.gold
     p = process_daily_login(user)
     assert p.streak == 6
-    assert (
-        p.gold == gold_before + 100
-    )  # Only fortunes_favor fires, NOT compound_returns
+    assert p.gold == gold_before + 100  # fortunes_favor
 
-    # 5b. Simulate day change to reach streak 7 (compound_returns should fire)
-    p.last_login_date = timezone.now().date() - timedelta(days=1)
-    p.save()
 
-    gold_before = p.gold
-    p = process_daily_login(user)
-    assert p.streak == 7
-    assert (
-        p.gold == gold_before + 100 + 200
-    )  # fortunes_favor (100) + compound_returns (200)
+@pytest.mark.django_db
+def test_compound_returns_gold_mult_scales_with_streak_and_caps(user, profile):
+    """
+    Compound Returns redesigned per user decision: was a flat +200G every
+    7th streak day (didn't actually "compound" anything). Now a passive
+    Gold multiplier of +0.5%/streak-day, capped at +15% (30-day streak),
+    that disappears the instant the streak breaks.
+    """
+    from api.models import UnlockedSkill
+    from api.services.mechanics import get_passive_multipliers
 
-    # 5c. Simulate streak gap > 1 (streak resets to 1), confirm no compound_returns fires
-    p.last_login_date = timezone.now().date() - timedelta(days=2)
-    p.save()
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="compound_returns")
 
-    gold_before = p.gold
-    p = process_daily_login(user)
-    assert p.streak == 1  # Reset!
-    assert (
-        p.gold == gold_before + 100
-    )  # Only fortunes_favor fires, NOT compound_returns
+    profile.streak = 10
+    profile.save()
+    assert get_passive_multipliers(profile, {})["gold_mult"] == pytest.approx(1.05)
+
+    profile.streak = 60  # well past the 30-day cap
+    profile.save()
+    assert get_passive_multipliers(profile, {})["gold_mult"] == pytest.approx(1.15)
+
+    profile.streak = 0  # streak broken
+    profile.save()
+    assert get_passive_multipliers(profile, {})["gold_mult"] == 1.0
 
 
 @pytest.mark.django_db
