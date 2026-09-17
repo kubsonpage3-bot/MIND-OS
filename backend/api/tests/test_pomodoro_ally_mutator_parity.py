@@ -10,6 +10,12 @@ entirely:
   2. The "inversion" mutator (flips focus rating: 11 - focus) was applied
      in TrainingLogView but never checked here, so a session logged via
      Pomodoro under Inversion scored as if the mutator weren't active.
+  3. Same gap, three more allies: Sakura L3 (+5 mana on a language
+     session), Grier L1 (+2 HP on Focus >= 9.0), and Nene L2 (+30G for
+     logging 3+ subjects/day, whose unique-subject-count return value was
+     tracked here but discarded instead of checked) -- all read/computed
+     correctly by get_passive_multipliers(), but the consuming code that
+     actually applies them only existed in TrainingLogView.
 """
 import pytest
 from django.contrib.auth import get_user_model
@@ -139,3 +145,62 @@ def test_linked_pomodoro_inversion_flips_focus_rating(auth_client, user, monkeyp
     # Reported rating=10 (great focus) but Inversion flips it to 11-10=1
     # (focus floor) -- must score noticeably worse than the uninverted baseline.
     assert inverted["xp_earned"] < baseline["xp_earned"]
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_sakura_l3_language_mana_bonus(auth_client, user):
+    """
+    Sakura L3's "+5 mana per language session" was applied in
+    TrainingLogView but never checked in the linked-Pomodoro completion
+    path, so it silently did nothing for a language session logged that way.
+    """
+    profile = UserProfile.objects.get(user=user)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="sakura", level=3)
+    profile.active_allies = ["sakura"]
+    profile.mana = 50
+    profile.save()
+
+    start_and_complete(auth_client, duration_minutes=60, rating=8, activity_key="german")
+
+    profile.refresh_from_db()
+    assert profile.mana == 55
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_grier_l1_heal_on_high_focus(auth_client, user):
+    """
+    Grier L1's "+2 HP on Focus >= 9.0" had the same TrainingLogView-only gap
+    as Sakura L3 above.
+    """
+    profile = UserProfile.objects.get(user=user)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="grier", level=1)
+    profile.active_allies = ["grier"]
+    profile.hp = 50
+    profile.save()
+
+    start_and_complete(auth_client, duration_minutes=60, rating=9)
+
+    profile.refresh_from_db()
+    assert profile.hp == 52
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_nene_l2_triple_subject_gold_bonus(auth_client, user):
+    """
+    Nene L2's "+30G for logging 3+ subjects in a day" tracked the unique-
+    subject count here too, but discarded the return value instead of
+    checking it, so the gold bonus never fired for Pomodoro sessions.
+    """
+    profile = UserProfile.objects.get(user=user)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="nene", level=2)
+    profile.active_allies = ["nene"]
+    profile.save()
+
+    start_and_complete(auth_client, duration_minutes=30, rating=7, activity_key="mathematics")
+    start_and_complete(auth_client, duration_minutes=30, rating=7, activity_key="physics")
+    gold_before_third = UserProfile.objects.get(user=user).gold
+
+    start_and_complete(auth_client, duration_minutes=30, rating=7, activity_key="coding")
+
+    profile.refresh_from_db()
+    assert profile.gold >= gold_before_third + 30

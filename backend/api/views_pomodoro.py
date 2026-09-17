@@ -404,6 +404,19 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 gold_mult = mutator_effects.get("gold_mult", 1.0) + passive_effects.get("gold_mult", 1.0) - 1.0
                 flat_xp_bonus = mutator_effects.get("flat_xp", 0) + passive_effects.get("flat_xp", 0)
 
+                # Sakura L3: mana regen on a language session -- was applied
+                # in TrainingLogView but never here, so a language session
+                # logged via a linked Pomodoro never restored it.
+                if context.get("is_language"):
+                    lang_mana_bonus = passive_effects.get("language_mana_bonus", 0)
+                    if lang_mana_bonus > 0:
+                        profile.mana = min(profile.max_mana, profile.mana + lang_mana_bonus)
+
+                # Grier L1: Focus >= 9.0 restores +2 HP -- same TrainingLogView
+                # gap as above.
+                if passive_effects.get("grier_l1_heal", False):
+                    profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 2)
+
                 # Lyra Level 1 duration requirements
                 lyra_level = recruited_allies.get("lyra", 0)
                 lyra_zero_rewards = False
@@ -579,7 +592,10 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 # Flow state: record training date
                 profile.last_training_at = timezone.now().date()
 
-                # Polymath: track unique subjects today
+                # Polymath: track unique subjects today. Nene L2's "log 3+
+                # subjects/day" gold bonus reads this same count -- was
+                # wired into TrainingLogView but the return value was
+                # discarded here, so it never fired for a linked Pomodoro.
                 try:
                     from api.models import UserStats
                     from api.services.mechanics import add_unique_subject_today
@@ -587,7 +603,11 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     stats, _ = UserStats.objects.get_or_create(user=request.user)
                     subj = activity_key or (task.category if task else None)
                     if subj:
-                        add_unique_subject_today(stats, subj)
+                        unique_subjects_count = add_unique_subject_today(stats, subj)
+                        if unique_subjects_count == 3:
+                            triple_gold = passive_effects.get("triple_subject_gold_bonus", 0)
+                            if triple_gold > 0:
+                                profile.gold += triple_gold
                 except Exception:
                     pass
 
