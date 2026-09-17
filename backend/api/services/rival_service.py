@@ -502,8 +502,19 @@ def compute_rival_data(user_profile):
         if d_str in existing_by_date and d_str != today:
             weekly_history.append(existing_by_date[d_str])
         else:
+            # Explicit UTC-anchored range, not created_at__date=dt.date() --
+            # that implicitly converts to settings.TIME_ZONE (Europe/Moscow,
+            # UTC+3) before extracting the date, so a session logged in the
+            # last ~3 hours of the UTC day silently fell into "tomorrow" and
+            # vanished from today's weekly_history entry entirely (hours,
+            # XP, and therefore the "beat Johan this week" reward all read
+            # as 0 for the day it actually happened on).
+            day_start = datetime(dt.year, dt.month, dt.day, tzinfo=timezone.utc)
+            day_end = day_start + timedelta(days=1)
             daily_sessions = TrainingSession.objects.filter(
-                user_profile=user_profile, created_at__date=dt.date()
+                user_profile=user_profile,
+                created_at__gte=day_start,
+                created_at__lt=day_end,
             ).aggregate(total_hours=Sum("hours"), total_xp=Sum("xp_earned"))
             p_hours = round(daily_sessions["total_hours"] or 0, 1)
             p_xp = daily_sessions["total_xp"] or 0
