@@ -1504,7 +1504,6 @@ class TrainingLogView(generics.GenericAPIView):
             gc_mult = passive_effects.get("gc_mult", 1.0)
             ps_mult = passive_effects.get("ps_mult", 1.0)
             vm_mult = passive_effects.get("vm_mult", 1.0)
-            boss_dmg_mult = passive_effects.get("boss_dmg_mult", 1.0)
             # NOTE: mutator_effects["gc_flat"] (e.g. lexicon's "+0.01 Gc per
             # session") belongs on Gc, not Gf — was misrouted here before.
             gf_flat_bonus = passive_effects.get("gf_flat_bonus", 0.0)
@@ -1858,6 +1857,10 @@ class TrainingLogView(generics.GenericAPIView):
                 * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
                 * session_skills["boss_dmg_mult"]
             )
+            # NOTE: Void ally / apex_predator / boss-damage gear bonuses
+            # apply once, correctly, inside apply_boss_damage() below (this
+            # final_damage_dealt is its base) -- don't also read
+            # passive_effects["boss_dmg_mult"] here, or they'd double-apply.
             is_crit = outcome.get("is_crit", False)
 
             if session_skills["blood_harvest_active"]:

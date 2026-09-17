@@ -1877,6 +1877,11 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
             ),
         )
+        # NOTE: Void ally / apex_predator / boss-damage gear bonuses are
+        # NOT applied here -- they're applied once, correctly, inside
+        # apply_boss_damage() below (which this final_damage_dealt is fed
+        # into as its base). Do not also read
+        # passive_effects["boss_dmg_mult"] here, or they'd double-apply.
 
         # Kage L5 Executioner: 5x damage to boss below 15% HP. (The downside
         # half of this perk -- +50% HP damage taken on task failure -- is
@@ -1911,6 +1916,15 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             grier_dmg_mult = 1.0 + (0.50 * profile.grier_revenge_charges)
             final_damage_dealt = int(final_damage_dealt * grier_dmg_mult)
             profile.grier_revenge_charges = 0
+
+        # Grier Level 5 Unbreakable Will: "double task boss damage" below
+        # 20% HP -- the mana-regen-disable and missed-daily-immunity halves
+        # of this perk were already wired in (see grier_unbreakable_will
+        # above), but this third promised half was never implemented at all.
+        if passive_effects.get(
+            "grier_unbreakable_will", False
+        ) and profile.hp < profile.total_stats.get("hp_max", 100) * 0.20:
+            final_damage_dealt = int(final_damage_dealt * 2)
 
         # Rhea Level 4: Void Pull
         rhea_level = recruited_allies.get("rhea", 0)

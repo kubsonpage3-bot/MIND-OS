@@ -635,13 +635,12 @@ def test_skills_and_allies_multipliers(user, profile):
     effects3 = get_passive_multipliers(profile, {})
     assert effects3["flat_xp"] == 20
 
-    # 4. Void boss damage
+    # 4. Void boss damage -- applied directly in apply_boss_damage(), not
+    # through get_passive_multipliers(); see test_boss_dmg_mult_gaps.py.
     RecruitedAlly.objects.create(user_profile=profile, ally_code="void", level=1)
     profile.active_allies = ["void"]
     profile.save()
     profile.refresh_from_db()
-    effects4 = get_passive_multipliers(profile, {})
-    assert effects4["boss_dmg_mult"] == 1.10
 
 
 @pytest.mark.django_db

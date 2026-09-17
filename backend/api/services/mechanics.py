@@ -1562,7 +1562,6 @@ def get_passive_multipliers(profile, context: dict):
         "vm_mult": 1.0,
         "crit_chance_bonus": 0.0,
         "crit_damage_mult": 2.0,
-        "boss_dmg_mult": 1.0,
         "boss_kill_mana_restore": 0,
         "boss_kill_hp_heal": 0,
         "boss_hp_reduction": 0.0,
@@ -1655,11 +1654,6 @@ def get_passive_multipliers(profile, context: dict):
             effects["xp_mult"] += val
             src(f"{effect.skill_id or 'XP buff'}: +{val:.0%} XP")
 
-        # Boss Damage Plus
-        if eff_type == "boss_damage_plus" or "bossDamageMultiplier" in effect.data:
-            val = effect.data.get("bossDamageMultiplier", 1.0)
-            effects["boss_dmg_mult"] += val
-
         # Legacy Gold Boost
         if "gold_boost" in effect.data:
             effects["gold_mult"] += effect.data["gold_boost"]
@@ -1716,9 +1710,8 @@ def get_passive_multipliers(profile, context: dict):
     if "silk_mantle" in equipped_codes:
         effects["missed_daily_hp_reduction"] = effects.get("missed_daily_hp_reduction", 0.0) + 0.05
 
-    # Frostbite Blade: +4% boss damage (also applied in apply_boss_damage directly)
-    if "frostbite_blade" in equipped_codes:
-        effects["boss_dmg_mult"] += 0.04
+    # Frostbite Blade's +4% boss damage is applied in apply_boss_damage()
+    # directly, not through this pipeline.
 
     # ── B-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
     # Glass Tear (B): Heal +2 HP on each task completion
@@ -1729,9 +1722,9 @@ def get_passive_multipliers(profile, context: dict):
     if "leviathan_scale" in equipped_codes:
         effects["mana_regen_mult"] += 0.05
 
-    # Ember Gauntlet (B - Forge Wrath): +6% boss damage + +2 PWR
+    # Ember Gauntlet (B - Forge Wrath): +6% boss damage (via
+    # apply_boss_damage() directly) + +2 PWR
     if "ember_gauntlet" in equipped_codes:
-        effects["boss_dmg_mult"] += 0.06
         effects["pwr_stat_bonus"] = effects.get("pwr_stat_bonus", 0) + 2
 
     # ── A-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
@@ -1744,9 +1737,9 @@ def get_passive_multipliers(profile, context: dict):
     if "golems_grip" in equipped_codes:
         effects["def_stat_bonus"] = effects.get("def_stat_bonus", 0) + 6
 
-    # Scar Shard: +8% boss damage
-    if "scar_shard" in equipped_codes:
-        effects["boss_dmg_mult"] += 0.08
+    # Scar Shard's +8% boss damage and Blade of the Final Dusk's x2 are
+    # both applied in apply_boss_damage() directly, not through this
+    # pipeline.
 
     # ── S-RANK BOSS DROP PASSIVES ─────────────────────────────────────────────
     # Forgotten Score: +10% to cognitive domain metrics
@@ -1817,8 +1810,8 @@ def get_passive_multipliers(profile, context: dict):
     if "encyclopedia" in unlocked_skills:
         effects["gc_mult"] += 0.20
 
-    if "apex_predator" in unlocked_skills:
-        effects["boss_dmg_mult"] += 0.30
+    # apex_predator's +30% boss damage is applied in apply_boss_damage()
+    # directly, not through this pipeline.
 
     if "flow_state" in unlocked_skills:
         # Was +50% -- wildly disproportionate to its tier-3 peers in the
@@ -1962,12 +1955,9 @@ def get_passive_multipliers(profile, context: dict):
         src(f"Neko Lv{neko_level}: +15% Gold")
 
     # VOID
+    # L1/L5's boss-damage bonus (+10%/+50%) is applied in apply_boss_damage()
+    # directly, not through this pipeline.
     void_level = recruited_allies.get("void", 0)
-    if void_level >= 1:
-        if void_level >= 5:
-            effects["boss_dmg_mult"] += 0.50 * ally_mult
-        else:
-            effects["boss_dmg_mult"] += 0.10 * ally_mult
     if void_level >= 2:
         effects["crit_damage_mult"] += 0.20 * ally_mult
     if void_level >= 3:

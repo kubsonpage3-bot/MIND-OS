@@ -172,7 +172,11 @@ def test_grier_l4_revenge_mark(test_user_and_profile):
 
 
 @pytest.mark.django_db
-def test_grier_l5_unbreakable_will(test_user_and_profile):
+def test_grier_l5_unbreakable_will(test_user_and_profile, monkeypatch):
+    # Pin off Crit Focus randomness so it can't distort the below-vs-above
+    # 20% HP boss-damage ratio comparison.
+    monkeypatch.setattr("api.services.mechanics.random.random", lambda: 1.0)
+
     user, profile, stats = test_user_and_profile
 
     RecruitedAlly.objects.create(user_profile=profile, ally_code="grier", level=5)
@@ -191,12 +195,31 @@ def test_grier_l5_unbreakable_will(test_user_and_profile):
     assert profile.hp == 10
 
     # Task completion: double boss damage, 0 mana regeneration
+    encounter = BossEncounter.objects.get(user=user, is_defeated=False)
+    hp_before = encounter.hp_current
+
     task_todo = Task.objects.create(
         user=user, title="Todo", task_type=Task.TaskType.TODO, difficulty="easy"
     )
     complete_task(user, task_todo.id, is_positive=True)
     profile.refresh_from_db()
     assert profile.mana == 10  # 0 mana gained
+
+    encounter.refresh_from_db()
+    dmg_below_20pct = hp_before - encounter.hp_current
+
+    # Above 20% HP: same task, but no doubling.
+    profile.hp = 80
+    profile.save()
+    hp_before2 = encounter.hp_current
+    task_todo2 = Task.objects.create(
+        user=user, title="Todo 2", task_type=Task.TaskType.TODO, difficulty="easy"
+    )
+    complete_task(user, task_todo2.id, is_positive=True)
+    encounter.refresh_from_db()
+    dmg_above_20pct = hp_before2 - encounter.hp_current
+
+    assert dmg_below_20pct == pytest.approx(dmg_above_20pct * 2, abs=1)
 
 
 @pytest.mark.django_db

@@ -140,10 +140,10 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["daily_hp_regen"] == 3.0
 
-        # 12. apex_predator
+        # 12. apex_predator -- its +30% boss damage is applied directly in
+        # apply_boss_damage(), not through get_passive_multipliers(); see
+        # test_boss_dmg_mult_gaps.py for the real assertion.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="apex_predator")
-        effects = get_passive_multipliers(profile, {})
-        assert effects["boss_dmg_mult"] == 1.30
 
     def test_wealth_branch_skills(self, user, profile):
         # 12. resource_awareness
