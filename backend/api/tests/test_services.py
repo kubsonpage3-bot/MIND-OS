@@ -1020,6 +1020,66 @@ def test_compound_returns_gold_mult_scales_with_streak_and_caps(user, profile):
 
 
 @pytest.mark.django_db
+def test_compound_returns_boosts_both_task_and_training_session_gold(user, profile, monkeypatch):
+    """
+    Compound Returns' gold_mult is read from the same passive_effects
+    pipeline by _complete_task_logic (Habit/Daily/Todo), TrainingLogView
+    (manual study log), AND the linked-Pomodoro completion endpoint -- so
+    a single passive should never need "only tasks" vs "only sessions"
+    special-casing. Confirms the +10% (20-day streak) actually lands on
+    both a Todo completion's gold and a Training Log session's gold, not
+    just one of them.
+    """
+    from api.models import UnlockedSkill, Task
+    from api.services.task_service import complete_task
+    from api.services.mechanics import calculate_training_efficiency
+    from rest_framework.test import APIClient
+
+    # Pin off Crit Focus randomness so the ×2 crit roll can't distort the
+    # ratio comparison below.
+    monkeypatch.setattr("api.services.mechanics.random.random", lambda: 1.0)
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    def training_gold():
+        hours, focus = 1.0, 8.0
+        eff = calculate_training_efficiency(
+            profile, focus=focus, hours=hours, streak_days=profile.streak,
+            hours_today=0.0, subject_hours_today=0.0,
+        )
+        res = client.post(
+            "/api/training/log/",
+            {"hours": hours, "focus_rating": focus, "efficiency": eff, "activity": "mathematics"},
+            format="json",
+        )
+        assert res.status_code == 200, res.data
+        return res.data["gold_earned"]
+
+    # Baseline: no Compound Returns, no streak bonus.
+    profile.streak = 0
+    profile.save()
+    todo_baseline = Task.objects.create(
+        user=user, title="Baseline Todo", task_type=Task.TaskType.TODO, difficulty="medium"
+    )
+    baseline_task_gold = complete_task(user, todo_baseline.id, is_positive=True)["gold_earned"]
+    baseline_training_gold = training_gold()
+
+    # Boosted: Compound Returns unlocked, 20-day streak -> +10% Gold.
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="compound_returns")
+    profile.streak = 20
+    profile.save()
+    todo_boosted = Task.objects.create(
+        user=user, title="Boosted Todo", task_type=Task.TaskType.TODO, difficulty="medium"
+    )
+    boosted_task_gold = complete_task(user, todo_boosted.id, is_positive=True)["gold_earned"]
+    boosted_training_gold = training_gold()
+
+    assert boosted_task_gold == pytest.approx(baseline_task_gold * 1.10, abs=1)
+    assert boosted_training_gold == pytest.approx(baseline_training_gold * 1.10, abs=1)
+
+
+@pytest.mark.django_db
 def test_sell_item(user, profile):
     from api.services.shop_service import sell_item
     from api.models import Item, InventoryItem, UnlockedSkill
