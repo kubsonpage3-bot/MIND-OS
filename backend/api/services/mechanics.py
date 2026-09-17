@@ -1649,6 +1649,7 @@ def get_passive_multipliers(profile, context: dict):
         "prestige_start_rank": "E",
         "daily_completed_hp_heal": 0,
         "mana_flat_bonus": 0,
+        "language_mana_bonus": 0,
         "pwr_stat_bonus": 0,
         "def_stat_bonus": 0,
         "foc_stat_bonus": 0,
@@ -1986,7 +1987,9 @@ def get_passive_multipliers(profile, context: dict):
         # (monks_path, ascetic_loop): only while an actual streak is active.
         effects["xp_mult"] += 0.08 * ally_mult
         src(f"Neko Lv{neko_level}: +8% XP (streak)")
-    if neko_level >= 3:
+    if neko_level >= 3 and context.get("task_type") == "daily":
+        # "Mana restored +3 when completing a daily" -- was unconditional,
+        # so it silently also paid out on Habit/Todo completions.
         effects["mana_flat_bonus"] += int(3 * ally_mult)
     if neko_level >= 4:
         # NOTE: this flag is consumed for HABIT streak protection in
@@ -2034,6 +2037,11 @@ def get_passive_multipliers(profile, context: dict):
     if sakura_level >= 2:
         effects["gc_mult"] += 0.10 * ally_mult
         effects["vm_mult"] += 0.10 * ally_mult
+    if sakura_level >= 3:
+        # "Mana regenerates +5 per language session" -- the consumer
+        # (views.py's language-session mana restore) already existed and
+        # read this key; nothing ever set it.
+        effects["language_mana_bonus"] += int(5 * ally_mult)
     if sakura_level >= 4:
         effects["xp_mult"] += 0.08 * ally_mult
         src(f"Sakura Lv{sakura_level}: +8% XP")

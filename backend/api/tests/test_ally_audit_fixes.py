@@ -6,7 +6,10 @@ wired into the DAILY miss path (process_missed_tasks) instead of Habits --
 moved to the negative-habit completion path. Kage L5's "5x boss damage
 below 15% HP" reward half was entirely missing (only the "+50% dmg taken on
 failure" downside existed) -- added to the positive task-completion damage
-calc.
+calc. Neko L3's "+3 mana on Daily" was unconditional (leaked to Habits/
+Todos too). Sakura L3's "+5 mana per language session" was a complete
+no-op: the consumer in views.py already read
+passive_effects["language_mana_bonus"], but nothing ever set it.
 """
 import pytest
 from django.contrib.auth.models import User
@@ -62,6 +65,50 @@ def test_neko_l2_streak_xp_bonus_applies(profile_ally):
 
     no_streak = get_passive_multipliers(profile, {"task_streak": 0})
     assert no_streak["xp_mult"] == 1.0
+
+
+@pytest.mark.django_db
+def test_neko_l3_mana_bonus_only_on_daily(profile_ally):
+    user, profile = profile_ally
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="neko", level=3)
+    profile.active_allies = ["neko"]
+    profile.save()
+
+    from api.services.mechanics import get_passive_multipliers
+
+    daily = get_passive_multipliers(profile, {"task_type": "daily"})
+    assert daily["mana_flat_bonus"] == 3
+
+    # "Mana restored +3 when completing a daily" -- must not leak to
+    # Habit/Todo completions.
+    habit = get_passive_multipliers(profile, {"task_type": "habit"})
+    assert habit["mana_flat_bonus"] == 0
+    todo = get_passive_multipliers(profile, {"task_type": "todo"})
+    assert todo["mana_flat_bonus"] == 0
+
+
+@pytest.mark.django_db
+def test_sakura_l3_language_mana_bonus_applies(profile_ally):
+    """
+    Sakura L3 promises "Mana regenerates +5 per language session" --
+    views.py's language-session mana restore already read
+    passive_effects["language_mana_bonus"], but get_passive_multipliers()
+    never set it at any Sakura level, so the perk was a complete no-op.
+    """
+    user, profile = profile_ally
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="sakura", level=3)
+    profile.active_allies = ["sakura"]
+    profile.save()
+
+    from api.services.mechanics import get_passive_multipliers
+
+    passives = get_passive_multipliers(profile, {})
+    assert passives["language_mana_bonus"] == 5
+
+    # Not yet unlocked at L2.
+    RecruitedAlly.objects.filter(user_profile=profile, ally_code="sakura").update(level=2)
+    passives_l2 = get_passive_multipliers(profile, {})
+    assert passives_l2["language_mana_bonus"] == 0
 
 
 @pytest.mark.django_db
