@@ -1279,67 +1279,21 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
                 src(f"Weight of History: +{bonus:.0%} XP ({int(total_hours)}h lifetime)")
 
     # Resonance: If 2+ active mutators share a category, +10% to ALL their effects.
-    # To implement this easily without hardcoding categories, we'll give a global 10% multiplier to the final multiplier if there are duplicates in the categories
-    mutator_cats = {
-        "amplifier": [
-            "bloodwork",
-            "monks_path",
-            "iron_routine",
-            "lexicon",
-            "night_owl",
-            "early_riser",
-            "tunnel_vision",
-            "time_dilation",
-            "inversion",
-        ],
-        "economy": [
-            "loan_shark",
-            "compound",
-            "miser",
-            "tithe",
-            "alchemist",
-            "gamblers_ledger",
-        ],
-        "streak": ["ascetic_loop", "double_nothing", "momentum"],
-        "challenge": [
-            "diversity_lock",
-            "silence",
-            "ironman",
-            "glass_cannon",
-            "zero_hour",
-            "null_zone",
-        ],
-        "synergy": [
-            "catalyst",
-            "echo",
-            "mirror",
-            "resonance",
-            "mirror_match",
-            "twin_souls",
-        ],
-        "wild": [
-            "gambler",
-            "phantom_load",
-            "cursed_clock",
-            "deja_vu",
-            "volatile",
-            "weight_of_history",
-            "sacrificial_altar",
-            "parasite",
-            "chronomancer",
-        ],
-    }
-
+    # Reads categories from MUTATORS_CONFIG (the shared JSON, same source the
+    # frontend renders from) instead of a hand-maintained duplicate list here
+    # -- a third copy of the same 39-mutator category mapping was exactly the
+    # kind of thing that drifts silently (see the extension's activity
+    # catalog audit for a case where it already had).
     amp = 1.0
     if "resonance" in active_ids:
-        active_cats = []
-        for mut_id in active_ids:
-            for cat, muts in mutator_cats.items():
-                if mut_id in muts:
-                    active_cats.append(cat)
-                    break
+        from api.constants.mutators import MUTATORS_CONFIG
         from collections import Counter
 
+        active_cats = [
+            MUTATORS_CONFIG[mut_id]["cat"]
+            for mut_id in active_ids
+            if mut_id in MUTATORS_CONFIG and MUTATORS_CONFIG[mut_id].get("cat")
+        ]
         counts = Counter(active_cats)
         if any(c >= 2 for c in counts.values()):
             amp += 0.10

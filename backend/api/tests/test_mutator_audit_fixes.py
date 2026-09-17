@@ -535,3 +535,26 @@ def test_zero_hour_expires_with_no_withheld_gold_pays_nothing(profile_mut):
 
     assert profile.gold == 100
     assert profile.active_mutators.get("active", []) == []
+
+
+@pytest.mark.django_db
+def test_resonance_reads_categories_from_mutators_config(profile_mut):
+    """
+    Resonance ("2+ active mutators share a category -> +10% to all their
+    effects") used to check membership against a hand-maintained duplicate
+    of MUTATORS_CONFIG's category map inside apply_active_mutators() --
+    now reads MUTATORS_CONFIG[id]["cat"] directly. tithe + loan_shark are
+    both "economy", so with Resonance active the +10% amp must apply to
+    tithe's unconditional +15% XP and loan_shark's +40% Gold.
+    """
+    user, profile = profile_mut
+    profile.active_mutators = {
+        "active": ["resonance", "tithe", "loan_shark"],
+        "purchased": ["resonance", "tithe", "loan_shark"],
+    }
+    profile.save()
+
+    effects = apply_active_mutators(profile, {}, trigger_side_effects=False)
+
+    assert effects["xp_mult"] == pytest.approx(1.0 + 0.15 * 1.10)
+    assert effects["gold_mult"] == pytest.approx(1.0 + 0.40 * 1.10)
