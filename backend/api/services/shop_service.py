@@ -129,6 +129,7 @@ def sell_item(user, item_id: str, quantity: int = 1):
 
 
     import random
+    from api.services.mechanics import get_passive_multipliers
 
     active_codes = profile.active_allies or []
 
@@ -138,6 +139,13 @@ def sell_item(user, item_id: str, quantity: int = 1):
     }
     meldor_level = recruited_allies.get("meldor", 0)
     bran_level = recruited_allies.get("bran", 0)
+
+    # Percentages here come from get_passive_multipliers so Zephyr L3's
+    # "+15% to all other active allies' perks" (ally_stat_mult) actually
+    # scales Meldor/Bran's ingredient chance instead of the flat base rate.
+    passive_effects = get_passive_multipliers(profile, {})
+    meldor_ingredient_chance = passive_effects.get("meldor_salvage_ingredient_chance", 0.0)
+    bran_ingredient_chance = passive_effects.get("bran_ingredient_chance", 0.0)
 
     is_equip = inv_item.item.item_type == Item.ItemType.EQUIPMENT
 
@@ -149,9 +157,9 @@ def sell_item(user, item_id: str, quantity: int = 1):
     if meldor_level >= 5:
         sell_value = 0
 
-    # Meldor L3: 10% chance to yield ingredient instead of gold
+    # Meldor L3: chance to yield ingredient instead of gold
     yielded_ingredient_instead = False
-    if meldor_level >= 3 and random.random() < 0.10:
+    if meldor_level >= 3 and random.random() < meldor_ingredient_chance:
         yielded_ingredient_instead = True
         sell_value = 0
 
@@ -167,8 +175,8 @@ def sell_item(user, item_id: str, quantity: int = 1):
     # Ingredient drops logic
     dropped_ingredient = False
 
-    # Bran L3: 20% chance to drop ingredient for equipment
-    if is_equip and bran_level >= 3 and random.random() < 0.20:
+    # Bran L3: chance to drop ingredient for equipment
+    if is_equip and bran_level >= 3 and random.random() < bran_ingredient_chance:
         dropped_ingredient = True
 
     # Meldor L3 check

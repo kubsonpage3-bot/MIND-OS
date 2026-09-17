@@ -247,6 +247,38 @@ def test_bran_l3_sell_equipment(test_user_and_profile):
 
 
 @pytest.mark.django_db
+def test_bran_l3_ingredient_chance_scales_with_zephyr_synergy(test_user_and_profile):
+    """
+    Bran L3's 20% ingredient-drop chance (and Meldor L3's 10%) used to be
+    hardcoded in shop_service.sell_item() instead of reading
+    get_passive_multipliers()'s bran_ingredient_chance/
+    meldor_salvage_ingredient_chance -- so Zephyr L3's "+15% to all other
+    active allies' perks" (ally_stat_mult) silently never applied to them.
+    A roll of 0.21 must miss the flat 20% but hit the Zephyr-boosted 23%.
+    """
+    user, profile, stats = test_user_and_profile
+
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="bran", level=3)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="zephyr", level=3)
+    profile.active_allies = ["bran", "zephyr"]
+    profile.save()
+
+    passives = get_passive_multipliers(profile, {})
+    assert passives["bran_ingredient_chance"] == pytest.approx(0.20 * 1.15)
+
+    sword = Item.objects.get(code="test_sword")
+    InventoryItem.objects.create(user_profile=profile, item=sword, quantity=1)
+    InventoryItem.objects.filter(user_profile=profile, item__item_type="material").delete()
+
+    with mock.patch("random.random", return_value=0.21):
+        success, msg, profile = sell_item(user, "test_sword", quantity=1)
+        assert success is True
+        assert InventoryItem.objects.filter(
+            user_profile=profile, item__item_type="material"
+        ).exists()
+
+
+@pytest.mark.django_db
 def test_bran_l4_skill_hp_cost(test_user_and_profile):
     user, profile, stats = test_user_and_profile
 

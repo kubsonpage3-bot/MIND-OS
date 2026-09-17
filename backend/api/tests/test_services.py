@@ -1713,7 +1713,7 @@ def test_calc_new_value_clamped_delta():
 
 
 @pytest.mark.django_db
-def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile):
+def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile, monkeypatch):
     """Rosetta's +35% XP half moved from Task completions to Activity/
     Pomodoro session completions only, per user decision -- its cognitive-
     metric half already lived in calculate_cognitive_gains and is untouched."""
@@ -1721,6 +1721,11 @@ def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile):
     from api.services.skill_service import activate_skill
     from api.services.mechanics import calculate_cognitive_gains, calculate_training_efficiency
     from rest_framework.test import APIClient
+
+    # Pin off Crit Focus randomness (calculate_task_outcome) so an unlucky
+    # crit on the baseline session can't make it outscore the Rosetta-boosted
+    # one and flake this ratio comparison.
+    monkeypatch.setattr("api.services.mechanics.random.random", lambda: 1.0)
 
     ActiveEffect.objects.filter(user=user).delete()
     profile.character_class = "linguist"

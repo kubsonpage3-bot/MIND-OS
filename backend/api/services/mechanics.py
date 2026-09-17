@@ -1620,7 +1620,6 @@ def get_passive_multipliers(profile, context: dict):
         "habit_shield": False,
         "rhea_cosmic_shuffle": False,
         "rhea_gravity_well": False,
-        "rhea_void_pull": False,
         "rhea_singularity": False,
         "science_threshold_reduction": 0.0,
         "language_threshold_reduction": 0.0,
@@ -1656,7 +1655,6 @@ def get_passive_multipliers(profile, context: dict):
         "mem_stat_bonus": 0,
         "spd_stat_bonus": 0,
         "lck_stat_bonus": 0,
-        "double_sell_gold": False,
         "bran_ingredient_chance": 0.0,
         "meldor_salvage_ingredient_chance": 0.0,
         "shop_cost_mult": 1.0,
@@ -1952,6 +1950,16 @@ def get_passive_multipliers(profile, context: dict):
     # this passive_effects dict.
 
     # ALLIES
+
+    # Zephyr L3's "+15% to all OTHER active allies' perks" must be folded
+    # into ally_stat_mult before `ally_mult` is captured below -- every
+    # other ally's bonus in this function scales off that one frozen
+    # snapshot, so computing Zephyr L3 afterward (as this used to) meant
+    # its headline perk silently boosted nothing. Not scaled by ally_mult
+    # itself (it boosts *other* allies, not itself).
+    if recruited_allies.get("zephyr", 0) >= 3:
+        effects["ally_stat_mult"] += 0.15
+
     ally_mult = effects["ally_stat_mult"]
 
     kira_level = recruited_allies.get("kira", 0)
@@ -2090,13 +2098,13 @@ def get_passive_multipliers(profile, context: dict):
         effects["grier_unbreakable_will"] = True
 
     # LYRA
+    # Levels 4 (cooldown reduction) and 5 (time paradox) are implemented
+    # directly via recruited_allies.get("lyra", 0) checks in
+    # views_pomodoro.py and task_service.py, not through this dict --
+    # no flag needed here for them.
     lyra_level = recruited_allies.get("lyra", 0)
     if lyra_level >= 3:
         effects["decaying_focus"] = True
-    if lyra_level >= 4:
-        effects["reduce_cooldowns_by_hours"] = True
-    if lyra_level >= 5:
-        effects["lyra_time_paradox"] = True
 
     # MELDOR
     meldor_level = recruited_allies.get("meldor", 0)
@@ -2104,14 +2112,12 @@ def get_passive_multipliers(profile, context: dict):
         effects["meldor_salvage_ingredient_chance"] = 0.10 * ally_mult
 
     # KAGE
+    # Levels 3 (Flesh Rip) and 5 (Executioner) are implemented directly via
+    # recruited_allies.get("kage", 0) checks in task_service.py.
     kage_level = recruited_allies.get("kage", 0)
     if kage_level >= 1:
         effects["crit_damage_mult"] = 3.0
         effects["kage_halve_crit"] = True
-    if kage_level >= 3:
-        effects["kage_flesh_rip"] = True
-    if kage_level >= 5:
-        effects["kage_executioner"] = True
 
     # ZEPHYR
     zephyr_level = recruited_allies.get("zephyr", 0)
@@ -2123,10 +2129,12 @@ def get_passive_multipliers(profile, context: dict):
             effects["mem_stat_bonus"] += int(2 * ally_mult)
             effects["spd_stat_bonus"] += int(2 * ally_mult)
             effects["lck_stat_bonus"] += int(2 * ally_mult)
-    if zephyr_level >= 3:
-        effects["ally_stat_mult"] += 0.15 * ally_mult
-    if zephyr_level >= 5:
-        effects["zephyr_grand_finale"] = True
+    # Level 3's ally_stat_mult bonus is applied earlier, before `ally_mult`
+    # is captured (see the ALLIES section above) -- it must land before
+    # everyone else reads that snapshot.
+    # Level 5's "Grand Finale" (all Dailies done -> boss damage) is
+    # implemented directly via recruited_allies.get("zephyr", 0) in
+    # task_service.py, not through this dict.
 
     # BRAN
     bran_level = recruited_allies.get("bran", 0)
@@ -2137,7 +2145,8 @@ def get_passive_multipliers(profile, context: dict):
     if bran_level >= 2:
         effects["shop_cost_mult"] -= 0.15 * ally_mult
     if bran_level >= 3:
-        effects["double_sell_gold"] = True
+        # "double_sell_gold" isn't tracked here: the fixed 2x multiplier
+        # shop_service.sell_item() applies for Bran L3 needs no scaling.
         effects["bran_ingredient_chance"] = 0.20 * ally_mult
     if bran_level >= 4:
         effects["bran_overdrive"] = True
@@ -2145,13 +2154,11 @@ def get_passive_multipliers(profile, context: dict):
         effects["bran_jackpot"] = True
 
     # VIVIAN
+    # Levels 3 (Crimson Surge) and 4 (Life Drain) are implemented directly
+    # via recruited_allies.get("vivian", 0) checks in task_service.py.
     vivian_level = recruited_allies.get("vivian", 0)
     if vivian_level >= 1:
         effects["vivian_blood_magic"] = True
-    if vivian_level >= 3:
-        effects["vivian_crimson_surge"] = True
-    if vivian_level >= 4:
-        effects["vivian_life_drain"] = True
     if vivian_level >= 5 and profile.hp == 1:
         effects["always_crit"] = True
         effects["xp_mult"] += 1.0 * ally_mult
@@ -2163,8 +2170,8 @@ def get_passive_multipliers(profile, context: dict):
         effects["rhea_cosmic_shuffle"] = True
     if rhea_level >= 3:
         effects["rhea_gravity_well"] = True
-    if rhea_level >= 4:
-        effects["rhea_void_pull"] = True
+    # Level 4's Void Pull is implemented directly via
+    # recruited_allies.get("rhea", 0) in task_service.py.
     if rhea_level >= 5:
         effects["rhea_singularity"] = True
         effects["max_hp_bonus"] -= int(30 * ally_mult)
