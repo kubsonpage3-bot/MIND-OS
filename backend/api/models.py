@@ -164,6 +164,11 @@ class UserProfile(models.Model):
 
     # Track last used for void_clarity active skill passive
     void_clarity_last_used = models.DateTimeField(null=True, blank=True)
+    # Second Wind (Body T4): timestamp of the most recent Habit failure,
+    # consumed (cleared) by the next Habit completion the same day.
+    last_habit_fail_at = models.DateTimeField(null=True, blank=True)
+    # Sanctuary (Spirit T5): last day the free once-a-day streak shield was used.
+    last_sanctuary_used = models.DateTimeField(null=True, blank=True)
     # Престиж-множители (перманентные бонусы)
     damage_multiplier = models.FloatField(default=1.0, verbose_name="Множитель урона")
     gold_multiplier = models.FloatField(default=1.0, verbose_name="Множитель золота")

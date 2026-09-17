@@ -169,10 +169,20 @@ def calculate_cognitive_gains(activity, hours, eff_total, profile, mastery_categ
     else:
         coeffs = COGNITIVE_COEFFICIENTS[activity_key]
 
+    # Omniscience (redesigned per user decision): was a flat +0.2 to all 4
+    # cognitive metrics on boss defeat -- bosses are killed rarely enough
+    # that the bonus was barely felt. Now it eases the quadratic soft-cap
+    # curve near a stat's ceiling by 20% permanently, so growth never fully
+    # flatlines late-game -- a genuinely unique lever vs. Cognitive
+    # Supremacy's unconditional x2 multiplier.
+    softcap_ease = 1.0
+    if profile.unlocked_skills.filter(skill_code="omniscience").exists():  # type: ignore
+        softcap_ease = 0.80
+
     def get_growth_multiplier(current, ceiling):
         if ceiling <= 0:
             return 0
-        ratio = current / ceiling
+        ratio = (current / ceiling) * softcap_ease
         return max(0.0, 1.0 - (ratio**2))
 
     rosetta_mult = 1.0
@@ -333,6 +343,15 @@ def calculate_task_outcome(
             lck_gold_mult = 2.0 + ((lck - 100) * 0.005)
         final_gold = final_gold * lck_gold_mult
 
+        # Windfall (loot_magnetism, redesigned): flat chance for the final
+        # Gold reward to double outright. Single choke point (this function
+        # is called by all 3 completion paths) so it's automatically correct
+        # everywhere.
+        windfall_chance = passive_effects.get("windfall_chance", 0.0)
+        if windfall_chance > 0 and random.random() < windfall_chance:
+            result["windfall_triggered"] = True
+            final_gold *= 2.0
+
         # Drop chance: LCK * 0.2% to find a random item.
         drop_chance = lck * 0.002 + passive_effects.get("drop_chance_bonus", 0.0)
         guaranteed_drop = passive_effects.get("guaranteed_loot_drop", False)
@@ -373,11 +392,11 @@ def calculate_task_outcome(
             # For other task types: DEF reduces HP damage taken by (100 / (100 + DEF))  # noqa: E501
             def_multiplier = 100.0 / (100.0 + def_stat)
 
-            # Check unlocked skills, items, and recruited allies for HP loss reduction
+            # Check items and recruited allies for HP loss reduction. (pain_threshold
+            # no longer grants a reduction here -- redesigned into Second Wind, a
+            # Habit-only comeback XP bonus handled in task_service.py.)
             reduction_val = passive_effects.get("missed_daily_hp_reduction", 0.0) if passive_effects else 0.0
             if reduction_val == 0.0:
-                if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
-                    reduction_val += 0.25
                 luna_ally = profile.recruited_allies.filter(ally_code="luna").first()  # type: ignore
                 if luna_ally and luna_ally.level >= 2:
                     reduction_val += 0.10
@@ -660,16 +679,8 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
         )
         profile.skill_points = max(0, profile.skill_points + sp_reward)
 
-        # Check omniscience: +0.2 to all 4 cognitive metrics on boss defeat
-        from api.models import UnlockedSkill
-
-        if UnlockedSkill.objects.filter(
-            user_profile=profile, skill_code="omniscience"
-        ).exists():
-            profile.gf = round(min(profile.gf_ceiling, profile.gf + 0.2), 2)
-            profile.gc = round(min(profile.gc_ceiling, profile.gc + 0.2), 2)
-            profile.ps = round(min(profile.ps_ceiling, profile.ps + 0.2), 2)
-            profile.vm = round(min(profile.vm_ceiling, profile.vm + 0.2), 2)
+        # Omniscience's boss-defeat bonus was redesigned into a permanent
+        # soft-cap ease on cognitive growth -- see calculate_cognitive_gains().
 
         # ── Уникальный лут при победе над боссом ─────────────────────
         item_dropped = None
@@ -1616,6 +1627,10 @@ def get_passive_multipliers(profile, context: dict):
         "daily_task_xp_mult": 1.0,         # wanderers_hood: XP mult for daily tasks only
         "missed_daily_hp_reduction": 0.0,  # silk_mantle/luna/winter_plate: reduce missed-daily HP loss
         "damage_taken_mult": 1.0,          # winter_plate: reduce incoming damage mult
+        "windfall_chance": 0.0,            # loot_magnetism (Windfall): chance to double a Gold reward
+        "war_body_slot": False,            # unbreakable (War Body): +1 max active mutator slot
+        "sanctuary_active": False,         # transcendent_will (Sanctuary): free daily streak shield
+        "second_wind_active": False,       # pain_threshold (Second Wind): comeback XP after a Habit fail
         "_sources": [],
     }
     src = effects["_sources"].append
@@ -1840,8 +1855,14 @@ def get_passive_multipliers(profile, context: dict):
     if "combat_reflexes" in unlocked_skills:
         effects["crit_chance_bonus"] += 0.10
 
-    if "fortunes_pull" in unlocked_skills or "loot_magnetism" in unlocked_skills:
-        effects["drop_chance_bonus"] += 0.03
+    if "loot_magnetism" in unlocked_skills:
+        # Redesigned per user decision: was +3% item drop chance -- barely
+        # noticeable at Tier-3 pricing. Now "Windfall": a 5% chance for the
+        # final Gold reward of any positive completion to double outright,
+        # a risk/reward proc in line with the mutator system. Applied in
+        # calculate_task_outcome() where Gold is finalized.
+        effects["windfall_chance"] += 0.05
+        src("Windfall: 5% chance to double Gold reward")
 
     if "resilience" in unlocked_skills:
         effects["mana_regen_mult"] += 0.25
@@ -1867,7 +1888,11 @@ def get_passive_multipliers(profile, context: dict):
         effects["running_threshold_reduction"] += 0.20
 
     if "unbreakable" in unlocked_skills:
-        effects["daily_hp_regen"] += 3.0
+        # Redesigned per user decision: was +3 HP/day passive regen -- rarely
+        # the bottleneck. Now "War Body": +1 max active mutator slot,
+        # consumed in views.py's mutator-activation slot-count check.
+        effects["war_body_slot"] = True
+        src("War Body: +1 max active mutator slot")
 
     if "golden_mind" in unlocked_skills:
         hours = context.get("hours", 0.0)
@@ -1894,15 +1919,36 @@ def get_passive_multipliers(profile, context: dict):
         effects["humanities_threshold_reduction"] += 0.15
 
     if "living_library" in unlocked_skills:
-        # Reading/Philosophy sessions: rival XP advances 15% slower
-        effects["rival_xp_reduction"] += 0.15
+        # Redesigned per user decision: was "-15% rival XP speed", an exact
+        # duplicate mechanic of Spirit's Transcendent Will (just a different
+        # %). Now "Cross-Reference": studying 2+ different subjects the same
+        # day grants +15% Gf/Gc/Ps/Vm gains on training/Pomodoro sessions --
+        # a real reward for polymath-style play instead of a copy-pasted number.
+        if context.get("task_type") == "training":
+            stats = getattr(profile.user, "stats", None)
+            if stats:
+                unique_today = get_unique_subjects_today(stats)
+                if len(unique_today) >= 2:
+                    effects["gf_mult"] += 0.15
+                    effects["gc_mult"] += 0.15
+                    effects["ps_mult"] += 0.15
+                    effects["vm_mult"] += 0.15
+                    src("Cross-Reference: +15% Gf/Gc/Ps/Vm (2+ subjects today)")
 
     if "transcendent_will" in unlocked_skills:
-        # Rival advancement speed reduced by 10% (stacks with living_library)
-        effects["rival_xp_reduction"] += 0.10
+        # Redesigned per user decision: was "-10% rival XP speed", a
+        # duplicate of Living Library's old effect. Now "Sanctuary": once
+        # per day, a missed streak is protected for free without spending a
+        # streak_shield item. Consumed directly in daily_service.py.
+        effects["sanctuary_active"] = True
 
     if "pain_threshold" in unlocked_skills:
-        effects["missed_daily_hp_reduction"] += 0.25
+        # Redesigned per user decision: was "-25% missed-daily HP loss" --
+        # a reward for failing that felt like a bad signal. Now "Second
+        # Wind": after a Habit fails, the next Habit completed that same
+        # day gives +50% XP -- a comeback bonus, not a reward for failing.
+        # Set/consumed directly in task_service.py's Habit completion branch.
+        effects["second_wind_active"] = True
 
     # Mindguard's actual -15% active-skill mana cost is applied directly in
     # skill_service.activate_skill() via a has_mindguard lookup, not through

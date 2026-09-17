@@ -113,7 +113,24 @@ def process_daily_login(user):
                 # Act as if they didn't miss (increment streak)
                 profile.streak += 1
             else:
-                profile.streak = 1
+                # Sanctuary (transcendent_will, redesigned): once per day, a
+                # missed login streak is protected for free without needing
+                # a streak_shield item in inventory.
+                sanctuary_available = False
+                if UnlockedSkill.objects.filter(
+                    user_profile=profile, skill_code="transcendent_will"
+                ).exists():
+                    if (
+                        not profile.last_sanctuary_used
+                        or profile.last_sanctuary_used.date() < today
+                    ):
+                        sanctuary_available = True
+
+                if sanctuary_available:
+                    profile.last_sanctuary_used = timezone.now()
+                    profile.streak += 1
+                else:
+                    profile.streak = 1
 
     profile.last_login_date = today
 
@@ -181,6 +198,7 @@ def process_daily_login(user):
             "ledger_gold",
             "last_chronomancer_used",
             "chronomancer_banked_days",
+            "last_sanctuary_used",
         ]
     )
     return profile

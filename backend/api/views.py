@@ -3999,7 +3999,11 @@ class ToggleMutatorView(generics.GenericAPIView):
                 from api.services.mechanics import get_passive_multipliers
 
                 passive_effects = get_passive_multipliers(profile, {})
-                max_active = 4 if passive_effects.get("rhea_singularity", False) else 3
+                max_active = 3
+                if passive_effects.get("rhea_singularity", False):
+                    max_active += 1
+                if passive_effects.get("war_body_slot", False):
+                    max_active += 1
                 if len(active_list) >= max_active:
                     return Response(
                         {"error": f"Maximum of {max_active} active mutators allowed."},

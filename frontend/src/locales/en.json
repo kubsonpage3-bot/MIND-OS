@@ -1070,12 +1070,12 @@
         "desc": "Critical hit chance +10% globally"
       },
       "pain_threshold": {
-        "name": "Pain Threshold",
-        "desc": "Missed daily HP loss reduced by 25%"
+        "name": "Second Wind",
+        "desc": "After a Habit fails, your next Habit completed that day gives +50% XP"
       },
       "unbreakable": {
-        "name": "Unbreakable",
-        "desc": "HP regenerates +3 per day passively"
+        "name": "War Body",
+        "desc": "+1 maximum active mutator slot"
       },
       "apex_predator": {
         "name": "Apex Predator",
@@ -1090,8 +1090,8 @@
         "desc": "+0.5% Gold per streak day, up to +15% (30-day streak)"
       },
       "loot_magnetism": {
-        "name": "Fortune's Pull",
-        "desc": "Item drop chance from tasks +3%"
+        "name": "Windfall",
+        "desc": "5% chance for any Gold reward to double"
       },
       "market_knowledge": {
         "name": "Market Knowledge",
@@ -1122,8 +1122,8 @@
         "desc": "Allies gain +10% to their stat bonuses"
       },
       "transcendent_will": {
-        "name": "Transcendent Will",
-        "desc": "Rival advancement speed reduced by 10% permanently"
+        "name": "Sanctuary",
+        "desc": "Once per day, a missed login streak is protected for free"
       },
       "void_clarity": {
         "name": "Void Clarity",
@@ -1146,12 +1146,12 @@
         "desc": "Humanities rank thresholds reduced by 15%"
       },
       "living_library": {
-        "name": "Living Library",
-        "desc": "Reading/Philosophy sessions advance you faster vs rival"
+        "name": "Cross-Reference",
+        "desc": "Studying 2+ subjects in one day gives +15% Gf/Gc/Ps/Vm gains that session"
       },
       "omniscience": {
         "name": "Omniscience",
-        "desc": "All 4 cognitive metrics gain +0.3 flat on each achievement unlock"
+        "desc": "Eases the growth soft-cap near your cognitive ceilings by 20% — you never fully plateau"
       }
     },
     "mutators": {

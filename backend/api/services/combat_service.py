@@ -34,7 +34,7 @@ def calculate_damage(user, encounter_id, base_damage):
     (System Overload, Battle Fury), then delegates to mechanics.apply_boss_damage() —
     the single source of truth for boss HP reduction, defeat logic, rewards, and saves.
     Equipment bonuses (frostbite_blade, scar_shard, blade_final_dusk, apex_predator,
-    boss_kill HP/MP heals, omniscience, item drops) are all handled by apply_boss_damage.
+    boss_kill HP/MP heals, item drops) are all handled by apply_boss_damage.
     """
     try:
         encounter = BossEncounter.objects.select_for_update().get(
@@ -69,8 +69,8 @@ def calculate_damage(user, encounter_id, base_damage):
     # ── Delegate everything else to the unified SSOT ─────────────────────────
     # apply_boss_damage applies: equipment multipliers, apex_predator, ActiveEffect
     # bossDamageMultiplier, reduces HP, and on defeat: gold/XP/SP/MP rewards,
-    # HP heal (Luna L4), mana restore (Void L3), omniscience cognitive bonus,
-    # item drop, push notification, UserActivityLog, UserStats.
+    # HP heal (Luna L4), mana restore (Void L3), item drop, push notification,
+    # UserActivityLog, UserStats.
     from api.services.mechanics import apply_boss_damage
 
     result = apply_boss_damage(user, int(final_damage))
@@ -92,7 +92,7 @@ def calculate_damage(user, encounter_id, base_damage):
 # process_boss_death() has been removed.
 # All boss-defeat logic is consolidated in mechanics.apply_boss_damage().
 # This prevents duplication and ensures HP heal (Luna L4), mana restore (Void L3),
-# omniscience cognitive bonus, and all rewards are always applied correctly.
+# and all rewards are always applied correctly.
 
 
 def calculate_fail_damage(task, profile, checklist_ratio=1.0):
@@ -153,7 +153,8 @@ def calculate_habit_fail_hp(task, profile, for_next=False):
       - Текущий task.value (Habitica-style: отрицательный value увеличивает штраф)
       - neg_streak (текущий или следующий при for_next=True, +10% за каждый срыв подряд)
       - Реальный DEF персонажа (экипировка + класс + пассивки + престиж): def_multiplier = 100 / (100 + DEF)
-      - Навыки персонажа (pain_threshold: -25%, союзник luna L2+: -10%, winter_plate: -12%)
+      - Союзник luna L2+: -10%, предмет winter_plate: -12% (pain_threshold больше не даёт снижение урона --
+        редизайнен в Second Wind, XP-бонус после срыва привычки)
       - Активные мутаторы (например, glass_cannon: +60% входящего урона, time_dilation: +30%)
     """
     BASE_DAMAGE = 2
@@ -190,8 +191,6 @@ def calculate_habit_fail_hp(task, profile, for_next=False):
 
     hp_loss_reduction = 1.0
     try:
-        if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():
-            hp_loss_reduction -= 0.25
         luna_ally = profile.recruited_allies.filter(ally_code="luna").first()
         if luna_ally and luna_ally.level >= 2:
             hp_loss_reduction -= 0.10

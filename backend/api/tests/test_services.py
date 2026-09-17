@@ -754,26 +754,41 @@ def test_resilience_mana_regen(user, profile):
 
 
 @pytest.mark.django_db
-def test_unbreakable_daily_regen(user, profile):
-    from api.services.task_service import process_missed_tasks
+def test_war_body_extra_mutator_slot(user, profile):
+    """
+    Redesigned per user decision: unbreakable was "+3 HP/day passive regen"
+    -- rarely the bottleneck. Now "War Body": +1 max active mutator slot
+    (base 3 -> 4), enforced in ToggleMutatorView (views.py).
+    """
     from api.models import UnlockedSkill
-    from django.utils import timezone
-    from datetime import timedelta
+    from api.constants.mutators import MUTATORS_CONFIG
+    from api.views import ToggleMutatorView
+    from rest_framework.test import APIRequestFactory, force_authenticate
 
-    profile.hp = 10
-    yesterday = timezone.now().date() - timedelta(days=1)
-    profile.last_login_date = yesterday
-    profile.last_daily_cron_at = yesterday
+    mutator_ids = list(MUTATORS_CONFIG.keys())[:4]
+    profile.active_mutators = {"active": [], "purchased": mutator_ids}
     profile.save()
 
+    factory = APIRequestFactory()
+    view = ToggleMutatorView.as_view()
+
+    def toggle(mid):
+        request = factory.post(f"/api/mutators/{mid}/toggle/")
+        force_authenticate(request, user=user)
+        return view(request, mutator_id=mid)
+
+    # Without War Body: base cap is 3 active mutators.
+    for mid in mutator_ids[:3]:
+        resp = toggle(mid)
+        assert resp.status_code == 200, resp.data
+    resp = toggle(mutator_ids[3])
+    assert resp.status_code == 400
+    assert "Maximum of 3" in resp.data["error"]
+
+    # Unlock War Body: cap becomes 4.
     UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")
-
-    res = process_missed_tasks(user)
-    assert res["fired"] is True
-
-    profile.refresh_from_db()
-    # It adds 3 hp, 10 + 3 = 13. Or maybe it goes over max hp? No, max is min(hp_max, hp+3). So 13.
-    assert profile.hp == 13
+    resp = toggle(mutator_ids[3])
+    assert resp.status_code == 200, resp.data
 
 
 @pytest.mark.django_db

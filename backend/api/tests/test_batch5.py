@@ -30,48 +30,20 @@ def profile(user):
 @pytest.mark.django_db
 def test_transcendent_will(profile):
     """
-    Tests that transcendent_will reduces Johan's total XP by 10%.
+    Redesigned per user decision: transcendent_will was "-10% rival XP
+    speed", an exact duplicate of living_library's old effect (just a
+    different %). Now "Sanctuary": once per day, a missed login streak is
+    protected for free without a streak_shield item -- see
+    daily_service.py. Full behavioral coverage lives in
+    test_skill_redesign_batch3.py::test_sanctuary_protects_streak_once_per_day.
+    This just confirms the dead rival_xp_reduction pipeline is gone.
     """
-    from api.services.rival_service import (
-        compute_rival_data,
-        JOHAN_DIFFICULTIES,
-        DEFAULT_DIFFICULTY,
-        get_day_pattern,
-        generate_daily_sessions,
-        calc_johan_daily_xp,
-        get_johan_specializations,
-    )
-    from datetime import datetime, timezone, timedelta
-
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    rival_data_before = compute_rival_data(profile)
-    accumulated_before = rival_data_before["johanAccumulatedXP"]
-
-    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
-    profile.rival_data["lastUpdated"] = yesterday
-    profile.save()
+    from api.services.mechanics import get_passive_multipliers
 
     UnlockedSkill.objects.create(user_profile=profile, skill_code="transcendent_will")
-    rival_data_after = compute_rival_data(profile)
-    johan_xp_after = rival_data_after["totalXP"]
-
-    diff_cfg = JOHAN_DIFFICULTIES[DEFAULT_DIFFICULTY]
-
-    # Calculate what today's daily should be
-    user_id = profile.user.id
-    pattern = get_day_pattern(today, user_id, diff_cfg)
-    specializations = get_johan_specializations(profile)
-    sessions = generate_daily_sessions(
-        today, user_id, pattern, specializations, diff_cfg
-    )
-    today_daily = calc_johan_daily_xp(sessions, diff_cfg)
-
-    expected_total = max(1.0, round((accumulated_before + today_daily) * 0.9, 1))
-    assert johan_xp_after == expected_total
-    print(
-        f"\n[test_transcendent_will] accumulated_before={accumulated_before}, after={johan_xp_after}, expected={expected_total}"
-    )
+    effects = get_passive_multipliers(profile, {})
+    assert effects["rival_xp_reduction"] == 0.0
+    assert effects["sanctuary_active"] is True
 
 
 @pytest.mark.django_db
@@ -108,12 +80,16 @@ def test_johan_session_determinism(profile):
 @pytest.mark.django_db
 def test_omniscience(user, profile):
     """
-    Tests that omniscience adds +0.2 to gf, gc, ps, vm on boss defeat.
+    Redesigned per user decision: omniscience was a flat +0.2 to all 4
+    cognitive metrics on boss defeat -- bosses are killed rarely enough
+    that it was barely felt. Now it eases the quadratic soft-cap curve near
+    a stat's ceiling by 20% permanently (see calculate_cognitive_gains).
+    This confirms boss defeat no longer touches gf/gc/ps/vm directly, and
+    test_skill_redesign_batch3.py covers the new soft-cap-ease behavior.
     """
     boss1 = Boss.objects.create(id_name="test_boss_1", name="Boss 1", level=1, hp_max=100, reward_gold=50, reward_xp=50)
     BossEncounter.objects.create(user=user, boss=boss1, hp_current=100, is_defeated=False)
 
-    # Defeat boss 1 without omniscience
     combat = apply_boss_damage(user, 150)
     assert combat["boss_defeated"] is True
     profile.refresh_from_db()
@@ -122,23 +98,19 @@ def test_omniscience(user, profile):
     assert profile.ps == 100.0
     assert profile.vm == 100.0
 
-    # Unlock omniscience
     UnlockedSkill.objects.create(user_profile=profile, skill_code="omniscience")
 
-    # Defeat boss 2 with omniscience
     boss2 = Boss.objects.create(id_name="test_boss_2", name="Boss 2", level=2, hp_max=100, reward_gold=50, reward_xp=50)
     BossEncounter.objects.create(user=user, boss=boss2, hp_current=100, is_defeated=False)
 
     combat2 = apply_boss_damage(user, 150)
     assert combat2["boss_defeated"] is True
     profile.refresh_from_db()
-    assert profile.gf == 100.2
-    assert profile.gc == 100.2
-    assert profile.ps == 100.2
-    assert profile.vm == 100.2
-    print(
-        f"\n[test_omniscience] gf/gc/ps/vm after omniscience boss defeat={profile.gf}/{profile.gc}/{profile.ps}/{profile.vm}"
-    )
+    # No more flat +0.2 -- omniscience no longer touches gf/gc/ps/vm on boss defeat.
+    assert profile.gf == 100.0
+    assert profile.gc == 100.0
+    assert profile.ps == 100.0
+    assert profile.vm == 100.0
 
 
 @pytest.mark.django_db
@@ -282,24 +254,36 @@ def test_cognitive_supremacy_doubles_gf_gc_gains_on_real_endpoint():
 
 
 @pytest.mark.django_db
-def test_living_library():
+def test_living_library(user, profile):
     """
-    Tests living_library +15% multiplier logic.
+    Redesigned per user decision: living_library was "-15% rival XP speed",
+    an exact duplicate of transcendent_will's old effect. Now
+    "Cross-Reference": studying 2+ different subjects the same day grants
+    +15% Gf/Gc/Ps/Vm gains on a training/Pomodoro session -- a real reward
+    for polymath-style play. Full behavioral coverage via
+    calculate_cognitive_gains lives in test_skill_redesign_batch3.py.
     """
-    unlocked_skills = {"living_library"}
-    final_xp = 100
+    from api.services.mechanics import get_passive_multipliers
+    from django.utils import timezone as dj_timezone
 
-    # Simulate reading session
-    activity = "reading"
-    task_category = ""
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="living_library")
 
-    task_cat_lower = task_category.lower() if task_category else ""
-    if activity.lower() in ["reading", "philosophy"] or task_cat_lower in [
-        "reading",
-        "philosophy",
-    ]:
-        if "living_library" in unlocked_skills:
-            final_xp = int(final_xp * 1.15)
+    # Without 2+ unique subjects today: no bonus.
+    effects = get_passive_multipliers(profile, {"task_type": "training"})
+    assert effects["gf_mult"] == 1.0
 
-    assert final_xp == 114  # int(100 * 1.15) in python is 114
-    print(f"\n[test_living_library] base final_xp=100, new final_xp={final_xp}")
+    # With 2+ unique subjects today: +15%. Re-fetch the profile so its
+    # cached profile.user.stats reverse accessor (populated by the "no
+    # bonus" call above) doesn't shadow this update.
+    stats, _ = UserStats.objects.get_or_create(user=user)
+    stats.unique_subjects_today = {
+        "date": str(dj_timezone.now().date()),
+        "subjects": ["Math", "History"],
+    }
+    stats.save()
+    fresh_profile = UserProfile.objects.get(user=user)
+    effects = get_passive_multipliers(fresh_profile, {"task_type": "training"})
+    assert effects["gf_mult"] == 1.15
+    assert effects["gc_mult"] == 1.15
+    assert effects["ps_mult"] == 1.15
+    assert effects["vm_mult"] == 1.15

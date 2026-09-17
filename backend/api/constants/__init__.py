@@ -360,16 +360,19 @@ SKILL_TREE_CONFIG = {
         "crit_chance_bonus": 0.10,
     },
     "pain_threshold": {
+        # Redesigned "Second Wind": after a Habit fails, the next Habit
+        # completed that same day gives +50% XP (comeback bonus).
         "sp": 15,
         "gold": 800,
         "requires": "combat_reflexes",
-        "missed_daily_hp_reduction": 0.25,
+        "second_wind_xp_bonus": 0.5,
     },
     "unbreakable": {
+        # Redesigned "War Body": +1 max active mutator slot.
         "sp": 22,
         "gold": 1500,
         "requires": "pain_threshold",
-        "daily_hp_regen": 3,
+        "war_body_extra_mutator_slot": 1,
     },
     "apex_predator": {
         "sp": 35,
@@ -387,10 +390,11 @@ SKILL_TREE_CONFIG = {
         "gold_multiplier_cap": 0.15,
     },
     "loot_magnetism": {
+        # Redesigned "Windfall": 5% chance for a Gold reward to double.
         "sp": 10,
         "gold": 500,
         "requires": "compound_returns",
-        "drop_chance_bonus": 0.03,
+        "windfall_gold_double_chance": 0.05,
     },
     "market_knowledge": {
         "sp": 15,
@@ -431,10 +435,12 @@ SKILL_TREE_CONFIG = {
         "ally_stat_mult_bonus": 0.10,
     },
     "transcendent_will": {
+        # Redesigned "Sanctuary": once per day, a missed login streak is
+        # protected for free without spending a streak_shield item.
         "sp": 22,
         "gold": 1500,
         "requires": "aura_of_focus",
-        "rival_xp_reduction": 0.10,
+        "sanctuary_free_streak_shield": True,
     },
     "void_clarity": {
         "sp": 35,
@@ -463,16 +469,21 @@ SKILL_TREE_CONFIG = {
         "humanities_threshold_reduction": 0.15,
     },
     "living_library": {
+        # Redesigned "Cross-Reference": studying 2+ different subjects the
+        # same day grants +15% Gf/Gc/Ps/Vm gains on that session.
         "sp": 22,
         "gold": 1500,
         "requires": "master_of_arts",
-        "rival_xp_reduction": 0.15,
+        "cross_reference_metric_bonus": 0.15,
     },
     "omniscience": {
+        # Redesigned: eases the quadratic soft-cap curve near a cognitive
+        # stat's ceiling by 20% permanently, instead of a rarely-felt flat
+        # +0.2 on boss defeat.
         "sp": 35,
         "gold": 3000,
         "requires": "living_library",
-        "boss_metric_bonus": 0.2,
+        "softcap_ease": 0.20,
     },
 }
 

@@ -896,6 +896,24 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
             streak_mult = min(1.3, 1.0 + (task.pos_streak * 0.02))
             rewards["xp"] = int(rewards["xp"] * streak_mult)
             rewards["gold"] = int(rewards["gold"] * streak_mult)
+
+            # Second Wind (pain_threshold, redesigned): after a Habit fails,
+            # the next Habit completed the same day gives +50% XP -- a
+            # one-time comeback bonus, consumed here.
+            if profile.last_habit_fail_at and profile.unlocked_skills.filter(  # type: ignore
+                skill_code="pain_threshold"
+            ).exists():
+                import zoneinfo
+
+                try:
+                    user_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+                except Exception:
+                    user_tz = zoneinfo.ZoneInfo("UTC")
+                fail_local_date = profile.last_habit_fail_at.astimezone(user_tz).date()
+                if fail_local_date == timezone.now().astimezone(user_tz).date():
+                    rewards["xp"] = int(rewards["xp"] * 1.5)
+                    profile.last_habit_fail_at = None
+                    profile.save(update_fields=["last_habit_fail_at"])
         else:
             from api.services.combat_service import calculate_habit_fail_hp
 
@@ -908,6 +926,13 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
             task.value = calc_new_value(task.value, "fail", "habit")
             task.neg_streak += 1
+
+            # Second Wind (pain_threshold, redesigned): record the failure
+            # so the next Habit completed today can claim the comeback bonus.
+            if profile.unlocked_skills.filter(skill_code="pain_threshold").exists():  # type: ignore
+                profile.last_habit_fail_at = timezone.now()
+                profile.save(update_fields=["last_habit_fail_at"])
+
             if not transcendence_active:
                 # Neko L4: "Habit streaks never break on first miss." A quick
                 # direct check (passive_effects isn't computed yet at this

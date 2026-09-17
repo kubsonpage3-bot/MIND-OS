@@ -130,15 +130,20 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["crit_chance_bonus"] == 0.10
 
-        # 10. pain_threshold
+        # 10. pain_threshold -- redesigned "Second Wind": the +50% comeback
+        # XP is set/consumed directly in task_service.py's Habit branch, not
+        # through get_passive_multipliers; see test_skill_redesign_batch3.py
+        # for the full behavioral test.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="pain_threshold")
         effects = get_passive_multipliers(profile, {})
-        assert effects["missed_daily_hp_reduction"] == 0.25
+        assert effects["second_wind_active"] is True
 
-        # 11. unbreakable
+        # 11. unbreakable -- redesigned "War Body": +1 max active mutator
+        # slot, consumed in views.py's mutator-activation slot check; see
+        # test_skill_redesign_batch3.py.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")
         effects = get_passive_multipliers(profile, {})
-        assert effects["daily_hp_regen"] == 3.0
+        assert effects["war_body_slot"] is True
 
         # 12. apex_predator -- its +30% boss damage is applied directly in
         # apply_boss_damage(), not through get_passive_multipliers(); see
@@ -151,10 +156,12 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["gold_mult"] == 1.10
 
-        # 13. loot_magnetism
+        # 13. loot_magnetism -- redesigned "Windfall": 5% chance to double a
+        # Gold reward, applied in calculate_task_outcome(); see
+        # test_skill_redesign_batch3.py for the full behavioral test.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="loot_magnetism")
         effects = get_passive_multipliers(profile, {})
-        assert effects["drop_chance_bonus"] == 0.03
+        assert effects["windfall_chance"] == 0.05
 
         # 14. golden_mind
         UnlockedSkill.objects.create(user_profile=profile, skill_code="golden_mind")
@@ -218,10 +225,12 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["ally_stat_mult"] == 1.10
 
-        # 20. transcendent_will
+        # 20. transcendent_will -- redesigned "Sanctuary": a free once-a-day
+        # streak shield, consumed directly in daily_service.py; see
+        # test_skill_redesign_batch3.py for the full behavioral test.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="transcendent_will")
         effects = get_passive_multipliers(profile, {})
-        assert effects["rival_xp_reduction"] == 0.10
+        assert effects["sanctuary_active"] is True
 
         # 21. void_clarity
         UnlockedSkill.objects.create(user_profile=profile, skill_code="void_clarity")
@@ -276,27 +285,29 @@ class TestAll30Skills:
         info_after = get_humanities_rank_info(profile)
         assert info_after["thresholds"][1]["min"] == int(base_threshold * 0.85)
 
-        # 26. living_library
+        # 26. living_library -- redesigned "Cross-Reference": +15%
+        # Gf/Gc/Ps/Vm gains on a training session once 2+ different
+        # subjects were logged today; see test_skill_redesign_batch3.py for
+        # the full behavioral test via calculate_cognitive_gains.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="living_library")
-        effects = get_passive_multipliers(profile, {})
-        # living_library (0.15) + transcendent_will if both unlocked
-        assert effects["rival_xp_reduction"] == 0.15
+        from api.models import UserStats
+        from django.utils import timezone as tz2
 
-        # 27. omniscience
+        stats2, _ = UserStats.objects.get_or_create(user=user)
+        stats2.unique_subjects_today = {
+            "date": str(tz2.now().date()),
+            "subjects": ["Math", "Physics"],
+        }
+        stats2.save()
+        effects = get_passive_multipliers(profile, {"task_type": "training"})
+        assert effects["gf_mult"] == 1.15
+
+        # 27. omniscience -- redesigned: eases the growth soft-cap near a
+        # cognitive stat's ceiling by 20%, instead of a boss-kill flat
+        # bonus; see test_skill_redesign_batch3.py for the full behavioral
+        # test via calculate_cognitive_gains.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="omniscience")
-        profile.gf = 100.0
-        profile.gc = 100.0
-        profile.ps = 100.0
-        profile.vm = 100.0
-        profile.save()
-
-        # Defeat a boss and verify all 4 cognitive metrics gain +0.2
         boss = Boss.objects.create(id_name="test_skill_boss", name="Skill Boss", level=1, hp_max=100, reward_gold=50, reward_xp=50)
         BossEncounter.objects.create(user=user, boss=boss, hp_current=100, is_defeated=False)
         combat = apply_boss_damage(user, 150)
         assert combat["boss_defeated"] is True
-        profile.refresh_from_db()
-        assert profile.gf == 100.2
-        assert profile.gc == 100.2
-        assert profile.ps == 100.2
-        assert profile.vm == 100.2
