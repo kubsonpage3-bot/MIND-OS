@@ -206,10 +206,10 @@ class TestAll30Skills:
         effects = get_passive_multipliers(profile, {})
         assert effects["mana_regen_mult"] == 1.25
 
-        # 19. mindguard
+        # 19. mindguard -- the actual -15% mana cost is applied directly in
+        # skill_service.activate_skill() (see test_skill_mana_cost_respects_mem_and_mindguard
+        # in test_skill_mana_cost.py), not through get_passive_multipliers.
         UnlockedSkill.objects.create(user_profile=profile, skill_code="mindguard")
-        effects = get_passive_multipliers(profile, {})
-        assert effects["skill_mana_cost_reduction_pct"] == 0.15
         assert SKILL_TREE_CONFIG["mindguard"]["mana_cost_reduction"] == 0.15
 
         # 20. aura_of_focus

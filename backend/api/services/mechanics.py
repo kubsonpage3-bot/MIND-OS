@@ -1643,7 +1643,6 @@ def get_passive_multipliers(profile, context: dict):
         "guaranteed_loot_drop": False,
         "cooldown_reduction": 0.0,
         "skill_mana_cost_reduction": 0,
-        "skill_mana_cost_reduction_pct": 0.0,
         "skill_boss_damage": 0,
         "daily_free_skill": False,
         "prestige_bonus": 0.0,
@@ -1948,8 +1947,9 @@ def get_passive_multipliers(profile, context: dict):
     if "pain_threshold" in unlocked_skills:
         effects["missed_daily_hp_reduction"] += 0.25
 
-    if "mindguard" in unlocked_skills:
-        effects["skill_mana_cost_reduction_pct"] = 0.15
+    # Mindguard's actual -15% active-skill mana cost is applied directly in
+    # skill_service.activate_skill() via a has_mindguard lookup, not through
+    # this passive_effects dict.
 
     # ALLIES
     ally_mult = effects["ally_stat_mult"]

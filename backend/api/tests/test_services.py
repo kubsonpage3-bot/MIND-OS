@@ -1,3 +1,4 @@
+import math
 import pytest
 from datetime import timedelta
 from django.contrib.auth.models import User
@@ -12,6 +13,16 @@ from api.services.profile_service import gain_xp
 from api.exceptions import GameLogicError
 from api.models import Item, InventoryItem, Recipe, RecipeIngredient
 from api.services.crafting_service import craft_item
+
+
+def _mem_cost(base_cost, profile):
+    """
+    Mirrors skill_service.activate_skill()'s MEM-stat mana discount
+    (100/(100+MEM), floored) so tests assert against the real formula
+    instead of a hand-computed literal that silently drifts from it.
+    """
+    mem_stat = profile.total_stats.get("mem", 0)
+    return math.floor(base_cost * (100.0 / (100.0 + max(0, mem_stat))))
 
 
 @pytest.fixture
@@ -94,12 +105,14 @@ def test_daily_revert_then_complete_again(user, profile):
 @pytest.mark.django_db
 def test_activate_skill_success(user, profile):
     # architect blueprint skill (alias for algorithmic_cascade) costs 50 mana
+    # base, reduced further by the MEM stat.
     initial_mana = profile.mana
+    expected_cost = _mem_cost(50, profile)
     success, message, class_data, effects = activate_skill(user, "blueprint")
 
     profile.refresh_from_db()
     assert success is True
-    assert profile.mana == initial_mana - 50
+    assert profile.mana == initial_mana - expected_cost
     assert len(effects) == 1
     assert effects[0]["effect_id"] == "algorithmic_cascade_effect"
 
@@ -782,13 +795,15 @@ def test_void_clarity_weekly_cast(user, profile):
     profile.refresh_from_db()
     assert profile.mana == 100  # Mana not deducted
 
-    # Second cast immediately: should cost 100 mana (system_overload -> deep_work_surge)
+    # Second cast immediately: full cost (base 100, minus the MEM discount)
+    # for system_overload -> deep_work_surge.
     # Also need to reset blueprint cooldown if we want to cast blueprint again,
     # but we can just cast a different skill
+    expected_cost = _mem_cost(100, profile)
     success, msg, _, _ = activate_skill(user, "system_overload")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 0  # 100 - 100
+    assert profile.mana == 100 - expected_cost
 
     # Fast forward void_clarity_last_used by 8 days
     profile.void_clarity_last_used = timezone.now() - timedelta(days=8)
@@ -797,11 +812,12 @@ def test_void_clarity_weekly_cast(user, profile):
     # Reset cooldowns just in case
     SkillCooldown.objects.all().delete()
 
-    # Third cast: should cost 0 mana again
+    # Third cast: should cost 0 mana again (mana unchanged from the
+    # post-second-cast level)
     success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 0  # Mana not deducted again
+    assert profile.mana == 100 - expected_cost
 
 
 @pytest.mark.django_db
@@ -816,13 +832,14 @@ def test_mindguard_mana_cost_reduction(user, profile):
     # Create mindguard
     UnlockedSkill.objects.create(user_profile=profile, skill_code="mindguard")
 
-    # Activate skill: blueprint (algorithmic_cascade) normally costs 50 mana.
-    # With mindguard (15% reduction): floor(50 * 0.85) = 42 mana.
+    # Activate skill: blueprint (algorithmic_cascade) normally costs 50 mana,
+    # first reduced by MEM (100/(100+MEM)), then by mindguard's 15%.
+    expected_cost = math.floor(_mem_cost(50, profile) * 0.85)
     success, msg, _, _ = activate_skill(user, "blueprint")
     assert success is True
 
     profile.refresh_from_db()
-    assert profile.mana == 100 - 42  # 58
+    assert profile.mana == 100 - expected_cost
 
     # Verify no cooldown was created
     assert not SkillCooldown.objects.filter(user=user, skill_id="blueprint").exists()
@@ -832,7 +849,7 @@ def test_mindguard_mana_cost_reduction(user, profile):
     assert success2 is True
 
     profile.refresh_from_db()
-    assert profile.mana == 58 - 42  # 16
+    assert profile.mana == 100 - expected_cost * 2
 
 
 @pytest.mark.django_db
@@ -845,49 +862,53 @@ def test_all_classes_skills_have_zero_cooldown(user, profile):
     profile.character_class = "architect"
     profile.mana = 120
     profile.save()
+    cost = _mem_cost(50, profile)
 
     s1, _, _, _ = activate_skill(user, "algorithmic_cascade")
     assert s1 is True
     s2, _, _, _ = activate_skill(user, "algorithmic_cascade")
     assert s2 is True
     profile.refresh_from_db()
-    assert profile.mana == 120 - 50 - 50  # 20
+    assert profile.mana == 120 - cost * 2
 
     # 2. Ascetic: eye_of_the_storm
     profile.character_class = "ascetic"
     profile.mana = 100
     profile.save()
+    cost = _mem_cost(40, profile)
 
     s1, _, _, _ = activate_skill(user, "eye_of_the_storm")
     assert s1 is True
     s2, _, _, _ = activate_skill(user, "eye_of_the_storm")
     assert s2 is True
     profile.refresh_from_db()
-    assert profile.mana == 100 - 40 - 40  # 20
+    assert profile.mana == 100 - cost * 2
 
     # 3. Linguist: rosetta_protocol
     profile.character_class = "linguist"
     profile.mana = 200
     profile.save()
+    cost = _mem_cost(40, profile)
 
     s1, _, _, _ = activate_skill(user, "rosetta_protocol")
     assert s1 is True
     s2, _, _, _ = activate_skill(user, "rosetta_protocol")
     assert s2 is True
     profile.refresh_from_db()
-    assert profile.mana == 200 - 40 - 40  # 120
+    assert profile.mana == 200 - cost * 2
 
     # 4. Warlord: blood_harvest
     profile.character_class = "warlord"
     profile.mana = 110
     profile.save()
+    cost = _mem_cost(50, profile)
 
     s1, _, _, _ = activate_skill(user, "blood_harvest")
     assert s1 is True
     s2, _, _, _ = activate_skill(user, "blood_harvest")
     assert s2 is True
     profile.refresh_from_db()
-    assert profile.mana == 110 - 50 - 50  # 10
+    assert profile.mana == 110 - cost * 2
 
     # Verify zero SkillCooldown records exist for user
     assert SkillCooldown.objects.filter(user=user).count() == 0
@@ -1186,11 +1207,12 @@ def test_inner_sanctuary_instant_heal(user, profile):
     profile.mana = 100
     profile.hp = 10
     profile.save()
+    expected_cost = _mem_cost(60, profile)
 
     success, message, class_data, effects = activate_skill(user, "meditation")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 40  # 100 - 60
+    assert profile.mana == 100 - expected_cost
 
     expected_hp = min(profile.max_hp, 10 + int(profile.max_hp * 0.50))
     assert profile.hp == expected_hp
@@ -1729,13 +1751,14 @@ def test_linguist_rosetta_protocol_xp_and_cognitive_boost(user, profile):
     base_xp_earned = log_session()
 
     mana_before = profile.mana
+    expected_cost = _mem_cost(40, profile)
     # Activate Rosetta Protocol
     success, msg, effect, _ = activate_skill(user, "rosetta_protocol")
     assert success is True
     assert ActiveEffect.objects.filter(user=user, skill_id="rosetta_protocol").exists()
 
     profile.refresh_from_db()
-    assert profile.mana == mana_before - 40
+    assert profile.mana == mana_before - expected_cost
 
     # Cognitive gains should still be boosted by +20% (unaffected by the move)
     boosted_gains = calculate_cognitive_gains("focus", 2.0, 8.0, profile)
@@ -1777,10 +1800,11 @@ def test_linguist_lexical_resonance_boss_damage(user, profile):
 
     # Expected damage: total_stats includes linguist class bonuses (mem: 15+11=26, foc: 12+10=22)
     # int(26 * 8 + 22 * 6) = 208 + 132 = 340
+    expected_cost = _mem_cost(65, profile)
     success, msg, _, _ = activate_skill(user, "lexical_resonance")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 100 - 65
+    assert profile.mana == 100 - expected_cost
 
     encounter.refresh_from_db()
     assert encounter.hp_current == 1000 - 340
@@ -1927,10 +1951,11 @@ def test_architect_algorithmic_cascade_and_quantum_optimization(user, profile):
         return res.data
 
     # 1. Algorithmic Cascade
+    expected_cost1 = _mem_cost(50, profile)
     s1, _, _, _ = activate_skill(user, "algorithmic_cascade")
     assert s1 is True
     profile.refresh_from_db()
-    assert profile.mana == 200 - 50  # 150
+    assert profile.mana == 200 - expected_cost1
 
     effect = ActiveEffect.objects.get(user=user, skill_id="algorithmic_cascade")
     assert effect.data.get("cascade_streak") == 0
@@ -1957,11 +1982,12 @@ def test_architect_algorithmic_cascade_and_quantum_optimization(user, profile):
     # 2. Quantum Optimization (90 MP)
     profile.mana = 100
     profile.save()
+    expected_cost2 = _mem_cost(90, profile)
 
     s2, _, _, _ = activate_skill(user, "quantum_optimization")
     assert s2 is True
     profile.refresh_from_db()
-    assert profile.mana == 100 - 90  # 10
+    assert profile.mana == 100 - expected_cost2
 
     q_effect = ActiveEffect.objects.get(user=user, skill_id="quantum_optimization")
     assert q_effect.data.get("tasksRemaining") == 4
@@ -2011,11 +2037,12 @@ def test_architect_deep_work_surge(user, profile):
     # FOC: base_foc 15 + architect bonus 12 = 27
     # Damage: max(100, int(3.5 * 150 + 27 * 10)) = 525 + 270 = 795
     # Bonus XP: int(3.5 * 30) = 105
+    expected_cost = _mem_cost(100, profile)
     success, _, _, _ = activate_skill(user, "deep_work_surge")
     assert success is True
 
     profile.refresh_from_db()
-    assert profile.mana == 100 - 100  # 0
+    assert profile.mana == 100 - expected_cost
     assert profile.rank_xp - rank_xp_before == 105
     assert profile.level == 2
 
@@ -2035,21 +2062,24 @@ def test_ascetic_eye_of_the_storm_and_inner_sanctuary(user, profile):
     profile.save()
 
     # 1. Inner Sanctuary (60 MP): heals 50% max HP (+50 HP)
+    expected_sanctuary_cost = _mem_cost(60, profile)
     success_heal, _, _, _ = activate_skill(user, "inner_sanctuary")
     assert success_heal is True
     profile.refresh_from_db()
-    assert profile.mana == 100 - 60  # 40
+    assert profile.mana == 100 - expected_sanctuary_cost
     assert profile.hp == 50 + 50  # 100
 
     # 2. Eye of the Storm (40 MP)
     profile.hp = 60
     profile.mana = 50
     profile.save()
+    expected_eye_cost = _mem_cost(40, profile)
 
     success_eye, _, _, _ = activate_skill(user, "eye_of_the_storm")
     assert success_eye is True
     profile.refresh_from_db()
-    assert profile.mana == 50 - 40  # 10
+    mana_after_eye = 50 - expected_eye_cost
+    assert profile.mana == mana_after_eye
 
     # Heal/mana-per-completion half moved from Task to Activity session
     # completions only, per user decision -- a Task completion no longer
@@ -2073,7 +2103,7 @@ def test_ascetic_eye_of_the_storm_and_inner_sanctuary(user, profile):
     assert res.status_code == 200, res.data
     profile.refresh_from_db()
     assert profile.hp == 60 + 8  # +8 HP from Eye of the Storm
-    assert profile.mana >= 10 + 4  # at least +4 MP from Eye of the Storm
+    assert profile.mana >= mana_after_eye + 4  # at least +4 MP from Eye of the Storm
     assert any("Eye of the Storm" in n for n in res.data["breakdown"])
 
     # A Task completion must not heal/restore mana for it anymore.
@@ -2113,10 +2143,11 @@ def test_ascetic_enlightenment_guaranteed_crits(user, profile):
     profile.mana = 100
     profile.save()
 
+    expected_cost = _mem_cost(80, profile)
     success, _, _, _ = activate_skill(user, "enlightenment")
     assert success is True
     profile.refresh_from_db()
-    assert profile.mana == 100 - 80  # 20
+    assert profile.mana == 100 - expected_cost
 
     multipliers = get_passive_multipliers(profile, {})
     assert multipliers.get("always_crit") is True
@@ -2220,10 +2251,11 @@ def test_warlord_blood_harvest_and_titans_roar(user, profile):
         return res.data
 
     # 1. Blood Harvest (50 MP)
+    expected_bh_cost = _mem_cost(50, profile)
     s1, _, _, _ = activate_skill(user, "blood_harvest")
     assert s1 is True
     profile.refresh_from_db()
-    assert profile.mana == 150 - 50  # 100
+    assert profile.mana == 150 - expected_bh_cost
 
     res1 = log_session()
     profile.refresh_from_db()
@@ -2246,13 +2278,14 @@ def test_warlord_blood_harvest_and_titans_roar(user, profile):
     # 2. Titan's Roar (75 MP) -- instant nuke on activation is unaffected
     profile.mana = 100
     profile.save()
+    expected_roar_cost = _mem_cost(75, profile)
     encounter.hp_current = 1_000_000
     encounter.save()
 
     s2, _, _, _ = activate_skill(user, "titans_roar")
     assert s2 is True
     profile.refresh_from_db()
-    assert profile.mana == 100 - 75  # 25
+    assert profile.mana == 100 - expected_roar_cost
 
     encounter.refresh_from_db()
     # 15% of 1,000,000 sliced instantly on activation

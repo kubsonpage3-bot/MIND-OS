@@ -187,34 +187,45 @@ def test_vivian_perks(test_user_and_profile):
     # Verify HP-casting:
     SkillCooldown.objects.filter(user=user, skill_id="iron_fast").delete()
 
+    # iron_fast (eye_of_the_storm) costs 40 mana base, first reduced by the
+    # MEM stat's 100/(100+MEM) discount, same as skill_service.activate_skill().
+    import math
+
+    mem_stat = profile.total_stats.get("mem", 0)
+    effective_mana_cost = math.floor(40 * (100.0 / (100.0 + max(0, mem_stat))))
+    missing_mana = effective_mana_cost - profile.mana  # profile.mana == 5 here
+    expected_hp_cost = math.ceil(missing_mana / 2.0)
+
     success, msg, _, _ = activate_skill(user, "iron_fast")
     assert success is True
     profile.refresh_from_db()
     assert profile.mana == 0
-    assert profile.hp == 82  # missing_mana=35 -> hp_cost=ceil(35/2)=18, lost 18 HP
+    assert profile.hp == 100 - expected_hp_cost
 
+    hp_after_iron_fast = profile.hp
     task = Task.objects.create(
         user=user, title="Todo 1", task_type=Task.TaskType.TODO, difficulty="medium"
     )
     complete_task(user, task.id, is_positive=True)
     profile.refresh_from_db()
-    # 82 + 2 (Vivian Crimson Surge L3). Eye of the Storm's own +8 HP/+4 MP
+    # +2 (Vivian Crimson Surge L3). Eye of the Storm's own +8 HP/+4 MP
     # heal used to also apply here -- moved to Activity/Pomodoro session
     # completions only, per user decision, so a Task completion no longer
     # gets it.
-    assert profile.hp == 84
+    assert profile.hp == hp_after_iron_fast + 2
 
     # Now level up Vivian to Level 4 to test Life Drain
     vivian.level = 4
     vivian.save()
+    hp_before_task2 = profile.hp
     task2 = Task.objects.create(
         user=user, title="Todo 2", task_type=Task.TaskType.TODO, difficulty="medium"
     )
     complete_task(user, task2.id, is_positive=True)
     profile.refresh_from_db()
-    # 84 + 5 (Life Drain L4 is 10% of 50 boss damage) = 89, then Crimson
-    # Surge L3 heals int(missing_hp_pct * 10) * 2 = int(0.11 * 10) * 2 = 2 -> 91
-    assert profile.hp >= 90
+    # +5 (Life Drain L4 is 10% of 50 boss damage), plus Crimson Surge L3
+    # healing int(missing_hp_pct * 10) * 2 on top of that.
+    assert profile.hp >= hp_before_task2 + 5
 
     # Vivian L2 Active Endpoint: Dark Sacrifice
     profile.hp = 50

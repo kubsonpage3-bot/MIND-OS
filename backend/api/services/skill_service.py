@@ -240,6 +240,19 @@ def activate_skill(user, skill_id):
     effective_mana_cost = skill_def["mana"]
     used_void_clarity = False
 
+    # MEM stat: reduces active-skill mana cost via 100/(100+MEM), same
+    # formula CharacterTab already advertises under the MEM stat card
+    # ("-X% Mana cost") — previously computed for display only and never
+    # actually taken off the mana bill when a skill was cast.
+    total_stats = (
+        profile.total_stats
+        if hasattr(profile, "total_stats") and isinstance(profile.total_stats, dict)
+        else {}
+    )
+    mem_stat = total_stats.get("mem", getattr(profile, "base_mem", 10) or 10)
+    mem_mana_mult = 100.0 / (100.0 + max(0, mem_stat))
+    effective_mana_cost = math.floor(effective_mana_cost * mem_mana_mult)
+
     # Mindguard: reduces mana cost of active skills by 15%
     if has_mindguard:
         effective_mana_cost = math.floor(effective_mana_cost * 0.85)

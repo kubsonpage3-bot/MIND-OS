@@ -60,10 +60,13 @@ export default function SkillPanel({ classId }) {
       /** @type {any} */
       const prevEffects = queryClient.getQueryData(["active_effects"]);
 
-      // Optimistic profile update (subtract mana)
+      // Optimistic profile update (subtract mana) -- use the real
+      // MEM/Mindguard/ally-adjusted cost (getSkillState), not the raw
+      // skill.mana, so the mana bar doesn't flash a too-large drop before
+      // the real profile refetch corrects it.
       if (prevProfile) {
         const skill = cls?.skills.find(s => s.id === skillId);
-        const manaCost = skill ? skill.mana : 0;
+        const manaCost = skill ? getSkillState(skill).cost : 0;
         queryClient.setQueryData(["userprofile"], {
           ...prevProfile,
           mana: Math.max(0, prevProfile.mana - manaCost),
@@ -164,7 +167,12 @@ export default function SkillPanel({ classId }) {
     const remaining = cdUntil - now;
     const onCooldown = remaining > 0;
 
-    let cost = sk.mana;
+    // MEM stat: 100/(100+MEM) mana-cost reduction, mirroring
+    // skill_service.activate_skill() on the backend exactly (same order:
+    // MEM first, then Mindguard, then flat ally reductions) so the cost
+    // shown here never disagrees with what actually gets charged.
+    const memStat = profile?.total_stats?.mem || 0;
+    let cost = Math.floor(sk.mana * (100 / (100 + memStat)));
     const unlocked = profile?.unlocked_skills || [];
     if (unlocked.includes("mindguard")) {
       cost = Math.floor(cost * 0.85);
