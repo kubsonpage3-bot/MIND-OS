@@ -332,7 +332,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
                         ).first()
                         if rhea_ally and rhea_ally.level >= 5:
                             rhea_bonus_slot = 1
-                    max_mutators = 3 + instance.prestige_count + rhea_bonus_slot
+                    # War Body (unbreakable, Body T5, redesigned): +1 max
+                    # active mutator slot -- must match ToggleMutatorView's
+                    # cap (views.py) or this legacy bulk-save path would
+                    # reject a slot the other endpoint allows.
+                    war_body_slot = 0
+                    if instance.unlocked_skills.filter(
+                        skill_code="unbreakable"
+                    ).exists():
+                        war_body_slot = 1
+                    max_mutators = (
+                        3 + instance.prestige_count + rhea_bonus_slot + war_body_slot
+                    )
                     # Must be a list of dicts, but we just check length
                     if len(active_list) > max_mutators:
                         raise ValidationError(

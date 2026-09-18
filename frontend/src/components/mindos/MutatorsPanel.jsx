@@ -46,13 +46,15 @@ export default function MutatorsPanel({ onSpendGold }) {
   const queryClient = useQueryClient();
 
   // Base 3 slots, +1 per prestige, +1 more if Rhea (Void Explorer) is
-  // recruited to Level 5 AND active -- matches the cap the backend now
-  // actually enforces (serializers/profile.py). Previously hardcoded to 3,
+  // recruited to Level 5 AND active, +1 more from the War Body skill
+  // (unbreakable, Body T5) -- matches the cap the backend now actually
+  // enforces (views.py's ToggleMutatorView). Previously hardcoded to 3,
   // which silently ate the slot Rhea L5 promises (-30 Max HP for it, with
-  // no matching benefit) and any prestige-earned slots too.
+  // no matching benefit), any prestige-earned slots, and War Body's slot.
   const rheaLevel = profile?.recruited_allies?.rhea || 0;
   const hasRheaSlot = rheaLevel >= 5 && (profile?.active_allies || []).includes('rhea');
-  const MAX_ACTIVE = 3 + (profile?.prestige_count || 0) + (hasRheaSlot ? 1 : 0);
+  const hasWarBody = (profile?.unlocked_skills || []).includes('unbreakable');
+  const MAX_ACTIVE = 3 + (profile?.prestige_count || 0) + (hasRheaSlot ? 1 : 0) + (hasWarBody ? 1 : 0);
 
   useHardwareBack(!!selectedMutator || isOpeningChest, () => {
     setSelectedMutator(null);

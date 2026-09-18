@@ -792,6 +792,47 @@ def test_war_body_extra_mutator_slot(user, profile):
 
 
 @pytest.mark.django_db
+def test_war_body_extra_slot_via_profile_patch(user, profile):
+    """
+    A second, independent cap check lives in UserProfileSerializer.update()
+    (serializers/profile.py) for the legacy bulk "PATCH /api/profile/ with
+    active_mutators" save path -- distinct from ToggleMutatorView. It must
+    also honor War Body's +1 slot, or this path would reject a mutator
+    ToggleMutatorView would accept.
+    """
+    from api.models import UnlockedSkill
+    from api.constants.mutators import MUTATORS_CONFIG
+    from api.views import UserProfileView
+    from rest_framework.test import APIRequestFactory, force_authenticate
+
+    mutator_ids = list(MUTATORS_CONFIG.keys())[:4]
+    profile.active_mutators = {"active": [], "purchased": mutator_ids}
+    profile.save()
+
+    factory = APIRequestFactory()
+    view = UserProfileView.as_view()
+
+    def patch_active(ids):
+        request = factory.patch(
+            "/api/profile/",
+            {"active_mutators": {"active": ids, "purchased": mutator_ids}},
+            format="json",
+        )
+        force_authenticate(request, user=user)
+        return view(request)
+
+    # Without War Body: 4 active mutators exceeds the base cap of 3.
+    resp = patch_active(mutator_ids)
+    assert resp.status_code == 400
+    assert "Maximum of 3" in str(resp.data)
+
+    # Unlock War Body: cap becomes 4, same 4 mutators now accepted.
+    UnlockedSkill.objects.create(user_profile=profile, skill_code="unbreakable")
+    resp = patch_active(mutator_ids)
+    assert resp.status_code == 200, resp.data
+
+
+@pytest.mark.django_db
 def test_golden_mind_guaranteed_drop(user, profile):
     from api.models import UnlockedSkill, Item, InventoryItem
     from rest_framework.test import APIRequestFactory, force_authenticate
