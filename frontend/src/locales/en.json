@@ -898,9 +898,8 @@
     "you_will_gain": "YOU WILL GAIN:",
     "type_rebirth": "Type REBIRTH to confirm",
     "lose_items": [
-      "Rank resets to F (XP → 0)",
+      "Rank resets to E (XP → 0)",
       "All active skill cooldowns reset",
-      "Current mana → 0",
       "All equipped items unequipped"
     ],
     "keep_items": [
@@ -917,7 +916,8 @@
       "Max HP permanently +50",
       "Prestige ×{{count}} badge",
       "+5 Skill Points immediately",
-      "Prestige-exclusive achievement"
+      "Prestige-exclusive achievement",
+      "+10% Damage, +15% Gold, +15% XP multiplier (stacks each prestige)"
     ]
   },
   "rankBadge": {
@@ -1063,7 +1063,7 @@
       },
       "endurance_protocol": {
         "name": "Endurance Protocol",
-        "desc": "Running rank thresholds reduced by 20%"
+        "desc": "Rank thresholds reduced by 20% — advance through E-SSS faster"
       },
       "combat_reflexes": {
         "name": "Combat Reflexes",
@@ -1099,7 +1099,7 @@
       },
       "fortunes_favor": {
         "name": "Fortune's Favor",
-        "desc": "Daily login bonus Gold doubled"
+        "desc": "+100 Gold on daily login"
       },
       "golden_mind": {
         "name": "Golden Mind",

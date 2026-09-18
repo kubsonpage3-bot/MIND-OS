@@ -173,7 +173,7 @@ export const SKILL_TREE = {
     label: "BODY", color: "#ff4400",
     nodes: [
       { id: "iron_conditioning", tier: 1, name: "Iron Conditioning", desc: "Exercise and Running give +15% Rank XP", sp: 3, gold: 100 },
-      { id: "endurance_protocol", tier: 2, name: "Endurance Protocol", desc: "Running & Exercise subject rank thresholds reduced by 20% — advance faster", requires: "iron_conditioning", sp: 6, gold: 250 },
+      { id: "endurance_protocol", tier: 2, name: "Endurance Protocol", desc: "Rank thresholds reduced by 20% — advance through E-SSS faster", requires: "iron_conditioning", sp: 6, gold: 250 },
       { id: "combat_reflexes", tier: 3, name: "Combat Reflexes", desc: "Critical hit chance +10% globally", requires: "endurance_protocol", sp: 10, gold: 500 },
       { id: "pain_threshold", tier: 4, name: "Second Wind", desc: "After a Habit fails, your next Habit completed that day gives +50% XP", requires: "combat_reflexes", sp: 15, gold: 800 },
       { id: "unbreakable", tier: 5, name: "War Body", desc: "+1 maximum active mutator slot", requires: "pain_threshold", sp: 22, gold: 1500 },
@@ -187,7 +187,7 @@ export const SKILL_TREE = {
       { id: "compound_returns", tier: 2, name: "Compound Returns", desc: "+0.5% Gold per streak day, up to +15% (30-day streak)", requires: "resource_awareness", sp: 6, gold: 250 },
       { id: "loot_magnetism", tier: 3, name: "Windfall", desc: "5% chance for any Gold reward to double", requires: "compound_returns", sp: 10, gold: 500 },
       { id: "market_knowledge", tier: 4, name: "Market Knowledge", desc: "Selling items gives 60% of buy price (base: 30%)", requires: "loot_magnetism", sp: 15, gold: 800 },
-      { id: "fortunes_favor", tier: 5, name: "Fortune's Favor", desc: "Daily login bonus gold doubled: 100G instead of 50G", requires: "market_knowledge", sp: 22, gold: 1500 },
+      { id: "fortunes_favor", tier: 5, name: "Fortune's Favor", desc: "+100 Gold on daily login", requires: "market_knowledge", sp: 22, gold: 1500 },
       { id: "golden_mind", tier: 6, name: "GOLDEN MIND", desc: "Sessions over 2h guarantee a loot drop. Knowledge becomes wealth.", requires: "fortunes_favor", sp: 35, gold: 3000 },
     ],
   },

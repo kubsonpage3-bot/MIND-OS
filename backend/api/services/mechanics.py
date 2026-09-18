@@ -1873,10 +1873,11 @@ def get_passive_multipliers(profile, context: dict):
     if "deep_concentration" in unlocked_skills:
         effects["min_focus"] = 7.0
 
-    if "neural_expansion" in unlocked_skills:
-        # +5 GF ceiling (applied permanently at purchase via rpg_service.py gf_ceiling_bonus)
-        # Additionally grant +5 flat GF ceiling bonus via passives for runtime effects
-        effects["gf_ceiling_flat"] += 5.0
+    # neural_expansion's "+5 Gf ceiling" is applied once, permanently, at
+    # purchase time (rpg_service.py's gf_ceiling_bonus, symmetrically
+    # refunded on respec). It used to ALSO grant a live +5 gf_ceiling_flat
+    # here, double-counting the same +5 as +10 wherever effective_gf_ceiling
+    # is read (views.py, views_pomodoro.py) -- removed.
 
     if "godmind" in unlocked_skills:
         # IQ score (avg of gf+gc+ps+vm) contributes 0.5× to Rank XP per session
@@ -1884,7 +1885,10 @@ def get_passive_multipliers(profile, context: dict):
 
     # BATCH 2 SKILLS
     if "endurance_protocol" in unlocked_skills:
-        # Running/Exercise rank thresholds reduced by 20%
+        # Reduces the single global Rank (E->SSS) threshold ladder by 20%,
+        # since rank_xp is one pooled counter fed by every activity type --
+        # not scoped to Running/Exercise specifically (frontend copy
+        # corrected to match this).
         effects["running_threshold_reduction"] += 0.20
 
     if "unbreakable" in unlocked_skills:

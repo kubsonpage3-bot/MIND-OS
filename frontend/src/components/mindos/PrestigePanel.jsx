@@ -270,6 +270,7 @@ export default function PrestigePanel({ prestige, rankXP, onPrestige }) {
                       t('prestige.gain_items.3', { count: count + 1 }),
                       t('prestige.gain_items.4'),
                       t('prestige.gain_items.5'),
+                      t('prestige.gain_items.6'),
                     ].map((item, i) => (
                       <div key={i} className="text-yellow-400/70">✦ {item}</div>
                     ))}

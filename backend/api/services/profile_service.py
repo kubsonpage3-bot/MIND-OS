@@ -54,6 +54,15 @@ def execute_prestige(profile: UserProfile, user) -> None:
         Task.objects.filter(user=user, task_type="training").update(rank="F", value=0.0)
 
     profile.inventory_items.filter(is_equipped=True).update(is_equipped=False)  # type: ignore
+
+    # "All active skill cooldowns reset" is promised in the prestige
+    # confirmation UI, but nothing ever cleared SkillCooldown rows -- the
+    # full skill-tree respec above makes any lingering cooldown for a
+    # now-unlearned skill meaningless anyway.
+    from api.models import SkillCooldown
+
+    SkillCooldown.objects.filter(user=user).delete()
+
     profile.save()
 
 
@@ -178,6 +187,22 @@ def check_death(profile: UserProfile) -> bool:
     """
     has_died = False
     if profile.hp <= 0:
+        # Ironman mutator: "HP hits 0 -> forced prestige" instead of the
+        # normal death reset (no minimum Rank XP threshold -- that's the
+        # risk you signed up for). Centralized here so every HP-loss call
+        # site gets it automatically, instead of each one having to
+        # duplicate an "if ironman active" wrapper around check_death().
+        active_mutators = profile.active_mutators
+        active_ids = []
+        if isinstance(active_mutators, dict):
+            active_list = active_mutators.get("active", [])
+            active_ids = [
+                m.get("id") if isinstance(m, dict) else m for m in active_list
+            ]
+        if "ironman" in active_ids:
+            execute_prestige(profile, profile.user)
+            return False
+
         # Check Kage Level 4 active
         active_codes = profile.active_allies or []
         kage_ally = profile.recruited_allies.filter(ally_code="kage").first()  # type: ignore

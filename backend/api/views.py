@@ -1662,19 +1662,6 @@ class TrainingLogView(generics.GenericAPIView):
                 final_xp += godmind_bonus
                 breakdown.append(f"Godmind +{godmind_bonus} XP")
 
-            task_cat_lower = task_category.lower() if task_category else ""
-            if (
-                isinstance(activity, str)
-                and activity.lower() in ["reading", "philosophy"]
-            ) or task_cat_lower in [
-                "reading",
-                "philosophy",
-                "reading & writing",
-                "humanities & arts",
-            ]:
-                if "living_library" in unlocked_skills:
-                    final_xp = int(final_xp * 1.15)
-
             if is_language:
                 mana_bonus = passive_effects.get("language_mana_bonus", 0)
                 if mana_bonus > 0:

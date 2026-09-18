@@ -692,7 +692,7 @@ def test_additive_stacking_passive_multipliers(user, profile):
     )  # min_focus = 7.0
     UnlockedSkill.objects.create(
         user_profile=profile, skill_code="neural_expansion"
-    )  # gf_ceiling_flat += 20.0
+    )  # its +5 Gf ceiling is granted once at purchase, not via passives
 
     # Add an ally to test Aura of Focus (ally_mult)
     RecruitedAlly.objects.create(user_profile=profile, ally_code="kira", level=1)
@@ -708,7 +708,10 @@ def test_additive_stacking_passive_multipliers(user, profile):
     assert effects["mana_regen_mult"] == 1.25
     assert effects["ally_stat_mult"] == 1.10
     assert effects["min_focus"] == 7.0
-    assert effects["gf_ceiling_flat"] == 5.0  # neural_expansion gives +5 GF ceiling (not +20)
+    # neural_expansion no longer contributes to gf_ceiling_flat -- its +5 Gf
+    # ceiling is applied once, permanently, at purchase (rpg_service.py),
+    # not as a live passive (see test_all_30_skills.py for that assertion).
+    assert effects["gf_ceiling_flat"] == 0.0
 
     # Kira's level 1 bonus is 0.05. With aura_of_focus (1.10 multiplier), it should be 0.055
     assert round(effects["xp_mult"], 3) == 1.055

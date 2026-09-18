@@ -87,10 +87,24 @@ class TestAll30Skills:
         # sharp_focus (0.10) + flow_state (0.20)
         assert round(effects["xp_mult"], 2) == 1.30
 
-        # 4. neural_expansion
-        UnlockedSkill.objects.create(user_profile=profile, skill_code="neural_expansion")
+        # 4. neural_expansion -- "+5 Gf ceiling" is applied once, permanently,
+        # at purchase (rpg_service.buy_skill_node's gf_ceiling_bonus). It
+        # used to ALSO grant a live +5 gf_ceiling_flat passive on top,
+        # silently doubling the promised bonus to +10 wherever
+        # effective_gf_ceiling is read -- fixed to apply exactly once.
+        from api.services.rpg_service import buy_skill_node
+
+        # deep_concentration and flow_state (its requires-chain) were
+        # already unlocked above as steps 2-3.
+        profile.skill_points = 100
+        profile.gold = 100000
+        profile.save()
+        ceiling_before = profile.gf_ceiling
+        buy_skill_node(user, "neural_expansion")
+        profile.refresh_from_db()
+        assert profile.gf_ceiling == ceiling_before + 5.0
         effects = get_passive_multipliers(profile, {})
-        assert effects["gf_ceiling_flat"] == 5.0
+        assert effects["gf_ceiling_flat"] == 0.0
 
         # 5. cognitive_supremacy -- redesigned from a flat +20% to all 4
         # metrics into a permanent x2 (+100%) to Gf/Gc/Ps/Vm gains

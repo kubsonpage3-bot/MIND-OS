@@ -754,14 +754,9 @@ def complete_yesterday_dailies(user, completed_ids: list):
         ]
     )
 
-    # Ironman: "HP hits 0 -> forced prestige. In return: all Rank XP +15% forever."
-    if profile.hp <= 0 and "ironman" in active_ids:
-        from api.services.profile_service import execute_prestige
-
-        execute_prestige(profile, user)
-        died = False
-    else:
-        died = check_death(profile)
+    # Ironman's forced-prestige-on-death is now handled centrally inside
+    # check_death() itself.
+    died = check_death(profile)
 
     return {
         "total_xp": total_xp,
@@ -1040,15 +1035,9 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
                 ]
             )
 
-            # Ironman: "HP hits 0 -> forced prestige" instead of the normal
-            # death reset (no minimum Rank XP threshold — it's forced).
-            if profile.hp <= 0 and "ironman" in active_ids:
-                from api.services.profile_service import execute_prestige
-
-                execute_prestige(profile, user)
-                died = False
-            else:
-                died = check_death(profile)
+            # Ironman's forced-prestige-on-death is now handled centrally
+            # inside check_death() itself.
+            died = check_death(profile)
 
             if not isinstance(task.last_reward_data, dict):
                 task.last_reward_data = {}
@@ -2513,16 +2502,9 @@ def process_missed_tasks(user):
         ]
     )
 
-    # Ironman: "HP hits 0 -> forced prestige. In return: all Rank XP +15%
-    # forever." — a forced prestige (no minimum Rank XP threshold, unlike the
-    # voluntary one) instead of the normal death reset.
-    if profile.hp <= 0 and "ironman" in _mutator_ids_today:
-        from api.services.profile_service import execute_prestige
-
-        execute_prestige(profile, user)
-        died = False
-    else:
-        died = check_death(profile)
+    # Ironman's forced-prestige-on-death is now handled centrally inside
+    # check_death() itself.
+    died = check_death(profile)
 
     return {
         "fired": True,
