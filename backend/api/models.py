@@ -260,6 +260,14 @@ class UserProfile(models.Model):
     tasks_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено задач сегодня (momentum)"
     )
+    # Separate from tasks_completed_today (Habit/Daily/Todo only, also read
+    # by Zephyr L4's "every 4th task" perk) -- volatile's tiers are meant to
+    # escalate with ANY completed activity, so it needs its own counter
+    # incremented by all 3 reward paths (Habit/Daily/Todo, Training Log,
+    # Pomodoro), not just the first.
+    activities_completed_today = models.PositiveIntegerField(
+        default=0, verbose_name="Выполнено активностей сегодня (volatile)"
+    )
     habits_completed_today = models.PositiveIntegerField(
         default=0, verbose_name="Выполнено привычек сегодня"
     )

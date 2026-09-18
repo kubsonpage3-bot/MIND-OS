@@ -604,7 +604,23 @@ def apply_boss_damage(user, final_damage_dealt, is_crit=False):
             has_aura = profile.unlocked_skills.filter(  # type: ignore
                 skill_code="aura_of_focus"
             ).exists()
-            ally_mult = 1.10 if has_aura else 1.0
+            # Zephyr L3 ("+15% to all OTHER active allies' perks") reaches
+            # every other ally bonus via get_passive_multipliers's
+            # ally_stat_mult, but this function has its own separate local
+            # ally_mult that only ever accounted for aura_of_focus -- Void's
+            # headline L1/L5 boss-damage bonus was the one perk Zephyr's
+            # synergy promise most directly applies to, yet never reached.
+            zephyr_ally = profile.recruited_allies.filter(  # type: ignore
+                ally_code="zephyr"
+            ).first()
+            has_zephyr_synergy = bool(
+                "zephyr" in active_codes and zephyr_ally and zephyr_ally.level >= 3
+            )
+            ally_mult = 1.0
+            if has_aura:
+                ally_mult += 0.10
+            if has_zephyr_synergy:
+                ally_mult += 0.15
             boss_dmg_mult += (0.50 if void_ally.level >= 5 else 0.10) * ally_mult
 
     final_damage_dealt = int(final_damage_dealt * boss_dmg_mult)
@@ -919,6 +935,17 @@ def check_and_expire_mutators(profile):
                         profile.gold += withheld * 3
                         payout_changed = True
 
+                # Silence: "All skills disabled 48h. After: all cooldowns ->
+                # 0." The 48h skill-lock half was implemented
+                # (skill_service.py blocks activation while active), but the
+                # payoff -- resetting cooldowns once the vow ends -- was
+                # never implemented at all, so players paid the full penalty
+                # for nothing.
+                if m.get("id") == "silence":
+                    from api.models import SkillCooldown
+
+                    SkillCooldown.objects.filter(user=profile.user).delete()
+
                 continue
 
         new_active_list.append(m)
@@ -1038,7 +1065,13 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
         or task_category == "Mindfulness"
     ):
         effects["xp_mult"] += 0.40
-        streak_bonus = 2 * context.get("task_streak", 0)
+        # Promise is "daily streak log gives +2 XP instead of +1" -- a
+        # small flat bonus while a streak is active, not a per-streak-day
+        # multiplier. Was `2 * task_streak`, which happens to equal +2 at
+        # streak=1 (masking the bug) but grows unbounded (+20 at a 10-day
+        # streak, +60 at 30) -- unlike every other streak-scaling mutator
+        # in this file, which is explicitly capped.
+        streak_bonus = 2 if context.get("task_streak", 0) > 0 else 0
         effects["flat_xp"] += streak_bonus
         src(f"Monk's Path: +40% XP{f' +{streak_bonus} flat' if streak_bonus else ''}")
 
@@ -1267,7 +1300,11 @@ def apply_active_mutators(profile, context: dict, trigger_side_effects: bool = T
             src("Déjà Vu: +50% XP (3rd day, same subject)")
 
     if "volatile" in active_ids:
-        tasks_today = profile.tasks_completed_today
+        # Was profile.tasks_completed_today, only ever incremented by
+        # Habit/Daily/Todo completions -- a Training-Log/Pomodoro-only user
+        # always read 0 and got the "first task" x2 tier forever, never the
+        # -10%/+50% tiers. Uses its own counter incremented by all 3 paths.
+        tasks_today = profile.activities_completed_today
         if tasks_today == 0:
             effects["final_xp_mult"] *= 2.0
             effects["final_gold_mult"] *= 2.0

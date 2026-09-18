@@ -1234,8 +1234,8 @@
       },
       "ascetic_loop": {
         "name": "Ascetic Loop",
-        "desc": "Daily tasks grant +5 flat XP, strengthening long-term streaks.",
-        "bonus": "+5 flat XP on every completed daily task.",
+        "desc": "Streak gives flat Rank XP: streak × 0.2 per day, strengthening long-term streaks.",
+        "bonus": "+0.2 flat XP per current streak day (e.g. +6 at a 30-day streak).",
         "penalty": "Breaking streaks halts momentum.",
         "mechanics": "Perfect for players managing many short, regular daily tasks."
       },
@@ -1775,7 +1775,7 @@
         "Mana max +20 permanently",
         "Prestige bonus increased by +5%",
         "Skill tree node costs -25%",
-        "After prestige: start at Rank C instead of F"
+        "After prestige: start at Rank C instead of E"
       ]
     },
     "nene": {

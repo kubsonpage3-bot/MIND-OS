@@ -729,6 +729,7 @@ def complete_yesterday_dailies(user, completed_ids: list):
 
     # Reset daily counters for the new day
     profile.tasks_completed_today = 0
+    profile.activities_completed_today = 0
     profile.habits_completed_today = 0
     profile.habit_boss_dmg_today = 0
     profile.todos_completed_today = 0
@@ -745,6 +746,7 @@ def complete_yesterday_dailies(user, completed_ids: list):
             "rank_xp",
             "level",
             "tasks_completed_today",
+            "activities_completed_today",
             "habits_completed_today",
             "habit_boss_dmg_today",
             "todos_completed_today",
@@ -775,6 +777,19 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     Использует transaction.atomic и select_for_update для предотвращения состояния гонки.  # noqa: E501
     """
     task = Task.objects.select_for_update().get(id=task_id, user=user)
+
+    # BUTTON tasks ("custom training / manual log") are meant to be
+    # completed exclusively through TrainingLogView/active_session_complete
+    # (via their linked_activity_key="custom_task_<id>"), which grant
+    # rewards through their own pipeline. The dispatch below only branches
+    # on TODO/DAILY/HABIT, so a BUTTON task fell through with no
+    # completion-state guard at all -- rewards.get_rewards() never changes
+    # between calls, so hitting this endpoint on a BUTTON task repeatedly
+    # granted full, undiminished XP/Gold/mana/boss-damage every time.
+    if task.task_type == Task.TaskType.BUTTON:
+        raise ValidationError(
+            "This task can only be completed via Training Log or a linked Pomodoro session."
+        )
 
     # Блокируем профиль для обновления в рамках транзакции
     profile = UserProfile.objects.select_for_update().get(user=user)
@@ -1425,6 +1440,7 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
 
         # Group 3 Mutator stats
         profile.tasks_completed_today += 1
+        profile.activities_completed_today += 1
         if task.task_type == Task.TaskType.HABIT:
             profile.habits_completed_today += 1
         elif task.task_type == Task.TaskType.TODO:
@@ -2202,6 +2218,7 @@ def process_missed_tasks(user):
         return {"fired": False, "total_dmg": 0, "profile": profile, "log": []}
 
     profile.tasks_completed_today = 0
+    profile.activities_completed_today = 0
     profile.habits_completed_today = 0
     profile.habit_boss_dmg_today = 0  # DIS-3 cap resets with daily window
     profile.todos_completed_today = 0
@@ -2491,6 +2508,7 @@ def process_missed_tasks(user):
             "rank_xp",
             "level",
             "tasks_completed_today",
+            "activities_completed_today",
             "habits_completed_today",
             "habit_boss_dmg_today",
             "todos_completed_today",

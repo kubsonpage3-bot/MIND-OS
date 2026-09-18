@@ -560,6 +560,32 @@ def test_custom_button_task_rewards(user, profile):
 
 
 @pytest.mark.django_db
+def test_button_task_rejected_by_generic_complete_endpoint(user, profile):
+    """
+    BUTTON tasks ("custom training / manual log") are only meant to be
+    completed via TrainingLogView/active_session_complete. _complete_task_logic's
+    dispatch only branches on TODO/DAILY/HABIT, so a BUTTON task used to fall
+    through with no completion-state guard at all -- since get_rewards() never
+    changes between calls, POSTing to the generic complete endpoint repeatedly
+    granted full, undiminished XP/Gold every single time (an infinite-farming
+    exploit). Now explicitly rejected.
+    """
+    from api.models import Task
+
+    button_task = Task.objects.create(
+        user=user,
+        title="Custom Boxing",
+        task_type=Task.TaskType.BUTTON,
+        category="Exercise",
+        xp_reward=20,
+        gold_reward=15,
+    )
+
+    with pytest.raises(ValidationError):
+        complete_task(user, button_task.id, True)
+
+
+@pytest.mark.django_db
 def test_todo_completion_boss_damage_revert(user, profile, task):
     """
     Regression test to prevent the infinite boss-killing exploit.

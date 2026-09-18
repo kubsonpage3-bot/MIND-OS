@@ -343,7 +343,7 @@ export const ALLIES = [
       "Mana max +20 permanently",
       "Prestige bonus increased by +5%",
       "Skill tree node costs -25%",
-      "After prestige: start at Rank C instead of F",
+      "After prestige: start at Rank C instead of E",
     ],
   },
   {

@@ -764,7 +764,7 @@ ALLIES_CONFIG = {
                 "prestige_bonus": 0.05,
                 "skill_cost_reduction": 0.25,
                 "prestige_start_rank": "C",
-                "desc": "After prestige: start at Rank C instead of F",
+                "desc": "After prestige: start at Rank C instead of E",
             },
         },
     },

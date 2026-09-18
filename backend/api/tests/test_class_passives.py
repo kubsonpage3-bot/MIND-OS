@@ -150,6 +150,16 @@ def test_complete_task_with_class_passive(mock_random, user, profile):
 @pytest.mark.django_db
 @patch("random.random", return_value=0.99)
 def test_custom_mastery_category_class_passive(mock_random, user, profile):
+    # BUTTON tasks ("custom training / manual log") are only ever meant to
+    # be completed via TrainingLogView's custom_task_<id> linking, not the
+    # generic complete_task() endpoint (which now rejects BUTTON tasks --
+    # see test_button_task_cannot_be_completed_via_task_endpoint). Exercise
+    # the real intended flow here instead of the shortcut this test used to
+    # take.
+    from django.test.client import RequestFactory
+    from rest_framework.test import force_authenticate
+    from api.views import TrainingLogView
+
     # Setup Linguist profile (+20% on languages)
     profile.character_class = "linguist"
     profile.save()
@@ -172,14 +182,27 @@ def test_custom_mastery_category_class_passive(mock_random, user, profile):
         mastery_category="body",
     )
 
+    factory = RequestFactory()
+    view = TrainingLogView.as_view()
+
+    def log_activity(task):
+        request = factory.post(
+            "/api/training/log/",
+            {"hours": 1.0, "focus_rating": 8, "activity": f"custom_task_{task.id}"},
+        )
+        force_authenticate(request, user=user)
+        return view(request)
+
     initial_xp = profile.xp
-    complete_task(user, task_custom_body.id, True)
+    resp = log_activity(task_custom_body)
+    assert resp.status_code == 200, resp.data
     profile.refresh_from_db()
     xp_body = profile.xp - initial_xp
 
     profile.xp = 0
     profile.save()
-    complete_task(user, task_custom_lang.id, True)
+    resp = log_activity(task_custom_lang)
+    assert resp.status_code == 200, resp.data
     profile.refresh_from_db()
     xp_lang = profile.xp
 

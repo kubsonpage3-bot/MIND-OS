@@ -1779,6 +1779,16 @@ class TrainingLogView(generics.GenericAPIView):
             if passive_effects.get("grier_l1_heal", False):
                 profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 2)
 
+            # Glass Tear: "+2 HP on each task completion" -- was only wired
+            # into the Habit/Daily/Todo path; a Training Log entry is a task
+            # completion too and reads every other generic passive, so this
+            # was silently missing here.
+            glass_tear_heal = passive_effects.get("task_completion_hp_heal", 0)
+            if glass_tear_heal > 0:
+                profile.hp = min(
+                    profile.total_stats.get("hp_max", 100), profile.hp + glass_tear_heal
+                )
+
             # Update Category Streaks
             from api.services.mechanics import resolve_mastery_category
 
@@ -1831,6 +1841,9 @@ class TrainingLogView(generics.GenericAPIView):
                     profile.same_category_streak = 1
                     profile.last_completed_category = task_category
 
+            # volatile mutator's tier counter -- see activities_completed_today
+            profile.activities_completed_today += 1
+
             profile.save()
 
             # Boss Damage Logic
@@ -1849,6 +1862,24 @@ class TrainingLogView(generics.GenericAPIView):
             # final_damage_dealt is its base) -- don't also read
             # passive_effects["boss_dmg_mult"] here, or they'd double-apply.
             is_crit = outcome.get("is_crit", False)
+
+            # Kage L5 Executioner: 5x damage to boss below 15% HP. Was only
+            # wired into the Habit/Daily/Todo path's boss-damage calc --
+            # Training Log entries deal boss damage through the identical
+            # apply_boss_damage() choke point, so this was silently missing
+            # here too.
+            if recruited_allies.get("kage", 0) >= 5:
+                from api.models import BossEncounter as _BossEncounter
+
+                _kage_encounter = _BossEncounter.objects.filter(
+                    user=request.user, is_defeated=False
+                ).first()
+                if (
+                    _kage_encounter
+                    and _kage_encounter.boss
+                    and _kage_encounter.hp_current < _kage_encounter.boss.hp_max * 0.15
+                ):
+                    final_damage_dealt *= 5
 
             if session_skills["blood_harvest_active"]:
                 vamp_heal = max(1, int(final_damage_dealt * 0.20))
@@ -2876,6 +2907,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.active_mutators = {"purchased": [], "active": []}
                     profile.last_mutator_tick_at = None
                     profile.tasks_completed_today = 0
+                    profile.activities_completed_today = 0
                     profile.habits_completed_today = 0
                     profile.habit_boss_dmg_today = 0
                     profile.todos_completed_today = 0
@@ -2884,6 +2916,7 @@ class ResetDataView(generics.GenericAPIView):
                         "active_mutators",
                         "last_mutator_tick_at",
                         "tasks_completed_today",
+                        "activities_completed_today",
                         "habits_completed_today",
                         "habit_boss_dmg_today",
                         "todos_completed_today",
@@ -2994,6 +3027,7 @@ class ResetDataView(generics.GenericAPIView):
                     profile.active_mutators = {"purchased": [], "active": []}
                     profile.last_mutator_tick_at = None
                     profile.tasks_completed_today = 0
+                    profile.activities_completed_today = 0
                     profile.habits_completed_today = 0
                     profile.habit_boss_dmg_today = 0
                     profile.todos_completed_today = 0

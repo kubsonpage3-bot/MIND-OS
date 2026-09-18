@@ -204,3 +204,96 @@ def test_linked_pomodoro_nene_l2_triple_subject_gold_bonus(auth_client, user):
 
     profile.refresh_from_db()
     assert profile.gold >= gold_before_third + 30
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_glass_tear_heals_on_completion(auth_client, user):
+    """
+    Glass Tear's "+2 HP on each task completion" was only wired into
+    _complete_task_logic (Habit/Daily/Todo) -- a linked Pomodoro session is
+    a task completion too and reads every other generic passive, so this
+    was silently missing here (and in TrainingLogView).
+    """
+    from api.models import Item, InventoryItem
+
+    profile = UserProfile.objects.get(user=user)
+    glass_tear, _ = Item.objects.get_or_create(
+        code="glass_tear", defaults={"name": "Glass Tear", "slot_type": "amulet"}
+    )
+    InventoryItem.objects.create(
+        user_profile=profile, item=glass_tear, is_equipped=True
+    )
+    profile.hp = 50
+    profile.save()
+
+    start_and_complete(auth_client, duration_minutes=30, rating=7)
+
+    profile.refresh_from_db()
+    assert profile.hp == 52
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_kage_l5_executioner_boss_damage(auth_client, user):
+    """
+    Kage L5's "5x damage to boss below 15% HP" was only wired into the
+    Habit/Daily/Todo boss-damage calc -- Training Log and linked Pomodoro
+    sessions deal boss damage through the identical apply_boss_damage()
+    choke point, so this was silently missing from both.
+    """
+    from api.models import Boss, BossEncounter, RecruitedAlly
+
+    profile = UserProfile.objects.get(user=user)
+    RecruitedAlly.objects.create(user_profile=profile, ally_code="kage", level=5)
+    profile.active_allies = ["kage"]
+    profile.save()
+
+    boss = Boss.objects.create(
+        id_name="kage_test_boss", name="Kage Test Boss", level=1,
+        hp_max=10000, reward_gold=10, reward_xp=10,
+    )
+    BossEncounter.objects.create(
+        user=user, boss=boss, hp_current=1000, is_defeated=False  # 10% HP, under the 15% threshold
+    )
+
+    start_and_complete(auth_client, duration_minutes=60, rating=8)
+
+    encounter = BossEncounter.objects.get(user=user, boss=boss)
+    # Base damage for an 8-rating hour-long session is far below 1000 --
+    # only the 5x multiplier can drop the boss this far in one hit.
+    assert encounter.hp_current < 700
+
+
+@pytest.mark.django_db
+def test_linked_pomodoro_null_zone_and_gamblers_ledger_wired(auth_client, user):
+    """
+    twin_souls, null_zone, and gamblers_ledger were correctly wired into
+    _complete_task_logic and TrainingLogView, but entirely absent from the
+    linked-Pomodoro completion path -- a Gambler's-Ledger/Null-Zone user
+    got normal, un-redirected Gold/XP from every Pomodoro session while the
+    other two paths correctly diverted it.
+    """
+    profile = UserProfile.objects.get(user=user)
+    profile.active_mutators = {
+        "active": [{"id": "null_zone"}], "purchased": ["null_zone"]
+    }
+    profile.save()
+
+    gold_before = profile.gold
+    data = start_and_complete(auth_client, duration_minutes=30, rating=7)
+
+    assert data["xp_earned"] == 0
+    profile.refresh_from_db()
+    assert profile.gold > gold_before  # raw XP converted to Gold instead
+
+    # Gambler's Ledger: Gold gets redirected into the ledger, not granted directly.
+    profile.active_mutators = {
+        "active": [{"id": "gamblers_ledger"}], "purchased": ["gamblers_ledger"]
+    }
+    profile.gold = 0
+    profile.ledger_gold = 0
+    profile.save()
+
+    start_and_complete(auth_client, duration_minutes=60, rating=9)
+    profile.refresh_from_db()
+    assert profile.gold == 0
+    assert profile.ledger_gold > 0

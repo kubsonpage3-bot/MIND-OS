@@ -417,6 +417,16 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 if passive_effects.get("grier_l1_heal", False):
                     profile.hp = min(profile.total_stats.get("hp_max", 100), profile.hp + 2)
 
+                # Glass Tear: "+2 HP on each task completion" -- was only
+                # wired into the Habit/Daily/Todo path; a linked Pomodoro
+                # session is a task completion too.
+                glass_tear_heal = passive_effects.get("task_completion_hp_heal", 0)
+                if glass_tear_heal > 0:
+                    profile.hp = min(
+                        profile.total_stats.get("hp_max", 100),
+                        profile.hp + glass_tear_heal,
+                    )
+
                 # Lyra Level 1 duration requirements
                 lyra_level = recruited_allies.get("lyra", 0)
                 lyra_zero_rewards = False
@@ -611,6 +621,37 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 except Exception:
                     pass
 
+                # Twin Souls split, Null Zone conversion, Gambler's Ledger
+                # redirect -- were correctly wired into _complete_task_logic
+                # and TrainingLogView, but never into this path at all, so a
+                # linked Pomodoro session silently ignored all 3 mutators.
+                if "twin_souls" in active_ids and active_codes:
+                    from api.models import RecruitedAlly
+
+                    active_recruited = RecruitedAlly.objects.filter(
+                        user_profile=profile, ally_code__in=active_codes
+                    )
+                    least_xp_ally = active_recruited.order_by(
+                        "total_xp_received", "recruited_at"
+                    ).first()
+                    if least_xp_ally is not None:
+                        ally_xp_share = int(xp_earned * 0.15)
+                        ally_gold_share = int(gold_earned * 0.15)
+
+                        xp_earned -= ally_xp_share
+                        gold_earned -= ally_gold_share
+
+                        least_xp_ally.total_xp_received += ally_xp_share
+                        least_xp_ally.save(update_fields=["total_xp_received"])
+
+                if "null_zone" in active_ids:
+                    gold_earned += int(xp_earned * 0.5)
+                    xp_earned = 0
+
+                if "gamblers_ledger" in active_ids:
+                    profile.ledger_gold += gold_earned
+                    gold_earned = 0
+
                 training_session = TrainingSession.objects.create(
                     user_profile=profile,
                     activity_key=activity_key,
@@ -683,6 +724,9 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                         profile.same_category_streak = 1
                         profile.last_completed_category = task_category
 
+                # volatile mutator's tier counter -- see activities_completed_today
+                profile.activities_completed_today += 1
+
                 # Boss damage -- a linked Pomodoro is a study session like any
                 # other and should deal damage like one; previously it dealt none.
                 # Reuses training_reward_calc (real tier) instead of a
@@ -696,6 +740,23 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     * mutator_effects.get("mirror_boss_dmg_mult", 1.0)
                     * session_skills["boss_dmg_mult"]
                 )
+                # Kage L5 Executioner: 5x damage to boss below 15% HP -- same
+                # gap as Training Log had (only wired into the Habit/Daily/
+                # Todo path originally).
+                if recruited_allies.get("kage", 0) >= 5:
+                    from api.models import BossEncounter as _BossEncounter
+
+                    _kage_encounter = _BossEncounter.objects.filter(
+                        user=request.user, is_defeated=False
+                    ).first()
+                    if (
+                        _kage_encounter
+                        and _kage_encounter.boss
+                        and _kage_encounter.hp_current
+                        < _kage_encounter.boss.hp_max * 0.15
+                    ):
+                        final_damage_dealt *= 5
+
                 if session_skills["blood_harvest_active"]:
                     vamp_heal = max(1, int(final_damage_dealt * 0.20))
                     profile.hp = min(profile.max_hp, profile.hp + vamp_heal)
@@ -717,6 +778,7 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                         "category_streaks",
                         "last_completed_category",
                         "same_category_streak",
+                        "activities_completed_today",
                         # record_zero_hour_gold() above mutates
                         # profile.active_mutators in place (accumulating
                         # withheld Gold) -- must be in update_fields or the
@@ -728,6 +790,11 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                         # place -- same silent-drop risk as active_mutators.
                         "hp",
                         "mana",
+                        # Gambler's Ledger redirects Gold into ledger_gold
+                        # instead of granting it directly -- same silent-drop
+                        # risk: without this, the redirect happened in memory
+                        # but never reached the database.
+                        "ledger_gold",
                     ]
                 )
             else:
