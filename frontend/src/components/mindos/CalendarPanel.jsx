@@ -964,6 +964,7 @@ export default function CalendarPanel() {
             setView("day");
           }}
           categoryFilter={categoryFilter}
+          view={view}
         />
       ) : (
         <div className="rounded-xl border border-[#2a2640] bg-[#0c0c16] overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">

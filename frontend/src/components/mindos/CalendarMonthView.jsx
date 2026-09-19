@@ -17,6 +17,7 @@ export default function CalendarMonthView({
   getDayEvents,
   onSelectDate,
   categoryFilter = "all",
+  view = "month",
 }) {
   const { t } = useTranslation();
   const todayStr = getLocalDateStr(new Date());
@@ -82,11 +83,18 @@ export default function CalendarMonthView({
           const isToday = dayItem.dateStr === todayStr;
           const allDayEvents = getDayEvents(dayItem.dateStr);
 
+          // In month view: hide repeating daily routine events (isTask && !isDeadline).
+          // Deadlines (isDeadline: true) and custom events (isTask: false) stay visible.
+          const visibleEvents =
+            view === "month"
+              ? allDayEvents.filter((e) => !(e.isTask && !e.isDeadline))
+              : allDayEvents;
+
           // Apply category filter if active
           const dayEvents =
             categoryFilter === "all"
-              ? allDayEvents
-              : allDayEvents.filter((e) => {
+              ? visibleEvents
+              : visibleEvents.filter((e) => {
                   if (categoryFilter === "tasks" && e.isTask) return true;
                   if (categoryFilter === "custom" && !e.isTask) return true;
                   return e.category === categoryFilter || e.color === categoryFilter;
