@@ -102,6 +102,22 @@ browser.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'periodic-sync') {
     await syncBlocklist();
   }
+
+  // The popup's countdown dies with the popup, so the session end is alarmed
+  // here. Completion itself stays with the popup / web app (they need the
+  // focus rating for a linked session) -- this just tells the user it's done.
+  if (alarm.name === 'pomodoro-end') {
+    try {
+      await extensionApi.notifications.create('pomodoro-end', {
+        type: 'basic',
+        iconUrl: 'icons/icon-96.png',
+        title: '🍅 Pomodoro complete!',
+        message: 'Open MIND OS to log your session and collect the reward.',
+      });
+    } catch (e) {
+      console.error('[MIND OS] pomodoro-end notification failed:', e);
+    }
+  }
 });
 
 // ─── Message handler (from popup) ────────────────────────────────────────────

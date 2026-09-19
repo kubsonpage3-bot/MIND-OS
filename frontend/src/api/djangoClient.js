@@ -495,12 +495,13 @@ export const djangoApi = {
   },
 
   pomodoro: {
-    getSessions: () => djangoFetch('/pomodoro/sessions/'),
-    saveSession: (data) =>
-      djangoFetch('/pomodoro/sessions/', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    // Optional query params: { kind: 'work' | 'break', page_size: 1..500 }
+    getSessions: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return djangoFetch(`/pomodoro/sessions/${qs ? `?${qs}` : ''}`);
+    },
+    // No saveSession: the server grants rewards ONLY through
+    // completeActiveSession, from its own record of the running session.
     getHeatmap: (days = 365) => djangoFetch(`/pomodoro/sessions/heatmap/?days=${days}`),
     getStats: () => djangoFetch('/pomodoro/sessions/stats/'),
     getActiveSession: () => djangoFetch('/pomodoro/sessions/active-session/'),
@@ -509,9 +510,11 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    pauseActiveSession: () =>
+    // action: 'pause' | 'resume' (idempotent); omit to toggle
+    pauseActiveSession: (action) =>
       djangoFetch('/pomodoro/sessions/active-session/pause/', {
         method: 'POST',
+        body: JSON.stringify(action ? { action } : {}),
       }),
     resetActiveSession: () =>
       djangoFetch('/pomodoro/sessions/active-session/reset/', {

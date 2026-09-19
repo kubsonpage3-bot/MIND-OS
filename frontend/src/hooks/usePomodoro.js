@@ -3,9 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { djangoApi } from '@/api/djangoClient';
 import toast from 'react-hot-toast';
 
+// Error codes the timer handles itself (with its own, more specific UI) --
+// the generic "failed" toast must not fire on top of them.
+const HANDLED_COMPLETE_CODES = ['too_short', 'no_active_session'];
+
 /**
  * Custom hook for Pomodoro features.
- * Adheres to SSOT Law: Backend is the source of truth for history/stats.
+ * Adheres to SSOT Law: Backend is the source of truth for history/stats AND for
+ * how long a session actually ran (rewards are computed server-side from its
+ * own clock; the client never declares a duration).
  * State Sync Protocol: Invalidates queries on successful mutations.
  */
 export function usePomodoro() {
@@ -33,94 +39,111 @@ export function usePomodoro() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // 3. Fetch Recent Sessions (History)
+  // 3. Fetch Recent Sessions (History) -- focus sessions only, enough rows for
+  // the history/peak-hour views (the default page is just 25).
   const {
     data: sessionsData,
     isLoading: isSessionsLoading,
     error: sessionsError,
   } = useQuery({
     queryKey: ['pomodoro', 'sessions'],
-    queryFn: () => djangoApi.pomodoro.getSessions(),
+    queryFn: () => djangoApi.pomodoro.getSessions({ kind: 'work', page_size: 200 }),
     staleTime: 5 * 60 * 1000,
   });
 
-  // 4. Save completed session
-  /** @type {import('@tanstack/react-query').UseMutationResult<any, any, any, any>} */
-  const saveSessionMutation = useMutation({
-    mutationFn: (sessionData) => djangoApi.pomodoro.saveSession(sessionData),
-    onSuccess: (data) => {
-      // Phase 2: State Synchronization Protocol (NO ZOMBIE CACHES)
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'heatmap'] });
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
-      // NOTE: the Activities/Training tab reads its per-subject hours from the
-      // ["trainingLogs"] query (Dashboard.jsx) and the History tab from
-      // ["activityHistory"] (HistoryLog.jsx) — invalidate those exact keys,
-      // not the nonexistent ["training_sessions"]/["logs"] that used to be
-      // here (they matched no query, so this invalidation was a no-op and
-      // the Activities panel could lag up to its 5min staleTime).
-      queryClient.invalidateQueries({ queryKey: ['trainingLogs'] });
-      queryClient.invalidateQueries({ queryKey: ['activityHistory'] });
-    },
-    onError: (error) => {
-      console.error('Failed to save Pomodoro session:', error);
-      toast.error('Failed to save session. It might not appear in history.');
-    },
-  });
+  const invalidateSessionData = () => {
+    queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+    queryClient.invalidateQueries({ queryKey: ['pomodoro', 'heatmap'] });
+    queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
+    queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
+    queryClient.invalidateQueries({ queryKey: ['userprofile'] });
+    // NOTE: the Activities/Training tab reads its per-subject hours from the
+    // ["trainingLogs"] query (Dashboard.jsx) and the History tab from
+    // ["activityHistory"] (HistoryLog.jsx) — invalidate those exact keys.
+    queryClient.invalidateQueries({ queryKey: ['trainingLogs'] });
+    queryClient.invalidateQueries({ queryKey: ['activityHistory'] });
+  };
 
-  // 5. Active Pomodoro Session Sync
+  // 4. Active Pomodoro Session Sync. Always refetch on mount (the timer tab
+  // unmounts when you leave it, and a cached snapshot minutes old would make
+  // the restored countdown wrong) and when the window regains focus.
   const {
     data: activeSession,
+    dataUpdatedAt: activeSessionUpdatedAt,
     isLoading: isActiveSessionLoading,
   } = useQuery({
     queryKey: ['pomodoro', 'active-session'],
     queryFn: () => djangoApi.pomodoro.getActiveSession(),
     refetchInterval: 10_000, // Sync every 10s
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
+
+  const refreshActiveSession = () =>
+    queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
 
   const startActiveSessionMutation = useMutation({
     mutationFn: (data) => djangoApi.pomodoro.startActiveSession(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+    onSuccess: (data) => {
+      // Adopt the server's answer right away (the request is idempotent: if an
+      // identical session was already running, this is ITS clock, not a reset).
+      queryClient.setQueryData(['pomodoro', 'active-session'], data);
+    },
+    onError: (error) => {
+      console.error('Failed to start Pomodoro session:', error);
+      toast.error(error?.message || 'Could not start the timer on the server.');
+      refreshActiveSession();
     },
   });
 
   const pauseActiveSessionMutation = useMutation({
-    mutationFn: () => djangoApi.pomodoro.pauseActiveSession(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+    mutationFn: (action) => djangoApi.pomodoro.pauseActiveSession(action),
+    onSuccess: (data) => {
+      if (data?.active) queryClient.setQueryData(['pomodoro', 'active-session'], data);
+      else refreshActiveSession();
+    },
+    onError: (error) => {
+      console.error('Failed to pause/resume Pomodoro session:', error);
+      refreshActiveSession();
     },
   });
 
   const resetActiveSessionMutation = useMutation({
     mutationFn: () => djangoApi.pomodoro.resetActiveSession(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
+      queryClient.setQueryData(['pomodoro', 'active-session'], { active: false });
+    },
+    onError: (error) => {
+      console.error('Failed to reset Pomodoro session:', error);
+      refreshActiveSession();
     },
   });
 
   const completeActiveSessionMutation = useMutation({
     mutationFn: (data) => djangoApi.pomodoro.completeActiveSession(data),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'active-session'] });
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'heatmap'] });
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['pomodoro', 'sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['userprofile'] });
-      // See note above: this is a linked-activity completion, so it just
-      // created/updated a TrainingSession — the Activities tab's hour totals
-      // and rank bars won't reflect it without invalidating the real query
-      // keys those views actually use.
-      queryClient.invalidateQueries({ queryKey: ['trainingLogs'] });
-      queryClient.invalidateQueries({ queryKey: ['activityHistory'] });
+      // The server consumed the session: reflect that immediately so a poll
+      // that was already in flight can't resurrect it as "expired".
+      queryClient.setQueryData(['pomodoro', 'active-session'], { active: false });
+      invalidateSessionData();
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       if (data?.gold_earned && data?.xp_earned) {
         toast.success(`Focus logged! +${data.xp_earned} XP, +${data.gold_earned}G`);
       }
     },
     onError: (error) => {
+      const code = error?.data?.code;
+      if (HANDLED_COMPLETE_CODES.includes(code)) {
+        // Expected: the caller shows a specific message. A "no active session"
+        // means another tab/device already completed it -- just resync.
+        if (code === 'no_active_session') {
+          queryClient.setQueryData(['pomodoro', 'active-session'], { active: false });
+        } else {
+          refreshActiveSession();
+        }
+        return;
+      }
       console.error('Failed to complete Pomodoro session:', error);
       toast.error('Failed to log focus session. Please check your connection.');
     },
@@ -140,14 +163,14 @@ export function usePomodoro() {
     sessionsError,
 
     activeSession,
+    activeSessionUpdatedAt,
     isActiveSessionLoading,
     startActiveSession: startActiveSessionMutation.mutate,
-    pauseActiveSession: pauseActiveSessionMutation.mutate,
+    pauseActiveSession: () => pauseActiveSessionMutation.mutate('pause'),
+    resumeActiveSession: () => pauseActiveSessionMutation.mutate('resume'),
     resetActiveSession: resetActiveSessionMutation.mutate,
     completeActiveSession: completeActiveSessionMutation.mutate,
+    completeActiveSessionAsync: completeActiveSessionMutation.mutateAsync,
     isCompleting: completeActiveSessionMutation.isPending,
-
-    saveSession: saveSessionMutation.mutate,
-    isSaving: saveSessionMutation.isPending,
   };
 }

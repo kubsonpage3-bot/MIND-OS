@@ -295,6 +295,15 @@ const playSoundEffects = {
     playTone(783.99, 0.20, "sine", 0.11, 0.24);
     playTone(1046.50, 0.35, "sine", 0.10, 0.36);
   },
+  // Selectable end-of-session sounds (Pomodoro settings: Beep / Bell)
+  pomodoro_beep: () => {
+    playTone(660, 0.2, "square", 0.08);
+    playTone(660, 0.2, "square", 0.08, 0.3);
+  },
+  pomodoro_bell: () => {
+    playSweep(880, 220, 0.6, "sine", 0.14);
+    playSweep(1320, 330, 0.5, "sine", 0.06, 0.02);
+  },
 
   // UI
 
@@ -325,6 +334,18 @@ export function playSound(name) {
 }
 
 export { playSoundEffects };
+
+/**
+ * End-of-session sound honoring the Pomodoro "Session end sound" setting
+ * (pomodoro_settings.soundMode: 'none' | 'beep' | 'bell'; unset keeps the
+ * original chime). Still subject to the global sound on/off + volume.
+ */
+export function playPomodoroEndSound(soundMode) {
+  if (soundMode === 'none') return;
+  if (soundMode === 'beep') return playSound('pomodoro_beep');
+  if (soundMode === 'bell') return playSound('pomodoro_bell');
+  return playSound('pomodoro_complete');
+}
 
 // -- AudioContext init (lazy, on first interaction) ---------------------------
 

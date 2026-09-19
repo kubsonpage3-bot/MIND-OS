@@ -93,7 +93,7 @@ function TabPanel({ title, children }) {
   );
 }
 
-function PremiumGate({ isPremium, children, showNotice = false }) {
+function PremiumGate({ isPremium, children }) {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const containerRef = useRef(null);
@@ -101,8 +101,22 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
 
   return (
     <div className="relative overflow-hidden rounded-xl">
-      <div className="filter blur-md opacity-40 pointer-events-none select-none">
-        {children}
+      {/* Static placeholder, NOT the live panel: mounting the real Pomodoro/
+          Calendar for a free user fired their (403'd) queries, kept polling,
+          and sent the Calendar into a render loop -- and left the UI merely
+          blurred over a live, fully working API. */}
+      <div
+        aria-hidden="true"
+        className="filter blur-md opacity-40 pointer-events-none select-none min-h-[420px] p-4 space-y-3"
+      >
+        <div className="h-8 w-1/3 rounded-lg bg-white/10" />
+        <div className="h-48 rounded-xl bg-white/5" />
+        <div className="grid grid-cols-3 gap-3">
+          <div className="h-16 rounded-xl bg-white/5" />
+          <div className="h-16 rounded-xl bg-white/5" />
+          <div className="h-16 rounded-xl bg-white/5" />
+        </div>
+        <div className="h-24 rounded-xl bg-white/5" />
       </div>
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-black/40 backdrop-blur-[2px]">
         <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-3">
@@ -112,11 +126,6 @@ function PremiumGate({ isPremium, children, showNotice = false }) {
         <p className="text-xs font-mono text-muted-foreground mb-4 max-w-xs">
           {t('dashboard.premium_desc')}
         </p>
-        {showNotice && (
-          <p className="text-[10px] font-mono text-amber-500 mb-4 max-w-xs">
-            // TODO: Pomodoro has no backend enforcement yet — UI-only gate, revisit if backend persistence is added
-          </p>
-        )}
         {isMobileApp() ? (
           <div className="text-center space-y-3">
             <p className="text-white/70 text-sm font-mono">

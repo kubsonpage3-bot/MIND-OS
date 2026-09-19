@@ -63,7 +63,49 @@ export const LocalNotificationsService = {
         console.error("Failed to send native local notification:", err);
       }
     } else {
-      new Notification(title, { body, icon: "/favicon.ico" });
+      // `new Notification()` throws on Android Chrome (needs a service-worker
+      // registration) -- never let a notification failure break the caller.
+      try {
+        new Notification(title, { body, icon: "/favicon.ico" });
+      } catch (err) {
+        console.warn("Web notification failed:", err);
+      }
+    }
+  },
+
+  // Pomodoro end-of-session alert. Scheduled with the OS (native app) so it
+  // still fires when the WebView is frozen in the background -- a JS timer
+  // can't. On the web the tab's own timer + sendInstant is all there is.
+  POMODORO_END_ID: 2001,
+
+  async schedulePomodoroEnd(seconds, title, body) {
+    if (!Capacitor.isNativePlatform() || !(seconds > 0)) return;
+    const isGranted = (await this.getPermissionStatus()) === 'granted';
+    if (!isGranted) return;
+    try {
+      await this.cancelNotification(this.POMODORO_END_ID);
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: this.POMODORO_END_ID,
+            title,
+            body,
+            smallIcon: 'res://ic_stat_notify',
+            schedule: { at: new Date(Date.now() + seconds * 1000), allowWhileIdle: true },
+          },
+        ],
+      });
+    } catch (err) {
+      console.error("Failed to schedule Pomodoro end notification:", err);
+    }
+  },
+
+  async cancelPomodoroEnd() {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      await this.cancelNotification(this.POMODORO_END_ID);
+    } catch {
+      /* nothing scheduled */
     }
   },
 

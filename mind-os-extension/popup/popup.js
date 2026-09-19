@@ -91,6 +91,16 @@ let timerInterval    = null;
 let timerRunning     = false;
 let timerSeconds     = 25 * 60;
 let timerTotalSeconds = 25 * 60;
+// Mode of the session on the server (work | break | longBreak). The popup only
+// starts focus sessions itself, but it may adopt a break started in the web app
+// -- it must never overwrite that with a hard-coded 'work'.
+let timerMode         = 'work';
+// True while the server holds a session this popup paused (or found paused):
+// "Resume" must resume THAT session, not start a fresh full-length one.
+let serverSessionPaused = false;
+// An already-expired server session found on open is completed once, not on
+// every sync.
+let expiredHandled    = false;
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
@@ -229,13 +239,21 @@ async function syncAndRender() {
       if (extModeLinkedBtn) extModeLinkedBtn.click();
       if (extActivitySelect) extActivitySelect.value = act.linked_activity_key;
     }
-    updateCharBadge(act.mode || 'work');
+    timerMode = act.mode || 'work';
+    updateCharBadge(timerMode);
     timerTotalSeconds = act.duration_minutes * 60;
     timerSeconds = act.remaining_seconds;
+    serverSessionPaused = !!act.is_paused;
+    // fromServer: we are only mirroring a session that already exists. Going
+    // through the normal start path used to POST /start/ on every popup open,
+    // restarting the server clock (and forcing mode 'work').
     if (!act.is_paused && act.remaining_seconds > 0 && !timerRunning) {
-      startTimer();
+      expiredHandled = false;
+      startTimer({ fromServer: true });
     } else if (act.is_paused && timerRunning) {
-      pauseTimer();
+      pauseTimer({ fromServer: true });
+    } else if (!act.is_paused && act.remaining_seconds <= 0 && !timerRunning) {
+      handleExpiredServerSession(act);
     }
     updateTimerDisplay();
   }
@@ -514,7 +532,8 @@ document.querySelectorAll('.star-btn').forEach((btn) => {
 if (extConfirmRatingBtn) {
   extConfirmRatingBtn.addEventListener('click', async () => {
     extRatingOverlay.classList.add('hidden');
-    await finishSessionWithRating(selectedStarRating);
+    // 1-5 stars -> the API's 1-10 focus scale (5 stars = 10, not a mediocre 5/10)
+    await finishSessionWithRating(selectedStarRating * 2);
   });
 }
 
@@ -539,9 +558,21 @@ function updateTimerDisplay() {
   ringProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
 }
 
-function startTimer() {
+function scheduleEndAlarm(seconds) {
+  // Alarm survives the popup closing (the interval below does not) so the user
+  // still hears about the end of the session.
+  try {
+    browser.alarms.create('pomodoro-end', { when: Date.now() + Math.max(1, seconds) * 1000 });
+  } catch (e) { /* alarms unavailable */ }
+}
+
+function clearEndAlarm() {
+  try { browser.alarms.clear('pomodoro-end'); } catch (e) { /* ignore */ }
+}
+
+function startTimer(opts = {}) {
   if (timerRunning) return;
-  if (isLinkedMode && !selectedExtActivity) {
+  if (!opts.fromServer && isLinkedMode && !selectedExtActivity) {
     alert('Please select a Linked Activity first!');
     return;
   }
@@ -549,7 +580,15 @@ function startTimer() {
   timerStartBtn.textContent = '⏸ Pause';
   if (ringProgress) ringProgress.classList.add('running');
 
-  openPomodoroSession();
+  if (!opts.fromServer) {
+    if (serverSessionPaused) {
+      notifyResumeSession();
+    } else {
+      openPomodoroSession();
+    }
+    serverSessionPaused = false;
+  }
+  scheduleEndAlarm(timerSeconds);
 
   timerInterval = setInterval(() => {
     if (timerSeconds <= 0) {
@@ -557,7 +596,8 @@ function startTimer() {
       timerRunning = false;
       timerStartBtn.textContent = '▶ Start';
       if (ringProgress) ringProgress.classList.remove('running');
-      
+      clearEndAlarm();
+
       if (isLinkedMode) {
         extRatingOverlay.classList.remove('hidden');
       } else {
@@ -573,12 +613,16 @@ function startTimer() {
   }, 1000);
 }
 
-function pauseTimer() {
+function pauseTimer(opts = {}) {
   clearInterval(timerInterval);
   timerRunning = false;
+  clearEndAlarm();
   if (ringProgress) ringProgress.classList.remove('running');
   timerStartBtn.textContent = '▶ Resume';
-  notifyPauseSession();
+  if (!opts.fromServer) {
+    serverSessionPaused = true;
+    notifyPauseSession();
+  }
 }
 
 timerStartBtn.addEventListener('click', () => {
@@ -589,11 +633,28 @@ timerResetBtn.addEventListener('click', () => {
   clearInterval(timerInterval);
   timerRunning = false;
   timerSeconds = timerTotalSeconds;
+  serverSessionPaused = false;
+  timerMode = 'work';
+  expiredHandled = false;
+  clearEndAlarm();
   timerStartBtn.textContent = '▶ Start';
   if (ringProgress) ringProgress.classList.remove('running');
   notifyResetSession();
   updateTimerDisplay();
 });
+
+// The server session ran out while the popup was closed (or on another
+// device): finish it now instead of leaving it dangling forever.
+function handleExpiredServerSession(act) {
+  if (expiredHandled) return;
+  expiredHandled = true;
+  clearEndAlarm();
+  if (act.linked_activity_key) {
+    extRatingOverlay.classList.remove('hidden');
+  } else {
+    completePomodoroSession();
+  }
+}
 
 async function finishSessionWithRating(ratingVal) {
   try {
@@ -612,6 +673,9 @@ async function finishSessionWithRating(ratingVal) {
       const data = await res.json();
       celebrateCompletion(data);
     }
+    timerMode = 'work';
+    serverSessionPaused = false;
+    expiredHandled = false;
     syncAndRender();
   } catch (e) {
     console.error('[MIND OS] finishSessionWithRating error:', e);
@@ -643,9 +707,14 @@ async function openPomodoroSession() {
       body: JSON.stringify({
         linked_activity_key: isLinkedMode ? selectedExtActivity : null,
         duration_minutes: Math.round(timerTotalSeconds / 60),
-        mode: 'work',
+        mode: timerMode || 'work',
       }),
     });
+    if (res.status === 403) {
+      // Pomodoro is a Premium feature (enforced by the API): the local timer
+      // still runs, but nothing will be logged or rewarded.
+      showGlobalToast('⭐ Pomodoro rewards require Premium');
+    }
   } catch (e) {
     console.error('[MIND OS] openPomodoroSession error:', e);
   }
@@ -656,15 +725,36 @@ async function notifyPauseSession() {
     const { extensionToken } = await browser.storage.local.get('extensionToken');
     if (!extensionToken) return;
     const apiBase = await getApiBase();
+    // Explicit action: the endpoint used to be a bare toggle, so a retried or
+    // duplicated request silently undid itself.
     await fetch(`${apiBase}/api/pomodoro/sessions/active-session/pause/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${extensionToken}`,
       },
+      body: JSON.stringify({ action: 'pause' }),
     });
   } catch (e) {
     console.error('[MIND OS] notifyPauseSession error:', e);
+  }
+}
+
+async function notifyResumeSession() {
+  try {
+    const { extensionToken } = await browser.storage.local.get('extensionToken');
+    if (!extensionToken) return;
+    const apiBase = await getApiBase();
+    await fetch(`${apiBase}/api/pomodoro/sessions/active-session/pause/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({ action: 'resume' }),
+    });
+  } catch (e) {
+    console.error('[MIND OS] notifyResumeSession error:', e);
   }
 }
 
@@ -702,6 +792,9 @@ async function completePomodoroSession() {
       const data = await res.json();
       celebrateCompletion(data);
     }
+    timerMode = 'work';
+    serverSessionPaused = false;
+    expiredHandled = false;
     // Sync to pick up new gold/XP
     setTimeout(syncAndRender, 1000);
   } catch (e) {

@@ -385,6 +385,8 @@ class PomodoroSessionViewSet(viewsets.ReadOnlyModelViewSet):
         """
         rating = _parse_int(request.data.get("rating"), "rating", default=7)
         rating = max(1, min(10, rating))
+        # Cosmetic only (the "what are you focusing on?" text): never affects rewards.
+        focus_label = str(request.data.get("label") or "").strip()[:200]
 
         with transaction.atomic():
             active = (
@@ -490,7 +492,7 @@ class PomodoroSessionViewSet(viewsets.ReadOnlyModelViewSet):
                 date=today,
                 duration=duration,
                 mode=mode,
-                label=activity_key or "Focus Session",
+                label=activity_key or focus_label or "Focus Session",
                 completed=True,
             )
 
@@ -1032,7 +1034,7 @@ class PomodoroSessionViewSet(viewsets.ReadOnlyModelViewSet):
             try:
                 from api.models import UserActivityLog
 
-                pom_title = task.title if task else (activity_key or f"Pomodoro ({duration}m)")
+                pom_title = task.title if task else (activity_key or focus_label or f"Pomodoro ({duration}m)")
                 pom_cat = task.category if task else "Focus"
                 UserActivityLog.objects.create(
                     user=request.user,

@@ -8,15 +8,42 @@ import { Input } from '@/components/ui/input';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useProfileSync } from '@/hooks/useProfileSync';
 import { ACTIVITIES, MASTERY_COEFFICIENTS, CATEGORY_ICONS } from '@/lib/cognitiveEngine';
-import { playSound } from '@/lib/soundEffects';
+import { playPomodoroEndSound } from '@/lib/soundEffects';
 import toast from 'react-hot-toast';
 import { LocalNotificationsService } from '@/utils/localNotifications';
 
-const PRESETS = [
-  { id: 'classic', label: 'Classic', work: 25, break: 5, longBreak: 15, cycles: 4 },
-  { id: 'short',   label: 'Short',   work: 15, break: 3, longBreak: 10, cycles: 4 },
-  { id: 'deep',    label: 'Deep',    work: 50, break: 10, longBreak: 30, cycles: 3 },
-];
+const DEFAULT_PRESET = { id: 'default', label: 'Classic', work: 25, break: 5, longBreak: 15, cycles: 4 };
+
+// The server logs a focus session only after a minute of real elapsed time.
+const MIN_LOG_SECONDS = 60;
+const CYCLE_STORAGE_KEY = 'mindos_pomodoro_cycle';
+
+function loadCycleCount() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CYCLE_STORAGE_KEY) || 'null');
+    if (raw && raw.date === new Date().toDateString() && Number.isFinite(raw.count)) {
+      return raw.count;
+    }
+  } catch {
+    /* storage unavailable */
+  }
+  return 0;
+}
+
+function saveCycleCount(count) {
+  try {
+    localStorage.setItem(
+      CYCLE_STORAGE_KEY,
+      JSON.stringify({ date: new Date().toDateString(), count })
+    );
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+// Server modes: work|focus, break, longBreak|long_break -> UI modes.
+const normalizeMode = (m) =>
+  m === 'focus' || !m ? 'work' : m === 'long_break' ? 'longBreak' : m;
 
 const CHARACTERS = {
   work: {
@@ -123,11 +150,13 @@ function OrbitRing({ color, radius, duration, reverse }) {
 
 export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs = [], onLog }) {
   const { t } = useTranslation();
-  const [preset, setPreset] = useState(PRESETS[0]);
+  const [preset, setPreset] = useState(DEFAULT_PRESET);
   const [mode, setMode] = useState('work');
-  const [timeLeft, setTimeLeft] = useState(PRESETS[0].work * 60);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_PRESET.work * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [cycleCount, setCycleCount] = useState(0);
+  // Persisted (per day): leaving the Timer tab unmounts this component, which
+  // used to reset the long-break cycle to 1/N every time.
+  const [cycleCount, setCycleCount] = useState(loadCycleCount);
   const [justCompleted, setJustCompleted] = useState(false);
   const [focusLabel, setFocusLabel] = useState('');
 
@@ -136,6 +165,9 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   const [linkedDuration, setLinkedDuration] = useState(30); // 30 or 60
   const [showRatingOverlay, setShowRatingOverlay] = useState(false);
   const [ratingCountdown, setRatingCountdown] = useState(10);
+
+  const { profile: syncProfile } = useProfileSync();
+  const profile = djangoProfile || syncProfile;
 
   // ─── ANTI-STALE-CLOSURE REFS ────────────────────────────────────────────────
   // These refs always hold the latest values so the setInterval callback
@@ -147,26 +179,32 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   const isRunningRef = useRef(isRunning);
   const linkedModeRef = useRef(linkedMode);
   const selectedActivityRef = useRef(selectedActivity);
+  const settingsRef = useRef(profile?.pomodoro_settings);
+  const activeSessionRef = useRef(null);
+  const completingRef = useRef(false); // a completion request is in flight
+  const lastLocalActionAtRef = useRef(0); // last pause/reset/mode-switch by the user
+  const presetSigRef = useRef(null);
 
   useEffect(() => { modeRef.current = mode; }, [mode]);
   useEffect(() => { presetRef.current = preset; }, [preset]);
-  useEffect(() => { cycleCountRef.current = cycleCount; }, [cycleCount]);
+  useEffect(() => { cycleCountRef.current = cycleCount; saveCycleCount(cycleCount); }, [cycleCount]);
   useEffect(() => { focusLabelRef.current = focusLabel; }, [focusLabel]);
   useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
   useEffect(() => { linkedModeRef.current = linkedMode; }, [linkedMode]);
   useEffect(() => { selectedActivityRef.current = selectedActivity; }, [selectedActivity]);
+  useEffect(() => { settingsRef.current = profile?.pomodoro_settings; }, [profile?.pomodoro_settings]);
 
   const {
-    saveSession,
-    isSaving,
     isCompleting,
     activeSession,
+    activeSessionUpdatedAt,
     startActiveSession,
     pauseActiveSession,
+    resumeActiveSession,
     resetActiveSession,
-    completeActiveSession,
+    completeActiveSessionAsync,
   } = usePomodoro();
-  const isBusySaving = isSaving || isCompleting;
+  const isBusySaving = isCompleting;
 
   // --- Compiled Activities ---
   const allActivities = useMemo(() => {
@@ -225,116 +263,159 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   const seconds = timeLeft % 60;
   const circumference = 2 * Math.PI * 110;
 
-  const { profile: syncProfile } = useProfileSync();
-  const profile = djangoProfile || syncProfile;
-
   // ─── LOAD SETTINGS FROM USERPROFILE (SSOT) ──────────────────────────────────
+  // Apply saved durations without clobbering a live session: the old
+  // "reset whenever preset.id changes" effect fired the first time the profile
+  // loaded ('classic' -> 'custom') and could stop a timer that had just been
+  // restored from the server.
   useEffect(() => {
-    if (profile?.pomodoro_settings) {
-      const ps = profile.pomodoro_settings;
-      setPreset({
-        id: 'custom',
-        label: 'Custom',
-        work: ps.work ?? 25,
-        break: ps.break ?? 5,
-        longBreak: ps.longBreak ?? 15,
-        cycles: ps.cycles ?? 4,
-      });
-    }
+    const ps = profile?.pomodoro_settings;
+    if (!ps) return;
+    const next = {
+      id: 'custom',
+      label: 'Custom',
+      work: ps.work ?? 25,
+      break: ps.break ?? 5,
+      longBreak: ps.longBreak ?? 15,
+      cycles: ps.cycles ?? 4,
+    };
+    const sig = `${next.work}|${next.break}|${next.longBreak}|${next.cycles}`;
+    if (sig === presetSigRef.current) return;
+    const firstApply = presetSigRef.current === null;
+    presetSigRef.current = sig;
+    setPreset(next);
+    // A running/paused session owns the display until it ends.
+    if (isRunningRef.current || activeSessionRef.current?.active) return;
+    setMode('work');
+    setTimeLeft(next.work * 60);
+    if (!firstApply) setCycleCount(0);
   }, [profile?.pomodoro_settings]);
 
-  // Reset timer when preset changes
-  useEffect(() => {
-    setTimeLeft(preset.work * 60);
-    setMode('work');
-    setCycleCount(0);
-    setIsRunning(false);
-  }, [preset.id]); // intentionally only preset.id so manual changes don't re-trigger
-
   // ─── SESSION COMPLETE HANDLER (no stale closures — reads from refs) ──────────
-  const handleCycleComplete = useCallback(() => {
-    const currentMode = modeRef.current;
+  // The server decides everything that matters (how long the session really
+  // ran, what it's worth, whether it counts): we only ask it to complete the
+  // active session and then advance the local cycle. `finishedModeRaw` is
+  // passed explicitly -- reading modeRef right after a setMode() used to book
+  // an expired break found on reload as a full work session.
+  const finishCycle = useCallback(async (finishedModeRaw) => {
+    if (completingRef.current) return;
+    completingRef.current = true;
+    const finishedMode = normalizeMode(finishedModeRaw);
     const currentPreset = presetRef.current;
     const currentCycleCount = cycleCountRef.current;
-    const currentLabel = focusLabelRef.current;
+    const wasRunning = isRunningRef.current;
+    const ps = settingsRef.current || {};
 
     setIsRunning(false);
-    setJustCompleted(true);
-    setTimeout(() => setJustCompleted(false), 2500);
-
-    playSound("pomodoro_complete");
-    resetActiveSession();
-
-    // ── SSOT: Save session to Django backend ───────────────────────────────────
-    const duration =
-      currentMode === 'work' ? currentPreset.work
-      : currentMode === 'break' ? currentPreset.break
-      : currentPreset.longBreak;
-
-    saveSession({
-      duration,
-      mode: currentMode,
-      label: currentLabel,
-      completed: true,
-    });
-
-    // Send native local notification
-    if (currentMode === 'work') {
-      LocalNotificationsService.sendInstant(
-        "🍅 Pomodoro Session Complete!",
-        "Excellent focus! Take a break to recover your energy."
-      );
-    } else {
-      LocalNotificationsService.sendInstant(
-        "⚡ Break Complete!",
-        "Time to get back to work. Focus mode active."
-      );
-    }
-
-    // Advance the cycle state
-    if (currentMode === 'work') {
-      const newCount = currentCycleCount + 1;
-      setCycleCount(newCount);
-      if (newCount >= currentPreset.cycles) {
-        setMode('longBreak');
-        setTimeLeft(currentPreset.longBreak * 60);
-        setCycleCount(0);
-      } else {
-        setMode('break');
-        setTimeLeft(currentPreset.break * 60);
+    try {
+      try {
+        await completeActiveSessionAsync({
+          rating: 7,
+          ...(finishedMode === 'work' && focusLabelRef.current
+            ? { label: focusLabelRef.current }
+            : {}),
+        });
+      } catch (err) {
+        const code = err?.data?.code;
+        if (code === 'too_short') {
+          // Not a full minute yet: nothing was consumed, keep the timer going.
+          toast(t('pomodoro_ui.too_short', 'Focus for at least a minute to log a session.'), { icon: '⏱️' });
+          setIsRunning(wasRunning);
+          return;
+        }
+        if (code === 'no_active_session') {
+          toast(t('pomodoro_ui.already_logged', 'This session was already completed on another device.'), { icon: 'ℹ️' });
+        } else {
+          // Network/server failure (already toasted by the hook): drop the
+          // server row so the 10s poll can't resurrect a dead session.
+          resetActiveSession();
+        }
       }
-    } else {
-      setMode('work');
-      setTimeLeft(currentPreset.work * 60);
+
+      setJustCompleted(true);
+      setTimeout(() => setJustCompleted(false), 2500);
+      playPomodoroEndSound(ps.soundMode);
+
+      // Local notification (respects the "Browser Notifications" toggle)
+      if (ps.notifications !== false) {
+        if (finishedMode === 'work') {
+          LocalNotificationsService.sendInstant(
+            "🍅 Pomodoro Session Complete!",
+            "Excellent focus! Take a break to recover your energy."
+          );
+        } else {
+          LocalNotificationsService.sendInstant(
+            "⚡ Break Complete!",
+            "Time to get back to work. Focus mode active."
+          );
+        }
+      }
+
+      // Advance the cycle state
+      if (finishedMode === 'work') {
+        const newCount = currentCycleCount + 1;
+        if (newCount >= currentPreset.cycles) {
+          setMode('longBreak');
+          setTimeLeft(currentPreset.longBreak * 60);
+          setCycleCount(0);
+        } else {
+          setCycleCount(newCount);
+          setMode('break');
+          setTimeLeft(currentPreset.break * 60);
+        }
+      } else {
+        setMode('work');
+        setTimeLeft(currentPreset.work * 60);
+      }
+    } finally {
+      completingRef.current = false;
     }
-  }, [saveSession]); // saveSession is stable from useMutation
+  }, [completeActiveSessionAsync, resetActiveSession, t]);
 
   // ── Sync from Backend Active Session (SSOT) ──────────────────────────────────
   useEffect(() => {
-    if (activeSession?.active && !isRunningRef.current) {
-      if (activeSession.linked_activity_key) {
-        setLinkedMode(true);
-        setSelectedActivity(activeSession.linked_activity_key);
-        setLinkedDuration(activeSession.duration_minutes);
-      }
-      setMode(activeSession.mode || 'work');
-      setTimeLeft(activeSession.remaining_seconds);
-      if (!activeSession.is_paused && activeSession.remaining_seconds > 0) {
-        setIsRunning(true);
-      } else if (activeSession.remaining_seconds <= 0) {
-        // Active session expired while away in another tab / background
-        setIsRunning(false);
-        if (activeSession.linked_activity_key) {
-          setShowRatingOverlay(prev => {
-            if (!prev) setRatingCountdown(10);
-            return true;
-          });
-        } else {
-          handleCycleComplete();
-        }
-      }
+    activeSessionRef.current = activeSession;
+    if (!activeSession?.active || isRunningRef.current || completingRef.current) return;
+
+    const isPaused = activeSession.is_paused;
+    // The snapshot may be older than "now" (cache / poll interval): age a
+    // running session's remaining time by how long ago it was fetched, so a
+    // restored countdown isn't minutes off.
+    const ageSec = activeSessionUpdatedAt
+      ? Math.max(0, Math.floor((Date.now() - activeSessionUpdatedAt) / 1000))
+      : 0;
+    const remaining = isPaused
+      ? activeSession.remaining_seconds
+      : Math.max(0, activeSession.remaining_seconds - ageSec);
+    const sessionMode = normalizeMode(activeSession.mode);
+
+    // We just paused/reset/switched locally: the in-flight request may not be
+    // reflected in this snapshot yet -- don't resurrect the old running state.
+    if (!isPaused && Date.now() - lastLocalActionAtRef.current < 4000) return;
+
+    if (activeSession.linked_activity_key) {
+      setLinkedMode(true);
+      setSelectedActivity(activeSession.linked_activity_key);
+      setLinkedDuration(activeSession.duration_minutes);
+    } else {
+      setLinkedMode(false);
     }
-  }, [activeSession, handleCycleComplete]);
+    setMode(sessionMode);
+    setTimeLeft(remaining);
+
+    if (isPaused) return;
+    if (remaining > 0) {
+      setIsRunning(true);
+    } else if (activeSession.linked_activity_key) {
+      // Expired while away in another tab / background
+      setShowRatingOverlay(prev => {
+        if (!prev) setRatingCountdown(10);
+        return true;
+      });
+    } else {
+      finishCycle(sessionMode);
+    }
+  }, [activeSession, activeSessionUpdatedAt, finishCycle]);
 
   // ─── TIMER TICK (TIMESTAMP-BASED & BACKGROUND-SAFE) ─────────────────────────
   const timeLeftRef = useRef(timeLeft);
@@ -348,9 +429,20 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     // Calculate absolute future completion timestamp
     endTimeRef.current = Date.now() + timeLeftRef.current * 1000;
 
+    // Native app: also ask the OS to alert at the end -- a frozen WebView can't.
+    if ((settingsRef.current || {}).notifications !== false) {
+      LocalNotificationsService.schedulePomodoroEnd(
+        timeLeftRef.current,
+        modeRef.current === 'work' ? "🍅 Pomodoro Session Complete!" : "⚡ Break Complete!",
+        modeRef.current === 'work'
+          ? "Excellent focus! Take a break to recover your energy."
+          : "Time to get back to work."
+      );
+    }
+
     const interval = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
-      
+
       if (remaining <= 0) {
         setTimeLeft(0);
         clearInterval(interval);
@@ -359,15 +451,18 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
           setRatingCountdown(10);
           setIsRunning(false);
         } else {
-          handleCycleComplete();
+          finishCycle(modeRef.current);
         }
       } else {
         setTimeLeft(remaining);
       }
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [isRunning, handleCycleComplete]);
+    return () => {
+      clearInterval(interval);
+      LocalNotificationsService.cancelPomodoroEnd();
+    };
+  }, [isRunning, finishCycle]);
 
   // Synchronize timer instantly when app is returned from background
   useEffect(() => {
@@ -381,13 +476,56 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isRunning]);
 
+  // Countdown in the browser tab title while a session runs.
+  const baseTitleRef = useRef(null);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (baseTitleRef.current === null) baseTitleRef.current = document.title;
+    if (isRunning) {
+      const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+      const ss = String(timeLeft % 60).padStart(2, '0');
+      document.title = `${mm}:${ss} · ${CHARACTERS[mode]?.label || 'FOCUS'}`;
+    } else {
+      document.title = baseTitleRef.current;
+    }
+  }, [isRunning, timeLeft, mode]);
+  useEffect(() => () => {
+    if (baseTitleRef.current !== null) document.title = baseTitleRef.current;
+  }, []);
+
+  // Keep the screen awake while a session runs (re-acquired when the tab
+  // becomes visible again -- the browser drops the lock on hide).
+  useEffect(() => {
+    if (!isRunning || typeof navigator === 'undefined' || !('wakeLock' in navigator)) return;
+    let lock = null;
+    let cancelled = false;
+    const acquire = async () => {
+      try {
+        lock = await navigator.wakeLock.request('screen');
+      } catch {
+        /* unsupported / denied / low battery -- non-essential */
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !cancelled) acquire();
+    };
+    acquire();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      lock?.release?.().catch(() => {});
+    };
+  }, [isRunning]);
+
   // ─── CONTROLS ────────────────────────────────────────────────────────────────
-  const resetTimer = useCallback(() => {
+  const resetTimer = useCallback((nextLinked = linkedMode) => {
+    lastLocalActionAtRef.current = Date.now();
     resetActiveSession();
     setIsRunning(false);
     setCycleCount(0);
     setMode('work');
-    if (linkedMode) {
+    if (nextLinked) {
       setTimeLeft(linkedDuration * 60);
     } else {
       setTimeLeft(preset.work * 60);
@@ -395,6 +533,11 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   }, [linkedMode, linkedDuration, preset, resetActiveSession]);
 
   const switchMode = (newMode) => {
+    // Disabled while running (see the buttons): switching mid-session used to
+    // leave the server session alive and the 10s poll resumed it.
+    if (isRunning) return;
+    lastLocalActionAtRef.current = Date.now();
+    resetActiveSession();
     setIsRunning(false);
     setLinkedMode(false);
     setMode(newMode);
@@ -405,41 +548,99 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
     setTimeLeft(duration * 60);
   };
 
+  const handlePlayPause = useCallback(() => {
+    if (linkedMode && !selectedActivity) {
+      toast.error(t('pomodoro_ui.select_activity_first', 'Please select an activity first!'));
+      return;
+    }
+    if (isRunning) {
+      lastLocalActionAtRef.current = Date.now();
+      pauseActiveSession();
+      setIsRunning(false);
+      return;
+    }
+
+    const wantedDuration = linkedMode
+      ? linkedDuration
+      : (mode === 'work' ? preset.work : mode === 'break' ? preset.break : preset.longBreak);
+    const wantedKey = linkedMode ? selectedActivity : null;
+    const server = activeSessionRef.current;
+    const isSameSessionPaused =
+      server?.active &&
+      server.is_paused &&
+      normalizeMode(server.mode) === mode &&
+      server.duration_minutes === wantedDuration &&
+      (server.linked_activity_key || null) === (wantedKey || null);
+
+    if (isSameSessionPaused) {
+      // Resume the paused session with the server's own clock. (It used to
+      // call /start/ with the full duration, which desynced the countdown.)
+      resumeActiveSession();
+    } else {
+      startActiveSession({
+        linked_activity_key: wantedKey,
+        duration_minutes: wantedDuration,
+        mode,
+      });
+    }
+    setIsRunning(true);
+  }, [
+    linkedMode, selectedActivity, linkedDuration, isRunning, mode, preset,
+    pauseActiveSession, resumeActiveSession, startActiveSession, t,
+  ]);
+
   const submitLinkedLog = useCallback((rating) => {
     setShowRatingOverlay(false);
     setRatingCountdown(10);
     setIsRunning(false);
+    lastLocalActionAtRef.current = Date.now();
 
     if (rating === null) {
       // Discard and cleanly exit to Standalone mode
       resetActiveSession();
       setLinkedMode(false);
-      setIsRunning(false);
       setCycleCount(0);
       setMode('work');
       setTimeLeft(preset.work * 60);
       return;
     }
 
-    playSound("pomodoro_complete");
+    playPomodoroEndSound(settingsRef.current?.soundMode);
 
-    // completeActiveSession handles PomodoroSession, TrainingSession, XP/Gold, and stats
-    completeActiveSession({
-      rating: rating || 7,
-      activity_key: selectedActivityRef.current,
-      duration_minutes: linkedDuration,
-    });
-
-    setJustCompleted(true);
-    setTimeout(() => setJustCompleted(false), 2500);
-
-    const restDuration = linkedDuration === 30 ? 5 : 15;
-    setMode(linkedDuration === 30 ? 'break' : 'longBreak');
-    setTimeLeft(restDuration * 60);
-    setLinkedMode(false);
-  }, [linkedDuration, resetActiveSession, completeActiveSession, preset.work]);
+    // The server logs PomodoroSession + TrainingSession + XP/Gold from its own
+    // record of the session -- only the focus rating comes from us.
+    completeActiveSessionAsync({ rating: rating || 7 })
+      .then(() => {
+        setJustCompleted(true);
+        setTimeout(() => setJustCompleted(false), 2500);
+        const restDuration = linkedDuration === 30 ? 5 : 15;
+        setMode(linkedDuration === 30 ? 'break' : 'longBreak');
+        setTimeLeft(restDuration * 60);
+        setLinkedMode(false);
+      })
+      .catch((err) => {
+        const code = err?.data?.code;
+        if (code === 'too_short') {
+          toast(t('pomodoro_ui.too_short', 'Focus for at least a minute to log a session.'), { icon: '⏱️' });
+        } else if (code === 'no_active_session') {
+          toast(t('pomodoro_ui.already_logged', 'This session was already completed on another device.'), { icon: 'ℹ️' });
+          setLinkedMode(false);
+          setMode('work');
+          setTimeLeft(preset.work * 60);
+        }
+      });
+  }, [linkedDuration, resetActiveSession, completeActiveSessionAsync, preset.work, t]);
 
   const handleManualComplete = useCallback(() => {
+    // "Complete" ends the session early; the server pays for the time that
+    // really elapsed and refuses under a minute. Check up front so the user
+    // gets an instant answer instead of a round trip.
+    const isFocus = linkedMode || mode === 'work';
+    const elapsedSec = totalTime - timeLeft;
+    if (isFocus && elapsedSec < MIN_LOG_SECONDS) {
+      toast(t('pomodoro_ui.too_short', 'Focus for at least a minute to log a session.'), { icon: '⏱️' });
+      return;
+    }
     if (linkedMode) {
       if (!selectedActivity) {
         toast.error(t('pomodoro_ui.select_activity_first', 'Please select an activity first!'));
@@ -449,9 +650,9 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
       setShowRatingOverlay(true);
       setRatingCountdown(10);
     } else {
-      handleCycleComplete();
+      finishCycle(mode);
     }
-  }, [linkedMode, selectedActivity, handleCycleComplete, t]);
+  }, [linkedMode, mode, selectedActivity, totalTime, timeLeft, finishCycle, t]);
 
   useEffect(() => {
     if (!showRatingOverlay) return;
@@ -470,7 +671,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
       {/* Mode Toggle: Standalone vs Linked */}
       <div className="flex rounded-xl p-0.5 bg-black/20 border border-white/5 mb-3" onPointerDown={e => e.stopPropagation()}>
         <button
-          onClick={() => { setLinkedMode(false); resetTimer(); }}
+          onClick={() => { setLinkedMode(false); resetTimer(false); }}
           disabled={isRunning}
           className={`flex-1 py-1.5 text-[9px] font-mono rounded-lg transition-all ${
             !linkedMode
@@ -481,7 +682,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
           STANDALONE TIMER
         </button>
         <button
-          onClick={() => { setLinkedMode(true); resetTimer(); }}
+          onClick={() => { setLinkedMode(true); resetTimer(true); }}
           disabled={isRunning}
           className={`flex-1 py-1.5 text-[9px] font-mono rounded-lg transition-all ${
             linkedMode
@@ -506,7 +707,8 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
               <button
                 key={id}
                 onClick={() => switchMode(id)}
-                className="flex-1 py-2.5 text-[10px] font-mono rounded-xl border transition-all flex items-center justify-center gap-1.5"
+                disabled={isRunning}
+                className="flex-1 py-2.5 text-[10px] font-mono rounded-xl border transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   borderColor: mode === id ? c.accent : 'rgba(255,255,255,0.08)',
                   background: mode === id ? `${c.accent}18` : 'transparent',
@@ -714,7 +916,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
             {/* Controls */}
             <div className="flex items-center gap-3 pb-2" onPointerDown={e => e.stopPropagation()}>
               <motion.button
-                onClick={resetTimer}
+                onClick={() => resetTimer()}
                 whileTap={{ scale: 0.9 }}
                 className="w-12 h-12 rounded-full border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                 style={{ borderColor: `${char.accent}30` }}
@@ -723,23 +925,7 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
               </motion.button>
 
               <motion.button
-                onClick={() => {
-                  if (linkedMode && !selectedActivity) {
-                    toast.error("Please select an activity first!");
-                    return;
-                  }
-                  if (!isRunning) {
-                    startActiveSession({
-                      linked_activity_key: linkedMode ? selectedActivity : null,
-                      duration_minutes: linkedMode ? linkedDuration : (mode === 'work' ? preset.work : mode === 'break' ? preset.break : preset.longBreak),
-                      mode: mode,
-                    });
-                    setIsRunning(true);
-                  } else {
-                    pauseActiveSession();
-                    setIsRunning(false);
-                  }
-                }}
+                onClick={handlePlayPause}
                 whileTap={{ scale: 0.92 }}
                 className="w-20 h-20 rounded-full font-mono font-bold text-sm flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{

@@ -182,6 +182,14 @@ def status_view(request):
     from api.models import ActivePomodoroSession, Task
 
     active_pomo = ActivePomodoroSession.objects.filter(user=request.user).first()
+    if active_pomo:
+        from api.views_pomodoro import _is_abandoned
+
+        if _is_abandoned(active_pomo):
+            # Expired hours ago and never completed/resumed: drop it instead of
+            # re-presenting a dead session on every popup open.
+            active_pomo.delete()
+            active_pomo = None
     active_session_data = None
     if active_pomo:
         active_session_data = {

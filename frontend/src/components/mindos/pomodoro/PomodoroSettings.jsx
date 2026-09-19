@@ -9,6 +9,7 @@ import { useProfileSync } from '@/hooks/useProfileSync';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Bell, BellOff } from 'lucide-react';
+import { playPomodoroEndSound } from '@/lib/soundEffects';
 
 const DEFAULT_PRESET = { work: '25', break: '5', longBreak: '15', cycles: '4' };
 
@@ -24,39 +25,6 @@ const SOUND_MODES = [
   { id: 'beep', label: 'Beep', icon: '📣' },
   { id: 'bell', label: 'Bell', icon: '🔔' },
 ];
-
-/** Play a short tone via Web Audio API */
-function playTone(type = 'beep') {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (type === 'bell') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.6);
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.6);
-    } else {
-      // beep
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(660, ctx.currentTime);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.2);
-    }
-
-    osc.onended = () => ctx.close();
-  } catch {
-    // Web Audio not available
-  }
-}
 
 export default function PomodoroSettings() {
   const { t } = useTranslation();
@@ -82,12 +50,14 @@ export default function PomodoroSettings() {
     }
   }, [profile?.pomodoro_settings]);
 
-  // Check existing notification permission
+  // Enabled = the user hasn't switched it off in settings AND the browser
+  // permission is granted (the timer only alerts when both hold).
   useEffect(() => {
+    const switchedOff = profile?.pomodoro_settings?.notifications === false;
     if ('Notification' in window) {
-      setNotificationsEnabled(Notification.permission === 'granted');
+      setNotificationsEnabled(!switchedOff && Notification.permission === 'granted');
     }
-  }, []);
+  }, [profile?.pomodoro_settings?.notifications]);
 
   const profileMutation = useMutation({
     mutationFn: (newData) => djangoApi.profile.update(newData),
@@ -115,27 +85,46 @@ export default function PomodoroSettings() {
     const longBreak = Math.max(1, parseInt(settings.longBreak, 10) || 15);
     const cycles = Math.max(1, parseInt(settings.cycles, 10) || 4);
     profileMutation.mutate({
-      pomodoro_settings: { work, break: breakVal, longBreak, cycles, soundMode },
+      pomodoro_settings: {
+        ...(profile?.pomodoro_settings || {}),
+        work, break: breakVal, longBreak, cycles, soundMode,
+      },
     });
   };
+
+  // Persist the toggle so PomodoroTimer honors it (merge: never drop the
+  // other saved settings).
+  const saveNotificationsFlag = (enabled) =>
+    profileMutation.mutate({
+      pomodoro_settings: { ...(profile?.pomodoro_settings || {}), notifications: enabled },
+    });
 
   const handleToggleNotifications = async () => {
     if (!('Notification' in window)) {
       toast.error('Browser notifications not supported');
       return;
     }
-    if (Notification.permission === 'granted') {
+    if (notificationsEnabled) {
       setNotificationsEnabled(false);
-      toast('Notifications disabled for this session', { icon: '🔕' });
-    } else {
-      const perm = await Notification.requestPermission();
-      if (perm === 'granted') {
-        setNotificationsEnabled(true);
-        toast.success('Notifications enabled!');
+      saveNotificationsFlag(false);
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      setNotificationsEnabled(true);
+      saveNotificationsFlag(true);
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      setNotificationsEnabled(true);
+      saveNotificationsFlag(true);
+      try {
         new Notification('MIND OS Pomodoro', { body: 'Notifications are now active ✓' });
-      } else {
-        toast.error('Notification permission denied');
+      } catch {
+        /* some mobile browsers only allow service-worker notifications */
       }
+    } else {
+      toast.error('Notification permission denied');
     }
   };
 
@@ -252,7 +241,7 @@ export default function PomodoroSettings() {
                   key={m.id}
                   onClick={() => {
                     setSoundMode(m.id);
-                    if (m.id !== 'none') playTone(m.id);
+                    playPomodoroEndSound(m.id);
                   }}
                   className="flex-1 flex flex-col items-center gap-1 py-2 rounded-lg border transition-all duration-150 active:scale-95"
                   style={{

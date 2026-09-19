@@ -10,6 +10,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const SelectClass = lazy(() => import("./pages/SelectClass"));
 import { Toaster } from '@/components/ui/toaster';
+import { Toaster as HotToaster } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 import AnalyticsMigrationGate from '@/components/AnalyticsMigrationGate';
 import ConsentBanner from '@/components/mindos/ConsentBanner';
@@ -96,6 +97,21 @@ function ProtectedRoutes() {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Toaster />
+      {/* Pomodoro, Party and the Pomodoro hook import `toast` from react-hot-toast,
+          but nothing ever mounted its <Toaster/> -- every one of those toasts
+          ("Focus logged! +XP", save errors, "too short", ...) was silently dropped. */}
+      <HotToaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: '#0f0f1a',
+            color: '#e5e7eb',
+            border: '1px solid rgba(255,255,255,0.12)',
+            fontFamily: 'ui-monospace, monospace',
+            fontSize: '12px',
+          },
+        }}
+      />
     </>
   );
 }

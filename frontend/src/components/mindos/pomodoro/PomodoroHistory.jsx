@@ -63,7 +63,8 @@ function usePeakHour(sessionsData) {
     const max = Math.max(...hours);
     if (max === 0) return null;
     const peakHour = hours.indexOf(max);
-    const end = (peakHour + 2) % 24;
+    // Buckets are one hour wide -- the window is [peakHour, peakHour+1).
+    const end = (peakHour + 1) % 24;
     const fmt = h => `${h.toString().padStart(2, '0')}:00`;
     return `${fmt(peakHour)}–${fmt(end)}`;
   }, [sessionsData]);
