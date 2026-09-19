@@ -47,6 +47,9 @@ class TaskSerializer(serializers.ModelSerializer):
             "scheduled_end_time",
             "show_in_calendar",
             "repeat_weekdays",
+            "repeat_interval_weeks",
+            "repeat_start_date",
+            "repeat_until",
             "default_hours",
             "default_focus",
             "xp_reward",
@@ -125,6 +128,11 @@ class TaskSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("At least one weekday must be selected.")
         return value
 
+    def validate_repeat_interval_weeks(self, value):
+        if value < 1 or value > 8:
+            raise serializers.ValidationError("Repeat interval must be 1-8 weeks.")
+        return value
+
     def validate(self, attrs):
         scheduled_time = attrs.get(
             "scheduled_time",
@@ -151,6 +159,33 @@ class TaskSerializer(serializers.ModelSerializer):
                 {
                     "scheduled_time": "Scheduled start time is required if end time is set."
                 }
+            )
+
+        def _current(name):
+            if name in attrs:
+                return attrs[name]
+            return getattr(self.instance, name, None) if self.instance else None
+
+        interval = _current("repeat_interval_weeks") or 1
+        start = _current("repeat_start_date")
+        until = _current("repeat_until")
+        if interval > 1 and not start:
+            # Anchor the "every N weeks" cycle on the week the user set it up
+            # (in THEIR timezone), so the first week is always an "on" week.
+            import zoneinfo
+            from django.utils import timezone
+
+            request = self.context.get("request")
+            profile = getattr(getattr(request, "user", None), "profile", None)
+            try:
+                tz = zoneinfo.ZoneInfo(getattr(profile, "timezone", None) or "UTC")
+            except Exception:
+                tz = zoneinfo.ZoneInfo("UTC")
+            attrs["repeat_start_date"] = timezone.now().astimezone(tz).date()
+            start = attrs["repeat_start_date"]
+        if start and until and until < start:
+            raise serializers.ValidationError(
+                {"repeat_until": "Repeat end date must not be before the start."}
             )
         return attrs
 

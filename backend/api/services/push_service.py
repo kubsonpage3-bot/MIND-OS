@@ -233,12 +233,11 @@ def send_meal_reminders():
     Вызывается каждый час из CronStreakWarningView.
     Возвращает количество успешно отправленных уведомлений.
     """
-    from datetime import datetime, date as dt_date
+    import zoneinfo
     from api.models import NutriGoal, MealEntry
 
-    now_utc = datetime.utcnow()
-    current_hour = now_utc.hour
-    today = dt_date.today()
+    now_utc = timezone.now()
+    current_hour = now_utc.hour  # UTC hour, only for the log line below
 
     MEAL_REMINDERS = [
         ("reminder_breakfast", "breakfast", "🌅 Завтрак", "Не забудь залогировать завтрак!"),
@@ -268,13 +267,25 @@ def send_meal_reminders():
             if not _channel_allows_push(notif_prefs):
                 continue
 
+        # The reminder time is the user's LOCAL time ("08:00" breakfast), so the
+        # hour and the "already logged today?" date must be theirs too -- comparing
+        # against the UTC hour pinged a Warsaw user set to 08:00 at 10:00.
+        try:
+            user_tz = zoneinfo.ZoneInfo(
+                (getattr(prefs, "timezone", None) if prefs else None) or "UTC"
+            )
+        except Exception:
+            user_tz = zoneinfo.ZoneInfo("UTC")
+        local_now = now_utc.astimezone(user_tz)
+        today = local_now.date()
+
         for field, meal_type, title, body in MEAL_REMINDERS:
             reminder_time = getattr(goal, field, None)
             if not reminder_time:
                 continue
 
-            # Совпадает ли час напоминания с текущим часом UTC?
-            if reminder_time.hour != current_hour:
+            # Совпадает ли час напоминания с текущим локальным часом пользователя?
+            if reminder_time.hour != local_now.hour:
                 continue
 
             pair_key = (user.id, meal_type)
@@ -301,5 +312,86 @@ def send_meal_reminders():
                     notified_pairs.add(pair_key)
                     break  # достаточно одного устройства на приём пищи
 
-    logger.info("send_meal_reminders: sent %d notifications for hour %d UTC", sent_count, current_hour)
+    logger.info("send_meal_reminders: sent %d notifications (run at %02d:00 UTC)", sent_count, current_hour)
+    return sent_count
+
+
+DEADLINE_REMINDER_HOUR = 8  # user-local
+
+
+def send_deadline_reminders():
+    """
+    Morning (08:00 in each user's timezone) digest of open Todos whose due date
+    is overdue / today / tomorrow -- one push per user per local day. Deadlines
+    existed (Todo.due_date, a reminderTime setting in the UI) but nothing ever
+    reminded anyone of them.
+    """
+    import zoneinfo
+    from datetime import timedelta
+    from api.models import Task
+
+    subscriptions = PushSubscription.objects.select_related("user", "user__profile")
+    sent_count = 0
+    done_users = set()
+
+    for sub in subscriptions:
+        user = sub.user
+        if user.id in done_users:
+            continue
+        profile = getattr(user, "profile", None)
+        if not profile:
+            continue
+        prefs = profile.notification_preferences or {}
+        if not prefs.get("deadline_reminder", True) or not _channel_allows_push(prefs):
+            continue
+
+        try:
+            tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+        except Exception:
+            tz = zoneinfo.ZoneInfo("UTC")
+        local_now = timezone.now().astimezone(tz)
+        if local_now.hour != DEADLINE_REMINDER_HOUR:
+            continue
+        today = local_now.date()
+        if profile.last_deadline_push_date == today:
+            done_users.add(user.id)
+            continue
+
+        due = Task.objects.filter(
+            user=user,
+            task_type=Task.TaskType.TODO,
+            is_completed=False,
+            due_date__isnull=False,
+            due_date__lte=today + timedelta(days=1),
+        )
+        overdue = due.filter(due_date__lt=today).count()
+        due_today = due.filter(due_date=today).count()
+        due_tomorrow = due.filter(due_date=today + timedelta(days=1)).count()
+        if not (overdue or due_today or due_tomorrow):
+            continue
+
+        parts = []
+        if overdue:
+            parts.append(f"{overdue} overdue")
+        if due_today:
+            parts.append(f"{due_today} due today")
+        if due_tomorrow:
+            parts.append(f"{due_tomorrow} due tomorrow")
+        payload = {
+            "title": "Deadlines ⏰",
+            "body": ", ".join(parts) + ". Open your to-do list to stay on track.",
+            "icon": "/android-chrome-192x192.png",
+            "url": "/",
+        }
+
+        delivered = False
+        for user_sub in user.push_subscriptions.all():
+            if send_web_push(user_sub, payload):
+                sent_count += 1
+                delivered = True
+        if delivered:
+            profile.last_deadline_push_date = today
+            profile.save(update_fields=["last_deadline_push_date"])
+        done_users.add(user.id)
+
     return sent_count

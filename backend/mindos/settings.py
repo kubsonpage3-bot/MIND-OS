@@ -210,7 +210,7 @@ REST_FRAMEWORK = {
     ),  # noqa: E501
     # Пагинация списков
     "DEFAULT_PAGINATION_CLASS": (
-        "rest_framework.pagination.PageNumberPagination"
+        "api.pagination.FlexiblePageNumberPagination"
     ),  # noqa: E501
     "PAGE_SIZE": 25,
     # Поддержка фильтрации через django-filter

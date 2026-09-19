@@ -13,6 +13,7 @@ const NOTIFICATION_TYPE_KEYS = [
   { id: "boss_defeated", labelKey: "boss_defeated", icon: "🎉", default: true },
   { id: "new_ally", labelKey: "new_ally", icon: "🤝", default: true },
   { id: "weekly_report", labelKey: "weekly_report", icon: "📊", default: true },
+  { id: "deadline_reminder", labelKey: "deadline_reminder", icon: "⏰", default: true },
 ];
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;

@@ -81,12 +81,14 @@ class CronStreakWarningView(APIView):
                 send_rival_overtook_warnings,
                 send_weekly_reports,
                 send_meal_reminders,
+                send_deadline_reminders,
             )
             from datetime import datetime
 
             sent_streak = send_streak_warnings()
             sent_rival = send_rival_overtook_warnings()
             sent_meal = send_meal_reminders()
+            sent_deadline = send_deadline_reminders()
 
             # Usually weekly reports are sent on a specific day (e.g., Sunday).
             # We can check if today is Sunday, but for now we just call it and it could
@@ -95,7 +97,7 @@ class CronStreakWarningView(APIView):
             if datetime.now().weekday() == 6:  # 6 is Sunday
                 sent_weekly = send_weekly_reports()
 
-            total_sent = sent_streak + sent_rival + sent_weekly + sent_meal
+            total_sent = sent_streak + sent_rival + sent_weekly + sent_meal + sent_deadline
             return Response(
                 {
                     "status": "ok",
@@ -105,6 +107,7 @@ class CronStreakWarningView(APIView):
                         "rival": sent_rival,
                         "weekly": sent_weekly,
                         "meal_reminders": sent_meal,
+                        "deadline_reminders": sent_deadline,
                     },
                 },
                 status=status.HTTP_200_OK,

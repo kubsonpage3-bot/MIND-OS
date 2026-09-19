@@ -427,6 +427,24 @@ class TaskViewSet(viewsets.ModelViewSet):
         """
         return Task.objects.filter(user=self.request.user).select_related("user")
 
+    def list(self, request, *args, **kwargs):
+        """
+        Every task serializes hp_damage_on_miss / next_fail_hp, which need the
+        owner's profile, gear, skills and passives. Each row loaded its own
+        `task.user` (and so its own profile + a full stat recompute): 25 tasks
+        cost 243 queries. All rows belong to request.user, so share that one
+        object -- its profile and cached stats are computed once per response.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        tasks = list(page) if page is not None else list(queryset)
+        for task in tasks:
+            task.user = request.user
+        serializer = self.get_serializer(tasks, many=True)
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         """
         При создании задачи автоматически устанавливаем user = текущий пользователь
@@ -3507,6 +3525,9 @@ class CalendarEventViewSet(viewsets.ModelViewSet):
 
     serializer_class = CalendarEventSerializer
     permission_classes = [IsAuthenticated]
+    # A calendar needs every event, not "the first 25 by date" (the 26th event
+    # used to disappear right after saving it). Narrow with ?from=&to= instead.
+    pagination_class = None
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
@@ -3516,7 +3537,18 @@ class CalendarEventViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Premium subscription required to access Calendar.")
 
     def get_queryset(self):
-        return CalendarEvent.objects.filter(user=self.request.user)
+        qs = CalendarEvent.objects.filter(user=self.request.user)
+        # Optional inclusive date range, YYYY-MM-DD (bad values are ignored).
+        from datetime import date as _date
+
+        for param, lookup in (("from", "date__gte"), ("to", "date__lte")):
+            raw = self.request.query_params.get(param)
+            if raw:
+                try:
+                    qs = qs.filter(**{lookup: _date.fromisoformat(raw)})
+                except ValueError:
+                    pass
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

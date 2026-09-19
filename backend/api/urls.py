@@ -68,6 +68,11 @@ from .views import (
 )
 from .views_push import PushSubscribeView, PushUnsubscribeView, CronStreakWarningView
 from .views_pomodoro import PomodoroSessionViewSet
+from .views_calendar import (
+    CalendarFeedInfoView,
+    CalendarFeedView,
+    CalendarDailyHistoryView,
+)
 from .views_nutrition import (
     FoodItemListView,
     FoodItemDetailView,
@@ -277,6 +282,13 @@ urlpatterns = [
         "nutrition/combos/<int:pk>/log/",
         SavedMealComboLogView.as_view(),
         name="nutrition-combo-log",
+    ),
+    path("calendar/feed-info/", CalendarFeedInfoView.as_view(), name="calendar-feed-info"),
+    path("calendar/feed/<str:token>.ics", CalendarFeedView.as_view(), name="calendar-feed"),
+    path(
+        "calendar/daily-history/",
+        CalendarDailyHistoryView.as_view(),
+        name="calendar-daily-history",
     ),
     path(
         "nutrition/calendar/",

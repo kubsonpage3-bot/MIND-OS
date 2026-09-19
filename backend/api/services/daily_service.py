@@ -135,7 +135,11 @@ def process_daily_login(user):
     profile.last_login_date = today
 
     # Weekly reset check
-    current_iso_week = f"{today.year}-W{today.isocalendar()[1]}"
+    # ISO week-numbering year, not the calendar year: Dec 29 and Jan 1 can belong
+    # to the same ISO week (e.g. 2025-W1), and "2025-W1" != "2026-W1" made the
+    # weekly reset (mana refill, Gambler's Ledger payout) fire twice that week.
+    iso_year, iso_week, _ = today.isocalendar()
+    current_iso_week = f"{iso_year}-W{iso_week}"
     if profile.last_weekly_reset != current_iso_week:
         profile.last_weekly_reset = current_iso_week
         from api.services.mechanics import get_passive_multipliers

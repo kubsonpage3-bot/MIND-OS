@@ -66,7 +66,12 @@ def get_daily_cutoff_time(profile, passive_effects=None):
 
 def is_daily_scheduled_for_date(task, date_val) -> bool:
     """
-    Checks if a daily task is scheduled to run on a given date based on repeat_weekdays.
+    Checks if a daily task is scheduled to run on a given date: the weekday mask
+    (repeat_weekdays), an optional last day (repeat_until) and an optional
+    "every N weeks" interval counted from the week of repeat_start_date.
+
+    The frontend has a mirror of this rule (src/lib/dailySchedule.js) -- keep
+    the two in sync.
     """
     if task.task_type != Task.TaskType.DAILY:
         return True
@@ -74,7 +79,25 @@ def is_daily_scheduled_for_date(task, date_val) -> bool:
     if repeat_weekdays is None:
         repeat_weekdays = 127
     weekday_flag = 1 << date_val.weekday()
-    return (repeat_weekdays & weekday_flag) > 0
+    if (repeat_weekdays & weekday_flag) == 0:
+        return False
+
+    until = getattr(task, "repeat_until", None)
+    if until and date_val > until:
+        return False
+
+    interval = getattr(task, "repeat_interval_weeks", 1) or 1
+    if interval > 1:
+        anchor = getattr(task, "repeat_start_date", None)
+        if anchor is None and getattr(task, "created_at", None):
+            anchor = task.created_at.date()
+        if anchor is not None:
+            # Whole weeks between the Mondays of the two dates.
+            week_of = lambda d: d - timedelta(days=d.weekday())  # noqa: E731
+            weeks = (week_of(date_val) - week_of(anchor)).days // 7
+            if weeks < 0 or weeks % interval != 0:
+                return False
+    return True
 
 
 def award_free_chest(profile, chest_type):
@@ -1139,20 +1162,29 @@ def _complete_task_logic(user, task_id, is_positive=True, is_deja_vu=False):
     is_prayer = task_category in {"Mindfulness", "Prayer", "Prayer/Meditation"}
 
     completed_near_deadline = False
+    # Deadlines are end-of-day in the USER's timezone (a Daily's deadline is
+    # local midnight; a Todo's due_date is a date, so its deadline is the end
+    # of that calendar day). This used to subtract a datetime from the
+    # DateField `due_date` -- a TypeError that made completing ANY Todo that
+    # had a deadline fail with HTTP 500 -- and measured Daily "midnight" in UTC.
+    import zoneinfo
+    from datetime import datetime as _datetime, time as _time
+
+    try:
+        _deadline_tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+    except Exception:
+        _deadline_tz = zoneinfo.ZoneInfo("UTC")
+    _now = timezone.now()
     if task.task_type == Task.TaskType.DAILY:
-        # A daily task deadline is midnight (end of the day). We check if it's completed within 2 hours of midnight.
-        now = timezone.now()
-        end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-        time_left = (end_of_day - now).total_seconds()
-        if time_left <= 7200:  # 2 hours
+        local_now = _now.astimezone(_deadline_tz)
+        end_of_day = local_now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        if (end_of_day - local_now).total_seconds() <= 7200:  # 2 hours
             completed_near_deadline = True
     elif task.task_type == Task.TaskType.TODO and task.due_date:
-        now = timezone.now()
-        if hasattr(task.due_date, "tzinfo") and task.due_date.tzinfo is not None:
-            time_left = (task.due_date - now).total_seconds()
-        else:
-            # naive
-            time_left = (task.due_date - now.replace(tzinfo=None)).total_seconds()
+        deadline = _datetime.combine(
+            task.due_date, _time(23, 59, 59, 999999), tzinfo=_deadline_tz
+        )
+        time_left = (deadline - _now).total_seconds()
         if 0 <= time_left <= 7200:
             completed_near_deadline = True
 

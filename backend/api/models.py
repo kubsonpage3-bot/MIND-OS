@@ -164,6 +164,13 @@ class UserProfile(models.Model):
 
     # Track last used for void_clarity active skill passive
     void_clarity_last_used = models.DateTimeField(null=True, blank=True)
+    # Deadline-reminder push: last local day one was sent (one per user per day).
+    last_deadline_push_date = models.DateField(null=True, blank=True)
+    # Secret token in the user's private iCalendar subscription URL
+    # (/api/calendar/feed/<token>.ics). Rotating it revokes the old URL.
+    calendar_feed_token = models.CharField(
+        max_length=64, blank=True, default="", db_index=True
+    )
     # Second Wind (Body T4): timestamp of the most recent Habit failure,
     # consumed (cleared) by the next Habit completion the same day.
     last_habit_fail_at = models.DateTimeField(null=True, blank=True)
@@ -853,6 +860,23 @@ class Task(models.Model):
     repeat_weekdays = models.PositiveSmallIntegerField(
         default=127,
         verbose_name="Дни повторения",
+    )
+    # Recurrence beyond a plain weekday mask (students: A/B weeks, semester
+    # timetables): every N-th week counted from repeat_start_date's week, and an
+    # optional last day. interval=1 keeps the old "every week" behaviour.
+    repeat_interval_weeks = models.PositiveSmallIntegerField(
+        default=1,
+        verbose_name="Повтор каждые N недель",
+    )
+    repeat_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Начало повтора (якорь интервала)",
+    )
+    repeat_until = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Повторять до",
     )
 
     # Настройки кастомного сессионного лога (для типа BUTTON)
@@ -1848,6 +1872,9 @@ class CalendarEvent(models.Model):
     date = models.DateField(verbose_name="Дата")
     start_time = models.TimeField(verbose_name="Время начала")
     end_time = models.TimeField(verbose_name="Время окончания")
+    # All-day events (deadlines, holidays, exam days): times are stored as
+    # 00:00-23:59 and ignored by the UI.
+    all_day = models.BooleanField(default=False, verbose_name="Весь день")
     color = models.CharField(max_length=15, default="#3b82f6", verbose_name="Цвет")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")

@@ -1455,7 +1455,8 @@
     "rival_overtook": "Rival overtook you",
     "boss_defeated": "Boss defeated",
     "new_ally": "New ally unlocked",
-    "weekly_report": "Weekly report ready"
+    "weekly_report": "Weekly report ready",
+    "deadline_reminder": "Deadline reminders (every morning)"
   },
   "mutators_ui": {
     "active_count": "{{n}}/{{max}} active",

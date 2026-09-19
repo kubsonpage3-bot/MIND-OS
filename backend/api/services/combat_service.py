@@ -130,9 +130,9 @@ def calculate_fail_damage(task, profile, checklist_ratio=1.0):
     # Item passives: Silk Mantle (-5%), Winter Plate (-12%), Luna L2 (-10%)
     item_reduction = 0.0
     try:
-        from api.services.mechanics import get_passive_multipliers
-
-        passives = get_passive_multipliers(profile, {})
+        # Cached per profile instance (invalidated on save): a task list used
+        # to recompute every passive for every row.
+        passives = profile.get_cached_passives()
         item_reduction = passives.get("missed_daily_hp_reduction", 0.0)
     except Exception:
         pass

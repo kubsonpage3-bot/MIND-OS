@@ -1454,7 +1454,8 @@
     "rival_overtook": "Соперник обогнал тебя",
     "boss_defeated": "Босс повержен",
     "new_ally": "Новый союзник разблокирован",
-    "weekly_report": "Недельный отчёт готов"
+    "weekly_report": "Недельный отчёт готов",
+    "deadline_reminder": "Напоминания о дедлайнах (каждое утро)"
   },
   "mutators_ui": {
     "active_count": "{{n}}/{{max}} активно",
