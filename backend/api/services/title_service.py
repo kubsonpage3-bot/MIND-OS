@@ -756,7 +756,9 @@ def _evaluate_title_unlock(
     if title_id == "deep_work_master":
         from api.models import PomodoroSession
 
-        pomo_count = PomodoroSession.objects.filter(user=user).count()
+        pomo_count = PomodoroSession.objects.filter(
+            user=user, completed=True, mode__in=("work", "focus")
+        ).count()
         return (
             pomo_count >= 5,
             min(100, (pomo_count / 5) * 100),
@@ -766,7 +768,9 @@ def _evaluate_title_unlock(
     if title_id == "zen_meditator":
         from api.models import PomodoroSession
 
-        pomo_count = PomodoroSession.objects.filter(user=user).count()
+        pomo_count = PomodoroSession.objects.filter(
+            user=user, completed=True, mode__in=("work", "focus")
+        ).count()
         return (
             pomo_count >= 20,
             min(100, (pomo_count / 20) * 100),
@@ -778,9 +782,9 @@ def _evaluate_title_unlock(
         from django.db.models import Sum
 
         total_minutes = (
-            PomodoroSession.objects.filter(user=user).aggregate(total=Sum("duration"))[
-                "total"
-            ]
+            PomodoroSession.objects.filter(
+                user=user, completed=True, mode__in=("work", "focus")
+            ).aggregate(total=Sum("duration"))["total"]
             or 0
         )
         total_hours = total_minutes / 60

@@ -19,6 +19,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from api.models import Boss, BossEncounter, UserActivityLog, UserProfile
+from api.tests.pomodoro_utils import backdate_active_session, make_premium
 
 User = get_user_model()
 
@@ -30,6 +31,7 @@ def user(db):
     profile.active_mutators = {"active": [{"id": "time_dilation"}]}
     profile.last_completed_category = ""
     profile.save()
+    make_premium(u)
     return u
 
 
@@ -53,6 +55,7 @@ def test_linked_pomodoro_applies_final_xp_mult(auth_client, user):
         {"linked_activity_key": "mathematics", "duration_minutes": 150},
         format="json",
     )
+    backdate_active_session(user)
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
     )
@@ -79,6 +82,7 @@ def test_linked_pomodoro_under_2h_does_not_get_time_dilation(auth_client, user):
         {"linked_activity_key": "mathematics", "duration_minutes": 30},
         format="json",
     )
+    backdate_active_session(user)
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
     )
@@ -99,6 +103,7 @@ def test_linked_pomodoro_deals_boss_damage(auth_client, user):
         {"linked_activity_key": "mathematics", "duration_minutes": 30},
         format="json",
     )
+    backdate_active_session(user)
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 7}, format="json"
     )
@@ -118,6 +123,7 @@ def test_linked_pomodoro_updates_category_tracking(auth_client, user):
         {"linked_activity_key": "mathematics", "duration_minutes": 30},
         format="json",
     )
+    backdate_active_session(user)
     auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
     )
@@ -133,6 +139,7 @@ def test_linked_pomodoro_records_breakdown_in_history(auth_client, user):
         {"linked_activity_key": "mathematics", "duration_minutes": 30},
         format="json",
     )
+    backdate_active_session(user)
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
     )
@@ -162,6 +169,7 @@ def test_linked_pomodoro_zero_hour_accumulates_withheld_gold(auth_client, user):
         {"linked_activity_key": "mathematics", "duration_minutes": 150},
         format="json",
     )
+    backdate_active_session(user)
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
     )
@@ -184,6 +192,7 @@ def test_unlinked_pomodoro_still_flat_no_regression(auth_client, user):
         {"duration_minutes": 25},  # no linked_activity_key
         format="json",
     )
+    backdate_active_session(user)
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 5}, format="json"
     )

@@ -3032,9 +3032,10 @@ class ResetDataView(generics.GenericAPIView):
                     profile.habit_boss_dmg_today = 0
                     profile.todos_completed_today = 0
                     profile.dailies_completed_today = 0
-                    from api.models import PomodoroSession
+                    from api.models import ActivePomodoroSession, PomodoroSession
 
                     PomodoroSession.objects.filter(user=request.user).delete()
+                    ActivePomodoroSession.objects.filter(user=request.user).delete()
 
                 profile.save()
 

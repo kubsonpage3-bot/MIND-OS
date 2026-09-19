@@ -1,7 +1,10 @@
 import logging
-from datetime import date, timedelta
+import zoneinfo
+from datetime import timedelta
 from django.db.models import Count, Sum
 from rest_framework import viewsets, permissions
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -12,56 +15,148 @@ from api.serializers.pomodoro import PomodoroSessionSerializer
 
 logger = logging.getLogger(__name__)
 
+# Modes that count as a real focus session. Breaks are recorded (so the cycle
+# history is complete) but must never count toward stats, streaks, titles or
+# rewards -- a day of 4 focus + 4 break sessions is 4 Pomodoros, not 8.
+WORK_MODES = ("work", "focus")
+BREAK_MODES = ("break", "longBreak", "long_break")
+VALID_MODES = WORK_MODES + BREAK_MODES
 
-class PomodoroSessionViewSet(viewsets.ModelViewSet):
+MIN_DURATION_MIN = 1
+MAX_DURATION_MIN = 480  # matches the extension's longest custom timer
+MIN_LOG_ELAPSED_SEC = 60  # a focus session shorter than this is not logged
+COMPLETE_GRACE_SEC = 15  # <= this much time left counts as a full session
+ABANDON_RUNNING_AFTER_SEC = 6 * 3600  # expired + untouched this long -> dropped
+ABANDON_PAUSED_AFTER_SEC = 24 * 3600
+DAILY_REWARDED_MINUTES_CAP = 16 * 60  # same 16h ceiling the Training Log enforces
+
+
+def _parse_int(value, name, default=None, lo=None, hi=None):
+    """int() that answers 400 (not 500) on bad input and enforces bounds."""
+    if value is None or value == "":
+        if default is None:
+            raise ValidationError({name: "This field is required."})
+        return default
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        raise ValidationError({name: "Must be an integer."})
+    if lo is not None and n < lo:
+        raise ValidationError({name: f"Must be at least {lo}."})
+    if hi is not None and n > hi:
+        raise ValidationError({name: f"Must be at most {hi}."})
+    return n
+
+
+def _user_tz(user):
+    profile = getattr(user, "profile", None)
+    tz_name = getattr(profile, "timezone", None) or "UTC"
+    try:
+        return zoneinfo.ZoneInfo(tz_name)
+    except Exception:
+        return zoneinfo.ZoneInfo("UTC")
+
+
+def _user_today(user):
+    """'Today' in the user's own timezone (profile.timezone), the same day
+    boundary the daily cron/streaks use -- not the server's clock."""
+    return timezone.now().astimezone(_user_tz(user)).date()
+
+
+def _clean_activity_key(user, raw):
+    """Normalise a linked activity key the way the Training Log does: a known
+    activity, a custom task the user really owns, or 'other' -- never an
+    arbitrary client string (each random key used to count as a new subject)."""
+    if raw is None or raw == "":
+        return None
+    if not isinstance(raw, str) or len(raw) > 100:
+        raise ValidationError({"linked_activity_key": "Invalid activity."})
+    cleaned = raw.strip().lower()
+    if cleaned.startswith("custom_task_"):
+        from api.models import Task
+
+        try:
+            task_id = int(cleaned.replace("custom_task_", ""))
+        except ValueError:
+            raise ValidationError({"linked_activity_key": "Invalid custom task."})
+        if not Task.objects.filter(
+            id=task_id, user=user, task_type=Task.TaskType.BUTTON
+        ).exists():
+            raise ValidationError({"linked_activity_key": "Unknown custom task."})
+        return cleaned
+    from api.serializers.training import ALLOWED_ACTIVITIES
+
+    return cleaned if cleaned in ALLOWED_ACTIVITIES else "other"
+
+
+def _is_abandoned(active):
+    now = timezone.now()
+    if active.is_paused:
+        paused_at = active.paused_at
+        return bool(
+            paused_at and (now - paused_at).total_seconds() > ABANDON_PAUSED_AFTER_SEC
+        )
+    end = active.started_at + timedelta(minutes=active.duration_minutes)
+    return (now - end).total_seconds() > ABANDON_RUNNING_AFTER_SEC
+
+
+def _active_payload(active):
+    return {
+        "active": True,
+        "linked_activity_key": active.linked_activity_key,
+        "duration_minutes": active.duration_minutes,
+        "mode": active.mode,
+        "is_paused": active.is_paused,
+        "remaining_seconds": active.remaining_seconds(),
+        "started_at": active.started_at,
+    }
+
+
+class IsPremiumUser(permissions.BasePermission):
+    """Pomodoro is a Premium feature -- the dashboard only blurred it with CSS,
+    so the API (and the browser extension's timer) stayed open to everyone."""
+
+    message = "Premium subscription required to access Pomodoro."
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not (user and user.is_authenticated):
+            return False
+        profile = getattr(user, "profile", None)
+        return bool(profile and profile.is_premium)
+
+
+class PomodoroPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = "page_size"
+    max_page_size = 500
+
+
+class PomodoroSessionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Endpoints for Pomodoro Sessions:
-    - GET /api/pomodoro/sessions/
-    - POST /api/pomodoro/sessions/
+    Endpoints for Pomodoro Sessions (rewards are granted ONLY by
+    active-session/complete, which trusts the server's clock, never the
+    client's claimed duration -- POST/PATCH/DELETE on sessions are gone):
+    - GET /api/pomodoro/sessions/?kind=work&page_size=200
     - GET /api/pomodoro/sessions/heatmap/?days=365
     - GET /api/pomodoro/sessions/stats/
+    - GET  active-session/ ; POST active-session/{start,pause,reset,complete}/
     """
 
     serializer_class = PomodoroSessionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsPremiumUser]
+    pagination_class = PomodoroPagination
 
     def get_queryset(self):
-        return PomodoroSession.objects.filter(user=self.request.user).order_by(
+        qs = PomodoroSession.objects.filter(user=self.request.user).order_by(
             "-started_at"
         )
-
-    def perform_create(self, serializer):
-        session = serializer.save(user=self.request.user)
-        if session.completed and session.mode == "work":
-            ActivePomodoroSession.objects.filter(user=self.request.user).delete()
-            profile = UserProfile.objects.filter(user=self.request.user).first()
-            if profile:
-                duration = session.duration or 25
-                gold_earned = max(10, int(duration * 2))
-                xp_earned = max(15, int(duration * 3))
-                profile.gold += gold_earned
-                profile.xp += xp_earned
-                profile.rank_xp = max(0, profile.rank_xp + xp_earned)
-                profile.save(update_fields=["gold", "xp", "rank_xp"])
-
-                try:
-                    from api.models import UserActivityLog
-
-                    UserActivityLog.objects.create(
-                        user=self.request.user,
-                        activity_type=UserActivityLog.ActivityType.POMODORO,
-                        task=None,
-                        title=session.label if session.label else f"Pomodoro ({duration}m)",
-                        category="Focus",
-                        icon="⏱️",
-                        hours=round(duration / 60.0, 2),
-                        xp_earned=xp_earned,
-                        gold_earned=gold_earned,
-                        metadata={"duration_minutes": duration, "mode": session.mode},
-                    )
-                except Exception as e:
-                    logger.warning("Failed to create UserActivityLog for pomodoro: %s", e)
-
+        kind = self.request.query_params.get("kind")
+        if kind == "work":
+            qs = qs.filter(mode__in=WORK_MODES, completed=True)
+        elif kind == "break":
+            qs = qs.filter(mode__in=BREAK_MODES)
+        return qs
 
     @action(detail=False, methods=["get"])
     def heatmap(self, request):
@@ -69,13 +164,15 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
         Returns an aggregation for GitHub-style heatmap.
         Format: { "YYYY-MM-DD": count, ... }
         """
-        days = int(request.query_params.get("days", 365))
-        start_date = date.today() - timedelta(days=days)
+        days = _parse_int(
+            request.query_params.get("days"), "days", default=365, lo=1, hi=3660
+        )
+        start_date = _user_today(request.user) - timedelta(days=days)
 
-        # Aggregate counts by date
+        # Aggregate counts by date (focus sessions only -- not breaks)
         data = (
             self.get_queryset()
-            .filter(date__gte=start_date, completed=True)
+            .filter(date__gte=start_date, completed=True, mode__in=WORK_MODES)
             .values("date")
             .annotate(count=Count("id"))
             .order_by("date")
@@ -89,10 +186,10 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def stats(self, request):
         """
-        Returns stats: total pomodoros, total hours, etc.
+        Returns stats: total pomodoros, total hours, etc. Focus sessions only.
         """
-        qs = self.get_queryset().filter(completed=True)
-        today = date.today()
+        qs = self.get_queryset().filter(completed=True, mode__in=WORK_MODES)
+        today = _user_today(request.user)
 
         today_qs = qs.filter(date=today)
 
@@ -156,31 +253,60 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="active-session")
     def active_session_get(self, request):
-        active = ActivePomodoroSession.objects.filter(user=request.user).first()
+        with transaction.atomic():
+            active = (
+                ActivePomodoroSession.objects.select_for_update()
+                .filter(user=request.user)
+                .first()
+            )
+            if active and _is_abandoned(active):
+                # Never completed / never resumed: don't let a dead session
+                # pop a rating overlay days later or block a fresh start.
+                active.delete()
+                active = None
         if not active:
             return Response({"active": False})
-
-        rem = active.remaining_seconds()
-        return Response(
-            {
-                "active": True,
-                "linked_activity_key": active.linked_activity_key,
-                "duration_minutes": active.duration_minutes,
-                "mode": active.mode,
-                "is_paused": active.is_paused,
-                "remaining_seconds": rem,
-                "started_at": active.started_at,
-            }
-        )
+        return Response(_active_payload(active))
 
     @action(detail=False, methods=["post"], url_path="active-session/start")
     def active_session_start(self, request):
-        activity_key = request.data.get("linked_activity_key")
-        duration = int(request.data.get("duration_minutes", 25))
-        mode = request.data.get("mode", "work")
+        activity_key = _clean_activity_key(
+            request.user, request.data.get("linked_activity_key")
+        )
+        duration = _parse_int(
+            request.data.get("duration_minutes"),
+            "duration_minutes",
+            default=25,
+            lo=MIN_DURATION_MIN,
+            hi=MAX_DURATION_MIN,
+        )
+        mode = request.data.get("mode") or "work"
+        if mode not in VALID_MODES:
+            raise ValidationError({"mode": f"Must be one of {', '.join(VALID_MODES)}."})
 
         with transaction.atomic():
-            active, _ = ActivePomodoroSession.objects.select_for_update().update_or_create(
+            existing = (
+                ActivePomodoroSession.objects.select_for_update()
+                .filter(user=request.user)
+                .first()
+            )
+            if existing and _is_abandoned(existing):
+                existing.delete()
+                existing = None
+
+            # Idempotent start: the same session already running (or paused)
+            # is adopted as-is instead of having its clock reset -- opening a
+            # second tab/popup/device used to restart the server timer.
+            if (
+                existing
+                and existing.linked_activity_key == activity_key
+                and existing.duration_minutes == duration
+                and existing.mode == mode
+                and (existing.is_paused or existing.remaining_seconds() > 0)
+            ):
+                return Response(_active_payload(existing))
+
+            active, _ = ActivePomodoroSession.objects.update_or_create(
                 user=request.user,
                 defaults={
                     "linked_activity_key": activity_key,
@@ -189,55 +315,57 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                     "started_at": timezone.now(),
                     "is_paused": False,
                     "paused_remaining_seconds": 0,
+                    "paused_at": None,
                 },
             )
 
-        return Response(
-            {
-                "active": True,
-                "linked_activity_key": active.linked_activity_key,
-                "duration_minutes": active.duration_minutes,
-                "mode": active.mode,
-                "is_paused": False,
-                "remaining_seconds": active.remaining_seconds(),
-                "started_at": active.started_at,
-            }
-        )
+        return Response(_active_payload(active))
 
     @action(detail=False, methods=["post"], url_path="active-session/pause")
     def active_session_pause(self, request):
+        """
+        Pause/resume. Send {"action": "pause"} or {"action": "resume"} for an
+        idempotent call (a retried request can't undo itself); with no action
+        it toggles, as before.
+        """
+        action_param = request.data.get("action") or "toggle"
+        if action_param not in ("pause", "resume", "toggle"):
+            raise ValidationError({"action": "Must be pause, resume or toggle."})
+
         with transaction.atomic():
             active = (
                 ActivePomodoroSession.objects.select_for_update()
                 .filter(user=request.user)
                 .first()
             )
-            if not active:
+            if not active or _is_abandoned(active):
+                if active:
+                    active.delete()
                 return Response({"active": False}, status=400)
 
-            if active.is_paused:
-                # Resume
+            want_paused = (
+                (not active.is_paused)
+                if action_param == "toggle"
+                else action_param == "pause"
+            )
+
+            if want_paused and not active.is_paused:
+                active.paused_remaining_seconds = active.remaining_seconds()
+                active.is_paused = True
+                active.paused_at = timezone.now()
+                active.save()
+            elif not want_paused and active.is_paused:
                 remaining = active.paused_remaining_seconds
                 total_sec = active.duration_minutes * 60
                 elapsed = max(0, total_sec - remaining)
                 active.started_at = timezone.now() - timedelta(seconds=elapsed)
                 active.is_paused = False
                 active.paused_remaining_seconds = 0
-            else:
-                # Pause
-                rem = active.remaining_seconds()
-                active.is_paused = True
-                active.paused_remaining_seconds = rem
+                active.paused_at = None
+                active.save()
+            # else: already in the requested state -> no-op
 
-            active.save()
-
-        return Response(
-            {
-                "active": True,
-                "is_paused": active.is_paused,
-                "remaining_seconds": active.remaining_seconds(),
-            }
-        )
+        return Response(_active_payload(active))
 
     @action(detail=False, methods=["post"], url_path="active-session/reset")
     def active_session_reset(self, request):
@@ -247,7 +375,15 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="active-session/complete")
     def active_session_complete(self, request):
-        rating = int(request.data.get("rating", 7))
+        """
+        Completes the user's ACTIVE session. Everything that decides the
+        reward -- mode, linked activity, and above all how long it really ran
+        -- comes from the server's own record and clock; the request body only
+        contributes the focus rating. (It used to trust a client-declared
+        duration, accepted a completion with no session at all, and paid full
+        rewards at 0 seconds elapsed.)
+        """
+        rating = _parse_int(request.data.get("rating"), "rating", default=7)
         rating = max(1, min(10, rating))
 
         with transaction.atomic():
@@ -256,21 +392,102 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
                 .filter(user=request.user)
                 .first()
             )
-            duration = int(
-                request.data.get("duration_minutes")
-                or (active.duration_minutes if active else 25)
-            )
-            mode = request.data.get("mode") or (active.mode if active else "work")
-            activity_key = (
-                request.data.get("activity_key")
-                or request.data.get("linked_activity_key")
-                or (active.linked_activity_key if active else None)
-            )
-            if active:
+            if active and _is_abandoned(active):
                 active.delete()
+                active = None
+            if not active:
+                # Also what a double-submit / second tab / retry sees: the first
+                # completion already consumed the session, so nothing pays twice.
+                return Response(
+                    {
+                        "detail": "No active Pomodoro session to complete.",
+                        "code": "no_active_session",
+                    },
+                    status=409,
+                )
+
+            mode = active.mode
+            activity_key = active.linked_activity_key
+            is_work = mode in WORK_MODES
+            planned = active.duration_minutes
+            remaining = active.remaining_seconds()
+            elapsed_sec = planned * 60 - remaining
+            if remaining <= COMPLETE_GRACE_SEC:
+                duration = planned
+            else:
+                duration = elapsed_sec // 60
+
+            if is_work and (elapsed_sec < MIN_LOG_ELAPSED_SEC or duration < 1):
+                # Leave the session running -- the user can just keep going.
+                return Response(
+                    {
+                        "detail": "Session too short to log yet.",
+                        "code": "too_short",
+                        "elapsed_seconds": max(0, elapsed_sec),
+                        "min_seconds": MIN_LOG_ELAPSED_SEC,
+                    },
+                    status=400,
+                )
+
+            active.delete()
+            today = _user_today(request.user)
+
+            if not is_work:
+                # A finished break: kept for the cycle history, never rewarded
+                # and never counted as a Pomodoro (stats/titles filter on mode).
+                session = None
+                if duration >= 1:
+                    session = PomodoroSession.objects.create(
+                        user=request.user,
+                        date=today,
+                        duration=duration,
+                        mode=mode,
+                        label="Break",
+                        completed=True,
+                    )
+                return Response(
+                    {
+                        "success": True,
+                        "session_id": session.id if session else None,
+                        "training_session_id": None,
+                        "gold_earned": 0,
+                        "xp_earned": 0,
+                        "hours_logged": 0,
+                        "combat": None,
+                        "breakdown": [],
+                    }
+                )
+
+            # Same 16h/day ceiling the Training Log enforces per entry: only the
+            # minutes still under today's allowance are rewarded.
+            already_today = (
+                PomodoroSession.objects.filter(
+                    user=request.user,
+                    date=today,
+                    mode__in=WORK_MODES,
+                    completed=True,
+                ).aggregate(total=Sum("duration"))["total"]
+                or 0
+            )
+            duration = min(duration, max(0, DAILY_REWARDED_MINUTES_CAP - already_today))
+            if duration < 1:
+                return Response(
+                    {
+                        "success": True,
+                        "session_id": None,
+                        "training_session_id": None,
+                        "gold_earned": 0,
+                        "xp_earned": 0,
+                        "hours_logged": 0,
+                        "combat": None,
+                        "breakdown": ["Daily focus-time cap reached -- no reward"],
+                        "capped": True,
+                    }
+                )
 
             session = PomodoroSession.objects.create(
                 user=request.user,
+                date=today,
                 duration=duration,
                 mode=mode,
                 label=activity_key or "Focus Session",
@@ -280,8 +497,8 @@ class PomodoroSessionViewSet(viewsets.ModelViewSet):
             # Award Gold and XP directly to UserProfile
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             hours = round(duration / 60.0, 2)
-            base_gold = max(10, int(duration * 2))
-            base_xp = max(15, int(duration * 3))
+            base_gold = max(1, int(duration * 2))
+            base_xp = max(1, int(duration * 3))
 
             training_session = None
             task = None

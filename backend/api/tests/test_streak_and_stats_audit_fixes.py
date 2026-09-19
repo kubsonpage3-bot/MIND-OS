@@ -14,6 +14,7 @@ Two bugs found while auditing streak logic and Pomodoro/Activity-Log parity:
 """
 import pytest
 from api.models import UserProfile, Task, ActiveEffect, UserStats
+from api.tests.pomodoro_utils import backdate_active_session, make_premium
 from api.services.task_service import apply_missed_daily_penalty
 from api.services.skill_service import activate_skill
 from rest_framework.test import APIClient
@@ -112,6 +113,7 @@ def test_activity_log_session_updates_userstats(user, profile):
 
 @pytest.mark.django_db
 def test_linked_pomodoro_session_updates_userstats(user, profile):
+    make_premium(user)
     client = APIClient()
     client.force_authenticate(user=user)
 
@@ -123,6 +125,7 @@ def test_linked_pomodoro_session_updates_userstats(user, profile):
         {"linked_activity_key": "mathematics", "duration_minutes": 60},
         format="json",
     )
+    backdate_active_session(user)
     res = client.post(
         "/api/pomodoro/sessions/active-session/complete/", {"rating": 8}, format="json"
     )

@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from api.models import ActivePomodoroSession, PomodoroSession, TrainingSession, Task, UserProfile
+from api.tests.pomodoro_utils import backdate_active_session, make_premium
 
 User = get_user_model()
 
@@ -11,6 +12,7 @@ User = get_user_model()
 def user(db):
     u = User.objects.create_user(username="timerhero", password="pass")
     UserProfile.objects.get_or_create(user=u)
+    make_premium(u)
     return u
 
 
@@ -72,6 +74,7 @@ def test_active_session_complete_30_minutes_logs_training(auth_client, user):
         format="json",
     )
 
+    backdate_active_session(user)
     complete_res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/",
         {"rating": 5},
@@ -109,6 +112,7 @@ def test_active_session_complete_60_minutes_logs_training(auth_client, user):
         format="json",
     )
 
+    backdate_active_session(user)
     complete_res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/",
         {"rating": 4},
@@ -141,6 +145,7 @@ def test_active_session_complete_custom_task(auth_client, user):
         format="json",
     )
 
+    backdate_active_session(user)
     complete_res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/",
         {"rating": 5},
@@ -165,6 +170,7 @@ def test_active_session_complete_with_rating_scale_10(auth_client, user):
         format="json",
     )
 
+    backdate_active_session(user)
     complete_res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/",
         {"rating": 9},
@@ -180,25 +186,22 @@ def test_active_session_complete_with_rating_scale_10(auth_client, user):
 
 
 @pytest.mark.django_db
-def test_active_session_complete_fallback_without_active_session(auth_client, user):
-    # Ensure no active session exists
+def test_active_session_complete_without_active_session_is_rejected(auth_client, user):
+    """
+    Completing with no active session used to be accepted on the client's
+    own say-so (duration_minutes/activity_key from the request body) -- an
+    unlimited reward faucet. The server now only completes a session it is
+    actually tracking; a double-submit/second tab lands here too.
+    """
     assert ActivePomodoroSession.objects.filter(user=user).count() == 0
 
     complete_res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/",
-        {
-            "activity_key": "history",
-            "duration_minutes": 30,
-            "rating": 8,
-        },
+        {"activity_key": "history", "duration_minutes": 30, "rating": 8},
         format="json",
     )
-    assert complete_res.status_code == 200
-    data = complete_res.json()
-    assert data["success"] is True
-    assert data["hours_logged"] == 0.5
-
-    ts = TrainingSession.objects.get(user_profile__user=user, activity_key="history")
-    assert ts.hours == 0.5
-    assert ts.focus_rating == 8.0
-
+    assert complete_res.status_code == 409
+    assert complete_res.json()["code"] == "no_active_session"
+    assert not TrainingSession.objects.filter(
+        user_profile__user=user, activity_key="history"
+    ).exists()

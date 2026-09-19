@@ -21,6 +21,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from api.models import UserProfile, RecruitedAlly, SkillCooldown
+from api.tests.pomodoro_utils import backdate_active_session, make_premium
 from django.utils import timezone
 from datetime import timedelta
 
@@ -34,6 +35,7 @@ def user(db):
     profile.mana = 200
     profile.hp = 100
     profile.save()
+    make_premium(u)
     return u
 
 
@@ -50,6 +52,9 @@ def start_and_complete(auth_client, duration_minutes, rating, activity_key="math
         {"linked_activity_key": activity_key, "duration_minutes": duration_minutes},
         format="json",
     )
+    # The reward is computed from how long the SERVER saw the session run, so
+    # simulate the timer having actually run its full duration.
+    backdate_active_session(User.objects.get(username="pomo_parity_user"))
     res = auth_client.post(
         "/api/pomodoro/sessions/active-session/complete/",
         {"rating": rating},

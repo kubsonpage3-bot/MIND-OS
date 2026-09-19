@@ -1937,6 +1937,9 @@ class ActivePomodoroSession(models.Model):
     paused_remaining_seconds = models.PositiveIntegerField(
         default=0, verbose_name="Остаток секунд на паузе"
     )
+    # When the session was paused -- lets a session left paused for days be
+    # expired instead of lingering forever.
+    paused_at = models.DateTimeField(null=True, blank=True, verbose_name="Поставлена на паузу")
     mode = models.CharField(max_length=20, default="work", verbose_name="Режим")
 
     class Meta:
