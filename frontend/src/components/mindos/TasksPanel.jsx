@@ -77,6 +77,8 @@ function TasksPanel({ tasks = [], onXpGain, onBossDamage, onRankXP, subTab, onRe
         scheduled_end_time: form.scheduledEndTime || null,
         show_in_calendar: !!form.showInCalendar,
         repeat_weekdays: form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127,
+        repeat_interval_weeks: form.repeatIntervalWeeks || 1,
+        repeat_until: form.repeatUntil || null,
       });
 
       console.log('Успешно создано:', created);

@@ -308,7 +308,10 @@ export const djangoApi = {
   tasks: {
     list: (filters = {}) => {
       const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, val]) => {
+      // Ask for the whole list: the default page is 25 and callers only read
+      // `.results`, so every task after the 25th silently disappeared.
+      const withPage = { page_size: 500, ...filters };
+      Object.entries(withPage).forEach(([key, val]) => {
         if (val !== undefined && val !== null && val !== '') {
           queryParams.append(key, val);
         }

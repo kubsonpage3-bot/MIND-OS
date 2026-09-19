@@ -143,9 +143,18 @@ export default function CalendarMonthView({
                     }}
                   >
                     <span className="text-[9px] font-bold opacity-70 shrink-0">
-                      {ev.startTime}
+                      {ev.isAllDay ? (ev.isDeadline ? "⏰" : "◆") : ev.startTime}
                     </span>
-                    <span className="truncate">{ev.title}</span>
+                    <span
+                      className={cn(
+                        "truncate",
+                        (ev.done || ev.status === "done") && "line-through opacity-60",
+                        ev.status === "missed" && "text-red-300/80 opacity-70"
+                      )}
+                    >
+                      {ev.status === "done" ? "✓ " : ev.status === "missed" ? "✗ " : ""}
+                      {ev.title}
+                    </span>
                   </div>
                 ))}
 

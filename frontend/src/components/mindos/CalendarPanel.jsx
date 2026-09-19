@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Plus, X, RefreshCw } from "lucide-react";
 import { useProfileMount } from "@/utils/perf";
@@ -15,6 +15,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { cn } from "@/lib/utils";
 import { rawTasksQueryKey } from "@/constants/queryKeys";
+import { isDailyScheduledOn, toDateStr } from "@/lib/dailySchedule";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -60,11 +61,21 @@ function timeToMins(t) {
   return (h || 0) * 60 + (m || 0);
 }
 
+// Clamped to 00:00-23:59. 24:00 used to wrap to "00:00" (via % 24), turning an
+// event dragged/created at the bottom of the day into an end-before-start sliver.
 function minsToTime(m) {
-  const h = Math.floor(m / 60) % 24;
-  const mm = Math.round(m % 60);
+  const total = Math.max(0, Math.min(23 * 60 + 59, Math.round(m)));
+  const h = Math.floor(total / 60);
+  const mm = total % 60;
   return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 }
+
+// Stable empty defaults. `data: x = []` creates a NEW array every render while a
+// query has no data (loading / error / 403), and an effect depending on it then
+// called setState on every render -- an infinite render loop.
+const NO_EVENTS = [];
+const NO_TASKS = [];
+const NO_HISTORY = {};
 
 function snapTo15(m) {
   return Math.round(m / 15) * 15;
@@ -131,7 +142,9 @@ function EventBlock({ event, colDate, handlers }) {
   const { onDragStart, onResizeStart, openEdit, deleteEvent } = handlers;
   const isTask = event.isTask;
   const isPending = event._isPending;
-  const icon = event.isTask ? (CATEGORY_ICONS[event.category] || "🛡️") : "◆";
+  const status = event.status; // Daily occurrences: done | missed | pending | upcoming
+  const icon =
+    status === "done" ? "✓" : status === "missed" ? "✗" : event.isTask ? (CATEGORY_ICONS[event.category] || "🛡️") : "◆";
 
   return (
     <div
@@ -145,7 +158,11 @@ function EventBlock({ event, colDate, handlers }) {
       className={cn(
         "absolute left-1 right-1 rounded-md overflow-hidden select-none group z-10 transition-shadow",
         "border-y border-r border-[#2c2842] shadow-[inset_0_0_8px_rgba(0,0,0,0.6),0_2px_8px_rgba(0,0,0,0.5)]",
-        isTask
+        status === "missed"
+          ? "cursor-default opacity-50"
+          : status === "done"
+          ? "cursor-default opacity-70"
+          : isTask
           ? "cursor-default opacity-95"
           : isPending
           ? "cursor-not-allowed opacity-50 animate-pulse"
@@ -174,7 +191,9 @@ function EventBlock({ event, colDate, handlers }) {
             <div
               className={cn(
                 "text-[11px] font-mono font-bold leading-tight truncate",
-                isTask ? "text-slate-200" : "text-white"
+                isTask ? "text-slate-200" : "text-white",
+                status === "done" && "line-through decoration-emerald-400/60",
+                status === "missed" && "text-red-300/80"
               )}
             >
               {event.title}
@@ -220,7 +239,7 @@ function EventBlock({ event, colDate, handlers }) {
 
 // ── DAY COLUMN ─────────────────────────────────────────────────────────────
 function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }) {
-  const dayEvents = getDayEvents(dateStr);
+  const dayEvents = getDayEvents(dateStr).filter((ev) => !ev.isAllDay);
   const { onGridClick } = handlers;
 
   return (
@@ -256,9 +275,40 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }
   );
 }
 
+// ── ALL-DAY ROW (deadlines, holidays, exam days) ────────────────────────────
+function AllDayChips({ items }) {
+  if (!items.length) return null;
+  return (
+    <div className="flex flex-col gap-0.5 p-0.5">
+      {items.slice(0, 3).map((ev) => (
+        <div
+          key={ev.id}
+          title={ev.title}
+          className={cn(
+            "text-[9px] font-mono font-bold px-1 py-0.5 rounded truncate border-l-2",
+            ev.done && "line-through opacity-60"
+          )}
+          style={{
+            backgroundColor: (ev.color || "#3b82f6") + "22",
+            borderLeftColor: ev.color || "#3b82f6",
+            color: "#e2e8f0",
+          }}
+        >
+          {ev.isDeadline ? "⏰ " : ""}
+          {ev.title}
+        </div>
+      ))}
+      {items.length > 3 && (
+        <div className="text-[9px] font-mono text-muted-foreground/70 pl-1">+{items.length - 3}</div>
+      )}
+    </div>
+  );
+}
+
 export default function CalendarPanel() {
   useProfileMount("CalendarPanel");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
   const queryClient = useQueryClient();
   const { profile: djangoProfile } = useDjangoAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -267,24 +317,60 @@ export default function CalendarPanel() {
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const todayStr = getLocalDateStr(new Date());
+  const [todayStr, setTodayStr] = useState(getLocalDateStr(new Date()));
 
-  const { data: tasks = [] } = useQuery({
+  // "Today" used to be frozen at mount: leave the tab open past midnight and the
+  // highlight/now-line stayed on yesterday.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const next = getLocalDateStr(new Date());
+      setTodayStr((prev) => (prev === next ? prev : next));
+    }, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  // page_size: the default page is 25 and only `.results` was read, so the 26th
+  // task (and every Daily after it) never reached the calendar.
+  const { data: tasks = NO_TASKS } = useQuery({
     queryKey: rawTasksQueryKey("calendar"),
     queryFn: () =>
-      djangoFetch("/tasks/").then((data) => {
+      djangoFetch("/tasks/?page_size=500").then((data) => {
         return Array.isArray(data) ? data : data?.results || [];
       }),
     enabled: !!djangoProfile,
   });
 
-  const { data: apiEvents = [] } = useQuery({
+  const { data: apiEvents = NO_EVENTS } = useQuery({
     queryKey: ["calendar-events"],
     queryFn: () =>
       djangoFetch("/calendar/events/").then((data) => {
         return Array.isArray(data) ? data : data?.results || [];
       }),
     enabled: !!djangoProfile,
+  });
+
+  // Which Dailies were actually completed on which day (past occurrences are
+  // shown as done/missed instead of an ever-present template).
+  const historyRange = useMemo(() => {
+    const y = currentDate.getFullYear();
+    const m = currentDate.getMonth();
+    if (view === "month") {
+      return { from: toDateStr(new Date(y, m, -6)), to: toDateStr(new Date(y, m + 1, 7)) };
+    }
+    const dow = (currentDate.getDay() + 6) % 7;
+    const monday = new Date(y, m, currentDate.getDate() - dow);
+    return {
+      from: toDateStr(monday),
+      to: toDateStr(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6)),
+    };
+  }, [currentDate, view]);
+
+  const { data: history = NO_HISTORY } = useQuery({
+    queryKey: ["calendar-daily-history", historyRange.from, historyRange.to],
+    queryFn: () =>
+      djangoFetch(`/calendar/daily-history/?from=${historyRange.from}&to=${historyRange.to}`),
+    enabled: !!djangoProfile,
+    staleTime: 60 * 1000,
   });
 
   useEffect(() => {
@@ -296,31 +382,36 @@ export default function CalendarPanel() {
         date: e.date,
         startTime: (e.start_time || "").substring(0, 5),
         endTime: (e.end_time || "").substring(0, 5),
+        allDay: !!e.all_day,
         color: e.color,
       }))
     );
   }, [apiEvents]);
 
+  const eventBody = (ev) => ({
+    title: ev.title,
+    description: ev.description,
+    date: ev.date,
+    all_day: !!ev.allDay,
+    ...(ev.allDay ? {} : { start_time: ev.startTime, end_time: ev.endTime }),
+    color: ev.color,
+  });
+
+  const refetchEvents = () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+
   const createEventMut = useMutation({
     mutationFn: (ev) =>
       djangoFetch("/calendar/events/", {
         method: "POST",
-        body: JSON.stringify({
-          title: ev.title,
-          description: ev.description,
-          date: ev.date,
-          start_time: ev.startTime,
-          end_time: ev.endTime,
-          color: ev.color,
-        }),
+        body: JSON.stringify(eventBody(ev)),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] }),
+    onSuccess: refetchEvents,
     onError: (err, variables) => {
       setEvents((prev) => prev.filter((e) => e.id !== variables.id));
       toast({
         variant: "destructive",
-        title: "Error saving event",
-        description: "Failed to save event to server, please try again.",
+        title: t("calendar_ui.save_error_title", "Error saving event"),
+        description: err?.message || t("calendar_ui.save_error_desc", "Failed to save event to server, please try again."),
       });
     },
   });
@@ -329,21 +420,31 @@ export default function CalendarPanel() {
     mutationFn: (ev) =>
       djangoFetch(`/calendar/events/${ev.id}/`, {
         method: "PATCH",
-        body: JSON.stringify({
-          title: ev.title,
-          description: ev.description,
-          date: ev.date,
-          start_time: ev.startTime,
-          end_time: ev.endTime,
-          color: ev.color,
-        }),
+        body: JSON.stringify(eventBody(ev)),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] }),
+    onSuccess: refetchEvents,
+    // Without this a failed move (offline, lapsed Premium, validation) left the
+    // event visibly moved until the next refresh silently put it back.
+    onError: (err) => {
+      toast({
+        variant: "destructive",
+        title: t("calendar_ui.update_error_title", "Could not save the change"),
+        description: err?.message || t("calendar_ui.save_error_desc", "Failed to save event to server, please try again."),
+      });
+      refetchEvents();
+    },
   });
 
   const deleteEventMut = useMutation({
     mutationFn: (id) => djangoFetch(`/calendar/events/${id}/`, { method: "DELETE" }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar-events"] }),
+    onSuccess: refetchEvents,
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: t("calendar_ui.delete_error_title", "Could not delete the event"),
+      });
+      refetchEvents();
+    },
   });
 
   const [editingEvent, setEditingEvent] = useState(null);
@@ -353,8 +454,11 @@ export default function CalendarPanel() {
     date: getLocalDateStr(new Date()),
     startTime: "09:00",
     endTime: "10:00",
+    allDay: false,
     color: "#a855f7",
   });
+  const timeError =
+    !newEvent.allDay && newEvent.startTime && newEvent.endTime && newEvent.endTime <= newEvent.startTime;
 
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
@@ -381,7 +485,7 @@ export default function CalendarPanel() {
   }, [view, scrollToNow]);
 
   const addOrUpdateEvent = () => {
-    if (!newEvent.title) return;
+    if (!newEvent.title || timeError) return;
     if (editingEvent) {
       const updatedEv = {
         ...events.find((e) => e.id === editingEvent),
@@ -403,6 +507,7 @@ export default function CalendarPanel() {
       date: getLocalDateStr(new Date()),
       startTime: "09:00",
       endTime: "10:00",
+      allDay: false,
       color: "#a855f7",
     });
   };
@@ -419,6 +524,7 @@ export default function CalendarPanel() {
       date: event.date,
       startTime: event.startTime,
       endTime: event.endTime,
+      allDay: !!event.allDay,
       color: event.color || "#a855f7",
     });
     setEditingEvent(event.id);
@@ -428,7 +534,9 @@ export default function CalendarPanel() {
   const goToPrev = () => {
     const d = new Date(currentDate);
     if (view === "day") d.setDate(d.getDate() - 1);
-    else if (view === "month") d.setMonth(d.getMonth() - 1);
+    // setMonth(±1) on the 29th-31st overflows (Jan 31 + 1 month = Mar 3, skipping
+    // February; Mar 31 - 1 month stays in March). Land on the 1st instead.
+    else if (view === "month") return setCurrentDate(new Date(d.getFullYear(), d.getMonth() - 1, 1));
     else d.setDate(d.getDate() - 7);
     setCurrentDate(d);
   };
@@ -436,7 +544,7 @@ export default function CalendarPanel() {
   const goToNext = () => {
     const d = new Date(currentDate);
     if (view === "day") d.setDate(d.getDate() + 1);
-    else if (view === "month") d.setMonth(d.getMonth() + 1);
+    else if (view === "month") return setCurrentDate(new Date(d.getFullYear(), d.getMonth() + 1, 1));
     else d.setDate(d.getDate() + 7);
     setCurrentDate(d);
   };
@@ -453,24 +561,22 @@ export default function CalendarPanel() {
   };
 
   const getDayEvents = (dateStr) => {
-    const regularEvents = events.filter((e) => e.date === dateStr && !e.isTask);
+    const regularEvents = events
+      .filter((e) => e.date === dateStr && !e.isTask)
+      .map((e) => (e.allDay ? { ...e, isAllDay: true } : e));
 
-    const dateObj = new Date(dateStr);
-    const jsDay = dateObj.getDay();
-    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1;
-    const weekdayFlag = 1 << pythonWeekday;
-
+    // Same rule as the backend (lib/dailySchedule.js mirrors
+    // is_daily_scheduled_for_date). Bare "YYYY-MM-DD" is parsed as LOCAL time:
+    // `new Date("2026-09-21").getDay()` read the previous day for every user
+    // west of UTC (their Monday Daily showed up on Sunday).
     const dailyTaskEvents = tasks
-      .filter((t) => {
-        if (t.task_type !== "daily" || !t.show_in_calendar || !t.scheduled_time) {
-          return false;
-        }
-        const repeatWeekdays =
-          t.repeat_weekdays !== undefined && t.repeat_weekdays !== null
-            ? t.repeat_weekdays
-            : 127;
-        return (repeatWeekdays & weekdayFlag) > 0;
-      })
+      .filter(
+        (t) =>
+          t.task_type === "daily" &&
+          t.show_in_calendar &&
+          t.scheduled_time &&
+          isDailyScheduledOn(t, dateStr, { respectCreation: true })
+      )
       .map((t) => {
         let endTimeStr;
         if (t.scheduled_end_time) {
@@ -480,6 +586,12 @@ export default function CalendarPanel() {
             timeToMins(t.scheduled_time.substring(0, 5)) +
               Math.round((t.default_hours || 1) * 60)
           );
+        }
+        let status = "upcoming";
+        if (dateStr < todayStr) {
+          status = (history[dateStr] || []).includes(t.id) ? "done" : "missed";
+        } else if (dateStr === todayStr) {
+          status = t.is_completed ? "done" : "pending";
         }
         return {
           id: `task-${t.id}-${dateStr}`,
@@ -492,10 +604,30 @@ export default function CalendarPanel() {
           category: t.category,
           isTask: true,
           taskId: t.id,
+          status,
         };
       });
 
-    const allEvents = [...regularEvents, ...dailyTaskEvents].sort((a, b) =>
+    // Todo deadlines: date-only, so they live in the all-day row.
+    const deadlineItems = tasks
+      .filter((t) => t.task_type === "todo" && t.due_date && t.due_date.substring(0, 10) === dateStr)
+      .map((t) => ({
+        id: `todo-${t.id}`,
+        title: t.title,
+        description: t.notes || "",
+        date: dateStr,
+        startTime: "",
+        endTime: "",
+        color: t.is_completed ? "#64748b" : dateStr < todayStr ? "#ef4444" : "#f59e0b",
+        category: t.category,
+        isTask: true,
+        isDeadline: true,
+        isAllDay: true,
+        done: t.is_completed,
+        taskId: t.id,
+      }));
+
+    const allEvents = [...regularEvents, ...dailyTaskEvents, ...deadlineItems].sort((a, b) =>
       a.startTime.localeCompare(b.startTime)
     );
 
@@ -521,6 +653,7 @@ export default function CalendarPanel() {
       duration,
       offsetMins: (offsetY / HOUR_PX) * 60,
       currentDate: colDate,
+      original: { date: event.date, startTime: event.startTime, endTime: event.endTime },
     };
 
     const onMove = (mv) => {
@@ -574,10 +707,17 @@ export default function CalendarPanel() {
 
     const onUp = () => {
       if (dragRef.current) {
-        const evId = dragRef.current.eventId;
+        const { eventId: evId, original } = dragRef.current;
         setEvents((prev) => {
           const ev = prev.find((e) => e.id === evId);
-          if (ev && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
+          // A plain click (pointer down/up with no movement) used to send a
+          // PATCH of unchanged data -- from inside a state updater, no less.
+          const changed =
+            ev &&
+            (ev.date !== original.date ||
+              ev.startTime !== original.startTime ||
+              ev.endTime !== original.endTime);
+          if (changed && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
           return prev;
         });
       }
@@ -602,6 +742,7 @@ export default function CalendarPanel() {
       eventId: event.id,
       startMins: timeToMins(event.startTime),
       offsetY,
+      originalEnd: event.endTime,
     };
 
     const onMove = (mv) => {
@@ -633,10 +774,12 @@ export default function CalendarPanel() {
 
     const onUp = () => {
       if (resizeRef.current) {
-        const evId = resizeRef.current.eventId;
+        const { eventId: evId, originalEnd } = resizeRef.current;
         setEvents((prev) => {
           const ev = prev.find((e) => e.id === evId);
-          if (ev && String(ev.id).indexOf("task") === -1) updateEventMut.mutate(ev);
+          if (ev && ev.endTime !== originalEnd && String(ev.id).indexOf("task") === -1) {
+            updateEventMut.mutate(ev);
+          }
           return prev;
         });
       }
@@ -654,12 +797,14 @@ export default function CalendarPanel() {
     if (e.target !== e.currentTarget) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const rawMins = ((e.clientY - rect.top) / HOUR_PX) * 60;
-    const snapped = snapTo15(Math.max(0, rawMins));
+    // Keep a full hour after the start so 23:xx clicks don't produce 24:00.
+    const snapped = Math.min(snapTo15(Math.max(0, rawMins)), 23 * 60);
     setNewEvent((prev) => ({
       ...prev,
       date: dateStr,
       startTime: minsToTime(snapped),
       endTime: minsToTime(snapped + 60),
+      allDay: false,
     }));
     setEditingEvent(null);
     setShowForm(true);
@@ -675,10 +820,18 @@ export default function CalendarPanel() {
 
   const weekDays = getWeekDays(currentDate);
   const currentDateStr = getLocalDateStr(currentDate);
+  const fmtDate = (d, opts) => d.toLocaleDateString(locale, opts);
+  // A week spanning two months (Aug 31 - Sep 6) is labelled with both; the old
+  // label always used the current date's month ("31 – 6 September").
+  const weekLabel =
+    weekDays[0].getMonth() === weekDays[6].getMonth() &&
+    weekDays[0].getFullYear() === weekDays[6].getFullYear()
+      ? `${weekDays[0].getDate()} – ${weekDays[6].getDate()} ${fmtDate(weekDays[6], { month: "long", year: "numeric" })}`
+      : `${fmtDate(weekDays[0], { day: "numeric", month: "short" })} – ${fmtDate(weekDays[6], { day: "numeric", month: "short", year: "numeric" })}`;
 
   const applyPresetDuration = (mins) => {
     const startM = timeToMins(newEvent.startTime);
-    const endM = Math.min(24 * 60, startM + mins);
+    const endM = Math.min(23 * 60 + 59, startM + mins);
     setNewEvent((prev) => ({ ...prev, endTime: minsToTime(endM) }));
   };
 
@@ -696,20 +849,10 @@ export default function CalendarPanel() {
 
           <span className="font-mono text-xs md:text-sm font-bold min-w-[170px] text-center text-slate-100 tracking-wide">
             {view === "day"
-              ? currentDate.toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
+              ? fmtDate(currentDate, { day: "numeric", month: "long", year: "numeric" })
               : view === "month"
-              ? currentDate.toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })
-              : `${weekDays[0].getDate()} – ${weekDays[6].getDate()} ${currentDate.toLocaleDateString(
-                  "en-US",
-                  { month: "long", year: "numeric" }
-                )}`}
+              ? fmtDate(currentDate, { month: "long", year: "numeric" })
+              : weekLabel}
           </span>
 
           <button
@@ -755,7 +898,7 @@ export default function CalendarPanel() {
             className="text-xs font-mono border-[#2a2640] bg-[#161426] hover:bg-[#221f38] text-slate-300 cursor-pointer"
           >
             <RefreshCw className="w-3 h-3 mr-1.5" />
-            {t('calendar_ui.sync_tasks', 'Sync Tasks')}
+            {t('calendar_ui.feed_button', 'Subscribe')}
           </Button>
 
           <div className="flex gap-1 border border-[#2a2640] bg-[#141224] rounded-lg p-1">
@@ -784,6 +927,7 @@ export default function CalendarPanel() {
                 date: currentDateStr,
                 startTime: "09:00",
                 endTime: "10:00",
+                allDay: false,
                 color: "#a855f7",
               });
               setShowForm(true);
@@ -801,7 +945,7 @@ export default function CalendarPanel() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >
-          <CalendarSyncPanel tasks={tasks} />
+          <CalendarSyncPanel />
         </motion.div>
       )}
 
@@ -828,6 +972,16 @@ export default function CalendarPanel() {
             style={{ maxHeight: "70vh" }}
             ref={scrollRef}
           >
+            {view === "day" && getDayEvents(currentDateStr).some((ev) => ev.isAllDay) && (
+              <div className="flex border-b border-[#2a2640] bg-[#121022] sticky top-0 z-20">
+                <div className="w-14 shrink-0 text-[9px] font-mono text-muted-foreground/60 p-1 border-r border-[#232038]">
+                  {t("calendar_ui.all_day", "all-day")}
+                </div>
+                <div className="flex-1">
+                  <AllDayChips items={getDayEvents(currentDateStr).filter((ev) => ev.isAllDay)} />
+                </div>
+              </div>
+            )}
             {view === "day" && (
               <div className="flex relative">
                 <div
@@ -896,6 +1050,23 @@ export default function CalendarPanel() {
                     );
                   })}
                 </div>
+                {weekDays.some((day) => getDayEvents(getLocalDateStr(day)).some((ev) => ev.isAllDay)) && (
+                  <div
+                    className="grid sticky top-[3.5rem] z-20 bg-[#121022] border-b border-[#2a2640]"
+                    style={{ gridTemplateColumns: "3.5rem repeat(7, 1fr)" }}
+                  >
+                    <div className="text-[9px] font-mono text-muted-foreground/60 p-1 border-r border-[#2a2640]/50">
+                      {t("calendar_ui.all_day", "all-day")}
+                    </div>
+                    {weekDays.map((day, i) => (
+                      <div key={i} className="border-l border-[#2a2640]/50 min-w-0">
+                        <AllDayChips
+                          items={getDayEvents(getLocalDateStr(day)).filter((ev) => ev.isAllDay)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div
                   className="grid relative"
@@ -1018,6 +1189,16 @@ export default function CalendarPanel() {
                 />
               </div>
 
+              <label className="flex items-center gap-2 text-[11px] font-mono text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!newEvent.allDay}
+                  onChange={(e) => setNewEvent({ ...newEvent, allDay: e.target.checked })}
+                />
+                {t('calendar_ui.all_day_event', 'All-day event (deadline, holiday, exam day)')}
+              </label>
+
+              {!newEvent.allDay && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">
@@ -1046,7 +1227,14 @@ export default function CalendarPanel() {
                   />
                 </div>
               </div>
+              )}
+              {timeError && (
+                <p className="text-[10px] font-mono text-red-400">
+                  {t('calendar_ui.end_after_start', 'End time must be after the start time.')}
+                </p>
+              )}
 
+              {!newEvent.allDay && (
               <div>
                 <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase">
                   {t('calendar_ui.quick_duration', 'QUICK DURATION')}
@@ -1064,6 +1252,7 @@ export default function CalendarPanel() {
                   ))}
                 </div>
               </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-mono text-muted-foreground block uppercase">
@@ -1091,7 +1280,7 @@ export default function CalendarPanel() {
                 <Button
                   onClick={addOrUpdateEvent}
                   className="flex-1 font-mono font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_10px_rgba(168,85,247,0.4)] cursor-pointer"
-                  disabled={!newEvent.title}
+                  disabled={!newEvent.title || timeError}
                 >
                   {editingEvent ? t('calendar_ui.save_changes', 'SAVE CHANGES') : t('calendar_ui.create_event', 'CREATE EVENT')}
                 </Button>

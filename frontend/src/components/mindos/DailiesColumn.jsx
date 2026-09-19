@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo } from 'react';
+import { isDailyScheduledOn, toDateStr } from '@/lib/dailySchedule';
 import { Plus, CheckSquare, Square, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
@@ -64,13 +65,8 @@ function TaskItemRow({ task, completeMutation, deleteTask, onEdit, t, completeDa
   const { bursts, trigger: triggerBurst } = usePixelBurst();
   const [justCompleted, setJustCompleted] = useState(false);
 
-  const isScheduledToday = (() => {
-    if (task.repeat_weekdays === undefined || task.repeat_weekdays === null) return true;
-    const jsDay = new Date().getDay();
-    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1;
-    const flag = 1 << pythonWeekday;
-    return (task.repeat_weekdays & flag) > 0;
-  })();
+  // Same rule as the backend (weekday mask + every-N-weeks + until).
+  const isScheduledToday = isDailyScheduledOn(task, toDateStr(new Date()));
 
   const handleComplete = () => {
     if (!isScheduledToday) return;
@@ -210,7 +206,7 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', type: 'daily', category: 'Other', difficulty: 'medium',
-    notes: '', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127,
+    notes: '', dueDate: '', scheduledTime: '', scheduledEndTime: '', showInCalendar: false, repeatWeekdays: 127, repeatIntervalWeeks: 1, repeatUntil: '',
   });
   const [formType, setFormType] = useState('daily');
   const [editingTask, setEditingTask] = useState(null);
@@ -322,6 +318,8 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       scheduled_end_time: form.scheduledEndTime || null,
       show_in_calendar: !!form.showInCalendar,
       repeat_weekdays: form.repeatWeekdays !== undefined ? form.repeatWeekdays : 127,
+      repeat_interval_weeks: form.repeatIntervalWeeks || 1,
+      repeat_until: form.repeatUntil || null,
     });
   };
 
@@ -337,6 +335,8 @@ export default function DailiesColumn({ dailies, onXpGain, onBossDamage, onRankX
       scheduledEndTime: task.scheduled_end_time || '',
       showInCalendar: task.show_in_calendar || false,
       repeatWeekdays: task.repeat_weekdays !== undefined ? task.repeat_weekdays : 127,
+      repeatIntervalWeeks: task.repeat_interval_weeks || 1,
+      repeatUntil: task.repeat_until || '',
     });
     setFormType(task.type || 'daily');
     setEditingTask(task);

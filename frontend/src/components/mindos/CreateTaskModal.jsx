@@ -379,6 +379,39 @@ export default function CreateTaskModal({ isOpen, onClose, formType, setFormType
                           );
                         })}
                       </div>
+
+                      {/* Every N weeks (A/B weeks, alternating lectures) and an optional last day */}
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div>
+                          <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase tracking-wider">
+                            {t('task_modal.repeat_every', 'Repeat every')}
+                          </label>
+                          <select
+                            value={form.repeatIntervalWeeks || 1}
+                            onChange={(e) => setForm({ ...form, repeatIntervalWeeks: Number(e.target.value) })}
+                            className="w-full bg-[#18162e] border border-[#2f294a] rounded-lg px-2.5 py-2 text-xs font-mono text-white"
+                          >
+                            {[1, 2, 3, 4].map((n) => (
+                              <option key={n} value={n}>
+                                {n === 1
+                                  ? t('task_modal.every_week', 'week')
+                                  : t('task_modal.every_n_weeks', '{{n}} weeks', { n })}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-mono text-muted-foreground mb-1 block uppercase tracking-wider">
+                            {t('task_modal.repeat_until', 'Until (optional)')}
+                          </label>
+                          <input
+                            type="date"
+                            value={form.repeatUntil || ''}
+                            onChange={(e) => setForm({ ...form, repeatUntil: e.target.value })}
+                            className="w-full bg-[#18162e] border border-[#2f294a] rounded-lg px-2.5 py-2 text-xs font-mono text-white"
+                          />
+                        </div>
+                      </div>
                     </div>
                   )}
 

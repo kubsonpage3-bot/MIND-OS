@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo } from 'react';
+import { daysUntil, parseLocalDate } from '@/lib/dailySchedule';
 import { Plus, Square, CheckSquare, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -58,7 +59,11 @@ const CATEGORY_ICONS = {
 /** Проверяет, просрочен ли To-Do (есть due_date и она в прошлом) */
 function isOverdue(task) {
   if (!task.due_date) return false;
-  return new Date(task.due_date) < new Date();
+  // due_date is a DATE: overdue only once the whole day has passed. Comparing
+  // `new Date("YYYY-MM-DD")` (UTC midnight) with now made a todo due TODAY red
+  // "overdue" all day in every timezone.
+  const days = daysUntil(task.due_date);
+  return days !== null && days < 0;
 }
 
 function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
@@ -190,7 +195,7 @@ function TaskItemRow({ task, toggleMutation, deleteTask, onEdit, t }) {
                 : 'text-slate-400 bg-white/5 border-white/5'
             }`}>
               <Clock size={10} />
-              <span>{new Date(task.due_date).toLocaleDateString()}</span>
+              <span>{(parseLocalDate(task.due_date) || new Date()).toLocaleDateString()}</span>
               {overdue && !task.is_completed && '⚠️'}
             </span>
           )}
