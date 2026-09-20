@@ -206,7 +206,9 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
   } = usePomodoro();
   const isBusySaving = isCompleting;
 
-  // --- Compiled Activities ---
+  // --- Compiled Activities (filtered by user's hidden list, same as Training) ---
+  const hiddenActivities = profile?.hidden_activities || [];
+
   const allActivities = useMemo(() => {
     const list = {};
     Object.keys(ACTIVITIES).forEach(key => {
@@ -736,11 +738,13 @@ export default function PomodoroTimer({ profile: djangoProfile, tasks = [], logs
             className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-foreground focus:border-pink-500/50 outline-none disabled:opacity-50 text-white"
           >
             <option value="" className="bg-slate-900 text-muted-foreground">-- Select Activity --</option>
-            {Object.entries(allActivities).map(([key, act]) => (
-              <option key={key} value={key} className="bg-slate-900 text-foreground">
-                {act.icon} {act.label}
-              </option>
-            ))}
+            {Object.entries(allActivities)
+              .filter(([key]) => !hiddenActivities.includes(key))
+              .map(([key, act]) => (
+                <option key={key} value={key} className="bg-slate-900 text-foreground">
+                  {act.icon} {act.label}
+                </option>
+              ))}
           </select>
           
           {/* Duration Selector */}
