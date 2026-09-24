@@ -41,7 +41,10 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
     // a short agenda list instead -- the same size-driven layout switch
     // Google's own Calendar widget makes.
     private static final int MIN_GRID_WIDTH_DP = 210;
-    private static final int MIN_GRID_HEIGHT_DP = 180;
+    // 160dp: a standard 3×3 widget is ~146dp tall on most launchers.
+    // The original 180dp threshold prevented the grid from ever showing
+    // on reasonably-sized widgets (Google Calendar uses ~160dp).
+    private static final int MIN_GRID_HEIGHT_DP = 160;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -200,7 +203,9 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             views.setTextViewText(weekdayHeaderId(w), weekdayNames[w]);
         }
 
-        views.setViewVisibility(R.id.cal_sync_label, View.VISIBLE);
+        // Show the sync-hint label only when there's no cached data yet;
+        // once data is loaded it disappears so it doesn't take up grid space.
+        views.setViewVisibility(R.id.cal_sync_label, monthData == null ? View.VISIBLE : View.GONE);
 
         int navFlags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) navFlags |= PendingIntent.FLAG_IMMUTABLE;

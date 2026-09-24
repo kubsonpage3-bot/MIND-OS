@@ -214,6 +214,6 @@
             android:textSize="11sp"
             android:textStyle="bold"
             android:typeface="monospace"
-            android:visibility="visible" />
+            android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>
