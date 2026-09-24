@@ -277,7 +277,7 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         return views;
     }
 
-    private static final java.util.Map<String, Integer> ID_CACHE = new java.util.HashMap<>();
+    private static final java.util.Map<String, Integer> ID_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static int idFor(Context context, String name) {
         Integer cached = ID_CACHE.get(name);

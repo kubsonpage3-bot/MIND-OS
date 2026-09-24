@@ -242,29 +242,42 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             android.content.SharedPreferences sharedPrefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
             String profileJson = sharedPrefs.getString("mindos_profile", null);
 
-            int hp = 100, maxHp = 100;
-            int mp = 50, maxMp = 100;
-            int xp = 28, maxXp = 200;
-            int gold = 0, sp = 0, streak = 0, level = 1;
-            String classId = "wanderer", rankId = "F", themeId = "solid_dark", username = "";
-
-            if (profileJson != null) {
-                JSONObject json = new JSONObject(profileJson);
-                hp = json.optInt("hp", 100);
-                maxHp = Math.max(1, json.optInt("max_hp", 100));
-                mp = json.optInt("mp", 50);
-                maxMp = Math.max(1, json.optInt("max_mp", 100));
-                xp = json.optInt("xp", 0);
-                maxXp = Math.max(1, json.optInt("max_xp", 100));
-                gold = json.optInt("gold", 0);
-                sp = json.optInt("sp", 0);
-                streak = json.optInt("streak", 0);
-                level = Math.max(1, json.optInt("level", 1));
-                classId = json.optString("class", "wanderer");
-                rankId = json.optString("rank", "F");
-                themeId = json.optString("theme", "solid_dark");
-                username = json.optString("username", "");
+            if (profileJson == null) {
+                // No cache yet — widget placed before first app open.
+                // Show neutral placeholder labels instead of crashing.
+                views.setTextViewText(R.id.widget_hp_label, "– / –");
+                views.setTextViewText(R.id.widget_mp_label, "– / –");
+                views.setTextViewText(R.id.widget_xp_label, "– / –");
+                views.setProgressBar(R.id.widget_hp_progress, 1, 0, false);
+                views.setProgressBar(R.id.widget_mp_progress, 1, 0, false);
+                views.setProgressBar(R.id.widget_xp_progress, 1, 0, false);
+                views.setTextViewText(R.id.widget_level_badge, "MIND OS");
+                views.setTextViewText(R.id.widget_username_label, "Open app to sync");
+                views.setTextViewText(R.id.widget_gold_label, "–");
+                views.setTextViewText(R.id.widget_sp_label, "–");
+                views.setTextViewText(R.id.widget_streak_label, "–");
+                views.setImageViewResource(R.id.widget_background_image, 0);
+                views.setImageViewResource(R.id.widget_avatar_bg, 0);
+                views.setImageViewResource(R.id.widget_avatar, 0);
+                appWidgetManager.updateAppWidget(appWidgetId, views);
+                return;
             }
+
+            JSONObject json = new JSONObject(profileJson);
+            int hp = json.optInt("hp", 100);
+            int maxHp = Math.max(1, json.optInt("max_hp", 100));
+            int mp = json.optInt("mp", 50);
+            int maxMp = Math.max(1, json.optInt("max_mp", 100));
+            int xp = json.optInt("xp", 0);
+            int maxXp = Math.max(1, json.optInt("max_xp", 100));
+            int gold = json.optInt("gold", 0);
+            int sp = json.optInt("sp", 0);
+            int streak = json.optInt("streak", 0);
+            int level = Math.max(1, json.optInt("level", 1));
+            String classId = json.optString("class", "wanderer");
+            String rankId = json.optString("rank", "F");
+            String themeId = json.optString("theme", "solid_dark");
+            String username = json.optString("username", "");
 
             // Bind HP / MP / EXP Labels
             views.setTextViewText(R.id.widget_hp_label, hp + " / " + maxHp);

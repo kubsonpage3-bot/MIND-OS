@@ -95,7 +95,7 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
             int flags = PendingIntent.FLAG_UPDATE_CURRENT;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
             Intent openIntent = new Intent(context, MainActivity.class);
-            openIntent.putExtra("action", "open_dailies");
+            openIntent.putExtra("action", "open_calendar");
             PendingIntent openPendingIntent = PendingIntent.getActivity(context, 900 + appWidgetId, openIntent, flags);
             views.setOnClickPendingIntent(R.id.upcoming_root, openPendingIntent);
 

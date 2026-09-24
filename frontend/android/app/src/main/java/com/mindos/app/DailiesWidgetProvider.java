@@ -183,6 +183,9 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
             }
             views.setViewVisibility(R.id.dailies_more_text, View.GONE);
 
+            // Hide empty/done state by default before populating
+            views.setViewVisibility(R.id.dailies_empty_text, View.GONE);
+
             if (dailiesJson != null) {
                 JSONArray array = new JSONArray(dailiesJson);
                 totalCount = array.length();

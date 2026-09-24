@@ -94,6 +94,18 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
             int leftCount = Math.max(0, totalCount - doneCount);
             int percent = totalCount > 0 ? Math.round((doneCount * 100f) / totalCount) : 0;
 
+            if (profileJson == null && dailiesJson == null) {
+                // No data cached yet — widget placed before first app open
+                views.setTextViewText(R.id.summary_streak_text, context.getString(R.string.widget_summary_no_streak));
+                views.setTextViewText(R.id.summary_done_count, "–");
+                views.setTextViewText(R.id.summary_total_count, "");
+                views.setTextViewText(R.id.summary_percent_badge, "");
+                views.setProgressBar(R.id.summary_progress_bar, 1, 0, false);
+                views.setTextViewText(R.id.summary_done_label, context.getString(R.string.widget_summary_done_label));
+                views.setTextViewText(R.id.summary_left_text, "");
+                views.setTextViewText(R.id.summary_reset_text, context.getString(R.string.widget_summary_reset));
+            } else {
+
             views.setTextViewText(R.id.summary_streak_text, streak > 0
                     ? context.getString(R.string.widget_summary_streak, streak)
                     : context.getString(R.string.widget_summary_no_streak));
@@ -113,6 +125,8 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
             }
 
             views.setTextViewText(R.id.summary_reset_text, context.getString(R.string.widget_summary_reset));
+
+            } // end else (data available)
 
         } catch (Exception e) {
             e.printStackTrace();

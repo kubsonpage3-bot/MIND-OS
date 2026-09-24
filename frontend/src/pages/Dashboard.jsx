@@ -752,6 +752,8 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         window.dispatchEvent(new CustomEvent("mindos:open_shop_tab", { detail: { tab: "chests" } }));
       } else if (action === "open_dailies") {
         if (typeof onSectionChange === "function") onSectionChange("tasks");
+      } else if (action === "open_calendar") {
+        if (typeof onSectionChange === "function") onSectionChange("calendar");
       } else if (action === "open_calendar_date") {
         if (typeof onSectionChange === "function") onSectionChange("calendar");
         if (date) {
