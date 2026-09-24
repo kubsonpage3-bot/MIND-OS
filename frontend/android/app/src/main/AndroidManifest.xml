@@ -103,6 +103,14 @@
                 android:resource="@xml/calendar_widget_info" />
         </receiver>
 
+        <!-- Populates the Calendar widget's month grid cell-by-cell
+             (setRemoteAdapter). BIND_REMOTEVIEWS is held only by the
+             system, so exported="true" here is the standard, safe
+             configuration for a widget collection service. -->
+        <service android:name=".CalendarWidgetService"
+            android:exported="true"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
     </application>
 
     <!-- Permissions -->
