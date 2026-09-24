@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bronze tier (ranks F/D/C/B); the default/fallback frame, also the
-     static reference in rpg_stats_widget.xml before RPGStatsWidgetProvider
-     picks a tier at runtime. See widget_avatar_frame_silver/_gold for the
-     higher tiers. -->
+<!-- Silver tier (ranks A/S); see widget_avatar_frame.xml (bronze). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#26D97706" />
+            <solid android:color="#3338BDF8" />
             <corners android:radius="16dp" />
         </shape>
     </item>
@@ -20,7 +17,7 @@
             <corners android:radius="14dp" />
             <stroke
                 android:width="2dp"
-                android:color="#4A3F6B" />
+                android:color="#7DD3FC" />
         </shape>
     </item>
 </layer-list>

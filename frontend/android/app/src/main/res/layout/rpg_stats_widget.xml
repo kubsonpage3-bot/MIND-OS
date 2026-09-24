@@ -37,8 +37,11 @@
             android:gravity="center"
             android:layout_marginEnd="10dp">
 
-            <!-- Framed Avatar Box — enlarged to 90x90dp -->
+            <!-- Framed Avatar Box — enlarged to 90x90dp. Frame drawable is
+                 swapped by rank tier at runtime (bronze/silver/gold), see
+                 RPGStatsWidgetProvider#getAvatarFrameDrawable. -->
             <RelativeLayout
+                android:id="@+id/widget_avatar_frame_box"
                 android:layout_width="90dp"
                 android:layout_height="90dp"
                 android:background="@drawable/widget_avatar_frame"

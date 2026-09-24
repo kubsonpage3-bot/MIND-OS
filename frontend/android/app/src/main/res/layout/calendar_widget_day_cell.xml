@@ -9,12 +9,16 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_cal_cell_bg">
 
+    <!-- Fixed-size square so widget_cal_today_circle renders as an actual
+         circle (not stretched) and single vs. double-digit dates line up
+         identically; gravity=center replaces relying on wrap_content. -->
     <TextView
         android:id="@+id/day_num"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
         android:layout_gravity="center_horizontal|top"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
         android:text="1"
         android:textColor="#E2E8F0"
         android:textSize="10.5sp"

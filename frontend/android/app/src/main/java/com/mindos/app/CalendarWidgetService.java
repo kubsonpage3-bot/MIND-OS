@@ -111,9 +111,16 @@ public class CalendarWidgetService extends RemoteViewsService {
                 boolean isToday = cellDateStr.equals(todayStr);
 
                 views.setTextViewText(R.id.day_num, String.valueOf(dayNum));
-                views.setTextColor(R.id.day_num, inCurrentMonth ? Color.parseColor("#E2E8F0") : Color.parseColor("#4B4863"));
-                views.setInt(R.id.day_cell_root, "setBackgroundResource",
-                        isToday ? R.drawable.widget_cal_cell_today : R.drawable.widget_cal_cell_bg);
+                views.setInt(R.id.day_cell_root, "setBackgroundResource", R.drawable.widget_cal_cell_bg);
+                if (isToday) {
+                    // Google Calendar-style: a filled circle around just the
+                    // number, not a tint over the whole cell.
+                    views.setTextColor(R.id.day_num, Color.WHITE);
+                    views.setInt(R.id.day_num, "setBackgroundResource", R.drawable.widget_cal_today_circle);
+                } else {
+                    views.setTextColor(R.id.day_num, inCurrentMonth ? Color.parseColor("#E2E8F0") : Color.parseColor("#4B4863"));
+                    views.setInt(R.id.day_num, "setBackgroundResource", 0);
+                }
 
                 JSONObject dayInfo = (days != null && inCurrentMonth) ? days.optJSONObject(cellDateStr) : null;
                 List<Integer> dotColors = CalendarWidgetProvider.dotColorsForDay(dayInfo);

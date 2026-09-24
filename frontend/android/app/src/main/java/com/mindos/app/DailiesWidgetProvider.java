@@ -126,6 +126,24 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    /** Mirrors DailiesColumn.jsx's CATEGORY_COLORS -- a task's accent color
+     * should be the same whether you're looking at the widget or the app. */
+    private static int accentColorForCategory(String category) {
+        String c = category != null ? category : "";
+        switch (c) {
+            case "STEM": return android.graphics.Color.parseColor("#3b82f6");
+            case "Languages": return android.graphics.Color.parseColor("#00cc88");
+            case "Humanities & Arts": return android.graphics.Color.parseColor("#eab308");
+            case "Health & Fitness": return android.graphics.Color.parseColor("#ef4444");
+            case "Rest & Recovery": return android.graphics.Color.parseColor("#f97316");
+            case "Mindfulness": return android.graphics.Color.parseColor("#9944ff");
+            case "Social & Communication": return android.graphics.Color.parseColor("#a855f7");
+            case "Reading & Writing": return android.graphics.Color.parseColor("#22c55e");
+            case "Work & Career": return android.graphics.Color.parseColor("#64748b");
+            default: return android.graphics.Color.parseColor("#94a3b8"); // Other
+        }
+    }
+
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.dailies_widget);
 
@@ -157,6 +175,7 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
             int[] checkIds = { R.id.daily_check_1, R.id.daily_check_2, R.id.daily_check_3, R.id.daily_check_4 };
             int[] textIds = { R.id.daily_text_1, R.id.daily_text_2, R.id.daily_text_3, R.id.daily_text_4 };
             int[] streakIds = { R.id.daily_streak_1, R.id.daily_streak_2, R.id.daily_streak_3, R.id.daily_streak_4 };
+            int[] accentIds = { R.id.daily_accent_1, R.id.daily_accent_2, R.id.daily_accent_3, R.id.daily_accent_4 };
 
             // Hide all slots by default
             for (int id : itemLayoutIds) {
@@ -219,6 +238,12 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
 
                     // Checkbox icon
                     views.setImageViewResource(checkIds[i], completed ? R.drawable.widget_checkbox_checked : R.drawable.widget_checkbox_bg);
+
+                    // Category accent bar (same palette as DailiesColumn.jsx's
+                    // CATEGORY_COLORS, so a task's color doesn't change
+                    // depending on whether you're looking at the widget or the app).
+                    views.setInt(accentIds[i], "setBackgroundColor",
+                            accentColorForCategory(task.optString("category", "Other")));
 
                     // Click checkbox to toggle
                     Intent checkIntent = new Intent(context, DailiesWidgetProvider.class);

@@ -76,6 +76,15 @@
             android:paddingHorizontal="6dp"
             android:visibility="gone">
 
+            <!-- Category-color accent; tinted at runtime, see
+                 DailiesWidgetProvider#accentColorForCategory. -->
+            <View
+                android:id="@+id/daily_accent_1"
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="6dp"
+                android:background="#64748B" />
+
             <ImageView
                 android:id="@+id/daily_check_1"
                 android:layout_width="22dp"
@@ -119,6 +128,13 @@
             android:gravity="center_vertical"
             android:paddingHorizontal="6dp"
             android:visibility="gone">
+
+            <View
+                android:id="@+id/daily_accent_2"
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="6dp"
+                android:background="#64748B" />
 
             <ImageView
                 android:id="@+id/daily_check_2"
@@ -164,6 +180,13 @@
             android:paddingHorizontal="6dp"
             android:visibility="gone">
 
+            <View
+                android:id="@+id/daily_accent_3"
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="6dp"
+                android:background="#64748B" />
+
             <ImageView
                 android:id="@+id/daily_check_3"
                 android:layout_width="22dp"
@@ -206,6 +229,13 @@
             android:gravity="center_vertical"
             android:paddingHorizontal="6dp"
             android:visibility="gone">
+
+            <View
+                android:id="@+id/daily_accent_4"
+                android:layout_width="3dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="6dp"
+                android:background="#64748B" />
 
             <ImageView
                 android:id="@+id/daily_check_4"

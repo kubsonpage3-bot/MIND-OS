@@ -67,6 +67,22 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         return r;
     }
 
+    /** Bronze (F/D/C/B) / Silver (A/S) / Gold (SS/SSS) -- a visible reward
+     * for rank progression, not just the numbers changing. */
+    private static int getAvatarFrameDrawable(String rankId) {
+        String r = normalizeRank(rankId);
+        switch (r) {
+            case "ss":
+            case "sss":
+                return R.drawable.widget_avatar_frame_gold;
+            case "s":
+            case "a":
+                return R.drawable.widget_avatar_frame_silver;
+            default:
+                return R.drawable.widget_avatar_frame;
+        }
+    }
+
     /**
      * FIX: Now handles ALL classes (warlord, scholar, monk, shadow, wanderer) with correct file names.
      * Wanderer uses hash-based filenames; all other classes use class_rank.webp format.
@@ -263,6 +279,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             // Bind Level / Rank / Class Badge
             String classNameDisplay = getClassDisplayName(context, classId);
             views.setTextViewText(R.id.widget_level_badge, context.getString(R.string.widget_rank_prefix) + " " + rankId.toUpperCase() + " • " + classNameDisplay);
+            views.setInt(R.id.widget_avatar_frame_box, "setBackgroundResource", getAvatarFrameDrawable(rankId));
 
             // Bind Username
             if (!username.isEmpty()) {
