@@ -346,3 +346,86 @@ def test_weekly_reset_does_not_fire_twice_across_new_year(user):
         process_daily_login(user)  # Thursday of the SAME ISO week: must not reset again
     profile.refresh_from_db()
     assert profile.ledger_gold == 100  # untouched: no second weekly payout
+
+
+# ── Widget JSON feed (native Android Calendar widget) ─────────────────────────
+@pytest.mark.django_db
+def test_widget_feed_returns_compact_month_summary(client, user):
+    profile = user.profile
+    profile.timezone = "Europe/Berlin"
+    profile.save(update_fields=["timezone"])
+
+    today = dj_timezone.now().astimezone(zoneinfo.ZoneInfo("Europe/Berlin")).date()
+    month_start = today.replace(day=1)
+
+    CalendarEvent.objects.create(
+        user=user, title="Seminar", date=today, start_time=datetime.time(10),
+        end_time=datetime.time(11), color="#ef4444",
+    )
+    daily = Task.objects.create(
+        user=user, title="Read", task_type=Task.TaskType.DAILY,
+        show_in_calendar=True, scheduled_time=datetime.time(8), repeat_weekdays=127,
+        is_completed=True, last_completed_at=dj_timezone.now(),
+    )
+    Task.objects.create(
+        user=user, title="Submit essay", task_type=Task.TaskType.TODO, due_date=today,
+    )
+
+    info = client.get("/api/calendar/feed-info/").json()
+    path = info["url"].split("testserver", 1)[1].replace(".ics", "/widget.json")
+
+    anon = APIClient()
+    res = anon.get(path + f"?month={today:%Y-%m}")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["month"] == today.strftime("%Y-%m")
+    assert data["today"] == today.isoformat()
+    assert data["timezone"] == "Europe/Berlin"
+
+    day = data["days"][today.isoformat()]
+    assert day["events"] == [
+        {"title": "Seminar", "color": "#ef4444", "all_day": False, "start_time": "10:00"}
+    ]
+    assert day["dailies_total"] == 1 and day["dailies_done"] == 1
+    assert day["deadlines"] == [{"title": "Submit essay", "done": False}]
+
+    # The daily-only bucket (no event, no deadline) still has both keys, but
+    # a day untouched by anything at all just isn't in the payload.
+    assert month_start.isoformat() in data["days"]  # the daily is scheduled every day
+    assert data["days"][month_start.isoformat()]["events"] == []
+
+    # Same token/premium/404 rules as the ICS feed.
+    assert anon.get(path.replace(path.split("/")[-2], "x" * 43)).status_code == 404
+    profile.is_premium = False
+    profile.save(update_fields=["is_premium"])
+    assert anon.get(path).status_code == 404
+
+
+@pytest.mark.django_db
+def test_widget_feed_past_and_future_daily_done_state(client, user):
+    profile = user.profile
+    profile.timezone = "UTC"
+    profile.save(update_fields=["timezone"])
+    today = dj_timezone.now().date()
+    yesterday = today - datetime.timedelta(days=1)
+    tomorrow = today + datetime.timedelta(days=1)
+
+    daily = Task.objects.create(
+        user=user, title="Gym", task_type=Task.TaskType.DAILY,
+        show_in_calendar=True, scheduled_time=datetime.time(7), repeat_weekdays=127,
+    )
+    log = UserActivityLog.objects.create(
+        user=user, task=daily, activity_type=UserActivityLog.ActivityType.DAILY, title="Gym"
+    )
+    UserActivityLog.objects.filter(pk=log.pk).update(
+        created_at=datetime.datetime.combine(yesterday, datetime.time(12), tzinfo=datetime.timezone.utc)
+    )
+
+    info = client.get("/api/calendar/feed-info/").json()
+    path = info["url"].split("testserver", 1)[1].replace(".ics", "/widget.json")
+    anon = APIClient()
+    data = anon.get(path).json()  # defaults to the current month
+
+    assert data["days"][yesterday.isoformat()]["dailies_done"] == 1  # completed, from the log
+    assert data["days"][tomorrow.isoformat()]["dailies_done"] == 0  # scheduled, not yet due
+    assert data["days"][tomorrow.isoformat()]["dailies_total"] == 1

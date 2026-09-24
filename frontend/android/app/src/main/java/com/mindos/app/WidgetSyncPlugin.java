@@ -3,6 +3,7 @@ package com.mindos.app;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -44,6 +45,54 @@ public class WidgetSyncPlugin extends Plugin {
         quickIntent.setPackage(ctx.getPackageName());
         ctx.sendBroadcast(quickIntent);
 
+        // 5. Trigger Calendar Widget (repaint from cache; background sync is
+        // WorkManager's job, kicked separately by syncCalendarToken below)
+        Intent calendarIntent = new Intent(ctx, CalendarWidgetProvider.class);
+        calendarIntent.setAction(CalendarWidgetProvider.ACTION_UPDATE_CALENDAR);
+        calendarIntent.setPackage(ctx.getPackageName());
+        ctx.sendBroadcast(calendarIntent);
+
+        call.resolve();
+    }
+
+    /**
+     * Mirrors the calendar_feed_token (and resolved API base URL) from the
+     * app's own storage into the SharedPreferences the native Calendar widget
+     * reads. Native code cannot see the app's JWT -- it lives in the WebView's
+     * localStorage -- so this token is the widget's only way to authenticate
+     * its own background sync. Call this whenever the app loads or rotates
+     * the token (see CalendarSyncPanel.jsx); an empty/missing token clears
+     * the mirrored value so a stale widget stops fetching with a dead token.
+     */
+    @PluginMethod
+    public void syncCalendarToken(PluginCall call) {
+        Context ctx = getContext();
+        if (ctx == null) {
+            call.reject("Android context is not initialized");
+            return;
+        }
+
+        SharedPreferences prefs = ctx.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        String token = call.getString("token");
+        if (token == null || token.isEmpty()) {
+            editor.remove("mindos_calendar_feed_token");
+        } else {
+            editor.putString("mindos_calendar_feed_token", token);
+        }
+
+        String apiBase = call.getString("apiBase");
+        if (apiBase != null && !apiBase.isEmpty()) {
+            editor.putString("mindos_api_base", apiBase);
+        }
+        editor.apply();
+
+        if (token != null && !token.isEmpty()) {
+            CalendarWidgetSyncWorker.enqueuePeriodic(ctx);
+            CalendarWidgetSyncWorker.enqueueNow(ctx);
+        }
+
         call.resolve();
     }
 
@@ -53,9 +102,12 @@ public class WidgetSyncPlugin extends Plugin {
         if (activity != null && activity.getIntent() != null) {
             String action = activity.getIntent().getStringExtra("action");
             if (action != null && !action.isEmpty()) {
+                String date = activity.getIntent().getStringExtra("date");
                 activity.getIntent().removeExtra("action");
+                activity.getIntent().removeExtra("date");
                 JSObject ret = new JSObject();
                 ret.put("action", action);
+                ret.put("date", date);
                 call.resolve(ret);
                 return;
             }

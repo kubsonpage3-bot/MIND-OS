@@ -71,6 +71,7 @@ from .views_pomodoro import PomodoroSessionViewSet
 from .views_calendar import (
     CalendarFeedInfoView,
     CalendarFeedView,
+    CalendarWidgetFeedView,
     CalendarDailyHistoryView,
 )
 from .views_nutrition import (
@@ -285,6 +286,11 @@ urlpatterns = [
     ),
     path("calendar/feed-info/", CalendarFeedInfoView.as_view(), name="calendar-feed-info"),
     path("calendar/feed/<str:token>.ics", CalendarFeedView.as_view(), name="calendar-feed"),
+    path(
+        "calendar/feed/<str:token>/widget.json",
+        CalendarWidgetFeedView.as_view(),
+        name="calendar-feed-widget",
+    ),
     path(
         "calendar/daily-history/",
         CalendarDailyHistoryView.as_view(),

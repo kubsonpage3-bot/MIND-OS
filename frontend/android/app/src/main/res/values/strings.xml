@@ -10,6 +10,7 @@
     <string name="widget_dailies_description">MindOS Today\'s Dailies interactive checklist with category indicators.</string>
     <string name="widget_summary_description">MindOS Daily Summary showing completed count, remaining tasks and streak.</string>
     <string name="widget_quick_description">MindOS Quick Task Creator for Habits, Dailies, To-Dos and Relics.</string>
+    <string name="widget_calendar_description">MindOS Calendar — month grid or agenda view of your events, dailies and deadlines, synced from the app.</string>
 
     <!-- RPG Stats Widget UI strings -->
     <string name="widget_stats_title">MIND OS</string>
@@ -40,4 +41,9 @@
     <string name="widget_quick_daily">+ Daily</string>
     <string name="widget_quick_todo">+ To-Do</string>
     <string name="widget_quick_chest">⚔ Chest</string>
+
+    <!-- Calendar Widget UI strings -->
+    <string name="widget_calendar_title">Calendar</string>
+    <string name="widget_calendar_empty_day">Nothing scheduled today</string>
+    <string name="widget_calendar_tap_hint">Tap a day to open</string>
 </resources>

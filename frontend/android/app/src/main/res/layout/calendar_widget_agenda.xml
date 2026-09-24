@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cal_agenda_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:clipToOutline="true">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:id="@+id/agenda_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Calendar"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:id="@+id/agenda_date_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="24 Sep"
+            android:textColor="#A855F7"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+    </LinearLayout>
+
+    <!-- Agenda list (up to 4 rows) -->
+    <LinearLayout
+        android:id="@+id/agenda_list_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/agenda_item_1"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/widget_daily_item_bg"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/agenda_dot_1"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/widget_cal_dot" />
+
+            <TextView
+                android:id="@+id/agenda_time_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00"
+                android:textColor="#8B87A3"
+                android:textSize="9.5sp"
+                android:typeface="monospace"
+                android:layout_marginStart="6dp" />
+
+            <TextView
+                android:id="@+id/agenda_text_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Event"
+                android:textColor="#E2E8F0"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/agenda_item_2"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/widget_daily_item_bg"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/agenda_dot_2"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/widget_cal_dot" />
+
+            <TextView
+                android:id="@+id/agenda_time_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00"
+                android:textColor="#8B87A3"
+                android:textSize="9.5sp"
+                android:typeface="monospace"
+                android:layout_marginStart="6dp" />
+
+            <TextView
+                android:id="@+id/agenda_text_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Event"
+                android:textColor="#E2E8F0"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/agenda_item_3"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/widget_daily_item_bg"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/agenda_dot_3"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/widget_cal_dot" />
+
+            <TextView
+                android:id="@+id/agenda_time_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00"
+                android:textColor="#8B87A3"
+                android:textSize="9.5sp"
+                android:typeface="monospace"
+                android:layout_marginStart="6dp" />
+
+            <TextView
+                android:id="@+id/agenda_text_3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Event"
+                android:textColor="#E2E8F0"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/agenda_item_4"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:background="@drawable/widget_daily_item_bg"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/agenda_dot_4"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/widget_cal_dot" />
+
+            <TextView
+                android:id="@+id/agenda_time_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00"
+                android:textColor="#8B87A3"
+                android:textSize="9.5sp"
+                android:typeface="monospace"
+                android:layout_marginStart="6dp" />
+
+            <TextView
+                android:id="@+id/agenda_text_4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Event"
+                android:textColor="#E2E8F0"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/agenda_empty_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="✦ Nothing scheduled today ✦"
+            android:textColor="#A855F7"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:typeface="monospace"
+            android:visibility="visible" />
+    </LinearLayout>
+</LinearLayout>

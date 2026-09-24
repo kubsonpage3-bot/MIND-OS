@@ -737,8 +737,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       });
 
       // 2. Process launch intents
-      const action = await getWidgetLaunchIntentAction();
-      if (!action) return;
+      const launch = await getWidgetLaunchIntentAction();
+      if (!launch) return;
+      const { action, date } = launch;
 
       if (action === "create_habit" || action === "create_daily" || action === "create_todo") {
         if (typeof onSectionChange === "function") onSectionChange("tasks");
@@ -751,6 +752,11 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         window.dispatchEvent(new CustomEvent("mindos:open_shop_tab", { detail: { tab: "chests" } }));
       } else if (action === "open_dailies") {
         if (typeof onSectionChange === "function") onSectionChange("tasks");
+      } else if (action === "open_calendar_date") {
+        if (typeof onSectionChange === "function") onSectionChange("calendar");
+        if (date) {
+          window.dispatchEvent(new CustomEvent("mindos:open_calendar_date", { detail: { date } }));
+        }
       }
     };
 

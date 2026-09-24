@@ -186,12 +186,16 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
 
                     views.setViewVisibility(itemLayoutIds[i], View.VISIBLE);
 
-                    // Formatted text with strikethrough if completed
+                    // Formatted text with strikethrough if completed. Title comes from
+                    // user input (task name) -- it must be HTML-escaped before being spliced
+                    // into markup, or a title containing '<', '&' or similar breaks the
+                    // Html.fromHtml() parse and renders garbled/truncated text on the widget.
+                    String safeTitle = android.text.TextUtils.htmlEncode(title);
                     String htmlText;
                     if (completed) {
-                        htmlText = "<s><font color='#64748B'>" + title + "</font></s>";
+                        htmlText = "<s><font color='#64748B'>" + safeTitle + "</font></s>";
                     } else {
-                        htmlText = "<font color='#F1F5F9'><b>" + title + "</b></font>";
+                        htmlText = "<font color='#F1F5F9'><b>" + safeTitle + "</b></font>";
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         views.setTextViewText(textIds[i], Html.fromHtml(htmlText, Html.FROM_HTML_MODE_LEGACY));

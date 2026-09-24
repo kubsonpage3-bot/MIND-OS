@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy, Check, RefreshCw, Link2, ShieldAlert } from "lucide-react";
@@ -7,6 +7,7 @@ import { djangoFetch } from "@/api/djangoClient";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
+import { syncCalendarWidgetToken } from "@/utils/widget";
 
 /**
  * Calendar feed: a private iCalendar (.ics) subscription URL that Google
@@ -49,6 +50,14 @@ export default function CalendarSyncPanel() {
   });
 
   const url = data?.url || "";
+
+  // Mirrors the token into native storage so the Calendar home screen widget
+  // (native Android, not this panel) can sync in the background -- covers
+  // both first load and rotation, since rotation replaces `data` via the
+  // same query key.
+  useEffect(() => {
+    if (data?.url) syncCalendarWidgetToken(data.url);
+  }, [data?.url]);
 
   const copy = async () => {
     try {

@@ -7,8 +7,8 @@ android {
         applicationId "com.mindos.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 880
-        versionName "0.8.80"
+        versionCode 890
+        versionName "0.8.90"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -45,6 +45,18 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    // Calendar widget background sync (CalendarWidgetSyncWorker): periodic
+    // network refresh so the widget stays live without the app being open,
+    // unlike the other 4 home-screen widgets which only ever repaint a
+    // SharedPreferences snapshot the app last wrote.
+    implementation "androidx.work:work-runtime:2.9.1"
+    // work-runtime's own ListenableFuture dependency resolves to an empty
+    // stub jar on this project's compile classpath (something elsewhere
+    // pins com.google.guava:listenablefuture to the "empty-to-avoid-conflict"
+    // placeholder without also bringing real Guava along on that classpath),
+    // so androidx.work.Worker fails to compile with "cannot access
+    // ListenableFuture" unless real Guava is added directly.
+    implementation "com.google.guava:guava:33.6.0-android"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"

@@ -89,6 +89,20 @@
                 android:resource="@xml/quick_actions_widget_info" />
         </receiver>
 
+        <!-- 5. Calendar Widget (agenda 2x2 / full month grid up to 4x4+) -->
+        <receiver android:name=".CalendarWidgetProvider"
+            android:exported="true"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_CALENDAR" />
+                <action android:name="com.mindos.app.ACTION_CAL_NAV" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/calendar_widget_info" />
+        </receiver>
+
     </application>
 
     <!-- Permissions -->

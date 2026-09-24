@@ -329,6 +329,22 @@ export default function CalendarPanel() {
     return () => clearInterval(id);
   }, []);
 
+  // Tapping a day cell on the native Calendar home screen widget opens the
+  // app and dispatches this with the tapped date (see Dashboard.jsx's
+  // "open_calendar_date" widget launch action).
+  useEffect(() => {
+    const onOpenDate = (e) => {
+      const dateStr = e?.detail?.date;
+      if (!dateStr) return;
+      const parsed = new Date(`${dateStr}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) return;
+      setCurrentDate(parsed);
+      setView("month");
+    };
+    window.addEventListener("mindos:open_calendar_date", onOpenDate);
+    return () => window.removeEventListener("mindos:open_calendar_date", onOpenDate);
+  }, []);
+
   // page_size: the default page is 25 and only `.results` was read, so the 26th
   // task (and every Daily after it) never reached the calendar.
   const { data: tasks = NO_TASKS } = useQuery({

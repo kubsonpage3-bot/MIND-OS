@@ -88,6 +88,42 @@ class CalendarFeedView(APIView):
         return response
 
 
+class CalendarWidgetFeedView(APIView):
+    """
+    GET /api/calendar/feed/<token>/widget.json?month=YYYY-MM -- the same
+    private, unauthenticated-but-secret token as the ICS feed (CalendarFeedView),
+    but returning a compact per-day JSON summary instead of iCalendar text.
+
+    This exists specifically for the native Android widget's background
+    WorkManager sync job: native code has no access to the app's JWT (it lives
+    in the WebView's own localStorage), so it authenticates the same way a
+    subscribed calendar app does -- by knowing the token.
+    """
+
+    authentication_classes: list = []
+    permission_classes: list = []
+    throttle_classes = [AnonRateThrottle]
+
+    def get(self, request, token):
+        if not token or len(token) < 20:
+            return HttpResponse(status=404)
+        profile = (
+            UserProfile.objects.select_related("user")
+            .filter(calendar_feed_token=token)
+            .first()
+        )
+        if not profile or not profile.is_premium:
+            return HttpResponse(status=404)
+
+        from api.services.calendar_widget import build_calendar_widget_summary
+
+        month = request.query_params.get("month")
+        data = build_calendar_widget_summary(profile.user, month)
+        response = Response(data)
+        response["Cache-Control"] = "private, max-age=300"
+        return response
+
+
 class CalendarDailyHistoryView(APIView):
     """
     GET /api/calendar/daily-history/?from=YYYY-MM-DD&to=YYYY-MM-DD
