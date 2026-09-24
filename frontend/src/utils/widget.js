@@ -81,6 +81,24 @@ export const syncCalendarWidgetToken = async (feedUrl) => {
 };
 
 /**
+ * Mirrors widget_sync_token into native storage so the RPG Stats / Dailies /
+ * Daily Summary / Quick Actions widgets' own WorkManager background sync can
+ * authenticate -- the same reasoning as syncCalendarWidgetToken, but unlike
+ * that one this isn't a Premium feature, so it's meant to be called for
+ * every logged-in user right after login/profile load, not from a settings
+ * panel the user has to visit first.
+ * @param {string|null} token - the raw token from GET/POST /widget/sync-token/
+ */
+export const syncWidgetToken = async (token) => {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await WidgetSync.syncWidgetToken({ token: token || '', apiBase: HOST_ORIGIN });
+  } catch (error) {
+    console.error('Failed to sync widget stats token:', error);
+  }
+};
+
+/**
  * Checks if the app was launched from a widget quick action button.
  * @returns {Promise<{action: string, date: string|null}|null>} e.g. { action: "create_daily", date: null },
  *   { action: "open_calendar_date", date: "2026-09-24" }

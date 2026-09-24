@@ -74,6 +74,7 @@ from .views_calendar import (
     CalendarWidgetFeedView,
     CalendarDailyHistoryView,
 )
+from .views_widget_sync import WidgetSyncTokenView, WidgetSyncFeedView
 from .views_nutrition import (
     FoodItemListView,
     FoodItemDetailView,
@@ -295,6 +296,12 @@ urlpatterns = [
         "calendar/daily-history/",
         CalendarDailyHistoryView.as_view(),
         name="calendar-daily-history",
+    ),
+    path("widget/sync-token/", WidgetSyncTokenView.as_view(), name="widget-sync-token"),
+    path(
+        "widget/sync/<str:token>/",
+        WidgetSyncFeedView.as_view(),
+        name="widget-sync-feed",
     ),
     path(
         "nutrition/calendar/",

@@ -96,6 +96,46 @@ public class WidgetSyncPlugin extends Plugin {
         call.resolve();
     }
 
+    /**
+     * Mirrors widget_sync_token (and resolved API base URL) into the
+     * SharedPreferences WidgetSyncWorker reads -- the same reasoning as
+     * syncCalendarToken above, but for the RPG Stats / Dailies / Daily
+     * Summary / Quick Actions widgets rather than Calendar. Unlike that one,
+     * this isn't a Premium feature, so call it for every logged-in user, not
+     * just from a settings panel the user has to visit.
+     */
+    @PluginMethod
+    public void syncWidgetToken(PluginCall call) {
+        Context ctx = getContext();
+        if (ctx == null) {
+            call.reject("Android context is not initialized");
+            return;
+        }
+
+        SharedPreferences prefs = ctx.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        String token = call.getString("token");
+        if (token == null || token.isEmpty()) {
+            editor.remove("mindos_widget_sync_token");
+        } else {
+            editor.putString("mindos_widget_sync_token", token);
+        }
+
+        String apiBase = call.getString("apiBase");
+        if (apiBase != null && !apiBase.isEmpty()) {
+            editor.putString("mindos_api_base", apiBase);
+        }
+        editor.apply();
+
+        if (token != null && !token.isEmpty()) {
+            WidgetSyncWorker.enqueuePeriodic(ctx);
+            WidgetSyncWorker.enqueueNow(ctx);
+        }
+
+        call.resolve();
+    }
+
     @PluginMethod
     public void getInitialAction(PluginCall call) {
         Activity activity = getActivity();

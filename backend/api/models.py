@@ -171,6 +171,14 @@ class UserProfile(models.Model):
     calendar_feed_token = models.CharField(
         max_length=64, blank=True, default="", db_index=True
     )
+    # Secret token the native Android widgets' background sync (WorkManager)
+    # authenticates with to fetch a profile+dailies summary
+    # (/api/widget/sync/<token>/). Separate from calendar_feed_token: unlike
+    # the calendar feed, this isn't a Premium feature. Rotating it revokes
+    # the old value.
+    widget_sync_token = models.CharField(
+        max_length=64, blank=True, default="", db_index=True
+    )
     # Second Wind (Body T4): timestamp of the most recent Habit failure,
     # consumed (cleared) by the next Habit completion the same day.
     last_habit_fail_at = models.DateTimeField(null=True, blank=True)

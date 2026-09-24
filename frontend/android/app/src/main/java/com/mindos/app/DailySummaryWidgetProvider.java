@@ -26,8 +26,22 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        WidgetSyncWorker.enqueuePeriodic(context);
+        WidgetSyncWorker.enqueueNow(context);
         for (int appWidgetId : appWidgetIds) {
             updateSummaryWidget(context, appWidgetManager, appWidgetId);
+        }
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        WidgetSyncWorker.enqueuePeriodic(context);
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        if (!WidgetSyncWorker.anySyncedWidgetPlaced(context)) {
+            WidgetSyncWorker.cancelPeriodic(context);
         }
     }
 

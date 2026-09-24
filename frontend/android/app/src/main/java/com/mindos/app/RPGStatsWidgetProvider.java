@@ -26,17 +26,35 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             if (ACTION_UPDATE_WIDGET.equals(action) && !context.getPackageName().equals(intent.getPackage())) {
                 return;
             }
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            ComponentName componentName = new ComponentName(context, RPGStatsWidgetProvider.class);
-            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
-            for (int appWidgetId : appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId);
-            }
+            refreshAllWidgets(context);
         }
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        WidgetSyncWorker.enqueuePeriodic(context);
+        WidgetSyncWorker.enqueueNow(context);
+        for (int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId);
+        }
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        WidgetSyncWorker.enqueuePeriodic(context);
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        if (!WidgetSyncWorker.anySyncedWidgetPlaced(context)) {
+            WidgetSyncWorker.cancelPeriodic(context);
+        }
+    }
+
+    public static void refreshAllWidgets(Context context) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName componentName = new ComponentName(context, RPGStatsWidgetProvider.class);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
@@ -192,7 +210,7 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         return inSampleSize;
     }
 
-    private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+    private static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.rpg_stats_widget);
 
         // Click on widget launches the MindOS app

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect, useCallback, useRef, lazy, Suspense, startTransition } from "react";
 
-import { djangoApi } from "@/api/djangoClient";
+import { djangoApi, djangoFetch } from "@/api/djangoClient";
 import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, useMotionValue, animate, useSpring, useTransform } from "framer-motion";
@@ -29,7 +29,7 @@ const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
 import { isMobileApp } from "@/utils/platformUtils";
-import { syncWidgetStats, getWidgetLaunchIntentAction, processPendingWidgetActions } from "@/utils/widget";
+import { syncWidgetStats, syncWidgetToken, getWidgetLaunchIntentAction, processPendingWidgetActions } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
@@ -783,6 +783,23 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
       }
     };
   }, [onSectionChange, onSubItemChange, queryClient]);
+
+  // Mirror the widget background-sync token into native storage once per
+  // login -- unlike the Calendar feed token, this isn't Premium-gated and
+  // has no settings panel of its own to trigger it, so every user gets it
+  // right after their profile loads.
+  useEffect(() => {
+    if (!profile?.id) return;
+    let cancelled = false;
+    djangoFetch("/widget/sync-token/")
+      .then((res) => {
+        if (!cancelled) syncWidgetToken(res?.token);
+      })
+      .catch((err) => console.error("Failed to fetch widget sync token:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id]);
 
   const updateProfile = useMutation({
     /**
