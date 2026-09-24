@@ -52,6 +52,12 @@ public class WidgetSyncPlugin extends Plugin {
         calendarIntent.setPackage(ctx.getPackageName());
         ctx.sendBroadcast(calendarIntent);
 
+        // 6. Trigger Upcoming Widget (shares the Calendar widget's cache)
+        Intent upcomingIntent = new Intent(ctx, UpcomingWidgetProvider.class);
+        upcomingIntent.setAction(UpcomingWidgetProvider.ACTION_UPDATE_UPCOMING);
+        upcomingIntent.setPackage(ctx.getPackageName());
+        ctx.sendBroadcast(upcomingIntent);
+
         call.resolve();
     }
 

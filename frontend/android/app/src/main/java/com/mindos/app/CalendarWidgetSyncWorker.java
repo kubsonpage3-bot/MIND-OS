@@ -71,6 +71,21 @@ public class CalendarWidgetSyncWorker extends Worker {
         WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_PERIODIC_NAME);
     }
 
+    /** True if either widget fed by this worker (Calendar or Upcoming) is
+     * still placed -- checked before cancelling the shared periodic job
+     * from either provider's onDisabled(), since that fires per-provider
+     * whenever just THAT widget type's last instance is removed, not when
+     * both widgets sharing this data are gone. */
+    public static boolean anyCalendarWidgetPlaced(Context context) {
+        android.appwidget.AppWidgetManager mgr = android.appwidget.AppWidgetManager.getInstance(context);
+        Class<?>[] providers = {CalendarWidgetProvider.class, UpcomingWidgetProvider.class};
+        for (Class<?> p : providers) {
+            int[] ids = mgr.getAppWidgetIds(new android.content.ComponentName(context, p));
+            if (ids.length > 0) return true;
+        }
+        return false;
+    }
+
     /** Immediate one-shot refresh of the CURRENT month -- called right after the
      * app writes a fresh token, and whenever WidgetSyncPlugin.updateWidget() fires,
      * so the widget doesn't wait up to 30 minutes to catch up. */
@@ -137,6 +152,7 @@ public class CalendarWidgetSyncWorker extends Worker {
 
             prefs.edit().putString(KEY_CACHE_PREFIX + monthParam, body).apply();
             CalendarWidgetProvider.refreshAllWidgets(ctx);
+            UpcomingWidgetProvider.refreshAllWidgets(ctx);
             return Result.success();
         } catch (Exception e) {
             return Result.retry();

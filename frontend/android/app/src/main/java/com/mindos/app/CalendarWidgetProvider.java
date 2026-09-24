@@ -84,8 +84,12 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-        // Called once the LAST instance of this widget is removed.
-        CalendarWidgetSyncWorker.cancelPeriodic(context);
+        // Fires once THIS provider's last instance is removed -- but
+        // UpcomingWidgetProvider shares the same periodic sync job, so only
+        // stop it once neither widget is placed anymore.
+        if (!CalendarWidgetSyncWorker.anyCalendarWidgetPlaced(context)) {
+            CalendarWidgetSyncWorker.cancelPeriodic(context);
+        }
     }
 
     public static void refreshAllWidgets(Context context) {
@@ -140,13 +144,6 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
                     : buildAgendaViews(context, appWidgetId);
 
             appWidgetManager.updateAppWidget(appWidgetId, views);
-            if (showGrid) {
-                // setRemoteAdapter alone doesn't re-run the factory for an
-                // adapter it already has cached -- without this, a periodic
-                // background sync would keep re-sending the SAME stale grid
-                // until the widget was resized or removed and re-added.
-                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.cal_grid);
-            }
         } catch (Exception e) {
             // A bad cache entry or transient failure shouldn't crash the
             // widget host -- next sync/resize gets another chance.
@@ -210,35 +207,84 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.cal_btn_prev, navPendingIntent(context, appWidgetId, -1, navFlags));
         views.setOnClickPendingIntent(R.id.cal_btn_next, navPendingIntent(context, appWidgetId, 1, navFlags));
 
-        // The 42 day cells are populated by CalendarWidgetService's
-        // RemoteViewsFactory (setRemoteAdapter), not built here one by one:
-        // 42 individually-created PendingIntents in a single RemoteViews
-        // update risked exceeding the ~1MB Binder transaction limit, which
-        // the launcher surfaces as "Problem loading widget" rather than any
-        // exception this app ever sees. The Uri makes each (appWidgetId,
-        // offset) pair a distinct adapter -- without it filterEquals() would
-        // treat every instance's service Intent as "the same" and they'd
-        // all share (and fight over) one cached factory.
-        Intent serviceIntent = new Intent(context, CalendarWidgetService.class);
-        serviceIntent.putExtra(EXTRA_APPWIDGET_ID, appWidgetId);
-        serviceIntent.putExtra("offset", offset);
-        serviceIntent.setData(android.net.Uri.parse("mindos://cal/grid/" + appWidgetId + "/" + offset));
-        views.setRemoteAdapter(R.id.cal_grid, serviceIntent);
+        // Tapping anywhere in the grid opens the app (not a specific date --
+        // see calendar_widget_month.xml for why there's no per-cell tap
+        // target). One PendingIntent for the whole grid, not 42.
+        views.setOnClickPendingIntent(R.id.cal_grid,
+                openAppPendingIntent(context, 800 + appWidgetId, appWidgetId + "/grid", null));
 
-        // One PendingIntent template shared by all 42 cells; each cell only
-        // supplies a lightweight per-date fill-in Intent (see
-        // CalendarWidgetService), not a whole separate PendingIntent. A
-        // template MUST be mutable -- the system fills the per-cell date
-        // into a copy of it at click time -- unlike every other PendingIntent
-        // in this app, which are deliberately immutable.
-        Intent templateIntent = new Intent(context, MainActivity.class);
-        templateIntent.putExtra("action", "open_calendar_date");
-        int templateFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
-        PendingIntent template = PendingIntent.getActivity(
-                context, 800 + appWidgetId, templateIntent, templateFlags);
-        views.setPendingIntentTemplate(R.id.cal_grid, template);
+        JSONObject monthData = loadMonthData(context, monthKey);
+        JSONObject days = monthData != null ? monthData.optJSONObject("days") : null;
+        String todayStr = monthData != null ? monthData.optString("today", null) : null;
+        if (todayStr == null) {
+            Calendar now = Calendar.getInstance();
+            todayStr = String.format(Locale.US, "%04d-%02d-%02d",
+                    now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1, now.get(Calendar.DAY_OF_MONTH));
+        }
+
+        // Monday-first grid start, matching the web app's month view.
+        Calendar gridCal = (Calendar) cal.clone();
+        gridCal.set(Calendar.DAY_OF_MONTH, 1);
+        int jsDow = gridCal.get(Calendar.DAY_OF_WEEK); // Sunday=1 .. Saturday=7
+        int mondayFirstDow = (jsDow + 5) % 7; // Monday=0 .. Sunday=6
+        gridCal.add(Calendar.DAY_OF_MONTH, -mondayFirstDow);
+
+        for (int i = 0; i < 42; i++) {
+            int cellId = idFor(context, "day_cell_" + i);
+            int numId = idFor(context, "day_num_" + i);
+            int dotsId = idFor(context, "day_dots_" + i);
+            int dotAId = idFor(context, "day_dot_" + i + "_a");
+            int dotBId = idFor(context, "day_dot_" + i + "_b");
+
+            int cellYear = gridCal.get(Calendar.YEAR);
+            int cellMonth0 = gridCal.get(Calendar.MONTH);
+            int dayNum = gridCal.get(Calendar.DAY_OF_MONTH);
+            String cellDateStr = String.format(Locale.US, "%04d-%02d-%02d", cellYear, cellMonth0 + 1, dayNum);
+            boolean inCurrentMonth = cellMonth0 == monthIdx0;
+            boolean isToday = cellDateStr.equals(todayStr);
+
+            views.setTextViewText(numId, String.valueOf(dayNum));
+            views.setInt(cellId, "setBackgroundResource", R.drawable.widget_cal_cell_bg);
+            if (isToday) {
+                // Google Calendar-style: a filled circle around just the
+                // number, not a tint over the whole cell.
+                views.setTextColor(numId, Color.WHITE);
+                views.setInt(numId, "setBackgroundResource", R.drawable.widget_cal_today_circle);
+            } else {
+                views.setTextColor(numId, inCurrentMonth ? Color.parseColor("#E2E8F0") : Color.parseColor("#4B4863"));
+                views.setInt(numId, "setBackgroundResource", 0);
+            }
+
+            JSONObject dayInfo = (days != null && inCurrentMonth) ? days.optJSONObject(cellDateStr) : null;
+            List<Integer> dotColors = dotColorsForDay(dayInfo);
+            if (!dotColors.isEmpty() && inCurrentMonth) {
+                views.setViewVisibility(dotsId, View.VISIBLE);
+                views.setViewVisibility(dotAId, View.VISIBLE);
+                views.setInt(dotAId, "setBackgroundColor", dotColors.get(0));
+                if (dotColors.size() > 1) {
+                    views.setViewVisibility(dotBId, View.VISIBLE);
+                    views.setInt(dotBId, "setBackgroundColor", dotColors.get(1));
+                } else {
+                    views.setViewVisibility(dotBId, View.GONE);
+                }
+            } else {
+                views.setViewVisibility(dotsId, View.GONE);
+            }
+
+            gridCal.add(Calendar.DAY_OF_MONTH, 1);
+        }
 
         return views;
+    }
+
+    private static final java.util.Map<String, Integer> ID_CACHE = new java.util.HashMap<>();
+
+    private static int idFor(Context context, String name) {
+        Integer cached = ID_CACHE.get(name);
+        if (cached != null) return cached;
+        int id = context.getResources().getIdentifier(name, "id", context.getPackageName());
+        ID_CACHE.put(name, id);
+        return id;
     }
 
     private static int weekdayHeaderId(int index) {

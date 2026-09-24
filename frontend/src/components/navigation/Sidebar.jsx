@@ -24,7 +24,7 @@ const SECTION_GROUPS = [
     sections: [
       { id: "dashboard", label: "Dashboard",   icon: "dashboard",   subItems: [] },
       { id: "train",     label: "Training",    icon: "training",    subItems: [] },
-      { id: "stats",     label: "Projections", icon: "projections", subItems: [] },
+      { id: "calendar",  label: "Calendar",    icon: "calendar",    subItems: [] },
     ],
   },
   {
@@ -51,7 +51,6 @@ const SECTION_GROUPS = [
       { id: "tools", label: "Tools", icon: "tools", subItems: [
         { id: "history",  label: "History" },
         { id: "pomodoro", label: "Pomodoro" },
-        { id: "calendar", label: "Calendar" },
       ]},
       { id: "settings", label: "Settings", icon: "settings", subItems: SETTINGS_TABS.map(t => ({ id: t.id, label: t.label })) },
     ],

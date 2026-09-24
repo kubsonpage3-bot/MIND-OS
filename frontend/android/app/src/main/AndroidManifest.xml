@@ -103,13 +103,18 @@
                 android:resource="@xml/calendar_widget_info" />
         </receiver>
 
-        <!-- Populates the Calendar widget's month grid cell-by-cell
-             (setRemoteAdapter). BIND_REMOTEVIEWS is held only by the
-             system, so exported="true" here is the standard, safe
-             configuration for a widget collection service. -->
-        <service android:name=".CalendarWidgetService"
+        <!-- 6. Upcoming Widget: next events/deadlines over the coming days -->
+        <receiver android:name=".UpcomingWidgetProvider"
             android:exported="true"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_UPCOMING" />
+                <action android:name="com.mindos.app.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/upcoming_widget_info" />
+        </receiver>
 
     </application>
 

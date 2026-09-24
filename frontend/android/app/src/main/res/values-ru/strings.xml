@@ -11,6 +11,7 @@
     <string name="widget_summary_description">MindOS — сводка дня: выполненные задачи, оставшиеся и серия дней.</string>
     <string name="widget_quick_description">MindOS — быстрое создание привычек, ежедневных задач, дел и реликвий.</string>
     <string name="widget_calendar_description">MindOS — календарь: сетка месяца или повестка дня с событиями, дейликами и дедлайнами, синхронизируется с приложением.</string>
+    <string name="widget_upcoming_description">MindOS — ближайшее: ваши ближайшие события и дедлайны на следующие дни, синхронизируется с приложением.</string>
 
     <!-- RPG Stats Widget UI strings (RU) -->
     <string name="widget_stats_title">MIND OS</string>
@@ -92,6 +93,12 @@
         <item>Сб</item>
         <item>Вс</item>
     </string-array>
+
+    <!-- Upcoming Widget UI strings (RU) -->
+    <string name="widget_upcoming_title">Ближайшее</string>
+    <string name="widget_upcoming_empty">Пока ничего не запланировано</string>
+    <string name="widget_upcoming_today">Сегодня</string>
+    <string name="widget_upcoming_tomorrow">Завтра</string>
 
     <!-- Shared widget abbreviations (RU) -->
     <string name="widget_level_abbrev">Ур.</string>
