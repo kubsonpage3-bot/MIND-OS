@@ -184,9 +184,15 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         int monthIdx0 = cal.get(Calendar.MONTH); // 0-based
         String monthKey = String.format(Locale.US, "%04d-%02d", year, monthIdx0 + 1);
 
-        String[] monthNames = {"January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"};
+        String[] monthNames = context.getResources().getStringArray(R.array.widget_calendar_months);
         views.setTextViewText(R.id.cal_month_label, monthNames[monthIdx0] + " " + year);
+
+        String[] weekdayNames = context.getResources().getStringArray(R.array.widget_calendar_weekdays_short);
+        for (int w = 0; w < 7 && w < weekdayNames.length; w++) {
+            views.setTextViewText(idFor(context, "weekday_hdr_" + w), weekdayNames[w]);
+        }
+
+        views.setViewVisibility(R.id.cal_sync_label, View.VISIBLE);
 
         int navFlags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) navFlags |= PendingIntent.FLAG_IMMUTABLE;
@@ -326,7 +332,7 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         String todayStr = String.format(Locale.US, "%04d-%02d-%02d",
                 now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1, now.get(Calendar.DAY_OF_MONTH));
 
-        String[] monthAbbr = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        String[] monthAbbr = context.getResources().getStringArray(R.array.widget_calendar_months_short);
         views.setTextViewText(R.id.agenda_date_badge,
                 now.get(Calendar.DAY_OF_MONTH) + " " + monthAbbr[now.get(Calendar.MONTH)]);
 
@@ -341,7 +347,8 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
                 for (int i = 0; i < deadlines.length(); i++) {
                     JSONObject d = deadlines.optJSONObject(i);
                     if (d == null || d.optBoolean("done", false)) continue;
-                    rows.add(new String[]{"⏰", "Due: " + d.optString("title", ""), "#EF4444"});
+                    String dueText = context.getString(R.string.widget_calendar_due_prefix, d.optString("title", ""));
+                    rows.add(new String[]{"⏰", dueText, "#EF4444"});
                 }
             }
             JSONArray events = today.optJSONArray("events");
@@ -357,7 +364,7 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             int dailiesTotal = today.optInt("dailies_total", 0);
             int dailiesDone = today.optInt("dailies_done", 0);
             if (dailiesTotal > 0) {
-                String label = dailiesDone + "/" + dailiesTotal + " Dailies done today";
+                String label = context.getString(R.string.widget_calendar_dailies_done, dailiesDone, dailiesTotal);
                 rows.add(new String[]{"✓", label, dailiesDone == dailiesTotal ? "#22C55E" : "#A855F7"});
             }
         }

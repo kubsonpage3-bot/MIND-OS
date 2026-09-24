@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:contentDescription="Wallpaper" />
+        android:contentDescription="@string/widget_cd_wallpaper" />
 
     <!-- Ambient Dark Cyber Scrim -->
     <ImageView
@@ -50,7 +50,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:contentDescription="Rank Scene" />
+                    android:contentDescription="@string/widget_cd_rank_scene" />
 
                 <!-- Character Sprite -->
                 <ImageView
@@ -58,7 +58,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="fitCenter"
-                    android:contentDescription="Character Sprite" />
+                    android:contentDescription="@string/widget_cd_character_sprite" />
             </RelativeLayout>
 
             <!-- Username / Class label -->

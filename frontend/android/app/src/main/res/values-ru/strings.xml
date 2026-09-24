@@ -10,6 +10,7 @@
     <string name="widget_dailies_description">MindOS — чеклист ежедневных задач с иконками категорий.</string>
     <string name="widget_summary_description">MindOS — сводка дня: выполненные задачи, оставшиеся и серия дней.</string>
     <string name="widget_quick_description">MindOS — быстрое создание привычек, ежедневных задач, дел и реликвий.</string>
+    <string name="widget_calendar_description">MindOS — календарь: сетка месяца или повестка дня с событиями, дейликами и дедлайнами, синхронизируется с приложением.</string>
 
     <!-- RPG Stats Widget UI strings (RU) -->
     <string name="widget_stats_title">MIND OS</string>
@@ -21,6 +22,11 @@
     <string name="widget_streak_suffix">д</string>
     <string name="widget_iq_label">IQ</string>
     <string name="widget_rank_prefix">Ранг</string>
+    <string name="widget_class_architect">Архитектор</string>
+    <string name="widget_class_ascetic">Аскет</string>
+    <string name="widget_class_linguist">Лингвист</string>
+    <string name="widget_class_warlord">Полководец</string>
+    <string name="widget_class_wanderer">Странник</string>
 
     <!-- Dailies Widget UI strings (RU) -->
     <string name="widget_dailies_title">Задачи на сегодня</string>
@@ -30,14 +36,75 @@
     <string name="widget_dailies_all_done">✓ Всё выполнено!</string>
 
     <!-- Daily Summary Widget UI strings (RU) -->
-    <string name="widget_summary_streak">Серия %d дней 🔥</string>
+    <string name="widget_summary_streak">Серия %d дней</string>
+    <string name="widget_summary_no_streak">Нет серии</string>
     <string name="widget_summary_done_label">Выполнено</string>
     <string name="widget_summary_left">Осталось: %d</string>
     <string name="widget_summary_all_clear">Всё готово сегодня! 🎉</string>
+    <string name="widget_summary_reset"> • Сброс 00:00</string>
 
     <!-- Quick Actions Widget UI strings (RU) -->
     <string name="widget_quick_habit">+ Привычка</string>
     <string name="widget_quick_daily">+ Задача</string>
     <string name="widget_quick_todo">+ Дело</string>
-    <string name="widget_quick_chest">⚔ Сундук</string>
+    <string name="widget_quick_chest">Сундук</string>
+
+    <!-- Calendar Widget UI strings (RU) -->
+    <string name="widget_calendar_title">Календарь</string>
+    <string name="widget_calendar_empty_day">На сегодня ничего не запланировано</string>
+    <string name="widget_calendar_tap_hint">Нажмите на день, чтобы открыть</string>
+    <string name="widget_calendar_due_prefix">Срок: %s</string>
+    <string name="widget_calendar_dailies_done">%1$d/%2$d дейликов выполнено</string>
+    <string-array name="widget_calendar_months">
+        <item>Январь</item>
+        <item>Февраль</item>
+        <item>Март</item>
+        <item>Апрель</item>
+        <item>Май</item>
+        <item>Июнь</item>
+        <item>Июль</item>
+        <item>Август</item>
+        <item>Сентябрь</item>
+        <item>Октябрь</item>
+        <item>Ноябрь</item>
+        <item>Декабрь</item>
+    </string-array>
+    <string-array name="widget_calendar_months_short">
+        <item>Янв</item>
+        <item>Фев</item>
+        <item>Мар</item>
+        <item>Апр</item>
+        <item>Май</item>
+        <item>Июн</item>
+        <item>Июл</item>
+        <item>Авг</item>
+        <item>Сен</item>
+        <item>Окт</item>
+        <item>Ноя</item>
+        <item>Дек</item>
+    </string-array>
+    <string-array name="widget_calendar_weekdays_short">
+        <item>Пн</item>
+        <item>Вт</item>
+        <item>Ср</item>
+        <item>Чт</item>
+        <item>Пт</item>
+        <item>Сб</item>
+        <item>Вс</item>
+    </string-array>
+
+    <!-- Shared widget abbreviations (RU) -->
+    <string name="widget_level_abbrev">Ур.</string>
+
+    <!-- Accessibility-only content descriptions (RU) -->
+    <string name="widget_cd_toggle_task">Переключить задачу</string>
+    <string name="widget_cd_wallpaper">Фон</string>
+    <string name="widget_cd_rank_scene">Сцена ранга</string>
+    <string name="widget_cd_character_sprite">Спрайт персонажа</string>
+    <string name="widget_cd_new_habit">Новая привычка</string>
+    <string name="widget_cd_new_daily">Новый дейлик</string>
+    <string name="widget_cd_new_todo">Новое дело</string>
+    <string name="widget_cd_open_chest">Открыть сундук</string>
+    <string name="widget_cd_prev_month">Предыдущий месяц</string>
+    <string name="widget_cd_next_month">Следующий месяц</string>
 </resources>

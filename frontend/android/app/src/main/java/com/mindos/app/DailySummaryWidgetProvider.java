@@ -80,21 +80,25 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
             int leftCount = Math.max(0, totalCount - doneCount);
             int percent = totalCount > 0 ? Math.round((doneCount * 100f) / totalCount) : 0;
 
-            views.setTextViewText(R.id.summary_streak_text, streak > 0 ? (streak + " Day Streak") : "No Streak");
+            views.setTextViewText(R.id.summary_streak_text, streak > 0
+                    ? context.getString(R.string.widget_summary_streak, streak)
+                    : context.getString(R.string.widget_summary_no_streak));
             views.setTextViewText(R.id.summary_done_count, String.valueOf(doneCount));
             views.setTextViewText(R.id.summary_total_count, "/" + totalCount);
             views.setTextViewText(R.id.summary_percent_badge, percent + "%");
             views.setProgressBar(R.id.summary_progress_bar, Math.max(1, totalCount), doneCount, false);
 
             if (totalCount > 0 && doneCount == totalCount) {
-                views.setTextViewText(R.id.summary_done_label, "✦ Daily Quests Cleared! ✦");
-                views.setTextViewText(R.id.summary_left_text, "All Complete");
+                views.setTextViewText(R.id.summary_done_label, context.getString(R.string.widget_summary_all_clear));
+                // Already says "all clear" above -- repeating "complete" here added
+                // nothing, so the row just keeps the reset time instead.
+                views.setTextViewText(R.id.summary_left_text, "");
             } else {
-                views.setTextViewText(R.id.summary_done_label, "Dailies Completed");
-                views.setTextViewText(R.id.summary_left_text, leftCount + " left to do");
+                views.setTextViewText(R.id.summary_done_label, context.getString(R.string.widget_summary_done_label));
+                views.setTextViewText(R.id.summary_left_text, context.getString(R.string.widget_summary_left, leftCount));
             }
 
-            views.setTextViewText(R.id.summary_reset_text, " • Reset 00:00");
+            views.setTextViewText(R.id.summary_reset_text, context.getString(R.string.widget_summary_reset));
 
         } catch (Exception e) {
             e.printStackTrace();

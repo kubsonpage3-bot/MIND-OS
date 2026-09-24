@@ -4,6 +4,8 @@
     android:minHeight="110dp"
     android:targetCellWidth="2"
     android:targetCellHeight="2"
+    android:maxResizeWidth="300dp"
+    android:maxResizeHeight="300dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/daily_summary_widget"
     android:resizeMode="horizontal|vertical"

@@ -22,6 +22,11 @@
     <string name="widget_streak_suffix">d</string>
     <string name="widget_iq_label">IQ</string>
     <string name="widget_rank_prefix">Rank</string>
+    <string name="widget_class_architect">Architect</string>
+    <string name="widget_class_ascetic">Ascetic</string>
+    <string name="widget_class_linguist">Linguist</string>
+    <string name="widget_class_warlord">Warlord</string>
+    <string name="widget_class_wanderer">Wanderer</string>
 
     <!-- Dailies Widget UI strings -->
     <string name="widget_dailies_title">Today\'s Dailies</string>
@@ -31,19 +36,75 @@
     <string name="widget_dailies_all_done">✓ All done!</string>
 
     <!-- Daily Summary Widget UI strings -->
-    <string name="widget_summary_streak">%d Day Streak 🔥</string>
+    <string name="widget_summary_streak">%d Day Streak</string>
+    <string name="widget_summary_no_streak">No Streak</string>
     <string name="widget_summary_done_label">Dailies Done</string>
     <string name="widget_summary_left">%d left to do</string>
     <string name="widget_summary_all_clear">All clear today! 🎉</string>
+    <string name="widget_summary_reset"> • Reset 00:00</string>
 
     <!-- Quick Actions Widget UI strings -->
     <string name="widget_quick_habit">+ Habit</string>
     <string name="widget_quick_daily">+ Daily</string>
     <string name="widget_quick_todo">+ To-Do</string>
-    <string name="widget_quick_chest">⚔ Chest</string>
+    <string name="widget_quick_chest">Chest</string>
 
     <!-- Calendar Widget UI strings -->
     <string name="widget_calendar_title">Calendar</string>
     <string name="widget_calendar_empty_day">Nothing scheduled today</string>
     <string name="widget_calendar_tap_hint">Tap a day to open</string>
+    <string name="widget_calendar_due_prefix">Due: %s</string>
+    <string name="widget_calendar_dailies_done">%1$d/%2$d Dailies done today</string>
+    <string-array name="widget_calendar_months">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+    <string-array name="widget_calendar_months_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string-array name="widget_calendar_weekdays_short">
+        <item>Mo</item>
+        <item>Tu</item>
+        <item>We</item>
+        <item>Th</item>
+        <item>Fr</item>
+        <item>Sa</item>
+        <item>Su</item>
+    </string-array>
+
+    <!-- Shared widget abbreviations -->
+    <string name="widget_level_abbrev">Lv.</string>
+
+    <!-- Accessibility-only content descriptions (screen readers) -->
+    <string name="widget_cd_toggle_task">Toggle task</string>
+    <string name="widget_cd_wallpaper">Wallpaper</string>
+    <string name="widget_cd_rank_scene">Rank Scene</string>
+    <string name="widget_cd_character_sprite">Character Sprite</string>
+    <string name="widget_cd_new_habit">New Habit</string>
+    <string name="widget_cd_new_daily">New Daily</string>
+    <string name="widget_cd_new_todo">New To-Do</string>
+    <string name="widget_cd_open_chest">Open Chest</string>
+    <string name="widget_cd_prev_month">Previous month</string>
+    <string name="widget_cd_next_month">Next month</string>
 </resources>

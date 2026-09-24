@@ -233,7 +233,8 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
                 if (totalCount > 4) {
                     int remaining = totalCount - 4;
                     views.setViewVisibility(R.id.dailies_more_text, View.VISIBLE);
-                    views.setTextViewText(R.id.dailies_more_text, "+" + remaining + " more in app ➔");
+                    views.setTextViewText(R.id.dailies_more_text,
+                            context.getString(R.string.widget_dailies_more, remaining));
                     views.setOnClickPendingIntent(R.id.dailies_more_text, rootPendingIntent);
                 }
             }
@@ -242,10 +243,10 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
 
             if (totalCount == 0) {
                 views.setViewVisibility(R.id.dailies_empty_text, View.VISIBLE);
-                views.setTextViewText(R.id.dailies_empty_text, "✦ No Dailies Scheduled ✦");
+                views.setTextViewText(R.id.dailies_empty_text, context.getString(R.string.widget_dailies_empty));
             } else if (doneCount == totalCount) {
                 views.setViewVisibility(R.id.dailies_empty_text, View.VISIBLE);
-                views.setTextViewText(R.id.dailies_empty_text, "✦ All Dailies Cleared! ✦");
+                views.setTextViewText(R.id.dailies_empty_text, context.getString(R.string.widget_dailies_all_done));
             } else {
                 views.setViewVisibility(R.id.dailies_empty_text, View.GONE);
             }

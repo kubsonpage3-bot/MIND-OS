@@ -25,7 +25,7 @@
                 android:id="@+id/dailies_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Today's Dailies"
+                android:text="@string/widget_dailies_title"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold"
@@ -53,7 +53,7 @@
             android:src="@drawable/ic_widget_plus"
             android:padding="5dp"
             android:scaleType="fitCenter"
-            android:contentDescription="Add Daily" />
+            android:contentDescription="@string/widget_dailies_add_cd" />
     </RelativeLayout>
 
     <!-- Task List Column -->
@@ -82,7 +82,7 @@
                 android:layout_height="22dp"
                 android:padding="2dp"
                 android:src="@drawable/widget_checkbox_bg"
-                android:contentDescription="Toggle task" />
+                android:contentDescription="@string/widget_cd_toggle_task" />
 
             <TextView
                 android:id="@+id/daily_text_1"
@@ -126,7 +126,7 @@
                 android:layout_height="22dp"
                 android:padding="2dp"
                 android:src="@drawable/widget_checkbox_bg"
-                android:contentDescription="Toggle task" />
+                android:contentDescription="@string/widget_cd_toggle_task" />
 
             <TextView
                 android:id="@+id/daily_text_2"
@@ -170,7 +170,7 @@
                 android:layout_height="22dp"
                 android:padding="2dp"
                 android:src="@drawable/widget_checkbox_bg"
-                android:contentDescription="Toggle task" />
+                android:contentDescription="@string/widget_cd_toggle_task" />
 
             <TextView
                 android:id="@+id/daily_text_3"
@@ -213,7 +213,7 @@
                 android:layout_height="22dp"
                 android:padding="2dp"
                 android:src="@drawable/widget_checkbox_bg"
-                android:contentDescription="Toggle task" />
+                android:contentDescription="@string/widget_cd_toggle_task" />
 
             <TextView
                 android:id="@+id/daily_text_4"
@@ -259,7 +259,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="✦ All Dailies Complete! ✦"
+            android:text="@string/widget_dailies_all_done"
             android:textColor="#A855F7"
             android:textSize="12sp"
             android:textStyle="bold"

@@ -97,6 +97,25 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
         return 0;
     }
 
+    /** Class ids are a small closed enum (architect/ascetic/linguist/warlord/wanderer)
+     * used elsewhere as internal ids, not display text -- title-casing the raw id
+     * (as this widget used to) always showed the English id verbatim even on a
+     * Russian-locale device, so it's mapped through string resources instead. */
+    private static String getClassDisplayName(Context context, String classId) {
+        String normClass = classId != null ? classId.toLowerCase().trim() : "wanderer";
+        switch (normClass) {
+            case "architect": return context.getString(R.string.widget_class_architect);
+            case "ascetic": return context.getString(R.string.widget_class_ascetic);
+            case "linguist": return context.getString(R.string.widget_class_linguist);
+            case "warlord": return context.getString(R.string.widget_class_warlord);
+            case "wanderer": return context.getString(R.string.widget_class_wanderer);
+            default:
+                return normClass.isEmpty()
+                        ? context.getString(R.string.widget_class_wanderer)
+                        : normClass.substring(0, 1).toUpperCase() + normClass.substring(1);
+        }
+    }
+
     private static String getRankBgFilename(String rankId) {
         String normRank = rankId != null ? rankId.toUpperCase().trim() : "F";
         switch (normRank) {
@@ -224,14 +243,15 @@ public class RPGStatsWidgetProvider extends AppWidgetProvider {
             views.setProgressBar(R.id.widget_xp_progress, maxXp, Math.max(0, xp), false);
 
             // Bind Level / Rank / Class Badge
-            String classNameDisplay = classId.substring(0, 1).toUpperCase() + (classId.length() > 1 ? classId.substring(1).toLowerCase() : "");
+            String classNameDisplay = getClassDisplayName(context, classId);
             views.setTextViewText(R.id.widget_level_badge, context.getString(R.string.widget_rank_prefix) + " " + rankId.toUpperCase() + " • " + classNameDisplay);
 
             // Bind Username
             if (!username.isEmpty()) {
                 views.setTextViewText(R.id.widget_username_label, username);
             } else {
-                views.setTextViewText(R.id.widget_username_label, classNameDisplay + " Lv." + level);
+                views.setTextViewText(R.id.widget_username_label,
+                        classNameDisplay + " " + context.getString(R.string.widget_level_abbrev) + level);
             }
 
             // Bind Currency & Streak Chips

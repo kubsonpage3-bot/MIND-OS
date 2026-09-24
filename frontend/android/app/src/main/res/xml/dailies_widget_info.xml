@@ -4,6 +4,8 @@
     android:minHeight="110dp"
     android:targetCellWidth="3"
     android:targetCellHeight="2"
+    android:maxResizeWidth="450dp"
+    android:maxResizeHeight="450dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/dailies_widget"
     android:resizeMode="horizontal|vertical"

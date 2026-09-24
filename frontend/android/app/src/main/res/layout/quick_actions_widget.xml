@@ -28,12 +28,13 @@
             android:layout_height="20dp"
             android:src="@drawable/ic_widget_habit"
             android:scaleType="fitCenter"
-            android:contentDescription="New Habit" />
+            android:contentDescription="@string/widget_cd_new_habit" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+ HABIT"
+            android:text="@string/widget_quick_habit"
+            android:textAllCaps="true"
             android:textColor="#FCA5A5"
             android:textSize="8sp"
             android:textStyle="bold"
@@ -64,12 +65,13 @@
                 android:layout_height="20dp"
                 android:src="@drawable/ic_widget_daily"
                 android:scaleType="fitCenter"
-                android:contentDescription="New Daily" />
+                android:contentDescription="@string/widget_cd_new_daily" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="+ DAILY"
+                android:text="@string/widget_quick_daily"
+                android:textAllCaps="true"
                 android:textColor="#FDE68A"
                 android:textSize="8sp"
                 android:textStyle="bold"
@@ -114,12 +116,13 @@
             android:layout_height="20dp"
             android:src="@drawable/ic_widget_todo"
             android:scaleType="fitCenter"
-            android:contentDescription="New To-Do" />
+            android:contentDescription="@string/widget_cd_new_todo" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+ TO-DO"
+            android:text="@string/widget_quick_todo"
+            android:textAllCaps="true"
             android:textColor="#93C5FD"
             android:textSize="8sp"
             android:textStyle="bold"
@@ -145,12 +148,13 @@
             android:layout_height="20dp"
             android:src="@drawable/ic_widget_chest"
             android:scaleType="fitCenter"
-            android:contentDescription="Open Chest" />
+            android:contentDescription="@string/widget_cd_open_chest" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CHEST"
+            android:text="@string/widget_quick_chest"
+            android:textAllCaps="true"
             android:textColor="#D8B4FE"
             android:textSize="8sp"
             android:textStyle="bold"
