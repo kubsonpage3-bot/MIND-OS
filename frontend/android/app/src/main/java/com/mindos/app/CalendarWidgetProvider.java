@@ -203,10 +203,6 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             views.setTextViewText(weekdayHeaderId(w), weekdayNames[w]);
         }
 
-        // Show the sync-hint label only when there's no cached data yet;
-        // once data is loaded it disappears so it doesn't take up grid space.
-        views.setViewVisibility(R.id.cal_sync_label, monthData == null ? View.VISIBLE : View.GONE);
-
         int navFlags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) navFlags |= PendingIntent.FLAG_IMMUTABLE;
         views.setOnClickPendingIntent(R.id.cal_btn_prev, navPendingIntent(context, appWidgetId, -1, navFlags));
@@ -221,6 +217,11 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         JSONObject monthData = loadMonthData(context, monthKey);
         JSONObject days = monthData != null ? monthData.optJSONObject("days") : null;
         String todayStr = monthData != null ? monthData.optString("today", null) : null;
+
+        // Show the sync-hint label only when there's no cached data yet;
+        // once data is loaded it disappears so it doesn't take up grid space.
+        views.setViewVisibility(R.id.cal_sync_label, monthData == null ? View.VISIBLE : View.GONE);
+
         if (todayStr == null) {
             Calendar now = Calendar.getInstance();
             todayStr = String.format(Locale.US, "%04d-%02d-%02d",
