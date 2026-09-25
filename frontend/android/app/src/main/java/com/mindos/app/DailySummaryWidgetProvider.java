@@ -64,7 +64,7 @@ public class DailySummaryWidgetProvider extends AppWidgetProvider {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             flags |= PendingIntent.FLAG_IMMUTABLE;
         }
-        PendingIntent rootPendingIntent = PendingIntent.getActivity(context, 200, openAppIntent, flags);
+        PendingIntent rootPendingIntent = PendingIntent.getActivity(context, 200 + appWidgetId, openAppIntent, flags);
         views.setOnClickPendingIntent(R.id.widget_summary_root, rootPendingIntent);
 
         try {

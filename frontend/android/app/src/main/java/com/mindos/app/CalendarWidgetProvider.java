@@ -61,7 +61,9 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             return;
         }
 
-        if (ACTION_UPDATE_CALENDAR.equals(action) || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
+        if (ACTION_UPDATE_CALENDAR.equals(action)
+                || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)
+                || RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET.equals(action)) {
             refreshAllWidgets(context);
         }
     }

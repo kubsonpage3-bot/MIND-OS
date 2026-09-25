@@ -68,7 +68,7 @@ public class QuickActionsWidgetProvider extends AppWidgetProvider {
         habitIntent.setAction("com.mindos.app.ACTION_CREATE_HABIT");
         habitIntent.setData(android.net.Uri.parse("mindos://quick/habit/" + appWidgetId));
         habitIntent.putExtra("action", "create_habit");
-        PendingIntent habitPendingIntent = PendingIntent.getActivity(context, 301, habitIntent, flags);
+        PendingIntent habitPendingIntent = PendingIntent.getActivity(context, 300 + appWidgetId * 10 + 1, habitIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_habit, habitPendingIntent);
 
         // 2. Create Daily Action
@@ -76,7 +76,7 @@ public class QuickActionsWidgetProvider extends AppWidgetProvider {
         dailyIntent.setAction("com.mindos.app.ACTION_CREATE_DAILY");
         dailyIntent.setData(android.net.Uri.parse("mindos://quick/daily/" + appWidgetId));
         dailyIntent.putExtra("action", "create_daily");
-        PendingIntent dailyPendingIntent = PendingIntent.getActivity(context, 302, dailyIntent, flags);
+        PendingIntent dailyPendingIntent = PendingIntent.getActivity(context, 300 + appWidgetId * 10 + 2, dailyIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_daily, dailyPendingIntent);
 
         // 3. Create To-Do Action
@@ -84,7 +84,7 @@ public class QuickActionsWidgetProvider extends AppWidgetProvider {
         todoIntent.setAction("com.mindos.app.ACTION_CREATE_TODO");
         todoIntent.setData(android.net.Uri.parse("mindos://quick/todo/" + appWidgetId));
         todoIntent.putExtra("action", "create_todo");
-        PendingIntent todoPendingIntent = PendingIntent.getActivity(context, 303, todoIntent, flags);
+        PendingIntent todoPendingIntent = PendingIntent.getActivity(context, 300 + appWidgetId * 10 + 3, todoIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_todo, todoPendingIntent);
 
         // 4. Open Chest / Relics Action
@@ -92,7 +92,7 @@ public class QuickActionsWidgetProvider extends AppWidgetProvider {
         chestIntent.setAction("com.mindos.app.ACTION_OPEN_CHEST");
         chestIntent.setData(android.net.Uri.parse("mindos://quick/chest/" + appWidgetId));
         chestIntent.putExtra("action", "open_chest");
-        PendingIntent chestPendingIntent = PendingIntent.getActivity(context, 304, chestIntent, flags);
+        PendingIntent chestPendingIntent = PendingIntent.getActivity(context, 300 + appWidgetId * 10 + 4, chestIntent, flags);
         views.setOnClickPendingIntent(R.id.quick_btn_chest, chestPendingIntent);
 
         // Badge: Display remaining pending dailies

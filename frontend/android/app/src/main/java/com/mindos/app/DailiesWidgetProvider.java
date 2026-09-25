@@ -155,13 +155,15 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
         // Click root or header to open Dailies in app
         Intent openAppIntent = new Intent(context, MainActivity.class);
         openAppIntent.putExtra("action", "open_dailies");
-        PendingIntent rootPendingIntent = PendingIntent.getActivity(context, 100, openAppIntent, flags);
+        openAppIntent.setData(android.net.Uri.parse("mindos://dailies/open/" + appWidgetId));
+        PendingIntent rootPendingIntent = PendingIntent.getActivity(context, 100 + appWidgetId, openAppIntent, flags);
         views.setOnClickPendingIntent(R.id.widget_dailies_root, rootPendingIntent);
 
         // Click '+' button to create daily
         Intent addDailyIntent = new Intent(context, MainActivity.class);
         addDailyIntent.putExtra("action", "create_daily");
-        PendingIntent addDailyPendingIntent = PendingIntent.getActivity(context, 101, addDailyIntent, flags);
+        addDailyIntent.setData(android.net.Uri.parse("mindos://dailies/add/" + appWidgetId));
+        PendingIntent addDailyPendingIntent = PendingIntent.getActivity(context, 101 + appWidgetId, addDailyIntent, flags);
         views.setOnClickPendingIntent(R.id.dailies_btn_add, addDailyPendingIntent);
 
         try {
@@ -287,6 +289,10 @@ public class DailiesWidgetProvider extends AppWidgetProvider {
                 views.setViewVisibility(R.id.dailies_empty_text, View.VISIBLE);
                 views.setTextViewText(R.id.dailies_empty_text, context.getString(R.string.widget_dailies_empty));
             } else if (doneCount == totalCount) {
+                // All tasks done: hide the task rows so "All done!" is centred
+                // in the container without being obscured by crossed-out text.
+                for (int id : itemLayoutIds) views.setViewVisibility(id, View.GONE);
+                views.setViewVisibility(R.id.dailies_more_text, View.GONE);
                 views.setViewVisibility(R.id.dailies_empty_text, View.VISIBLE);
                 views.setTextViewText(R.id.dailies_empty_text, context.getString(R.string.widget_dailies_all_done));
             } else {
