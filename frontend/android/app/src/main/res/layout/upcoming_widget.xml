@@ -46,7 +46,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/upcoming_dot_1"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -88,7 +88,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/upcoming_dot_2"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -130,7 +130,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/upcoming_dot_3"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -172,7 +172,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/upcoming_dot_4"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -214,7 +214,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/upcoming_dot_5"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -255,7 +255,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/upcoming_dot_6"
                 android:layout_width="6dp"
                 android:layout_height="6dp"

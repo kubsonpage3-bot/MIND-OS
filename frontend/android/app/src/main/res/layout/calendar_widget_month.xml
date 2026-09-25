@@ -183,14 +183,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_0_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_0_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -229,14 +229,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_1_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_1_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -275,14 +275,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_2_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_2_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -321,14 +321,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_3_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_3_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -367,14 +367,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_4_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_4_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -413,14 +413,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_5_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_5_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -459,14 +459,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_6_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_6_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -505,14 +505,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_7_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_7_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -551,14 +551,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_8_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_8_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -597,14 +597,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_9_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_9_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -643,14 +643,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_10_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_10_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -689,14 +689,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_11_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_11_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -735,14 +735,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_12_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_12_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -781,14 +781,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_13_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_13_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -827,14 +827,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_14_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_14_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -873,14 +873,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_15_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_15_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -919,14 +919,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_16_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_16_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -965,14 +965,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_17_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_17_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1011,14 +1011,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_18_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_18_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1057,14 +1057,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_19_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_19_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1103,14 +1103,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_20_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_20_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1149,14 +1149,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_21_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_21_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1195,14 +1195,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_22_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_22_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1241,14 +1241,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_23_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_23_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1287,14 +1287,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_24_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_24_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1333,14 +1333,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_25_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_25_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1379,14 +1379,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_26_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_26_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1425,14 +1425,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_27_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_27_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1471,14 +1471,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_28_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_28_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1517,14 +1517,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_29_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_29_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1563,14 +1563,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_30_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_30_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1609,14 +1609,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_31_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_31_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1655,14 +1655,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_32_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_32_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1701,14 +1701,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_33_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_33_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1747,14 +1747,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_34_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_34_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1793,14 +1793,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_35_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_35_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1839,14 +1839,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_36_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_36_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1885,14 +1885,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_37_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_37_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1931,14 +1931,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_38_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_38_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -1977,14 +1977,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_39_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_39_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -2023,14 +2023,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_40_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_40_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
@@ -2069,14 +2069,14 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_41_a"
                         android:layout_width="4dp"
                         android:layout_height="4dp"
                         android:layout_marginEnd="2dp"
                         android:background="@drawable/widget_cal_dot" />
 
-                    <View
+                    <ImageView
                         android:id="@+id/day_dot_41_b"
                         android:layout_width="4dp"
                         android:layout_height="4dp"

@@ -78,7 +78,7 @@
 
             <!-- Category-color accent; tinted at runtime, see
                  DailiesWidgetProvider#accentColorForCategory. -->
-            <View
+            <ImageView
                 android:id="@+id/daily_accent_1"
                 android:layout_width="3dp"
                 android:layout_height="18dp"
@@ -129,7 +129,7 @@
             android:paddingHorizontal="6dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/daily_accent_2"
                 android:layout_width="3dp"
                 android:layout_height="18dp"
@@ -180,7 +180,7 @@
             android:paddingHorizontal="6dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/daily_accent_3"
                 android:layout_width="3dp"
                 android:layout_height="18dp"
@@ -230,7 +230,7 @@
             android:paddingHorizontal="6dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/daily_accent_4"
                 android:layout_width="3dp"
                 android:layout_height="18dp"

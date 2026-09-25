@@ -56,7 +56,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/agenda_dot_1"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -96,7 +96,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/agenda_dot_2"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -136,7 +136,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/agenda_dot_3"
                 android:layout_width="6dp"
                 android:layout_height="6dp"
@@ -175,7 +175,7 @@
             android:paddingHorizontal="8dp"
             android:visibility="gone">
 
-            <View
+            <ImageView
                 android:id="@+id/agenda_dot_4"
                 android:layout_width="6dp"
                 android:layout_height="6dp"

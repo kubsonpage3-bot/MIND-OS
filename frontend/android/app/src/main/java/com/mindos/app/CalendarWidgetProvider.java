@@ -347,9 +347,7 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
     }
 
     /** Priority: a deadline due that day outranks a plain event, which outranks
-     * a merely-scheduled Daily -- matches what a student most needs to notice.
-     * Package-private: also called from CalendarWidgetService's per-cell
-     * factory, which needs the identical rule and shouldn't duplicate it. */
+     * a merely-scheduled Daily -- matches what a student most needs to notice. */
     static List<Integer> dotColorsForDay(JSONObject dayInfo) {
         List<Integer> colors = new ArrayList<>();
         if (dayInfo == null) return colors;
