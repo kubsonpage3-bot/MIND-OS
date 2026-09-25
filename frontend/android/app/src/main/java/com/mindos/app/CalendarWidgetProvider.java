@@ -270,7 +270,7 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             int numId = idFor(context, "day_num_" + i);
             int dotsId = idFor(context, "day_dots_" + i);
             int dotAId = idFor(context, "day_dot_" + i + "_a");
-            int dotBId = idFor(context, "day_dot_" + i + "_b");
+            int labelId = idFor(context, "day_label_" + i);
 
             int cellYear = gridCal.get(Calendar.YEAR);
             int cellMonth0 = gridCal.get(Calendar.MONTH);
@@ -292,17 +292,16 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             }
 
             JSONObject dayInfo = (days != null && inCurrentMonth) ? days.optJSONObject(cellDateStr) : null;
-            List<Integer> dotColors = dotColorsForDay(dayInfo);
-            if (!dotColors.isEmpty() && inCurrentMonth) {
+            String[] label = inCurrentMonth ? labelForDay(dayInfo) : null;
+            if (label != null) {
                 views.setViewVisibility(dotsId, View.VISIBLE);
                 views.setViewVisibility(dotAId, View.VISIBLE);
-                views.setInt(dotAId, "setBackgroundColor", dotColors.get(0));
-                if (dotColors.size() > 1) {
-                    views.setViewVisibility(dotBId, View.VISIBLE);
-                    views.setInt(dotBId, "setBackgroundColor", dotColors.get(1));
-                } else {
-                    views.setViewVisibility(dotBId, View.GONE);
+                views.setViewVisibility(labelId, View.VISIBLE);
+                try {
+                    views.setInt(dotAId, "setBackgroundColor", Color.parseColor(label[1]));
+                } catch (Exception ignored) {
                 }
+                views.setTextViewText(labelId, label[0]);
             } else {
                 views.setViewVisibility(dotsId, View.GONE);
             }
@@ -346,37 +345,34 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         return PendingIntent.getBroadcast(context, requestCode, intent, flags);
     }
 
-    /** Priority: a deadline due that day outranks a plain event, which outranks
-     * a merely-scheduled Daily -- matches what a student most needs to notice. */
-    static List<Integer> dotColorsForDay(JSONObject dayInfo) {
-        List<Integer> colors = new ArrayList<>();
-        if (dayInfo == null) return colors;
+    /** The one item worth naming in a grid cell that's barely wide enough for a
+     * word: a due deadline outranks a plain event (dailies aren't surfaced here --
+     * they recur most days and would just repeat the same label all month).
+     * Returns {title, colorHex} or null if there's nothing worth labelling. */
+    private static String[] labelForDay(JSONObject dayInfo) {
+        if (dayInfo == null) return null;
 
         JSONArray deadlines = dayInfo.optJSONArray("deadlines");
-        if (deadlines != null && deadlines.length() > 0) {
-            colors.add(Color.parseColor("#EF4444"));
+        if (deadlines != null) {
+            for (int i = 0; i < deadlines.length(); i++) {
+                JSONObject dl = deadlines.optJSONObject(i);
+                if (dl != null && !dl.optBoolean("done", false)) {
+                    return new String[]{dl.optString("title", ""), "#EF4444"};
+                }
+            }
         }
 
         JSONArray events = dayInfo.optJSONArray("events");
         if (events != null && events.length() > 0) {
-            String hex = "#3B82F6";
-            try {
-                String c = events.getJSONObject(0).optString("color", hex);
-                if (c != null && c.startsWith("#")) hex = c;
-            } catch (Exception ignored) {
-            }
-            try {
-                colors.add(Color.parseColor(hex));
-            } catch (Exception ignored) {
+            JSONObject e = events.optJSONObject(0);
+            if (e != null) {
+                String hex = e.optString("color", "#3B82F6");
+                if (hex == null || !hex.startsWith("#")) hex = "#3B82F6";
+                return new String[]{e.optString("title", ""), hex};
             }
         }
 
-        if (colors.size() < 2 && dayInfo.optInt("dailies_total", 0) > 0) {
-            colors.add(Color.parseColor("#A855F7"));
-        }
-
-        while (colors.size() > 2) colors.remove(colors.size() - 1);
-        return colors;
+        return null;
     }
 
     // ---- Agenda (compact) layout ----

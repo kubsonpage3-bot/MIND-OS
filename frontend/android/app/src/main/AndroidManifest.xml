@@ -116,6 +116,14 @@
                 android:resource="@xml/upcoming_widget_info" />
         </receiver>
 
+        <!-- Backs the Upcoming widget's scrollable ListView; must be
+             BIND_REMOTEVIEWS-protected and unexported or the system refuses
+             to bind it and the list silently stays empty. -->
+        <service
+            android:name=".UpcomingWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
     </application>
 
     <!-- Permissions -->

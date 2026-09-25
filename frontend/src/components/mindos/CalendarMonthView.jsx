@@ -107,7 +107,7 @@ export default function CalendarMonthView({
               key={dayItem.dateStr + index}
               onClick={() => onSelectDate(dayItem.date)}
               className={cn(
-                "min-h-[100px] p-1.5 transition-colors cursor-pointer group relative flex flex-col justify-between",
+                "min-h-[100px] p-1.5 max-sm:px-1 transition-colors cursor-pointer group relative flex flex-col justify-between",
                 index % 7 > 0 && "border-l border-[#2a2640]/40",
                 !dayItem.isCurrentMonth
                   ? "bg-[#090910]/60 opacity-40 hover:opacity-75"
@@ -143,14 +143,14 @@ export default function CalendarMonthView({
                 {dayEvents.slice(0, 3).map((ev) => (
                   <div
                     key={ev.id}
-                    className="text-[10px] font-mono px-1.5 py-0.5 rounded truncate flex items-center gap-1 border-l-2"
+                    className="text-[11px] max-sm:text-[10.5px] leading-tight font-mono px-1.5 max-sm:px-1 py-0.5 rounded truncate flex items-center gap-1 border-l-2 font-medium"
                     style={{
-                      backgroundColor: (ev.color || "#3b82f6") + "22",
+                      backgroundColor: (ev.color || "#3b82f6") + "35",
                       borderLeftColor: ev.color || "#3b82f6",
-                      color: "#e2e8f0",
+                      color: "#f1f5f9",
                     }}
                   >
-                    <span className="text-[9px] font-bold opacity-70 shrink-0">
+                    <span className="text-[9.5px] font-bold opacity-80 shrink-0">
                       {ev.isAllDay ? (ev.isDeadline ? "⏰" : "◆") : ev.startTime}
                     </span>
                     <span

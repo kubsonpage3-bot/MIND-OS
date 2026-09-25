@@ -47,3 +47,10 @@
 
 # Keep WorkManager Worker subclasses generically (safety net).
 -keep public class * extends androidx.work.Worker { *; }
+
+# RemoteViewsService backing the Upcoming widget's list is instantiated by the
+# system via the manifest <service> entry only.
+-keep public class com.mindos.app.UpcomingWidgetService { *; }
+-keep public class com.mindos.app.UpcomingWidgetService$Factory { *; }
+-keep public class com.mindos.app.UpcomingWidgetProvider$Row { *; }
+-keep public class * extends android.widget.RemoteViewsService { *; }

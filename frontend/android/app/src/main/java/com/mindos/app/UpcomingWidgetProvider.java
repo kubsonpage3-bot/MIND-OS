@@ -7,9 +7,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import org.json.JSONArray;
@@ -25,29 +24,30 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * "Upcoming" widget: the next dated events and Todo deadlines over the
- * coming few days, flattened into one chronological list. Reuses the exact
- * same mindos_calendar_widget_&lt;month&gt; cache CalendarWidgetSyncWorker
- * already fetches for the Calendar widget; no new backend endpoint, no new
- * sync token, no new WorkManager job -- see CalendarWidgetSyncWorker's own
- * doc comment for why sharing that worker across both widgets needs the
+ * "Upcoming" widget: a real scrollable agenda of the next WINDOW_DAYS_AHEAD
+ * days' events and Todo deadlines, grouped by day, backed by
+ * UpcomingWidgetService/RemoteViewsFactory. Reuses the exact same
+ * mindos_calendar_widget_&lt;month&gt; cache CalendarWidgetSyncWorker already
+ * fetches for the Calendar widget; no new backend endpoint, no new sync
+ * token, no new WorkManager job -- see CalendarWidgetSyncWorker's own doc
+ * comment for why sharing that worker across both widgets needs the
  * anyCalendarWidgetPlaced() check on both providers' onDisabled.
  *
- * A fixed list of WINDOW_DAYS_AHEAD, not a true scrollable list: real
- * scrolling in a RemoteViews widget only comes from a ListView/GridView
- * backed by a RemoteViewsService adapter, and that exact mechanism just
- * broke the Calendar widget's month grid on a real device in a way no
- * build check here could catch. Shipping a second, brand-new adapter-based
- * widget in the same breath as fixing the first one was too much
- * unverified risk to take on at once.
+ * A prior fixed, non-adapter version of this widget shipped after the
+ * Calendar month grid's own RemoteViewsService attempt broke on a real
+ * device -- but that failure traced to a bare &lt;View&gt; in the per-cell
+ * layout getting rejected by RemoteViews' class allowlist, not to the
+ * adapter mechanism itself. This list's row layouts use only
+ * ImageView/TextView/LinearLayout, so the same failure class doesn't apply,
+ * and a real ListView adapter is what actually gives Android widgets
+ * scrolling (RemoteViews has no other way to scroll content).
  */
 public class UpcomingWidgetProvider extends AppWidgetProvider {
 
     public static final String ACTION_UPDATE_UPCOMING = "com.mindos.app.ACTION_UPDATE_UPCOMING";
 
     private static final String PREFS_NAME = "CapacitorStorage";
-    private static final int WINDOW_DAYS_AHEAD = 3; // today + next 2 days
-    private static final int MAX_ITEMS = 6;
+    static final int WINDOW_DAYS_AHEAD = 7;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -81,6 +81,10 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    /** Repaints the static chrome (title/empty-state) on every instance, then tells
+     * each list adapter its underlying data may have changed -- updateAppWidget()
+     * alone does NOT re-run the RemoteViewsFactory; only notifyAppWidgetViewDataChanged
+     * does, which is why a plain refresh after sync needs both calls. */
     public static void refreshAllWidgets(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         ComponentName componentName = new ComponentName(context, UpcomingWidgetProvider.class);
@@ -88,6 +92,7 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.upcoming_list);
     }
 
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
@@ -96,51 +101,35 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
 
             int flags = PendingIntent.FLAG_UPDATE_CURRENT;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
+
+            // Adapter data source: one instance per appWidgetId via the intent extra
+            // (RemoteViewsService keys its factories off the whole intent, and a
+            // shared intent across instances would make them share one factory).
+            Intent serviceIntent = new Intent(context, UpcomingWidgetService.class);
+            serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            serviceIntent.setData(Uri.parse("mindos://upcoming/adapter/" + appWidgetId));
+            views.setRemoteAdapter(R.id.upcoming_list, serviceIntent);
+            views.setEmptyView(R.id.upcoming_list, R.id.upcoming_empty_text);
+
+            // Per-row taps: template carries the destination, each row's fill-in
+            // intent (set in UpcomingWidgetService's factory) supplies the date via
+            // a unique data Uri -- the documented way to make RemoteViews list rows
+            // distinguishable, since fill-in intents don't get their own requestCode.
+            Intent templateIntent = new Intent(context, MainActivity.class);
+            templateIntent.putExtra("action", "open_calendar_date");
+            PendingIntent templatePendingIntent = PendingIntent.getActivity(context, 900 + appWidgetId, templateIntent, flags);
+            views.setPendingIntentTemplate(R.id.upcoming_list, templatePendingIntent);
+
             Intent openIntent = new Intent(context, MainActivity.class);
             openIntent.putExtra("action", "open_calendar");
-            openIntent.setData(android.net.Uri.parse("mindos://upcoming/open/" + appWidgetId));
-            PendingIntent openPendingIntent = PendingIntent.getActivity(context, 900 + appWidgetId, openIntent, flags);
-            views.setOnClickPendingIntent(R.id.upcoming_root, openPendingIntent);
+            openIntent.setData(Uri.parse("mindos://upcoming/open/" + appWidgetId));
+            PendingIntent openPendingIntent = PendingIntent.getActivity(context, 950 + appWidgetId, openIntent, flags);
+            views.setOnClickPendingIntent(R.id.upcoming_title, openPendingIntent);
 
-            List<String[]> rows = buildUpcomingRows(context); // {unused, when, text, colorHex}
-
-            int[] itemIds = {R.id.upcoming_item_1, R.id.upcoming_item_2, R.id.upcoming_item_3,
-                    R.id.upcoming_item_4, R.id.upcoming_item_5, R.id.upcoming_item_6};
-            int[] whenIds = {R.id.upcoming_when_1, R.id.upcoming_when_2, R.id.upcoming_when_3,
-                    R.id.upcoming_when_4, R.id.upcoming_when_5, R.id.upcoming_when_6};
-            int[] textIds = {R.id.upcoming_text_1, R.id.upcoming_text_2, R.id.upcoming_text_3,
-                    R.id.upcoming_text_4, R.id.upcoming_text_5, R.id.upcoming_text_6};
-            int[] dotIds = {R.id.upcoming_dot_1, R.id.upcoming_dot_2, R.id.upcoming_dot_3,
-                    R.id.upcoming_dot_4, R.id.upcoming_dot_5, R.id.upcoming_dot_6};
-
-            for (int id : itemIds) views.setViewVisibility(id, View.GONE);
-
-            int shown = Math.min(rows.size(), itemIds.length);
-            for (int i = 0; i < shown; i++) {
-                String[] row = rows.get(i);
-                views.setViewVisibility(itemIds[i], View.VISIBLE);
-                views.setTextViewText(whenIds[i], row[1]);
-                views.setTextViewText(textIds[i], row[2]);
-                try {
-                    views.setInt(dotIds[i], "setBackgroundColor", Color.parseColor(row[3]));
-                } catch (Exception ignored) {
-                }
-            }
-
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            Calendar today = Calendar.getInstance();
-            String currentMonthKey = String.format(Locale.US, "%04d-%02d", today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1);
-            boolean noDataYet = (prefs.getString("mindos_calendar_widget_" + currentMonthKey, null) == null);
-
-            if (noDataYet) {
-                views.setViewVisibility(R.id.upcoming_empty_text, View.VISIBLE);
-                views.setTextViewText(R.id.upcoming_empty_text,
-                        context.getString(R.string.widget_calendar_no_sync));
-            } else {
-                views.setTextViewText(R.id.upcoming_empty_text,
-                        context.getString(R.string.widget_upcoming_empty));
-                views.setViewVisibility(R.id.upcoming_empty_text, rows.isEmpty() ? View.VISIBLE : View.GONE);
-            }
+            boolean noDataYet = !anyMonthCached(context);
+            views.setTextViewText(R.id.upcoming_empty_text, noDataYet
+                    ? context.getString(R.string.widget_calendar_no_sync)
+                    : context.getString(R.string.widget_upcoming_empty));
 
             appWidgetManager.updateAppWidget(appWidgetId, views);
         } catch (Exception e) {
@@ -148,14 +137,43 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    /** Deadlines sort before timed events on the same day (matches the
-     * Calendar widget's agenda view); a plain day-offset*10000 + minutes
-     * key keeps every day's entries in their own numeric band, so days
-     * never interleave regardless of how many items a day has. */
-    private static List<String[]> buildUpcomingRows(Context context) {
+    private static boolean anyMonthCached(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        Calendar today = Calendar.getInstance();
+        String currentMonthKey = String.format(Locale.US, "%04d-%02d", today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1);
+        return prefs.getString("mindos_calendar_widget_" + currentMonthKey, null) != null;
+    }
+
+    /** One agenda row: either a real deadline/event (title non-null) sourced from
+     * buildUpcomingItems, grouped under dayGroupLabel by UpcomingWidgetService's
+     * factory into header + item rows for the list. */
+    static final class Row {
+        final long sortKey;
+        final String dayGroupLabel;
+        final String dateStr;
+        final String timeLabel;
+        final String title;
+        final String colorHex;
+
+        Row(long sortKey, String dayGroupLabel, String dateStr, String timeLabel, String title, String colorHex) {
+            this.sortKey = sortKey;
+            this.dayGroupLabel = dayGroupLabel;
+            this.dateStr = dateStr;
+            this.timeLabel = timeLabel;
+            this.title = title;
+            this.colorHex = colorHex;
+        }
+    }
+
+    /** Deadlines sort before timed events on the same day (matches the Calendar
+     * widget's agenda view); a plain day-offset*10000 + minutes key keeps every
+     * day's entries in their own numeric band, so days never interleave
+     * regardless of how many items a day has. Package-private: also called from
+     * UpcomingWidgetService's RemoteViewsFactory, which needs the identical data. */
+    static List<Row> buildUpcomingItems(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         Map<String, JSONObject> monthCache = new HashMap<>();
-        List<Object[]> entries = new ArrayList<>(); // {sortKey(Long), when(String), text(String), color(String)}
+        List<Row> entries = new ArrayList<>();
 
         Calendar today = Calendar.getInstance();
 
@@ -188,15 +206,15 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
             JSONObject dayInfo = days.optJSONObject(dateStr);
             if (dayInfo == null) continue;
 
-            String whenLabel = whenLabelFor(context, d, day);
+            String dayGroupLabel = dayGroupLabelFor(context, d, day);
 
             JSONArray deadlines = dayInfo.optJSONArray("deadlines");
             if (deadlines != null) {
                 for (int i = 0; i < deadlines.length(); i++) {
                     JSONObject dl = deadlines.optJSONObject(i);
                     if (dl == null || dl.optBoolean("done", false)) continue;
-                    String text = context.getString(R.string.widget_calendar_due_prefix, dl.optString("title", ""));
-                    entries.add(new Object[]{(long) d * 10000L, whenLabel, text, "#EF4444"});
+                    long sortKey = (long) d * 10000L;
+                    entries.add(new Row(sortKey, dayGroupLabel, dateStr, "!", dl.optString("title", ""), "#EF4444"));
                 }
             }
 
@@ -211,28 +229,22 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
                     String title = e.optString("title", "");
                     long minuteKey = allDay ? 0 : minutesSinceMidnight(startTime);
                     long sortKey = (long) d * 10000L + 1 + minuteKey;
-                    String label = allDay ? whenLabel : (whenLabel + " " + startTime);
-                    entries.add(new Object[]{sortKey, label, title, color});
+                    String timeLabel = allDay ? "•" : startTime;
+                    entries.add(new Row(sortKey, dayGroupLabel, dateStr, timeLabel, title, color));
                 }
             }
         }
 
-        Collections.sort(entries, new Comparator<Object[]>() {
+        Collections.sort(entries, new Comparator<Row>() {
             @Override
-            public int compare(Object[] a, Object[] b) {
-                return Long.compare((Long) a[0], (Long) b[0]);
+            public int compare(Row a, Row b) {
+                return Long.compare(a.sortKey, b.sortKey);
             }
         });
-
-        List<String[]> rows = new ArrayList<>();
-        for (Object[] e : entries) {
-            rows.add(new String[]{"", (String) e[1], (String) e[2], (String) e[3]});
-            if (rows.size() >= MAX_ITEMS) break;
-        }
-        return rows;
+        return entries;
     }
 
-    private static String whenLabelFor(Context context, int dayOffset, Calendar day) {
+    private static String dayGroupLabelFor(Context context, int dayOffset, Calendar day) {
         if (dayOffset == 0) return context.getString(R.string.widget_upcoming_today);
         if (dayOffset == 1) return context.getString(R.string.widget_upcoming_tomorrow);
         String[] weekdayNames = context.getResources().getStringArray(R.array.widget_calendar_weekdays_short);
