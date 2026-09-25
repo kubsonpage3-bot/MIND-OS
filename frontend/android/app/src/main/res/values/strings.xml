@@ -53,7 +53,8 @@
     <!-- Calendar Widget UI strings -->
     <string name="widget_calendar_title">Calendar</string>
     <string name="widget_calendar_empty_day">Nothing scheduled today</string>
-    <string name="widget_calendar_tap_hint">Tap a day to open</string>
+    <string name="widget_calendar_no_sync">Open Calendar tab to sync widget</string>
+    <string name="widget_calendar_tap_hint">Open Calendar tab to start sync</string>
     <string name="widget_calendar_due_prefix">Due: %s</string>
     <string name="widget_calendar_dailies_done">%1$d/%2$d Dailies done today</string>
     <string-array name="widget_calendar_months">

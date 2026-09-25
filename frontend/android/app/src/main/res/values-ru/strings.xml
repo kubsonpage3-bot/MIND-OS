@@ -53,7 +53,8 @@
     <!-- Calendar Widget UI strings (RU) -->
     <string name="widget_calendar_title">Календарь</string>
     <string name="widget_calendar_empty_day">На сегодня ничего не запланировано</string>
-    <string name="widget_calendar_tap_hint">Нажмите на день, чтобы открыть</string>
+    <string name="widget_calendar_no_sync">Откройте вкладку Календарь для синхронизации</string>
+    <string name="widget_calendar_tap_hint">Откройте Календарь для начала синхронизации</string>
     <string name="widget_calendar_due_prefix">Срок: %s</string>
     <string name="widget_calendar_dailies_done">%1$d/%2$d дейликов выполнено</string>
     <string-array name="widget_calendar_months">

@@ -13,6 +13,7 @@ import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 
 import java.io.BufferedReader;
@@ -62,6 +63,8 @@ public class CalendarWidgetSyncWorker extends Worker {
         PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(
                 CalendarWidgetSyncWorker.class, 30, java.util.concurrent.TimeUnit.MINUTES)
                 .setConstraints(constraints)
+                .setBackoffCriteria(BackoffPolicy.LINEAR,
+                        30, java.util.concurrent.TimeUnit.SECONDS)
                 .build();
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 UNIQUE_PERIODIC_NAME, ExistingPeriodicWorkPolicy.KEEP, request);
@@ -101,10 +104,12 @@ public class CalendarWidgetSyncWorker extends Worker {
         enqueueMonthOffset(context, offset, false);
     }
 
-    private static void enqueueMonthOffset(Context context, int offset, boolean expedited) {
+    public static void enqueueMonthOffset(Context context, int offset, boolean expedited) {
         Data input = new Data.Builder().putInt(KEY_MONTH_OFFSET, offset).build();
         OneTimeWorkRequest.Builder builder = new OneTimeWorkRequest.Builder(CalendarWidgetSyncWorker.class)
                 .setInputData(input)
+                .setBackoffCriteria(BackoffPolicy.LINEAR,
+                        30, java.util.concurrent.TimeUnit.SECONDS)
                 .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build());
         if (expedited && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             builder.setExpedited(androidx.work.OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST);
@@ -173,6 +178,7 @@ public class CalendarWidgetSyncWorker extends Worker {
 
     static String monthForOffset(int offset) {
         java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.DAY_OF_MONTH, 1);
         cal.add(java.util.Calendar.MONTH, offset);
         int year = cal.get(java.util.Calendar.YEAR);
         int month = cal.get(java.util.Calendar.MONTH) + 1;

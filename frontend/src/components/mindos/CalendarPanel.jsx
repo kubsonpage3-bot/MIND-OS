@@ -16,6 +16,8 @@ import { useDjangoAuth } from "@/lib/DjangoAuthContext";
 import { cn } from "@/lib/utils";
 import { rawTasksQueryKey } from "@/constants/queryKeys";
 import { isDailyScheduledOn, toDateStr } from "@/lib/dailySchedule";
+import { Capacitor } from "@capacitor/core";
+import { syncCalendarWidgetToken } from "@/utils/widget";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -344,6 +346,18 @@ export default function CalendarPanel() {
     window.addEventListener("mindos:open_calendar_date", onOpenDate);
     return () => window.removeEventListener("mindos:open_calendar_date", onOpenDate);
   }, []);
+
+  // BUG-C1 fix: auto-sync the calendar feed token to native storage whenever
+  // the Calendar tab is opened (not just when the user visits CalendarSyncPanel).
+  // This makes the Android widget start syncing as soon as the user opens the
+  // Calendar tab for the first time, without requiring a manual settings visit.
+  useEffect(() => {
+    if (!djangoProfile?.is_premium || !Capacitor.isNativePlatform()) return;
+    djangoFetch("/calendar/feed-info/")
+      .then((data) => { if (data?.url) syncCalendarWidgetToken(data.url); })
+      .catch(() => { /* non-blocking */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [djangoProfile?.is_premium]);
 
   // page_size: the default page is 25 and only `.results` was read, so the 26th
   // task (and every Daily after it) never reached the calendar.

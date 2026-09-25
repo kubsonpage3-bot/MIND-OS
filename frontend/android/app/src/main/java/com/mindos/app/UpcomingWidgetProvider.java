@@ -53,7 +53,9 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent != null ? intent.getAction() : null;
-        if (ACTION_UPDATE_UPCOMING.equals(action) || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
+        if (ACTION_UPDATE_UPCOMING.equals(action)
+                || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)
+                || RPGStatsWidgetProvider.ACTION_UPDATE_WIDGET.equals(action)) {
             refreshAllWidgets(context);
         }
     }
@@ -96,6 +98,7 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
             Intent openIntent = new Intent(context, MainActivity.class);
             openIntent.putExtra("action", "open_calendar");
+            openIntent.setData(android.net.Uri.parse("mindos://upcoming/open/" + appWidgetId));
             PendingIntent openPendingIntent = PendingIntent.getActivity(context, 900 + appWidgetId, openIntent, flags);
             views.setOnClickPendingIntent(R.id.upcoming_root, openPendingIntent);
 
@@ -124,7 +127,20 @@ public class UpcomingWidgetProvider extends AppWidgetProvider {
                 }
             }
 
-            views.setViewVisibility(R.id.upcoming_empty_text, rows.isEmpty() ? View.VISIBLE : View.GONE);
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            Calendar today = Calendar.getInstance();
+            String currentMonthKey = String.format(Locale.US, "%04d-%02d", today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1);
+            boolean noDataYet = (prefs.getString("mindos_calendar_widget_" + currentMonthKey, null) == null);
+
+            if (noDataYet) {
+                views.setViewVisibility(R.id.upcoming_empty_text, View.VISIBLE);
+                views.setTextViewText(R.id.upcoming_empty_text,
+                        context.getString(R.string.widget_calendar_no_sync));
+            } else {
+                views.setTextViewText(R.id.upcoming_empty_text,
+                        context.getString(R.string.widget_upcoming_empty));
+                views.setViewVisibility(R.id.upcoming_empty_text, rows.isEmpty() ? View.VISIBLE : View.GONE);
+            }
 
             appWidgetManager.updateAppWidget(appWidgetId, views);
         } catch (Exception e) {

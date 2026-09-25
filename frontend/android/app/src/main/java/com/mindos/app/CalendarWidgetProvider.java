@@ -55,8 +55,13 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         if (ACTION_CAL_NAV.equals(action)) {
             int appWidgetId = intent.getIntExtra(EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
             int direction = intent.getIntExtra(EXTRA_DIRECTION, 0);
-            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID && direction != 0) {
-                navigateMonth(context, appWidgetId, direction);
+            boolean reset = intent.getBooleanExtra("reset", false);
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                if (reset) {
+                    resetMonth(context, appWidgetId);
+                } else if (direction != 0) {
+                    navigateMonth(context, appWidgetId, direction);
+                }
             }
             return;
         }
@@ -117,7 +122,15 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         if (next > 12) next = 12;
         prefs.edit().putInt(OFFSET_KEY_PREFIX + appWidgetId, next).apply();
 
-        CalendarWidgetSyncWorker.enqueueMonthOffset(context, next);
+        CalendarWidgetSyncWorker.enqueueMonthOffset(context, next, true);
+        AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+        updateAppWidget(context, mgr, appWidgetId);
+    }
+
+    private static void resetMonth(Context context, int appWidgetId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(OFFSET_KEY_PREFIX + appWidgetId, 0).apply();
+        CalendarWidgetSyncWorker.enqueueMonthOffset(context, 0, true);
         AppWidgetManager mgr = AppWidgetManager.getInstance(context);
         updateAppWidget(context, mgr, appWidgetId);
     }
@@ -192,6 +205,7 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.calendar_widget_month);
 
         Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
         cal.add(Calendar.MONTH, offset);
         int year = cal.get(Calendar.YEAR);
         int monthIdx0 = cal.get(Calendar.MONTH); // 0-based
@@ -210,11 +224,24 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.cal_btn_prev, navPendingIntent(context, appWidgetId, -1, navFlags));
         views.setOnClickPendingIntent(R.id.cal_btn_next, navPendingIntent(context, appWidgetId, 1, navFlags));
 
-        // Tapping anywhere in the grid opens the app (not a specific date --
-        // see calendar_widget_month.xml for why there's no per-cell tap
-        // target). One PendingIntent for the whole grid, not 42.
-        views.setOnClickPendingIntent(R.id.cal_grid,
-                openAppPendingIntent(context, 800 + appWidgetId, appWidgetId + "/grid", null));
+        // Tapping anywhere in the grid or background opens the app
+        PendingIntent openAppIntent = openAppPendingIntent(context, 800 + appWidgetId, appWidgetId + "/grid", null);
+        views.setOnClickPendingIntent(R.id.cal_grid, openAppIntent);
+        views.setOnClickPendingIntent(R.id.cal_month_root, openAppIntent);
+
+        // Tapping month label: if navigated away, taps back to today's month; otherwise opens app
+        if (offset != 0) {
+            Intent resetIntent = new Intent(context, CalendarWidgetProvider.class);
+            resetIntent.setAction(ACTION_CAL_NAV);
+            resetIntent.setPackage(context.getPackageName());
+            resetIntent.putExtra(EXTRA_APPWIDGET_ID, appWidgetId);
+            resetIntent.putExtra("reset", true);
+            resetIntent.setData(android.net.Uri.parse("mindos://cal/nav/" + appWidgetId + "/reset"));
+            views.setOnClickPendingIntent(R.id.cal_month_label,
+                    PendingIntent.getBroadcast(context, 750 + appWidgetId, resetIntent, navFlags));
+        } else {
+            views.setOnClickPendingIntent(R.id.cal_month_label, openAppIntent);
+        }
 
         JSONObject monthData = loadMonthData(context, monthKey);
         JSONObject days = monthData != null ? monthData.optJSONObject("days") : null;
@@ -222,7 +249,8 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
 
         // Show the sync-hint label only when there's no cached data yet;
         // once data is loaded it disappears so it doesn't take up grid space.
-        views.setViewVisibility(R.id.cal_sync_label, monthData == null ? View.VISIBLE : View.GONE);
+        boolean noData = (monthData == null);
+        views.setViewVisibility(R.id.cal_sync_label, noData ? View.VISIBLE : View.GONE);
 
         if (todayStr == null) {
             Calendar now = Calendar.getInstance();
@@ -405,6 +433,10 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             }
         }
 
+        // ── Agenda: show a distinct message when not yet synced vs. nothing today ──
+        boolean noDataYet = (monthData == null);
+        boolean hasNoItemsToday = rows.isEmpty();
+
         int[] itemIds = {R.id.agenda_item_1, R.id.agenda_item_2, R.id.agenda_item_3, R.id.agenda_item_4};
         int[] timeIds = {R.id.agenda_time_1, R.id.agenda_time_2, R.id.agenda_time_3, R.id.agenda_time_4};
         int[] textIds = {R.id.agenda_text_1, R.id.agenda_text_2, R.id.agenda_text_3, R.id.agenda_text_4};
@@ -424,7 +456,16 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
             }
         }
 
-        views.setViewVisibility(R.id.agenda_empty_text, rows.isEmpty() ? View.VISIBLE : View.GONE);
+        if (noDataYet) {
+            // No sync yet: tell user to open Calendar tab to activate sync.
+            views.setViewVisibility(R.id.agenda_empty_text, View.VISIBLE);
+            views.setTextViewText(R.id.agenda_empty_text,
+                    context.getString(R.string.widget_calendar_no_sync));
+        } else {
+            views.setTextViewText(R.id.agenda_empty_text,
+                    context.getString(R.string.widget_calendar_empty_day));
+            views.setViewVisibility(R.id.agenda_empty_text, hasNoItemsToday ? View.VISIBLE : View.GONE);
+        }
 
         return views;
     }

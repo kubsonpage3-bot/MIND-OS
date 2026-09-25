@@ -29,7 +29,7 @@ const CharacterTab = lazy(() => import("@/components/mindos/CharacterTab"));
 const RivalTab = lazy(() => import("@/components/mindos/RivalTab"));
 const SettingsPanel = lazy(() => import("@/components/mindos/SettingsPanel"));
 import { isMobileApp } from "@/utils/platformUtils";
-import { syncWidgetStats, syncWidgetToken, getWidgetLaunchIntentAction, processPendingWidgetActions } from "@/utils/widget";
+import { syncWidgetStats, syncWidgetToken, syncCalendarWidgetToken, getWidgetLaunchIntentAction, processPendingWidgetActions } from "@/utils/widget";
 import { TASKS_QUERY_KEY } from "@/constants/queryKeys";
 import { modalStack } from "@/utils/modalStack";
 import PillTabBar from "@/components/ui/PillTabBar";
@@ -786,10 +786,9 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
     };
   }, [onSectionChange, onSubItemChange, queryClient]);
 
-  // Mirror the widget background-sync token into native storage once per
-  // login -- unlike the Calendar feed token, this isn't Premium-gated and
-  // has no settings panel of its own to trigger it, so every user gets it
-  // right after their profile loads.
+  // Mirror widget background-sync tokens into native storage on profile load:
+  // 1. widget_sync_token for RPG Stats / Dailies / Daily Summary / Quick Actions
+  // 2. calendar_feed_token (if premium) for Calendar and Upcoming widgets
   useEffect(() => {
     if (!profile?.id) return;
     let cancelled = false;
@@ -798,10 +797,19 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
         if (!cancelled) syncWidgetToken(res?.token);
       })
       .catch((err) => console.error("Failed to fetch widget sync token:", err));
+
+    if (profile?.is_premium) {
+      djangoFetch("/calendar/feed-info/")
+        .then((res) => {
+          if (!cancelled && res?.url) syncCalendarWidgetToken(res.url);
+        })
+        .catch((err) => console.error("Failed to fetch calendar widget feed info:", err));
+    }
+
     return () => {
       cancelled = true;
     };
-  }, [profile?.id]);
+  }, [profile?.id, profile?.is_premium]);
 
   const updateProfile = useMutation({
     /**
