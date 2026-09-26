@@ -583,8 +583,8 @@ function RivalTab({ playerRankXP, playerStreak, logs }) {
           <div className="flex items-center justify-between pt-1 text-xs font-mono font-semibold">
             <span style={{ color: rivalAhead ? "#ff8800" : "#00cc88" }}>
               {rivalAhead
-                ? `⚠ ${RIVAL_NAME} leads by ${diff.toFixed(1)} XP`
-                : `✓ You lead by ${diff.toFixed(1)} XP`}
+                ? `⚠ ${t('rivalTab.rivalLeadsLifetime', '{{name}} leads by {{xp}} XP (lifetime)', { name: RIVAL_NAME, xp: diff.toFixed(1) })}`
+                : `✓ ${t('rivalTab.youLeadLifetime', 'You lead by {{xp}} XP (lifetime)', { xp: diff.toFixed(1) })}`}
             </span>
             {isClosing && (
               <span className="text-[9px] px-2 py-0.5 rounded font-pixel text-red-400 bg-red-950/60 border border-red-500/40 animate-pulse">

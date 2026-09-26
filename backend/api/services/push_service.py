@@ -148,6 +148,7 @@ def send_streak_warnings():
 
 
 def send_rival_overtook_warnings():
+    import zoneinfo
     from api.services.rival_service import compute_rival_data
 
     subscriptions = PushSubscription.objects.select_related(
@@ -162,16 +163,26 @@ def send_rival_overtook_warnings():
         if user.id in notified_users:
             continue
 
-        prefs = user.profile.notification_preferences or {}
+        profile = user.profile
+        prefs = profile.notification_preferences or {}
         if not prefs.get("rival_overtook", True):
             continue
         if not _channel_allows_push(prefs):
             continue
 
+        try:
+            tz = zoneinfo.ZoneInfo(profile.timezone or "UTC")
+        except Exception:
+            tz = zoneinfo.ZoneInfo("UTC")
+        today = timezone.now().astimezone(tz).date()
+        if profile.last_rival_overtook_push_date == today:
+            notified_users.add(user.id)
+            continue
+
         # Check if Johan overtook the player today
-        rival_data = compute_rival_data(user.profile)
+        rival_data = compute_rival_data(profile)
         johan_xp = rival_data.get("totalXP", 0)
-        player_xp = user.profile.rank_xp or 0
+        player_xp = profile.rank_xp or 0
 
         # If Johan's XP is slightly higher, it's an overtake risk
         if johan_xp > player_xp:
@@ -184,6 +195,8 @@ def send_rival_overtook_warnings():
             if send_web_push(sub, payload):
                 sent_count += 1
                 notified_users.add(user.id)
+                profile.last_rival_overtook_push_date = today
+                profile.save(update_fields=["last_rival_overtook_push_date"])
 
     return sent_count
 

@@ -79,18 +79,19 @@ export default function AccountPanel() {
     if (deleteInput !== "DELETE") return;
     setDeleteStatus("pending");
     try {
-      await djangoApi.profile.reset("nuclear");
+      await djangoApi.profile.deleteAccount();
       setDeleteStatus("done");
       setTimeout(() => {
         logout();
       }, 1500);
     } catch (err) {
       console.error("Account deletion failed:", err);
-      // Fallback local cleanup and logout
-      setDeleteStatus("done");
-      setTimeout(() => {
-        logout();
-      }, 1500);
+      setDeleteStatus(null);
+      toast({
+        title: t('settings.deleteFailedTitle', 'Deletion failed'),
+        description: t('settings.deleteFailedDesc', "Couldn't delete your account. Please try again."),
+        variant: "destructive",
+      });
     }
   };
 

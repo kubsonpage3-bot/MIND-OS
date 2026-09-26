@@ -3068,6 +3068,43 @@ class ResetDataView(generics.GenericAPIView):
             )
 
 
+class DeleteAccountView(generics.GenericAPIView):
+    """
+    POST /api/account/delete/
+    Immediately and permanently deletes the authenticated user's account:
+    the Django User row and (via on_delete=CASCADE) every related model --
+    UserProfile, Tasks, etc. Required by Google Play's account-deletion
+    policy; the account-panel UI previously called the "nuclear" data
+    reset here instead, which wiped gameplay data but left the User row
+    (and login credentials) intact, so the account itself was never
+    actually deleted.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.data.get("confirm") != "DELETE":
+            return Response(
+                {"detail": "Confirmation text did not match."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger = logging.getLogger(__name__)
+        user = request.user
+        username = user.username
+        try:
+            with transaction.atomic():
+                user.delete()
+            logger.info(f"[ACCOUNT DELETE] Deleted account username={username!r}")
+            return Response({"message": "Account deleted."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"[ACCOUNT DELETE] Failed for username={username!r}: {e}", exc_info=True)
+            return Response(
+                {"error": "Internal server error while deleting account. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 # ——— Rival System ————————————————————————————————————————————————
 
 

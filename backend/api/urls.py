@@ -35,6 +35,7 @@ from .views import (
     RheaChaosControlView,
     CombatSyncView,
     ResetDataView,
+    DeleteAccountView,
     RivalView,
     DailyCheckinView,
     PartyCreateView,
@@ -122,6 +123,7 @@ urlpatterns = [
     path("profile/", UserProfileView.as_view(), name="user-profile"),
     path("profile/prestige/", PrestigeView.as_view(), name="profile-prestige"),
     path("profile/reset/", ResetDataView.as_view(), name="profile-reset"),
+    path("account/delete/", DeleteAccountView.as_view(), name="account-delete"),
     path(
         "profile/mark-guide-seen/",
         MarkGuideSeenView.as_view(),

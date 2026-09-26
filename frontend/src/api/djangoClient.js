@@ -299,6 +299,11 @@ export const djangoApi = {
         method: 'POST',
         body: JSON.stringify({ reset_type: resetType }),
       }),
+    deleteAccount: () =>
+      djangoFetch('/account/delete/', {
+        method: 'POST',
+        body: JSON.stringify({ confirm: 'DELETE' }),
+      }),
   },
 
   rival: {

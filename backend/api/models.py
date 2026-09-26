@@ -166,6 +166,10 @@ class UserProfile(models.Model):
     void_clarity_last_used = models.DateTimeField(null=True, blank=True)
     # Deadline-reminder push: last local day one was sent (one per user per day).
     last_deadline_push_date = models.DateField(null=True, blank=True)
+    # Rival-overtook push: last local day one was sent (one per user per day),
+    # same dedup pattern as last_deadline_push_date -- without it this push
+    # re-fires every time the sender cron runs while Johan stays ahead.
+    last_rival_overtook_push_date = models.DateField(null=True, blank=True)
     # Secret token in the user's private iCalendar subscription URL
     # (/api/calendar/feed/<token>.ics). Rotating it revokes the old URL.
     calendar_feed_token = models.CharField(

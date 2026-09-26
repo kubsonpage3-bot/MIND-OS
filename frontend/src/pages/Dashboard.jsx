@@ -50,21 +50,9 @@ import { useDailyCheckin } from "@/hooks/useDailyCheckin";
 
 import { applyActivity, METRIC_CONFIG, getActivityDetails } from "@/lib/cognitiveEngine";
 // Removed getRankFromXP
-import { Activity, BarChart2, History, Timer, Calendar, Swords, User, Users, Settings, Sparkles } from "lucide-react";
+import { Calendar, Sparkles } from "lucide-react";
 import { playSound } from "@/lib/soundEffects.js";
 import { prefetchTab } from "@/lib/prefetch";
-
-const TABS = [
-  { id: "train", label: "sidebar.sections.train", icon: Activity },
-  { id: "tasks", label: "sidebar.sections.tasks", icon: Swords },
-  { id: "rival", label: "sidebar.sections.rival", icon: Users },
-  { id: "stats", label: "sidebar.sections.stats", icon: BarChart2 },
-  { id: "history", label: "sidebar.sections.history", icon: History },
-  { id: "pomodoro", label: "sidebar.sections.pomodoro", icon: Timer },
-  { id: "calendar", label: "sidebar.sections.calendar", icon: Calendar },
-  { id: "character", label: "sidebar.sections.character", icon: User },
-  { id: "settings", label: "sidebar.sections.settings", icon: Settings },
-];
 
 const TOOLS_TABS = [
   { id: "history", label: "dashboard.tab_history" },
@@ -319,7 +307,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
   useEffect(() => {
     const handleDeath = () => {
       toast({
-        title: t("achievements.you_died", "💀 ВЫ УМЕРЛИ! Ранг понижен. Здоровье восстановлено."),
+        title: t("achievements.you_died", "💀 YOU DIED! Rank demoted. HP restored."),
         variant: "destructive",
       });
       playSound("death");
@@ -1148,7 +1136,7 @@ export default function Dashboard({ activeSection = "dashboard", activeSubItem =
 
         {sectionToRender === "rival" && (
           <TabPanel title={"👥 " + t("sidebar.sections.rival", "RIVAL").toUpperCase()}>
-            <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={0} logs={logs} />
+            <RivalTab playerRankXP={rankXPData.rankXP} playerStreak={profile?.streak || 0} logs={logs} />
           </TabPanel>
         )}
 
