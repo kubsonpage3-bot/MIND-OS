@@ -57,6 +57,7 @@ captures/
 *.keystore
 # gradle.properties contains signing credentials — keep local only
 # (copy your credentials to ~/.gradle/gradle.properties for CI)
+gradle.properties
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
