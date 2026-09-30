@@ -24,7 +24,48 @@ const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOUR_PX = 64; // px per hour
 const MIN_EVENT_MINS = 15;
 
-function getLocalDateStr(date = new Date()) {
+// Reads a Date's wall-clock Y/M/D/H/M in an explicit IANA zone (via Intl,
+// not the browser's ambient timezone) -- e.g. hour12:false has historically
+// returned "24" instead of "00" for midnight in some engines, hence the
+// modulo. Returns null for an invalid/unset zone so callers can fall back
+// to the browser's own local getters.
+function getTimeZoneParts(date, timeZone) {
+  if (!timeZone) return null;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+    const get = (type) => Number(parts.find((p) => p.type === type)?.value);
+    return {
+      year: get("year"),
+      month: get("month"),
+      day: get("day"),
+      hour: get("hour") % 24,
+      minute: get("minute"),
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Same "what calendar day is this" formatting getLocalDateStr always did,
+// except when a timeZone is passed it's resolved in THAT zone (the user's
+// profile.timezone) instead of the browser/OS's ambient one -- the two can
+// disagree (VPN, a misconfigured OS clock, travel since the profile
+// timezone was set), which otherwise desyncs "today"/the live time
+// indicator from a calendar whose events are all scheduled server-side
+// against profile.timezone.
+function getLocalDateStr(date = new Date(), timeZone) {
+  const tzParts = getTimeZoneParts(date, timeZone);
+  if (tzParts) {
+    return `${tzParts.year}-${String(tzParts.month).padStart(2, "0")}-${String(tzParts.day).padStart(2, "0")}`;
+  }
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -103,7 +144,7 @@ const DURATION_PRESETS = [
 ];
 
 // ── LIVE TIME LASER INDICATOR ──────────────────────────────────────────────
-function LiveTimeIndicator() {
+function LiveTimeIndicator({ timeZone }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -111,11 +152,14 @@ function LiveTimeIndicator() {
     return () => clearInterval(timer);
   }, []);
 
-  const currentMins = now.getHours() * 60 + now.getMinutes();
+  // Resolve in the user's profile timezone, not the browser/OS's ambient
+  // one -- see getTimeZoneParts' comment for why they can disagree.
+  const tzParts = getTimeZoneParts(now, timeZone);
+  const hours = tzParts ? tzParts.hour : now.getHours();
+  const minutes = tzParts ? tzParts.minute : now.getMinutes();
+  const currentMins = hours * 60 + minutes;
   const top = (currentMins / 60) * HOUR_PX;
-  const timeFormatted = `${String(now.getHours()).padStart(2, "0")}:${String(
-    now.getMinutes()
-  ).padStart(2, "0")}`;
+  const timeFormatted = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 
   return (
     <div
@@ -240,7 +284,7 @@ function EventBlock({ event, colDate, handlers }) {
 }
 
 // ── DAY COLUMN ─────────────────────────────────────────────────────────────
-function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }) {
+function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false, timeZone }) {
   const dayEvents = getDayEvents(dateStr).filter((ev) => !ev.isAllDay);
   const { onGridClick } = handlers;
 
@@ -272,7 +316,7 @@ function DayColumn({ dateStr, colDate, getDayEvents, handlers, isToday = false }
         <EventBlock key={ev.id} event={ev} colDate={colDate} handlers={handlers} />
       ))}
 
-      {isToday && <LiveTimeIndicator />}
+      {isToday && <LiveTimeIndicator timeZone={timeZone} />}
     </div>
   );
 }
@@ -313,23 +357,28 @@ export default function CalendarPanel() {
   const locale = i18n.language || "en";
   const queryClient = useQueryClient();
   const { profile: djangoProfile } = useDjangoAuth();
+  const profileTimeZone = djangoProfile?.timezone;
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("week");
   const [events, setEvents] = useState([]);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [todayStr, setTodayStr] = useState(getLocalDateStr(new Date()));
+  const [todayStr, setTodayStr] = useState(getLocalDateStr(new Date(), profileTimeZone));
 
   // "Today" used to be frozen at mount: leave the tab open past midnight and the
-  // highlight/now-line stayed on yesterday.
+  // highlight/now-line stayed on yesterday. Resolved in profileTimeZone (falls
+  // back to the browser's ambient zone if unset) so it can't disagree with the
+  // events underneath it, which are all scheduled server-side against it.
   useEffect(() => {
+    const next = getLocalDateStr(new Date(), profileTimeZone);
+    setTodayStr((prev) => (prev === next ? prev : next));
     const id = setInterval(() => {
-      const next = getLocalDateStr(new Date());
+      const next = getLocalDateStr(new Date(), profileTimeZone);
       setTodayStr((prev) => (prev === next ? prev : next));
     }, 60000);
     return () => clearInterval(id);
-  }, []);
+  }, [profileTimeZone]);
 
   // Tapping a day cell on the native Calendar home screen widget opens the
   // app and dispatches this with the tapped date (see Dashboard.jsx's
@@ -481,7 +530,7 @@ export default function CalendarPanel() {
   const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
-    date: getLocalDateStr(new Date()),
+    date: getLocalDateStr(new Date(), profileTimeZone),
     startTime: "09:00",
     endTime: "10:00",
     allDay: false,
@@ -498,14 +547,17 @@ export default function CalendarPanel() {
   const scrollToNow = useCallback(() => {
     if (scrollRef.current) {
       const now = new Date();
-      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const tzParts = getTimeZoneParts(now, profileTimeZone);
+      const currentMins = tzParts
+        ? tzParts.hour * 60 + tzParts.minute
+        : now.getHours() * 60 + now.getMinutes();
       const top = (currentMins / 60) * HOUR_PX;
       scrollRef.current.scrollTo({
         top: Math.max(0, top - 120),
         behavior: "smooth",
       });
     }
-  }, []);
+  }, [profileTimeZone]);
 
   useEffect(() => {
     if (view !== "month") {
@@ -534,7 +586,7 @@ export default function CalendarPanel() {
     setNewEvent({
       title: "",
       description: "",
-      date: getLocalDateStr(new Date()),
+      date: getLocalDateStr(new Date(), profileTimeZone),
       startTime: "09:00",
       endTime: "10:00",
       allDay: false,
@@ -894,7 +946,11 @@ export default function CalendarPanel() {
 
           <button
             onClick={() => {
-              setCurrentDate(new Date());
+              // Seed from todayStr (already profile-timezone-correct) rather than
+              // a raw `new Date()`, whose Y/M/D would be read back out via the
+              // browser's ambient zone wherever currentDate later gets formatted.
+              const [y, m, d] = todayStr.split("-").map(Number);
+              setCurrentDate(new Date(y, m - 1, d, 12, 0, 0));
               scrollToNow();
             }}
             className="px-2.5 py-1 text-[10px] font-mono font-bold border border-[#3b3558] bg-[#1a172c] hover:bg-[#25213e] text-purple-300 hover:text-purple-100 rounded-md transition-colors shadow-sm cursor-pointer"
@@ -989,6 +1045,7 @@ export default function CalendarPanel() {
         <CalendarMonthView
           currentDate={currentDate}
           getDayEvents={getDayEvents}
+          timeZone={profileTimeZone}
           onSelectDate={(selectedDate) => {
             setCurrentDate(selectedDate);
             setView("day");
@@ -1036,6 +1093,7 @@ export default function CalendarPanel() {
                     getDayEvents={getDayEvents}
                     handlers={handlers}
                     isToday={currentDateStr === todayStr}
+                    timeZone={profileTimeZone}
                   />
                 </div>
               </div>
@@ -1133,6 +1191,7 @@ export default function CalendarPanel() {
                           getDayEvents={getDayEvents}
                           handlers={handlers}
                           isToday={ds === todayStr}
+                          timeZone={profileTimeZone}
                         />
                       </div>
                     );

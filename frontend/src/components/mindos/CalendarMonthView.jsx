@@ -5,7 +5,27 @@ import { cn } from "@/lib/utils";
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function getLocalDateStr(date = new Date()) {
+// Resolves in an explicit IANA zone (the user's profile.timezone) instead
+// of the browser/OS's ambient one when timeZone is given -- see
+// CalendarPanel.jsx's getTimeZoneParts for why those can disagree.
+function getLocalDateStr(date = new Date(), timeZone) {
+  if (timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(date);
+      const get = (type) => parts.find((p) => p.type === type)?.value;
+      const yyyy = get("year");
+      const mm = get("month");
+      const dd = get("day");
+      if (yyyy && mm && dd) return `${yyyy}-${mm}-${dd}`;
+    } catch {
+      // fall through to browser-local below
+    }
+  }
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -18,9 +38,10 @@ export default function CalendarMonthView({
   onSelectDate,
   categoryFilter = "all",
   view = "month",
+  timeZone,
 }) {
   const { t } = useTranslation();
-  const todayStr = getLocalDateStr(new Date());
+  const todayStr = getLocalDateStr(new Date(), timeZone);
 
   // Compute month grid (including leading/trailing padding days from previous/next month)
   const year = currentDate.getFullYear();
