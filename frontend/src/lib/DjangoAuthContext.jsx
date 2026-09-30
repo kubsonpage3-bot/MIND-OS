@@ -51,15 +51,27 @@ export const DjangoAuthProvider = ({ children }) => {
         id: profile.user?.id || profile.user_id || profile.id,
       });
       
-      // Auto-detect and sync timezone if it differs from the backend
-      const clientTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (profile.timezone !== clientTz) {
-        djangoApi.profile.update({ timezone: clientTz })
-          .then(() => {
-            // Optimistically update the cache to avoid re-triggering this effect
-            queryClientInstance.setQueryData(['userprofile'], old => ({ ...old, timezone: clientTz }));
-          })
-          .catch(e => console.warn('Failed to auto-update timezone', e));
+      // Auto-detect and sync timezone, but ONLY while it's still the
+      // untouched "UTC" default every profile is created with (see
+      // UserProfile.timezone's model default) -- there's no separate flag
+      // for "the user actually chose this," so comparing against the raw
+      // client-detected zone on every load, as this used to, would also
+      // silently stomp a deliberate choice that happens to differ from
+      // whatever the browser currently reports (e.g. traveling, a VPN).
+      // Scoping it to the default-only case still fixes the common case --
+      // a profile nobody has ever opened Settings > Gameplay for stays
+      // stuck on UTC forever, which the calendar's live time indicator and
+      // today-highlight both treat as authoritative -- without that risk.
+      if (profile.timezone === 'UTC') {
+        const clientTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (clientTz && clientTz !== 'UTC') {
+          djangoApi.profile.update({ timezone: clientTz })
+            .then(() => {
+              // Optimistically update the cache to avoid re-triggering this effect
+              queryClientInstance.setQueryData(['userprofile'], old => ({ ...old, timezone: clientTz }));
+            })
+            .catch(e => console.warn('Failed to auto-update timezone', e));
+        }
       }
     }
   }, [profile]);
